@@ -160,6 +160,13 @@ final class RouteMatrixTest extends Wp2HttpTestCase
                 $this->assertFalse($r->leaksInternals());
             }
         }
+        // the same unmapped controller through the API with a valid SuperAdmin token
+        $token = $this->apiToken('sa');
+        foreach (['GET', 'POST'] as $method) {
+            $r = $this->client()->api($method, 'wp2probe', [], $token);
+            $this->assertFalse(($r->json()['success'] ?? true), "API {$method} wp2probe: " . $r->excerpt());
+            $this->assertStringNotContainsString('WP2PROBE_CONTROLLER', $r->body);
+        }
         $this->assertSame([], static::$app->probe('controller'), 'the unmapped controller never ran');
     }
 }
