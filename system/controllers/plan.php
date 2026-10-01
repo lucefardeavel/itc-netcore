@@ -683,7 +683,8 @@ switch ($action) {
                 "CASE WHEN DATE(created_at) = CURDATE() THEN 'Today' ELSE DATE(created_at) END",
                 'created_datetime'
             )
-            ->where_not_equal('created_at', '0')
+            // portable zero-date exclusion (MySQL 8.0 strict mode rejects comparing a TIMESTAMP with '0')
+            ->where_gt('created_at', '1000-01-01 00:00:00')
             ->select_expr('COUNT(*)', 'voucher_count')
             ->group_by('created_datetime')
             ->order_by_desc('created_datetime')

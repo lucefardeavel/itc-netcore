@@ -287,13 +287,20 @@ switch ($action) {
         $tdate = _post('tdate');
         $stype = _post('stype');
 
+        // missing or malformed dates select nothing (portable: MySQL 8.0 strict mode rejects '' as a DATE)
+        $nuxrValidDates = (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $fdate) && (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $tdate);
+
         $d = ORM::for_table('tbl_transactions');
         if ($stype != '') {
             $d->where('type', $stype);
         }
 
-        $d->where_gte('recharged_on', $fdate);
-        $d->where_lte('recharged_on', $tdate);
+        if ($nuxrValidDates) {
+            $d->where_gte('recharged_on', $fdate);
+            $d->where_lte('recharged_on', $tdate);
+        } else {
+            $d->where_raw('(1 = 0)');
+        }
         $d->order_by_desc('id');
         $x =  $d->find_many();
 
@@ -302,8 +309,12 @@ switch ($action) {
             $dr->where('type', $stype);
         }
 
-        $dr->where_gte('recharged_on', $fdate);
-        $dr->where_lte('recharged_on', $tdate);
+        if ($nuxrValidDates) {
+            $dr->where_gte('recharged_on', $fdate);
+            $dr->where_lte('recharged_on', $tdate);
+        } else {
+            $dr->where_raw('(1 = 0)');
+        }
         $xy = $dr->sum('price');
 
         $ui->assign('d', $x);

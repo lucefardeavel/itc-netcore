@@ -203,6 +203,62 @@ final class ServiceGateTest extends Wp2HttpTestCase
         $this->assertUnchanged($before, 'voucher-only collision');
     }
 
+    /** E21: identity / password / re-activation edits of a reseller-owned customer are refused; profile edits remain. */
+    public function testCustomerEditRefusesReprovisioningChangesForResellerOwned(): void
+    {
+        $db = static::$db;
+        $cid = $this->cid('cA1');
+        $row = $db->rows('SELECT username, fullname, email, address, phonenumber, status, password FROM tbl_customers WHERE id = ?', [$cid])[0];
+        $form = ['id' => $cid, 'username' => $row['username'], 'fullname' => $row['fullname'], 'account_type' => 'Personal', 'password' => '',
+            'pppoe_username' => '', 'pppoe_password' => '', 'pppoe_ip' => '', 'email' => $row['email'], 'address' => (string) $row['address'],
+            'phonenumber' => $row['phonenumber'], 'service_type' => 'Hotspot', 'coordinates' => '', 'status' => 'Active'];
+        $sa = $this->staff('sa');
+        static::$app->clearProbes();
+        $before = $this->snapshot();
+        foreach (['username' => ['username' => 'cA1renamed'], 'password' => ['password' => 'new-secret-77'],
+            'pppoe identity' => ['pppoe_username' => 'pp_cA1', 'pppoe_ip' => '10.9.9.9']] as $name => $change) {
+            $r = $sa->postWithToken('customers/edit-post', $change + $form);
+            $this->assertSame(302, $r->status, $name . ' ' . $r->excerpt());
+            $this->assertStringContainsString('customers/edit', (string) $r->location());
+        }
+        $this->assertUnchanged($before, 'identity edits of a reseller-owned customer');
+        $this->assertSame([], static::$app->probe('device'));
+        // re-activation (Inactive -> Active) is a service grant as well
+        $db->exec("UPDATE tbl_customers SET status = 'Inactive' WHERE id = {$cid}");
+        $before = $this->snapshot();
+        $sa->postWithToken('customers/edit-post', $form);
+        $this->assertUnchanged($before, 're-activation of a reseller-owned customer');
+        $db->exec("UPDATE tbl_customers SET status = 'Active' WHERE id = {$cid}");
+        // a pure profile edit (no device effect) is still allowed
+        $r = $sa->postWithToken('customers/edit-post', ['fullname' => 'Customer cA1 edited'] + $form);
+        $this->assertSame(302, $r->status);
+        $this->assertSame('Customer cA1 edited', $db->value('SELECT fullname FROM tbl_customers WHERE id = ?', [$cid]));
+        $this->assertSame($row['password'], $db->value('SELECT password FROM tbl_customers WHERE id = ?', [$cid]));
+        $this->assertSame([], static::$app->probe('device'), 'no device call for a profile edit');
+        $db->exec("UPDATE tbl_customers SET fullname = " . static::$db->pdo->quote($row['fullname']) . " WHERE id = {$cid}");
+        $this->assertNotEmpty(array_filter($this->auditRows('service.refused'), static fn($a) => (int) $a['target_customer_id'] === $cid));
+    }
+
+    /** E19a: the bulk plan sync skips reseller-owned customers and still provisions unassigned ones. */
+    public function testBulkPlanSyncSkipsResellerOwnedCustomers(): void
+    {
+        // every seeded recharge active (an earlier test may have expired some)
+        $exp = gmdate('Y-m-d', time() + 86400 * 10);
+        static::$db->exec("UPDATE tbl_user_recharges SET status = 'on', expiration = '{$exp}' WHERE id IN (" . implode(',', static::$seed->recharges) . ')');
+        $sa = $this->staff('sa');
+        static::$app->clearProbes();
+        $before = count($this->auditRows('service.refused'));
+        $r = $sa->postWithToken('plan/sync');
+        $this->assertSame(302, $r->status, $r->excerpt());
+        $calls = array_column(static::$app->probe('device'), 'username');
+        $this->assertContains('cNULL', $calls, 'unassigned customer provisioned');
+        foreach (['cA1', 'cB', 'cC1'] as $owned) {
+            $this->assertNotContains($owned, $calls, "{$owned} (reseller-owned) skipped");
+        }
+        $this->assertGreaterThanOrEqual($before + 3, count($this->auditRows('service.refused')), 'each skip audited');
+        $this->assertSame(403, $this->staff('A')->postWithToken('plan/sync')->status, 'Agent has no service.sync_all');
+    }
+
     /** OD-11 required test 6: unassigned legacy customers keep SuperAdmin/Admin service compatibility. */
     public function testUnassignedCustomersKeepAdminServiceCompatibility(): void
     {

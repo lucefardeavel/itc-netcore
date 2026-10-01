@@ -102,6 +102,15 @@ final class SecurityRoutesTest extends Wp2HttpTestCase
             $this->assertSame(200, $r->status);
             $this->assertFalse($r->leaksInternals());
         }
+        // period report: malformed dates select nothing (both engines), valid dates still report
+        foreach ([[], ['fdate' => "2020-01-01' OR '1'='1", 'tdate' => '2099-01-01']] as $post) {
+            $r = $sa->postWithToken('reports/period-view', $post);
+            $this->assertSame(200, $r->status, $r->excerpt());
+            $this->assertStringNotContainsString('Admin - seed', $r->body);
+        }
+        $r = $sa->postWithToken('reports/period-view', ['fdate' => gmdate('Y-m-d', time() - 86400 * 3), 'tdate' => gmdate('Y-m-d', time() + 86400)]);
+        $this->assertSame(200, $r->status);
+        $this->assertStringContainsString('Admin - seed', $r->body);
     }
 
     /** C8 / D027: Agent and Sales cannot generate vouchers (form or forged POST). */

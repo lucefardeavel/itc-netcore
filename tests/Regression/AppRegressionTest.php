@@ -129,7 +129,9 @@ PHP;
             foreach (['customer-add', 'recharge', 'delete-paths'] as $step) {
                 $r = RunnerProcess::exec([PHP_BINARY, $dir . '/wp1_harness.php', $step]);
                 $this->assertSame(0, $r['exit'], "{$step}: {$r['raw']}");
-                $res[$step] = json_decode(trim(preg_replace('/^.*?(\{.*\})\s*$/s', '$1', $r['raw'])), true);
+                // stdout only: the WP2 server-side log ([nuxr] lines, e.g. a refused service grant) goes to stderr
+                $this->assertNotSame([], $r['report'], "{$step}: no JSON on stdout: {$r['raw']}");
+                $res[$step] = $r['report'];
             }
             // cron (cwd system/, as documented); the reg_cust plan is not expired, so cron is a no-op run
             $cron = proc_open([PHP_BINARY, 'cron.php'], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $dir . '/system');

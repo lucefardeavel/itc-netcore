@@ -71,6 +71,7 @@ final class RouteMatrixTest extends Wp2HttpTestCase
         }
         $before = $this->snapshot(['tbl_logs', 'tbl_reseller_audit_events', 'tbl_appconfig']);
         $rows = [];
+        $serverErrors = [];
         $denials = 0;
         $allowedChecked = 0;
         foreach (RouteMap::ROUTES as $controller => $map) {
@@ -95,7 +96,10 @@ final class RouteMatrixTest extends Wp2HttpTestCase
                         $rows[] = sprintf('%-4s %-4s %-45s %-28s %s %d', $u, $method, $route, $rule, $allowed ? 'ALLOW' : 'DENY ', $r->status);
                         if ($allowed) {
                             $allowedChecked++;
-                            $this->assertNotContains($r->status, [401, 403, 405, 500], "{$u} {$method} {$route} should be allowed: " . $r->excerpt());
+                            $this->assertNotContains($r->status, [401, 403, 405], "{$u} {$method} {$route} should be allowed: " . $r->excerpt());
+                            if ($r->status === 500) {
+                                $serverErrors[] = "{$u} {$method} {$route}";
+                            }
                         } else {
                             $denials++;
                             $this->assertSame(403, $r->status, "{$u} {$method} {$route} ({$rule}) must be denied: " . $r->excerpt());
@@ -107,6 +111,7 @@ final class RouteMatrixTest extends Wp2HttpTestCase
                 }
             }
         }
+        $this->assertSame([], $serverErrors, 'allowed read routes must not fail: ' . substr(static::$app->serverLog(), -6000));
         $this->assertUnchanged($before, 'route matrix', ['tbl_logs', 'tbl_reseller_audit_events', 'tbl_appconfig']);
         $this->assertGreaterThan(500, $denials);
         $this->assertGreaterThan(100, $allowedChecked);
