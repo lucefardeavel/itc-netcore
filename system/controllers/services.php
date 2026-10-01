@@ -200,6 +200,10 @@ switch ($action) {
         $id = $routes['2'];
 
         $d = ORM::for_table('tbl_plans')->find_one($id);
+        if ($d && ($nuxrRefusal = \Reseller\Domain\PlanGuard::deleteRefusal((int) $d['id'])) !== null) {
+            // WP3B: a plan referenced by reseller pricing/activation data is refused before any hook, device call or delete
+            r2(getUrl('services/hotspot'), 'e', $nuxrRefusal);
+        }
         if ($d) {
             run_hook('delete_plan'); #HOOK
             $dvc = Package::getDevice($d);
@@ -211,7 +215,12 @@ switch ($action) {
                     new Exception(Lang::T("Devices Not Found"));
                 }
             }
-            $d->delete();
+            try {
+                $d->delete();
+            } catch (\PDOException $nuxrDeleteError) {
+                // a reseller reference added concurrently (FK RESTRICT): clear refusal, never a 500
+                r2(getUrl('services/hotspot'), 'e', \Reseller\Domain\DomainError::MESSAGES['REFERENCED']);
+            }
 
             r2(getUrl('services/hotspot'), 's', Lang::T('Data Deleted Successfully'));
         }
@@ -586,6 +595,10 @@ switch ($action) {
         $id = $routes['2'];
 
         $d = ORM::for_table('tbl_plans')->find_one($id);
+        if ($d && ($nuxrRefusal = \Reseller\Domain\PlanGuard::deleteRefusal((int) $d['id'])) !== null) {
+            // WP3B: a plan referenced by reseller pricing/activation data is refused before any hook, device call or delete
+            r2(getUrl('services/pppoe'), 'e', $nuxrRefusal);
+        }
         if ($d) {
             run_hook('delete_ppoe'); #HOOK
 
@@ -598,7 +611,12 @@ switch ($action) {
                     new Exception(Lang::T("Devices Not Found"));
                 }
             }
-            $d->delete();
+            try {
+                $d->delete();
+            } catch (\PDOException $nuxrDeleteError) {
+                // a reseller reference added concurrently (FK RESTRICT): clear refusal, never a 500
+                r2(getUrl('services/pppoe'), 'e', \Reseller\Domain\DomainError::MESSAGES['REFERENCED']);
+            }
 
             r2(getUrl('services/pppoe'), 's', Lang::T('Data Deleted Successfully'));
         }
@@ -836,9 +854,18 @@ switch ($action) {
         $id = $routes['2'];
 
         $d = ORM::for_table('tbl_plans')->find_one($id);
+        if ($d && ($nuxrRefusal = \Reseller\Domain\PlanGuard::deleteRefusal((int) $d['id'])) !== null) {
+            // WP3B: a plan referenced by reseller pricing/activation data is refused before any hook, device call or delete
+            r2(getUrl('services/balance'), 'e', $nuxrRefusal);
+        }
         if ($d) {
             run_hook('delete_balance'); #HOOK
-            $d->delete();
+            try {
+                $d->delete();
+            } catch (\PDOException $nuxrDeleteError) {
+                // a reseller reference added concurrently (FK RESTRICT): clear refusal, never a 500
+                r2(getUrl('services/balance'), 'e', \Reseller\Domain\DomainError::MESSAGES['REFERENCED']);
+            }
             r2(getUrl('services/balance'), 's', Lang::T('Data Deleted Successfully'));
         }
         break;
@@ -1078,6 +1105,10 @@ switch ($action) {
         $id = $routes['2'];
 
         $d = ORM::for_table('tbl_plans')->find_one($id);
+        if ($d && ($nuxrRefusal = \Reseller\Domain\PlanGuard::deleteRefusal((int) $d['id'])) !== null) {
+            // WP3B: a plan referenced by reseller pricing/activation data is refused before any hook, device call or delete
+            r2(getUrl('services/vpn'), 'e', $nuxrRefusal);
+        }
         if ($d) {
             run_hook('delete_vpn'); #HOOK
 
@@ -1090,7 +1121,12 @@ switch ($action) {
                     new Exception(Lang::T("Devices Not Found"));
                 }
             }
-            $d->delete();
+            try {
+                $d->delete();
+            } catch (\PDOException $nuxrDeleteError) {
+                // a reseller reference added concurrently (FK RESTRICT): clear refusal, never a 500
+                r2(getUrl('services/vpn'), 'e', \Reseller\Domain\DomainError::MESSAGES['REFERENCED']);
+            }
 
             r2(getUrl('services/vpn'), 's', Lang::T('Data Deleted Successfully'));
         }
