@@ -41,7 +41,8 @@ CLI-only tool: `system/reseller/hierarchy.php` (inspect / validate / plan; `appl
 Web (`index.php` → `system/boot.php`):
 
 1. `init.php` defines `NUXR_RUNTIME`, forces `display_errors=0`, `log_errors=1`, `zend.exception_ignore_args=1`,
-   allowlists the language (NEW-1) and sets an ANONYMOUS context before plugins load.
+   allowlists the language (NEW-1); the actor context is ANONYMOUS until resolved, so plugins loaded by
+   `init.php` never see a privileged context.
 2. `ActorContext` is resolved from the staff session/cookie (status re-read from the DB on every request)
    or the customer session.
 3. `PluginRegistry::capture()` snapshots the registered plugin menus.
@@ -79,7 +80,8 @@ Principal state rules (`PermissionService`):
 - **Inactive / deleted** staff: unauthenticated on the next request (web session cleared, API refused).
 - **Not enrolled** Agent/Sales: tree scopes (T/D/C/A) resolve to nothing — they see no data until an
   Admin places them in the hierarchy.
-- **Inconsistent** (closure parent ≠ legacy `root` for a Sales user): no tree scopes.
+- **Inconsistent** (enrolled account whose closure parent differs from the legacy `root` field, an Agent
+  under a non-Agent, or a Sales user without an Agent parent): no tree scopes.
 - **Schema not ready**: every `SCHEMA_DEPENDENT` capability and every tree scope is refused for every
   role including SuperAdmin; the service gate refuses every service grant (it cannot evaluate ownership).
 - **Default credential** (installer-seeded `admin` hash): every route redirects to change-password.
