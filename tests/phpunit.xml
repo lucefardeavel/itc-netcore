@@ -15,10 +15,12 @@
         <testsuite name="unit">
             <directory>Unit</directory>
             <exclude>Unit/Wp2</exclude>
+            <exclude>Unit/Wp3a</exclude>
         </testsuite>
         <testsuite name="integration">
             <directory>Integration</directory>
             <exclude>Integration/Wp2</exclude>
+            <exclude>Integration/Wp3a</exclude>
         </testsuite>
         <testsuite name="regression">
             <directory>Regression</directory>
@@ -31,6 +33,12 @@
         </testsuite>
         <testsuite name="wp2-http">
             <directory>Http</directory>
+        </testsuite>
+        <testsuite name="wp3a-unit">
+            <directory>Unit/Wp3a</directory>
+        </testsuite>
+        <testsuite name="wp3a-integration">
+            <directory>Integration/Wp3a</directory>
         </testsuite>
     </testsuites>
 </phpunit>
