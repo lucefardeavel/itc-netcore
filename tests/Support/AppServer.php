@@ -30,6 +30,8 @@ register_hook('send_telegram', 'wp2probe_telegram');
 function wp2probe_telegram($args) { wp2probe_log('telegram', $args[0] ?? ''); }
 register_hook('send_sms', 'wp2probe_sms');
 function wp2probe_sms($args) { wp2probe_log('sms', $args); }
+register_hook('send_whatsapp', 'wp2probe_whatsapp');
+function wp2probe_whatsapp($args) { wp2probe_log('sms', $args); }
 register_menu('WP2 Probe Admin', true, 'wp2probe_admin_page', 'AFTER_DASHBOARD', '', '', 'success', ['SuperAdmin', 'Admin']);
 function wp2probe_admin_page() { wp2probe_log('plugin', 'admin_page'); echo 'WP2PROBE_ADMIN_PAGE'; }
 register_menu('WP2 Probe Default', true, 'wp2probe_default_page', 'AFTER_DASHBOARD');
@@ -43,6 +45,8 @@ register_menu('WP2 Fail Type', true, 'wp2probe_fail_type', 'AFTER_DASHBOARD', ''
 function wp2probe_fail_type() { strlen([]); }
 register_menu('WP2 Fail Customer', false, 'wp2probe_fail_customer', 'AFTER_DASHBOARD');
 function wp2probe_fail_customer() { global $db_pass; throw new RuntimeException('customer failure at /home/app/init.php:99 ' . $db_pass); }
+register_hook('view_customer', 'wp2probe_hook_throw');
+function wp2probe_hook_throw() { global $db_pass; if (is_file(__DIR__ . '/../../wp2_probe/throw_in_hook.flag')) { throw new PDOException("SQLSTATE[HY000] hook failure /home/app/x.php " . $db_pass); } }
 PHP;
 
     private const PROBE_DEVICE = <<<'PHP'
@@ -107,6 +111,8 @@ PHP;
         @mkdir($dir . '/wp2_sessions', 0777, true);
         file_put_contents($dir . '/system/plugin/wp2_probe.php', self::PROBE_PLUGIN);
         file_put_contents($dir . '/system/devices/Probe.php', self::PROBE_DEVICE);
+        // an unmapped controller (must be denied for every role by RouteGuard)
+        file_put_contents($dir . '/system/controllers/wp2probe.php', "<?php\n@file_put_contents(__DIR__ . '/../../wp2_probe/controller.log', \"ran\\n\", FILE_APPEND);\necho 'WP2PROBE_CONTROLLER';\n");
         $port = 20000 + random_int(0, 9999);
         $app = new self($db, $dir, $port);
         $app->writeConfig(array_key_exists('api_secret', $opts) ? $opts['api_secret'] : bin2hex(random_bytes(32)), $opts['extra_config'] ?? '');
@@ -197,6 +203,29 @@ PHP;
         return json_decode(trim(substr($r['raw'], $pos + 11)), true);
     }
 
+    /** Starts exec() in a separate process without waiting (concurrency tests). */
+    public function execStart(string $code): array
+    {
+        $file = $this->dir . '/wp2_exec_' . bin2hex(random_bytes(4)) . '.php';
+        file_put_contents($file, self::EXEC_HEAD . "\n" . $code . "\necho \"\\n@@WP2JSON@@\" . json_encode(\$result);\n");
+        $proc = proc_open([PHP_BINARY, $file], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        return ['proc' => $proc, 'pipes' => $pipes, 'file' => $file];
+    }
+
+    public function execFinish(array $h): mixed
+    {
+        $out = stream_get_contents($h['pipes'][1]) . stream_get_contents($h['pipes'][2]);
+        fclose($h['pipes'][1]);
+        fclose($h['pipes'][2]);
+        proc_close($h['proc']);
+        @unlink($h['file']);
+        $pos = strrpos($out, '@@WP2JSON@@');
+        if ($pos === false) {
+            throw new \RuntimeException('exec failed: ' . $out);
+        }
+        return json_decode(trim(substr($out, $pos + 11)), true);
+    }
+
     /** Runs a script of the copy (e.g. system/cron.php) with the given cwd; returns [exit, output]. */
     public function run(array $args, string $cwd): array
     {
@@ -238,6 +267,12 @@ PHP;
     /** Hash of the copy's file tree (to prove "no filesystem change"). */
     public function treeHash(string $sub = ''): string
     {
+        return hash('sha256', json_encode($this->treeFiles($sub)));
+    }
+
+    /** @return array<string,string> relative path => sha256 */
+    public function treeFiles(string $sub = ''): array
+    {
         $base = rtrim($this->dir . '/' . $sub, '/');
         $files = [];
         $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($base, \FilesystemIterator::SKIP_DOTS));
@@ -246,9 +281,11 @@ PHP;
             if (preg_match('#^(wp2_probe|wp2_sessions|ui/compiled|system/cache)/#', $rel)) {
                 continue;
             }
-            $files[$rel] = hash_file('sha256', $f->getPathname());
+            // Lang::T() appends newly seen strings to the active language file (legacy behaviour):
+            // only the existence of language files is compared, not their content
+            $files[$rel] = str_starts_with($rel, 'system/lan/') ? 'present' : hash_file('sha256', $f->getPathname());
         }
         ksort($files);
-        return hash('sha256', json_encode($files));
+        return $files;
     }
 }

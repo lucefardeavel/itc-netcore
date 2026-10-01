@@ -16,6 +16,8 @@ final class CliOnlyTest extends IntegrationTestCase
     private const PATHS = [
         '/system/reseller/migrate.php',
         '/system/reseller/migrate.php?command=migrate',
+        '/system/reseller/hierarchy.php',
+        '/system/reseller/hierarchy.php?command=plan',
         '/system/reseller/migrations/R0001_manager_tree.php',
         '/system/reseller/migrations/R0005_customer_ownership.php',
         '/system/reseller/Migration/Runner.php',

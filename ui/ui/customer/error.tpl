@@ -18,6 +18,7 @@
             <div class="panel-body">
                 {Lang::T("Sorry, the software failed to process the request, if it still happening, please tell")}
                 {$_c['CompanyName']}
+                {if $error_ref}<br><small>{Lang::T('Please quote reference')} {$error_ref|escape}</small>{/if}
             </div>
             <div class="panel-footer">
                 <a href="{$url}" id="button" class="btn btn-danger btn-block">{Lang::T('Try Again')}</a>

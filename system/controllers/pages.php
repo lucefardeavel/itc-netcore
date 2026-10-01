@@ -86,6 +86,9 @@ if ($nuxrMode === 'reset') {
         $html = _post("html");
         $templateName = null;
         if (_post('template_save') == 'yes' && _post('template_name') !== '') {
+            if (!is_dir($PAGES_PATH . DIRECTORY_SEPARATOR . 'vouchers')) {
+                @mkdir($PAGES_PATH . DIRECTORY_SEPARATOR . 'vouchers', 0755, true);
+            }
             $templateName = \Reseller\Security\PathGuard::voucherTemplateName(_post('template_name'));
             $templatePath = $templateName === null ? null : $PAGES_PATH . DIRECTORY_SEPARATOR . 'vouchers' . DIRECTORY_SEPARATOR . $templateName . '.html';
             if ($templatePath === null || !\Reseller\Security\PathGuard::inside($templatePath, $PAGES_PATH . DIRECTORY_SEPARATOR . 'vouchers')) {

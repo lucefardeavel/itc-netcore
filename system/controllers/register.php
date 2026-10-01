@@ -176,7 +176,7 @@ switch ($do) {
                 $ui->assign('login_logo', $login_logo);
                 $ui->assign('wallpaper', $wallpaper);
                 $ui->assign('favicon', $favicon);
-                $ui->assign('csrf_token', $csrf_token);
+                $ui->assign('csrf_token', Csrf::generateAndStoreToken());
                 $ui->assign('_title', Lang::T('Login'));
                 $ui->assign('customFields', User::getFormCustomField($ui, true));
                 switch ($config['login_page_type']) {
@@ -262,7 +262,7 @@ switch ($do) {
             $ui->assign('login_logo', $login_logo);
             $ui->assign('wallpaper', $wallpaper);
             $ui->assign('favicon', $favicon);
-            $ui->assign('csrf_token', $csrf_token);
+            $ui->assign('csrf_token', Csrf::generateAndStoreToken());
             $ui->assign('_title', Lang::T('Login'));
             $ui->assign('customFields', User::getFormCustomField($ui, true));
             $ui->assign('username', "");

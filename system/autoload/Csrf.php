@@ -28,6 +28,11 @@ class Csrf
         if ($isApi) {
             return true;
         }
+        // a request that carries the token in the X-CSRF-Token header (script/AJAX) satisfies the
+        // legacy per-controller check too (the central policy already verified it)
+        if (!is_string($token) || $token === '') {
+            $token = \Reseller\Security\CsrfPolicy::requestToken();
+        }
         return \Reseller\Security\CsrfPolicy::check(is_string($token) ? $token : null);
     }
 

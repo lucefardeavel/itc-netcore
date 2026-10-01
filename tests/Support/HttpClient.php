@@ -35,6 +35,16 @@ final class HttpClient
         return $this->post($route, $data, $query);
     }
 
+    /** multipart/form-data POST with file uploads ($files: field => local path). */
+    public function postMultipart(string $route, array $fields, array $files, array $query = []): HttpResponse
+    {
+        $data = $fields;
+        foreach ($files as $field => $path) {
+            $data[$field] = new \CURLFile($path, 'application/json', basename($path));
+        }
+        return $this->request('POST', $this->url($route, $query), $data, [], true, true);
+    }
+
     public function token(string $route = 'dashboard', array $query = []): string
     {
         $r = $this->get($route, $query);
@@ -95,7 +105,7 @@ final class HttpClient
         return $this->request($method, rtrim($this->baseUrl, '/') . '/' . ltrim($path, '/'), $data, $headers);
     }
 
-    private function request(string $method, string $url, ?array $data, array $headers, bool $withCookies = true): HttpResponse
+    private function request(string $method, string $url, ?array $data, array $headers, bool $withCookies = true, bool $multipart = false): HttpResponse
     {
         $ch = curl_init($url);
         $respHeaders = [];
@@ -115,7 +125,9 @@ final class HttpClient
         if ($method === 'HEAD') {
             $opts[CURLOPT_NOBODY] = true;
         }
-        if ($data !== null) {
+        if ($data !== null && $multipart) {
+            $opts[CURLOPT_POSTFIELDS] = $data;
+        } elseif ($data !== null) {
             $opts[CURLOPT_POSTFIELDS] = http_build_query($data);
             $headers[] = 'Content-Type: application/x-www-form-urlencoded';
         }

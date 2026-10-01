@@ -101,7 +101,6 @@ final class Capability
         self::CUSTOMER_TRANSFER_OWNER, self::CUSTOMER_ASSIGN_LEGACY_OWNER,
         self::STAFF_CREATE, self::STAFF_UPDATE_PROFILE, self::STAFF_CHANGE_ROLE, self::STAFF_DISABLE, self::STAFF_DELETE,
         self::RESELLER_PLACE, self::RESELLER_MOVE, self::RESELLER_TREE_READ,
-        self::SYSTEM_RESTORE,
     ];
 
     /** @return list<string> every defined capability */
