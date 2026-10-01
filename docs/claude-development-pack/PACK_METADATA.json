@@ -1,0 +1,26 @@
+{
+  "pack": "phpnuxbill-reseller-claude-dev-pack-v1.1",
+  "version": "1.1",
+  "supersedes": "phpnuxbill-reseller-claude-dev-pack-v1",
+  "status": "REVIEWED_OWNER_SPECIFICATION_PACK_READY",
+  "baseline_repo": "hotspotbilling/phpnuxbill",
+  "upstream_baseline_commit": "d3e0596287322944ee21fcc14dc1798158463140",
+  "implementation_included": false,
+  "license_metadata_status": "CONFLICT_REQUIRES_WP0_VERIFICATION",
+  "work_packages": [
+    "WP0_RECONNAISSANCE.md",
+    "WP1_DATABASE_FOUNDATION.md",
+    "WP2_HIERARCHY_PERMISSIONS.md",
+    "WP3A_WALLET_LEDGER.md",
+    "WP3B_PRICING_SETTLEMENT.md",
+    "WP4_RADIUS_HARDENING.md",
+    "WP5A_ACTIVATION_CORE.md",
+    "WP5B_LEGACY_ENTRYPOINT_CLOSURE.md",
+    "WP6A_ADAPTIVE_SHELL_SUBSCRIBER_UX.md",
+    "WP6B_FINANCE_RESELLER_UX.md",
+    "WP7_PWA.md",
+    "WP8_INTEGRATION_POC.md",
+    "WP9_RED_TEAM_RELEASE_CANDIDATE.md",
+    "WP10_RELEASE_HANDOFF.md"
+  ]
+}
