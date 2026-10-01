@@ -189,6 +189,52 @@ final class ConstraintTest extends IntegrationTestCase
         $this->assertSame(4, (int) $this->db->value('SELECT COUNT(*) FROM tbl_manager_plan_prices'));
     }
 
+    /**
+     * Owner WP1 final fix 2: *_set_by / *_set_at describe only the CURRENT explicit wholesale /
+     * retail override (NULL value <=> no setter; explicit value <=> setter + time).
+     */
+    public function testPriceOverrideSetterFieldsDescribeOnlyTheCurrentOverride(): void
+    {
+        $now = $this->now();
+        foreach ([
+            'wholesale' => [$this->agent, 'wholesale_cost', 'wholesale_set_by', 'wholesale_set_at', '12.50'],
+            'retail' => [$this->child, 'retail_price', 'retail_set_by', 'retail_set_at', '19.99'],
+        ] as $name => [$manager, $value, $by, $at, $amount]) {
+            $insert = fn (int $plan, string $cols, string $vals): string =>
+                "INSERT INTO tbl_manager_plan_prices (manager_id, plan_id, created_at, updated_at{$cols}) VALUES ({$manager}, {$plan}, {$now}, {$now}{$vals})";
+            $where = "WHERE manager_id = {$manager} AND plan_id = {$this->plan2}";
+            $get = fn (int $plan): array => $this->db->rows(
+                "SELECT {$value} AS v, {$by} AS b, {$at} AS t FROM tbl_manager_plan_prices WHERE manager_id = ? AND plan_id = ?",
+                [$manager, $plan]
+            )[0];
+
+            // NULL with no setter is accepted (inherit), both implicitly and explicitly
+            $this->db->exec($insert($this->plan, ", {$value}", ', NULL'));
+            $this->assertSame(['v' => null, 'b' => null, 't' => null], $get($this->plan), "{$name}: NULL = inherit, no setter");
+            // NULL with a stale setter / time is rejected (insert and update)
+            $this->rejects($insert($this->plan2, ", {$by}", ", {$this->admin}"), "{$name}: NULL with stale setter");
+            $this->rejects($insert($this->plan2, ", {$at}", ", {$now}"), "{$name}: NULL with stale time");
+            $this->rejects($insert($this->plan2, ", {$value}, {$by}, {$at}", ", NULL, {$this->admin}, {$now}"), "{$name}: NULL with stale setter + time");
+            $this->rejects("UPDATE tbl_manager_plan_prices SET {$by} = {$this->admin}, {$at} = {$now} WHERE manager_id = {$manager} AND plan_id = {$this->plan}", "{$name}: setter attached to an inherited value");
+            // an explicit value requires setter + time
+            $this->rejects($insert($this->plan2, ", {$value}", ", {$amount}"), "{$name}: explicit value without setter/time");
+            $this->rejects($insert($this->plan2, ", {$value}, {$by}", ", {$amount}, {$this->admin}"), "{$name}: explicit value without time");
+            $this->rejects($insert($this->plan2, ", {$value}, {$at}", ", {$amount}, {$now}"), "{$name}: explicit value without setter");
+            $this->db->exec($insert($this->plan2, ", {$value}, {$by}, {$at}", ", {$amount}, {$this->admin}, {$now}"));
+            $row = $get($this->plan2);
+            $this->assertSame([$amount, (string) $this->admin], [(string) $row['v'], (string) $row['b']]);
+            $this->assertNotNull($row['t']);
+            // clearing the value requires clearing setter + time together
+            $this->rejects("UPDATE tbl_manager_plan_prices SET {$value} = NULL {$where}", "{$name}: clear value but keep setter + time");
+            $this->rejects("UPDATE tbl_manager_plan_prices SET {$value} = NULL, {$by} = NULL {$where}", "{$name}: clear value + setter but keep time");
+            $this->rejects("UPDATE tbl_manager_plan_prices SET {$value} = NULL, {$at} = NULL {$where}", "{$name}: clear value + time but keep setter");
+            $this->rejects("UPDATE tbl_manager_plan_prices SET {$by} = NULL, {$at} = NULL {$where}", "{$name}: explicit value cannot lose its setter");
+            $this->db->exec("UPDATE tbl_manager_plan_prices SET {$value} = NULL, {$by} = NULL, {$at} = NULL {$where}");
+            $this->assertSame(['v' => null, 'b' => null, 't' => null], $get($this->plan2), "{$name}: cleared override leaves no provenance");
+        }
+        $this->assertSame(4, (int) $this->db->value('SELECT COUNT(*) FROM tbl_manager_plan_prices'));
+    }
+
     private function actorActivation(string $key, string $actorType, ?int $actorUser, ?int $actorCustomer, int $targetCustomer): string
     {
         $u = $actorUser === null ? 'NULL' : (string) $actorUser;
@@ -262,6 +308,58 @@ final class ConstraintTest extends IntegrationTestCase
         $this->assertNull($rows[0]['actor_user_id']);
         $this->assertSame(['SYSTEM', null, null], [$rows[1]['actor_type'], $rows[1]['actor_user_id'], $rows[1]['actor_customer_id']]);
         $this->assertSame(['STAFF', (string) $this->agent], [$rows[2]['actor_type'], (string) $rows[2]['actor_user_id']]);
+    }
+
+    private function ledgerRow(string $key, string $actorType, ?int $operator, ?int $actorCustomer, ?int $activation): string
+    {
+        $op = $operator === null ? 'NULL' : (string) $operator;
+        $cu = $actorCustomer === null ? 'NULL' : (string) $actorCustomer;
+        $act = $activation === null ? 'NULL' : (string) $activation;
+        return "INSERT INTO tbl_manager_ledger (entry_key, manager_id, entry_type, direction, amount, balance_before, balance_after, activation_id, operator_id, actor_type, actor_customer_id, created_at)
+            VALUES ('{$key}', {$this->agent}, 'ACTIVATION_DEBIT', 'DEBIT', 10.00, 100.00, 90.00, {$act}, {$op}, '{$actorType}', {$cu}, {$this->now()})";
+    }
+
+    /** Owner WP1 final fix 1: the ledger row itself persists the customer actor identity. */
+    public function testLedgerCustomerActorIdentity(): void
+    {
+        $now = $this->now();
+        $this->db->exec("INSERT INTO tbl_manager_wallets (manager_id, balance, debt_limit, created_at, updated_at) VALUES ({$this->agent}, 100.00, 0, {$now}, {$now})");
+        // customer A initiates an activation whose target is customer B
+        $this->db->exec($this->actorActivation('ledger-gift', 'CUSTOMER', null, $this->customer, $this->customer2));
+        $act = (int) $this->db->value("SELECT id FROM tbl_reseller_activations WHERE idempotency_key = 'ledger-gift'");
+
+        // CUSTOMER entry with actor_customer_id succeeds; the actor (A) differs from the activation target (B)
+        $this->db->exec($this->ledgerRow('l-gift', 'CUSTOMER', null, $this->customer, $act));
+        $r = $this->db->rows("SELECT l.actor_type, l.operator_id, l.actor_customer_id, a.customer_id AS target FROM tbl_manager_ledger l JOIN tbl_reseller_activations a ON a.id = l.activation_id WHERE l.entry_key = 'l-gift'")[0];
+        $this->assertSame('CUSTOMER', $r['actor_type']);
+        $this->assertNull($r['operator_id']);
+        $this->assertSame((string) $this->customer, (string) $r['actor_customer_id'], 'ledger identifies the initiating customer A');
+        $this->assertSame((string) $this->customer2, (string) $r['target'], 'the activation target stays customer B');
+        $this->assertNotSame((string) $r['actor_customer_id'], (string) $r['target']);
+        // the identity lives on the ledger row: no activation link is needed to record it (WP3A decides that rule)
+        $this->db->exec($this->ledgerRow('l-cust-no-act', 'CUSTOMER', null, $this->customer2, null));
+
+        // CUSTOMER without actor_customer_id fails, even when an activation carrying the identity is linked
+        $this->rejects($this->ledgerRow('l-cust-missing', 'CUSTOMER', null, null, $act), 'CUSTOMER ledger actor requires actor_customer_id');
+        $this->rejects($this->ledgerRow('l-cust-op-only', 'CUSTOMER', $this->agent, null, null), 'a staff operator is not a customer identity');
+        // unknown customer is rejected by the FK
+        $this->rejects($this->ledgerRow('l-cust-bad-fk', 'CUSTOMER', null, 999999, null), 'ledger actor_customer_id FK');
+        // STAFF without operator_id still fails
+        $this->rejects($this->ledgerRow('l-staff-missing', 'STAFF', null, null, null), 'STAFF ledger entry requires operator_id');
+        $this->rejects($this->ledgerRow('l-staff-cust-only', 'STAFF', null, $this->customer, null), 'a customer id is not a staff operator');
+        $this->db->exec($this->ledgerRow('l-staff-ok', 'STAFF', $this->admin, null, null));
+        // SYSTEM / CRON / API may carry no customer identity
+        foreach (['SYSTEM', 'CRON', 'API'] as $t) {
+            $this->db->exec($this->ledgerRow('l-' . strtolower($t), $t, null, null, null));
+        }
+        $this->assertSame(6, (int) $this->db->value('SELECT COUNT(*) FROM tbl_manager_ledger'));
+
+        // a customer referenced ONLY as a ledger actor cannot be deleted (RESTRICT via fk_ledger_actor_customer)
+        $c3 = $this->db->insertRow('tbl_customers', ['username' => 'cust_c3', 'password' => 'p', 'fullname' => 'c3', 'balance' => 0]);
+        $this->db->exec($this->ledgerRow('l-c3', 'CUSTOMER', null, $c3, null));
+        $this->assertSame(0, (int) $this->db->value("SELECT COUNT(*) FROM tbl_reseller_activations WHERE customer_id = {$c3} OR actor_customer_id = {$c3}"));
+        $this->rejects("DELETE FROM tbl_customers WHERE id = {$c3}", 'RESTRICT: ledger actor customer cannot be deleted');
+        $this->rejects("UPDATE tbl_manager_ledger SET actor_customer_id = NULL WHERE entry_key = 'l-c3'", 'CUSTOMER ledger identity cannot be removed');
     }
 
     public function testWalletLedgerTransferReservationConstraints(): void

@@ -10,8 +10,11 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *    Current rows carry actor/timestamp audit; history is preserved by activation snapshots (Q4).
  *  - tbl_manager_plan_prices: per-manager wholesale override (set by parent/Admin), optional
  *    retail override (set by the manager) and optional availability override. No row = no
- *    manager-specific configuration. Each override is independent and NULL = inherit; every
- *    explicit override records who set it and when:
+ *    manager-specific configuration. Each override is independent and NULL = inherit. The
+ *    *_set_by / *_set_at fields describe only the CURRENT explicit override (provenance, not
+ *    history): value NULL => both NULL; value set => both set. Historical pricing is preserved
+ *    by activation snapshots; configuration-change audit history is a later service/audit layer.
+ *    Availability override:
  *      is_enabled NULL = inherit (no availability override; audit fields must be NULL)
  *      is_enabled 0    = explicitly disabled           } availability_set_by and
  *      is_enabled 1    = explicitly enabled, still      } availability_set_at required
@@ -81,8 +84,8 @@ CREATE TABLE `tbl_manager_plan_prices` (
   CONSTRAINT `ck_mpp_retail_nonneg` CHECK (`retail_price` IS NULL OR `retail_price` >= 0),
   CONSTRAINT `ck_mpp_enabled_bool` CHECK (`is_enabled` IS NULL OR `is_enabled` IN (0, 1)),
   CONSTRAINT `ck_mpp_availability_audit` CHECK ((`is_enabled` IS NULL AND `availability_set_by` IS NULL AND `availability_set_at` IS NULL) OR (`is_enabled` IS NOT NULL AND `availability_set_by` IS NOT NULL AND `availability_set_at` IS NOT NULL)),
-  CONSTRAINT `ck_mpp_wholesale_audit` CHECK (`wholesale_cost` IS NULL OR (`wholesale_set_by` IS NOT NULL AND `wholesale_set_at` IS NOT NULL)),
-  CONSTRAINT `ck_mpp_retail_audit` CHECK (`retail_price` IS NULL OR (`retail_set_by` IS NOT NULL AND `retail_set_at` IS NOT NULL))
+  CONSTRAINT `ck_mpp_wholesale_audit` CHECK ((`wholesale_cost` IS NULL AND `wholesale_set_by` IS NULL AND `wholesale_set_at` IS NULL) OR (`wholesale_cost` IS NOT NULL AND `wholesale_set_by` IS NOT NULL AND `wholesale_set_at` IS NOT NULL)),
+  CONSTRAINT `ck_mpp_retail_audit` CHECK ((`retail_price` IS NULL AND `retail_set_by` IS NULL AND `retail_set_at` IS NULL) OR (`retail_price` IS NOT NULL AND `retail_set_by` IS NOT NULL AND `retail_set_at` IS NOT NULL))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Per-manager plan pricing overrides (WP1 foundation)'
 SQL,
         ],

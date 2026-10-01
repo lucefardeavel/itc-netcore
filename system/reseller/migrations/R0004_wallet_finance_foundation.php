@@ -18,6 +18,12 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *  tbl_manager_wallet_reservations  at most one ACTIVE reservation per activation (stored
  *                                   generated column + UNIQUE); history rows are kept.
  *
+ * Ledger actor identity is stored on the ledger row itself (durable financial history must not
+ * depend on an optional activation join): STAFF requires operator_id (tbl_users.id); CUSTOMER
+ * requires actor_customer_id (tbl_customers.id, signed INT); SYSTEM / CRON / API need neither.
+ * The actor customer may differ from the target customer of the linked activation (customer A
+ * paying for customer B). Whether a CUSTOMER entry must reference an activation is WP3A logic.
+ *
  * The "direct child" transfer rule, debt-limit exposure rules and immutability enforcement are
  * WP3A service/database responsibilities (owner decision Q5: no triggers in WP1).
  * Money: DECIMAL(18,2). Timestamps: DATETIME(6), UTC, always written by the service.
@@ -90,8 +96,9 @@ CREATE TABLE `tbl_manager_ledger` (
   `transfer_id` BIGINT UNSIGNED NULL,
   `counterparty_manager_id` INT UNSIGNED NULL,
   `reverses_entry_id` BIGINT UNSIGNED NULL COMMENT 'compensating entry for (D012)',
-  `operator_id` INT UNSIGNED NULL COMMENT 'tbl_users.id; NULL for system/cron',
+  `operator_id` INT UNSIGNED NULL COMMENT 'tbl_users.id; required for STAFF',
   `actor_type` ENUM({$actors}) NOT NULL,
+  `actor_customer_id` INT NULL COMMENT 'tbl_customers.id of the initiating customer; required for CUSTOMER; may differ from the activation target',
   `reason` VARCHAR(255) NULL,
   `created_at` DATETIME(6) NOT NULL COMMENT 'UTC',
   PRIMARY KEY (`id`),
@@ -102,18 +109,21 @@ CREATE TABLE `tbl_manager_ledger` (
   KEY `ix_ledger_transfer` (`transfer_id`),
   KEY `ix_ledger_counterparty` (`counterparty_manager_id`),
   KEY `ix_ledger_operator` (`operator_id`),
+  KEY `ix_ledger_actor_customer` (`actor_customer_id`),
   CONSTRAINT `fk_ledger_wallet` FOREIGN KEY (`manager_id`) REFERENCES `tbl_manager_wallets` (`manager_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_ledger_activation` FOREIGN KEY (`activation_id`) REFERENCES `tbl_reseller_activations` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_ledger_transfer` FOREIGN KEY (`transfer_id`) REFERENCES `tbl_manager_transfers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_ledger_counterparty` FOREIGN KEY (`counterparty_manager_id`) REFERENCES `tbl_users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_ledger_reverses` FOREIGN KEY (`reverses_entry_id`) REFERENCES `tbl_manager_ledger` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_ledger_operator` FOREIGN KEY (`operator_id`) REFERENCES `tbl_users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_ledger_actor_customer` FOREIGN KEY (`actor_customer_id`) REFERENCES `tbl_customers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `ck_ledger_amount_pos` CHECK (`amount` > 0),
   CONSTRAINT `ck_ledger_math` CHECK (
     (`direction` = 'CREDIT' AND `balance_after` = `balance_before` + `amount`)
     OR (`direction` = 'DEBIT' AND `balance_after` = `balance_before` - `amount`)
   ),
-  CONSTRAINT `ck_ledger_staff_operator` CHECK (`actor_type` <> 'STAFF' OR `operator_id` IS NOT NULL)
+  CONSTRAINT `ck_ledger_staff_operator` CHECK (`actor_type` <> 'STAFF' OR `operator_id` IS NOT NULL),
+  CONSTRAINT `ck_ledger_customer_actor` CHECK (`actor_type` <> 'CUSTOMER' OR `actor_customer_id` IS NOT NULL)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Append-only reseller wallet ledger (WP1 foundation)'
 SQL;
 
@@ -235,11 +245,13 @@ return [
                     'reverses_entry_id' => 'bigint unsigned null',
                     'operator_id' => 'int unsigned null',
                     'actor_type' => "enum({$actors}){$c} not null",
+                    'actor_customer_id' => 'int null',
                     'reason' => "varchar(255){$c} null",
                     'created_at' => 'datetime(6) not null',
                 ],
                 'indexes' => [
                     'INDEX ix_ledger_activation (activation_id)',
+                    'INDEX ix_ledger_actor_customer (actor_customer_id)',
                     'INDEX ix_ledger_counterparty (counterparty_manager_id)',
                     'INDEX ix_ledger_manager_created (manager_id,created_at)',
                     'INDEX ix_ledger_operator (operator_id)',
@@ -250,13 +262,14 @@ return [
                 ],
                 'foreign_keys' => [
                     'fk_ledger_activation (activation_id) REFERENCES tbl_reseller_activations (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
+                    'fk_ledger_actor_customer (actor_customer_id) REFERENCES tbl_customers (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_ledger_counterparty (counterparty_manager_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_ledger_operator (operator_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_ledger_reverses (reverses_entry_id) REFERENCES tbl_manager_ledger (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_ledger_transfer (transfer_id) REFERENCES tbl_manager_transfers (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_ledger_wallet (manager_id) REFERENCES tbl_manager_wallets (manager_id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                 ],
-                'checks' => ['ck_ledger_amount_pos', 'ck_ledger_math', 'ck_ledger_staff_operator'],
+                'checks' => ['ck_ledger_amount_pos', 'ck_ledger_customer_actor', 'ck_ledger_math', 'ck_ledger_staff_operator'],
             ],
             'tbl_manager_wallet_reservations' => [
                 'engine' => 'innodb',

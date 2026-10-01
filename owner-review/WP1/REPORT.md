@@ -3,12 +3,18 @@
 Final state: `STOPPED_WAITING_OWNER_REVIEW`
 WP status: `IMPLEMENTED_NOT_ACCEPTED`. This report does not self-accept; acceptance is recorded only by the owner in `docs/claude-development-pack/review/ACCEPTANCE_LEDGER.md`.
 
-**Revision 2: owner review correction pass.** The owner reviewed candidate `a2c0ade` as `FIX_REQUIRED`. This revision applies exactly the three requested fixes in one normal follow-up commit (no rewrite, no force push):
+**Revision 3: final focused fix.** The owner reviewed candidate `b29a380` as `FIX_REQUIRED`. This revision applies exactly the two requested fixes in one normal follow-up commit (no rewrite, no force push):
+1. **Ledger customer actor identity:** `tbl_manager_ledger.actor_customer_id` with FK, index and `ck_ledger_customer_actor` (R0004 amended in place).
+2. **Price override provenance:** the wholesale and retail setter fields now follow the availability rule; value `NULL` ⇔ setter and time `NULL` (R0002 amended in place).
+
+R0002 and R0004 were amended rather than superseded by an R0006, as instructed. R0003, the runner and every other file outside the list in section C are unchanged. These resolve revision-2 risks 13 and 14.
+
+**Revision 2: owner review correction pass.** The owner reviewed candidate `a2c0ade` as `FIX_REQUIRED`. This revision applied exactly the three requested fixes in one normal follow-up commit (no rewrite, no force push):
 1. **Manager plan availability:** `tbl_manager_plan_prices.is_enabled` becomes an optional, audited override (R0002 amended in place).
 2. **Customer actor identity:** `actor_customer_id` on activations and activation events (R0003 amended in place).
 3. **Report accuracy:** the relationship to the upstream baseline is stated precisely (section C).
 
-R0002 and R0003 were amended rather than superseded by an R0006, as instructed: WP1 is not accepted and these migrations were never applied outside disposable test databases. The runner, the other migrations and every other frozen decision are unchanged.
+R0002 and R0003 were amended rather than superseded by an R0006, as instructed: WP1 is not accepted and these migrations were never applied outside disposable test databases. The runner and every other frozen decision are unchanged.
 
 **Supporting documents**
 - [`docs/WP1_SCHEMA_CONTRACT.md`](../../docs/WP1_SCHEMA_CONTRACT.md): column-level contract, generated from the migrations.
@@ -23,11 +29,13 @@ R0002 and R0003 were amended rather than superseded by an R0006, as instructed: 
 | Execution base (owner metadata descendant) | `e609af824a387b5812d88b3a30fb66dd1111713c` |
 | Starting HEAD (initial WP1 pass) | `e609af824a387b5812d88b3a30fb66dd1111713c` |
 | Previous WP1 candidate (owner review: `FIX_REQUIRED`) | `a2c0adeab351ccee3af17f4205e0d3c7a3deae61` |
-| Starting HEAD (correction pass) | `a2c0adeab351ccee3af17f4205e0d3c7a3deae61` |
+| Starting HEAD (correction pass, revision 2) | `a2c0adeab351ccee3af17f4205e0d3c7a3deae61` |
+| Previous WP1 candidate (owner review: `FIX_REQUIRED`) | `b29a380a0f5da72267cece355e4e15d179f3450d` |
+| Starting HEAD (final fix, revision 3) | `b29a380a0f5da72267cece355e4e15d179f3450d` |
 | Branch | `wp1/database-foundation`, created from `e609af8`, no upstream tracking to `feat/reseller-system-v1` |
 | Ancestry proven before implementation | `merge-base --is-ancestor c2582368 HEAD` ✅; `… e609af8 HEAD` ✅; `… d3e0596 HEAD` ✅; `git log c2582368..e609af8` = `56867de`, `e609af8` only |
-| Commits on the branch since `e609af8` | 2: `a2c0ade` (WP1 implementation) and the correction commit `fix(wp1): complete pricing audit and activation actor identity` |
-| Ending HEAD | the correction commit on `wp1/database-foundation`. A commit cannot contain its own hash; it is stated in the final response and equals `git rev-parse wp1/database-foundation`. |
+| Commits on the branch since `e609af8` | 3: `a2c0ade` (WP1 implementation), `b29a380` (`fix(wp1): complete pricing audit and activation actor identity`) and the final fix commit `fix(wp1): close ledger actor and price audit gaps` |
+| Ending HEAD | the final fix commit on `wp1/database-foundation`. A commit cannot contain its own hash; it is stated in the final response and equals `git rev-parse wp1/database-foundation`. |
 | Spec manifest | `sha256sum --strict -c MANIFEST.sha256` → 42/42 OK (ledger excluded by design) |
 | Worktree | clean at the start of each pass; clean after each commit |
 | `main` / `feat/reseller-system-v1` | untouched (`500d3a2` / `e609af8`) |
@@ -61,11 +69,13 @@ R0002 and R0003 were amended rather than superseded by an R0006, as instructed: 
 - **R0001 hierarchy:** closure table only, empty, no `root` import (C20).
 - **R0002 pricing:**
   - explicit provider wholesale base cost (`tbl_reseller_plan_base_costs`) with actor and timestamp audit (Q4);
-  - per-manager wholesale, retail and availability overrides, each optional (NULL = inherit) and each with its own operator + UTC time;
+  - per-manager wholesale, retail and availability overrides, each optional (NULL = inherit);
+  - **override provenance (revision 3):** for all three overrides, `*_set_by` / `*_set_at` describe only the **current explicit override**. Value `NULL` ⇔ setter and time `NULL`; explicit value ⇔ setter and time set. Clearing an override clears its provenance. Historical/per-operation pricing is preserved by activation snapshots; durable configuration-change audit is a later service/audit responsibility (no price-history tables in WP1);
   - **availability (revision 2):** `is_enabled` `NULL` = inherit, `0` = explicitly disabled, `1` = explicitly enabled (still subject to ancestor/global restrictions in WP3B). An explicit value requires `availability_set_by` (FK `tbl_users`, RESTRICT) and `availability_set_at`; `NULL` requires both to be `NULL`. No row = no manager-specific configuration.
 - **R0003 activations:** the 4 actions, 15 frozen states, idempotency, snapshots and legacy references, plus an append-only state-transition timeline.
   - **Actor identity (revision 2):** `actor_customer_id INT NULL` (signed, FK `tbl_customers.id`, RESTRICT) on both tables. `STAFF` requires `actor_user_id`, `CUSTOMER` requires `actor_customer_id`, `SYSTEM`/`CRON` may carry neither, `API` has no identity rule yet (WP2). The initiating customer is independent of the target `customer_id`.
 - **R0004 finance:** wallets, transfers/funding, the ledger and reservations.
+  - **Ledger actor identity (revision 3):** `actor_customer_id INT NULL` (signed, FK `tbl_customers.id`, RESTRICT, indexed) is stored directly on each ledger row. `STAFF` still requires `operator_id`; `CUSTOMER` requires `actor_customer_id`; `SYSTEM`/`CRON`/`API` need neither. No WP1 rule requires a `CUSTOMER` entry to reference an activation (WP3A). The ledger actor may differ from the linked activation's target customer.
 - **R0005 customers:** `tbl_customers.manager_id` / `assigned_sales_id`, nullable INT UNSIGNED, **no backfill** (C19).
 
 **Dev/test infrastructure** (approved):
@@ -88,7 +98,15 @@ R0002 and R0003 were amended rather than superseded by an R0006, as instructed: 
 - deploy, merge, PR, or WP2.
 
 ## C. Files changed (relative to `e609af8`)
-**Correction pass (`a2c0ade` → correction commit), 6 files, all modifications:**
+**Final fix (revision 3, `b29a380` → final fix commit), 6 files, all modifications:**
+- `system/reseller/migrations/R0002_pricing_foundation.php`: `ck_mpp_wholesale_audit` and `ck_mpp_retail_audit` made two-directional; header comment. Contract unchanged (CHECK constraints are compared by name).
+- `system/reseller/migrations/R0004_wallet_finance_foundation.php`: ledger `actor_customer_id`, `ix_ledger_actor_customer`, `fk_ledger_actor_customer`, `ck_ledger_customer_actor`; contract updated.
+- `tests/Integration/ConstraintTest.php`: 2 new tests.
+- `tests/README.md`: ConstraintTest description.
+- `docs/WP1_SCHEMA_CONTRACT.md`: decision and invariant rows, regenerated column-level contract with new checksums.
+- `owner-review/WP1/REPORT.md`: this revision.
+
+**Correction pass (revision 2, `a2c0ade` → `b29a380`), 6 files, all modifications:**
 - `system/reseller/migrations/R0002_pricing_foundation.php`: availability override + audit columns, index, FK and checks; contract updated.
 - `system/reseller/migrations/R0003_activation_foundation.php`: `actor_customer_id`, indexes, FKs and checks on both tables; contract updated.
 - `tests/Integration/ConstraintTest.php`: second customer fixture; 3 new tests.
@@ -96,9 +114,9 @@ R0002 and R0003 were amended rather than superseded by an R0006, as instructed: 
 - `docs/WP1_SCHEMA_CONTRACT.md`: decision rows, invariant rows, regenerated column-level contract with new checksums.
 - `owner-review/WP1/REPORT.md`: this revision.
 
-No runner class, no other migration, no fixture, no dev tool and no generated `variants.php` changed (the core-schema registry covers only `tbl_users` / `tbl_customers` / `tbl_plans`, which R0002/R0003 do not alter).
+In both correction passes, no runner class, no other migration, no fixture, no dev tool and no generated `variants.php` changed (the core-schema registry covers only `tbl_users` / `tbl_customers` / `tbl_plans`, which R0002/R0003/R0004 do not alter).
 
-**Whole WP1 (both commits):**
+**Whole WP1 (all three commits):**
 | Path | Change |
 |---|---|
 | `.gitignore` | +3 lines: blank separator, comment, `tests/vendor/` (Q2) |
@@ -130,12 +148,12 @@ No runner class, no other migration, no fixture, no dev tool and no generated `v
 | ID | Steps up/down | Checksum |
 |---|---|---|
 | `R0001_manager_tree` | 1 / 1 | `a0b52f7fb4bd5f5e317c701d85df6db7d2a95ace04ec1b1112873191e514a5a7` |
-| `R0002_pricing_foundation` | 2 / 2 | `dc674b5f892ad00d9f518a1d97a4348be4b30dff91e0cfb192df6badfb6dcac6` (revision 2; was `4f95b48d…85c2`) |
+| `R0002_pricing_foundation` | 2 / 2 | `38bceb1fb4f4be1b26bdb53c5317840109ce6f7e1ef7b98dc8af61b9b8c3b771` (revision 3; was `dc674b5f…cac6` in revision 2, `4f95b48d…85c2` in revision 1) |
 | `R0003_activation_foundation` | 2 / 2 | `60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd` (revision 2; was `b79e0e0e…45bc`) |
-| `R0004_wallet_finance_foundation` | 4 / 4 | `1005721df99db4b8370f225d874b4d99031a1c538f0e000c7b8ace37c080e796` |
+| `R0004_wallet_finance_foundation` | 4 / 4 | `7f3bc5bc8479bfe0f186ec4ae00af4623cc0c8d7201f13897f7184d4b92dffa7` (revision 3; was `1005721d…e796`) |
 | `R0005_customer_ownership` | 1 / 4 | `b69135eab8b70f3bed2355946d959be356c3d48897df9db6cb41c6c7e45b3854` |
 
-  `variants.php` checksum: `4d9f7f8a38c81d29164a474aaa36a0d29ef10bc7c12beecdc37f02b391022202` (unchanged in revision 2).
+  `variants.php` checksum: `4d9f7f8a38c81d29164a474aaa36a0d29ef10bc7c12beecdc37f02b391022202` (unchanged in revisions 2 and 3).
 
 - **Supported schema variants** (core fingerprints identical on MariaDB 10.11.19 and MySQL 8.0.46):
 
@@ -150,14 +168,16 @@ No runner class, no other migration, no fixture, no dev tool and no generated `v
 - **JSON portability.** `LONGTEXT` + named `CHECK (JSON_VALID(...))` avoids the MariaDB-alias versus MySQL-native JSON drift. CHECK constraints are compared by name.
 - **Foreign keys.** All are RESTRICT/RESTRICT; there is no cascade or SET NULL. There are no FKs to volatile legacy rows (transactions, recharges, payment-gateway rows).
 - **Plan availability** is an optional override with its own audit: `ck_mpp_enabled_bool` (`NULL`, `0` or `1` only) and `ck_mpp_availability_audit` (`NULL` ⇔ both audit fields `NULL`; `0`/`1` ⇔ both set). Both checks only use `IS [NOT] NULL` / `IN`, so they never evaluate to UNKNOWN.
+- **Price override provenance (revision 3):** `ck_mpp_wholesale_audit` and `ck_mpp_retail_audit` now use the same two-directional form as `ck_mpp_availability_audit`: (value, setter and time all `NULL`) or (all three set). The setter fields describe only the current explicit override; they are not history.
 - **Actor identity:** `ck_act_staff_actor` / `ck_evt_staff_actor` (STAFF ⇒ `actor_user_id`) and `ck_act_customer_actor` / `ck_evt_customer_actor` (CUSTOMER ⇒ `actor_customer_id`). The actor customer is a separate column from the target `customer_id`, with its own RESTRICT FK.
+- **Ledger actor identity (revision 3):** `ck_ledger_staff_operator` (STAFF ⇒ `operator_id`, unchanged) and `ck_ledger_customer_actor` (CUSTOMER ⇒ `actor_customer_id`). The identity is stored on the ledger row, so it never depends on the optional `activation_id` join.
 - **Activation events** are a full transition timeline. `from_state` may be NULL only for the initial event into CREATED; the provisioning result, error fields, actor and JSON metadata are attached per event. All 225 (from, to) pairs plus the initial event are representable (tested).
 - **Test hooks.** Failure and crash injection are inert unless `NUXR_MIGRATION_TESTING=1`. They can only cause failures.
 
 ## E. Migrations / data impact
 - **Production:** no data impact; nothing was applied anywhere except disposable test containers.
 - **Shape of the change on a migrated database:**
-  - 9 new empty domain tables + 2 runner registry tables (revision 2 adds columns to 3 of the new tables only);
+  - 9 new empty domain tables + 2 runner registry tables (revisions 2 and 3 add columns to 4 of the new tables only);
   - `tbl_customers` gains 2 NULL columns, 2 indexes and 2 FKs.
 - **Data:** no existing row is modified (tests T16/T17 compare data hashes).
 - **Rollback:** `rollback --all` restores the exact pre-migration core fingerprint and every legacy table; the registry history is kept.
@@ -168,40 +188,41 @@ No runner class, no other migration, no fixture, no dev tool and no generated `v
 - MariaDB 10.11.19 and MySQL 8.0.46 containers (tmpfs, random root password, torn down afterwards);
 - PHPUnit 11.5.56 (dev-only).
 
-**Command:** `dev/test/run-tests.sh`, the complete matrix (not only the new tests), re-run after the revision-2 fixes. It was run twice end to end (plain and `--testdox`) with identical results, fresh disposable containers each time.
+**Command:** `dev/test/run-tests.sh`, the complete matrix (not only the new tests), re-run after the revision-3 fixes. It was run twice end to end (plain and `--testdox`) with identical results, fresh disposable containers each time.
 
 | Engine | Tests | Assertions | Result |
 |---|---|---|---|
-| MariaDB 10.11.19 | 72 | 1482 | **OK** |
-| MySQL 8.0.46 | 72 | 1482 | **OK** |
+| MariaDB 10.11.19 | 74 | 1537 | **OK** |
+| MySQL 8.0.46 | 74 | 1537 | **OK** |
 | Variant registry reproducibility (`build-variant-registry.php --check`, both engines) | — | — | **matches freshly built fixtures** |
 
-Revision 1 (`a2c0ade`) for comparison: 69 tests / 1401 assertions per engine, all OK.
+For comparison: revision 1 (`a2c0ade`) 69 tests / 1401 assertions, revision 2 (`b29a380`) 72 tests / 1482 assertions per engine, all OK.
 
 **Per class (per engine):**
 - unit: `GrantsTest` 7, `MigrationDefinitionsTest` 8;
-- integration: `PreflightTest` 18, `ForwardMigrationTest` 8, `RollbackTest` 6, `PartialFailureTest` 7, `DriftAndRegistryTest` 6, `ConstraintTest` 9 (6 + 3 new in revision 2), `CliOnlyTest` 2;
+- integration: `PreflightTest` 18, `ForwardMigrationTest` 8, `RollbackTest` 6, `PartialFailureTest` 7, `DriftAndRegistryTest` 6, `ConstraintTest` 11 (6 + 3 new in revision 2 + 2 new in revision 3), `CliOnlyTest` 2;
 - regression: `AppRegressionTest` 1.
 
-Total: 15 unit + 56 integration + 1 regression = **72**.
+Total: 15 unit + 58 integration + 1 regression = **74**.
 
 **Other checks**
 
 | Check | Result |
 |---|---|
-| `php -l` on the 32 WP1 PHP files (after revision 2), PHP 8.2.34 | 32 pass, 0 fail |
-| `php -l` on the 32 WP1 PHP files (after revision 2), PHP 8.3.6 | 32 pass, 0 fail |
+| `php -l` on the 32 WP1 PHP files (after revision 3), PHP 8.2.34 | 32 pass, 0 fail |
+| `php -l` on the 32 WP1 PHP files (after revision 3), PHP 8.3.6 | 32 pass, 0 fail |
 | Manual smoke (revision 1, before the suite): preflight / migrate / migrate / status / verify / rollback --all / migrate on V1 | exit 0 for each step on both engines |
 | Negative control (revision 2): the 3 new tests against the revision-1 R0002/R0003 | fail on both engines (unknown column), as expected |
+| Negative control (revision 3): the 2 new tests against the revision-2 R0002/R0004 | fail on both engines: price test semantically (`NULL with stale setter` accepted by the old check), ledger test by unknown column, as expected |
 | Legacy-file diff vs `e609af8` | empty (apart from `.gitignore` +3) |
 
 ## G. Security / failure cases tested
-**Forward / rollback (per variant, both engines; re-verified on the revision-2 schema)**
+**Forward / rollback (per variant, both engines; re-verified on the revision-3 schema)**
 - **Forward (V1, V2, V3):** contracts exact; new tables empty.
 - **Second run:** zero DDL, proven by the server `Com_create_table`, `Com_alter_table`, `Com_drop_table`, `Com_create_index`, `Com_drop_index` and `Com_rename_table` counters; no journal rows written.
 - **Rollback (V1, V2, V3):** the pre-migration core fingerprint is restored exactly, and every legacy table is identical to its pre-migration snapshot. Forward after rollback succeeds.
 
-**Partial-failure recovery (C28; owner additions 3–4; re-verified on the revision-2 schema)**
+**Partial-failure recovery (C28; owner additions 3–4; re-verified on the revision-3 schema)**
 - **Injected failure at R0004 step 3 (V1, V2, V3):**
   - exit 3, `FAILED_PARTIAL`, `steps_completed=2`;
   - journal shows steps 1–2 COMPLETED and step 3 FAILED;
@@ -238,6 +259,22 @@ Total: 15 unit + 56 integration + 1 regression = **72**.
 - An edited applied migration file gives exit 4.
 - A tampered registry, or an unknown registry id, gives exit 2.
 
+**Owner final fix (revision 3; 2 new tests in `ConstraintTest`, both engines)**
+- `testLedgerCustomerActorIdentity`:
+  1. customer **A** initiates an activation targeting customer **B**; the resulting `CUSTOMER` ledger row stores `actor_customer_id = A` while the activation target stays B (A ≠ B);
+  2. a `CUSTOMER` ledger row with `actor_customer_id` and no activation link is accepted (no WP1 activation rule);
+  3. `CUSTOMER` without `actor_customer_id` fails, even when an activation that carries the identity is linked, and when only a staff `operator_id` is given;
+  4. an unknown `actor_customer_id` fails by FK;
+  5. `STAFF` without `operator_id` still fails, including when only a customer id is given;
+  6. `SYSTEM`, `CRON` and `API` rows without any customer identity are accepted;
+  7. a customer referenced **only** as a ledger actor cannot be deleted (RESTRICT via `fk_ledger_actor_customer`), and the identity of a `CUSTOMER` row cannot be removed.
+- `testPriceOverrideSetterFieldsDescribeOnlyTheCurrentOverride`, run for wholesale and for retail:
+  1. `NULL` value with no setter/time is accepted;
+  2. `NULL` value with a stale setter, a stale time, or both is rejected (insert), and attaching a setter/time to an inherited value is rejected (update);
+  3. an explicit value without setter, without time, or without both is rejected; with both it is stored;
+  4. clearing the value while keeping setter and time, keeping only the time, or keeping only the setter is rejected; removing the setter/time of an explicit value is rejected; clearing all three together is accepted and leaves no provenance.
+- **Negative control:** both new tests were run against the revision-2 migrations (`b29a380` versions of R0002/R0004). On both engines the price test **fails semantically** (`expected rejection: wholesale: NULL with stale setter`) and the ledger test fails (`Unknown column 'actor_customer_id'`), so they detect the gaps the owner identified.
+
 **Owner review fixes (revision 2; 3 new tests in `ConstraintTest`, both engines)**
 - `testManagerPlanAvailabilityOverrideIsOptionalAndAudited`:
   1. a pricing-only manager/plan row stores `is_enabled = NULL` with no availability actor or time (default), and explicit `NULL` needs no audit;
@@ -262,10 +299,10 @@ Total: 15 unit + 56 integration + 1 regression = **72**.
 - the CHANGE_PLAN previous-plan check;
 - JSON validity;
 - amount and non-negative checks;
-- the STAFF and CUSTOMER actor checks (activations and events);
+- the STAFF and CUSTOMER actor checks (activations, events and ledger rows);
 - closure uniqueness and the depth/self check;
 - one base cost per plan, with resale disabled by default;
-- the manager/plan uniqueness and audit checks, including the optional audited availability override;
+- the manager/plan uniqueness and the current-override provenance checks for wholesale, retail and availability;
 - the wallet floor and debt limit;
 - transfer shape, single reversal and unique reference;
 - ledger arithmetic, positive amounts, the unique entry key, single reversal and the wallet-required FK;
@@ -294,8 +331,9 @@ Total: 15 unit + 56 integration + 1 regression = **72**.
 - Results are identical apart from the owner-accepted presence of the two NULL fields (Q6/C25).
 
 ## H. Git diff summary
-- **Two commits** on `wp1/database-foundation`: `a2c0ade` and the correction commit. No history rewrite.
-- **Correction commit:** 6 files modified (listed in C); 0 added, 0 deleted.
+- **Three commits** on `wp1/database-foundation`: `a2c0ade`, `b29a380` and the final fix commit. No history rewrite.
+- **Final fix commit:** 6 files modified (listed in C); 0 added, 0 deleted.
+- **Revision-2 commit `b29a380`:** 6 files modified; 0 added, 0 deleted.
 - **Whole WP1 vs `e609af8`:** 44 files: 43 new files (including this report) plus `.gitignore` (+3 lines); 0 deletions; no legacy application file modified.
 - **Content:** the runner (2,086 lines PHP: `migrate.php` + 9 classes), the 5 migrations (789 lines), the generated `variants.php` (642 lines), tests (1,868 lines PHP), the dev tooling, the V3 fixture SQL copy (643 lines) and docs.
 
@@ -305,7 +343,7 @@ Total: 15 unit + 56 integration + 1 regression = **72**.
 3. **C24 legacy restore (assigned to WP2).** The restore can TRUNCATE new-domain tables with FK checks off (session and GLOBAL). Unchanged in WP1.
 4. **Legacy delete paths**, once referencing rows exist, will hit RESTRICT:
    - user delete → uncaught error (**WP2**); this now also covers users recorded as availability actors;
-   - customer delete → unprovisions first, then swallows the error (**WP2/WP5B**); this now also covers customers recorded only as the initiating actor of another customer's activation;
+   - customer delete → unprovisions first, then swallows the error (**WP2/WP5B**); this now also covers customers recorded only as the initiating actor of another customer's activation or as a ledger actor;
    - plan delete → removes from the router/RADIUS first (**WP3B**).
 5. **Strict session mode for writers.** New-domain writers must use a strict `sql_mode`; otherwise invalid ENUM values become `''`. CHECK and FK constraints are enforced regardless. This is a WP3A/WP5A requirement.
 6. **Production ALTER.** `ALTER TABLE tbl_customers` with FKs may rebuild the table on MySQL 8 in production. It needs a backup, preflight and a maintenance window (runbook WP8/WP10).
@@ -315,15 +353,18 @@ Total: 15 unit + 56 integration + 1 regression = **72**.
 10. **PHPUnit fetching.** The dev-only PHPUnit is fetched by `composer --prefer-source` from GitHub; `tests/composer.lock` pins versions.
 11. **WP0 notes remain open:** PDF/gd runtime path not exercised; authenticated UI reviewed statically only; external payment-gateway/plugin repositories outside scope.
 12. **API exposure (Q6/C25).** API customer payloads now expose `manager_id: null` / `assigned_sales_id: null` (accepted; WP2 owns API authorization).
-13. **Ledger customer identity (observation; not changed, outside the requested fix scope).** `tbl_manager_ledger.actor_type` (R0004) also allows `CUSTOMER` but has no customer-identity column. For activation-linked entries the initiator is reachable through `activation_id → actor_customer_id`; a non-activation ledger entry with a `CUSTOMER` actor would carry no identity. Owner decision: leave as is, or add the same column/check to R0004 before acceptance.
-14. **Audit-rule asymmetry (observation; not changed).** The availability override now requires its audit fields to be `NULL` when the value is `NULL`. The existing wholesale/retail checks (`ck_mpp_wholesale_audit`, `ck_mpp_retail_audit`) only require the audit when a value is set, so a cleared wholesale/retail override may keep its last actor/time. Owner decision whether to align them.
-15. **Row with no overrides.** A manager/plan row with all three overrides `NULL` is allowed and is semantically the same as no row. WP3B must treat both identically.
+13. **Row with no overrides.** A manager/plan row with all three overrides `NULL` is allowed and is semantically the same as no row. WP3B must treat both identically.
+14. **CHECK expressions are compared by name only.** Engines render CHECK text differently, so the contract (postflight / `verify`) compares CHECK *names*, not expressions. A manual change to a CHECK expression that keeps its name would not be reported as drift. The shipped expressions are fixed by the migration file checksums and proven by the constraint tests on both engines.
+
+**Resolved in revision 3** (were revision-2 risks 13 and 14):
+- **Ledger customer identity:** `actor_customer_id` is now stored directly on ledger rows (`ck_ledger_customer_actor`, `fk_ledger_actor_customer`).
+- **Price audit asymmetry:** wholesale, retail and availability setter fields now all describe only the current explicit override (value `NULL` ⇔ setter and time `NULL`). Historical configuration-change auditing remains a later service/audit responsibility; historical/per-operation pricing is preserved by activation snapshots.
 
 ## J. Production status
 Untouched. No production or staging database, RADIUS, MikroTik or external target was contacted. All databases were disposable containers, torn down after the final run.
 
 ## K. Push status
-Normal pushes of `wp1/database-foundation` to `origin` (owner-authorised): `a2c0ade` (revision 1), then the correction commit as a fast-forward. No force, no PR, no merge into `feat/reseller-system-v1` or `main`, no deploy. The result is stated in the final response.
+Normal pushes of `wp1/database-foundation` to `origin` (owner-authorised): `a2c0ade` (revision 1), `b29a380` (revision 2), then the final fix commit (revision 3), each a fast-forward. No force, no PR, no merge into `feat/reseller-system-v1` or `main`, no deploy. The result is stated in the final response.
 
 ## L. Owner-review artifact path
 `owner-review/WP1/REPORT.md` (this file)
@@ -350,6 +391,9 @@ Normal pushes of `wp1/database-foundation` to `origin` (owner-authorised): `a2c0
 | Owner review fix 1: optional audited availability override (NULL / 0 / 1, FK + CHECKs), R0002 amended in place | Met | B, D, G |
 | Owner review fix 2: customer actor identity on activations and events, initiator ≠ target, R0003 amended in place | Met | B, D, G |
 | Owner review fix 3: accurate baseline wording | Met | C |
-| Complete matrix re-run after the fixes (MariaDB 10.11, MySQL 8.0, PHP 8.2) | Met | F |
+| Owner final fix 1: ledger `actor_customer_id` (FK, index, CUSTOMER check), R0004 amended in place | Met | B, D, G |
+| Owner final fix 2: wholesale/retail setter fields describe only the current override, R0002 amended in place | Met | B, D, G |
+| Resolved risks 13/14 removed from the unresolved list | Met | I |
+| Complete matrix re-run after each fix pass (MariaDB 10.11, MySQL 8.0, PHP 8.2) | Met | F |
 
 Overall: **`IMPLEMENTED_NOT_ACCEPTED` — waiting for owner review.** WP2 has not been started.

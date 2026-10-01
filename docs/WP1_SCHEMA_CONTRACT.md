@@ -19,8 +19,9 @@ Runner and operations: [`system/reseller/README.md`](../system/reseller/README.m
 | C12 legacy price storage | `tbl_plans.price` / `price_old`, `tbl_transactions.price`, `tbl_payment_gateway.price` unchanged (definition and data verified by tests) |
 | Wholesale base cost | explicit new table `tbl_reseller_plan_base_costs` (D009; `tbl_plans.price` not repurposed) |
 | Q4 base-cost history | no history table; current rows carry `created_by/at` + `updated_by/at`; activation snapshots preserve historical pricing (WP5A) |
-| Manager plan availability (owner WP1 review, fix 1) | `tbl_manager_plan_prices.is_enabled` is an **optional** override: `NULL` = inherit (no override), `0` = explicitly disabled, `1` = explicitly enabled (still subject to ancestor/global restrictions, WP3B). An explicit `0`/`1` requires `availability_set_by` (FK `tbl_users.id`, RESTRICT) and `availability_set_at`; `NULL` requires both to be `NULL` (`ck_mpp_enabled_bool`, `ck_mpp_availability_audit`). No row = no manager-specific configuration; a pricing-only row inherits availability. Every override (wholesale, retail, availability) carries its own operator + UTC time. No pricing logic in WP1 |
-| Activation actor identity (owner WP1 review, fix 2) | `actor_customer_id INT NULL` (signed, FK `tbl_customers.id`, RESTRICT) on `tbl_reseller_activations` and `tbl_reseller_activation_events`. `STAFF` requires `actor_user_id`; `CUSTOMER` requires `actor_customer_id`; `SYSTEM` / `CRON` may carry neither; `API` gets no identity rule before the WP2 authorization model. The **initiating** customer is independent of the **target** `customer_id` (customer A gifting / buying for customer B, WP0 entrypoint inventory) |
+| Manager plan availability (owner WP1 review, fix 1) | `tbl_manager_plan_prices.is_enabled` is an **optional** override: `NULL` = inherit (no override), `0` = explicitly disabled, `1` = explicitly enabled (still subject to ancestor/global restrictions, WP3B). An explicit `0`/`1` requires `availability_set_by` (FK `tbl_users.id`, RESTRICT) and `availability_set_at`; `NULL` requires both to be `NULL` (`ck_mpp_enabled_bool`, `ck_mpp_availability_audit`). No row = no manager-specific configuration; a pricing-only row inherits availability. No pricing logic in WP1 |
+| Price override provenance (owner WP1 final review, fix 2) | Wholesale, retail and availability overrides follow one rule: the `*_set_by` / `*_set_at` fields describe **only the current explicit override**. Value `NULL` ⇔ setter and time `NULL`; explicit value ⇔ setter and time set (`ck_mpp_wholesale_audit`, `ck_mpp_retail_audit`, `ck_mpp_availability_audit`). Clearing an override clears its provenance. These are not history: historical and per-operation pricing is preserved by activation snapshots, and durable configuration-change audit belongs to the later service/audit layer. No price-history tables in WP1 |
+| Actor customer identity (owner WP1 reviews: activations/events in fix 2, ledger in final fix 1) | `actor_customer_id INT NULL` (signed, FK `tbl_customers.id`, RESTRICT) stored directly on `tbl_reseller_activations`, `tbl_reseller_activation_events` and `tbl_manager_ledger`, so durable financial history does not depend on an activation join. Ledger: `STAFF` requires `operator_id`, `CUSTOMER` requires `actor_customer_id` (`ck_ledger_customer_actor`), `SYSTEM` / `CRON` / `API` need neither; whether a `CUSTOMER` entry must reference an activation is a WP3A rule. Activations and events: `STAFF` requires `actor_user_id`; `CUSTOMER` requires `actor_customer_id`; `SYSTEM` / `CRON` may carry neither; `API` gets no identity rule before the WP2 authorization model. The **initiating** customer is independent of the **target** `customer_id` (customer A gifting / buying for customer B, WP0 entrypoint inventory) |
 | Q5 immutability | no triggers in WP1; enforcement belongs to WP3A (financial history) and WP5A (activation history) |
 | C8 / D027 vouchers | no voucher-commerce schema; `tbl_voucher` untouched |
 | Timestamps | new-domain timestamps are `DATETIME(6)` holding **UTC**, always written by the service (no `DEFAULT CURRENT_TIMESTAMP`, because legacy sessions use the server time zone) |
@@ -77,7 +78,7 @@ MariaDB implements `JSON` as an alias of `LONGTEXT` with an automatic CHECK, whi
 | provider settlement auditable, not a wallet credit | `tbl_reseller_activations.provider_settlement_amount`; no ledger row |
 | activation idempotency / state machine (WP5A) | `uq_act_idempotency`, `uq_act_reference`; 4 actions; 15 frozen states; `channel` for WP5B entrypoint binding |
 | plan availability inheritance / ancestor disable (WP3B) | `is_enabled` NULL / 0 / 1 with mandatory operator + time for explicit overrides |
-| actor attribution per operation and per event (WP2 / WP5A / WP5B) | `ck_act_staff_actor`, `ck_act_customer_actor`, `ck_evt_staff_actor`, `ck_evt_customer_actor`; initiator (`actor_customer_id`) separate from target (`customer_id`) |
+| actor attribution per operation, event and ledger entry (WP2 / WP3A / WP5A / WP5B) | `ck_act_staff_actor`, `ck_act_customer_actor`, `ck_evt_staff_actor`, `ck_evt_customer_actor`, `ck_ledger_staff_operator`, `ck_ledger_customer_actor`; initiator (`actor_customer_id`) separate from target (`customer_id`) |
 | state-transition timeline (WP5A) | `tbl_reseller_activation_events`: `(activation_id, sequence_no)` unique; `from_state` NULL only into CREATED; all 15×15 transitions representable (tested) |
 
 ## 7. Column-level contract (generated from the migration definitions)
@@ -107,7 +108,7 @@ Engine `innodb`, collation `utf8mb4_general_ci`.
 
 ### R0002_pricing_foundation
 
-Provider wholesale base cost per plan + per-manager wholesale/retail/availability overrides. Checksum (sha256 of file): `dc674b5f892ad00d9f518a1d97a4348be4b30dff91e0cfb192df6badfb6dcac6`. Steps: 2 up / 2 down.
+Provider wholesale base cost per plan + per-manager wholesale/retail/availability overrides. Checksum (sha256 of file): `38bceb1fb4f4be1b26bdb53c5317840109ce6f7e1ef7b98dc8af61b9b8c3b771`. Steps: 2 up / 2 down.
 
 #### `tbl_reseller_plan_base_costs`
 
@@ -246,7 +247,7 @@ Engine `innodb`, collation `utf8mb4_general_ci`.
 
 ### R0004_wallet_finance_foundation
 
-Manager wallets, funding/transfers, append-only ledger, reservations. Checksum (sha256 of file): `1005721df99db4b8370f225d874b4d99031a1c538f0e000c7b8ace37c080e796`. Steps: 4 up / 4 down.
+Manager wallets, funding/transfers, append-only ledger, reservations. Checksum (sha256 of file): `7f3bc5bc8479bfe0f186ec4ae00af4623cc0c8d7201f13897f7184d4b92dffa7`. Steps: 4 up / 4 down.
 
 #### `tbl_manager_wallets`
 
@@ -318,20 +319,22 @@ Engine `innodb`, collation `utf8mb4_general_ci`.
 | `reverses_entry_id` | `bigint unsigned null` |
 | `operator_id` | `int unsigned null` |
 | `actor_type` | `enum('STAFF','CUSTOMER','SYSTEM','CRON','API') collate utf8mb4_general_ci not null` |
+| `actor_customer_id` | `int null` |
 | `reason` | `varchar(255) collate utf8mb4_general_ci null` |
 | `created_at` | `datetime(6) not null` |
 
-**Keys:** `INDEX ix_ledger_activation (activation_id)`; `INDEX ix_ledger_counterparty (counterparty_manager_id)`; `INDEX ix_ledger_manager_created (manager_id,created_at)`; `INDEX ix_ledger_operator (operator_id)`; `INDEX ix_ledger_transfer (transfer_id)`; `PRIMARY KEY (id)`; `UNIQUE uq_ledger_entry_key (entry_key)`; `UNIQUE uq_ledger_reverses (reverses_entry_id)`
+**Keys:** `INDEX ix_ledger_activation (activation_id)`; `INDEX ix_ledger_actor_customer (actor_customer_id)`; `INDEX ix_ledger_counterparty (counterparty_manager_id)`; `INDEX ix_ledger_manager_created (manager_id,created_at)`; `INDEX ix_ledger_operator (operator_id)`; `INDEX ix_ledger_transfer (transfer_id)`; `PRIMARY KEY (id)`; `UNIQUE uq_ledger_entry_key (entry_key)`; `UNIQUE uq_ledger_reverses (reverses_entry_id)`
 
 **Foreign keys:**
 - `fk_ledger_activation (activation_id) REFERENCES tbl_reseller_activations (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
+- `fk_ledger_actor_customer (actor_customer_id) REFERENCES tbl_customers (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_ledger_counterparty (counterparty_manager_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_ledger_operator (operator_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_ledger_reverses (reverses_entry_id) REFERENCES tbl_manager_ledger (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_ledger_transfer (transfer_id) REFERENCES tbl_manager_transfers (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_ledger_wallet (manager_id) REFERENCES tbl_manager_wallets (manager_id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 
-**CHECK constraints:** `ck_ledger_amount_pos`, `ck_ledger_math`, `ck_ledger_staff_operator`
+**CHECK constraints:** `ck_ledger_amount_pos`, `ck_ledger_customer_actor`, `ck_ledger_math`, `ck_ledger_staff_operator`
 
 #### `tbl_manager_wallet_reservations`
 
