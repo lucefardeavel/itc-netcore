@@ -58,3 +58,6 @@ docs/**
 !docs/insomnia.rest.json
 !system/uploads/paid.png
 system/uploads/invoices/**
+
+# Dev-only test tooling dependencies (WP1)
+tests/vendor/

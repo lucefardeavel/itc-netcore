@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Development/test only. Run through dev/test/run-tests.sh (PHP 8.2 container + disposable
+     MariaDB 10.11 and MySQL 8.0). Never part of a production deployment. -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="bootstrap.php"
+         colors="false"
+         cacheDirectory="/tmp/wp1-phpunit-cache"
+         executionOrder="default"
+         failOnRisky="true"
+         failOnWarning="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         beStrictAboutOutputDuringTests="true">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>Integration</directory>
+        </testsuite>
+        <testsuite name="regression">
+            <directory>Regression</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

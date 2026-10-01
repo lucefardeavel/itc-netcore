@@ -1,0 +1,26 @@
+{
+    "name": "phpnuxbill-reseller/wp1-tests",
+    "description": "Development-only test tooling for the reseller project (not a runtime dependency; never deployed).",
+    "type": "project",
+    "license": "proprietary",
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.0",
+            "ext-dom": "8.2.0",
+            "ext-json": "8.2.0",
+            "ext-libxml": "8.2.0",
+            "ext-mbstring": "8.2.0",
+            "ext-tokenizer": "8.2.0",
+            "ext-xml": "8.2.0",
+            "ext-xmlwriter": "8.2.0"
+        },
+        "vendor-dir": "vendor",
+        "sort-packages": true,
+        "preferred-install": "source"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

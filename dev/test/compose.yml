@@ -1,0 +1,42 @@
+# Disposable test databases for the reseller project test suite.
+# Development/test only. No published ports, tmpfs storage, throwaway credentials
+# supplied through the environment by dev/test/run-tests.sh. Never used for production.
+name: nuxbill-reseller-test
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: ${WP1_DB_ROOT_PASSWORD:?set by run-tests.sh}
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 3s
+      timeout: 5s
+      retries: 60
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${WP1_DB_ROOT_PASSWORD:?set by run-tests.sh}
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 3s
+      timeout: 5s
+      retries: 60
+
+  php82:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nuxbill-reseller-test-php82
+    working_dir: /repo
+    volumes:
+      - ../..:/repo
+    environment:
+      WP1_DB_ROOT_PASSWORD: ${WP1_DB_ROOT_PASSWORD:?set by run-tests.sh}
+    entrypoint: ["php"]
+    profiles: ["runner"]
