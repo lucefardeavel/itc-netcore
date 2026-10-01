@@ -54,3 +54,9 @@ Send **only one prompt from `prompts/` at a time**. Do not send the whole projec
 
 ## Owner gate
 Every WP ends with `STOPPED_WAITING_OWNER_REVIEW`. No automatic next WP, no push, no deployment unless the owner explicitly approves.
+
+## Integrity manifest
+- `MANIFEST.sha256` verifies the immutable owner-approved specification pack (`sha256sum -c MANIFEST.sha256` from this directory).
+- `review/ACCEPTANCE_LEDGER.md` is deliberately excluded because it is mutable owner-controlled project state.
+- Changes to `review/ACCEPTANCE_LEDGER.md` are valid only when explicitly authorized by the owner.
+- A manifest verification must not treat an authorized ledger change as specification corruption.
