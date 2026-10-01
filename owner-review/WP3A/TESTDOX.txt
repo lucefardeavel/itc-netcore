@@ -1,4 +1,4 @@
-Code under test: 32690c3702d17cbffeb02b5de6a6385f3cac60c8 (branch wp3a/wallet-ledger; run: dev/test/run-tests.sh --testdox)
+Code under test: 983aad92 + fix round 1 working tree (became the fix commit; branch wp3a/wallet-ledger; run: dev/test/run-tests.sh --testdox)
  Image nuxbill-reseller-test-php82 Building 
  Image nuxbill-reseller-test-php82 Built 
 ================ engine: mariadb ================
@@ -6,13 +6,13 @@ PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
-...............................................................  63 / 365 ( 17%)
-............................................................... 126 / 365 ( 34%)
-............................................................... 189 / 365 ( 51%)
-............................................................... 252 / 365 ( 69%)
-............................................................... 315 / 365 ( 86%)
-..................................................              365 / 365 (100%)
-Time: 01:49.276, Memory: 26.00 MB
+...............................................................  63 / 371 ( 16%)
+............................................................... 126 / 371 ( 33%)
+............................................................... 189 / 371 ( 50%)
+............................................................... 252 / 371 ( 67%)
+............................................................... 315 / 371 ( 84%)
+........................................................        371 / 371 (100%)
+Time: 01:50.781, Memory: 26.00 MB
 Adjustment (Reseller\Tests\Integration\Wp3a\Adjustment)
  ✔ Adjustments never create a wallet
  ✔ Credit and debit adjustment ledger shape
@@ -145,6 +145,13 @@ Finance Capability (Reseller\Tests\Unit\Wp3a\FinanceCapability)
  ✔ Schema not ready fails closed for every role
  ✔ Non staff principals hold no finance capability
  ✔ Flags reflect the matrix
+Finance Schema Readiness (Reseller\Tests\Integration\Wp3a\FinanceSchemaReadiness)
+ ✔ Required table list is exact
+ ✔ Missing finance table fails closed and recovers with data set "tbl_reseller_activations"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallets"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_transfers"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_ledger"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallet_reservations"
 Finance Tx (Reseller\Tests\Integration\Wp3a\FinanceTx)
  ✔ Deadlock is retried with a clean envelope
  ✔ Retries are bounded
@@ -429,19 +436,19 @@ Wallet (Reseller\Tests\Integration\Wp3a\Wallet)
  ✔ Debt limit increase and decrease against exact exposure
  ✔ Debt limit input and target rules
  ✔ Read scope
-OK (365 tests, 24201 assertions)
+OK (371 tests, 24904 assertions)
 ================ engine: mysql ================
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
-...............................................................  63 / 365 ( 17%)
-............................................................... 126 / 365 ( 34%)
-............................................................... 189 / 365 ( 51%)
-............................................................... 252 / 365 ( 69%)
-............................................................... 315 / 365 ( 86%)
-..................................................              365 / 365 (100%)
-Time: 03:18.562, Memory: 26.00 MB
+...............................................................  63 / 371 ( 16%)
+............................................................... 126 / 371 ( 33%)
+............................................................... 189 / 371 ( 50%)
+............................................................... 252 / 371 ( 67%)
+............................................................... 315 / 371 ( 84%)
+........................................................        371 / 371 (100%)
+Time: 03:41.209, Memory: 26.00 MB
 Adjustment (Reseller\Tests\Integration\Wp3a\Adjustment)
  ✔ Adjustments never create a wallet
  ✔ Credit and debit adjustment ledger shape
@@ -574,6 +581,13 @@ Finance Capability (Reseller\Tests\Unit\Wp3a\FinanceCapability)
  ✔ Schema not ready fails closed for every role
  ✔ Non staff principals hold no finance capability
  ✔ Flags reflect the matrix
+Finance Schema Readiness (Reseller\Tests\Integration\Wp3a\FinanceSchemaReadiness)
+ ✔ Required table list is exact
+ ✔ Missing finance table fails closed and recovers with data set "tbl_reseller_activations"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallets"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_transfers"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_ledger"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallet_reservations"
 Finance Tx (Reseller\Tests\Integration\Wp3a\FinanceTx)
  ✔ Deadlock is retried with a clean envelope
  ✔ Retries are bounded
@@ -858,7 +872,7 @@ Wallet (Reseller\Tests\Integration\Wp3a\Wallet)
  ✔ Debt limit increase and decrease against exact exposure
  ✔ Debt limit input and target rules
  ✔ Read scope
-OK (365 tests, 24201 assertions)
+OK (371 tests, 24904 assertions)
 ================ variant registry reproducibility ================
 variant registry matches freshly built fixtures
   mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3

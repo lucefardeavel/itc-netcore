@@ -18,14 +18,28 @@ final class SourceGuardTest extends TestCase
 {
     private const FIN = 'system/autoload/Reseller/Finance/';
 
-    /** base 3e634550 content hashes of files WP3A must not change */
+    /**
+     * base 3e634550 content hashes of files WP3A must not change. SchemaReadiness is deliberately not
+     * pinned: the WP3A fix round adds the finance runtime tables to its required-table check.
+     */
     private const PINNED = [
         'system/autoload/Reseller/Domain/ServiceGate.php' => 'f0d6f3d96283725b134433122aaf8442eb8db983148b0a45379d8a6cb4f0ed82',
         'system/autoload/Reseller/Security/RouteMap.php' => '9ae1260a4e4b1b7734816088bd81d0762247d38baf26c4c00389ab35718ffc53',
         'system/autoload/Reseller/Domain/Tx.php' => '223cfb618ee7372c615bb93f37c86db4da739d47e2da03692f976bf3b2cbccc6',
-        'system/autoload/Reseller/Domain/SchemaReadiness.php' => '7c280e094d9ea7fccd62a7dc47a52fc3790508a6cd1e865c3104483aaec7c265',
         'system/autoload/Balance.php' => '143cad4966e580de20a3f575144f347d55f20b36501f482da7dc764443e011ae',
         'system/autoload/Package.php' => '9f3cc352bc563d689e3cb5e41015b297d1a9f57a2034b618597fd8c80e4ebd4c',
+        // accepted WP1 migration runner
+        'system/reseller/migrate.php' => '8420e021293260ae01f097e5d202221003a172e14e116933831e0087f44803fa',
+        'system/reseller/Migration/Db.php' => 'd5123172de0d8bda244c3c8081f8c156e454766d50c3af49958b4f30048c1c51',
+        'system/reseller/Migration/Grants.php' => '321f1e3a69d23000417a2bab638383c25d05fd62fa4048446b08a4e2b5ab1d58',
+        'system/reseller/Migration/MigrationDefinition.php' => '7489a85b6aff66630491974e5b44f456499959d860770c5e5c9e3e4d3ea1c6e9',
+        'system/reseller/Migration/MigrationSet.php' => '7421f6f5ce66ca4bd87000d9c57a9e1afd03a07bb6b88353209699111c48187e',
+        'system/reseller/Migration/Outcome.php' => 'af89a92118e38c2f6a952bfa3e7e9ce2d2f8d3f095ae6d5485174326e78ff491',
+        'system/reseller/Migration/Registry.php' => 'dceb66f1c05450df45e4452d2407edcecf8fd60af24744dc9ef96d010e9a26a2',
+        'system/reseller/Migration/Runner.php' => 'c09c040646ff9129996f0ffb004362d90c886f6aff5da49763fdb5580ad83ce0',
+        'system/reseller/Migration/SchemaInspector.php' => '7ee73bfd5319c81c7169c631a5de497af09502c2c0b39bd27dbf65c702c5a5a0',
+        'system/reseller/Migration/VariantRegistry.php' => 'f11f0031041a2d610dbdb2675e92885f510ca8ac039e856f06cdb05e18d006d6',
+        'system/reseller/Migration/variants.php' => '4d9f7f8a38c81d29164a474aaa36a0d29ef10bc7c12beecdc37f02b391022202',
         'system/reseller/migrations/R0001_manager_tree.php' => 'a0b52f7fb4bd5f5e317c701d85df6db7d2a95ace04ec1b1112873191e514a5a7',
         'system/reseller/migrations/R0002_pricing_foundation.php' => '38bceb1fb4f4be1b26bdb53c5317840109ce6f7e1ef7b98dc8af61b9b8c3b771',
         'system/reseller/migrations/R0003_activation_foundation.php' => '60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd',
@@ -213,7 +227,7 @@ final class SourceGuardTest extends TestCase
         $this->assertMatchesRegularExpression('/private static function insert\(/', $src);
     }
 
-    /** Accepted R0001–R0006, the WP2 ServiceGate and other untouched files stay byte-identical; no R0007. */
+    /** Accepted R0001–R0006, the migration runner, the WP2 ServiceGate and other untouched files stay byte-identical; no R0007. */
     public function testAcceptedFilesAreByteIdentical(): void
     {
         foreach (self::PINNED as $rel => $sha) {

@@ -15,6 +15,13 @@ use Reseller\Security\ErrorReporter;
  * CLI-only runner classes: the registry must exist, every expected migration must be APPLIED with
  * an unchanged file checksum, no migration may be in a blocking/unknown state, the required
  * tables/columns must exist and no migration run may be in progress. Any error ⇒ not ready.
+ *
+ * A registry row saying a migration is APPLIED is not proof that its runtime tables still exist, so
+ * every table a runtime authority depends on is checked directly: the WP2 hierarchy / audit /
+ * ownership tables and the WP3A finance authorities (activation rows used by reservations, wallets,
+ * transfers / idempotency, the ledger, reservation exposure). A missing finance table therefore makes
+ * PermissionService refuse every finance capability for every role before any finance SQL runs.
+ * Pricing tables are not runtime-authoritative yet (WP3B extends this list when they become so).
  */
 final class SchemaReadiness
 {
@@ -27,7 +34,11 @@ final class SchemaReadiness
         'R0006_reseller_audit',
     ];
     public const BLOCKING = ['APPLYING', 'FAILED_PARTIAL', 'ROLLBACK_REQUIRED', 'ROLLING_BACK', 'ROLLBACK_FAILED'];
-    private const REQUIRED_TABLES = ['tbl_manager_tree', 'tbl_reseller_audit_events', 'tbl_customers'];
+    private const REQUIRED_TABLES = [
+        'tbl_manager_tree', 'tbl_reseller_audit_events', 'tbl_customers',
+        // WP3A finance runtime dependencies
+        'tbl_reseller_activations', 'tbl_manager_wallets', 'tbl_manager_transfers', 'tbl_manager_ledger', 'tbl_manager_wallet_reservations',
+    ];
     private const REQUIRED_COLUMNS = [['tbl_customers', 'manager_id'], ['tbl_customers', 'assigned_sales_id']];
 
     /** @var array{ready:bool,problems:list<string>}|null */

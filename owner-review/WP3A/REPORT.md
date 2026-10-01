@@ -1,15 +1,15 @@
 # WP3A — Owner review report
 
-**Status: IMPLEMENTED_NOT_ACCEPTED.** WP3A is implemented on `wp3a/wallet-ledger` from `3e6345500724394132654a34ea6323051ceb1c02`, following the owner's decisions P1–P7 and the plan amendments. It is waiting for owner review.
+**Status: IMPLEMENTED_NOT_ACCEPTED.** WP3A is implemented on `wp3a/wallet-ledger` from `3e6345500724394132654a34ea6323051ceb1c02`, following the owner's decisions P1–P7 and the plan amendments. Fix round 1 (finance schema readiness, section S) is applied. It is waiting for owner review.
 
 | Item | Value |
 |---|---|
 | Branch | `wp3a/wallet-ledger` (created from `3e634550`; not reset to an earlier HEAD) |
 | Starting HEAD | `3e6345500724394132654a34ea6323051ceb1c02` |
-| Code under test | `32690c37` (all code and tests; the following commit adds only this report, `TESTDOX.txt` and `docs/WP3A_FINANCE_MODEL.md`) |
-| Ending HEAD | the report commit on top of `32690c37` (given in the final response) |
+| Previous candidate | `983aad929420d42efc6b5c7b174b9d69708106bc` (owner verdict: FIX_REQUIRED) |
+| New candidate | the fix commit `fix(wp3a): fail closed on missing finance schema` on top of `983aad92` (SHA given in the final response); it contains the code, tests, docs and this report that were tested |
 | Ancestry | `3e634550` → `1c66ec5b` (WP2) → `1f36bfa` (WP1), all verified ancestors |
-| Schema | **no change, no R0007, no triggers**; R0001–R0006 byte-identical |
+| Schema | **no change, no R0007, no triggers**; R0001–R0006 byte-identical; `SchemaReadiness` intentionally changed (fix round 1) |
 | `feat/reseller-system-v1` / `main` | unchanged: `3e634550` / `500d3a2d15003efeed6e0aad639c13d08101c3b1` |
 | Production | not touched; nothing deployed |
 | WP3B | not started |
@@ -22,7 +22,8 @@ Detailed model: `docs/WP3A_FINANCE_MODEL.md`. Test evidence: `owner-review/WP3A/
 | `81e02e0f` feat(wp3a): activate the finance capability matrix and add the Money model | `Capability`, `RoleCapabilityMap`, `DomainError` codes, `Finance/Money.php`, generated finance rows of `docs/WP2_PERMISSION_MODEL.md` |
 | `12824c02` feat(wp3a): wallet, ledger, transfer and reservation services | `system/autoload/Reseller/Finance/*` |
 | `32690c37` test(wp3a): unit, integration, concurrency and failure-injection suites | `tests/Unit/Wp3a`, `tests/Integration/Wp3a`, `tests/Support/Finance*`, `finance_worker.php`, bootstrap, `phpunit.xml` |
-| report commit — docs(wp3a): finance model and owner-review report | `docs/WP3A_FINANCE_MODEL.md`, `owner-review/WP3A/{REPORT.md,TESTDOX.txt}` |
+| `983aad92` docs(wp3a): finance model and owner-review report | `docs/WP3A_FINANCE_MODEL.md`, `owner-review/WP3A/{REPORT.md,TESTDOX.txt}` |
+| fix commit — fix(wp3a): fail closed on missing finance schema | `SchemaReadiness.php`, `FinanceSchemaReadinessTest.php`, `SourceGuardTest.php`, finance model doc, this report, `TESTDOX.txt` (section S) |
 
 All commits are authored by `ALI HENDI <ali.hahuba3@gmail.com>` and carry the agreed trailers.
 
@@ -31,6 +32,7 @@ All commits are authored by `ALI HENDI <ali.hahuba3@gmail.com>` and carry the ag
 - `system/autoload/Reseller/Security/Capability.php`: adds `wallet.debt_limit`, `wallet.adjust`, `wallet.reverse`. `RESERVED` is now pricing and activation only. Five finance capabilities are `MUTATING`; all seven are `SCHEMA_DEPENDENT`.
 - `system/autoload/Reseller/Security/RoleCapabilityMap.php`: the finance matrix (section D).
 - `system/autoload/Reseller/Domain/DomainError.php`: 24 finance reason codes.
+- `system/autoload/Reseller/Domain/SchemaReadiness.php` (fix round 1): `REQUIRED_TABLES` adds the five WP3A runtime tables (section S). `EXPECTED` stays R0001–R0006.
 - `docs/WP2_PERMISSION_MODEL.md`: regenerated finance rows.
 - `tests/bootstrap.php`: `Finance` autoload and the support classes.
 - `tests/phpunit.xml`: suites `wp3a-unit` and `wp3a-integration`.
@@ -43,9 +45,9 @@ All commits are authored by `ALI HENDI <ali.hahuba3@gmail.com>` and carry the ag
 - `TransferService`, `TransferResult`;
 - `ReservationService`, `ReservationResult`.
 
-**Added tests (21 files):**
+**Added tests (22 files):**
 - `tests/Unit/Wp3a/`: `MoneyTest`, `FinanceCapabilityTest`, `FinanceActorTest`, `SourceGuardTest`.
-- `tests/Integration/Wp3a/`: `WalletTest`, `FundingTest`, `AdjustmentTest`, `TransferTest`, `ReservationTest`, `ReversalTest`, `LedgerTest`, `MoneyBoundaryTest`, `FailureInjectionTest`, `FinanceTxTest`, `ConcurrencyTest`, `AppSurfaceTest`.
+- `tests/Integration/Wp3a/`: `WalletTest`, `FundingTest`, `AdjustmentTest`, `TransferTest`, `ReservationTest`, `ReversalTest`, `LedgerTest`, `MoneyBoundaryTest`, `FailureInjectionTest`, `FinanceTxTest`, `ConcurrencyTest`, `AppSurfaceTest`, `FinanceSchemaReadinessTest` (fix round 1).
 - `tests/Support/`: `FinanceTestCase`, `FinanceSeed`, `FinanceInvariants`, `FinanceWorkers`, `finance_worker.php`.
 
 **Added docs:**
@@ -55,18 +57,20 @@ All commits are authored by `ALI HENDI <ali.hahuba3@gmail.com>` and carry the ag
 
 **Not changed (byte-identical, pinned by `SourceGuardTest`):**
 - R0001–R0006;
-- the migration runner;
-- `ServiceGate`, `RouteMap`, `Tx`, `SchemaReadiness`;
+- the accepted migration runner (`system/reseller/migrate.php`, `system/reseller/Migration/*`);
+- `ServiceGate`, `RouteMap`, `Tx`;
 - `Balance.php`, `Package.php`;
 - every controller and template;
 - the spec pack and `MANIFEST.sha256`.
 
-Totals: 42 files changed, 4854 insertions, 9 deletions in the code commits, plus the report commit.
+Totals: 42 files changed, 4854 insertions, 9 deletions in the original code commits, plus the report commit and the fix commit (section S).
+
+`SchemaReadiness.php` is **not** byte-identical: it was intentionally changed by fix round 1 and is no longer pinned.
 
 ## C. Database: R0001–R0006 byte-identical, no R0007
 - `git diff 3e634550..HEAD -- system/reseller/migrations system/autoload/Reseller/Domain/ServiceGate.php docs/claude-development-pack` is empty.
 - `system/reseller/migrations/` holds exactly R0001–R0006. The R0006 sha256 is `f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd` (unchanged).
-- `SourceGuardTest::testAcceptedFilesAreByteIdentical` pins the sha256 of R0001–R0006, ServiceGate, RouteMap, Tx, SchemaReadiness, Balance and Package to their `3e634550` content. It also asserts no R0007 and no `CREATE TRIGGER`.
+- `SourceGuardTest::testAcceptedFilesAreByteIdentical` pins the sha256 of R0001–R0006, the migration runner, ServiceGate, RouteMap, Tx, Balance and Package to their `3e634550` content. It also asserts no R0007 and no `CREATE TRIGGER`. `SchemaReadiness` is deliberately not pinned (fix round 1).
 - P1: immutability is enforced in the application (section L). No triggers were added.
 - No schema change was needed. Nothing indicated one, so there was no stop-and-ask.
 
@@ -306,7 +310,7 @@ Over every runtime PHP/TPL file (`system`, `ui`, `install`, `index.php`, `init.p
 - **Entrypoints:** no controller, API, plugin, widget, cron or template references the finance services. RouteMap and `API_ALLOWED` have no finance key.
 - **Fault hook:** `FinanceFaults::$hook` is never assigned at runtime.
 - **No generic ledger writer.**
-- **Pinned files:** R0001–R0006, ServiceGate and other accepted files are byte-identical; no R0007; no triggers.
+- **Pinned files:** R0001–R0006, the migration runner, ServiceGate, RouteMap, Tx, Balance and Package are byte-identical; no R0007; no triggers. The `SchemaReadiness` pin was removed in fix round 1 because that file is intentionally changed.
 
 ## O. Customer-balance separation evidence
 - Every WP3A integration test asserts the `CHECKSUM TABLE tbl_customers` (legacy customer balance included) is unchanged across the test.
@@ -318,16 +322,22 @@ Over every runtime PHP/TPL file (`system`, `ui`, `install`, `index.php`, `init.p
 ## P. Test matrix (PHP 8.2.34, PHPUnit 11.5.56, `dev/test/run-tests.sh`)
 | Engine | Tests | Assertions | Plain | `--testdox` |
 |---|---|---|---|---|
-| MariaDB 10.11.19 | 365 | 24201 | OK | OK |
-| MySQL 8.0.46 | 365 | 24201 | OK | OK |
+| MariaDB 10.11.19 | 371 | 24904 | OK | OK |
+| MySQL 8.0.46 | 371 | 24904 | OK | OK |
 
-- **Coverage:** the 365 tests are the accepted WP1 + WP2 suite (207 tests) plus WP3A (158 tests: `wp3a-unit` 65 tests / 12401 assertions, `wp3a-integration` 93 tests / 2431 assertions, identical on both engines). The accepted WP2 tests now report more assertions because their loops over `Capability::all()` cover the new capabilities.
-- **Testdox:** 730 ✔ / 0 ✘ (both engines). See `TESTDOX.txt`.
-- **Registry reproducibility:** `variant registry matches freshly built fixtures` in both runs (V1/V2/V3 fingerprints unchanged).
-- **Route / security matrix:** `RouteMatrixTest` with `WP2_EVIDENCE=1` gives 1442 requests, 1164 denials, 278 allowed. The rows are identical on MariaDB and MySQL and identical to the accepted `owner-review/WP2/ROUTE_MATRIX_EVIDENCE.txt`, so WP3A adds no route and changes no decision.
+These are the fix-round-1 results. The first candidate `983aad92` had 365 tests / 24201 assertions on both engines.
+
+- **Coverage:** the 371 tests are the accepted WP1 + WP2 suite (207 tests) plus WP3A (164 tests, including the 6 `FinanceSchemaReadinessTest` cases from fix round 1). The accepted WP2 tests report more assertions than in WP2 because their loops over `Capability::all()` cover the new capabilities.
+- **Testdox:** 742 ✔ / 0 ✘ (both engines). See `TESTDOX.txt`, regenerated for fix round 1. Totals across both engines:
+  - `ConcurrencyTest`: 26 ✔;
+  - `FailureInjectionTest`: 46 ✔;
+  - `SourceGuardTest`: 20 ✔;
+  - `FinanceSchemaReadinessTest`: 12 ✔.
+- **Registry reproducibility:** `variant registry matches freshly built fixtures` in both runs (V1/V2/V3 fingerprints unchanged; re-verified in fix round 1).
+- **Route / security matrix:** `RouteMatrixTest` with `WP2_EVIDENCE=1` gives 1442 requests, 1164 denials, 278 allowed. The rows are identical on MariaDB and MySQL and identical to the accepted `owner-review/WP2/ROUTE_MATRIX_EVIDENCE.txt`, so WP3A adds no route and changes no decision. Re-verified in fix round 1.
 - **No finance route:** `AppSurfaceTest` checks unmapped finance routes for sa/ad/A (web GET/POST and API) and reseller-alias attempts. All are denied or at most the read-only tree page, and no finance, customer or tree table changed.
-- **PHP lint:** the 40 changed PHP files are clean on PHP 8.2.34 (test image) and PHP 8.3.6.
-- **Secret sweep:** run over the full `3e634550..HEAD` diff and the docs. It found no DB password, API secret, private key, token pattern or password literal (the only passwords are the disposable test-fixture conventions).
+- **PHP lint:** the 42 WP3A PHP files (including fix round 1) are clean on PHP 8.2.34 (test image) and PHP 8.3.6.
+- **Secret sweep:** run over the full `3e634550..HEAD` diff (fix round 1 included) and the docs. It found no DB password, API secret, private key, token pattern or password literal (the only passwords are the disposable test-fixture conventions).
 - **Manifest:** `sha256sum --strict -c MANIFEST.sha256` gives 42/42 OK.
 
 ## Q. Unresolved risks / follow-ups
@@ -340,10 +350,62 @@ Over every runtime PHP/TPL file (`system`, `ui`, `install`, `index.php`, `init.p
 7. **P4 exception check:** implementation found no unavoidable accounting-correction case requiring withdrawal, adjustment or debt-limit changes on frozen wallets; `reverse()` covers historical corrections. Nothing was broadened.
 
 ## R. Git, push and environment status
-- **Working tree:** clean after the report commit.
+- **Working tree:** clean after the fix commit.
 - **Push:** `git push -u origin wp3a/wallet-ledger` (normal, no force). No PR, merge or deploy.
 - **Unchanged branches:** `feat/reseller-system-v1` = `3e634550` (local = origin); `main` = `500d3a2d…`.
 - **Production:** not touched.
 - **WP3B:** not started.
+
+## S. Fix round 1 — finance schema readiness fails closed
+**Owner finding (candidate `983aad92`):**
+- `SchemaReadiness::EXPECTED` includes R0003/R0004, but `REQUIRED_TABLES` did not verify the runtime tables WP3A depends on.
+- A registry row saying APPLIED is not proof that a table exists. A manually dropped or drifted finance table therefore left `schemaReady = true`.
+- Wallet capabilities would then pass PermissionService and fail later with SQL errors.
+
+**Fix:** `system/autoload/Reseller/Domain/SchemaReadiness.php` is intentionally changed. Its `REQUIRED_TABLES` is now exactly:
+1. `tbl_manager_tree`
+2. `tbl_reseller_audit_events`
+3. `tbl_customers`
+4. `tbl_reseller_activations` (reservation activation rows)
+5. `tbl_manager_wallets` (wallet authority)
+6. `tbl_manager_transfers` (transfer / idempotency authority)
+7. `tbl_manager_ledger` (financial source of truth)
+8. `tbl_manager_wallet_reservations` (exposure authority)
+
+**Unchanged:**
+- no pricing table is required;
+- `EXPECTED` is exactly R0001–R0006, and `REQUIRED_COLUMNS` is unchanged;
+- no migration definition, finance service, Money, FinanceActor, capability matrix, P1–P7 decision, ServiceGate, route, API or UI changed.
+
+**Evidence: `tests/Integration/Wp3a/FinanceSchemaReadinessTest.php`** (6 tests, 693 assertions, identical on MariaDB 10.11.19 and MySQL 8.0.46):
+- `testRequiredTableListIsExact`: the eight-table list (no pricing table), `EXPECTED` = R0001–R0006, and the migrated database is ready.
+- `testMissingFinanceTableFailsClosedAndRecovers` runs once for each of `tbl_reseller_activations`, `tbl_manager_wallets`, `tbl_manager_transfers`, `tbl_manager_ledger` and `tbl_manager_wallet_reservations`:
+  1. **Valid start:** a migrated disposable database with real state built through the services (a funded parent, a child, a transfer, two ACTIVE reservations, a spare activation).
+  2. **Exactly that table made unavailable:** `RENAME TABLE <t> TO <t>_wp3a_off`, the method used by the accepted WP2 `SchemaDriftTest`.
+  3. **Reset:** `SchemaReadiness::reset()` and `ActorContext::reset()`.
+  4. **Not ready:** `status()` is exactly `ready = false`, `problems = ["table <t> missing"]`.
+  5. **Capabilities closed:** SuperAdmin, Admin and Agents A and P, built by `ActorContext::forStaff` from their real rows, all have `schemaReady = false`. For each of them:
+     - `scopeOf` is NONE and the flags are false for `wallet.read`, `ledger.read`, `wallet.fund_withdraw`, `wallet.transfer`, `wallet.debt_limit`, `wallet.adjust`, `wallet.reverse`;
+     - `reseller.tree_read` is also closed, because the whole reseller schema is not ready;
+     - there is no global-admin bypass.
+  6. **Refused before any finance SQL:** every finance read and mutation (15 calls) is refused with `DomainError SCHEMA_NOT_READY`: wallet view and list, ledger entries and entry, funding, withdrawal, credit and debit adjustment, debt limit, Agent and Admin transfer, reversal, reserve, commit and release.
+     - A PDO "table not found" error would escape the assertion and fail the test, so the refusal is proven to come from SchemaReadiness / PermissionService.
+     - No finance fault point was reached.
+     - The checksums of every table are unchanged.
+     - No transaction is open and the tree lock is not held.
+  7. **Restored:** `RENAME TABLE` back.
+  8. **Reset** again.
+  9. **Ready again:**
+     - `status()` = ready;
+     - SuperAdmin and Admin have G for all seven capabilities; the Agent has `wallet.read` T, `ledger.read` T, `wallet.transfer` C;
+     - real operations succeed over the restored table and its foreign keys: funding, transfer, reversal, commit, release and a new reserve, with exact balances (95.00 / 1.00, available 94.00);
+     - the whole-database invariants hold and `tbl_customers` is unchanged.
+
+**Accepted WP2 readiness tests are unchanged and still green:** `SchemaDriftTest` (FAILED_PARTIAL, checksum drift, missing migration, missing audit table, runner lock) and `SchemaNotMigratedTest`.
+
+**Source guard:**
+- the `SchemaReadiness.php` pin is removed;
+- the accepted migration runner is now pinned (`system/reseller/migrate.php`, `system/reseller/Migration/*`);
+- R0001–R0006, ServiceGate, RouteMap, Tx, Balance and Package stay pinned.
 
 WP3A remains **IMPLEMENTED_NOT_ACCEPTED** pending owner review.

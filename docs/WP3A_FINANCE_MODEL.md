@@ -28,12 +28,40 @@ WP3A is the authoritative reseller financial writer layer. It has:
 Accepted code changed (minimal):
 - `Capability` and `RoleCapabilityMap`: the finance matrix (§3);
 - `DomainError`: finance reason codes;
+- `SchemaReadiness`: intentionally changed in fix round 1 to require the finance runtime tables (§1a);
 - the generated finance rows of `docs/WP2_PERMISSION_MODEL.md`.
 
 Byte-identical (pinned by `SourceGuardTest`):
 - R0001–R0006;
-- `ServiceGate`, `RouteMap`, `Tx`, `SchemaReadiness`;
+- the accepted WP1 migration runner (`system/reseller/migrate.php`, `system/reseller/Migration/*`);
+- `ServiceGate`, `RouteMap`, `Tx`;
 - `Balance.php`, `Package.php`.
+
+`SchemaReadiness` is deliberately not pinned.
+
+## 1a. Schema readiness (fix round 1)
+
+A registry row saying R0003/R0004 is APPLIED is not proof that the finance runtime tables still exist. `SchemaReadiness` therefore checks every table a runtime authority depends on:
+
+| Table | Why it is required |
+|---|---|
+| `tbl_manager_tree` | hierarchy (WP2) |
+| `tbl_reseller_audit_events` | audit (WP2) |
+| `tbl_customers` | customer ownership (WP2) |
+| `tbl_reseller_activations` | activation rows used by `ReservationService` |
+| `tbl_manager_wallets` | wallet authority |
+| `tbl_manager_transfers` | transfer / idempotency authority |
+| `tbl_manager_ledger` | financial source of truth |
+| `tbl_manager_wallet_reservations` | exposure authority |
+
+- `EXPECTED` stays R0001–R0006.
+- Pricing tables are not required (WP3B extends the list when pricing becomes runtime-authoritative).
+
+If any of these tables is missing, the reseller schema is **not ready**:
+- PermissionService refuses all seven finance capabilities for every role, SuperAdmin and Admin included.
+- Every finance read and mutation is refused with `SCHEMA_NOT_READY` at `ResellerTreeService::authorize` / `requireReady`, before any finance SQL runs. It never fails later with a "table not found" error.
+- Under the accepted WP2 readiness rule, the other schema-dependent reseller operations also fail closed.
+- Restoring the table restores readiness.
 
 ## 2. Money model (owner correction)
 
