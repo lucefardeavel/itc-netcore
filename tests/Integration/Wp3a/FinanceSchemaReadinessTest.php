@@ -70,10 +70,9 @@ final class FinanceSchemaReadinessTest extends FinanceTestCase
         $this->assertSame([
             'tbl_manager_tree', 'tbl_reseller_audit_events', 'tbl_customers',
             'tbl_reseller_activations', 'tbl_manager_wallets', 'tbl_manager_transfers', 'tbl_manager_ledger', 'tbl_manager_wallet_reservations',
+            // WP3B: the pricing authorities are runtime-authoritative (Wp3b/PricingSchemaReadinessTest)
+            'tbl_reseller_plan_base_costs', 'tbl_manager_plan_prices',
         ], $required);
-        foreach ($required as $t) {
-            $this->assertDoesNotMatchRegularExpression('/pric|override|commission/i', $t, 'pricing tables are not runtime-authoritative yet (WP3B)');
-        }
         $this->assertSame(['R0001_manager_tree', 'R0002_pricing_foundation', 'R0003_activation_foundation',
             'R0004_wallet_finance_foundation', 'R0005_customer_ownership', 'R0006_reseller_audit'], SchemaReadiness::EXPECTED);
         self::resetReadiness();

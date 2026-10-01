@@ -40,6 +40,10 @@ final class RoleCapabilityMap
         // Admin/SuperAdmin only; parent -> direct-child transfers keep the structural direct-child rule
         C::WALLET_READ => 'G', C::LEDGER_READ => 'G', C::WALLET_FUND_WITHDRAW => 'G', C::WALLET_DEBT_LIMIT => 'G',
         C::WALLET_ADJUST => 'G', C::WALLET_REVERSE => 'G', C::WALLET_TRANSFER => 'G',
+        // WP3B pricing: provider base cost / resale and every reseller's wholesale, retail (OD-4) and
+        // availability (OD-3) for administrative pricing; the structural parent/child rules still apply
+        C::PRICING_READ => 'G', C::PRICING_BASE_COST => 'G', C::PRICING_CHILD_WHOLESALE => 'G',
+        C::PRICING_OWN_RETAIL => 'G', C::PRICING_CHILD_AVAILABILITY => 'G',
     ];
 
     /** @var array<string,array<string,string>> */
@@ -59,6 +63,9 @@ final class RoleCapabilityMap
             C::SELF_UPDATE_PROFILE => 'S', C::SELF_CHANGE_PASSWORD => 'S', C::API_ACCESS => 'S',
             // WP3A finance (P3): own + subtree visibility; transfer from own wallet to a direct child only
             C::WALLET_READ => 'T', C::LEDGER_READ => 'T', C::WALLET_TRANSFER => 'C',
+            // WP3B pricing: own + subtree visibility; wholesale and availability of direct children only
+            // (never its own wholesale); its own retail price only
+            C::PRICING_READ => 'T', C::PRICING_CHILD_WHOLESALE => 'C', C::PRICING_CHILD_AVAILABILITY => 'C', C::PRICING_OWN_RETAIL => 'S',
         ],
         'Sales' => [
             C::CUSTOMER_READ => 'A', C::CUSTOMER_CREATE => 'A',

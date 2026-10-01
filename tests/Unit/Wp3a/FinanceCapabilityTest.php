@@ -12,7 +12,7 @@ use Reseller\Security\RoleCapabilityMap;
 
 /**
  * WP3A capability / scope matrix (owner decisions P2/P3), enforced through the accepted WP2
- * PermissionService. Pricing and activation stay reserved.
+ * PermissionService. Activation stays reserved (pricing is activated by WP3B).
  */
 final class FinanceCapabilityTest extends TestCase
 {
@@ -60,9 +60,10 @@ final class FinanceCapabilityTest extends TestCase
         }
     }
 
+    /** WP3B activated the pricing capabilities (exact matrix: Wp3b/PricingCapabilityTest); activation stays reserved. */
     public function testPricingAndActivationStayReserved(): void
     {
-        $this->assertSame([C::PRICING_BASE_COST, C::PRICING_CHILD_WHOLESALE, C::PRICING_OWN_RETAIL, C::ACTIVATION_CREATE, C::ACTIVATION_READ], C::RESERVED);
+        $this->assertSame([C::ACTIVATION_CREATE, C::ACTIVATION_READ], C::RESERVED);
         foreach (RoleCapabilityMap::ROLES as $role) {
             foreach (C::RESERVED as $cap) {
                 $this->assertNull(RoleCapabilityMap::scope($role, $cap));

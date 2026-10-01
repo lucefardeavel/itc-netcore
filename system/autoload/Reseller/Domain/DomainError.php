@@ -61,6 +61,27 @@ final class DomainError extends \RuntimeException
         'LOCK_REQUIRED' => 'The operation requires the reseller hierarchy lock.',
         'CONCURRENCY_RETRY' => 'The financial operation could not complete because of concurrent activity; please try again.',
         'LEDGER_STATE_MISMATCH' => 'The wallet changed unexpectedly; the operation was not applied.',
+        // reseller pricing and settlement (WP3B)
+        'BALANCE_PLAN_NOT_RESELLABLE' => 'Balance (customer top-up) plans are not available for reseller commerce.',
+        'PLAN_NOT_RESELLABLE' => 'The plan has no provider base cost and is not resellable.',
+        'PLAN_RESALE_DISABLED' => 'Reseller commerce is disabled for this plan.',
+        'PLAN_DISABLED_BY_ANCESTOR' => 'The plan was disabled by a parent reseller.',
+        'PLAN_DISABLED_BY_SELF' => 'The plan is disabled for this reseller.',
+        'PRICING_CHAIN_INVALID' => 'A wholesale price in the reseller chain is below its parent price; the plan cannot be sold until it is corrected.',
+        'ZERO_WHOLESALE_NOT_SUPPORTED' => 'A zero wholesale price cannot be used for a reseller activation.',
+        'LEGACY_RETAIL_INVALID' => 'The plan default price is not a valid money value; set an explicit retail price.',
+        'RETAIL_BELOW_WHOLESALE' => 'The retail price is below the wholesale price; the plan cannot be sold until it is corrected.',
+        'RETAIL_CLEAR_INVALID' => 'The plan default price would be below the wholesale price or is invalid; keep an explicit retail price.',
+        'WHOLESALE_BELOW_PARENT' => 'A reseller wholesale price cannot be below its parent wholesale price.',
+        'WHOLESALE_DESCENDANT_CONFLICT' => 'The change would put a sub-reseller price below its new parent price; raise the sub-reseller prices first.',
+        'BASE_COST_DESCENDANT_CONFLICT' => 'The new base cost would exceed an existing reseller price; raise those prices first.',
+        'SELF_PRICING_FORBIDDEN' => 'A reseller cannot set its own wholesale price or availability.',
+        'PRICING_TARGET_INVALID' => 'The account is not a valid, enrolled reseller.',
+        'PRICING_TARGET_FROZEN' => 'The reseller or a parent reseller is inactive; pricing changes are blocked.',
+        'PRICING_SNAPSHOT_INVALID' => 'The activation pricing snapshot is missing, incomplete or inconsistent.',
+        'PRICING_SNAPSHOT_STALE' => 'Prices changed since the activation was priced; price it again.',
+        'COMMISSION_RECIPIENT_NO_WALLET' => 'A parent reseller that earns a commission on this sale has no wallet yet.',
+        'COMMISSION_RECIPIENT_CAPACITY' => 'A parent reseller wallet cannot receive this commission (money range exceeded).',
     ];
 
     public function __construct(public readonly string $reason, ?string $detail = null)

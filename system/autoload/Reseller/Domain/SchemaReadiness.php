@@ -21,7 +21,9 @@ use Reseller\Security\ErrorReporter;
  * ownership tables and the WP3A finance authorities (activation rows used by reservations, wallets,
  * transfers / idempotency, the ledger, reservation exposure). A missing finance table therefore makes
  * PermissionService refuse every finance capability for every role before any finance SQL runs.
- * Pricing tables are not runtime-authoritative yet (WP3B extends this list when they become so).
+ * WP3B makes the pricing tables runtime-authoritative (provider base cost / resale enablement and the
+ * per-manager wholesale / retail / availability overrides), so they are required as well: a missing
+ * pricing table closes every pricing, finance and hierarchy capability for every role.
  */
 final class SchemaReadiness
 {
@@ -38,6 +40,8 @@ final class SchemaReadiness
         'tbl_manager_tree', 'tbl_reseller_audit_events', 'tbl_customers',
         // WP3A finance runtime dependencies
         'tbl_reseller_activations', 'tbl_manager_wallets', 'tbl_manager_transfers', 'tbl_manager_ledger', 'tbl_manager_wallet_reservations',
+        // WP3B pricing runtime authorities
+        'tbl_reseller_plan_base_costs', 'tbl_manager_plan_prices',
     ];
     private const REQUIRED_COLUMNS = [['tbl_customers', 'manager_id'], ['tbl_customers', 'assigned_sales_id']];
 

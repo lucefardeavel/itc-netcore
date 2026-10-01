@@ -69,17 +69,17 @@ final class Capability
     public const WALLET_DEBT_LIMIT = 'wallet.debt_limit';
     public const WALLET_ADJUST = 'wallet.adjust';
     public const WALLET_REVERSE = 'wallet.reverse';
-    // reserved boundary for later work packages (WP3B pricing, WP5A activation): defined now, never granted
+    // reseller pricing (WP3B; owner decisions OD-3/OD-4): granted by RoleCapabilityMap, enforced by Reseller\Finance\PricingService
+    public const PRICING_READ = 'pricing.read';
     public const PRICING_BASE_COST = 'pricing.base_cost';
     public const PRICING_CHILD_WHOLESALE = 'pricing.child_wholesale';
     public const PRICING_OWN_RETAIL = 'pricing.own_retail';
+    public const PRICING_CHILD_AVAILABILITY = 'pricing.child_availability';
+    // reserved boundary for a later work package (WP5A activation): defined now, never granted
     public const ACTIVATION_CREATE = 'activation.create';
     public const ACTIVATION_READ = 'activation.read';
 
-    public const RESERVED = [
-        self::PRICING_BASE_COST, self::PRICING_CHILD_WHOLESALE, self::PRICING_OWN_RETAIL,
-        self::ACTIVATION_CREATE, self::ACTIVATION_READ,
-    ];
+    public const RESERVED = [self::ACTIVATION_CREATE, self::ACTIVATION_READ];
 
     /** Capabilities that change state: refused for a frozen, inactive or inconsistent principal. */
     public const MUTATING = [
@@ -94,6 +94,7 @@ final class Capability
         self::RESELLER_PLACE, self::RESELLER_MOVE,
         self::SYSTEM_ADMIN, self::SYSTEM_CODE, self::SYSTEM_COUPONS, self::SYSTEM_BACKUP, self::SYSTEM_RESTORE, self::SYSTEM_UPDATE,
         self::WALLET_FUND_WITHDRAW, self::WALLET_TRANSFER, self::WALLET_DEBT_LIMIT, self::WALLET_ADJUST, self::WALLET_REVERSE,
+        self::PRICING_BASE_COST, self::PRICING_CHILD_WHOLESALE, self::PRICING_OWN_RETAIL, self::PRICING_CHILD_AVAILABILITY,
     ];
 
     /**
@@ -107,6 +108,7 @@ final class Capability
         self::RESELLER_PLACE, self::RESELLER_MOVE, self::RESELLER_TREE_READ,
         self::WALLET_READ, self::LEDGER_READ, self::WALLET_FUND_WITHDRAW, self::WALLET_TRANSFER,
         self::WALLET_DEBT_LIMIT, self::WALLET_ADJUST, self::WALLET_REVERSE,
+        self::PRICING_READ, self::PRICING_BASE_COST, self::PRICING_CHILD_WHOLESALE, self::PRICING_OWN_RETAIL, self::PRICING_CHILD_AVAILABILITY,
     ];
 
     /** @return list<string> every defined capability */
