@@ -6,7 +6,7 @@ Upstream baseline: `d3e0596287322944ee21fcc14dc1798158463140`
 
 | WP | Owner status | Accepted HEAD | Notes |
 |---|---|---|---|
-| WP0 | PENDING |  |  |
+| WP0 | ACCEPTED_WITH_NOTES | `c2582368d0111046e39c353ca70b782d8fbb78c4` | Owner decision 2026-10-01. No rework required. Non-blocking notes (must stay visible in later relevant WPs): PDF/gd runtime path not exercised; authenticated UI screens reviewed statically, not end-to-end; external payment-gateway/plugin repositories outside WP0 scope. Accepted implementation HEAD remains `c2582368` although an owner-metadata commit follows it. Decisions: `owner-review/WP0/OWNER_DECISIONS.md`. |
 | WP1 | PENDING |  |  |
 | WP2 | PENDING |  |  |
 | WP3A | PENDING |  |  |
