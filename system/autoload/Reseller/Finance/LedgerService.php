@@ -12,8 +12,8 @@ use Reseller\Security\Capability as C;
 use Reseller\Security\DataScope;
 
 /**
- * The reseller wallet ledger (WP3A, owner decision P1): the ONLY runtime writer of tbl_manager_ledger
- * and of tbl_manager_wallets.balance. Append-only — there is no update, delete or edit method;
+ * The reseller wallet ledger (WP3A, owner decision P1; activation settlement WP3B F-2): the ONLY runtime
+ * writer of tbl_manager_ledger and of tbl_manager_wallets.balance. Append-only — there is no update, delete or edit method;
  * corrections are compensating REVERSAL entries.
  *
  * Writes accept authoritative operation ids only. The entry key, entry type, direction, amount,
@@ -86,28 +86,101 @@ final class LedgerService
         ]);
     }
 
-    /** The exactly-once ACTIVATION_DEBIT of an ACTIVE reservation (amount = reserved amount). */
-    public static function postActivationDebit(\PDO $pdo, LockedWallet $w, int $reservationId, FinanceActor $actor): PostedEntry
+    /**
+     * The single authoritative activation financial posting (WP3B owner decision F-2): the exactly-once
+     * leaf ACTIVATION_DEBIT of an ACTIVE reservation plus every positive intermediary COMMISSION_CREDIT
+     * of the activation's sealed pricing snapshot, in the caller's transaction. Nothing is taken from the
+     * caller but authoritative ids and locked wallets: the debit amount is the reserved amount, the
+     * recipients and commission amounts are re-derived from the locked activation's immutable snapshot
+     * (PricingSnapshot::fromActivationRow), and the passed recipient wallets must be exactly the
+     * positive-margin recipients. Provider/system settlement is never a ledger row (it stays on the
+     * activation). Every resulting balance is validated before the first write, so a failure writes
+     * nothing; a later SQL failure is rolled back with the caller's transaction (no partial settlement).
+     *
+     * An activation without a pricing snapshot (WP3A fixture shape) posts the debit only and accepts no
+     * recipient. Keys: res:{reservation}:commit (debit), com:{activation}:m{manager} (commissions).
+     */
+    public static function postActivationSettlement(\PDO $pdo, int $reservationId, FinanceActor $actor, LockedWallet $leaf, LockedWallet ...$recipients): PostedSettlement
     {
         FinanceTx::assertInTransaction($pdo);
         $r = Tx::row($pdo, 'SELECT * FROM tbl_manager_wallet_reservations WHERE id = ? FOR UPDATE', [$reservationId]);
-        if ($r === null || $r['status'] !== 'ACTIVE' || (int) $r['manager_id'] !== $w->managerId) {
-            throw new \LogicException('activation debit without the locked ACTIVE reservation');
+        if ($r === null || $r['status'] !== 'ACTIVE' || (int) $r['manager_id'] !== $leaf->managerId) {
+            throw new \LogicException('activation settlement without the locked ACTIVE reservation');
         }
-        return self::insert($pdo, $w, [
+        $activationId = (int) $r['activation_id'];
+        $act = Tx::row(
+            $pdo,
+            'SELECT id, manager_id, plan_id, wholesale_cost, retail_price, provider_settlement_amount, plan_snapshot, pricing_chain_snapshot '
+            . 'FROM tbl_reseller_activations WHERE id = ? FOR UPDATE',
+            [$activationId]
+        ) ?? throw new \LogicException('activation settlement without its activation');
+        $amount = Money::fromDb($r['amount']);
+        $legs = [];
+        if ($act['pricing_chain_snapshot'] === null) {
+            if ($act['provider_settlement_amount'] !== null || $act['plan_snapshot'] !== null) {
+                throw new DomainError('PRICING_SNAPSHOT_INVALID');
+            }
+        } else {
+            $snap = PricingSnapshot::fromActivationRow($act);
+            if (!$snap->leafDebit->equals($amount) || $snap->leafManagerId !== $leaf->managerId) {
+                throw new DomainError('PRICING_SNAPSHOT_INVALID');
+            }
+            $legs = $snap->commissionRecipients();
+        }
+        $byManager = [];
+        foreach ($recipients as $w) {
+            if ($w->managerId === $leaf->managerId || isset($byManager[$w->managerId])) {
+                throw new \LogicException('settlement recipients must be distinct and exclude the leaf');
+            }
+            $byManager[$w->managerId] = $w;
+        }
+        ksort($byManager);
+        ksort($legs);
+        if (array_keys($byManager) !== array_keys($legs)) {
+            throw new \LogicException('settlement recipients do not match the pricing snapshot');
+        }
+        // every leg is validated on the locked state before the first write
+        $leafAfter = $leaf->balance->minus($amount);
+        if (!$leafAfter->isStorable()) {
+            throw new DomainError('STORAGE_RANGE_EXCEEDED');
+        }
+        if ($leafAfter->plus($leaf->debtLimit)->isNegative()) {
+            throw new DomainError('INSUFFICIENT_AVAILABLE_CREDIT');
+        }
+        foreach ($legs as $m => $margin) {
+            if (!$byManager[$m]->balance->plus($margin)->isStorable()) {
+                throw new DomainError('COMMISSION_RECIPIENT_CAPACITY');
+            }
+        }
+        $actorFields = ['actor_type' => $actor->type, 'operator_id' => $actor->operatorId, 'actor_customer_id' => $actor->customerId];
+        $debit = self::insert($pdo, $leaf, [
             'entry_key' => "res:{$reservationId}:commit",
             'entry_type' => 'ACTIVATION_DEBIT',
             'direction' => 'DEBIT',
-            'amount' => Money::fromDb($r['amount']),
-            'activation_id' => (int) $r['activation_id'],
+            'amount' => $amount,
+            'activation_id' => $activationId,
             'transfer_id' => null,
             'counterparty_manager_id' => null,
             'reverses_entry_id' => null,
-            'actor_type' => $actor->type,
-            'operator_id' => $actor->operatorId,
-            'actor_customer_id' => $actor->customerId,
             'reason' => null,
-        ]);
+        ] + $actorFields);
+        FinanceFaults::hit('commit.after_debit_before_commissions');
+        $credits = [];
+        foreach ($legs as $m => $margin) {
+            $credits[] = self::insert($pdo, $byManager[$m], [
+                'entry_key' => "com:{$activationId}:m{$m}",
+                'entry_type' => 'COMMISSION_CREDIT',
+                'direction' => 'CREDIT',
+                'amount' => $margin,
+                'activation_id' => $activationId,
+                'transfer_id' => null,
+                'counterparty_manager_id' => $leaf->managerId,
+                'reverses_entry_id' => null,
+                'reason' => null,
+            ] + $actorFields);
+        }
+        FinanceFaults::hit('commit.after_commissions');
+        return new PostedSettlement($debit, $credits);
     }
 
     /** @return list<array<string,mixed>> entries of one wallet in the actor's ledger.read scope */
@@ -183,7 +256,7 @@ final class LedgerService
         match ($e['actor_type']) {
             FinanceActor::STAFF => $e['operator_id'] !== null && $e['operator_id'] > 0 ?: throw new DomainError('INVALID_ACTOR'),
             FinanceActor::CUSTOMER => $e['actor_customer_id'] !== null && $e['activation_id'] !== null ?: throw new DomainError('INVALID_ACTOR'),
-            FinanceActor::SYSTEM, FinanceActor::CRON => $e['entry_type'] === 'ACTIVATION_DEBIT' ?: throw new DomainError('INVALID_ACTOR'),
+            FinanceActor::SYSTEM, FinanceActor::CRON => in_array($e['entry_type'], ['ACTIVATION_DEBIT', 'COMMISSION_CREDIT'], true) ?: throw new DomainError('INVALID_ACTOR'),
             default => throw new DomainError('INVALID_ACTOR'),
         };
         $before = $w->balance;

@@ -76,15 +76,17 @@ final class LedgerTest extends FinanceTestCase
         $rc = new \ReflectionClass(LedgerService::class);
         $public = array_map(static fn(\ReflectionMethod $m) => $m->getName(), $rc->getMethods(\ReflectionMethod::IS_PUBLIC));
         sort($public);
-        $this->assertSame(['continuity', 'entries', 'entry', 'postActivationDebit', 'postTransferLeg'], $public);
-        foreach (['postTransferLeg', 'postActivationDebit'] as $m) {
+        // WP3B F-2: postActivationSettlement (leaf debit + commissions, atomic) replaced postActivationDebit
+        $this->assertSame(['continuity', 'entries', 'entry', 'postActivationSettlement', 'postTransferLeg'], $public);
+        foreach (['postTransferLeg', 'postActivationSettlement'] as $m) {
             $params = array_map(static fn(\ReflectionParameter $p) => strtolower($p->getName()), $rc->getMethod($m)->getParameters());
             foreach ($params as $p) {
                 $this->assertDoesNotMatchRegularExpression('/amount|key|balance|operator|customer|before|after/', $p, "{$m}({$p})");
             }
         }
         foreach ($public as $m) {
-            $this->assertDoesNotMatchRegularExpression('/update|delete|edit|remove|truncate|set/i', $m);
+            // "set" stays forbidden except inside the word "Settlement" (owner-approved WP3B narrowing)
+            $this->assertDoesNotMatchRegularExpression('/update|delete|edit|remove|truncate|set(?!tlement)/i', $m);
         }
         $this->assertTrue($rc->getMethod('insert')->isPrivate());
         $this->assertFalse((new \ReflectionClass(LockedWallet::class))->getConstructor()->isPublic(), 'wallet state comes only from a locking read');

@@ -4,7 +4,9 @@ namespace Reseller\Tests\Support;
 // CLI-only test support: must never run through the web server.
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
+use Reseller\Domain\DomainError;
 use Reseller\Finance\Money;
+use Reseller\Finance\PricingSnapshot;
 
 /**
  * Whole-database financial invariants (WP3A), checked after every finance test and every concurrency
@@ -18,6 +20,11 @@ use Reseller\Finance\Money;
  *  - reversals are linked 1:1 (reverses_transfer_id / reverses_entry_id) and the original is REVERSED
  *  - every COMMITTED reservation has exactly one ACTIVATION_DEBIT of the reserved amount (and vice
  *    versa); ACTIVE reservations are unresolved and never expire on their own
+ *  - WP3B settlement: every COMMISSION_CREDIT belongs to an activation with a COMMITTED reservation and
+ *    a valid sealed pricing snapshot; the commission set of that activation is exactly the snapshot's
+ *    positive margins (manager, amount, key com:{activation}:m{manager}, counterparty = leaf, same actor
+ *    as the debit); debit = wholesale_cost = leaf wholesale; sum(commissions) + provider settlement =
+ *    debit; an activation without a snapshot has no commission
  */
 final class FinanceInvariants
 {
@@ -35,10 +42,10 @@ final class FinanceInvariants
             if ($e['transfer_id'] !== null) {
                 $byTransfer[(int) $e['transfer_id']][] = $e;
             }
-            if (!preg_match('/^(trf:[1-9][0-9]*:(credit|debit|out|in)|rev:[1-9][0-9]*:(credit|debit)|res:[1-9][0-9]*:commit)$/D', (string) $e['entry_key'])) {
+            if (!preg_match('/^(trf:[1-9][0-9]*:(credit|debit|out|in)|rev:[1-9][0-9]*:(credit|debit)|res:[1-9][0-9]*:commit|com:[1-9][0-9]*:m[1-9][0-9]*)$/D', (string) $e['entry_key'])) {
                 $issues[] = "ledger {$e['id']}: unexpected entry key {$e['entry_key']}";
             }
-            if ($e['transfer_id'] === null && $e['entry_type'] !== 'ACTIVATION_DEBIT') {
+            if ($e['transfer_id'] === null && !in_array($e['entry_type'], ['ACTIVATION_DEBIT', 'COMMISSION_CREDIT'], true)) {
                 $issues[] = "ledger {$e['id']}: {$e['entry_type']} without an operation";
             }
         }
@@ -179,6 +186,91 @@ final class FinanceInvariants
         foreach ($ledger as $e) {
             if ($e['entry_type'] === 'ACTIVATION_DEBIT' && ($debitRefs[(int) $e['id']] ?? 0) !== 1) {
                 $issues[] = "ledger {$e['id']}: ACTIVATION_DEBIT not linked to exactly one committed reservation";
+            }
+        }
+        return array_merge($issues, self::settlements($db, $ledger, $reservations, $byId));
+    }
+
+    /**
+     * WP3B activation settlements: commission legs and exact conservation per committed activation.
+     *
+     * @param list<array<string,mixed>> $ledger
+     * @param list<array<string,mixed>> $reservations
+     * @param array<int,array<string,mixed>> $byId
+     * @return list<string>
+     */
+    private static function settlements(TestDatabase $db, array $ledger, array $reservations, array $byId): array
+    {
+        $issues = [];
+        $commissions = [];
+        foreach ($ledger as $e) {
+            if ($e['entry_type'] === 'COMMISSION_CREDIT') {
+                $commissions[(int) $e['activation_id']][] = $e;
+                if ($e['direction'] !== 'CREDIT' || $e['transfer_id'] !== null || $e['reverses_entry_id'] !== null) {
+                    $issues[] = "ledger {$e['id']}: malformed COMMISSION_CREDIT";
+                }
+            }
+        }
+        $committed = [];
+        foreach ($reservations as $r) {
+            if ($r['status'] === 'COMMITTED') {
+                $committed[(int) $r['activation_id']][] = $r;
+            }
+        }
+        foreach ($commissions as $act => $entries) {
+            if (count($committed[$act] ?? []) !== 1) {
+                $issues[] = "activation {$act}: commission credits without exactly one committed reservation";
+            }
+        }
+        foreach ($committed as $act => $rows) {
+            if (count($rows) !== 1) {
+                $issues[] = "activation {$act}: more than one committed reservation";
+                continue;
+            }
+            $r = $rows[0];
+            $debit = $byId[(int) ($r['committed_ledger_entry_id'] ?? 0)] ?? null;
+            $a = $db->rows('SELECT * FROM tbl_reseller_activations WHERE id = ?', [$act])[0] ?? null;
+            if ($a === null || $debit === null) {
+                $issues[] = "activation {$act}: settlement without activation or debit";
+                continue;
+            }
+            $entries = $commissions[$act] ?? [];
+            if ($a['pricing_chain_snapshot'] === null) {
+                if ($entries !== []) {
+                    $issues[] = "activation {$act}: commission credits without a pricing snapshot";
+                }
+                continue;
+            }
+            try {
+                $snap = PricingSnapshot::fromActivationRow($a);
+            } catch (DomainError $e) {
+                $issues[] = "activation {$act}: committed with an invalid pricing snapshot ({$e->getMessage()})";
+                continue;
+            }
+            if ($debit['amount'] !== $snap->leafDebit->format() || $a['wholesale_cost'] !== $snap->leafDebit->format() || (int) $debit['manager_id'] !== $snap->leafManagerId) {
+                $issues[] = "activation {$act}: debit differs from the snapshot leaf wholesale";
+            }
+            $expected = [];
+            foreach ($snap->commissionRecipients() as $m => $amount) {
+                $expected["com:{$act}:m{$m}"] = [$m, $amount->format()];
+            }
+            $sum = $snap->providerSettlement;
+            $seen = [];
+            foreach ($entries as $e) {
+                $x = $expected[(string) $e['entry_key']] ?? null;
+                if ($x === null || (int) $e['manager_id'] !== $x[0] || $e['amount'] !== $x[1] || (int) $e['counterparty_manager_id'] !== $snap->leafManagerId
+                    || $e['actor_type'] !== $debit['actor_type'] || $e['operator_id'] !== $debit['operator_id'] || $e['actor_customer_id'] !== $debit['actor_customer_id']) {
+                    $issues[] = "activation {$act}: unexpected commission entry {$e['entry_key']}";
+                    continue;
+                }
+                $seen[(string) $e['entry_key']] = true;
+                $sum = $sum->plus(Money::fromDb($e['amount']));
+            }
+            if (count($seen) !== count($expected) || count($entries) !== count($expected)) {
+                $issues[] = "activation {$act}: commission set differs from the snapshot";
+            }
+            if (!$sum->equals(Money::fromDb($debit['amount'])) || $a['provider_settlement_amount'] !== $snap->providerSettlement->format()) {
+                $issues[] = "activation {$act}: settlement does not conserve the leaf debit";
             }
         }
         return $issues;

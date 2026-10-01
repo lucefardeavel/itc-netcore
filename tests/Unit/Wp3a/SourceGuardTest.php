@@ -221,7 +221,8 @@ final class SourceGuardTest extends TestCase
             static fn(string $n) => str_starts_with($n, 'post')
         ));
         sort($writes);
-        $this->assertSame(['postActivationDebit', 'postTransferLeg'], $writes);
+        // WP3B F-2: the single activation financial posting primitive replaced postActivationDebit
+        $this->assertSame(['postActivationSettlement', 'postTransferLeg'], $writes);
         $src = self::runtime()[self::FIN . 'LedgerService.php'];
         $this->assertSame(1, preg_match_all('/INSERT INTO tbl_manager_ledger/', $src));
         $this->assertMatchesRegularExpression('/private static function insert\(/', $src);

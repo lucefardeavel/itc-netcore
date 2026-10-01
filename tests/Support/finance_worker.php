@@ -7,7 +7,9 @@ use Reseller\Domain\DomainError;
 use Reseller\Domain\ResellerTreeService;
 use Reseller\Finance\FinanceActor;
 use Reseller\Finance\Money;
+use Reseller\Finance\PricingService;
 use Reseller\Finance\ReservationService;
+use Reseller\Finance\SettlementFailure;
 use Reseller\Finance\TransferService;
 use Reseller\Finance\WalletService;
 use Reseller\Security\ActorContext;
@@ -53,10 +55,20 @@ try {
         'commit' => ReservationService::commit((int) $op['reservation'], FinanceActor::system('wp3a-concurrency')),
         'release' => ReservationService::release((int) $op['reservation'], FinanceActor::system('wp3a-concurrency'), 'confirmed unused'),
         'move' => ResellerTreeService::moveSubtree($staff($op['actor']), (int) $op['node'], $op['parent'] === null ? null : (int) $op['parent']),
+        // WP3B pricing / settlement operations
+        'adjust_credit' => TransferService::adjustCredit($staff($op['actor']), $op['manager'], $op['amount'], 'concurrency adjustment', $op['reference']),
+        'adjust_debit' => TransferService::adjustDebit($staff($op['actor']), $op['manager'], $op['amount'], 'concurrency adjustment', $op['reference']),
+        'commit_staff' => ReservationService::commit((int) $op['reservation'], FinanceActor::staff($staff($op['actor']))),
+        'set_wholesale' => PricingService::setChildWholesale($staff($op['actor']), $op['manager'], $op['plan'], $op['cost']),
+        'set_retail' => PricingService::setRetail($staff($op['actor']), $op['manager'], $op['plan'], $op['price']),
+        'set_availability' => PricingService::setChildAvailability($staff($op['actor']), $op['manager'], $op['plan'], $op['enabled']),
+        'set_base' => PricingService::setBaseCost($staff($op['actor']), $op['plan'], $op['cost']),
     };
     $out = ['ok' => true, 'result' => $r instanceof JsonSerializable ? $r->jsonSerialize() : $r];
 } catch (DomainError $e) {
     $out = ['ok' => false, 'reason' => $e->reason];
+} catch (SettlementFailure $e) {
+    $out = ['ok' => false, 'reason' => 'SETTLEMENT_' . $e->kind . ':' . $e->reason];
 } catch (Throwable $e) {
     $out = ['ok' => false, 'reason' => 'ERROR', 'error' => get_class($e) . ': ' . $e->getMessage()];
 }

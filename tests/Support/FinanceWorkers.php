@@ -41,8 +41,9 @@ final class FinanceWorkers
     }
 
     /**
-     * Waits until $n worker connections of the test database are blocked on a row lock (a locking read)
-     * or on the tree lock (GET_LOCK). Engine-agnostic: a connection counts once it has been executing
+     * Waits until $n worker connections of the test database are blocked on a row lock (a locking read,
+     * exclusive or - since the WP3B settlement locks its FK identity rows first - shared) or on the tree
+     * lock (GET_LOCK). Engine-agnostic: a connection counts once it has been executing
      * the same locking statement for at least 5 consecutive polls (InnoDB lock-wait views do not list
      * locking-read-only transactions on every engine).
      */
@@ -50,7 +51,7 @@ final class FinanceWorkers
     {
         $deadline = microtime(true) + $timeout;
         $sql = "SELECT ID, INFO FROM information_schema.PROCESSLIST WHERE DB = ? AND ID <> CONNECTION_ID() AND COMMAND = 'Query' "
-            . "AND (STATE = 'User lock' OR INFO LIKE '%FOR UPDATE%' OR INFO LIKE '%GET_LOCK%')";
+            . "AND (STATE = 'User lock' OR INFO LIKE '%FOR UPDATE%' OR INFO LIKE '%LOCK IN SHARE MODE%' OR INFO LIKE '%GET_LOCK%')";
         $streak = [];
         while (microtime(true) < $deadline) {
             $now = [];

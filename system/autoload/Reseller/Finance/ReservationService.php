@@ -10,20 +10,33 @@ use Reseller\Domain\ResellerTreeService;
 use Reseller\Domain\Tx;
 
 /**
- * Wallet reservation primitives (WP3A). Internal domain API for the future ActivationService (WP5A):
- * no route, no capability, no pricing. The amount is authoritative internal input (the activation's
- * wholesale snapshot when set), never a browser price.
+ * Wallet reservation primitives (WP3A; settlement extended by WP3B). Internal domain API for the future
+ * ActivationService (WP5A): no route, no capability. The amount is authoritative internal input (the
+ * activation's wholesale snapshot when set), never a browser price.
  *
- *   reserve  ACTIVE exposure for one authoritative activation (at most one ACTIVE per activation)
- *   commit   ACTIVE -> COMMITTED exactly once, with one ACTIVATION_DEBIT ledger entry
+ *   reserve  ACTIVE exposure for one authoritative activation (at most one ACTIVE per activation).
+ *            For an activation with a sealed pricing snapshot every deterministic precondition is
+ *            checked here, before provisioning: the snapshot is valid and still equals a fresh
+ *            authoritative resolution (PRICING_SNAPSHOT_STALE), the plan is saleable (incl.
+ *            ZERO_WHOLESALE_NOT_SUPPORTED), every positive-margin commission recipient already has a
+ *            wallet (COMMISSION_RECIPIENT_NO_WALLET; WP3B never creates wallets) with headroom for its
+ *            commission (COMMISSION_RECIPIENT_CAPACITY), and the leaf has available credit.
+ *   commit   ACTIVE -> COMMITTED exactly once: one ACTIVATION_DEBIT plus every positive intermediary
+ *            COMMISSION_CREDIT (LedgerService::postActivationSettlement) in one transaction. State can
+ *            change after reserve, so storage headroom and the leaf floor are re-checked under the final
+ *            wallet locks; a failure rolls the whole settlement back (SettlementFailure, reservation
+ *            stays ACTIVE).
  *   release  ACTIVE -> RELEASED exactly once, no ledger entry (no value moves)
  *
  * There is no expiry primitive, timer or cron: UNKNOWN external outcomes belong to WP5A
  * reconciliation and are never released because time passed (expires_at stays NULL).
- * Commit and release settle already-created exposure and remain possible for a frozen reseller.
+ * Commit and release settle already-created exposure and remain possible for a frozen reseller (and
+ * for a frozen commission recipient).
  *
- * Lock order (shared with every finance writer): tree lock (reserve only) -> activation row ->
- * wallet row -> reservation rows.
+ * Canonical lock order (shared with every finance writer, WP3B F-7): tree lock (reserve only) ->
+ * identity rows (commit: FK-referenced tbl_users rows LOCK IN SHARE MODE, ascending) -> activation row
+ * (+ the activation-scoped reservation probe) -> wallet rows (one ascending lockMany) -> manager-scoped
+ * reservation rows / the reservation row -> writes.
  */
 final class ReservationService
 {
@@ -44,8 +57,15 @@ final class ReservationService
             throw new DomainError('INVALID_AMOUNT');
         }
         $amount->toStorage();
-        $act = Tx::row($pdo, 'SELECT id, manager_id, wholesale_cost FROM tbl_reseller_activations WHERE id = ? FOR UPDATE', [$activationId])
-            ?? throw new DomainError('NOT_FOUND');
+        $act = Tx::row(
+            $pdo,
+            'SELECT id, manager_id, plan_id, wholesale_cost, retail_price, provider_settlement_amount, plan_snapshot, pricing_chain_snapshot '
+            . 'FROM tbl_reseller_activations WHERE id = ? FOR UPDATE',
+            [$activationId]
+        ) ?? throw new DomainError('NOT_FOUND');
+        if ($act['wholesale_cost'] !== null && Money::fromDb($act['wholesale_cost'])->isZero()) {
+            throw new DomainError('ZERO_WHOLESALE_NOT_SUPPORTED'); // F-3: no zero-reservation path
+        }
         if ((int) $act['manager_id'] !== $managerId
             || ($act['wholesale_cost'] !== null && !Money::fromDb($act['wholesale_cost'])->equals($amount))) {
             throw new DomainError('ACTIVATION_MISMATCH');
@@ -64,8 +84,26 @@ final class ReservationService
             }
             throw new DomainError('RESERVATION_RESOLVED'); // RELEASED / EXPIRED: re-reservation is WP5A's decision (P6)
         }
+        $recipients = [];
+        if ($act['pricing_chain_snapshot'] !== null) {
+            $snap = PricingSnapshot::fromActivationRow($act);
+            // the price is committed now: it must still be exactly the current authoritative resolution
+            if (!$snap->sameTermsAs(PricingService::resolveInTx($pdo, $managerId, (int) $act['plan_id']))) {
+                throw new DomainError('PRICING_SNAPSHOT_STALE');
+            }
+            $recipients = $snap->commissionRecipients();
+        } elseif ($act['provider_settlement_amount'] !== null || $act['plan_snapshot'] !== null) {
+            throw new DomainError('PRICING_SNAPSHOT_INVALID'); // a partial snapshot is never accepted
+        }
         WalletOwner::assertValid($pdo, $managerId);
-        $w = LockedWallet::lock($pdo, $managerId) ?? throw new DomainError('INSUFFICIENT_AVAILABLE_CREDIT');
+        $locked = LockedWallet::lockMany($pdo, array_merge([$managerId], array_keys($recipients)), []);
+        $w = $locked[$managerId] ?? throw new DomainError('INSUFFICIENT_AVAILABLE_CREDIT');
+        foreach ($recipients as $m => $margin) {
+            $rw = $locked[$m] ?? throw new DomainError('COMMISSION_RECIPIENT_NO_WALLET');
+            if (!$rw->balance->plus($margin)->isStorable()) {
+                throw new DomainError('COMMISSION_RECIPIENT_CAPACITY');
+            }
+        }
         $reserved = WalletService::activeReservedLocked($pdo, $w);
         if (WalletService::available($w, $reserved)->minus($amount)->isNegative()) {
             throw new DomainError('INSUFFICIENT_AVAILABLE_CREDIT');
@@ -80,36 +118,101 @@ final class ReservationService
         return self::result(self::row($pdo, $id), false);
     }
 
+    /**
+     * Own-transaction settlement. Precondition refusals stay DomainError; a failure of the settlement
+     * itself (including concurrency that outlived the bounded deadlock retry) is a SettlementFailure.
+     */
     public static function commit(int $reservationId, FinanceActor $actor): ReservationResult
     {
-        return FinanceTx::run(static fn(\PDO $pdo) => self::commitInTx($pdo, $reservationId, $actor), false);
+        try {
+            return FinanceTx::run(static fn(\PDO $pdo) => self::commitInTx($pdo, $reservationId, $actor), false);
+        } catch (DomainError $e) {
+            if (in_array($e->reason, ['CONCURRENCY_RETRY', 'LOCK_TIMEOUT'], true)) {
+                throw SettlementFailure::wrap($e, $reservationId, null);
+            }
+            throw $e;
+        } catch (\PDOException $e) {
+            throw SettlementFailure::wrap($e, $reservationId, null);
+        }
     }
 
     /**
      * Exactly-once settlement of an ACTIVE reservation: one ACTIVATION_DEBIT of exactly the reserved
-     * amount, reservation COMMITTED and linked to it. A repeated commit returns the existing entry and
-     * never rewrites the recorded actor.
+     * amount plus every positive COMMISSION_CREDIT of the activation's sealed pricing snapshot, the
+     * reservation COMMITTED and linked to the debit. A repeated commit returns the existing result and
+     * never rewrites the recorded actor. Within a caller's (WP5A) transaction this must be the first
+     * locking work, so the canonical lock order holds.
      */
     public static function commitInTx(\PDO $pdo, int $reservationId, FinanceActor $actor): ReservationResult
     {
-        [$w, $r] = self::lockReservation($pdo, $reservationId);
+        FinanceTx::assertInTransaction($pdo);
+        ResellerTreeService::requireReady();
+        if ($reservationId <= 0) {
+            throw new DomainError('NOT_FOUND');
+        }
+        // activation_id and manager_id never change after insert
+        $ids = Tx::row($pdo, 'SELECT activation_id, manager_id FROM tbl_manager_wallet_reservations WHERE id = ?', [$reservationId])
+            ?? throw new DomainError('NOT_FOUND');
+        $leafId = (int) $ids['manager_id'];
+        $activationId = (int) $ids['activation_id'];
+        // identity rows the ledger INSERTs will foreign-key check, shared-locked first (canonical order)
+        $identities = array_values(array_unique(array_filter([$leafId, $actor->operatorId], static fn($v) => $v !== null && $v > 0)));
+        sort($identities);
+        Tx::rows($pdo, 'SELECT id FROM tbl_users WHERE id IN (' . ResellerTreeService::ph($identities) . ') ORDER BY id LOCK IN SHARE MODE', $identities);
+        $act = Tx::row(
+            $pdo,
+            'SELECT id, manager_id, plan_id, wholesale_cost, retail_price, provider_settlement_amount, plan_snapshot, pricing_chain_snapshot '
+            . 'FROM tbl_reseller_activations WHERE id = ? FOR UPDATE',
+            [$activationId]
+        );
+        $recipients = [];
+        $snapshotError = null;
+        if ($act !== null && $act['pricing_chain_snapshot'] !== null) {
+            try {
+                $recipients = PricingSnapshot::fromActivationRow($act)->commissionRecipients();
+            } catch (DomainError $e) {
+                $snapshotError = $e; // raised only for a reservation that still has to settle
+            }
+        }
+        $locked = LockedWallet::lockMany($pdo, array_merge([$leafId], array_keys($recipients)), []);
+        $r = self::row($pdo, $reservationId, true);
         if ($r['status'] === 'COMMITTED') {
             return self::result($r, true);
         }
         if ($r['status'] !== 'ACTIVE') {
             throw new DomainError('RESERVATION_NOT_ACTIVE');
         }
-        $posted = LedgerService::postActivationDebit($pdo, $w, $reservationId, $actor);
-        FinanceFaults::hit('commit.after_ledger_before_status');
-        $n = Tx::exec(
-            $pdo,
-            "UPDATE tbl_manager_wallet_reservations SET status = 'COMMITTED', committed_ledger_entry_id = ?, resolved_at = ? WHERE id = ? AND status = 'ACTIVE'",
-            [$posted->entryId, Tx::utcNow(), $reservationId]
-        );
-        if ($n !== 1) {
-            throw new DomainError('RESERVATION_NOT_ACTIVE');
+        try {
+            if ($act === null) {
+                throw new \LogicException('reservation without its activation');
+            }
+            if ($snapshotError !== null) {
+                throw $snapshotError;
+            }
+            $leaf = $locked[$leafId] ?? throw new \LogicException('reservation without a wallet');
+            $wallets = [];
+            foreach (array_keys($recipients) as $m) {
+                $wallets[] = $locked[$m] ?? throw new DomainError('COMMISSION_RECIPIENT_NO_WALLET');
+            }
+            $posted = LedgerService::postActivationSettlement($pdo, $reservationId, $actor, $leaf, ...$wallets);
+            FinanceFaults::hit('commit.after_ledger_before_status');
+            $n = Tx::exec(
+                $pdo,
+                "UPDATE tbl_manager_wallet_reservations SET status = 'COMMITTED', committed_ledger_entry_id = ?, resolved_at = ? WHERE id = ? AND status = 'ACTIVE'",
+                [$posted->debit->entryId, Tx::utcNow(), $reservationId]
+            );
+            if ($n !== 1) {
+                throw new DomainError('RESERVATION_NOT_ACTIVE');
+            }
+            FinanceFaults::hit('commit.after_status');
+        } catch (\PDOException $e) {
+            if (in_array(FinanceTx::driverCode($e), [1213, 1205], true)) {
+                throw $e; // keep the accepted whole-unit deadlock retry / LOCK_TIMEOUT classification
+            }
+            throw SettlementFailure::wrap($e, $reservationId, $activationId);
+        } catch (\Throwable $e) {
+            throw SettlementFailure::wrap($e, $reservationId, $activationId);
         }
-        FinanceFaults::hit('commit.after_status');
         return self::result(self::row($pdo, $reservationId), false);
     }
 
