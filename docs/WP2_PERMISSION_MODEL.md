@@ -136,10 +136,13 @@ Principal state rules (`PermissionService`):
 | `system.restore` | G | — | — | — | — | yes |  |
 | `system.update` | — | — | — | — | — | yes |  |
 | `api.access` | S | S | S | S | S |  |  |
-| `wallet.read` (reserved) | — | — | — | — | — |  |  |
-| `ledger.read` (reserved) | — | — | — | — | — |  |  |
-| `wallet.fund_withdraw` (reserved) | — | — | — | — | — |  |  |
-| `wallet.transfer` (reserved) | — | — | — | — | — |  |  |
+| `wallet.read` | G | G | T | — | — |  | yes |
+| `ledger.read` | G | G | T | — | — |  | yes |
+| `wallet.fund_withdraw` | G | G | — | — | — | yes | yes |
+| `wallet.transfer` | G | G | C | — | — | yes | yes |
+| `wallet.debt_limit` | G | G | — | — | — | yes | yes |
+| `wallet.adjust` | G | G | — | — | — | yes | yes |
+| `wallet.reverse` | G | G | — | — | — | yes | yes |
 | `pricing.base_cost` (reserved) | — | — | — | — | — |  |  |
 | `pricing.child_wholesale` (reserved) | — | — | — | — | — |  |  |
 | `pricing.own_retail` (reserved) | — | — | — | — | — |  |  |
@@ -147,6 +150,8 @@ Principal state rules (`PermissionService`):
 | `activation.read` (reserved) | — | — | — | — | — |  |  |
 
 Reserved capabilities are defined now and never granted until the owning work package enables them.
+The seven finance capabilities (`wallet.*`, `ledger.read`) were enabled by WP3A (owner decisions P2/P3); they are enforced by
+`Reseller\Finance` services only — there is no finance route, API route or UI (P7). See `docs/WP3A_FINANCE_MODEL.md`.
 
 **Staff target rules** (`StaffService`, on top of the matrix):
 

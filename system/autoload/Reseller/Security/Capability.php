@@ -61,11 +61,15 @@ final class Capability
     public const SYSTEM_RESTORE = 'system.restore';
     public const SYSTEM_UPDATE = 'system.update';
     public const API_ACCESS = 'api.access';
-    // reserved boundary for later work packages: defined now, never granted in WP2
+    // reseller finance (WP3A; owner decisions P2/P3): granted by RoleCapabilityMap, enforced by Reseller\Finance
     public const WALLET_READ = 'wallet.read';
     public const LEDGER_READ = 'ledger.read';
     public const WALLET_FUND_WITHDRAW = 'wallet.fund_withdraw';
     public const WALLET_TRANSFER = 'wallet.transfer';
+    public const WALLET_DEBT_LIMIT = 'wallet.debt_limit';
+    public const WALLET_ADJUST = 'wallet.adjust';
+    public const WALLET_REVERSE = 'wallet.reverse';
+    // reserved boundary for later work packages (WP3B pricing, WP5A activation): defined now, never granted
     public const PRICING_BASE_COST = 'pricing.base_cost';
     public const PRICING_CHILD_WHOLESALE = 'pricing.child_wholesale';
     public const PRICING_OWN_RETAIL = 'pricing.own_retail';
@@ -73,7 +77,6 @@ final class Capability
     public const ACTIVATION_READ = 'activation.read';
 
     public const RESERVED = [
-        self::WALLET_READ, self::LEDGER_READ, self::WALLET_FUND_WITHDRAW, self::WALLET_TRANSFER,
         self::PRICING_BASE_COST, self::PRICING_CHILD_WHOLESALE, self::PRICING_OWN_RETAIL,
         self::ACTIVATION_CREATE, self::ACTIVATION_READ,
     ];
@@ -90,6 +93,7 @@ final class Capability
         self::STAFF_CREATE, self::STAFF_UPDATE_PROFILE, self::STAFF_CHANGE_ROLE, self::STAFF_DISABLE, self::STAFF_DELETE,
         self::RESELLER_PLACE, self::RESELLER_MOVE,
         self::SYSTEM_ADMIN, self::SYSTEM_CODE, self::SYSTEM_COUPONS, self::SYSTEM_BACKUP, self::SYSTEM_RESTORE, self::SYSTEM_UPDATE,
+        self::WALLET_FUND_WITHDRAW, self::WALLET_TRANSFER, self::WALLET_DEBT_LIMIT, self::WALLET_ADJUST, self::WALLET_REVERSE,
     ];
 
     /**
@@ -101,6 +105,8 @@ final class Capability
         self::CUSTOMER_TRANSFER_OWNER, self::CUSTOMER_ASSIGN_LEGACY_OWNER,
         self::STAFF_CREATE, self::STAFF_UPDATE_PROFILE, self::STAFF_CHANGE_ROLE, self::STAFF_DISABLE, self::STAFF_DELETE,
         self::RESELLER_PLACE, self::RESELLER_MOVE, self::RESELLER_TREE_READ,
+        self::WALLET_READ, self::LEDGER_READ, self::WALLET_FUND_WITHDRAW, self::WALLET_TRANSFER,
+        self::WALLET_DEBT_LIMIT, self::WALLET_ADJUST, self::WALLET_REVERSE,
     ];
 
     /** @return list<string> every defined capability */

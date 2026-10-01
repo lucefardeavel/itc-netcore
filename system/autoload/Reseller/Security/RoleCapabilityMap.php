@@ -36,6 +36,10 @@ final class RoleCapabilityMap
         C::STAFF_CHANGE_ROLE => 'G', C::STAFF_DISABLE => 'G', C::STAFF_DELETE => 'G',
         C::RESELLER_PLACE => 'G', C::RESELLER_MOVE => 'G', C::RESELLER_TREE_READ => 'G',
         C::SYSTEM_ADMIN => 'G', C::SYSTEM_COUPONS => 'G', C::API_ACCESS => 'S',
+        // WP3A finance (P2): provider funding/withdrawal, debt limit, adjustment and reversal are
+        // Admin/SuperAdmin only; parent -> direct-child transfers keep the structural direct-child rule
+        C::WALLET_READ => 'G', C::LEDGER_READ => 'G', C::WALLET_FUND_WITHDRAW => 'G', C::WALLET_DEBT_LIMIT => 'G',
+        C::WALLET_ADJUST => 'G', C::WALLET_REVERSE => 'G', C::WALLET_TRANSFER => 'G',
     ];
 
     /** @var array<string,array<string,string>> */
@@ -53,6 +57,8 @@ final class RoleCapabilityMap
             C::STAFF_READ => 'T', C::STAFF_CREATE => 'C', C::STAFF_UPDATE_PROFILE => 'D', C::STAFF_DISABLE => 'D',
             C::RESELLER_TREE_READ => 'T',
             C::SELF_UPDATE_PROFILE => 'S', C::SELF_CHANGE_PASSWORD => 'S', C::API_ACCESS => 'S',
+            // WP3A finance (P3): own + subtree visibility; transfer from own wallet to a direct child only
+            C::WALLET_READ => 'T', C::LEDGER_READ => 'T', C::WALLET_TRANSFER => 'C',
         ],
         'Sales' => [
             C::CUSTOMER_READ => 'A', C::CUSTOMER_CREATE => 'A',
