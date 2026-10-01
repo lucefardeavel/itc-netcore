@@ -13,6 +13,10 @@ use Reseller\Security\PermissionService;
  * Staff lifecycle (SEC-04 / OD-12 / OD-13 / C20): who may create, edit, re-role, disable and delete
  * which staff accounts. Server-side target-role table; user_type and parent are never trusted from
  * the form; an actor never changes its own type, status or parent; every change is audited.
+ *
+ * Reseller lifecycle (V1, D033 / 18_BUSINESS_RULES): an Agent is a reseller identity. Agent permanent
+ * deletion is prohibited in V1 and an Agent's role can never be changed; the lifecycle is
+ * disable / reactivate. Both rules are explicit and do not depend on references or foreign keys.
  */
 final class StaffService
 {
@@ -223,6 +227,8 @@ final class StaffService
     /**
      * "Tree-safe" role change only: refused for an account that is enrolled, owns or is assigned
      * customers, or is anyone's legacy root. Disable it and create a new one instead.
+     * An Agent's role is never changed (reseller identity, V1): re-labelling an Agent would otherwise
+     * open a path to its permanent deletion.
      */
     public static function changeRole(ActorContext $a, int $id, string $role): void
     {
@@ -241,6 +247,9 @@ final class StaffService
             }
             if ($t['user_type'] === $role) {
                 return;
+            }
+            if ($t['user_type'] === 'Agent') {
+                throw new DomainError('AGENT_ROLE_PERMANENT'); // reseller identity: disable / reactivate only
             }
             if ($t['user_type'] === 'SuperAdmin') {
                 self::assertNotLastSuperAdmin($pdo, $id);
@@ -262,7 +271,11 @@ final class StaffService
         });
     }
 
-    /** Deletes an unreferenced, never-enrolled account; otherwise refuses (disable instead). */
+    /**
+     * Deletes an unreferenced, never-enrolled non-Agent account; otherwise refuses (disable instead).
+     * Agent permanent deletion is prohibited in V1 (D033): always refused, for every actor, whether the
+     * Agent is enrolled or legacy, referenced or not. The lifecycle is disable / reactivate (setStatus).
+     */
     public static function delete(ActorContext $a, int $id): void
     {
         ResellerTreeService::authorize($a, Capability::STAFF_DELETE);
@@ -275,13 +288,17 @@ final class StaffService
             if (!self::canTarget($a, $t, Capability::STAFF_DELETE)) {
                 throw new DomainError('NOT_FOUND');
             }
+            if ($t['user_type'] === 'Agent') {
+                throw new DomainError('AGENT_DELETE_PROHIBITED'); // explicit V1 rule, independent of references
+            }
             if ($t['user_type'] === 'SuperAdmin') {
                 self::assertNotLastSuperAdmin($pdo, $id);
             }
             if (self::isReferenced($pdo, 'tbl_users', $id) || Tx::row($pdo, 'SELECT id FROM tbl_users WHERE root = ? LIMIT 1', [$id]) !== null) {
                 throw new DomainError('REFERENCED');
             }
-            Tx::exec($pdo, 'DELETE FROM tbl_users WHERE id = ?', [$id]);
+            // the role predicate repeats the rule at the statement level (defence in depth)
+            Tx::exec($pdo, "DELETE FROM tbl_users WHERE id = ? AND user_type <> 'Agent'", [$id]);
             AuditLog::record('staff.delete', $a, [
                 'target_type' => 'staff', 'target_user_id' => $id, 'target_snapshot' => ResellerTreeService::snapshot($t),
                 'before' => ResellerTreeService::snapshot($t),

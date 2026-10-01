@@ -46,6 +46,10 @@ function wp2probe_fail_type() { strlen([]); }
 register_menu('WP2 Fail Customer', false, 'wp2probe_fail_customer', 'AFTER_DASHBOARD');
 function wp2probe_fail_customer() { global $db_pass; throw new RuntimeException('customer failure at /home/app/init.php:99 ' . $db_pass); }
 register_hook('view_customer', 'wp2probe_hook_throw');
+register_hook('save_pages', 'wp2probe_save_pages');
+function wp2probe_save_pages($args = null) { wp2probe_log('pages', 'save_pages'); }
+register_hook('view_edit_pages', 'wp2probe_view_pages');
+function wp2probe_view_pages($args = null) { wp2probe_log('pages', 'view_edit_pages'); }
 function wp2probe_hook_throw() { global $db_pass; if (is_file(__DIR__ . '/../../wp2_probe/throw_in_hook.flag')) { throw new PDOException("SQLSTATE[HY000] hook failure /home/app/x.php " . $db_pass); } }
 PHP;
 

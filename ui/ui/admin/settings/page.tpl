@@ -5,7 +5,8 @@
         <div class="{if $action=='Voucher'}col-md-8{else}col-md-12{/if}">
             <div class="panel mb20 panel-primary panel-hovered">
                 <div class="panel-heading">
-                    {if $action!='Voucher'}
+                    {* OD-12: writing / resetting page templates is SuperAdmin-only (system.code); hiding is cosmetic, RouteGuard enforces it *}
+                    {if $action!='Voucher' && $_can['system.code']}
                         <div class="btn-group pull-right">
                             <a data-method="post" class="btn btn-danger btn-xs" title="Reset File"
                                 href="{Text::url('')}pages/{$PageFile|escape:"url"}-reset"
@@ -16,7 +17,11 @@
                     {$pageHeader|escape}
                 </div>
                 <textarea name="html" id="summernote">{$htmls}</textarea>
-                {if $writeable}
+                {if !$_can['system.code']}
+                    <div class="panel-footer">
+                        <p class="help-block">{Lang::T('Read only: editing page templates requires a SuperAdmin.')}</p>
+                    </div>
+                {elseif $writeable}
                     <div class="panel-footer">
                         {if $action=='Voucher'}
                             <label>

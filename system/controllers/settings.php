@@ -594,7 +594,8 @@ switch ($action) {
         }
         $ui->assign('nuxr_self', $d && (int) $d['id'] === (int) $nuxrActor->userId);
         $ui->assign('nuxr_can_status', $d && (int) $d['id'] !== (int) $nuxrActor->userId && \Reseller\Domain\StaffService::canTarget($nuxrActor, $d->as_array(), $nuxrC::STAFF_DISABLE));
-        $ui->assign('nuxr_can_role', $d && (int) $d['id'] !== (int) $nuxrActor->userId && \Reseller\Domain\StaffService::canTarget($nuxrActor, $d->as_array(), $nuxrC::STAFF_CHANGE_ROLE));
+        // an Agent's role is permanent in V1 (reseller identity); StaffService::changeRole() enforces it
+        $ui->assign('nuxr_can_role', $d && (int) $d['id'] !== (int) $nuxrActor->userId && $d['user_type'] !== 'Agent' && \Reseller\Domain\StaffService::canTarget($nuxrActor, $d->as_array(), $nuxrC::STAFF_CHANGE_ROLE));
         $ui->assign('nuxr_roles', \Reseller\Domain\StaffService::manageableRoles($nuxrActor));
         if ($d) {
             if (isset($routes['3']) && $routes['3'] == 'deletePhoto') {

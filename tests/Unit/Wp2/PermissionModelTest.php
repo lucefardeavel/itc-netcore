@@ -90,6 +90,13 @@ final class PermissionModelTest extends TestCase
         }
         $this->assertTrue(PermissionService::can(self::staff('Admin'), C::SYSTEM_COUPONS));
         $this->assertFalse(PermissionService::can(self::staff('Sales'), C::SYSTEM_COUPONS), 'OD-10');
+        // OD-12: the Pages editor is readable by Admin, but writing / resetting templates is system.code
+        $this->assertTrue(PermissionService::can(self::staff('Admin'), \Reseller\Security\RouteMap::ROUTES['pages']['page']['GET']));
+        foreach (['page-post', 'page-reset'] as $key) {
+            $rule = \Reseller\Security\RouteMap::ROUTES['pages'][$key]['POST'];
+            $this->assertFalse(PermissionService::can(self::staff('Admin'), $rule), "Admin must not hold pages {$key}");
+            $this->assertTrue(PermissionService::can(self::staff('SuperAdmin'), $rule), "SuperAdmin holds pages {$key}");
+        }
     }
 
     public function testScopesByRole(): void

@@ -129,6 +129,32 @@ final class RouteMapTest extends TestCase
         $this->assertArrayNotHasKey('GET', $r['plan']['remove-voucher']);
     }
 
+    /**
+     * OD-12 code boundary (owner review fix 2): page templates are Smarty-included, so every Pages
+     * write/reset variant requires system.code (SuperAdmin only); reading stays system.admin; the API
+     * never reaches the Pages controller.
+     */
+    public function testPagesWriteAndResetAreACodeSurface(): void
+    {
+        $r = RouteMap::ROUTES['pages'];
+        $this->assertSame(['GET' => Capability::SYSTEM_ADMIN], $r['page']);
+        $this->assertSame(['POST' => Capability::SYSTEM_CODE], $r['page-post']);
+        $this->assertSame(['POST' => Capability::SYSTEM_CODE], $r['page-reset']);
+        foreach (['Announcement-post', 'Voucher-post', 'Custom_Page-post', 'x-reset-post'] as $action) {
+            $res = RouteGuard::resolve('pages', ['pages', $action], [], 'POST');
+            $this->assertSame(Capability::SYSTEM_CODE, $res['rule'], $action);
+        }
+        foreach (['Announcement-reset', 'Voucher-reset', 'Terms_and_Conditions-reset'] as $action) {
+            $res = RouteGuard::resolve('pages', ['pages', $action], [], 'POST');
+            $this->assertSame(Capability::SYSTEM_CODE, $res['rule'], $action);
+            $this->assertFalse(RouteGuard::resolve('pages', ['pages', $action], [], 'GET')['method_allowed'], "{$action} via GET");
+        }
+        $view = RouteGuard::resolve('pages', ['pages', 'Announcement'], [], 'GET');
+        $this->assertSame(Capability::SYSTEM_ADMIN, $view['rule']);
+        $this->assertFalse(RouteGuard::resolve('pages', ['pages', 'Announcement'], [], 'POST')['method_allowed'], 'no write through the read entry');
+        $this->assertArrayNotHasKey('pages', RouteMap::API_ALLOWED);
+    }
+
     public function testResolutionOfKeysVariantsAndMethods(): void
     {
         $r = RouteGuard::resolve('customers', ['customers', 'edit', '5', 'deletePhoto'], [], 'GET');

@@ -152,8 +152,8 @@ Reserved capabilities are defined now and never granted until the owning work pa
 
 | Actor | May create | May manage (profile/password reset, disable/reactivate, role among) | Delete |
 |---|---|---|---|
-| SuperAdmin | any role (Agent/Sales under an enrolled, Active Agent or top-level Agent) | any role; never self status/role; the last active SuperAdmin is protected | unreferenced, never-enrolled accounts |
-| Admin (OD-12) | Report, Agent, Sales | Report, Agent, Sales (never SuperAdmin/Admin) | Report accounts only |
+| SuperAdmin | any role (Agent/Sales under an enrolled, Active Agent or top-level Agent) | any role; never self status/role; the last active SuperAdmin is protected; an Agent's role is never changed | unreferenced, never-enrolled accounts — **never an Agent** |
+| Admin (OD-12) | Report, Agent, Sales | Report, Agent, Sales (never SuperAdmin/Admin); an Agent's role is never changed | Report accounts only |
 | Agent | Agent or Sales as a **direct child of itself** (parent from the form ignored) | strict descendants only (OD-13) | — |
 | Sales, Report | — | own profile/password only | — |
 
@@ -161,9 +161,30 @@ Reserved capabilities are defined now and never granted until the owning work pa
   through `ResellerTreeService` (`reseller/place-post`, `reseller/move-post`), which also keeps `root` equal
   to the closure parent.
 - Role changes are **tree-safe**: refused when the account is enrolled, is any customer's `manager_id` or
-  `assigned_sales_id`, or is anyone's `root` (disable and create a new account instead).
+  `assigned_sales_id`, or is anyone's `root` (disable and create a new account instead), and always refused
+  when the account is an Agent (see below).
 - A referenced/enrolled account is never deleted (disable instead); every reference is found by a
   schema-driven foreign-key scan before any side effect.
+
+**Reseller lifecycle (V1, D033 / `18_BUSINESS_RULES`).** An Agent is a reseller identity.
+**Agent permanent deletion = prohibited in V1.** `StaffService::delete()` refuses every Agent
+(`AGENT_DELETE_PROHIBITED`) for every actor, SuperAdmin included, whether the Agent is enrolled or legacy
+data, has children, owns customers, has financial references or has no references at all; the rule is
+explicit and does not rely on foreign keys or reference checks (the `DELETE` statement also excludes Agents).
+An Agent's role can never be changed (`AGENT_ROLE_PERMANENT`), which closes the re-label-then-delete path.
+The lifecycle is **disable / reactivate** (`reseller/status-post`, or the status field of the staff edit
+form). No historical row is ever deleted or cleaned to make an Agent deletable. The deletion rules of the
+other roles are unchanged (table above). The staff list hides the delete control for Agents (cosmetic).
+
+**Pages editor (OD-12 code boundary).** `pages/*.html` and `pages/vouchers/*.html` are included as Smarty
+templates (`ui/ui/customer/pages.tpl`, the customer login / register / activation / payment pages, and the
+editor's voucher-template preview); `pages/Voucher.html` is also inserted as raw HTML into printed vouchers.
+Writing them is therefore a code-execution surface. `pages/<Page>` (open/read the editor) requires `system.admin`
+(SuperAdmin, Admin); `pages/<Page>-post` (save, incl. "save as voucher template") and `pages/<Page>-reset`
+require `system.code` (**SuperAdmin only**), enforced server-side by RouteGuard for every page name. The API
+never reaches the Pages controller. Admins see the editor read-only (the Save / Reset controls are hidden;
+cosmetic only). Opening a missing allowlisted page still materializes it from the shipped `pages_template/`
+(repository content, not user input). A Smarty security policy (sandbox) is not part of V1 (NEW-8, WP9).
 
 ## 5. Hierarchy (ResellerTreeService)
 
@@ -240,6 +261,10 @@ identity / password / status → Active.
   (no impersonation, backup/restore, plugin/code surfaces, updater, callbacks or customer portal).
 - Responses are sanitized recursively (keys matching `pass|secret|login_token|salt|api_key|csrf|otp|signature|cookie`,
   `_c`, `config` removed; `_admin` / `_user` reduced to identity fields).
+- Only the API uses the dedicated `$api_secret`. **`$db_pass` is not isolated from authentication material
+  (NEW-7, unresolved):** it remains the HMAC key of the staff session fingerprint and of the staff
+  remember-cookie MAC (`system/autoload/Admin.php`), and of customer cookies, payment links and invoice
+  signatures. Key separation is a later work package (WP9/WP10).
 
 ## 10. Errors (OD-14)
 
@@ -528,8 +553,8 @@ Object-level scoping inside a permitted route is applied by `DataScope` in the c
 | widgets | delete | POST | `system.admin` | SA:G A:G | — |
 | widgets | pos | POST | `system.admin` | SA:G A:G | — |
 | pages | page | GET | `system.admin` | SA:G A:G | — |
-| pages | page-post | POST | `system.admin` | SA:G A:G | — |
-| pages | page-reset | POST | `system.admin` | SA:G A:G | — |
+| pages | page-post | POST | `system.code` | SA:G | — |
+| pages | page-reset | POST | `system.code` | SA:G | — |
 | default | resolve | GET/POST | `public` | public | — |
 
 _257 route entries; default actions: '' and unknown actions resolve to each controller's real default branch (see RouteMap::ROUTES); anything unmapped is denied for every role._
@@ -541,7 +566,8 @@ _257 route entries; default actions: '' and unknown actions resolve to each cont
 - Report has login, an empty dashboard, own profile/password and logout only (OD-4).
 - Agents/Sales lose deposit, extend, free recharge, customer edit/export, reports/exports, bulk messaging,
   voucher generation; Sales lose coupons (OD-10). Admins lose SuperAdmin/Admin management, code surfaces
-  and backup/restore (OD-12).
+  (including saving or resetting page templates) and backup/restore (OD-12).
+- Agent accounts can no longer be deleted or re-roled by anyone; disable them instead (reseller lifecycle).
 - Reseller-owned customers lose every legacy service operation until WP5B (OD-11), in the admin UI, the API,
   cron and the customer portal. Pending gateway transactions for them need manual resolution.
 - The web updater is gone (OD-2). Unregistered or anonymous plugin endpoints are refused (OD-9).

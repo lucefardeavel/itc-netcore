@@ -1,6 +1,4 @@
-Code HEAD under test: 4c5341862a436e379e32f8452c286d343040786c
- Image nuxbill-reseller-test-php82 Building 
- Image nuxbill-reseller-test-php82 Built 
+Code under test: cd1c928 + the revision-2 fix (working tree that became the fix commit)
 ================ engine: mariadb ================
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
@@ -8,12 +6,12 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 194 ( 32%)
-............................................................... 126 / 194 ( 64%)
-............................................................... 189 / 194 ( 97%)
-.....                                                           194 / 194 (100%)
+...............................................................  63 / 207 ( 30%)
+............................................................... 126 / 207 ( 60%)
+............................................................... 189 / 207 ( 91%)
+..................                                              207 / 207 (100%)
 
-Time: 01:18.855, Memory: 16.00 MB
+Time: 01:31.512, Memory: 16.00 MB
 
 Api (Reseller\Tests\Http\Api)
  ✔ Valid token works and responses are sanitized
@@ -154,6 +152,15 @@ Migration Definitions (Reseller\Tests\Unit\MigrationDefinitions)
  ✔ Timestamps are datetime 6 without server defaults
  ✔ Every down step has existence guard and reverse order
 
+Pages Boundary (Reseller\Tests\Http\PagesBoundary)
+ ✔ Admin may read a page without write controls
+ ✔ Admin forged write and reset are denied
+ ✔ Denied reset performs no remote fetch or write
+ ✔ Super admin writes an allowed page
+ ✔ Super admin reset only on canonical pages
+ ✔ Other roles have no pages access
+ ✔ Api never exposes pages
+
 Partial Failure (Reseller\Tests\Integration\PartialFailure)
  ✔ Failed partial blocks and rollback restores recognised core with data set "V1_FRESH_INSTALL"
  ✔ Failed partial blocks and rollback restores recognised core with data set "V2_FRESH_INSTALL_UPDATED"
@@ -195,6 +202,13 @@ Preflight (Reseller\Tests\Integration\Preflight)
  ✔ Collisions are never adopted with data set "foreign key name already used"
  ✔ Missing privilege is not ready
 
+Reseller Lifecycle (Reseller\Tests\Http\ResellerLifecycle)
+ ✔ Super admin cannot delete an enrolled agent
+ ✔ Super admin cannot delete an unreferenced non enrolled agent
+ ✔ The same agent can be disabled and reactivated
+ ✔ No role can bypass the rule
+ ✔ Permitted deletions of other roles are unchanged
+
 Restore Guard (Reseller\Tests\Http\RestoreGuard)
  ✔ Restore is refused before mutation on reseller installation
  ✔ Only super admin reaches backup and restore and csrf is required
@@ -216,6 +230,7 @@ Route Map (Reseller\Tests\Unit\Wp2\RouteMap)
  ✔ Every rule is known and every alias resolves
  ✔ Variants and api allowlist refer to mapped entries
  ✔ Fall through entries are not wider than their targets
+ ✔ Pages write and reset are a code surface
  ✔ Resolution of keys variants and methods
 
 Route Matrix (Reseller\Tests\Http\RouteMatrix)
@@ -275,7 +290,7 @@ Staff Management (Reseller\Tests\Http\StaffManagement)
  ✔ Delete rules
  ✔ Role change is tree safe and last super admin protected
 
-OK (194 tests, 9089 assertions)
+OK (207 tests, 9315 assertions)
 ================ engine: mysql ================
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
@@ -283,12 +298,12 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 194 ( 32%)
-............................................................... 126 / 194 ( 64%)
-............................................................... 189 / 194 ( 97%)
-.....                                                           194 / 194 (100%)
+...............................................................  63 / 207 ( 30%)
+............................................................... 126 / 207 ( 60%)
+............................................................... 189 / 207 ( 91%)
+..................                                              207 / 207 (100%)
 
-Time: 02:45.775, Memory: 16.00 MB
+Time: 02:53.645, Memory: 16.00 MB
 
 Api (Reseller\Tests\Http\Api)
  ✔ Valid token works and responses are sanitized
@@ -429,6 +444,15 @@ Migration Definitions (Reseller\Tests\Unit\MigrationDefinitions)
  ✔ Timestamps are datetime 6 without server defaults
  ✔ Every down step has existence guard and reverse order
 
+Pages Boundary (Reseller\Tests\Http\PagesBoundary)
+ ✔ Admin may read a page without write controls
+ ✔ Admin forged write and reset are denied
+ ✔ Denied reset performs no remote fetch or write
+ ✔ Super admin writes an allowed page
+ ✔ Super admin reset only on canonical pages
+ ✔ Other roles have no pages access
+ ✔ Api never exposes pages
+
 Partial Failure (Reseller\Tests\Integration\PartialFailure)
  ✔ Failed partial blocks and rollback restores recognised core with data set "V1_FRESH_INSTALL"
  ✔ Failed partial blocks and rollback restores recognised core with data set "V2_FRESH_INSTALL_UPDATED"
@@ -470,6 +494,13 @@ Preflight (Reseller\Tests\Integration\Preflight)
  ✔ Collisions are never adopted with data set "foreign key name already used"
  ✔ Missing privilege is not ready
 
+Reseller Lifecycle (Reseller\Tests\Http\ResellerLifecycle)
+ ✔ Super admin cannot delete an enrolled agent
+ ✔ Super admin cannot delete an unreferenced non enrolled agent
+ ✔ The same agent can be disabled and reactivated
+ ✔ No role can bypass the rule
+ ✔ Permitted deletions of other roles are unchanged
+
 Restore Guard (Reseller\Tests\Http\RestoreGuard)
  ✔ Restore is refused before mutation on reseller installation
  ✔ Only super admin reaches backup and restore and csrf is required
@@ -491,6 +522,7 @@ Route Map (Reseller\Tests\Unit\Wp2\RouteMap)
  ✔ Every rule is known and every alias resolves
  ✔ Variants and api allowlist refer to mapped entries
  ✔ Fall through entries are not wider than their targets
+ ✔ Pages write and reset are a code surface
  ✔ Resolution of keys variants and methods
 
 Route Matrix (Reseller\Tests\Http\RouteMatrix)
@@ -550,7 +582,7 @@ Staff Management (Reseller\Tests\Http\StaffManagement)
  ✔ Delete rules
  ✔ Role change is tree safe and last super admin protected
 
-OK (194 tests, 9089 assertions)
+OK (207 tests, 9315 assertions)
 ================ variant registry reproducibility ================
 variant registry matches freshly built fixtures
   mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3

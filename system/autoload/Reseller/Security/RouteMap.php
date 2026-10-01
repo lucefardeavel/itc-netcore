@@ -222,7 +222,9 @@ final class RouteMap
             '' => 'list', '*' => 'list', 'list' => C::SYSTEM_ADMIN,
             'add' => C::SYSTEM_ADMIN, 'edit' => C::SYSTEM_ADMIN, 'delete' => ['POST' => C::SYSTEM_ADMIN], 'pos' => ['POST' => C::SYSTEM_ADMIN],
         ],
-        'pages' => ['' => 'page', '*' => 'page', 'page' => ['GET' => C::SYSTEM_ADMIN], 'page-post' => ['POST' => C::SYSTEM_ADMIN], 'page-reset' => ['POST' => C::SYSTEM_ADMIN]],
+        // OD-12: pages/*.html (and pages/vouchers/*.html) are Smarty-included templates, so writing or
+        // resetting them is a code surface (SuperAdmin only); reading the editor stays system.admin
+        'pages' => ['' => 'page', '*' => 'page', 'page' => ['GET' => C::SYSTEM_ADMIN], 'page-post' => ['POST' => C::SYSTEM_CODE], 'page-reset' => ['POST' => C::SYSTEM_CODE]],
         'default' => ['' => 'resolve', '*' => 'resolve', 'resolve' => 'public'],
     ];
 

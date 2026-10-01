@@ -14,7 +14,8 @@ $ui->assign('_admin', $admin);
 
 // WP2 / OD-14 NEW-4: page and voucher-template names are allowlisted and canonicalized; every file
 // path must resolve inside $PAGES_PATH (or $PAGES_PATH/vouchers). Files are only created for the
-// built-in page allowlist. RouteGuard: SuperAdmin/Admin (system.admin); -post / -reset are POST.
+// built-in page allowlist. RouteGuard: viewing = SuperAdmin/Admin (system.admin); -post / -reset write
+// Smarty-included template content and are therefore SuperAdmin-only (system.code, OD-12), POST only.
 if (!is_dir($PAGES_PATH)) {
     @mkdir($PAGES_PATH, 0755, true);
 }

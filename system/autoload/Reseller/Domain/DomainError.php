@@ -34,6 +34,8 @@ final class DomainError extends \RuntimeException
         'SELF_TARGET' => 'You cannot perform this action on your own account.',
         'LAST_SUPERADMIN' => 'The last active SuperAdmin cannot be disabled, deleted or demoted.',
         'ROLE_CHANGE_UNSAFE' => 'The role of an account that is part of the reseller hierarchy cannot be changed; disable it and create a new account instead.',
+        'AGENT_DELETE_PROHIBITED' => 'Agent (reseller) accounts cannot be deleted in V1; disable the account instead.',
+        'AGENT_ROLE_PERMANENT' => 'The role of an Agent (reseller) account cannot be changed in V1; disable the account instead.',
     ];
 
     public function __construct(public readonly string $reason, ?string $detail = null)

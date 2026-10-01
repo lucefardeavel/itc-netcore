@@ -61,7 +61,8 @@
                                             class="btn btn-success btn-xs">{Lang::T('View')}</a>
                                         <a href="{Text::url('settings/users-edit/',$ds['id'])}"
                                             class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
-                                        {if ($_admin['id']) neq ($ds['id'])}
+                                        {* Agent accounts are never deleted in V1 (reseller identity: disable / reactivate) *}
+                                        {if ($_admin['id']) neq ($ds['id']) && $ds['user_type'] neq 'Agent'}
                                             <a data-method="post" href="{Text::url('settings/users-delete/',$ds['id'])}" id="{$ds['id']}"
                                                 class="btn btn-danger btn-xs" onclick="return ask(this, '{Lang::T('Delete')}?')"><i class="glyphicon glyphicon-trash"></i></a>
                                         {/if}

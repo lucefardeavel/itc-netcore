@@ -1,9 +1,9 @@
 WP2 role x route matrix evidence (RouteMatrixTest::testRoleRouteMatrix, WP2_EVIDENCE=1)
-Code: 2eb190d. Generated from RouteMap for principals: sa=SuperAdmin ad=Admin A=Agent A1=Sales rp=Report E=non-enrolled Agent F=frozen Agent.
+Revision 2 (owner fix pass): code = the fix commit on top of cd1c928. Generated from RouteMap for principals: sa=SuperAdmin ad=Admin A=Agent A1=Sales rp=Report E=non-enrolled Agent F=frozen Agent.
 Columns: principal, method, route, rule (capability), expected (ALLOW/DENY), actual HTTP status.
 Every DENY row is 403 with no database change (whole-DB checksum asserted). ALLOW rows: no 401/403/405/500 and no leaked internals.
 Allowed POST mutations and a few allowed GET pages that need network/extensions are exercised by the functional suites instead (see RouteMatrixTest::SKIP_ALLOWED_GET).
-Identical output on MariaDB 10.11.19 and MySQL 8.0.46 (diff empty). 1440 requests, 1162 denials.
+Identical output on MariaDB 10.11.19 and MySQL 8.0.46 (diff empty). 1442 requests, 1164 denials (revision 1: 1440 / 1162; the two new denials are Admin POST pages/Announcement-post and pages/Announcement-reset, now system.code).
 
 sa   GET  dashboard                                     dashboard.view               ALLOW 200
 ad   GET  dashboard                                     dashboard.view               ALLOW 200
@@ -1435,13 +1435,15 @@ A1   GET  pages/Announcement                            system.admin            
 rp   GET  pages/Announcement                            system.admin                 DENY  403
 E    GET  pages/Announcement                            system.admin                 DENY  403
 F    GET  pages/Announcement                            system.admin                 DENY  403
-A    POST pages/Announcement-post                       system.admin                 DENY  403
-A1   POST pages/Announcement-post                       system.admin                 DENY  403
-rp   POST pages/Announcement-post                       system.admin                 DENY  403
-E    POST pages/Announcement-post                       system.admin                 DENY  403
-F    POST pages/Announcement-post                       system.admin                 DENY  403
-A    POST pages/Announcement-reset                      system.admin                 DENY  403
-A1   POST pages/Announcement-reset                      system.admin                 DENY  403
-rp   POST pages/Announcement-reset                      system.admin                 DENY  403
-E    POST pages/Announcement-reset                      system.admin                 DENY  403
-F    POST pages/Announcement-reset                      system.admin                 DENY  403
+ad   POST pages/Announcement-post                       system.code                  DENY  403
+A    POST pages/Announcement-post                       system.code                  DENY  403
+A1   POST pages/Announcement-post                       system.code                  DENY  403
+rp   POST pages/Announcement-post                       system.code                  DENY  403
+E    POST pages/Announcement-post                       system.code                  DENY  403
+F    POST pages/Announcement-post                       system.code                  DENY  403
+ad   POST pages/Announcement-reset                      system.code                  DENY  403
+A    POST pages/Announcement-reset                      system.code                  DENY  403
+A1   POST pages/Announcement-reset                      system.code                  DENY  403
+rp   POST pages/Announcement-reset                      system.code                  DENY  403
+E    POST pages/Announcement-reset                      system.code                  DENY  403
+F    POST pages/Announcement-reset                      system.code                  DENY  403
