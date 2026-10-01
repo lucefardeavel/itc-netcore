@@ -24,10 +24,15 @@ final class MigrationDefinitionsTest extends TestCase
             'R0003_activation_foundation',
             'R0004_wallet_finance_foundation',
             'R0005_customer_ownership',
+            'R0006_reseller_audit',
         ], self::set()->ids());
     }
 
-    public function testOnlyLegacyChangeIsCustomerOwnershipAndItRunsLast(): void
+    /**
+     * R0005 is the only migration touching a legacy table (one atomic ALTER). Since WP2 (owner
+     * decision OD-1) later migrations may exist, but they only create new tables.
+     */
+    public function testOnlyLegacyChangeIsCustomerOwnershipAndLaterMigrationsOnlyCreateTables(): void
     {
         $set = self::set();
         foreach ($set->migrations as $m) {
@@ -57,7 +62,17 @@ final class MigrationDefinitionsTest extends TestCase
                 }
             }
         }
-        $this->assertSame('R0005_customer_ownership', $set->migrations[count($set->migrations) - 1]->id);
+        $seenR0005 = false;
+        foreach ($set->migrations as $m) {
+            if ($seenR0005) {
+                $this->assertSame([], $m->contract['table_parts'], "{$m->id} after R0005 must not alter legacy tables");
+                foreach ($m->up as $step) {
+                    $this->assertMatchesRegularExpression('/^\s*CREATE TABLE\s/i', $step['sql'], "{$m->id} after R0005 only creates tables");
+                }
+            }
+            $seenR0005 = $seenR0005 || $m->id === 'R0005_customer_ownership';
+        }
+        $this->assertTrue($seenR0005);
     }
 
     public function testEveryForeignKeyIsRestrictNeverCascade(): void

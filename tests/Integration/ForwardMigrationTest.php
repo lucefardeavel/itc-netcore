@@ -90,7 +90,7 @@ final class ForwardMigrationTest extends IntegrationTestCase
         // a fresh connection / process sees the same durable state
         $fresh = new \PDO("mysql:host={$db->host};dbname={$db->name}", 'root', TestDatabase::rootPassword());
         $rows = $fresh->query('SELECT migration_id, status, checksum, steps_total, steps_completed, base_variant, core_fingerprint_before, contract_fingerprint FROM tbl_project_migrations ORDER BY migration_id')->fetchAll(\PDO::FETCH_ASSOC);
-        $this->assertCount(5, $rows);
+        $this->assertCount(6, $rows);
         $set = MigrationSet::fromDirectory(dirname(__DIR__, 2) . '/system/reseller/migrations');
         foreach ($rows as $row) {
             $m = $set->get($row['migration_id']);

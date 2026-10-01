@@ -74,6 +74,7 @@ abstract class IntegrationTestCase extends TestCase
             'tbl_manager_tree', 'tbl_reseller_plan_base_costs', 'tbl_manager_plan_prices',
             'tbl_reseller_activations', 'tbl_reseller_activation_events',
             'tbl_manager_wallets', 'tbl_manager_transfers', 'tbl_manager_ledger', 'tbl_manager_wallet_reservations',
+            'tbl_reseller_audit_events',
         ];
     }
 
