@@ -46,7 +46,7 @@
 									<td>
 										<a href="{Text::url('bandwidth/edit/', $ds['id'])}"
 											class="btn btn-sm btn-warning">{Lang::T('Edit')}</a>
-										<a href="{Text::url('bandwidth/delete/', $ds['id'])}" id="{$ds['id']}"
+										<a data-method="post" href="{Text::url('bandwidth/delete/', $ds['id'])}" id="{$ds['id']}"
 											class="btn btn-danger btn-sm"
 											onclick="return ask(this, '{Lang::T('Delete')}?')"><i
 												class="glyphicon glyphicon-trash"></i></a>

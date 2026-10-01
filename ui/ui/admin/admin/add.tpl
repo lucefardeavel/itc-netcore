@@ -47,32 +47,30 @@
                     <div class="form-group">
                         <label class="col-md-3 control-label">{Lang::T('User Type')}</label>
                         <div class="col-md-9">
+                            {* WP2 / SEC-04: offered roles come from the server-side target-role table *}
                             <select name="user_type" id="user_type" class="form-control" onchange="checkUserType(this)">
-                                {if $_admin['user_type'] eq 'Agent'}
-                                    <option value="Sales">{Lang::T('Sales')}</option>
-                                {/if}
-                                {if $_admin['user_type'] eq 'Admin' || $_admin['user_type'] eq 'SuperAdmin'}
-                                    <option value="Report">{Lang::T('Report Viewer')}</option>
-                                    <option value="Agent">{Lang::T('Agent')}</option>
-                                    <option value="Sales">{Lang::T('Sales')}</option>
-                                {/if}
-                                {if $_admin['user_type'] eq 'SuperAdmin'}
-                                    <option value="Admin">{Lang::T('Administrator')}</option>
-                                    <option value="SuperAdmin">{Lang::T('Super Administrator')}</option>
-                                {/if}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group hidden" id="agentChooser">
-                        <label class="col-md-3 control-label">{Lang::T('Agent')}</label>
-                        <div class="col-md-9">
-                            <select name="root" id="root" class="form-control">
-                                {foreach $agents as $agent}
-                                    <option value="{$agent['id']}">{$agent['username']} | {$agent['fullname']} | {$agent['phone']}</option>
+                                {foreach $nuxr_roles as $nuxrRole}
+                                    <option value="{$nuxrRole|escape}">{Lang::T($nuxrRole)}</option>
                                 {/foreach}
                             </select>
                         </div>
                     </div>
+                    {if !$nuxr_parent_fixed}
+                    <div class="form-group hidden" id="agentChooser">
+                        <label class="col-md-3 control-label">{Lang::T('Parent Agent')}</label>
+                        <div class="col-md-9">
+                            <select name="parent_id" id="parent_id" class="form-control">
+                                <option value="">{Lang::T('None (top-level Agent)')}</option>
+                                {foreach $agents as $agent}
+                                    <option value="{$agent['id']}">{$agent['username']|escape} | {$agent['fullname']|escape}</option>
+                                {/foreach}
+                            </select>
+                            <span class="help-block">{Lang::T('Required for Sales; optional for Agents.')}</span>
+                        </div>
+                    </div>
+                    {else}
+                        <p class="help-block">{Lang::T('New accounts are created as your direct children.')}</p>
+                    {/if}
                     <div class="form-group">
                         <label class="col-md-3 control-label">{Lang::T('Username')}</label>
                         <div class="col-md-9">
@@ -108,7 +106,7 @@
 {literal}
     <script>
         function checkUserType($field){
-            if($field.value=='Sales'){
+            if($field.value=='Sales' || $field.value=='Agent'){
                 $('#agentChooser').removeClass('hidden');
             }else{
                 $('#agentChooser').addClass('hidden');

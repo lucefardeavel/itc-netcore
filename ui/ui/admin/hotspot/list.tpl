@@ -5,7 +5,7 @@
         <div class="panel panel-hovered mb20 panel-primary">
             <div class="panel-heading">
                 <div class="btn-group pull-right">
-                    <a class="btn btn-primary btn-xs" title="save" href="{Text::url('services/sync/hotspot')}"
+                    <a data-method="post" class="btn btn-primary btn-xs" title="save" href="{Text::url('services/sync/hotspot')}"
                         onclick="return ask(this, 'This will sync/send hotspot package to Mikrotik?')"><span
                             class="glyphicon glyphicon-refresh" aria-hidden="true"></span> sync</a>
                 </div>{Lang::T('Hotspot Plans')}
@@ -169,7 +169,7 @@
                                     <td>
                                         <a href="{Text::url('services/edit/')}{$ds['id']}"
                                             class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
-                                        <a href="{Text::url('services/delete/')}{$ds['id']}" id="{$ds['id']}"
+                                        <a data-method="post" href="{Text::url('services/delete/')}{$ds['id']}" id="{$ds['id']}"
                                             onclick="return ask(this, '{Lang::T('Delete')}?')"
                                             class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
                                     </td>

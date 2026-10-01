@@ -46,18 +46,23 @@ if (in_array($tipeUser, ['SuperAdmin', 'Admin'])) {
     $tipeUser = 'Admin';
 }
 
-$widgets = ORM::for_table('tbl_widgets')->where("enabled", 1)->where('user', $tipeUser)->order_by_asc("orders")->findArray();
+// WP2 / OD-4 / SEC-06: the legacy widgets compute global (unscoped) figures and activity logs, so they
+// are rendered only for global scopes. Agent/Sales/Report dashboards get the scope-safe allowlist,
+// which is empty in V1 (scoped widgets are WP6B).
+$nuxrDashboardGlobal = \Reseller\Security\PermissionService::scopeOf(\Reseller\Security\ActorContext::current(), \Reseller\Security\Capability::REPORT_READ) === 'G';
+$widgets = $nuxrDashboardGlobal ? ORM::for_table('tbl_widgets')->where("enabled", 1)->where('user', $tipeUser)->order_by_asc("orders")->findArray() : [];
 $count = count($widgets);
 for ($i = 0; $i < $count; $i++) {
     try{
-        if(file_exists($WIDGET_PATH . DIRECTORY_SEPARATOR . $widgets[$i]['widget'].".php")){
+        if(preg_match('/^[A-Za-z0-9_]+$/', (string) $widgets[$i]['widget']) && file_exists($WIDGET_PATH . DIRECTORY_SEPARATOR . $widgets[$i]['widget'].".php")){
             require_once $WIDGET_PATH . DIRECTORY_SEPARATOR . $widgets[$i]['widget'].".php";
             $widgets[$i]['content'] = (new $widgets[$i]['widget'])->getWidget($widgets[$i]);
         }else{
             $widgets[$i]['content'] = "Widget not found";
         }
     } catch (Throwable $e) {
-        $widgets[$i]['content'] = $e->getMessage();
+        // WP2 / OD-14: generic text + reference; details in the sanitized server log
+        $widgets[$i]['content'] = htmlspecialchars(\Reseller\Security\ErrorReporter::publicMessage(\Reseller\Security\ErrorReporter::report($e, 'widget')));
     }
 }
 

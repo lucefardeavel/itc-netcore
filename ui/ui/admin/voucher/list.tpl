@@ -18,7 +18,7 @@
     <div class="panel-heading">
         {if in_array($_admin['user_type'],['SuperAdmin','Admin'])}
             <div class="btn-group pull-right">
-                <a class="btn btn-danger btn-xs" title="Remove used Voucher" href="{Text::url('')}plan/remove-voucher"
+                <a data-method="post" class="btn btn-danger btn-xs" title="Remove used Voucher" href="{Text::url('')}plan/remove-voucher"
                     onclick="return ask(this, 'Delete all used voucher code more than 3 months?')"><span
                         class="glyphicon glyphicon-trash" aria-hidden="true"></span> {Lang::T('Delete')} &gt; {Lang::T('3
                 Months')}</a>
@@ -137,7 +137,7 @@
                                         class="btn btn-success btn-xs">&nbsp;&nbsp;{Lang::T('View')}&nbsp;&nbsp;</a>
                                 {/if}
                                 {if in_array($_admin['user_type'],['SuperAdmin','Admin'])}
-                                    <a href="{Text::url('')}plan/voucher-delete/{$ds['id']}" id="{$ds['id']}"
+                                    <a data-method="post" href="{Text::url('')}plan/voucher-delete/{$ds['id']}" id="{$ds['id']}"
                                         class="btn btn-danger btn-xs" onclick="return ask(this, '{Lang::T('Delete')}?')"><i
                                             class="glyphicon glyphicon-trash"></i></a>
                                 {/if}

@@ -21,7 +21,7 @@
                                                     class="btn btn-success text-black">Audit</a>
                                             </div>
                                             <div class="btn-group" role="group">
-                                                <a href="{Text::url('paymentgateway/delete/')}{$pg}"
+                                                <a data-method="post" href="{Text::url('paymentgateway/delete/')}{$pg}"
                                                     onclick="return ask(this, '{Lang::T('Delete')} {$pg}?')"
                                                     class="btn btn-danger"><i class="glyphicon glyphicon-trash"></i></a>
                                             </div>

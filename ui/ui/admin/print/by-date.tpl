@@ -70,5 +70,6 @@
     });
 </script>
 
+{include file="nuxr-csrf.tpl"}
 </body>
 </html>

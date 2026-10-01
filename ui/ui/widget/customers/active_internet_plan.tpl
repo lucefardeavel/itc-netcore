@@ -120,21 +120,21 @@
                     <tr>
                         <td class="small text-primary text-uppercase text-normal">
                             {if $_bill['status'] == 'on' && $_bill['prepaid'] != 'YES'}
-                                <a href="{Text::url('home&deactivate=', $_bill['id'])}"
+                                <a data-method="post" href="{Text::url('home&deactivate=', $_bill['id'])}"
                                     onclick="return ask(this, '{Lang::T('Deactivate')}?')" class="btn btn-danger btn-xs"><i
                                         class="glyphicon glyphicon-trash"></i></a>
                             {/if}
                         </td>
                         <td class="small row">
                             {if $_bill['status'] != 'on' && $_bill['prepaid'] != 'yes' && $_c['extend_expired']}
-                                <a class="btn btn-warning text-black btn-sm"
+                                <a data-method="post" class="btn btn-warning text-black btn-sm"
                                     href="{Text::url('home&extend=', $_bill['id'], '&stoken=', App::getToken())}"
                                     onclick="return ask(this, '{Text::toHex($_c['extend_confirmation'])}')">{Lang::T('Extend')}</a>
                             {/if}
                             <a class="btn btn-primary pull-right btn-sm"
                                 href="{Text::url('home&recharge=', $_bill['id'], '&stoken=', App::getToken())}"
                                 onclick="return ask(this, '{Lang::T('Recharge')}?')">{Lang::T('Recharge')}</a>
-                            <a class="btn btn-warning text-black pull-right btn-sm"
+                            <a data-method="post" class="btn btn-warning text-black pull-right btn-sm"
                                 href="{Text::url('home&sync=', $_bill['id'], '&stoken=', App::getToken())}"
                                 onclick="return ask(this, '{Lang::T('Sync account if you failed login to internet')}?')"
                                 data-toggle="tooltip" data-placement="top"

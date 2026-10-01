@@ -16,7 +16,7 @@ $fieldPath = $UPLOAD_PATH . DIRECTORY_SEPARATOR . "customer_field.json";
 
 switch ($action) {
     case 'save':
-        print_r($_POST);
+        // WP2 / OD-14: no request echo
         $datas = [];
         $count = count($_POST['name']);
         for($n=0;$n<$count;$n++){

@@ -26,6 +26,8 @@ $isCli = true;
 if (php_sapi_name() !== 'cli') {
     $isCli = false;
     echo "<pre>";
+    // WP2 / OD-14: no usernames, notification text or error details in a web response
+    \Reseller\Security\ErrorReporter::suppressWebOutput('cron');
 }
 echo "PHP Time\t" . date('Y-m-d H:i:s') . "\n";
 $res = ORM::raw_execute('SELECT NOW() AS WAKTU;');
@@ -93,13 +95,18 @@ foreach ($d as $ds) {
                 $u->status = 'off';
                 $u->save();
             } catch (Throwable $e) {
-                _log($e->getMessage());
-                sendTelegram($e->getMessage());
-                echo "Error: " . $e->getMessage() . "\n";
+                // WP2 / OD-14: sanitized server log + summary-only notification
+                $nuxrRef = \Reseller\Security\ErrorReporter::report($e, 'cron-notify');
+                echo "Error: " . ($isCli ? \Reseller\Security\ErrorReporter::sanitize($e->getMessage()) : 'ref ' . $nuxrRef) . "\n";
             }
 
             // Auto-renewal from deposit
-            if ($config['enable_balance'] == 'yes' && $c['auto_renewal']) {
+            if ($config['enable_balance'] == 'yes' && $c['auto_renewal'] && \Reseller\Domain\ServiceGate::isBlockedCustomerId($ds['customer_id'])) {
+                // WP2 / OD-11 (E11): no legacy auto-renewal for reseller-owned customers (pending WP5B);
+                // skipped and logged, no debit, no "FAILED RENEWAL" alert; the loop continues
+                \Reseller\Domain\ServiceGate::refused('cronAutoRenewal', $ds['customer_id']);
+                echo "no renewal | reseller-managed customer (pending WP5B)\n";
+            } else if ($config['enable_balance'] == 'yes' && $c['auto_renewal']) {
                 [$bills, $add_cost] = User::getBills($ds['customer_id']);
                 if ($add_cost != 0) {
                     $p['price'] += $add_cost;
@@ -127,10 +134,9 @@ foreach ($d as $ds) {
             echo " : ACTIVE \r\n";
         }
     } catch (Throwable $e) {
-        // Catch any unexpected errors
-        _log($e->getMessage());
-        sendTelegram($e->getMessage());
-        echo "Unexpected Error: " . $e->getMessage() . "\n";
+        // Catch any unexpected errors (WP2 / OD-14: sanitized log, summary-only notification)
+        $nuxrRef = \Reseller\Security\ErrorReporter::report($e, 'cron');
+        echo "Unexpected Error: " . ($isCli ? \Reseller\Security\ErrorReporter::sanitize($e->getMessage()) : 'ref ' . $nuxrRef) . "\n";
     }
 }
 

@@ -16,7 +16,7 @@
                 <a class="btn btn-warning btn-xs" title="info"
                     href="https://github.com/hotspotbilling/phpnuxbill/wiki/Installing-Plugin-or-Payment-Gateway"
                     target="_blank"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> info</a>
-                <a class="btn btn-success btn-xs" title="refresh cache"
+                <a data-method="post" class="btn btn-success btn-xs" title="refresh cache"
                     href="{Text::url('')}pluginmanager/refresh"><span class="glyphicon glyphicon-refresh"
                         aria-hidden="true"></span> refresh</a>
             </div>
@@ -77,10 +77,10 @@
                                         class="btn btn-info"><i class="glyphicon glyphicon-align-left"></i> Source</a>
                                 </div>
                                 <div class="btn-group btn-group-justified" role="group" aria-label="...">
-                                    <a href="{Text::url('')}pluginmanager/delete/plugin/{$plugin['id']}"
+                                    <a data-method="post" href="{Text::url('')}pluginmanager/delete/plugin/{$plugin['id']}"
                                         onclick="return ask(this, '{Lang::T('Delete')}?')" class="btn btn-danger"><i
                                             class="glyphicon glyphicon-trash"></i> Delete</a>
-                                    <a {if $zipExt } href="{Text::url('')}pluginmanager/install/plugin/{$plugin['id']}"
+                                    <a data-method="post" {if $zipExt } href="{Text::url('')}pluginmanager/install/plugin/{$plugin['id']}"
                                             onclick="return ask(this, 'Installing plugin will take some time to complete, do not close the page while it loading to install the plugin')"
                                         {else} href="#" onclick="alert('PHP ZIP extension is not installed')"
                                         {/if}
@@ -115,7 +115,7 @@
                                     </a>
                                     <a href="{$pg['github']}" target="_blank" style="color: black;" class="btn btn-info"><i
                                             class="glyphicon glyphicon-align-left"></i> Source</a>
-                                    <a {if $zipExt } href="{Text::url('')}pluginmanager/install/payment/{$pg['id']}"
+                                    <a data-method="post" {if $zipExt } href="{Text::url('')}pluginmanager/install/payment/{$pg['id']}"
                                             onclick="return ask(this, 'Installing plugin will take some time to complete, do not close the page while it loading to install the plugin')"
                                         {else} href="#" onclick="alert('PHP ZIP extension is not available')"
                                         {/if}
@@ -150,7 +150,7 @@
                                     </a>
                                     <a href="{$dvc['github']}" target="_blank" style="color: black;" class="btn btn-info"><i
                                             class="glyphicon glyphicon-align-left"></i> Source</a>
-                                    <a {if $zipExt } href="{Text::url('')}pluginmanager/install/device/{$dvc['id']}"
+                                    <a data-method="post" {if $zipExt } href="{Text::url('')}pluginmanager/install/device/{$dvc['id']}"
                                             onclick="return ask(this, 'Installing plugin will take some time to complete, do not close the page while it loading to install the plugin')"
                                         {else} href="#" onclick="alert('PHP ZIP extension is not available')"
                                         {/if}

@@ -69,7 +69,8 @@ switch ($action) {
             if (is_file('system/lan/' . $file) && !in_array($file, ['index.html', 'country.json', '.DS_Store'])) {
                 $file = str_replace(".json", "", $file);
                 if(!empty($file)){
-                    echo '<li><a href="' . getUrl('accounts/language-update-post&lang=' . $file) . '">';
+                    // WP2 / OD-8: language change is a mutation → POST link (CSRF shim)
+                    echo '<li><a data-method="post" href="' . htmlspecialchars(getUrl('accounts/language-update-post&lang=' . $file), ENT_QUOTES) . '">';
                     if($select == $file){
                         echo '<span class="glyphicon glyphicon-ok"></span> ';
                     }

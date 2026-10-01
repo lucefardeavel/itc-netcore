@@ -45,22 +45,10 @@
                             <center>
                             <img src="{$app_url}/ui/ui/images/error.png" class="img-responsive hidden-sm hidden-xs"></center>
                             <br>
-                            {$error_message}
-                            <br>
-                            Mikrotik troubleshooting: <br>
-                            <ul>
-                                <li>{Lang::T('Make sure you use API Port, Default 8728')}</li>
-                                <li>{Lang::T('Make sure Username and Password are correct')}</li>
-                                <li>{Lang::T('Make sure your hosting not blocking port to external')}</li>
-                                <li>{Lang::T('Make sure your Mikrotik accessible from PHPNuxBill')}</li>
-                            </ul>
-                            {Lang::T('If you just update PHPNuxBill from upload files, try click Update')} Database
+                            {* WP2 / OD-14: plain text only (generic message + reference id); details stay in the server log *}
+                            {$error_message|escape}
                         </div>
                         <div class="box-footer">
-                            <div class="btn-group btn-group-justified" role="group" aria-label="...">
-                                <a href="./update.php?step=4" style="color: black;" class="btn btn-info btn-sm btn-block">{Lang::T('Update')} Database</a>
-                                <a href="{Text::url('community#update')}" style="color: black;" class="btn btn-success btn-sm btn-block">{Lang::T('Update PHPNuxBill')}</a>
-                            </div>
                             <br>
                             <div class="btn-group btn-group-justified" role="group" aria-label="...">
                             <a href="https://github.com/hotspotbilling/phpnuxbill/discussions" target="_blank"

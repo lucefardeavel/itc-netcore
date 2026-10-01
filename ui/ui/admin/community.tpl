@@ -151,15 +151,9 @@
             <div class="box-footer" id="currentVersion">ver</div>
             <div class="box-footer" id="latestVersion">ver</div>
             <div class="box-footer">
-                <div class="btn-group btn-group-justified" role="group" aria-label="...">
-                    <a href="./update.php"
-                        class="btn btn-success btn-sm btn-block">{Lang::T('Install Latest Version')}</a>
-                    <a href="https://github.com/hotspotbilling/phpnuxbill/archive/refs/heads/master.zip" target="_blank"
-                        class="btn btn-warning btn-sm btn-block text-black">{Lang::T('Download Latest Version')}</a>
-                </div>
-                <center><a href="{Text::url('community/rollback')}"
-                        class="btn btn-link btn-sm btn-block">{Lang::T('Select Old Version')}</a>
-                </center>
+                {* WP2 / OD-2: the in-app web updater and rollback are disabled; updates are installed through
+                   the reviewed release process and schema changes through the project migration runner. *}
+                {Lang::T('In-app updates are disabled for this installation. Updates are installed through the reviewed release process.')}
             </div>
             <div class="box-footer">
                 <div class="btn-group btn-group-justified" role="group" aria-label="...">
@@ -168,10 +162,6 @@
                     <a href="https://github.com/hotspotbilling/phpnuxbill/blob/master/CHANGELOG.md" target="_blank"
                         class="btn btn-default btn-sm btn-block">{Lang::T('Repo Changelog')}</a>
                 </div>
-            </div>
-            <div class="box-footer">
-                {Lang::T('If you download the update file manually, sometimes the update may change the database structure. After the file is successfully uploaded, click this button to update the database structure.')}
-                <a href="./update.php?step=4" class="btn btn-default btn-sm btn-block">{Lang::T('Update Database')}</a>
             </div>
         </div>
 

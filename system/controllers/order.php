@@ -170,6 +170,8 @@ switch ($action) {
             if (!file_exists($PAYMENTGATEWAY_PATH . DIRECTORY_SEPARATOR . $trx['gateway'] . '.php')) {
                 r2(getUrl('order/view/') . $trxid, 'e', Lang::T("No Payment Gateway Available"));
             }
+            // WP2 / OD-11 (E10): a gateway status check can complete a payment and grant service
+            \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'orderCheck', 'order/view/' . (int) $trxid);
             run_hook('customer_check_payment_status'); #HOOK
             include $PAYMENTGATEWAY_PATH . DIRECTORY_SEPARATOR . $trx['gateway'] . '.php';
             call_user_func($trx['gateway'] . '_validate_config');
@@ -204,6 +206,8 @@ switch ($action) {
         if ($config['enable_balance'] != 'yes') {
             r2(getUrl('order/package'), 'e', Lang::T("Balance not enabled"));
         }
+        // WP2 / OD-11 (E8): no balance purchase for a reseller-owned customer
+        \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'orderPay', 'order/package');
         if (!empty(App::getTokenValue($_GET['stoken']))) {
             r2(getUrl('voucher/invoice/'));
             die();
@@ -303,6 +307,9 @@ switch ($action) {
         $plan['price'] += $tax;
 
         if (isset($_POST['send']) && $_POST['send'] == 'plan') {
+            // WP2 / OD-11 (E9): no plan gift from or to a reseller-owned customer
+            \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'orderSend', 'order/package');
+            \Reseller\Domain\ServiceGate::guardUsername(_post('username'), 'orderSend', 'order/package');
             $target = ORM::for_table('tbl_customers')->where('username', _post('username'))->find_one();
             list($bills, $add_cost) = User::getBills($target['id']);
             if (!empty($add_cost)) {
@@ -392,6 +399,8 @@ switch ($action) {
         $ui->display('customer/sendPlan.tpl');
         break;
     case 'gateway':
+        // WP2 / OD-11 (E10): refused before any payment is started
+        \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'orderGateway', 'order/package');
         $ui->assign('_title', Lang::T('Select Payment Gateway'));
         $ui->assign('_system_menu', 'package');
         if (strpos($user['email'], '@') === false) {
@@ -537,6 +546,8 @@ switch ($action) {
             r2(getUrl('home'), 'e', Lang::T("Failed to create Transaction.."));
         }
     case 'buy':
+        // WP2 / OD-11 (E10): refused before any payment is started
+        \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'orderBuy', 'order/package');
         $gateway = _post('gateway');
         $discount = _post('discount') ?: 0;
         if ($gateway == 'balance') {

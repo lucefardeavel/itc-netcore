@@ -23,7 +23,7 @@ switch ($do) {
     case 'post':
         $username = _post('username');
         $password = _post('password');
-        //csrf token
+        //csrf token (web: also enforced centrally by CsrfPolicy; the API uses bearer tokens)
         $csrf_token = _post('csrf_token');
         if (!Csrf::check($csrf_token)) {
             _alert(Lang::T('Invalid or Expired CSRF Token') . ".", 'danger', "admin");
@@ -31,31 +31,29 @@ switch ($do) {
         run_hook('admin_login'); #HOOK
         if ($username != '' and $password != '') {
             $d = ORM::for_table('tbl_users')->where('username', $username)->find_one();
-            if ($d) {
-                $d_pass = $d['password'];
-                if (Password::_verify($password, $d_pass) == true) {
-                    $_SESSION['aid'] = $d['id'];
-                    $token = Admin::setCookie($d['id']);
-                    $d->last_login = date('Y-m-d H:i:s');
-                    $d->save();
-                    _log($username . ' ' . Lang::T('Login Successful'), $d['user_type'], $d['id']);
-                    if ($isApi) {
-                        if ($token) {
-                            showResult(true, Lang::T('Login Successful'), ['token' => "a." . $token]);
-                        } else {
-                            showResult(false, Lang::T('Invalid Username or Password'));
-                        }
+            // WP2 / SEC-10: an Inactive account is refused with the same message as a wrong password
+            if ($d && $d['status'] === 'Active' && Password::_verify($password, $d['password']) == true) {
+                $d->last_login = date('Y-m-d H:i:s');
+                $d->save();
+                _log($username . ' ' . Lang::T('Login Successful'), $d['user_type'], $d['id']);
+                if ($isApi) {
+                    // WP2 / OD-3: actor-bound a2 token (no cookie, no session); fails closed without a dedicated secret
+                    $token = \Reseller\Security\ApiToken::issue((int) $d['id'], (string) $d['password']);
+                    if ($token) {
+                        showResult(true, Lang::T('Login Successful'), ['token' => $token]);
                     }
-                    _alert(Lang::T('Login Successful'), 'success', "dashboard");
-                } else {
-                    _log($username . ' ' . Lang::T('Failed Login'), $d['user_type']);
-                    _alert(Lang::T('Invalid Username or Password') . ".", 'danger', "admin");
+                    showResult(false, Lang::T('Invalid Username or Password'));
                 }
+                Admin::setCookie($d['id']);
+                _alert(Lang::T('Login Successful'), 'success', "dashboard");
             } else {
-                _alert(Lang::T('Invalid Username or Password') . "..", 'danger', "admin");
+                if ($d) {
+                    _log($username . ' ' . Lang::T('Failed Login'), $d['user_type']);
+                }
+                _alert(Lang::T('Invalid Username or Password') . ".", 'danger', "admin");
             }
         } else {
-            _alert(Lang::T('Invalid Username or Password') . "...", 'danger', "admin");
+            _alert(Lang::T('Invalid Username or Password') . ".", 'danger', "admin");
         }
 
         break;

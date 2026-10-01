@@ -12,31 +12,49 @@ $ui->assign('_system_menu', 'pages');
 $action = $routes['1'];
 $ui->assign('_admin', $admin);
 
-if (strpos($action, "-reset") !== false) {
-    if (!in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
-        _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
-    }
+// WP2 / OD-14 NEW-4: page and voucher-template names are allowlisted and canonicalized; every file
+// path must resolve inside $PAGES_PATH (or $PAGES_PATH/vouchers). Files are only created for the
+// built-in page allowlist. RouteGuard: SuperAdmin/Admin (system.admin); -post / -reset are POST.
+if (!is_dir($PAGES_PATH)) {
+    @mkdir($PAGES_PATH, 0755, true);
+}
+$nuxrMode = 'view';
+if (strpos((string) $action, "-reset") !== false) {
+    $nuxrMode = 'reset';
     $action = str_replace("-reset", "", $action);
-    $path = "$PAGES_PATH/" . str_replace(".", "", $action) . ".html";
-    $temp = "pages_template/" . str_replace(".", "", $action) . ".html";
-    if (file_exists($temp)) {
+} else if (strpos((string) $action, "-post") !== false) {
+    $nuxrMode = 'post';
+    $action = str_replace("-post", "", $action);
+}
+$nuxrPage = \Reseller\Security\PathGuard::pageName($action, $PAGES_PATH, $nuxrMode !== 'reset');
+if ($nuxrPage === null) {
+    http_response_code(404);
+    $ui->display('admin/404.tpl');
+    die();
+}
+$action = $nuxrPage;
+$path = $PAGES_PATH . DIRECTORY_SEPARATOR . $action . ".html";
+if (!\Reseller\Security\PathGuard::inside($path, $PAGES_PATH)) {
+    http_response_code(404);
+    $ui->display('admin/404.tpl');
+    die();
+}
+
+if ($nuxrMode === 'reset') {
+    $temp = "pages_template/" . $action . ".html";
+    if (file_exists($temp) && \Reseller\Security\PathGuard::inside($temp, 'pages_template', true)) {
         if (!copy($temp, $path)) {
-            file_put_contents($path, Http::getData('https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/pages_template/' . $action . '.html'));
+            file_put_contents($path, Http::getData('https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/pages_template/' . rawurlencode($action) . '.html'));
         }
     } else {
-        file_put_contents($path, Http::getData('https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/pages_template/' . $action . '.html'));
+        file_put_contents($path, Http::getData('https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/pages_template/' . rawurlencode($action) . '.html'));
     }
     r2(getUrl('pages/') . $action);
-} else if (strpos($action, "-post") === false) {
-    if (!in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
-        _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
-    }
-    $path = "$PAGES_PATH/" . str_replace(".", "", $action) . ".html";
+} else if ($nuxrMode === 'view') {
     $ui->assign("action", $action);
-    //echo $path;
     run_hook('view_edit_pages'); #HOOK
-    if (!file_exists($path)) {
-        $temp = "pages_template/" . str_replace(".", "", $action) . ".html";
+    if (!file_exists($path) && in_array($action, \Reseller\Security\PathGuard::PAGES, true)) {
+        $temp = "pages_template/" . $action . ".html";
         if (file_exists($temp)) {
             if (!copy($temp, $path)) {
                 touch($path);
@@ -64,19 +82,20 @@ if (strpos($action, "-reset") !== false) {
     } else
         $ui->display('admin/404.tpl');
 } else {
-    if (!in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
-        _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
-    }
-    $action = str_replace("-post", "", $action);
-    $path = "$PAGES_PATH/" . str_replace(".", "", $action) . ".html";
     if (file_exists($path)) {
         $html = _post("html");
+        $templateName = null;
+        if (_post('template_save') == 'yes' && _post('template_name') !== '') {
+            $templateName = \Reseller\Security\PathGuard::voucherTemplateName(_post('template_name'));
+            $templatePath = $templateName === null ? null : $PAGES_PATH . DIRECTORY_SEPARATOR . 'vouchers' . DIRECTORY_SEPARATOR . $templateName . '.html';
+            if ($templatePath === null || !\Reseller\Security\PathGuard::inside($templatePath, $PAGES_PATH . DIRECTORY_SEPARATOR . 'vouchers')) {
+                r2(getUrl('pages/') . $action, 'e', Lang::T('Invalid template name'));
+            }
+        }
         run_hook('save_pages'); #HOOK
         if (file_put_contents($path, $html)) {
-            if (_post('template_save') == 'yes') {
-                if (!empty(_post('template_name'))) {
-                    file_put_contents("$PAGES_PATH/vouchers/" . _post('template_name') . '.html', $html);
-                }
+            if ($templateName !== null) {
+                file_put_contents($templatePath, $html);
             }
             r2(getUrl('pages/') . $action, 's', Lang::T("Saving page success"));
         } else {

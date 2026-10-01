@@ -1,3 +1,11 @@
+<?php
+// WP2 (SEC-19 minimal): the installer is disabled once the application is configured.
+if (file_exists(__DIR__ . '/../config.php')) {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    exit('Forbidden: the application is already installed.');
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

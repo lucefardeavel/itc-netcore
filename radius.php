@@ -335,19 +335,9 @@ try {
     }
     die();
 } catch (Throwable $e) {
-    Message::sendTelegram(
-        "Sistem Error.\n" .
-            $e->getMessage() . "\n" .
-            $e->getTraceAsString()
-    );
-    show_radius_result(['Reply-Message' => 'Command Failed : ' . $action], 401);
-} catch (Exception $e) {
-    Message::sendTelegram(
-        "Sistem Error.\n" .
-            $e->getMessage() . "\n" .
-            $e->getTraceAsString()
-    );
-    show_radius_result(['Reply-Message' => 'Command Failed : ' . $action], 401);
+    // WP2 / OD-14: sanitized server log + summary-only notification; generic RADIUS reply
+    \Reseller\Security\ErrorReporter::report($e, 'radius');
+    show_radius_result(['Reply-Message' => 'Command Failed'], 401);
 }
 show_radius_result(['Reply-Message' => 'Invalid Command : ' . $action], 401);
 

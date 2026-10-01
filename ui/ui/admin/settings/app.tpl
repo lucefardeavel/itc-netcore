@@ -442,22 +442,7 @@
                     </p>
                 </div>
 
-                <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Enable CSRF Validation')}</label>
-                    <div class="col-md-5">
-                        <select name="csrf_enabled" id="csrf_enabled" class="form-control">
-                            <option value="no">
-                                {Lang::T('No')}</option>
-                            <option value="yes" {if $_c['csrf_enabled']=='yes' }selected="selected" {/if}>
-                                {Lang::T('Yes')}
-                            </option>
-                        </select>
-                    </div>
-                    <p class="help-block col-md-4">
-                        <a href="https://en.wikipedia.org/wiki/Cross-site_request_forgery"
-                            target="_blank">{Lang::T('Cross-site request forgery')}</a>
-                    </p>
-                </div>
+                {* WP2 / OD-8: CSRF validation is always enforced; the legacy switch was removed *}
                 <button class="btn btn-success btn-block" type="submit">
                     {Lang::T('Save Changes')}
                 </button>
@@ -1018,15 +1003,9 @@
         </div>
         <div id="collapseAPIKey" class="panel-collapse collapse" role="tabpanel">
             <div class="panel-body">
-                <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Access Token')}</label>
-                    <div class="col-md-5">
-                        <input type="password" class="form-control" id="api_key" name="api_key" value="{$_c['api_key']}"
-                            placeholder="{Lang::T('Empty this to randomly created API key')}"
-                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'">
-                    </div>
-                    <p class="col-md-4 help-block">{Lang::T('This Token will act as SuperAdmin/Admin')}</p>
-                </div>
+                {* WP2 / OD-3: the global API key is disabled. Staff obtain personal, revocable a2 tokens by
+                   logging in through the API; the server needs a dedicated $api_secret in config.php. *}
+                <p class="help-block">{Lang::T('The global API key is disabled. Staff use personal API tokens obtained by logging in through the API; a dedicated api_secret must be configured in config.php.')}</p>
                 <button class="btn btn-success btn-block" type="submit">
                     {Lang::T('Save Changes')}
                 </button>
@@ -1210,14 +1189,14 @@
     function testWa() {
         var target = prompt("Phone number\nSave First before Test", "");
         if (target != null) {
-            window.location.href = '{Text::url('settings/app&testWa=')}' + target;
+            nuxrPost('{Text::url('settings/app&testWa=')}' + encodeURIComponent(target));
         }
     }
 
     function testSms() {
         var target = prompt("Phone number\nSave First before Test", "");
         if (target != null) {
-            window.location.href = '{Text::url('settings/app&testSms=')}' + target;
+            nuxrPost('{Text::url('settings/app&testSms=')}' + encodeURIComponent(target));
         }
     }
 
@@ -1225,12 +1204,12 @@
     function testEmail() {
         var target = prompt("Email\nSave First before Test", "");
         if (target != null) {
-            window.location.href = '{Text::url('settings/app&testEmail=')}' + target;
+            nuxrPost('{Text::url('settings/app&testEmail=')}' + encodeURIComponent(target));
         }
     }
 
     function testTg() {
-        window.location.href = '{Text::url('settings/app&testTg=test')}';
+        nuxrPost('{Text::url('settings/app&testTg=test')}');
     }
 </script>
 

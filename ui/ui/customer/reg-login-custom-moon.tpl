@@ -443,6 +443,7 @@
             document.getElementById('passwordFields').prepend(backButton);
         }
     </script>
+{include file="nuxr-csrf.tpl"}
 </body>
 
 </html>

@@ -20,7 +20,7 @@
                     <a href="https://api.whatsapp.com/send/?text={$whatsapp}" target="_blank"
                         class="btn btn-primary btn-sm">
                         <i class="glyphicon glyphicon-share"></i> WhatsApp</a>
-                    <a href="{Text::url('')}plan/view/{$in['id']}/send" class="btn btn-info text-black btn-sm"><i
+                    <a data-method="post" href="{Text::url('')}plan/view/{$in['id']}/send" class="btn btn-info text-black btn-sm"><i
                             class="glyphicon glyphicon-envelope"></i> {Lang::T("Resend")}</a>
                     <hr>
                     <a href="{Text::url('')}plan/print/{$in['id']}" target="_print"

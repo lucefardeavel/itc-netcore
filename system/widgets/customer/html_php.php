@@ -10,10 +10,9 @@ class html_php
         ob_start();
         try{
         eval('?>'. $data['content']);
-        }catch(Exception $e){
-            echo $e->getMessage();
-            echo "<br>";
-            echo $e->getTraceAsString();
+        }catch(Throwable $e){
+            // WP2 / OD-14: no exception text or trace in the page; sanitized server log + reference
+            echo htmlspecialchars(\Reseller\Security\ErrorReporter::publicMessage(\Reseller\Security\ErrorReporter::report($e, 'widget-html-php')));
         }
         $content = ob_get_clean();
         $ui->assign('card_body', $content);

@@ -10,6 +10,7 @@ $ui->assign('_system_menu', 'map');
 
 $action = $routes['1'];
 $ui->assign('_admin', $admin);
+$nuxrActor = \Reseller\Security\ActorContext::current();
 
 if (empty($action)) {
     $action = 'customer';
@@ -23,10 +24,13 @@ switch ($action) {
         if(!empty(_req('search'))){
             $search = _req('search');
             $like = '%' . $search . '%';
-            $query = ORM::for_table('tbl_customers')->whereRaw("coordinates != '' AND fullname LIKE ? OR username LIKE ? OR email LIKE ? OR phonenumber LIKE ?", [$like, $like, $like, $like])->order_by_desc('fullname');
+            // WP2: OR group parenthesized; DataScope applied before pagination
+            $query = ORM::for_table('tbl_customers')->whereRaw("coordinates != '' AND (fullname LIKE ? OR username LIKE ? OR email LIKE ? OR phonenumber LIKE ?)", [$like, $like, $like, $like])->order_by_desc('fullname');
+            \Reseller\Security\DataScope::scopeCustomers($query, $nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ);
             $c = Paginator::findMany($query, ['search' => $search], 50);
         }else{
             $query = ORM::for_table('tbl_customers')->where_not_equal('coordinates','');
+            \Reseller\Security\DataScope::scopeCustomers($query, $nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ);
             $c = Paginator::findMany($query, ['search'=>''], 50);
         }
         $customerData = [];
@@ -78,6 +82,6 @@ switch ($action) {
             $ui->display('admin/maps/odps.tpl');
             break;
     default:
-        r2(getUrl('map/customer'), 'e', 'action not defined');
+        r2(getUrl('maps/customer'), 'e', 'action not defined');
         break;
 }

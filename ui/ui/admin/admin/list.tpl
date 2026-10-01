@@ -62,7 +62,7 @@
                                         <a href="{Text::url('settings/users-edit/',$ds['id'])}"
                                             class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
                                         {if ($_admin['id']) neq ($ds['id'])}
-                                            <a href="{Text::url('settings/users-delete/',$ds['id'])}" id="{$ds['id']}"
+                                            <a data-method="post" href="{Text::url('settings/users-delete/',$ds['id'])}" id="{$ds['id']}"
                                                 class="btn btn-danger btn-xs" onclick="return ask(this, '{Lang::T('Delete')}?')"><i class="glyphicon glyphicon-trash"></i></a>
                                         {/if}
                                     </td>

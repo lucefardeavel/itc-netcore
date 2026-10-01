@@ -112,7 +112,7 @@
                 </ul>
                 <div class="row">
                     <div class="col-xs-4">
-                        <a href="{Text::url('customers/delete/', $d['id'], '&token=', $csrf_token)}" id="{$d['id']}"
+                        <a data-method="post" href="{Text::url('customers/delete/', $d['id'], '&token=', $csrf_token)}" id="{$d['id']}"
                             class="btn btn-danger btn-block btn-sm"
                             onclick="return ask(this, '{Lang::T('Delete')}?')"><span class="fa fa-trash"></span></a>
                     </div>
@@ -125,6 +125,50 @@
         </div>
     </div>
     <div class="col-sm-8 col-md-8">
+        {* WP2: commercial ownership (manager_id / assigned_sales_id); actions re-authorized and audited server-side *}
+        <div class="box box-default">
+            <div class="box-body">
+                <b>{Lang::T('Owner')}</b>: {if $nuxr_owner}{$nuxr_owner['username']|escape} ({$nuxr_owner['fullname']|escape}){else}{Lang::T('Unassigned (legacy)')}{/if}
+                &nbsp;|&nbsp; <b>{Lang::T('Sales')}</b>: {if $nuxr_sales}{$nuxr_sales['username']|escape} ({$nuxr_sales['fullname']|escape}){else}-{/if}
+                {if $_can['customer.assign_sales'] && $d['manager_id']}
+                    <form method="post" action="{Text::url('reseller/customer-assign-sales')}" class="form-inline" style="margin-top:6px">
+                        <input type="hidden" name="csrf_token" value="{$csrf_token}">
+                        <input type="hidden" name="customer_id" value="{$d['id']}">
+                        <select name="sales_id" class="form-control input-sm">
+                            {foreach $nuxr_sales_options as $o}<option value="{$o['id']}">{$o['username']|escape}</option>{/foreach}
+                        </select>
+                        <button class="btn btn-default btn-xs" type="submit">{Lang::T('Assign Sales')}</button>
+                    </form>
+                    {if $d['assigned_sales_id']}
+                        <form method="post" action="{Text::url('reseller/customer-clear-sales')}" class="form-inline" style="margin-top:6px">
+                            <input type="hidden" name="csrf_token" value="{$csrf_token}">
+                            <input type="hidden" name="customer_id" value="{$d['id']}">
+                            <button class="btn btn-warning btn-xs" type="submit">{Lang::T('Clear Sales')}</button>
+                        </form>
+                    {/if}
+                {/if}
+                {if $_can['customer.transfer_owner'] && $d['manager_id']}
+                    <form method="post" action="{Text::url('reseller/customer-transfer')}" class="form-inline" style="margin-top:6px">
+                        <input type="hidden" name="csrf_token" value="{$csrf_token}">
+                        <input type="hidden" name="customer_id" value="{$d['id']}">
+                        <select name="manager_id" class="form-control input-sm">
+                            {foreach $nuxr_owner_options as $o}<option value="{$o['id']}">{$o['username']|escape}</option>{/foreach}
+                        </select>
+                        <button class="btn btn-default btn-xs" type="submit" onclick="return ask(this, '{Lang::T('Transfer this customer to another owner? A Sales that does not belong to the new owner is cleared.')}')">{Lang::T('Transfer owner')}</button>
+                    </form>
+                {/if}
+                {if $_can['customer.assign_legacy_owner'] && !$d['manager_id']}
+                    <form method="post" action="{Text::url('reseller/customer-assign-owner')}" class="form-inline" style="margin-top:6px">
+                        <input type="hidden" name="csrf_token" value="{$csrf_token}">
+                        <input type="hidden" name="customer_ids[]" value="{$d['id']}">
+                        <select name="manager_id" class="form-control input-sm">
+                            {foreach $nuxr_owner_options as $o}<option value="{$o['id']}">{$o['username']|escape}</option>{/foreach}
+                        </select>
+                        <button class="btn btn-default btn-xs" type="submit" onclick="return ask(this, '{Lang::T('Assign an owner to this legacy customer? Legacy service operations become unavailable for reseller-managed customers until WP5B.')}')">{Lang::T('Assign owner')}</button>
+                    </form>
+                {/if}
+            </div>
+        </div>
         <div class="box box-info">
             <ul class="nav nav-tabs">
                 <li role="presentation" {if $v=='order' }class="active" {/if}><a
@@ -242,7 +286,7 @@
                         </ul>
                         <div class="row">
                             <div class="col-xs-4">
-                                <a href="{Text::url('customers/deactivate/', $d['id'],'/',$package['plan_id'], '&token=', $csrf_token)}"
+                                <a data-method="post" href="{Text::url('customers/deactivate/', $d['id'],'/',$package['plan_id'], '&token=', $csrf_token)}"
                                     id="{$d['id']}" class="btn btn-danger btn-block btn-sm"
                                     onclick="return ask(this, '{Lang::T('This will deactivate Customer Plan, and make it expired')}')">{Lang::T('Deactivate')}</a>
                             </div>
@@ -264,7 +308,7 @@
         <a href="{Text::url('customers/list')}" class="btn btn-primary btn-sm btn-block">{Lang::T('Back')}</a>
     </div>
     <div class="col-xs-6 col-md-3">
-        <a href="{Text::url('customers/sync/', $d['id'], '&token=', $csrf_token)}"
+        <a data-method="post" href="{Text::url('customers/sync/', $d['id'], '&token=', $csrf_token)}"
             onclick="return ask(this, '{Lang::T('This will sync Customer to Mikrotik')}?')"
             class="btn btn-info btn-sm btn-block">{Lang::T('Sync')}</a>
     </div>
@@ -275,7 +319,7 @@
         </a>
     </div>
     <div class="col-xs-6 col-md-3">
-        <a href="{Text::url('customers/login/', $d['id'], '&token=', $csrf_token)}" target="_blank"
+        <a data-method="post" href="{Text::url('customers/login/', $d['id'], '&token=', $csrf_token)}" target="_blank"
             class="btn btn-warning btn-sm btn-block">
             {Lang::T('Login as Customer')}
         </a>

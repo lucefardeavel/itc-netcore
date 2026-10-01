@@ -115,10 +115,14 @@ switch ($action) {
 
     case 'list':
         $q = (_post('q') ? _post('q') : _get('q'));
+        // WP2 / SEC-12: bounded integer, bound parameter
         $keep = _post('keep');
-        if (!empty($keep)) {
-            ORM::raw_execute("DELETE FROM tbl_logs WHERE UNIX_TIMESTAMP(date) < UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL $keep DAY))");
-            r2(getUrl('logs/list/'), 's', "Delete logs older than $keep days");
+        if ($keep !== '') {
+            if (!preg_match('/^[1-9][0-9]{0,4}$/', (string) $keep) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+                r2(getUrl('logs/list/'), 'e', Lang::T('Invalid input'));
+            }
+            ORM::raw_execute("DELETE FROM tbl_logs WHERE UNIX_TIMESTAMP(date) < UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL ? DAY))", [(int) $keep]);
+            r2(getUrl('logs/list/'), 's', "Delete logs older than " . (int) $keep . " days");
         }
         if ($q != '') {
             $query = ORM::for_table('tbl_logs')->where_like('description', '%' . $q . '%')->order_by_desc('id');
@@ -135,9 +139,12 @@ switch ($action) {
     case 'radius':
         $q = (_post('q') ? _post('q') : _get('q'));
         $keep = _post('keep');
-        if (!empty($keep)) {
-            ORM::raw_execute("DELETE FROM radpostauth WHERE UNIX_TIMESTAMP(authdate) < UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL $keep DAY))", [], 'radius');
-            r2(getUrl('logs/radius/'), 's', "Delete logs older than $keep days");
+        if ($keep !== '') {
+            if (!preg_match('/^[1-9][0-9]{0,4}$/', (string) $keep) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+                r2(getUrl('logs/radius/'), 'e', Lang::T('Invalid input'));
+            }
+            ORM::raw_execute("DELETE FROM radpostauth WHERE UNIX_TIMESTAMP(authdate) < UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL ? DAY))", [(int) $keep], 'radius');
+            r2(getUrl('logs/radius/'), 's', "Delete logs older than " . (int) $keep . " days");
         }
         if ($q != '') {
             $query = ORM::for_table('radpostauth', 'radius')->where_like('username', '%' . $q . '%')->order_by_desc('id');
@@ -155,14 +162,16 @@ switch ($action) {
     case 'message':
         $q = _post('q') ?: _get('q');
         $keep = (int) _post('keep');
-        if (!empty($keep)) {
-            ORM::raw_execute("DELETE FROM tbl_message_logs WHERE UNIX_TIMESTAMP(sent_at) < UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL $keep DAY))");
+        if ($keep > 0 && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            ORM::raw_execute("DELETE FROM tbl_message_logs WHERE UNIX_TIMESTAMP(sent_at) < UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL ? DAY))", [$keep]);
             r2(getUrl('logs/message/'), 's', "Deleted logs older than $keep days");
         }
 
         if ($q !== null && $q !== '') {
+            // WP2 / SEC-12: bound parameters, parenthesized OR group (was string-interpolated SQL)
+            $like = '%' . $q . '%';
             $query = ORM::for_table('tbl_message_logs')
-            ->whereRaw("message_type LIKE '%$q%' OR recipient LIKE '%$q%' OR message_content LIKE '%$q%' OR status LIKE '%$q%' OR error_message LIKE '%$q%'")
+            ->whereRaw("(message_type LIKE ? OR recipient LIKE ? OR message_content LIKE ? OR status LIKE ? OR error_message LIKE ?)", [$like, $like, $like, $like, $like])
                 ->order_by_desc('sent_at');
             $d = Paginator::findMany($query, ['q' => $q]);
         } else {

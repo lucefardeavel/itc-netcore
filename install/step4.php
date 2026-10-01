@@ -5,6 +5,12 @@
  *  by https://t.me/ibnux
  **/
 
+// WP2 (SEC-19 minimal): the installer is disabled once the application is configured.
+if (file_exists(__DIR__ . '/../config.php')) {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    exit('Forbidden: the application is already installed.');
+}
 //error_reporting (0);
 $appurl = $_POST['appurl'];
 $db_host = $_POST['dbhost'];
@@ -42,6 +48,9 @@ $db_user        = "' . $db_user . '";
 $db_pass    	= "' . $db_pass . '";
 $db_name	    = "' . $db_name . '";
 
+// Dedicated API signing secret (WP2 / OD-3): never derived from the database password
+$api_secret     = "' . bin2hex(random_bytes(32)) . '";
+
 // Database Radius
 $radius_host	    = "' . $db_host . '";
 $radius_user        = "' . $db_user . '";
@@ -72,6 +81,9 @@ $db_host	    = "' . $db_host . '";
 $db_user        = "' . $db_user . '";
 $db_pass	    = "' . $db_pass . '";
 $db_name	    = "' . $db_name . '";
+
+// Dedicated API signing secret (WP2 / OD-3): never derived from the database password
+$api_secret     = "' . bin2hex(random_bytes(32)) . '";
 
 if($_app_stage!="Live"){
     error_reporting(E_ERROR);

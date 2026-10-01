@@ -15,6 +15,9 @@ $ui->assign('_system_menu', 'network');
 
 $action = $routes['1'];
 $ui->assign('_admin', $admin);
+// WP2: customer lookups are scoped; other customers' usernames are never revealed to tree scopes
+$nuxrActor = \Reseller\Security\ActorContext::current();
+$nuxrGlobal = \Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ) === 'G';
 
 switch ($action) {
     case 'pool':
@@ -54,8 +57,11 @@ switch ($action) {
                 ->where("pppoe_ip", _get('ip'))
                 ->findArray();
             if (count($cs) > 0) {
+                if (!$nuxrGlobal) {
+                    die(Lang::T("IP has been used by another customer"));
+                }
                 $c = array_column($cs, 'username');
-                die(Lang::T("IP has been used by") . ' : ' . implode(", ", $c));
+                die(Lang::T("IP has been used by") . ' : ' . htmlspecialchars(implode(", ", $c)));
             }
         }
         die();
@@ -67,8 +73,11 @@ switch ($action) {
                 ->where("pppoe_username", _get('u'))
                 ->findArray();
             if (count($cs) > 0) {
+                if (!$nuxrGlobal) {
+                    die(Lang::T("Username has been used by another customer"));
+                }
                 $c = array_column($cs, 'username');
-                die(Lang::T("Username has been used by") . ' : ' . implode(", ", $c));
+                die(Lang::T("Username has been used by") . ' : ' . htmlspecialchars(implode(", ", $c)));
             }
         }
         die();
@@ -104,7 +113,10 @@ switch ($action) {
         break;
     case 'customer_is_active':
         if ($config['check_customer_online'] == 'yes') {
-            $c = ORM::for_table('tbl_customers')->where('username', $routes['2'])->find_one();
+            $c = \Reseller\Security\DataScope::findCustomerByUsername($nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ, $routes['2'] ?? null);
+            if (!$c) {
+                die();
+            }
             $p = ORM::for_table('tbl_plans')->find_one($routes['3']);
             $dvc = Package::getDevice($p);
             if ($_app_stage != 'Demo') {
@@ -119,13 +131,17 @@ switch ($action) {
                             echo '<span style="color: yellow;" title="offline">&bull;</span>';
                         }
                     } catch (Exception $e) {
-                        echo '<span style="color: red;" title="'.$e->getMessage().'">&bull;</span>';
+                        // WP2 / OD-14: device error text stays in the server log
+                        echo '<span style="color: red;" title="error ' . htmlspecialchars(\Reseller\Security\ErrorReporter::report($e, 'device-online')) . '">&bull;</span>';
                     }
                 }
             }
         }
         break;
     case 'plan_is_active':
+        if (!\Reseller\Security\DataScope::customerInScope($nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ, $routes['2'] ?? null)) {
+            die('');
+        }
         $ds = ORM::for_table('tbl_user_recharges')->where('customer_id', $routes['2'])->find_array();
         if ($ds) {
             $ps = [];
@@ -148,7 +164,7 @@ switch ($action) {
                                         $status = '<span style="color: yellow;" title="offline">&bull;</span>';
                                     }
                                 } catch (Exception $e) {
-                                    $status = '<span style="color: red;" title="'.$e->getMessage().'">&bull;</span>';
+                                    $status = '<span style="color: red;" title="error ' . htmlspecialchars(\Reseller\Security\ErrorReporter::report($e, 'device-online')) . '">&bull;</span>';
                                 }
                             }
                         }
@@ -165,13 +181,14 @@ switch ($action) {
         break;
     case 'customer_select2':
 
-        $s = addslashes(_get('s'));
-        if (empty($s)) {
-            $c = ORM::for_table('tbl_customers')->limit(30)->find_many();
-        } else {
-            $like = '%' . $s . '%';
-            $c = ORM::for_table('tbl_customers')->where_raw("(`username` LIKE ? OR `fullname` LIKE ? OR `phonenumber` LIKE ? OR `email` LIKE ?)", [$like, $like, $like, $like])->limit(30)->find_many();
+        $s = _get('s');
+        $q = \Reseller\Security\DataScope::scopeCustomers(ORM::for_table('tbl_customers'), $nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ);
+        if (!empty($s)) {
+            $like = '%' . addcslashes($s, '\\%_') . '%';
+            $q->where_raw("(`username` LIKE ? OR `fullname` LIKE ? OR `phonenumber` LIKE ? OR `email` LIKE ?)", [$like, $like, $like, $like]);
         }
+        $c = $q->limit(30)->find_many();
+        $json = [];
         header('Content-Type: application/json');
         foreach ($c as $cust) {
             $json[] = [

@@ -139,7 +139,7 @@
     <div class="container">
         <div class="invoice">
             {if $content}
-                <pre style="border-style: none; background-color: white;">{$content}</pre>
+                <pre style="border-style: none; background-color: white;">{$content|escape}</pre>
             {else}
                 <div class="header">
                     <h1>{Lang::pad($_c['CompanyName'], ' ', 2)}</h1>
@@ -206,6 +206,7 @@
     <script src="{$app_url}/ui/ui/scripts/jquery.min.js"></script>
     <script src="{$app_url}/ui/ui/scripts/bootstrap.min.js"></script>
     {if isset($xfooter)} {$xfooter} {/if}
+{include file="nuxr-csrf.tpl"}
 </body>
 
 </html>

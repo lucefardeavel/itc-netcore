@@ -11,6 +11,8 @@ $ui->assign('_system_menu', 'message');
 
 $action = $routes['1'];
 $ui->assign('_admin', $admin);
+// WP2: messages may only target customers inside the actor's DataScope
+$nuxrActor = \Reseller\Security\ActorContext::current();
 
 if (empty($action)) {
     $action = 'send';
@@ -43,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 </script>
 EOT;
         if (isset($routes['2']) && !empty($routes['2'])) {
-            $ui->assign('cust', ORM::for_table('tbl_customers')->find_one($routes['2']));
+            $ui->assign('cust', \Reseller\Security\DataScope::findCustomer($nuxrActor, \Reseller\Security\Capability::MESSAGE_SEND, $routes['2']));
         }
         $id = $routes['2'];
         $ui->assign('id', $id);
@@ -66,8 +68,11 @@ EOT;
         if ($id_customer == '' or $message == '' or $via == '') {
             r2(getUrl('message/send'), 'e', Lang::T('All field is required'));
         } else {
-            // Get customer details from the database
-            $c = ORM::for_table('tbl_customers')->find_one($id_customer);
+            // Get customer details from the database (scoped: out of scope == not found)
+            $c = \Reseller\Security\DataScope::findCustomer($nuxrActor, \Reseller\Security\Capability::MESSAGE_SEND, $id_customer);
+            if (!$c) {
+                r2(getUrl('message/send'), 'e', Lang::T('Customer not found'));
+            }
 
             // Replace placeholders in the message with actual values
             $message = str_replace('[[name]]', $c['fullname'], $message);
@@ -366,7 +371,12 @@ EOT;
             $customerIds = $_POST['customer_ids'] ?? [];
             $via = $_POST['message_type'] ?? '';
             $message = isset($_POST['message']) ? trim($_POST['message']) : '';
-            if (empty($customerIds) || empty($message) || empty($via)) {
+            if (empty($customerIds) || empty($message) || empty($via) || !is_array($customerIds)) {
+                echo json_encode(['status' => 'error', 'message' => Lang::T('Invalid customer IDs, Message, or Message Type.')]);
+                exit;
+            }
+            // WP2 / SEC-06: all-or-nothing — every selected customer must be inside the actor's scope
+            if (!\Reseller\Security\DataScope::allCustomersInScope($nuxrActor, \Reseller\Security\Capability::MESSAGE_SEND_SELECTED, $customerIds)) {
                 echo json_encode(['status' => 'error', 'message' => Lang::T('Invalid customer IDs, Message, or Message Type.')]);
                 exit;
             }
@@ -400,8 +410,8 @@ EOT;
                     } catch (Throwable $e) {
                         $messageSent = false;
                         $failedCount++;
-                        sendTelegram('Failed to send message to ' . $e->getMessage());
-                        _log('Failed to send message to ' . $customer['fullname'] . ': ' . $e->getMessage());
+                        // WP2 / OD-14: sanitized server-side record + summary-only notification
+                        \Reseller\Security\ErrorReporter::report($e, 'message-send');
                         continue;
                     }
 

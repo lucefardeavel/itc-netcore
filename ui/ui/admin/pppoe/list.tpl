@@ -5,7 +5,7 @@
         <div class="panel panel-hovered mb20 panel-primary">
             <div class="panel-heading">
                 <div class="btn-group pull-right">
-                    <a class="btn btn-primary btn-xs" title="save" href="{Text::url('')}services/sync/pppoe"
+                    <a data-method="post" class="btn btn-primary btn-xs" title="save" href="{Text::url('')}services/sync/pppoe"
                         onclick="return ask(this, '{Lang::T('This will sync/send PPPOE plan to Mikrotik')}?')"><span
                             class="glyphicon glyphicon-refresh" aria-hidden="true"></span> sync</a>
                 </div>{Lang::T('PPPOE Package')}
@@ -164,7 +164,7 @@
                                 <td>
                                     <a href="{Text::url('')}services/pppoe-edit/{$ds['id']}"
                                         class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
-                                    <a href="{Text::url('')}services/pppoe-delete/{$ds['id']}"
+                                    <a data-method="post" href="{Text::url('')}services/pppoe-delete/{$ds['id']}"
                                         onclick="return ask(this, '{Lang::T('Delete')}?')" id="{$ds['id']}"
                                         class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
                                 </td>

@@ -190,6 +190,7 @@
     </script>
 {/literal}
 
+{include file="nuxr-csrf.tpl"}
 </body>
 
 </html>

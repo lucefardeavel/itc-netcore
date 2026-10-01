@@ -76,6 +76,28 @@
                             </select>
                         </div>
                     </div>
+                    {* WP2: ownership is resolved server-side; these choices are re-validated on save *}
+                    {if $nuxr_create_scope eq 'G'}
+                        <div class="form-group">
+                            <label class="col-md-3 control-label">{Lang::T('Owner (Agent)')}</label>
+                            <div class="col-md-9">
+                                <select class="form-control" name="manager_id">
+                                    <option value="">{Lang::T('None (unassigned)')}</option>
+                                    {foreach $nuxr_owner_options as $o}<option value="{$o['id']}">{$o['username']|escape} | {$o['fullname']|escape}</option>{/foreach}
+                                </select>
+                            </div>
+                        </div>
+                    {elseif $nuxr_create_scope eq 'T' && $nuxr_sales_options}
+                        <div class="form-group">
+                            <label class="col-md-3 control-label">{Lang::T('Sales')}</label>
+                            <div class="col-md-9">
+                                <select class="form-control" name="assigned_sales_id">
+                                    <option value="">{Lang::T('None')}</option>
+                                    {foreach $nuxr_sales_options as $o}<option value="{$o['id']}">{$o['username']|escape} | {$o['fullname']|escape}</option>{/foreach}
+                                </select>
+                            </div>
+                        </div>
+                    {/if}
                     <div class="form-group">
                         <label class="col-md-3 control-label">{Lang::T('Account Type')}</label>
                         <div class="col-md-9">

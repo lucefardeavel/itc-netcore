@@ -106,8 +106,9 @@ switch ($action) {
             $coupon->save();
             r2(getUrl('coupons'), 's', Lang::T('Coupon has been added successfully'));
         } catch (Exception $e) {
-            _log(Lang::T('Error adding coupon: ' . $e->getMessage()));
-            r2(getUrl('coupons/add'), 'e', Lang::T('Error adding coupon: ' . $e->getMessage()));
+            // WP2 / OD-14: no driver message in the response
+            $nuxrRef = \Reseller\Security\ErrorReporter::report($e, 'coupon-add');
+            r2(getUrl('coupons/add'), 'e', Lang::T('Error adding coupon') . ' (ref ' . $nuxrRef . ')');
         }
         break;
 
@@ -208,8 +209,8 @@ switch ($action) {
             $coupon->save();
             r2(getUrl('coupons'), 's', Lang::T('Coupon has been updated successfully'));
         } catch (Exception $e) {
-            _log(Lang::T('Error updating coupon: ') . $e->getMessage());
-            r2(getUrl('coupons/edit/') . $coupon_id, 'e', Lang::T('Error updating coupon: ') . $e->getMessage());
+            $nuxrRef = \Reseller\Security\ErrorReporter::report($e, 'coupon-edit');
+            r2(getUrl('coupons/edit/') . $coupon_id, 'e', Lang::T('Error updating coupon') . ' (ref ' . $nuxrRef . ')');
         }
         break;
 
@@ -302,7 +303,7 @@ switch ($action) {
         if ($search != '') {
             $searchLike = "%$search%";
             $couponsData->whereRaw(
-                "code LIKE ? OR type LIKE ? OR value LIKE ? OR max_usage LIKE ? OR usage_count LIKE ? OR status LIKE ? OR min_order_amount LIKE ? OR max_discount_amount LIKE ?",
+                "(code LIKE ? OR type LIKE ? OR value LIKE ? OR max_usage LIKE ? OR usage_count LIKE ? OR status LIKE ? OR min_order_amount LIKE ? OR max_discount_amount LIKE ?)",
                 [$searchLike, $searchLike, $searchLike, $searchLike, $searchLike, $searchLike, $searchLike, $searchLike]
             );
         }

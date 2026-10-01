@@ -11,6 +11,8 @@ $ui->assign('_system_menu', 'customers');
 
 $action = $routes['1'];
 $ui->assign('_admin', $admin);
+// WP2: authoritative principal; every customer lookup below is capability + DataScope in one query
+$nuxrActor = \Reseller\Security\ActorContext::current();
 
 if (empty($action)) {
     $action = 'list';
@@ -156,6 +158,14 @@ switch ($action) {
             _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
         }
         $ui->assign('xheader', $leafletpickerHeader);
+        // WP2: ownership choices are offered by role; the server re-validates everything on add-post
+        $nuxrCreateScope = \Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::CUSTOMER_CREATE);
+        $ui->assign('nuxr_create_scope', $nuxrCreateScope);
+        if ($nuxrCreateScope === 'G') {
+            $ui->assign('nuxr_owner_options', \Reseller\Domain\CustomerService::ownerOptions());
+        } elseif ($nuxrCreateScope === 'T') {
+            $ui->assign('nuxr_sales_options', \Reseller\Domain\CustomerService::salesOptions((int) $nuxrActor->userId));
+        }
         run_hook('view_add_customer'); #HOOK
         $ui->assign('csrf_token',  Csrf::generateAndStoreToken());
         $ui->display('admin/customers/add.tpl');
@@ -170,6 +180,8 @@ switch ($action) {
         if (!Csrf::check($csrf_token)) {
             r2(getUrl('customers/view/') . $id_customer, 'e', Lang::T('Invalid or Expired CSRF Token') . ".");
         }
+        // WP2 / OD-11 (E1): the re-recharge confirmation leads to plan/recharge-post; refuse early
+        \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'customerRecharge', 'customers/view/' . (int) $id_customer);
         $b = ORM::for_table('tbl_user_recharges')->where('customer_id', $id_customer)->where('plan_id', $plan_id)->find_one();
         if ($b) {
             $gateway = 'Recharge';
@@ -277,6 +289,8 @@ switch ($action) {
         if (!Csrf::check($csrf_token)) {
             r2(getUrl('customers/view/') . $id_customer, 'e', Lang::T('Invalid or Expired CSRF Token') . ".");
         }
+        // WP2 / OD-11 (E19b): no re-provisioning of reseller-owned customers
+        \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'customerSync', 'customers/view/' . (int) $id_customer);
         $bs = ORM::for_table('tbl_user_recharges')->where('customer_id', $id_customer)->where('status', 'on')->findMany();
         if ($bs) {
             $routers = [];
@@ -322,12 +336,13 @@ switch ($action) {
         _alert(Lang::T('Customer not found'), 'danger', "customers");
         break;
     case 'viewu':
-        $customer = ORM::for_table('tbl_customers')->where('username', $routes['2'])->find_one();
+        // WP2 / SEC-06: out-of-scope and nonexistent customers are indistinguishable
+        $customer = \Reseller\Security\DataScope::findCustomerByUsername($nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ, $routes['2'] ?? null);
     case 'view':
         $id = $routes['2'];
         run_hook('view_customer'); #HOOK
         if (!$customer) {
-            $customer = ORM::for_table('tbl_customers')->find_one($id);
+            $customer = \Reseller\Security\DataScope::findCustomer($nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ, $id);
         }
         if ($customer) {
             // Fetch the Customers Attributes values from the tbl_customer_custom_fields table
@@ -341,29 +356,32 @@ switch ($action) {
             switch ($v) {
                 case 'order':
                     $v = 'order';
+                    // WP2: by customer id only (usernames are mutable and reusable)
                     $query = ORM::for_table('tbl_payment_gateway')->where('user_id', $customer['id'])->order_by_desc('id');
                     $order = Paginator::findMany($query);
-
-                    if (empty($order) || $order < 5) {
-                        $query = ORM::for_table('tbl_payment_gateway')->where('username', $customer['username'])->order_by_desc('id');
-                        $order = Paginator::findMany($query);
-                    }
 
                     $ui->assign('order', $order);
                     break;
                 case 'activation':
+                    // WP2: by customer id only (usernames are mutable and reusable)
                     $query = ORM::for_table('tbl_transactions')->where('user_id', $customer['id'])->order_by_desc('id');
                     $activation = Paginator::findMany($query);
-
-                    if (empty($activation) || $activation < 5) {
-                        $query = ORM::for_table('tbl_transactions')->where('username', $customer['username'])->order_by_desc('id');
-                        $activation = Paginator::findMany($query);
-                    }
 
                     $ui->assign('activation', $activation);
                     break;
             }
             $ui->assign('packages', User::_billing($customer['id']));
+            // WP2: ownership panel (cosmetic flags only; every action is re-authorized server-side)
+            $nuxrOwner = $customer['manager_id'] ? ORM::for_table('tbl_users')->select_many('id', 'username', 'fullname')->find_one($customer['manager_id']) : null;
+            $nuxrSales = $customer['assigned_sales_id'] ? ORM::for_table('tbl_users')->select_many('id', 'username', 'fullname')->find_one($customer['assigned_sales_id']) : null;
+            $ui->assign('nuxr_owner', $nuxrOwner ? $nuxrOwner->as_array() : null);
+            $ui->assign('nuxr_sales', $nuxrSales ? $nuxrSales->as_array() : null);
+            if (\Reseller\Security\PermissionService::can($nuxrActor, \Reseller\Security\Capability::CUSTOMER_ASSIGN_SALES) && $customer['manager_id']) {
+                $ui->assign('nuxr_sales_options', \Reseller\Domain\CustomerService::salesOptions((int) $customer['manager_id']));
+            }
+            if (\Reseller\Security\PermissionService::can($nuxrActor, \Reseller\Security\Capability::CUSTOMER_TRANSFER_OWNER)) {
+                $ui->assign('nuxr_owner_options', \Reseller\Domain\CustomerService::ownerOptions());
+            }
             $ui->assign('v', $v);
             $ui->assign('d', $customer);
             $ui->assign('customFields', $customFields);
@@ -423,13 +441,17 @@ switch ($action) {
         if (!Csrf::check($csrf_token)) {
             r2(getUrl('customers/view/') . $id, 'e', Lang::T('Invalid or Expired CSRF Token') . ".");
         }
+        // WP2: reference pre-check BEFORE any side effect (no device removal, no partial delete)
+        try {
+            \Reseller\Domain\CustomerService::assertDeletable($nuxrActor, (int) $id);
+        } catch (\Reseller\Domain\DomainError $e) {
+            r2(getUrl('customers/view/') . (int) $id, 'e', Lang::T($e->getMessage()));
+        }
         run_hook('delete_customer'); #HOOK
         $c = ORM::for_table('tbl_customers')->find_one($id);
         if ($c) {
-            // Delete the associated Customers Attributes records from tbl_customer_custom_fields table
-            ORM::for_table('tbl_customers_fields')->where('customer_id', $id)->delete_many();
-            //Delete active package
-            $turs = ORM::for_table('tbl_user_recharges')->where('username', $c['username'])->find_many();
+            //Delete active package (device side)
+            $turs = ORM::for_table('tbl_user_recharges')->where('customer_id', $c['id'])->find_many();
             foreach ($turs as $tur) {
                 $p = ORM::for_table('tbl_plans')->find_one($tur['plan_id']);
                 if ($p) {
@@ -444,14 +466,13 @@ switch ($action) {
                         }
                     }
                 }
-                try {
-                    $tur->delete();
-                } catch (Exception $e) {
-                }
             }
+            // custom fields, recharges and the customer row in one audited transaction; a failure is
+            // reported, never swallowed (the legacy flow reported success on a failed delete)
             try {
-                $c->delete();
-            } catch (Exception $e) {
+                \Reseller\Domain\CustomerService::deleteRecords($nuxrActor, (int) $c['id']);
+            } catch (\Reseller\Domain\DomainError $e) {
+                r2(getUrl('customers/view/') . (int) $id, 'e', Lang::T($e->getMessage()));
             }
             r2(getUrl('customers/list'), 's', Lang::T('User deleted Successfully'));
         }
@@ -501,44 +522,30 @@ switch ($action) {
             $msg .= Lang::T('Account already axist') . '<br>';
         }
         if ($msg == '') {
-            $d = ORM::for_table('tbl_customers')->create();
-            $d->username = $username;
-            $d->password = $password;
-            $d->pppoe_username = $pppoe_username;
-            $d->pppoe_password = $pppoe_password;
-            $d->pppoe_ip = $pppoe_ip;
-            $d->email = $email;
-            $d->account_type = $account_type;
-            $d->fullname = $fullname;
-            $d->address = $address;
-            $d->created_by = $admin['id'];
-            $d->phonenumber = Lang::phoneFormat($phonenumber);
-            $d->service_type = $service_type;
-            $d->coordinates = $coordinates;
-            $d->city = $city;
-            $d->district = $district;
-            $d->state = $state;
-            $d->zip = $zip;
-            $d->save();
-
-            // Retrieve the customer ID of the newly created customer
-            $customerId = $d->id();
-            // Save Customers Attributes details
+            // WP2 / SEC-06: ownership resolved server-side by role (CustomerService); posted
+            // manager_id / assigned_sales_id are only honoured within the actor's authority
+            $nuxrFields = [];
             if (!empty($custom_field_names) && !empty($custom_field_values)) {
                 $totalFields = min(count($custom_field_names), count($custom_field_values));
                 for ($i = 0; $i < $totalFields; $i++) {
-                    $name = $custom_field_names[$i];
-                    $value = $custom_field_values[$i];
-
-                    if (!empty($name)) {
-                        $customField = ORM::for_table('tbl_customers_fields')->create();
-                        $customField->customer_id = $customerId;
-                        $customField->field_name = $name;
-                        $customField->field_value = $value;
-                        $customField->save();
+                    if (!empty($custom_field_names[$i]) && is_string($custom_field_names[$i])) {
+                        $nuxrFields[$custom_field_names[$i]] = is_scalar($custom_field_values[$i]) ? (string) $custom_field_values[$i] : '';
                     }
                 }
             }
+            try {
+                $customerId = \Reseller\Domain\CustomerService::create($nuxrActor, [
+                    'username' => $username, 'password' => $password, 'fullname' => $fullname,
+                    'pppoe_username' => $pppoe_username, 'pppoe_password' => $pppoe_password, 'pppoe_ip' => $pppoe_ip,
+                    'email' => $email, 'account_type' => $account_type, 'address' => $address,
+                    'phonenumber' => Lang::phoneFormat($phonenumber), 'service_type' => $service_type, 'coordinates' => $coordinates,
+                    'city' => $city, 'district' => $district, 'state' => $state, 'zip' => $zip,
+                    'manager_id' => _post('manager_id'), 'assigned_sales_id' => _post('assigned_sales_id'),
+                ], $nuxrFields);
+            } catch (\Reseller\Domain\DomainError $e) {
+                r2(getUrl('customers/add'), 'e', Lang::T($e->getMessage()));
+            }
+            $d = ORM::for_table('tbl_customers')->find_one($customerId);
 
             // Send welcome message
             if (isset($_POST['send_welcome_message']) && $_POST['send_welcome_message'] == true) {
@@ -575,7 +582,7 @@ switch ($action) {
                             call_user_func_array($message['method'], $message['args']);
                         } catch (Exception $e) {
                             // Log the error and handle the failure
-                            _log("Failed to send welcome message via $channel: " . $e->getMessage());
+                            \Reseller\Security\ErrorReporter::report($e, 'welcome-message-' . $channel);
                         }
                     }
                 }
@@ -665,6 +672,13 @@ switch ($action) {
         }
         if ($password != '' && $oldPassPassword != $password) {
             $passDiff = true;
+        }
+        // WP2 / OD-11 (E21): for a reseller-owned customer, changes that re-provision the device
+        // (username, PPPoE username/IP, password) or re-activate the account are refused.
+        if ($c && ($userDiff || $pppoeDiff || $pppoeIpDiff || $passDiff || ($status === 'Active' && $c['status'] !== 'Active'))
+            && \Reseller\Domain\ServiceGate::isBlockedCustomerId($c['id'])) {
+            \Reseller\Domain\ServiceGate::refused('customerEditPost', $c['id']);
+            r2(getUrl('customers/edit/') . (int) $id, 'e', \Reseller\Domain\ServiceGate::message());
         }
 
         if ($msg == '') {
@@ -832,6 +846,11 @@ switch ($action) {
         $order = _req('order', 'username');
         $filter = _req('filter', 'Active');
         $orderby = _req('orderby', 'asc');
+        // WP2 / SEC-12: sort column and direction are allowlisted (no raw ORDER BY from the request)
+        if (!in_array($order, ['username', 'created_at', 'balance', 'status', 'lastname', 'fullname'], true)) {
+            $order = 'username';
+        }
+        $orderby = $orderby === 'desc' ? 'desc' : 'asc';
         $order_pos = [
             'username' => 0,
             'created_at' => 8,
@@ -843,14 +862,16 @@ switch ($action) {
 
         if ($search != '') {
             $like = '%' . $search . '%';
+            // WP2: the OR group is parenthesized so that the scope predicate cannot be bypassed
             $query = ORM::for_table('tbl_customers')
-                ->whereRaw("username LIKE ? OR fullname LIKE ? OR address LIKE ? " .
-                    "OR phonenumber LIKE ? OR email LIKE ? AND status = ?",
+                ->whereRaw("(username LIKE ? OR fullname LIKE ? OR address LIKE ? " .
+                    "OR phonenumber LIKE ? OR email LIKE ?) AND status = ?",
                     [$like, $like, $like, $like, $like, $filter]);
         } else {
             $query = ORM::for_table('tbl_customers');
             $query->where("status", $filter);
         }
+        \Reseller\Security\DataScope::scopeCustomers($query, $nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ);
         if ($order == 'lastname') {
             $query->order_by_expr("SUBSTR(fullname, INSTR(fullname, ' ')) $orderby");
         } else {
@@ -861,6 +882,7 @@ switch ($action) {
             }
         }
         if (_post('export', '') == 'csv') {
+            \Reseller\Security\PermissionService::require($nuxrActor, \Reseller\Security\Capability::CUSTOMER_EXPORT);
             $csrf_token = _post('csrf_token');
             if (!Csrf::check($csrf_token)) {
                 r2(getUrl('customers'), 'e', Lang::T('Invalid or Expired CSRF Token') . ".");

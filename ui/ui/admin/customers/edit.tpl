@@ -330,7 +330,7 @@
     function deletePhoto(id) {
         if (confirm('Delete photo?')) {
             if (confirm('Are you sure to delete photo?')) {
-                window.location.href = '{Text::url('')}customers/edit/'+id+'/deletePhoto'
+                nuxrPost('{Text::url('')}customers/edit/'+id+'/deletePhoto')
             }
         }
     }

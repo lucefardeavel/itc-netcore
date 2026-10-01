@@ -97,7 +97,7 @@
                 </div>
             </div>
             {if $do == 'edit'}
-                <a href="{Text::url('widgets/delete/', $widget['id'], '&user=', $tipeUser)}" class="btn btn-danger btn-xs"
+                <a data-method="post" href="{Text::url('widgets/delete/', $widget['id'], '&user=', $tipeUser)}" class="btn btn-danger btn-xs"
                     onclick="return ask(this, '{Lang::T("Remove this widget?")}')">{Lang::T("Delete")}</a>
             {/if}
         </div>

@@ -60,6 +60,7 @@
             </form>
         </div>
     </div>
+{include file="nuxr-csrf.tpl"}
 </body>
 
 </html>

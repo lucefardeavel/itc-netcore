@@ -11,8 +11,11 @@ use Reseller\Tests\Support\RunnerProcess;
 use Reseller\Tests\Support\TestDatabase;
 
 /**
- * Application regression: the unchanged legacy application behaves identically on an unmigrated
- * and on a WP1-migrated database (functional flows only; no security probing).
+ * Application regression: the legacy application flows behave identically on an unmigrated and on a
+ * migrated database — except for the deliberate WP2 behaviour change: with the reseller schema not
+ * ready (unmigrated database), every service-granting operation fails closed for every role
+ * (owner schema-readiness rule / OD-11), so the recharge flow is refused there and succeeds after
+ * R0001–R0006 are applied.
  */
 final class AppRegressionTest extends IntegrationTestCase
 {
@@ -100,6 +103,11 @@ PHP;
         file_put_contents($dir . '/config.php', "<?php\n\$protocol = 'http://';\n\$host = \$_SERVER['HTTP_HOST'] ?? '127.0.0.1';\ndefine('APP_URL', \$protocol . \$host);\n\$_app_stage = 'Live';\n\$db_host = " . var_export($db->host, true) . ";\n\$db_user = 'root';\n\$db_pass = {$pw};\n\$db_name = " . var_export($db->name, true) . ";\nerror_reporting(E_ERROR);\nini_set('display_errors', 0);\n");
         file_put_contents($dir . '/wp1_harness.php', self::HARNESS);
         @mkdir($dir . '/ui/compiled', 0777, true);
+        // an installed application has its editable pages (pages/ is gitignored and created at install)
+        @mkdir($dir . '/pages', 0777, true);
+        foreach (glob($root . '/pages_template/*.html') as $tpl) {
+            copy($tpl, $dir . '/pages/' . basename($tpl));
+        }
         return $dir;
     }
 
@@ -166,6 +174,9 @@ PHP;
         $before = $this->flows($plain);
         $after = $this->flows($migrated);
 
+        // WP2 schema-readiness rule: no service grant while the reseller schema is not ready
+        $this->assertSame('', $before['recharge']['invoice_prefix']);
+        $this->assertSame(0, $before['recharge']['transactions']);
         // legacy outcomes
         $this->assertSame('INV-', $after['recharge']['invoice_prefix']);
         $this->assertSame('on', $after['recharge']['recharge_status']);
@@ -184,8 +195,10 @@ PHP;
         $this->assertNull($after['customer-add']['assigned_sales_id']);
         $this->assertSame('COLUMN_ABSENT', $before['customer-add']['manager_id']);
 
-        // identical behaviour apart from the (owner-accepted, C25) presence of the two NULL fields
+        // identical behaviour apart from the (owner-accepted, C25) presence of the two NULL fields and
+        // the WP2 fail-closed recharge on the unmigrated database
         unset($before['customer-add']['manager_id'], $before['customer-add']['assigned_sales_id'], $after['customer-add']['manager_id'], $after['customer-add']['assigned_sales_id']);
+        unset($before['recharge'], $after['recharge']);
         $this->assertSame($before, $after);
     }
 }

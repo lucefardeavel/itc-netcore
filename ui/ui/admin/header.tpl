@@ -137,7 +137,7 @@
                             <ul class="treeview-menu">
                                 <li {if $_routes[1] eq 'list' }class="active" {/if}><a
                                         href="{Text::url('plan/list')}">{Lang::T('Active Customers')}</a></li>
-                                {if $_c['disable_voucher'] != 'yes'}
+                                {if $_c['disable_voucher'] != 'yes' && $_can['service.refill_voucher']}
                                     <li {if $_routes[1] eq 'refill' }class="active" {/if}><a
                                             href="{Text::url('plan/refill')}">{Lang::T('Refill Customer')}</a></li>
                                 {/if}
@@ -145,13 +145,15 @@
                                     <li {if $_routes[1] eq 'voucher' }class="active" {/if}><a
                                             href="{Text::url('plan/voucher')}">{Lang::T('Vouchers')}</a></li>
                                 {/if}
-                                {if $_c['enable_coupons'] == 'yes'}
+                                {if $_c['enable_coupons'] == 'yes' && $_can['system.coupons']}
                                     <li {if $_routes[0] eq 'coupons' }class="active" {/if}><a
                                             href="{Text::url('coupons')}">{Lang::T('Coupons')}</a></li>
                                 {/if}
+                                {if $_can['service.recharge']}
                                 <li {if $_routes[1] eq 'recharge' }class="active" {/if}><a
                                         href="{Text::url('plan/recharge')}">{Lang::T('Recharge Customer')}</a></li>
-                                {if $_c['enable_balance'] == 'yes'}
+                                {/if}
+                                {if $_c['enable_balance'] == 'yes' && $_can['service.deposit']}
                                     <li {if $_routes[1] eq 'deposit' }class="active" {/if}><a
                                             href="{Text::url('plan/deposit')}">{Lang::T('Refill Balance')}</a></li>
                                 {/if}
@@ -196,15 +198,17 @@
                         <ul class="treeview-menu">
                             <li {if $_routes[1] eq 'customer' }class="active" {/if}><a
                                     href="{Text::url('maps/customer')}">{Lang::T('Customer')}</a></li>
+                            {if $_can['system.admin']}
                             <li {if $_routes[1] eq 'routers' }class="active" {/if}><a
                                     href="{Text::url('maps/routers')}">{Lang::T('Routers')}</a></li>
                             <li {if $_routes[1] eq 'odp' }class="active" {/if}><a
                                     href="{Text::url('maps/odp')}">{Lang::T('ODPs')}</a></li>
+                            {/if}
                             {$_MENU_MAPS}
                         </ul>
                     </li>
                     <li class="{if $_system_menu eq 'reports'}active{/if} treeview">
-                        {if in_array($_admin['user_type'],['SuperAdmin','Admin', 'Report'])}
+                        {if $_can['report.read']}
                             <a href="#">
                                 <i class="ion ion-clipboard"></i> <span>{Lang::T('Reports')}</span>
                                 <span class="pull-right-container">
@@ -231,8 +235,10 @@
                         <ul class="treeview-menu">
                             <li {if $_routes[1] eq 'send' }class="active" {/if}><a
                                     href="{Text::url('message/send')}">{Lang::T('Single Customer')}</a></li>
+                            {if $_can['message.bulk']}
                             <li {if $_routes[1] eq 'send_bulk' }class="active" {/if}><a
                                     href="{Text::url('message/send_bulk')}">{Lang::T('Bulk Customers')}</a></li>
+                            {/if}
                             {$_MENU_MESSAGE}
                         </ul>
                     </li>
@@ -335,6 +341,10 @@
                                 <li {if $_routes[1] eq 'users' }class="active" {/if}><a
                                         href="{Text::url('settings/users')}">{Lang::T('Administrator Users')}</a></li>
                             {/if}
+                            {if $_can['reseller.tree_read']}
+                                <li {if $_routes[0] eq 'reseller' }class="active" {/if}><a
+                                        href="{Text::url('reseller/tree')}">{Lang::T('Reseller Tree')}</a></li>
+                            {/if}
                             {if in_array($_admin['user_type'],['SuperAdmin','Admin'])}
                                 <li {if $_routes[1] eq 'dbstatus' }class="active" {/if}><a
                                         href="{Text::url('settings/dbstatus')}">{Lang::T('Backup/Restore')}</a></li>
@@ -414,6 +424,9 @@
             </section>
 
             <section class="content">
+                {if $nuxr_schema_not_ready}
+                    <div class="alert alert-danger">{Lang::T('Reseller schema is not ready: reseller and service operations are disabled for every role until the project migrations (R0001-R0006) are applied and verified.')}</div>
+                {/if}
                 {if isset($notify)}
                     <script>
                         // Display SweetAlert toast notification

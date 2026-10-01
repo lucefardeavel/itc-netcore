@@ -21,6 +21,9 @@ if (_post('send') == 'balance') {
         if ($user['status'] != 'Active') {
             _alert(Lang::T('This account status') . ' : ' . Lang::T($user['status']), 'danger', "");
         }
+        // WP2 / OD-11 (E18): no legacy balance transfer from or to a reseller-owned customer
+        \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'homeBalanceTransfer', 'home');
+        \Reseller\Domain\ServiceGate::guardUsername(_post('username'), 'homeBalanceTransfer', 'home');
         $target = ORM::for_table('tbl_customers')->where('username', _post('username'))->find_one();
         if (!$target) {
             r2(getUrl('home'), 'd', Lang::T('Username not found'));
@@ -99,6 +102,9 @@ if (_post('send') == 'balance') {
 
 // Sync plan to router
 if (isset($_GET['sync']) && !empty($_GET['sync'])) {
+    // WP2 / OD-11 (E19c): no self re-provisioning for a reseller-owned customer
+    \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'homeSync', 'home');
+    $log = '';
     foreach ($_bill as $tur) {
         if ($tur['status'] == 'on') {
             $p = ORM::for_table('tbl_plans')->findOne($tur['plan_id']);
@@ -155,6 +161,8 @@ if (isset($_GET['recharge']) && !empty($_GET['recharge'])) {
     if (!$config['extend_expired']) {
         r2(getUrl('home'), 'e', "cannot extend");
     }
+    // WP2 / OD-11 (E17): no self-extend for a reseller-owned customer
+    \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'homeExtend', 'home');
     if (!empty(App::getTokenValue(_get('stoken')))) {
         r2(getUrl('home'), 'e', "You already extend");
     }
@@ -321,7 +329,8 @@ for ($i = 0; $i < $count; $i++) {
             $widgets[$i]['content'] = "Widget not found";
         }
     } catch (Throwable $e) {
-        $widgets[$i]['content'] = $e->getMessage();
+        // WP2 / OD-14: generic text + reference; details in the sanitized server log
+        $widgets[$i]['content'] = htmlspecialchars(\Reseller\Security\ErrorReporter::publicMessage(\Reseller\Security\ErrorReporter::report($e, 'widget')));
     }
 }
 

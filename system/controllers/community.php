@@ -12,15 +12,7 @@ $action = $routes['1'];
 $ui->assign('_admin', $admin);
 
 switch ($action) {
-    case 'rollback':
-        $ui->assign('_title', 'Rollback Update');
-        $masters = json_decode(Http::getData("https://api.github.com/repos/hotspotbilling/phpnuxbill/commits?per_page=100",['User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:125.0) Gecko/20100101 Firefox/125.0']), true);
-        $devs = json_decode(Http::getData("https://api.github.com/repos/hotspotbilling/phpnuxbill/commits?sha=Development&per_page=100",['User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:125.0) Gecko/20100101 Firefox/125.0']), true);
-
-        $ui->assign('masters', $masters);
-        $ui->assign('devs', $devs);
-        $ui->display('admin/rollback.tpl');
-        break;
+    // WP2 / OD-2: the legacy rollback (download + overwrite of application code) is removed.
     default:
         $ui->display('admin/community.tpl');
 }

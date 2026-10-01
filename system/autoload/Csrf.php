@@ -5,11 +5,13 @@
  *  by https://t.me/ibnux
  **/
 
-
+/**
+ * Legacy CSRF facade. WP2 / OD-8: delegates to Reseller\Security\CsrfPolicy — one stable token per
+ * session, always enforced for browser requests (the csrf_enabled setting is ignored). The API uses
+ * bearer tokens instead (cookies and session are discarded there).
+ */
 class Csrf
 {
-    private static $tokenExpiration = 1800; // 30 minutes
-
     public static function generateToken($length = 16)
     {
         return bin2hex(random_bytes($length));
@@ -17,39 +19,26 @@ class Csrf
 
     public static function validateToken($token, $storedToken)
     {
-        return hash_equals($token, $storedToken);
+        return is_string($token) && is_string($storedToken) && $storedToken !== '' && hash_equals($storedToken, $token);
     }
 
     public static function check($token)
     {
-        global $config, $isApi;
-        if($config['csrf_enabled'] == 'yes' && !$isApi) {
-            if (isset($_SESSION['csrf_token'], $_SESSION['csrf_token_time'], $token)) {
-                $storedToken = $_SESSION['csrf_token'];
-                $tokenTime = $_SESSION['csrf_token_time'];
-
-                if (time() - $tokenTime > self::$tokenExpiration) {
-                    self::clearToken();
-                    return false;
-                }
-
-                return self::validateToken($token, $storedToken);
-            }
-            return false;
+        global $isApi;
+        if ($isApi) {
+            return true;
         }
-        return true;
+        return \Reseller\Security\CsrfPolicy::check(is_string($token) ? $token : null);
     }
 
+    /** Returns the session's stable token (no per-render regeneration: multiple tabs keep working). */
     public static function generateAndStoreToken()
     {
-        $token = self::generateToken();
-        $_SESSION['csrf_token'] = $token;
-        $_SESSION['csrf_token_time'] = time();
-        return $token;
+        return \Reseller\Security\CsrfPolicy::token();
     }
 
     public static function clearToken()
     {
-        unset($_SESSION['csrf_token'], $_SESSION['csrf_token_time']);
+        \Reseller\Security\CsrfPolicy::rotate();
     }
 }

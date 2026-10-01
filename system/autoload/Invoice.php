@@ -56,8 +56,8 @@ class Invoice
             return $filename;
 
         } catch (\Exception $e) {
-            _log("Invoice generation failed: " . $e->getMessage());
-            sendTelegram("Invoice generation failed: " . $e->getMessage());
+            // WP2 / OD-14: sanitized log + summary-only notification
+            \Reseller\Security\ErrorReporter::report($e, 'invoice-generate');
             return false;
         }
     }
@@ -200,8 +200,7 @@ class Invoice
                 );
                 return true;
             } catch (\Exception $e) {
-                _log("Failed to send invoice email: " . $e->getMessage());
-                sendTelegram("Failed to send invoice email: " . $e->getMessage());
+                \Reseller\Security\ErrorReporter::report($e, 'invoice-email');
                 return false;
             }
         }

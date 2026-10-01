@@ -11,16 +11,16 @@ $ui->assign('_system_menu', 'voucher');
 $action = $routes['1'];
 if(!_auth(false)){
     if($action== 'invoice'){
-        $id = $routes[2];
-        $sign = $routes[3];
-        if($sign != md5($id. $db_pass)) {
-            die("beda");
+        // WP2 / NEW-5: the public invoice link requires a positive integer id and a matching signature
+        // (constant-time); an empty id never selects "the latest transaction of any customer"
+        $id = $routes[2] ?? '';
+        $sign = $routes[3] ?? '';
+        if (!is_string($id) || !preg_match('/^[1-9][0-9]{0,18}$/', $id) || !is_string($sign) || !hash_equals(md5($id . $db_pass), $sign)) {
+            http_response_code(404);
+            $ui->display('customer/404.tpl');
+            die();
         }
-        if (empty($id)) {
-            $in = ORM::for_table('tbl_transactions')->order_by_desc('id')->find_one();
-        } else {
-            $in = ORM::for_table('tbl_transactions')->where('id', $id)->find_one();
-        }
+        $in = ORM::for_table('tbl_transactions')->where('id', (int) $id)->find_one();
         if ($in) {
             Package::createInvoice($in);
             $UPLOAD_URL_PATH = str_replace($root_path, '', $UPLOAD_PATH);
@@ -38,7 +38,9 @@ if(!_auth(false)){
             $ui->display('customer/invoice-customer.tpl');
             die();
         } else {
-            r2(getUrl('voucher/list-activated'), 'e', Lang::T('Not Found'));
+            http_response_code(404);
+            $ui->display('customer/404.tpl');
+            die();
         }
     }else{
         r2(getUrl('login'));
@@ -58,6 +60,8 @@ switch ($action) {
 
     case 'activation-post':
         $code = alphanumeric(_post('code'), "-_.,");
+        // WP2 / OD-11 (E7): no voucher activation for a reseller-owned customer (pending WP5B)
+        \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'voucherActivation', 'voucher/activation');
         $v1 = ORM::for_table('tbl_voucher')->whereRaw("BINARY code = '$code'")->where('status', 0)->find_one();
         run_hook('customer_activate_voucher'); #HOOK
         if ($v1) {
@@ -93,12 +97,17 @@ switch ($action) {
         break;
     case 'invoice':
         $id = $routes[2];
+        // WP2: the customer's own transactions by customer id; "latest" when no id is given
         if (empty($id)) {
-            $in = ORM::for_table('tbl_transactions')->where('username', $user['username'])->order_by_desc('id')->find_one();
+            $in = ORM::for_table('tbl_transactions')->where('user_id', $user['id'])->order_by_desc('id')->find_one();
+        } else if (preg_match('/^[1-9][0-9]{0,18}$/', (string) $id)) {
+            $in = ORM::for_table('tbl_transactions')->where('user_id', $user['id'])->where('id', (int) $id)->find_one();
         } else {
-            $in = ORM::for_table('tbl_transactions')->where('username', $user['username'])->where('id', $id)->find_one();
+            $in = false;
         }
         if ($in) {
+            // NEW-5: the public link is always signed over the real transaction id, never an empty id
+            $id = (int) $in['id'];
             Package::createInvoice($in);
             $UPLOAD_URL_PATH = str_replace($root_path, '', $UPLOAD_PATH);
             $logo = '';

@@ -38,6 +38,11 @@ switch ($do) {
                     _alert(Lang::T('This account status') . ' : ' . Lang::T($d['status']), 'danger', "");
                 }
                 if (Password::_uverify($password, $d_pass) == true) {
+                    // WP2: fresh session id and CSRF token on login (session fixation)
+                    if (!$isApi && session_status() === PHP_SESSION_ACTIVE) {
+                        session_regenerate_id(true);
+                        \Reseller\Security\CsrfPolicy::rotate();
+                    }
                     $_SESSION['uid'] = $d['id'];
                     $token = User::setCookie($d['id']);
                     $d->last_login = date('Y-m-d H:i:s');
@@ -75,6 +80,9 @@ switch ($do) {
                 r2(getUrl('login'));
             }
             $voucher = Text::alphanumeric(_post('voucher_only'), "-_.,");
+            // WP2 / OD-11 (E14): a voucher-only session must not collide with a reseller-owned customer
+            // (also refuses everything while the reseller schema is not ready)
+            \Reseller\Domain\ServiceGate::guardUsername($voucher, 'loginVoucherOnly', 'login');
             $tur = ORM::for_table('tbl_user_recharges')
                 ->where('username', $voucher)
                 ->where('customer_id', '0') // Voucher Only will make customer ID as 0
@@ -175,6 +183,8 @@ switch ($do) {
         } else {
             $voucher = Text::alphanumeric(_post('voucher'), "-_.,");
             $username = _post('username');
+            // WP2 / OD-11 (E13): refused before any customer row is created or a password is changed
+            \Reseller\Domain\ServiceGate::guardUsername($username, 'loginVoucherActivation', 'login');
             $v1 = ORM::for_table('tbl_voucher')->whereRaw("BINARY code = '$voucher'")->find_one();
             if ($v1) {
                 // voucher exists, check customer exists or not
@@ -198,6 +208,8 @@ switch ($do) {
                     }
                 }
                 if ($v1['status'] == 0) {
+                    // WP2 / OD-11 (E13): refused BEFORE the customer password is overwritten
+                    \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'loginVoucherActivation', 'login');
                     $oldPass = $user['password'];
                     // change customer password to voucher code
                     $user->password = $voucher;

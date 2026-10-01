@@ -55,7 +55,7 @@
                                     <td align="center">
                                         <a href="{Text::url('')}radius/nas-edit/{$ds['id']}"
                                             class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
-                                        <a href="{Text::url('')}radius/nas-delete/{$ds['id']}" id="{$ds['id']}"
+                                        <a data-method="post" href="{Text::url('')}radius/nas-delete/{$ds['id']}" id="{$ds['id']}"
                                             onclick="return ask(this, '{Lang::T('Delete')}?')"
                                             class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
                                     </td>

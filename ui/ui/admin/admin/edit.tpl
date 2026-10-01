@@ -66,7 +66,9 @@
                 class="panel panel-{if $d['status'] != 'Active'}danger{else}primary{/if} panel-hovered panel-stacked mb30">
                 <div class="panel-heading">{Lang::T('Credentials')}</div>
                 <div class="panel-body">
-                    {if ($_admin['id']) neq ($d['id'])}
+                    {* WP2 / SEC-04: status and role only for targets the actor may manage (server re-checks);
+                       the parent (root) is never edited here — use the Reseller tree (place / move). *}
+                    {if $nuxr_can_status}
                         <div class="form-group">
                             <label class="col-md-3 control-label">{Lang::T('Status')}</label>
                             <div class="col-md-9">
@@ -78,40 +80,17 @@
                                 </select>
                             </div>
                         </div>
+                    {/if}
+                    {if $nuxr_can_role}
                         <div class="form-group">
                             <label class="col-md-3 control-label">{Lang::T('User Type')}</label>
                             <div class="col-md-9">
-                                <select name="user_type" id="user_type" class="form-control" onchange="checkUserType(this)">
-                                    {if $_admin['user_type'] eq 'Agent'}
-                                        <option value="Sales" {if $d['user_type'] eq 'Sales'}selected="selected" {/if}>Sales
-                                        </option>
-                                    {/if}
-                                    {if $_admin['user_type'] eq 'Admin' || $_admin['user_type'] eq 'SuperAdmin'}
-                                        <option value="Report" {if $d['user_type'] eq 'Report'}selected="selected" {/if}>Report
-                                            Viewer</option>
-                                        <option value="Agent" {if $d['user_type'] eq 'Agent'}selected="selected" {/if}>Agent
-                                        </option>
-                                        <option value="Sales" {if $d['user_type'] eq 'Sales'}selected="selected" {/if}>Sales
-                                        </option>
-                                    {/if}
-                                    {if $_admin['user_type'] eq 'SuperAdmin'}
-                                        <option value="Admin" {if $d['user_type'] eq 'Admin'}selected="selected" {/if}>
-                                            Administrator</option>
-                                        <option value="SuperAdmin" {if $d['user_type'] eq 'SuperAdmin'}selected="selected"
-                                            {/if}>Super Administrator</option>
-                                    {/if}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group {if $d['user_type'] neq 'Sales'}hidden{/if}" id="agentChooser">
-                            <label class="col-md-3 control-label">{Lang::T('Agent')}</label>
-                            <div class="col-md-9">
-                                <select name="root" id="root" class="form-control">
-                                    {foreach $agents as $agent}
-                                        <option value="{$agent['id']}">{$agent['username']} | {$agent['fullname']} |
-                                            {$agent['phone']}</option>
+                                <select name="user_type" id="user_type" class="form-control">
+                                    {foreach $nuxr_roles as $nuxrRole}
+                                        <option value="{$nuxrRole|escape}" {if $d['user_type'] eq $nuxrRole}selected="selected" {/if}>{Lang::T($nuxrRole)}</option>
                                     {/foreach}
                                 </select>
+                                <span class="help-block">{Lang::T('Accounts that are part of the reseller hierarchy cannot change role.')}</span>
                             </div>
                         </div>
                     {/if}
@@ -160,7 +139,7 @@
     function deletePhoto(id) {
         if (confirm('Delete photo?')) {
             if (confirm('Are you sure to delete photo?')) {
-                window.location.href = '{Text::url('settings/users-edit/')}'+id+'/deletePhoto'
+                nuxrPost('{Text::url('settings/users-edit/')}'+id+'/deletePhoto')
             }
         }
     }

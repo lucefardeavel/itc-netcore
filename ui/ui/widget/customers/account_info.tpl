@@ -35,11 +35,11 @@
                     <td class="small mb15 text-bold">
                         {Lang::moneyFormat($_user['balance'])}
                         {if $_user['auto_renewal'] == 1}
-                            <a class="label label-success pull-right" href="{Text::url('home&renewal=0')}"
+                            <a data-method="post" class="label label-success pull-right" href="{Text::url('home&renewal=0')}"
                                 onclick="return ask(this, '{Lang::T('Disable auto renewal?')}')">{Lang::T('Auto Renewal
                                 On')}</a>
                         {else}
-                            <a class="label label-danger pull-right" href="{Text::url('home&renewal=1')}"
+                            <a data-method="post" class="label label-danger pull-right" href="{Text::url('home&renewal=1')}"
                                 onclick="return ask(this, '{Lang::T('Enable auto renewal?')}')">{Lang::T('Auto Renewal
                                 Off')}</a>
                         {/if}

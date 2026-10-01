@@ -32,7 +32,7 @@
                                     </td>
                                     <td width="130">
                                         <div class="btn-group btn-group-justified" role="group">
-                                            <a href="{Text::url('widgets/delete/', $w['id'], '&user=', $tipeUser)}"
+                                            <a data-method="post" href="{Text::url('widgets/delete/', $w['id'], '&user=', $tipeUser)}"
                                                 onclick="return ask(this, '{Lang::T("Delete this widget?")}')" class="btn btn-sm btn-danger">
                                                 <i class="glyphicon glyphicon-trash"></i>
                                             </a>

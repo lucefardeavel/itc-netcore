@@ -59,7 +59,7 @@
                                     <td align="center">
                                         <a href="{Text::url('')}odp/edit/{$ds['id']}" class="btn btn-primary btn-xs"
                                             title="{Lang::T('Edit')}"><i class="glyphicon glyphicon-edit"></i></a>
-                                        <a href="{Text::url('')}odp/delete/{$ds['id']}" class="btn btn-danger btn-xs"
+                                        <a data-method="post" href="{Text::url('')}odp/delete/{$ds['id']}" class="btn btn-danger btn-xs"
                                             onclick="return ask(this, '{Lang::T('Are you sure you want to delete this ODP?')}')" title="{Lang::T('Delete')}"><i
                                                 class="glyphicon glyphicon-trash"></i></a>
                                     </td>

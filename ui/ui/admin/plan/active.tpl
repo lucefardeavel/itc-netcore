@@ -6,7 +6,7 @@
             <div class="panel-heading">
                 {if in_array($_admin['user_type'],['SuperAdmin','Admin'])}
                     <div class="btn-group pull-right">
-                        <a class="btn btn-primary btn-xs" title="save" href="{Text::url('')}plan/sync"
+                        <a data-method="post" class="btn btn-primary btn-xs" title="save" href="{Text::url('')}plan/sync"
                             onclick="return ask(this, '{Lang::T("This will sync dan send Customer active package to Mikrotik")}?')"><span
                                 class="glyphicon glyphicon-refresh" aria-hidden="true"></span> {Lang::T("Sync")}</a>
                     </div>
@@ -119,7 +119,7 @@
                                         <a href="{Text::url('')}plan/edit/{$ds['id']}" class="btn btn-warning btn-xs"
                                             style="color: black;">{Lang::T("Edit")}</a>
                                         {if in_array($_admin['user_type'],['SuperAdmin','Admin'])}
-                                            <a href="{Text::url('')}plan/delete/{$ds['id']}" id="{$ds['id']}"
+                                            <a data-method="post" href="{Text::url('')}plan/delete/{$ds['id']}" id="{$ds['id']}"
                                                 onclick="return ask(this, '{Lang::T("Delete")}?')"
                                                 class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
                                         {/if}
@@ -144,7 +144,7 @@
         var res = prompt("Extend for many days?", "3");
         if (res) {
             if (confirm("Extend for " + res + " days?")) {
-                window.location.href = "{Text::url('plan/extend/')}" + idP + "/" + res + "{Text::isQA('? or &')}stoken={App::getToken()}";
+                nuxrPost("{Text::url('plan/extend/')}" + idP + "/" + res + "{Text::isQA('? or &')}stoken={App::getToken()}");
             }
         }
     }

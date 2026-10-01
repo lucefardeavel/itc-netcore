@@ -10,6 +10,29 @@ $ui->assign('_system_menu', 'settings');
 
 $action = $routes['1'];
 $ui->assign('_admin', $admin);
+// WP2 / SEC-04: staff management goes through StaffService (server-side target-role table, no
+// user_type/root/status trust from forms, audited). Authoritative principal for this request:
+$nuxrActor = \Reseller\Security\ActorContext::current();
+$nuxrC = \Reseller\Security\Capability::class;
+
+/** Staff row visible to the actor (self, or within the staff.read scope and role boundary)? */
+function nuxr_staff_visible(\Reseller\Security\ActorContext $a, $row)
+{
+    if (!$row) {
+        return false;
+    }
+    if ((int) $row['id'] === (int) $a->userId) {
+        return true;
+    }
+    $scope = \Reseller\Security\PermissionService::scopeOf($a, \Reseller\Security\Capability::STAFF_READ);
+    if ($scope === 'G') {
+        return $a->role === 'SuperAdmin' || in_array($row['user_type'], ['Report', 'Agent', 'Sales'], true);
+    }
+    if ($scope === 'T') {
+        return \Reseller\Security\DataScope::findStaff($a, \Reseller\Security\Capability::STAFF_READ, $row['id']) !== null;
+    }
+    return false;
+}
 
 switch ($action) {
     case 'docs':
@@ -57,6 +80,7 @@ switch ($action) {
             _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
         }
 
+        // WP2 / OD-8: test sends are mutations (outbound messages) and arrive as POST (RouteMap app#test)
         if (!empty(_get('testWa'))) {
             if ($_app_stage == 'Demo') {
                 r2(getUrl('settings/app'), 'e', 'You cannot perform this action in Demo mode');
@@ -153,19 +177,8 @@ switch ($action) {
         } else {
             $php = 'php';
         }
-        if (empty($config['api_key'])) {
-            $config['api_key'] = sha1(uniqid(rand(), true));
-            $d = ORM::for_table('tbl_appconfig')->where('setting', 'api_key')->find_one();
-            if ($d) {
-                $d->value = $config['api_key'];
-                $d->save();
-            } else {
-                $d = ORM::for_table('tbl_appconfig')->create();
-                $d->setting = 'api_key';
-                $d->value = $config['api_key'];
-                $d->save();
-            }
-        }
+        // WP2 / OD-3: the global api_key is disabled; it is no longer generated or displayed
+        unset($config['api_key']);
         if (empty($config['mikrotik_sms_command'])) {
             $config['mikrotik_sms_command'] = "/tool sms send";
         }
@@ -219,11 +232,11 @@ switch ($action) {
                 try {
                     require_once $DEVICE_PATH . DIRECTORY_SEPARATOR . "Radius.php";
                     (new Radius())->getTableNas()->find_many();
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
+                    // WP2 / OD-14: no driver message in the page; reference only
                     $ui->assign("error_title", "RADIUS Error");
-                    $ui->assign("error_message", "Radius table not found.<br><br>" .
-                        $e->getMessage() .
-                        "<br><br>Download <a href=\"https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/Development/install/radius.sql\">here</a> or <a href=\"https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/install/radius.sql\">here</a> and import it to database.<br><br>Check config.php for radius connection details");
+                    $ui->assign("error_message", "Radius table not found. Import install/radius.sql and check the radius connection in config.php. " .
+                        \Reseller\Security\ErrorReporter::publicMessage(\Reseller\Security\ErrorReporter::report($e, 'radius-settings')));
                     $ui->display('admin/error.tpl');
                     die();
                 }
@@ -317,7 +330,28 @@ switch ($action) {
                     r2(getUrl('settings/app'), 'e', 'Logo must be a JPG, JPEG, or PNG image.');
                 }
             }
+            // WP2 / SEC-07 / OD-12: only the keys of the settings form are stored; security keys are
+            // SuperAdmin-only; the global api_key and csrf_enabled can no longer be set at all.
+            $nuxrAllowed = ['CompanyFooter', 'CompanyName', 'address', 'allow_balance_custom', 'allow_balance_transfer', 'custom_tax_rate',
+                'dashboard_cr', 'disable_registration', 'disable_voucher', 'enable_balance', 'enable_tax', 'extend_confirmation', 'extend_days',
+                'extend_expired', 'general', 'login_Page_template', 'login_page_description', 'login_page_favicon', 'login_page_head',
+                'login_page_logo', 'login_page_type', 'login_page_wallpaper', 'mail_from', 'mail_reply_to', 'man_fields_address',
+                'man_fields_custom', 'man_fields_email', 'man_fields_fname', 'mikrotik_sms_command', 'minimum_transfer', 'note',
+                'notification_reminder_1day', 'notification_reminder_3days', 'notification_reminder_7days', 'payment_usings', 'phone',
+                'phone_otp_type', 'photo_register', 'printer_cols', 'reg_nofify_admin', 'registration_username', 'reset_day', 'sms_otp_registration',
+                'sms_url', 'smtp_host', 'smtp_pass', 'smtp_port', 'smtp_ssltls', 'smtp_user', 'tawkto', 'tawkto_api_key', 'tax_rate', 'telegram_bot',
+                'telegram_target_id', 'theme', 'url_canonical', 'user_notification_expired', 'user_notification_payment',
+                'user_notification_reminder', 'voucher_format', 'voucher_redirect', 'wa_url', 'hide_mrc', 'hide_tms', 'hide_al', 'hide_uet',
+                'hide_vs', 'hide_pg', 'hide_aui', 'radius_enable', 'single_session', 'enable_session_timeout', 'session_timeout_duration',
+                'http_proxy', 'http_proxyauth', 'github_token', 'github_username'];
+            $nuxrSuperAdminOnly = ['radius_enable', 'single_session', 'enable_session_timeout', 'session_timeout_duration',
+                'http_proxy', 'http_proxyauth', 'github_token', 'github_username'];
+            $nuxrIsSA = \Reseller\Security\PermissionService::can($nuxrActor, $nuxrC::SYSTEM_CODE);
             foreach ($_POST as $key => $value) {
+                if (!is_string($key) || !in_array($key, $nuxrAllowed, true) || !is_scalar($value)
+                    || (in_array($key, $nuxrSuperAdminOnly, true) && !$nuxrIsSA)) {
+                    continue;
+                }
                 $d = ORM::for_table('tbl_appconfig')->where('setting', $key)->find_one();
                 if ($d) {
                     $d->value = $value;
@@ -471,55 +505,19 @@ switch ($action) {
         break;
 
     case 'users':
-        if (!in_array($admin['user_type'], ['SuperAdmin', 'Admin', 'Agent'])) {
-            _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
-        }
         $search = _req('search');
+        // WP2 / SEC-06: SuperAdmin all; Admin non-admin roles + self; Agent its subtree (closure);
+        // Sales/Report self only
+        $query = ORM::for_table('tbl_users')->order_by_asc('id');
         if ($search != '') {
-            if ($admin['user_type'] == 'SuperAdmin') {
-                $query = ORM::for_table('tbl_users')
-                    ->where_like('username', '%' . $search . '%')
-                    ->order_by_asc('id');
-                $d = Paginator::findMany($query, ['search' => $search]);
-            } else if ($admin['user_type'] == 'Admin') {
-                $query = ORM::for_table('tbl_users')
-                    ->where_like('username', '%' . $search . '%')->where_any_is([
-                            ['user_type' => 'Report'],
-                            ['user_type' => 'Agent'],
-                            ['user_type' => 'Sales'],
-                            ['id' => $admin['id']]
-                        ])->order_by_asc('id');
-                $d = Paginator::findMany($query, ['search' => $search]);
-            } else {
-                $query = ORM::for_table('tbl_users')
-                    ->where_like('username', '%' . $search . '%')
-                    ->where_any_is([
-                        ['id' => $admin['id']],
-                        ['root' => $admin['id']]
-                    ])->order_by_asc('id');
-                $d = Paginator::findMany($query, ['search' => $search]);
-            }
-        } else {
-            if ($admin['user_type'] == 'SuperAdmin') {
-                $query = ORM::for_table('tbl_users')->order_by_asc('id');
-                $d = Paginator::findMany($query);
-            } else if ($admin['user_type'] == 'Admin') {
-                $query = ORM::for_table('tbl_users')->where_any_is([
-                    ['user_type' => 'Report'],
-                    ['user_type' => 'Agent'],
-                    ['user_type' => 'Sales'],
-                    ['id' => $admin['id']]
-                ])->order_by_asc('id');
-                $d = Paginator::findMany($query);
-            } else {
-                $query = ORM::for_table('tbl_users')
-                    ->where_any_is([
-                        ['id' => $admin['id']],
-                        ['root' => $admin['id']]
-                    ])->order_by_asc('id');
-                $d = Paginator::findMany($query);
-            }
+            $query->where_like('username', '%' . addcslashes($search, '\\%_') . '%');
         }
+        if ($nuxrActor->isRole('Admin')) {
+            $query->where_raw("(tbl_users.user_type IN ('Report','Agent','Sales') OR tbl_users.id = ?)", [(int) $nuxrActor->userId]);
+        } elseif (!$nuxrActor->isRole('SuperAdmin')) {
+            \Reseller\Security\DataScope::scopeStaff($query, $nuxrActor, $nuxrC::STAFF_READ, 'tbl_users.id');
+        }
+        $d = $search != '' ? Paginator::findMany($query, ['search' => $search]) : Paginator::findMany($query);
         $admins = [];
         foreach ($d as $k) {
             if (!empty($k['root'])) {
@@ -549,7 +547,10 @@ switch ($action) {
         $csrf_token = Csrf::generateAndStoreToken();
         $ui->assign('csrf_token', $csrf_token);
         $ui->assign('_title', Lang::T('Add User'));
-        $ui->assign('agents', ORM::for_table('tbl_users')->where('user_type', 'Agent')->find_many());
+        // WP2: role and parent choices come from the server-side target-role table
+        $ui->assign('nuxr_roles', \Reseller\Domain\StaffService::creatableRoles($nuxrActor));
+        $ui->assign('nuxr_parent_fixed', \Reseller\Security\PermissionService::scopeOf($nuxrActor, $nuxrC::STAFF_CREATE) === 'C');
+        $ui->assign('agents', \Reseller\Domain\CustomerService::ownerOptions());
         $ui->display('admin/admin/add.tpl');
         break;
     case 'users-view':
@@ -558,22 +559,17 @@ switch ($action) {
         if (empty($id)) {
             $id = $admin['id'];
         }
-        //allow see himself
-        if ($admin['id'] == $id) {
-            $d = ORM::for_table('tbl_users')->where('id', $id)->find_array()[0];
-        } else {
-            if (in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
-                // Super Admin can see anyone
-                $d = ORM::for_table('tbl_users')->where('id', $id)->find_array()[0];
-            } else if ($admin['user_type'] == 'Agent') {
-                // Agent can see Sales
-                $d = ORM::for_table('tbl_users')->where_any_is([['root' => $admin['id']], ['id' => $id]])->find_array()[0];
-            }
+        // WP2 / SEC-06: self, or a target within the actor's staff.read scope (no IDOR)
+        $d = \Reseller\Security\DataScope::validId($id) ? (ORM::for_table('tbl_users')->where('id', (int) $id)->find_array()[0] ?? null) : null;
+        if (!nuxr_staff_visible($nuxrActor, $d)) {
+            $d = null;
         }
         if ($d) {
+            unset($d['password'], $d['login_token']);
             run_hook('view_edit_admin'); #HOOK
-            if ($d['user_type'] == 'Sales') {
-                $ui->assign('agent', ORM::for_table('tbl_users')->where('id', $d['root'])->find_array()[0]);
+            if ($d['user_type'] == 'Sales' && $d['root']) {
+                $nuxrAgent = ORM::for_table('tbl_users')->select_many('id', 'username', 'fullname', 'phone', 'email')->where('id', $d['root'])->find_array();
+                $ui->assign('agent', $nuxrAgent[0] ?? null);
             }
             $ui->assign('d', $d);
             $ui->assign('_title', $d['username']);
@@ -585,33 +581,21 @@ switch ($action) {
         }
         break;
     case 'users-edit':
-        if (!in_array($admin['user_type'], ['SuperAdmin', 'Admin', 'Agent'])) {
-            _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
-        }
+        // WP2: every role may edit its own profile; other targets are checked below (StaffService::canTarget)
         $ui->assign('_title', Lang::T('Edit User'));
         $id = $routes['2'];
         if (empty($id)) {
             $id = $admin['id'];
         }
-        if ($admin['id'] == $id) {
-            $d = ORM::for_table('tbl_users')->find_one($id);
-        } else {
-            if ($admin['user_type'] == 'SuperAdmin') {
-                $d = ORM::for_table('tbl_users')->find_one($id);
-                $ui->assign('agents', ORM::for_table('tbl_users')->where('user_type', 'Agent')->find_many());
-            } else if ($admin['user_type'] == 'Admin') {
-                $d = ORM::for_table('tbl_users')->where_any_is([
-                    ['user_type' => 'Report'],
-                    ['user_type' => 'Agent'],
-                    ['user_type' => 'Sales']
-                ])->find_one($id);
-                $ui->assign('agents', ORM::for_table('tbl_users')->where('user_type', 'Agent')->find_many());
-            } else {
-                // Agent cannot move Sales to other Agent
-                $ui->assign('agents', ORM::for_table('tbl_users')->where('id', $admin['id'])->find_many());
-                $d = ORM::for_table('tbl_users')->where('root', $admin['id'])->find_one($id);
-            }
+        // WP2 / SEC-04: self, or a target the actor may manage (StaffService::canTarget)
+        $d = \Reseller\Security\DataScope::validId($id) ? ORM::for_table('tbl_users')->find_one((int) $id) : false;
+        if ($d && (int) $d['id'] !== (int) $nuxrActor->userId && !\Reseller\Domain\StaffService::canTarget($nuxrActor, $d->as_array(), $nuxrC::STAFF_UPDATE_PROFILE)) {
+            $d = false;
         }
+        $ui->assign('nuxr_self', $d && (int) $d['id'] === (int) $nuxrActor->userId);
+        $ui->assign('nuxr_can_status', $d && (int) $d['id'] !== (int) $nuxrActor->userId && \Reseller\Domain\StaffService::canTarget($nuxrActor, $d->as_array(), $nuxrC::STAFF_DISABLE));
+        $ui->assign('nuxr_can_role', $d && (int) $d['id'] !== (int) $nuxrActor->userId && \Reseller\Domain\StaffService::canTarget($nuxrActor, $d->as_array(), $nuxrC::STAFF_CHANGE_ROLE));
+        $ui->assign('nuxr_roles', \Reseller\Domain\StaffService::manageableRoles($nuxrActor));
         if ($d) {
             if (isset($routes['3']) && $routes['3'] == 'deletePhoto') {
                 if ($d['photo'] != '' && strpos($d['photo'], 'default') === false) {
@@ -642,24 +626,18 @@ switch ($action) {
         break;
 
     case 'users-delete':
-        if (!in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
-            _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
-        }
         if ($_app_stage == 'Demo') {
             r2(getUrl('settings/users'), 'e', 'You cannot perform this action in Demo mode');
         }
         $id = $routes['2'];
-        if (($admin['id']) == $id) {
-            r2(getUrl('settings/users'), 'e', 'Sorry You can\'t delete yourself');
+        // WP2 / SEC-04: POST + CSRF; target rules; reference pre-check (enrolled/referenced → disable instead)
+        run_hook('delete_admin'); #HOOK
+        try {
+            \Reseller\Domain\StaffService::delete($nuxrActor, (int) $id);
+        } catch (\Reseller\Domain\DomainError $e) {
+            r2(getUrl('settings/users'), 'e', Lang::T($e->getMessage()));
         }
-        $d = ORM::for_table('tbl_users')->find_one($id);
-        if ($d) {
-            run_hook('delete_admin'); #HOOK
-            $d->delete();
-            r2(getUrl('settings/users'), 's', Lang::T('User deleted Successfully'));
-        } else {
-            r2(getUrl('settings/users'), 'e', Lang::T('Account Not Found'));
-        }
+        r2(getUrl('settings/users'), 's', Lang::T('User deleted Successfully'));
         break;
 
     case 'users-post':
@@ -695,33 +673,18 @@ switch ($action) {
             $msg .= Lang::T('Password should be minimum 6 characters') . '<br>';
         }
 
-        $d = ORM::for_table('tbl_users')->where('username', $username)->find_one();
-        if ($d) {
-            $msg .= Lang::T('Account already axist') . '<br>';
-        }
-        $date_now = date("Y-m-d H:i:s");
         run_hook('add_admin'); #HOOK
         if ($msg == '') {
-            $passwordC = Password::_crypt($password);
-            $d = ORM::for_table('tbl_users')->create();
-            $d->username = $username;
-            $d->fullname = $fullname;
-            $d->password = $passwordC;
-            $d->user_type = $user_type;
-            $d->phone = $phone;
-            $d->email = $email;
-            $d->city = $city;
-            $d->subdistrict = $subdistrict;
-            $d->ward = $ward;
-            $d->status = 'Active';
-            $d->creationdate = $date_now;
-            if ($admin['user_type'] == 'Agent') {
-                // Prevent hacking from form
-                $d->root = $admin['id'];
-            } else if ($user_type == 'Sales') {
-                $d->root = $root;
+            // WP2 / SEC-04 / C20: server-side role table; parent only through the hierarchy rules
+            try {
+                \Reseller\Domain\StaffService::create($nuxrActor, [
+                    'username' => $username, 'fullname' => $fullname, 'password' => $password, 'user_type' => $user_type,
+                    'parent_id' => _post('parent_id'), 'phone' => $phone, 'email' => $email,
+                    'city' => $city, 'subdistrict' => $subdistrict, 'ward' => $ward,
+                ]);
+            } catch (\Reseller\Domain\DomainError $e) {
+                r2(getUrl('settings/users-add'), 'e', Lang::T($e->getMessage()));
             }
-            $d->save();
 
             if ($send_notif == 'wa') {
                 Message::sendWhatsapp(Lang::phoneFormat($phone), Lang::T('Hello, Your account has been created successfully.') . "\nUsername: $username\nPassword: $password\n\n" . $config['CompanyName']);
@@ -772,34 +735,19 @@ switch ($action) {
             }
         }
 
-        $id = _post('id');
-        if ($admin['id'] == $id) {
-            $d = ORM::for_table('tbl_users')->find_one($id);
-        } else {
-            if ($admin['user_type'] == 'SuperAdmin') {
-                $d = ORM::for_table('tbl_users')->find_one($id);
-            } else if ($admin['user_type'] == 'Admin') {
-                $d = ORM::for_table('tbl_users')->where_any_is([
-                    ['user_type' => 'Report'],
-                    ['user_type' => 'Agent'],
-                    ['user_type' => 'Sales']
-                ])->find_one($id);
-            } else {
-                $d = ORM::for_table('tbl_users')->where('root', $admin['id'])->find_one($id);
-            }
+        $id = (int) _post('id');
+        // WP2 / SEC-04: target must be self or manageable; user_type/status/root are never written
+        // from the form directly (role and status go through audited, rule-checked services)
+        $d = $id > 0 ? ORM::for_table('tbl_users')->find_one($id) : false;
+        if ($d && $id !== (int) $nuxrActor->userId && !\Reseller\Domain\StaffService::canTarget($nuxrActor, $d->as_array(), $nuxrC::STAFF_UPDATE_PROFILE)) {
+            $d = false;
         }
         if (!$d) {
             $msg .= Lang::T('Data Not Found') . '<br>';
         }
-
-        if ($d['username'] != $username) {
-            $c = ORM::for_table('tbl_users')->where('username', $username)->find_one();
-            if ($c) {
-                $msg .= "<b>$username</b> " . Lang::T('Account already axist') . '<br>';
-            }
-        }
         run_hook('edit_admin'); #HOOK
         if ($msg == '') {
+            $nuxrPhoto = null;
             if (!empty($_FILES['photo']['name']) && file_exists($_FILES['photo']['tmp_name'])) {
                 if (function_exists('imagecreatetruecolor')) {
                     $hash = md5_file($_FILES['photo']['tmp_name']);
@@ -817,31 +765,10 @@ switch ($action) {
                         File::resizeCropImage($_FILES['photo']['tmp_name'], $imgPath, 1600, 1600, 100);
                     }
                     if (!file_exists($imgPath . '.thumb.jpg')) {
-                        if (_post('faceDetect') == 'yes') {
-                            try {
-                                $detector = new svay\FaceDetector();
-                                $detector->setTimeout(5000);
-                                $detector->faceDetect($imgPath);
-                                $detector->cropFaceToJpeg($imgPath . '.thumb.jpg', false);
-                            } catch (Exception $e) {
-                                File::makeThumb($imgPath, $imgPath . '.thumb.jpg', 200);
-                            } catch (Throwable $e) {
-                                File::makeThumb($imgPath, $imgPath . '.thumb.jpg', 200);
-                            }
-                        } else {
-                            File::makeThumb($imgPath, $imgPath . '.thumb.jpg', 200);
-                        }
+                        File::makeThumb($imgPath, $imgPath . '.thumb.jpg', 200);
                     }
                     if (file_exists($imgPath)) {
-                        if ($d['photo'] != '' && strpos($d['photo'], 'default') === false) {
-                            if (file_exists($UPLOAD_PATH . $d['photo'])) {
-                                unlink($UPLOAD_PATH . $d['photo']);
-                                if (file_exists($UPLOAD_PATH . $d['photo'] . '.thumb.jpg')) {
-                                    unlink($UPLOAD_PATH . $d['photo'] . '.thumb.jpg');
-                                }
-                            }
-                        }
-                        $d->photo = '/photos/' . $subfolder . '/' . $hash . '.jpg';
+                        $nuxrPhoto = '/photos/' . $subfolder . '/' . $hash . '.jpg';
                     }
                     if (file_exists($_FILES['photo']['tmp_name']))
                         unlink($_FILES['photo']['tmp_name']);
@@ -849,35 +776,30 @@ switch ($action) {
                     r2(getUrl('settings/app'), 'e', 'PHP GD is not installed');
                 }
             }
-
-            $d->username = $username;
-            if ($password != '') {
-                $password = Password::_crypt($password);
-                $d->password = $password;
+            $nuxrProfile = ['username' => $username, 'fullname' => $fullname, 'phone' => $phone, 'email' => $email,
+                'city' => $city, 'subdistrict' => $subdistrict, 'ward' => $ward];
+            if ($nuxrPhoto !== null) {
+                $nuxrProfile['photo'] = $nuxrPhoto;
             }
-
-            $d->fullname = $fullname;
-            if (($admin['id']) != $id) {
-                $user_type = _post('user_type');
-                $d->user_type = $user_type;
+            try {
+                \Reseller\Domain\StaffService::updateProfile($nuxrActor, $id, $nuxrProfile, $password !== '' ? $password : null);
+                if ($id !== (int) $nuxrActor->userId) {
+                    if (isset($_POST['status']) && in_array($status, ['Active', 'Inactive'], true) && $status !== $d['status']) {
+                        \Reseller\Domain\StaffService::setStatus($nuxrActor, $id, $status);
+                    }
+                    if ($user_type !== '' && $user_type !== $d['user_type']) {
+                        \Reseller\Domain\StaffService::changeRole($nuxrActor, $id, $user_type);
+                    }
+                }
+            } catch (\Reseller\Domain\DomainError $e) {
+                r2(getUrl('settings/users-edit/') . $id, 'e', Lang::T($e->getMessage()));
             }
-            $d->phone = $phone;
-            $d->email = $email;
-            $d->city = $city;
-            $d->subdistrict = $subdistrict;
-            $d->ward = $ward;
-            if (isset($_POST['status'])) {
-                $d->status = $status;
+            if ($nuxrPhoto !== null && $d['photo'] != '' && strpos($d['photo'], 'default') === false && file_exists($UPLOAD_PATH . $d['photo'])) {
+                unlink($UPLOAD_PATH . $d['photo']);
+                if (file_exists($UPLOAD_PATH . $d['photo'] . '.thumb.jpg')) {
+                    unlink($UPLOAD_PATH . $d['photo'] . '.thumb.jpg');
+                }
             }
-
-            if ($admin['user_type'] == 'Agent') {
-                // Prevent hacking from form
-                $d->root = $admin['id'];
-            } else if ($user_type == 'Sales') {
-                $d->root = $root;
-            }
-
-            $d->save();
 
             _log('[' . $admin['username'] . ']: $username ' . Lang::T('User Updated Successfully'), $admin['user_type'], $admin['id']);
             r2(getUrl('settings/users-view/') . $id, 's', 'User Updated Successfully');
@@ -963,7 +885,9 @@ switch ($action) {
         if (!Csrf::check($csrf_token)) {
             r2(getUrl('settings/notifications'), 'e', Lang::T('Invalid or Expired CSRF Token') . ".");
         }
-        file_put_contents($UPLOAD_PATH . "/notifications.json", json_encode($_POST));
+        $nuxrNotif = $_POST;
+        unset($nuxrNotif['csrf_token']);
+        file_put_contents($UPLOAD_PATH . "/notifications.json", json_encode($nuxrNotif));
         r2(getUrl('settings/notifications'), 's', Lang::T('Settings Saved Successfully'));
         break;
     case 'dbstatus':
@@ -991,7 +915,11 @@ switch ($action) {
         if (!in_array($admin['user_type'], ['SuperAdmin'])) {
             _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
         }
-        $tables = $_POST['tables'];
+        // WP2: only existing tables can be exported (no arbitrary identifiers)
+        $tables = \Reseller\Security\RestoreGuard::backupTables($_POST['tables'] ?? []);
+        if ($tables === []) {
+            r2(getUrl('settings/dbstatus'), 'e', Lang::T('Select at least one table'));
+        }
         set_time_limit(-1);
         header('Pragma: public');
         header('Expires: 0');
@@ -1014,49 +942,56 @@ switch ($action) {
         if (!in_array($admin['user_type'], ['SuperAdmin'])) {
             _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
         }
-        if (file_exists($_FILES['json']['tmp_name'])) {
+        // WP2 / C24 / OD-5: fail closed BEFORE reading the upload when reseller schema/state exists
+        $nuxrRefusal = \Reseller\Security\RestoreGuard::refusalReason();
+        if ($nuxrRefusal !== null) {
+            \Reseller\Security\ErrorReporter::log('restore.refused', $nuxrRefusal);
+            if (\Reseller\Domain\SchemaReadiness::isReady()) {
+                try {
+                    \Reseller\Audit\AuditLog::record('restore.refused', $nuxrActor, ['target_type' => 'system', 'reason' => mb_substr($nuxrRefusal, 0, 200)]);
+                } catch (Throwable $e) {
+                    \Reseller\Security\ErrorReporter::report($e, 'restore-audit');
+                }
+            }
+            if (!empty($_FILES['json']['tmp_name']) && file_exists($_FILES['json']['tmp_name'])) {
+                unlink($_FILES['json']['tmp_name']);
+            }
+            http_response_code(403);
+            r2(getUrl('settings/dbstatus'), 'e', Lang::T('Restore is disabled on reseller installations; use the database-level restore runbook.'));
+        }
+        if (!empty($_FILES['json']['tmp_name']) && file_exists($_FILES['json']['tmp_name'])) {
             $suc = 0;
             $fal = 0;
             $json = json_decode(file_get_contents($_FILES['json']['tmp_name']), true);
-            try {
-                ORM::raw_execute("SET FOREIGN_KEY_CHECKS=0;");
-            } catch (Throwable $e) {
-            } catch (Exception $e) {
+            $nuxrTables = \Reseller\Security\RestoreGuard::validTables($json);
+            if ($nuxrTables === null) {
+                unlink($_FILES['json']['tmp_name']);
+                r2(getUrl('settings/dbstatus'), 'e', Lang::T('Invalid backup file'));
             }
+            // session-level only (never GLOBAL); restored in finally
+            $nuxrFk = (string) ORM::get_db()->query('SELECT @@SESSION.foreign_key_checks')->fetchColumn();
+            ORM::raw_execute("SET SESSION FOREIGN_KEY_CHECKS=0");
             try {
-                ORM::raw_execute("SET GLOBAL FOREIGN_KEY_CHECKS=0;");
-            } catch (Throwable $e) {
-            } catch (Exception $e) {
-            }
-            foreach ($json as $table => $records) {
-                ORM::raw_execute("TRUNCATE $table;");
-                foreach ($records as $rec) {
-                    try {
-                        $t = ORM::for_table($table)->create();
-                        foreach ($rec as $k => $v) {
-                            $t->set($k, $v);
-                        }
-                        if ($t->save()) {
-                            $suc++;
-                        } else {
+                foreach ($nuxrTables as $table) {
+                    ORM::raw_execute('TRUNCATE `' . $table . '`');
+                    foreach ($json[$table] as $rec) {
+                        try {
+                            $t = ORM::for_table($table)->create();
+                            foreach ((array) $rec as $k => $v) {
+                                $t->set($k, $v);
+                            }
+                            if ($t->save()) {
+                                $suc++;
+                            } else {
+                                $fal++;
+                            }
+                        } catch (Throwable $e) {
                             $fal++;
                         }
-                    } catch (Throwable $e) {
-                        $fal++;
-                    } catch (Exception $e) {
-                        $fal++;
                     }
                 }
-            }
-            try {
-                ORM::raw_execute("SET FOREIGN_KEY_CHECKS=1;");
-            } catch (Throwable $e) {
-            } catch (Exception $e) {
-            }
-            try {
-                ORM::raw_execute("SET GLOBAL FOREIGN_KEY_CHECKS=1;");
-            } catch (Throwable $e) {
-            } catch (Exception $e) {
+            } finally {
+                ORM::raw_execute('SET SESSION FOREIGN_KEY_CHECKS=' . ($nuxrFk === '0' ? '0' : '1'));
             }
             if (file_exists($_FILES['json']['tmp_name']))
                 unlink($_FILES['json']['tmp_name']);
@@ -1088,7 +1023,18 @@ switch ($action) {
         if (!Csrf::check($csrf_token)) {
             r2(getUrl('settings/language'), 'e', Lang::T('Invalid or Expired CSRF Token') . ".");
         }
-        file_put_contents($lan_file, json_encode($_POST, JSON_PRETTY_PRINT));
+        // WP2 / NEW-1: $lan_file is always a shipped system/lan/<name>.json (init.php allowlist);
+        // only string translations are stored, never the CSRF token or nested data
+        $nuxrLang = [];
+        foreach ($_POST as $k => $v) {
+            if (is_string($k) && is_string($v) && $k !== 'csrf_token') {
+                $nuxrLang[$k] = $v;
+            }
+        }
+        if (\Reseller\Security\PathGuard::language($config['language'], $root_path) === null) {
+            r2(getUrl('settings/language'), 'e', Lang::T('Invalid language'));
+        }
+        file_put_contents($lan_file, json_encode($nuxrLang, JSON_PRETTY_PRINT));
         r2(getUrl('settings/language'), 's', Lang::T('Translation saved Successfully'));
         break;
 

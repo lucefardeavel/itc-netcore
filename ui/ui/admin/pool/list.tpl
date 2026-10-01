@@ -5,7 +5,7 @@
         <div class="panel panel-hovered mb20 panel-primary">
             <div class="panel-heading">
                 <div class="btn-group pull-right">
-                    <a class="btn btn-primary btn-xs" title="save" href="{Text::url('')}pool/sync"
+                    <a data-method="post" class="btn btn-primary btn-xs" title="save" href="{Text::url('')}pool/sync"
                         onclick="return ask(this, '{Lang::T('This will sync/send IP Pool to Mikrotik')}?')"><span
                             class="glyphicon glyphicon-refresh" aria-hidden="true"></span> {Lang::T('Sync')}</a>
                 </div>
@@ -54,7 +54,7 @@
                                     <td align="center">
                                         <a href="{Text::url('')}pool/edit/{$ds['id']}"
                                             class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
-                                        <a href="{Text::url('')}pool/delete/{$ds['id']}" id="{$ds['id']}"
+                                        <a data-method="post" href="{Text::url('')}pool/delete/{$ds['id']}" id="{$ds['id']}"
                                             onclick="return ask(this, '{Lang::T('Delete')}?')"
                                             class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
                                     </td>

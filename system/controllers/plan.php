@@ -11,6 +11,9 @@ $ui->assign('_system_menu', 'plan');
 
 $action = $routes['1'];
 $ui->assign('_admin', $admin);
+// WP2: authoritative principal; object lookups are capability + DataScope in one query
+$nuxrActor = \Reseller\Security\ActorContext::current();
+$nuxrC = \Reseller\Security\Capability::class;
 
 $appUrl = APP_URL;
 
@@ -39,10 +42,21 @@ switch ($action) {
             _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
         }
         set_time_limit(-1);
+        // WP2 / OD-11 (E19a): no sync at all while ownership cannot be evaluated
+        if (!\Reseller\Domain\SchemaReadiness::isReady()) {
+            \Reseller\Domain\ServiceGate::refused('planSyncAll');
+            r2(getUrl('plan/list'), 'e', \Reseller\Domain\ServiceGate::message());
+        }
         $turs = ORM::for_table('tbl_user_recharges')->where('status', 'on')->find_many();
         $log = '';
         $router = '';
         foreach ($turs as $tur) {
+            // WP2 / OD-11 (E19a): reseller-owned customers are skipped (pending WP5B)
+            if (\Reseller\Domain\ServiceGate::isBlockedCustomerId($tur['customer_id'])) {
+                \Reseller\Domain\ServiceGate::refused('planSyncAll', $tur['customer_id']);
+                $log .= "SKIPPED (reseller-managed) : " . htmlspecialchars((string) $tur['username']) . "<br>";
+                continue;
+            }
             $p = ORM::for_table('tbl_plans')->findOne($tur['plan_id']);
             if ($p) {
                 $c = ORM::for_table('tbl_customers')->findOne($tur['customer_id']);
@@ -180,6 +194,8 @@ switch ($action) {
         $planId = _post('plan');
         $using = _post('using');
         $svoucher = _post('svoucher');
+        // WP2 / OD-11 (E1): no legacy recharge (any method, incl. using=zero) for reseller-owned customers
+        \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'planRechargePost', 'plan/recharge');
 
         $plan = ORM::for_table('tbl_plans')->find_one($planId);
 
@@ -258,10 +274,20 @@ switch ($action) {
 
     case 'view':
         $id = $routes['2'];
-        $in = ORM::for_table('tbl_transactions')->where('id', $id)->find_one();
+        // WP2 / SEC-06: invoice visible only if its customer (by user_id) is in scope; G for user_id 0
+        $in = false;
+        if (\Reseller\Security\DataScope::validId($id)) {
+            $in = \Reseller\Security\DataScope::scopeByCustomerColumn(ORM::for_table('tbl_transactions'), $nuxrActor, $nuxrC::INVOICE_READ, 'tbl_transactions.user_id')
+                ->where('tbl_transactions.id', (int) $id)->find_one();
+        }
+        if (!$in) {
+            r2(getUrl('plan/list'), 'e', Lang::T('Data Not Found'));
+        }
+        $id = (int) $in['id'];
         $ui->assign('in', $in);
         if (!empty($routes['3']) && $routes['3'] == 'send') {
-            $c = ORM::for_table('tbl_customers')->where('username', $in['username'])->find_one();
+            \Reseller\Security\PermissionService::require($nuxrActor, $nuxrC::INVOICE_SEND);
+            $c = \Reseller\Security\DataScope::findCustomer($nuxrActor, $nuxrC::INVOICE_SEND, $in['user_id']);
             if ($c) {
                 Message::sendInvoice($c, $in);
                 r2(getUrl('plan/view/') . $id, 's', "Success send to customer");
@@ -300,7 +326,14 @@ switch ($action) {
             if (empty($id)) {
                 $id = $routes['2'];
             }
-            $d = ORM::for_table('tbl_transactions')->where('id', $id)->find_one();
+            $d = false;
+            if (\Reseller\Security\DataScope::validId($id)) {
+                $d = \Reseller\Security\DataScope::scopeByCustomerColumn(ORM::for_table('tbl_transactions'), $nuxrActor, $nuxrC::INVOICE_READ, 'tbl_transactions.user_id')
+                    ->where('tbl_transactions.id', (int) $id)->find_one();
+            }
+            if (!$d) {
+                r2(getUrl('plan/list'), 'e', Lang::T('Data Not Found'));
+            }
             $ui->assign('in', $d);
             $ui->assign('date', Lang::dateAndTimeFormat($d['recharged_on'], $d['recharged_time']));
         }
@@ -385,6 +418,8 @@ switch ($action) {
             $msg .= ' Plan Not Found<br>';
         }
         if ($msg == '') {
+            // WP2 / OD-11 (E5): editing an active plan can re-provision/extend service
+            \Reseller\Domain\ServiceGate::guardCustomer($d['customer_id'], 'planEditPost', 'plan/list');
             run_hook('edit_customer_plan'); #HOOK
             $d->expiration = $expiration;
             $d->time = $time;
@@ -446,6 +481,8 @@ switch ($action) {
 
         $query = ORM::for_table('tbl_plans')
             ->inner_join('tbl_voucher', ['tbl_plans.id', '=', 'tbl_voucher.id_plan']);
+        // WP2 / C8: Agent sees vouchers generated in its subtree (closure), Sales its own; G all
+        \Reseller\Security\DataScope::scopeVouchers($query, $nuxrActor, $nuxrC::VOUCHER_READ, 'tbl_voucher.generated_by');
 
         if (!empty($router)) {
             $query->where('tbl_voucher.routers', $router);
@@ -466,40 +503,18 @@ switch ($action) {
         $append_url = "&search=" . urlencode($search) . "&router=" . urlencode($router) . "&customer=" . urlencode($customer) . "&plan=" . urlencode($plan) . "&status=" . urlencode($status);
 
         // option customers
-        $ui->assign('customers', ORM::for_table('tbl_voucher')->distinct()->select("user")->whereNotEqual("user", '0')->findArray());
+        $ui->assign('customers', \Reseller\Security\DataScope::scopeVouchers(ORM::for_table('tbl_voucher'), $nuxrActor, $nuxrC::VOUCHER_READ)->distinct()->select("user")->whereNotEqual("user", '0')->findArray());
         // option plans
-        $plns = ORM::for_table('tbl_voucher')->distinct()->select("id_plan")->findArray();
+        $plns = \Reseller\Security\DataScope::scopeVouchers(ORM::for_table('tbl_voucher'), $nuxrActor, $nuxrC::VOUCHER_READ)->distinct()->select("id_plan")->findArray();
         if (count($plns) > 0) {
             $ui->assign('plans', ORM::for_table('tbl_plans')->selects(["id", 'name_plan'])->where_in('id', array_column($plns, 'id_plan'))->findArray());
         } else {
             $ui->assign('plans', []);
         }
-        $ui->assign('routers', array_column(ORM::for_table('tbl_voucher')->distinct()->select("routers")->findArray(), 'routers'));
+        $ui->assign('routers', array_column(\Reseller\Security\DataScope::scopeVouchers(ORM::for_table('tbl_voucher'), $nuxrActor, $nuxrC::VOUCHER_READ)->distinct()->select("routers")->findArray(), 'routers'));
 
         if ($search != '') {
-            if (in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
-                $query->where_like('tbl_voucher.code', '%' . $search . '%');
-            } else if ($admin['user_type'] == 'Agent') {
-                $sales = [];
-                $sls = ORM::for_table('tbl_users')->select('id')->where('root', $admin['id'])->findArray();
-                foreach ($sls as $s) {
-                    $sales[] = $s['id'];
-                }
-                $sales[] = $admin['id'];
-                $query->where_in('generated_by', $sales)
-                    ->where_like('tbl_voucher.code', '%' . $search . '%');
-            }
-        } else {
-            if (in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
-            } else if ($admin['user_type'] == 'Agent') {
-                $sales = [];
-                $sls = ORM::for_table('tbl_users')->select('id')->where('root', $admin['id'])->findArray();
-                foreach ($sls as $s) {
-                    $sales[] = $s['id'];
-                }
-                $sales[] = $admin['id'];
-                $query->where_in('generated_by', $sales);
-            }
+            $query->where_like('tbl_voucher.code', '%' . $search . '%');
         }
         $d = Paginator::findMany($query, ["search" => $search], 10, $append_url);
         // extract admin
@@ -647,19 +662,9 @@ switch ($action) {
                 ->left_outer_join('tbl_voucher', array('tbl_plans.id', '=', 'tbl_voucher.id_plan'))
                 ->where('tbl_voucher.status', '0');
         }
-        if (in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
-            $v = $v->find_many();
-            $vc = $vc->count();
-        } else {
-            $sales = [];
-            $sls = ORM::for_table('tbl_users')->select('id')->where('root', $admin['id'])->findArray();
-            foreach ($sls as $s) {
-                $sales[] = $s['id'];
-            }
-            $sales[] = $admin['id'];
-            $v = $v->where_in('generated_by', $sales)->find_many();
-            $vc = $vc->where_in('generated_by', $sales)->count();
-        }
+        // WP2 / C8: closure-based voucher scope (never the legacy root field)
+        $v = \Reseller\Security\DataScope::scopeVouchers($v, $nuxrActor, $nuxrC::VOUCHER_READ)->find_many();
+        $vc = \Reseller\Security\DataScope::scopeVouchers($vc, $nuxrActor, $nuxrC::VOUCHER_READ)->count();
         $template = file_get_contents("pages/Voucher.html");
         $template = str_replace('[[company_name]]', $config['CompanyName'], $template);
 
@@ -673,7 +678,7 @@ switch ($action) {
         $ui->assign('limit', $limit);
         $ui->assign('planid', $planid);
 
-        $createdate = ORM::for_table('tbl_voucher')
+        $createdate = \Reseller\Security\DataScope::scopeVouchers(ORM::for_table('tbl_voucher'), $nuxrActor, $nuxrC::VOUCHER_READ)
             ->select_expr(
                 "CASE WHEN DATE(created_at) = CURDATE() THEN 'Today' ELSE DATE(created_at) END",
                 'created_datetime'
@@ -868,20 +873,10 @@ switch ($action) {
 
     case 'voucher-view':
         $id = $routes[2];
-        if (in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
-            $voucher = ORM::for_table('tbl_voucher')->find_one($id);
-        } else {
-            $sales = [];
-            $sls = ORM::for_table('tbl_users')->select('id')->where('root', $admin['id'])->findArray();
-            foreach ($sls as $s) {
-                $sales[] = $s['id'];
-            }
-            $sales[] = $admin['id'];
-            $voucher = ORM::for_table('tbl_voucher')
-                ->find_one($id);
-            if (!in_array($voucher['generated_by'], $sales)) {
-                r2(getUrl('plan/voucher/'), 'e', Lang::T('Voucher Not Found'));
-            }
+        $voucher = false;
+        if (\Reseller\Security\DataScope::validId($id)) {
+            $voucher = \Reseller\Security\DataScope::scopeVouchers(ORM::for_table('tbl_voucher'), $nuxrActor, $nuxrC::VOUCHER_READ)
+                ->where('tbl_voucher.id', (int) $id)->find_one();
         }
         if (!$voucher) {
             r2(getUrl('plan/voucher/'), 'e', Lang::T('Voucher Not Found'));
@@ -950,6 +945,8 @@ switch ($action) {
             _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
         }
         $code = Text::alphanumeric(_post('code'), "-_.,");
+        // WP2 / OD-11 (E2): no voucher refill for reseller-owned customers
+        \Reseller\Domain\ServiceGate::guardCustomer(_post('id_customer'), 'planRefillPost', 'plan/refill');
         $user = ORM::for_table('tbl_customers')->where('id', _post('id_customer'))->find_one();
         $v1 = ORM::for_table('tbl_voucher')->whereRaw("BINARY code = '$code'")->where('status', 0)->find_one();
 
@@ -1000,6 +997,8 @@ switch ($action) {
             die();
         }
 
+        // WP2 / OD-11 (E3): no legacy balance deposit for reseller-owned customers
+        \Reseller\Domain\ServiceGate::guardCustomer($user, 'planDepositPost', 'plan/deposit');
         run_hook('deposit_customer'); #HOOK
         if (!empty($user) && strlen($amount) > 0 && $amount != 0) {
             $plan = [];
@@ -1036,11 +1035,21 @@ switch ($action) {
     case 'extend':
         $id = $routes[2];
         $days = $routes[3];
+        // WP2: bounded integer days (the value is interpolated into a date expression)
+        if (!is_string($days) || !preg_match('/^[1-9][0-9]{0,2}$/', $days) || (int) $days > 366 || !\Reseller\Security\DataScope::validId($id)) {
+            r2(getUrl('plan'), 'e', Lang::T('Invalid input'));
+        }
+        $days = (int) $days;
         $svoucher = $_GET['svoucher'];
         if (App::getVoucherValue($svoucher)) {
             r2(getUrl('plan'), 's', "Extend already done");
         }
         $tur = ORM::for_table('tbl_user_recharges')->find_one($id);
+        if (!$tur) {
+            r2(getUrl('plan'), 'e', Lang::T('Data Not Found'));
+        }
+        // WP2 / OD-11 (E4): no legacy extend for reseller-owned customers
+        \Reseller\Domain\ServiceGate::guardCustomer($tur['customer_id'], 'planExtend', 'plan');
         $status = $tur['status'];
         if ($status == 'off') {
             if (strtotime($tur['expiration'] . ' ' . $tur['time']) > time()) {
@@ -1100,16 +1109,17 @@ switch ($action) {
         $ui->assign('status', $status);
         $ui->assign('router', $router);
         $ui->assign('search', $search);
-        $ui->assign('routers', array_column(ORM::for_table('tbl_user_recharges')->distinct()->select("routers")->whereNotEqual('routers', '')->findArray(), 'routers'));
+        $nuxrScopeRech = static fn() => \Reseller\Security\DataScope::scopeByCustomerColumn(ORM::for_table('tbl_user_recharges'), $nuxrActor, $nuxrC::CUSTOMER_READ, 'tbl_user_recharges.customer_id');
+        $ui->assign('routers', array_column($nuxrScopeRech()->distinct()->select("routers")->whereNotEqual('routers', '')->findArray(), 'routers'));
 
-        $plns = ORM::for_table('tbl_user_recharges')->distinct()->select("plan_id")->findArray();
+        $plns = $nuxrScopeRech()->distinct()->select("plan_id")->findArray();
         $ids = array_column($plns, 'plan_id');
         if (count($ids)) {
             $ui->assign('plans', ORM::for_table('tbl_plans')->select("id")->select('name_plan')->where_id_in($ids)->findArray());
         } else {
             $ui->assign('plans', []);
         }
-        $query = ORM::for_table('tbl_user_recharges')->order_by_desc('id');
+        $query = $nuxrScopeRech()->order_by_desc('id');
 
         if ($search != '') {
             $query->where_like("username", "%$search%");

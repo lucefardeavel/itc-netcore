@@ -30,7 +30,7 @@
                 {/if}
             </div>
             <a href="{Text::url('mail')}" class="btn btn-primary"><i class="fa fa-arrow-left"></i> {Lang::T("Back")}</a>
-            <a href="{Text::url('mail/delete/')}{$mail.id}" class="btn btn-danger"
+            <a data-method="post" href="{Text::url('mail/delete/')}{$mail.id}" class="btn btn-danger"
                 onclick="return ask(this, '{Lang::T("Delete")}?')"><i class="fa fa-trash-o"></i>
                 {Lang::T("Delete")}</a>
             <a href="https://api.whatsapp.com/send?text={if Text::is_html($mail.body)}{urlencode(strip_tags($mail.body))}{else}{urlencode($mail.body)}{/if}"

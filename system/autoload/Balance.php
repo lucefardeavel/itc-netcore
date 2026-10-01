@@ -20,6 +20,12 @@ class Balance
     public static function transfer($id_customer, $phoneTarget, $amount)
     {
         global $config;
+        // WP2 / OD-11 safety gate: no legacy balance movement involving a reseller-owned customer;
+        // checked before the sender is debited.
+        if (\Reseller\Domain\ServiceGate::isBlockedCustomerId($id_customer) || \Reseller\Domain\ServiceGate::isBlockedUsername((string) $phoneTarget)) {
+            \Reseller\Domain\ServiceGate::refused('balanceTransfer', $id_customer, (string) $phoneTarget);
+            return false;
+        }
         if (Balance::min($id_customer, $amount)) {
             return Balance::plusByPhone($phoneTarget, $amount);
         } else {

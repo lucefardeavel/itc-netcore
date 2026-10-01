@@ -199,8 +199,9 @@
     </script>
 {/literal}
 <script>
-setCookie('user_language', '{$user_language}', 365);
+setCookie('user_language', '{$user_language|escape:'javascript'}', 365);
 </script>
+{include file="nuxr-csrf.tpl"}
 </body>
 
 </html>

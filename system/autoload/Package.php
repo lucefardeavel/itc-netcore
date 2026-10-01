@@ -26,6 +26,13 @@ class Package
         $time = date("H:i:s");
         $inv = "";
         $isVoucher = false;
+        // WP2 / OD-11 temporary safety gate (until WP5B): a reseller-owned customer (manager_id set) never
+        // receives service through this legacy path, for any caller (web, API, cron, public, RADIUS, plugins).
+        $gateVoucherMode = trim((string) $gateway) == 'Voucher' && $id_customer == 0;
+        if ($gateVoucherMode ? \Reseller\Domain\ServiceGate::isBlockedUsername((string) $channel) : \Reseller\Domain\ServiceGate::isBlockedCustomerId($id_customer)) {
+            \Reseller\Domain\ServiceGate::refused('rechargeUser', $gateVoucherMode ? null : $id_customer, $gateVoucherMode ? (string) $channel : null);
+            return false;
+        }
         $c = [];
         if ($trx && $trx['status'] == 2) {
             // if its already paid, return it
@@ -236,22 +243,15 @@ class Package
                         new Exception(Lang::T("Devices Not Found"));
                     }
                 } catch (Throwable $e) {
+                    // WP2 / OD-14: sanitized server-side record; the operator notification carries a
+                    // summary and the reference only (no exception text, SQL, paths or trace)
+                    $nuxrRef = \Reseller\Security\ErrorReporter::report($e, 'package-activation');
                     Message::sendTelegram(
                         "System Error. When activate Package. You need to sync manually\n" .
                             "Router: $router_name\n" .
                             "Customer: u$c[username]\n" .
                             "Plan: p$p[name_plan]\n" .
-                            $e->getMessage() . "\n" .
-                            $e->getTraceAsString()
-                    );
-                } catch (Exception $e) {
-                    Message::sendTelegram(
-                        "System Error. When activate Package. You need to sync manually\n" .
-                            "Router: $router_name\n" .
-                            "Customer: u$c[username]\n" .
-                            "Plan: p$p[name_plan]\n" .
-                            $e->getMessage() . "\n" .
-                            $e->getTraceAsString()
+                            "ref=" . $nuxrRef
                     );
                 }
             }
@@ -352,22 +352,15 @@ class Package
                         new Exception(Lang::T("Devices Not Found"));
                     }
                 } catch (Throwable $e) {
+                    // WP2 / OD-14: sanitized server-side record; the operator notification carries a
+                    // summary and the reference only (no exception text, SQL, paths or trace)
+                    $nuxrRef = \Reseller\Security\ErrorReporter::report($e, 'package-activation');
                     Message::sendTelegram(
                         "System Error. When activate Package. You need to sync manually\n" .
                             "Router: $router_name\n" .
                             "Customer: u$c[username]\n" .
                             "Plan: p$p[name_plan]\n" .
-                            $e->getMessage() . "\n" .
-                            $e->getTraceAsString()
-                    );
-                } catch (Exception $e) {
-                    Message::sendTelegram(
-                        "System Error. When activate Package. You need to sync manually\n" .
-                            "Router: $router_name\n" .
-                            "Customer: u$c[username]\n" .
-                            "Plan: p$p[name_plan]\n" .
-                            $e->getMessage() . "\n" .
-                            $e->getTraceAsString()
+                            "ref=" . $nuxrRef
                     );
                 }
             }
@@ -478,6 +471,11 @@ class Package
     public static function rechargeBalance($customer, $plan, $gateway, $channel, $note = '')
     {
         global $admin, $config;
+        // WP2 / OD-11 safety gate: no legacy balance minting for reseller-owned customers (or unknown customers).
+        if (empty($customer['id']) || \Reseller\Domain\ServiceGate::isBlockedCustomerId($customer['id'])) {
+            \Reseller\Domain\ServiceGate::refused('rechargeBalance', $customer['id'] ?? null);
+            return false;
+        }
         // insert table transactions
         $t = ORM::for_table('tbl_transactions')->create();
         $t->invoice = $inv = "INV-" . Package::_raid();
@@ -536,6 +534,11 @@ class Package
     public static function rechargeCustomBalance($customer, $plan, $gateway, $channel, $note = '')
     {
         global $admin, $config;
+        // WP2 / OD-11 safety gate: no legacy balance minting for reseller-owned customers (or unknown customers).
+        if (empty($customer['id']) || \Reseller\Domain\ServiceGate::isBlockedCustomerId($customer['id'])) {
+            \Reseller\Domain\ServiceGate::refused('rechargeCustomBalance', $customer['id'] ?? null);
+            return false;
+        }
         $plan = ORM::for_table('tbl_payment_gateway')
             ->where('username', $customer['username'])
             ->where('routers', 'Custom Balance')

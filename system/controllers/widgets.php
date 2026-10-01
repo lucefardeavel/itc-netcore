@@ -13,6 +13,10 @@ $ui->assign('_admin', $admin);
 if (!in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
     r2(getUrl('dashboard'), 'e', Lang::T('You do not have permission to access this page'));
 }
+// WP2 / OD-12: widgets that execute PHP (html_php*) are code surfaces: SuperAdmin only
+$nuxrCanCode = \Reseller\Security\PermissionService::can(\Reseller\Security\ActorContext::current(), \Reseller\Security\Capability::SYSTEM_CODE);
+$nuxrCodeWidget = static fn($w) => is_string($w) && stripos($w, 'html_php') === 0;
+$nuxrWidgetName = static fn($w) => is_string($w) && preg_match('/^[A-Za-z0-9_]{1,64}$/', $w);
 
 $tipeUser = _req("user");
 if (empty($tipeUser)) {
@@ -39,6 +43,9 @@ if ($action == 'add') {
         $enabled = alphanumeric($_POST['enabled']);
         $title = _post('title');
         $widget = _post('widget');
+        if (!$nuxrWidgetName($widget) || ($nuxrCodeWidget($widget) && !$nuxrCanCode)) {
+            r2(getUrl('widgets&user=' . urlencode($tipeUser)), 'e', Lang::T('You do not have permission to access this page'));
+        }
 
         $d = ORM::for_table('tbl_widgets')->create();
         $d->orders = $orders;
@@ -79,6 +86,9 @@ if ($action == 'add') {
         $title = _post('title');
         $widget = _post('widget');
         $d = ORM::for_table('tbl_widgets')->find_one($id);
+        if (!$d || !$nuxrWidgetName($widget) || (($nuxrCodeWidget($widget) || $nuxrCodeWidget($d['widget'])) && !$nuxrCanCode)) {
+            r2(getUrl('widgets&user=' . urlencode($tipeUser)), 'e', Lang::T('You do not have permission to access this page'));
+        }
         $d->orders = $orders;
         $d->position = $position;
         $d->user = $tipeUser;
@@ -107,18 +117,14 @@ if ($action == 'add') {
 } else if ($action == 'delete') {
     $id = alphanumeric($routes['2']);
     $d = ORM::for_table('tbl_widgets')->find_one($id);
+    if ($d && $nuxrCodeWidget($d['widget']) && !$nuxrCanCode) {
+        r2(getUrl('widgets&user=' . urlencode($tipeUser)), 'e', Lang::T('You do not have permission to access this page'));
+    }
     if ($d) {
         $d->delete();
         r2(getUrl('widgets&user=' . $tipeUser), 's', 'Widget Deleted Successfully');
     }
     r2(getUrl('widgets&user=' . $tipeUser), 'e', 'Widget Not Found');
-} else if (!empty($action) && file_exists("system/widget/$action.php") && !empty($routes['2'])) {
-    require_once "system/widget/$action.php";
-    try {
-        (new $action)->run_command($routes['2']);
-    } catch (Throwable $e) {
-        //nothing to do
-    }
 } else if ($action == 'pos') {
     $jml = count($_POST['orders']);
     for ($i = 0; $i < $jml; $i++) {

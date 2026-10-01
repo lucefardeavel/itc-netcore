@@ -14,12 +14,23 @@
     <testsuites>
         <testsuite name="unit">
             <directory>Unit</directory>
+            <exclude>Unit/Wp2</exclude>
         </testsuite>
         <testsuite name="integration">
             <directory>Integration</directory>
+            <exclude>Integration/Wp2</exclude>
         </testsuite>
         <testsuite name="regression">
             <directory>Regression</directory>
+        </testsuite>
+        <testsuite name="wp2-unit">
+            <directory>Unit/Wp2</directory>
+        </testsuite>
+        <testsuite name="wp2-integration">
+            <directory>Integration/Wp2</directory>
+        </testsuite>
+        <testsuite name="wp2-http">
+            <directory>Http</directory>
         </testsuite>
     </testsuites>
 </phpunit>

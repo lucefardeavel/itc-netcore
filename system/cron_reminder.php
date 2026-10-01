@@ -13,6 +13,8 @@ $isCli = true;
 if (php_sapi_name() !== 'cli') {
     $isCli = false;
     echo "<pre>";
+    // WP2 / OD-14: no usernames, notification text or error details in a web response
+    \Reseller\Security\ErrorReporter::suppressWebOutput('cron');
 }
 
 $d = ORM::for_table('tbl_user_recharges')->where('status', 'on')->whereNotEqual('customer_id', '0')->find_many();
@@ -59,7 +61,8 @@ foreach ($d as $ds) {
                     $config['user_notification_reminder']
                 ) . "\n";
             } catch (Exception $e) {
-                sendTelegram("Cron Reminder failed to send 7-day reminder to " . $ds['username'] . " Error: " . $e->getMessage());
+                // WP2 / OD-14: summary + reference only
+                \Reseller\Security\ErrorReporter::report($e, 'cron-reminder-7-day');
             }
         } else if ($ds['expiration'] == $day3 && $config['notification_reminder_3day'] !== 'no') {
             try {
@@ -71,7 +74,8 @@ foreach ($d as $ds) {
                     $config['user_notification_reminder']
                 ) . "\n";
             } catch (Exception $e) {
-                sendTelegram("Cron Reminder failed to send 3-day reminder to " . $ds['username'] . " Error: " . $e->getMessage());
+                // WP2 / OD-14: summary + reference only
+                \Reseller\Security\ErrorReporter::report($e, 'cron-reminder-3-day');
             }
         } else if ($ds['expiration'] == $day1 && $config['notification_reminder_1day'] !== 'no') {
             try {
@@ -83,7 +87,8 @@ foreach ($d as $ds) {
                     $config['user_notification_reminder']
                 ) . "\n";
             } catch (Exception $e) {
-                sendTelegram("Cron Reminder failed to send 1-day reminder to " . $ds['username'] . " Error: " . $e->getMessage());
+                // WP2 / OD-14: summary + reference only
+                \Reseller\Security\ErrorReporter::report($e, 'cron-reminder-1-day');
             }
         }
     }

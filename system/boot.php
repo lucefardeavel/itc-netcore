@@ -8,9 +8,11 @@
 try {
     require_once 'init.php';
 } catch (Throwable $e) {
-    die($e->getMessage() . '<br><pre>' . $e->getTraceAsString() . '</pre>');
-} catch (Exception $e) {
-    die($e->getMessage() . '<br><pre>' . $e->getTraceAsString() . '</pre>');
+    // WP2 / OD-14: never show the exception, trace or paths; log server-side with a reference
+    $nuxrRef = class_exists('\Reseller\Security\ErrorReporter') ? \Reseller\Security\ErrorReporter::report($e, 'init') : bin2hex(random_bytes(6));
+    http_response_code(500);
+    header('Content-Type: text/html; charset=utf-8');
+    die('<!doctype html><html><head><meta charset="utf-8"><title>500 Internal Server Error</title></head><body><h1>Internal Server Error</h1><p>An internal error occurred. Please contact the administrator and quote reference ' . htmlspecialchars($nuxrRef) . '.</p></body></html>');
 }
 
 function _notify($msg, $type = 'e')
@@ -46,11 +48,13 @@ $ui->assign('_domain', str_replace('www.', '', parse_url(APP_URL, PHP_URL_HOST))
 $ui->assign('_url', APP_URL . '/?_route=');
 $ui->assign('_path', __DIR__);
 $ui->assign('_c', $config);
-$ui->assign('user_language', $_SESSION['user_language']);
+$ui->assign('user_language', $config['language']);
 $ui->assign('UPLOAD_PATH', str_replace($root_path, '',  $UPLOAD_PATH));
 $ui->assign('CACHE_PATH', str_replace($root_path, '',  $CACHE_PATH));
 $ui->assign('PAGES_PATH', str_replace($root_path, '',  $PAGES_PATH));
 $ui->assign('_system_menu', 'dashboard');
+// WP2 / OD-8: one stable CSRF token per session, available to every template (pre-auth forms too)
+$ui->assign('csrf_token', \Reseller\Security\CsrfPolicy::token());
 
 function _msglog($type, $msg)
 {
@@ -89,8 +93,43 @@ try {
         $_COOKIE['uid'] = $_GET['uid'];
     }
     $admin = Admin::_info();
+
+    // ---- WP2 security pipeline (before any controller code) ----
+    // 1. authoritative principal for this request
+    if ($admin) {
+        \Reseller\Security\ActorContext::setCurrent(\Reseller\Security\ActorContext::forStaff($admin->as_array(), 'WEB'));
+        $nuxr_must_change_password = Admin::hasDefaultCredential($admin);
+    } elseif (User::getID()) {
+        $nuxrCustomer = ORM::for_table('tbl_customers')->find_one(User::getID());
+        \Reseller\Security\ActorContext::setCurrent($nuxrCustomer
+            ? \Reseller\Security\ActorContext::forCustomer($nuxrCustomer->as_array(), 'WEB')
+            : \Reseller\Security\ActorContext::anonymous('WEB'));
+        unset($nuxrCustomer);
+    } else {
+        \Reseller\Security\ActorContext::setCurrent(\Reseller\Security\ActorContext::anonymous('WEB'));
+    }
+    $nuxrActor = \Reseller\Security\ActorContext::current();
+    // 2. plugin menu registry snapshot (OD-9) before the menus are discarded below
+    \Reseller\Security\PluginRegistry::capture($menu_registered);
+    // 3. central CSRF (every browser POST) and route authorization (unmapped = denied for all roles)
+    $nuxrGuardHandler = $handler;
+    $nuxrGuardRoutes = $routes;
+    if ($handler === 'default') {
+        // default.php re-includes dashboard / home / login: authorize what it will actually run
+        $nuxrGuardHandler = Admin::getID() ? 'dashboard' : (User::getID() ? 'home' : 'login');
+        $nuxrGuardRoutes = [$nuxrGuardHandler];
+    }
+    if (preg_match('/^[a-z0-9_]{1,64}$/', $nuxrGuardHandler)) {
+        \Reseller\Security\CsrfPolicy::enforceWeb($nuxrGuardHandler, $_SERVER['REQUEST_METHOD'] ?? 'GET');
+    }
     $sys_render = $root_path . File::pathFixer('system/controllers/' . $handler . '.php');
-    if (file_exists($sys_render)) {
+    if (preg_match('/^[a-z0-9_]{1,64}$/', $handler) && file_exists($sys_render)) {
+        \Reseller\Security\RouteGuard::authorize($nuxrActor, $nuxrGuardHandler, $nuxrGuardRoutes, $_GET, $_SERVER['REQUEST_METHOD'] ?? 'GET', false);
+        $ui->assign('_can', \Reseller\Security\PermissionService::flags($nuxrActor));
+        if ($nuxrActor->isGlobalAdmin() && !\Reseller\Domain\SchemaReadiness::isReady()) {
+            $ui->assign('nuxr_schema_not_ready', true);
+        }
+        unset($nuxrGuardHandler, $nuxrGuardRoutes);
         $menus = array();
         // "name" => $name,
         // "admin" => $admin,
@@ -99,7 +138,9 @@ try {
         $ui->assign('_system_menu', $routes[0]);
         foreach ($menu_registered as $menu) {
             if ($menu['admin'] && _admin(false)) {
-                if (count($menu['auth']) == 0 || in_array($admin['user_type'], $menu['auth'])) {
+                // WP2 / OD-9: an empty auth list means SuperAdmin/Admin only (same rule as dispatch)
+                $menuRoles = count($menu['auth']) == 0 ? ['SuperAdmin', 'Admin'] : $menu['auth'];
+                if (in_array($admin['user_type'], $menuRoles)) {
                     $menus[$menu['position']] .= '<li' . (($routes[1] == $menu['function']) ? ' class="active"' : '') . '><a href="' . getUrl('plugin/' . $menu['function']) . '">';
                     if (!empty($menu['icon'])) {
                         $menus[$menu['position']] .= '<i class="' . $menu['icon'] . '"></i>';
@@ -139,31 +180,23 @@ try {
         }
     }
 } catch (Throwable $e) {
-    Message::sendTelegram(
-        "Sistem Error.\n" .
-            $e->getMessage() . "\n" .
-            $e->getTraceAsString()
-    );
-    if (empty($_SESSION['aid'])) {
-        $ui->display('customer/error.tpl');
-        die();
+    // WP2 / OD-14: no role (SuperAdmin included) sees the exception text, SQL, paths or trace.
+    // Details go to the sanitized server log; Telegram receives only a summary with the reference.
+    $nuxrRef = \Reseller\Security\ErrorReporter::report($e, 'web');
+    if (!headers_sent()) {
+        http_response_code(500);
     }
-    $ui->assign("error_message", $e->getMessage() . '<br><pre>' . $e->getTraceAsString() . '</pre>');
-    $ui->assign("error_title", "PHPNuxBill Crash");
-    $ui->display('admin/error.tpl');
-    die();
-} catch (Exception $e) {
-    Message::sendTelegram(
-        "Sistem Error.\n" .
-            $e->getMessage() . "\n" .
-            $e->getTraceAsString()
-    );
-    if (empty($_SESSION['aid'])) {
-        $ui->display('customer/error.tpl');
-        die();
+    try {
+        $ui->assign('error_title', Lang::T('Internal Error'));
+        $ui->assign('error_message', \Reseller\Security\ErrorReporter::publicMessage($nuxrRef));
+        $ui->assign('error_ref', $nuxrRef);
+        if (empty($_SESSION['aid'])) {
+            $ui->display('customer/error.tpl');
+            die();
+        }
+        $ui->display('admin/error.tpl');
+    } catch (Throwable $e2) {
+        echo htmlspecialchars(\Reseller\Security\ErrorReporter::publicMessage($nuxrRef));
     }
-    $ui->assign("error_message", $e->getMessage() . '<br><pre>' . $e->getTraceAsString() . '</pre>');
-    $ui->assign("error_title", "PHPNuxBill Crash");
-    $ui->display('admin/error.tpl');
     die();
 }

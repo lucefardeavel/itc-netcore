@@ -259,11 +259,8 @@ switch ($action) {
     case 'by-date':
     case 'activation':
         $q = (_post('q') ? _post('q') : _get('q'));
-        $keep = _post('keep');
-        if (!empty($keep)) {
-            ORM::raw_execute("DELETE FROM tbl_transactions WHERE date < UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL $keep DAY))");
-            r2(getUrl('logs/list/'), 's', "Delete logs older than $keep days");
-        }
+        // WP2 / SEC-12: the raw-SQL transaction "retention" delete is removed — financial history is
+        // never deleted from the web UI (POST keep is ignored)
         if ($q != '') {
             $query = ORM::for_table('tbl_transactions')->where_like('invoice', '%' . $q . '%')->order_by_desc('id');
             $d = Paginator::findMany($query, ['q' => $q]);
