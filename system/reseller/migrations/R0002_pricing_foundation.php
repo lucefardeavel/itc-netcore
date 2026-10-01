@@ -9,8 +9,15 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *    A plan without a row is not resellable (fail closed, enforced from WP3B).
  *    Current rows carry actor/timestamp audit; history is preserved by activation snapshots (Q4).
  *  - tbl_manager_plan_prices: per-manager wholesale override (set by parent/Admin), optional
- *    retail override (set by the manager) and availability override. Inheritance, D023 and
- *    "retail >= own wholesale" are service rules (WP3B), not database constraints.
+ *    retail override (set by the manager) and optional availability override. No row = no
+ *    manager-specific configuration. Each override is independent and NULL = inherit; every
+ *    explicit override records who set it and when:
+ *      is_enabled NULL = inherit (no availability override; audit fields must be NULL)
+ *      is_enabled 0    = explicitly disabled           } availability_set_by and
+ *      is_enabled 1    = explicitly enabled, still      } availability_set_at required
+ *                        subject to ancestor/global restrictions (WP3B)
+ *    Inheritance, ancestor-disable, D023 and "retail >= own wholesale" are service rules (WP3B),
+ *    not database constraints.
  * Money: DECIMAL(18,2). Timestamps: DATETIME(6), UTC, always written by the service.
  */
 
@@ -54,7 +61,9 @@ CREATE TABLE `tbl_manager_plan_prices` (
   `retail_price` DECIMAL(18,2) NULL COMMENT 'manager customer-facing price; NULL = legacy default retail',
   `retail_set_by` INT UNSIGNED NULL COMMENT 'tbl_users.id',
   `retail_set_at` DATETIME(6) NULL COMMENT 'UTC',
-  `is_enabled` TINYINT(1) NOT NULL DEFAULT 1,
+  `is_enabled` TINYINT(1) NULL DEFAULT NULL COMMENT 'availability override: NULL = inherit, 0 = disabled, 1 = enabled (subject to ancestor/global restrictions)',
+  `availability_set_by` INT UNSIGNED NULL COMMENT 'tbl_users.id',
+  `availability_set_at` DATETIME(6) NULL COMMENT 'UTC',
   `created_at` DATETIME(6) NOT NULL COMMENT 'UTC',
   `updated_at` DATETIME(6) NOT NULL COMMENT 'UTC',
   PRIMARY KEY (`id`),
@@ -62,13 +71,16 @@ CREATE TABLE `tbl_manager_plan_prices` (
   KEY `ix_mpp_plan` (`plan_id`),
   KEY `ix_mpp_wholesale_set_by` (`wholesale_set_by`),
   KEY `ix_mpp_retail_set_by` (`retail_set_by`),
+  KEY `ix_mpp_availability_set_by` (`availability_set_by`),
   CONSTRAINT `fk_mpp_manager` FOREIGN KEY (`manager_id`) REFERENCES `tbl_users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_mpp_plan` FOREIGN KEY (`plan_id`) REFERENCES `tbl_plans` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_mpp_wholesale_set_by` FOREIGN KEY (`wholesale_set_by`) REFERENCES `tbl_users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_mpp_retail_set_by` FOREIGN KEY (`retail_set_by`) REFERENCES `tbl_users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_mpp_availability_set_by` FOREIGN KEY (`availability_set_by`) REFERENCES `tbl_users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `ck_mpp_wholesale_nonneg` CHECK (`wholesale_cost` IS NULL OR `wholesale_cost` >= 0),
   CONSTRAINT `ck_mpp_retail_nonneg` CHECK (`retail_price` IS NULL OR `retail_price` >= 0),
-  CONSTRAINT `ck_mpp_enabled_bool` CHECK (`is_enabled` IN (0, 1)),
+  CONSTRAINT `ck_mpp_enabled_bool` CHECK (`is_enabled` IS NULL OR `is_enabled` IN (0, 1)),
+  CONSTRAINT `ck_mpp_availability_audit` CHECK ((`is_enabled` IS NULL AND `availability_set_by` IS NULL AND `availability_set_at` IS NULL) OR (`is_enabled` IS NOT NULL AND `availability_set_by` IS NOT NULL AND `availability_set_at` IS NOT NULL)),
   CONSTRAINT `ck_mpp_wholesale_audit` CHECK (`wholesale_cost` IS NULL OR (`wholesale_set_by` IS NOT NULL AND `wholesale_set_at` IS NOT NULL)),
   CONSTRAINT `ck_mpp_retail_audit` CHECK (`retail_price` IS NULL OR (`retail_set_by` IS NOT NULL AND `retail_set_at` IS NOT NULL))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Per-manager plan pricing overrides (WP1 foundation)'
@@ -118,11 +130,14 @@ SQL,
                     'retail_price' => 'decimal(18,2) null',
                     'retail_set_by' => 'int unsigned null',
                     'retail_set_at' => 'datetime(6) null',
-                    'is_enabled' => "tinyint not null default '1'",
+                    'is_enabled' => 'tinyint null',
+                    'availability_set_by' => 'int unsigned null',
+                    'availability_set_at' => 'datetime(6) null',
                     'created_at' => 'datetime(6) not null',
                     'updated_at' => 'datetime(6) not null',
                 ],
                 'indexes' => [
+                    'INDEX ix_mpp_availability_set_by (availability_set_by)',
                     'INDEX ix_mpp_plan (plan_id)',
                     'INDEX ix_mpp_retail_set_by (retail_set_by)',
                     'INDEX ix_mpp_wholesale_set_by (wholesale_set_by)',
@@ -130,12 +145,13 @@ SQL,
                     'UNIQUE uq_mpp_manager_plan (manager_id,plan_id)',
                 ],
                 'foreign_keys' => [
+                    'fk_mpp_availability_set_by (availability_set_by) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_mpp_manager (manager_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_mpp_plan (plan_id) REFERENCES tbl_plans (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_mpp_retail_set_by (retail_set_by) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_mpp_wholesale_set_by (wholesale_set_by) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                 ],
-                'checks' => ['ck_mpp_enabled_bool', 'ck_mpp_retail_audit', 'ck_mpp_retail_nonneg', 'ck_mpp_wholesale_audit', 'ck_mpp_wholesale_nonneg'],
+                'checks' => ['ck_mpp_availability_audit', 'ck_mpp_enabled_bool', 'ck_mpp_retail_audit', 'ck_mpp_retail_nonneg', 'ck_mpp_wholesale_audit', 'ck_mpp_wholesale_nonneg'],
             ],
         ],
         'table_parts' => [],

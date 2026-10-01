@@ -17,6 +17,14 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *   CREATED. Provisioning SUCCESS / FAILED / UNKNOWN is optional data on the relevant event.
  *   Transition validity is ActivationService logic (WP5A); the schema can record any transition.
  *
+ * Actor identity (both tables): actor_type says who initiated the operation / event.
+ *   STAFF    requires actor_user_id     (tbl_users.id, INT UNSIGNED)
+ *   CUSTOMER requires actor_customer_id (tbl_customers.id, signed INT)
+ *   SYSTEM / CRON may carry neither; API carries no identity rule yet (WP2 authorization model).
+ * actor_customer_id is the INITIATING customer and is independent of the TARGET customer_id:
+ * a customer-originated gift / self-service purchase for another customer (WP0 entrypoint
+ * inventory, order.php send) is customer A acting on customer B.
+ *
  * JSON portability: snapshots/metadata are LONGTEXT + named CHECK (... IS NULL OR JSON_VALID(...)).
  * MariaDB maps the JSON type to LONGTEXT while MySQL has a native JSON type; the portable form is
  * reported identically by both engines, so no false schema drift.
@@ -37,8 +45,9 @@ CREATE TABLE `tbl_reseller_activations` (
   `external_reference` VARCHAR(512) NULL COMMENT 'e.g. payment gateway transaction id',
   `manager_id` INT UNSIGNED NOT NULL COMMENT 'commercial owner snapshot at creation (tbl_users.id)',
   `actor_type` ENUM({$actors}) NOT NULL,
-  `actor_user_id` INT UNSIGNED NULL COMMENT 'tbl_users.id; NULL for customer/system/cron',
-  `customer_id` INT NOT NULL COMMENT 'tbl_customers.id',
+  `actor_user_id` INT UNSIGNED NULL COMMENT 'tbl_users.id; required for STAFF',
+  `actor_customer_id` INT NULL COMMENT 'tbl_customers.id of the initiating customer; required for CUSTOMER; may differ from customer_id',
+  `customer_id` INT NOT NULL COMMENT 'tbl_customers.id (target customer)',
   `plan_id` INT NOT NULL COMMENT 'tbl_plans.id (target plan)',
   `previous_plan_id` INT NULL COMMENT 'tbl_plans.id (CHANGE_PLAN/REACTIVATE)',
   `wholesale_cost` DECIMAL(18,2) NULL COMMENT 'snapshot: leaf manager wholesale debit',
@@ -63,9 +72,11 @@ CREATE TABLE `tbl_reseller_activations` (
   KEY `ix_act_plan` (`plan_id`),
   KEY `ix_act_previous_plan` (`previous_plan_id`),
   KEY `ix_act_actor` (`actor_user_id`),
+  KEY `ix_act_actor_customer` (`actor_customer_id`),
   KEY `ix_act_legacy_trx` (`legacy_transaction_id`),
   CONSTRAINT `fk_act_manager` FOREIGN KEY (`manager_id`) REFERENCES `tbl_users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_act_actor` FOREIGN KEY (`actor_user_id`) REFERENCES `tbl_users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_act_actor_customer` FOREIGN KEY (`actor_customer_id`) REFERENCES `tbl_customers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_act_customer` FOREIGN KEY (`customer_id`) REFERENCES `tbl_customers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_act_plan` FOREIGN KEY (`plan_id`) REFERENCES `tbl_plans` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_act_previous_plan` FOREIGN KEY (`previous_plan_id`) REFERENCES `tbl_plans` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -75,7 +86,8 @@ CREATE TABLE `tbl_reseller_activations` (
   CONSTRAINT `ck_act_plan_snapshot_json` CHECK (`plan_snapshot` IS NULL OR JSON_VALID(`plan_snapshot`)),
   CONSTRAINT `ck_act_pricing_snapshot_json` CHECK (`pricing_chain_snapshot` IS NULL OR JSON_VALID(`pricing_chain_snapshot`)),
   CONSTRAINT `ck_act_change_plan_previous` CHECK (`action` <> 'CHANGE_PLAN' OR `previous_plan_id` IS NOT NULL),
-  CONSTRAINT `ck_act_staff_actor` CHECK (`actor_type` <> 'STAFF' OR `actor_user_id` IS NOT NULL)
+  CONSTRAINT `ck_act_staff_actor` CHECK (`actor_type` <> 'STAFF' OR `actor_user_id` IS NOT NULL),
+  CONSTRAINT `ck_act_customer_actor` CHECK (`actor_type` <> 'CUSTOMER' OR `actor_customer_id` IS NOT NULL)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Authoritative reseller activations (WP1 foundation)'
 SQL;
 
@@ -91,17 +103,21 @@ CREATE TABLE `tbl_reseller_activation_events` (
   `error_code` VARCHAR(64) NULL,
   `error_message` VARCHAR(1000) NULL COMMENT 'sanitized',
   `actor_type` ENUM({$actors}) NOT NULL,
-  `actor_user_id` INT UNSIGNED NULL COMMENT 'tbl_users.id',
+  `actor_user_id` INT UNSIGNED NULL COMMENT 'tbl_users.id; required for STAFF',
+  `actor_customer_id` INT NULL COMMENT 'tbl_customers.id of the initiating customer; required for CUSTOMER',
   `metadata` LONGTEXT NULL COMMENT 'JSON',
   `created_at` DATETIME(6) NOT NULL COMMENT 'UTC',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_evt_activation_seq` (`activation_id`, `sequence_no`),
   KEY `ix_evt_actor` (`actor_user_id`),
+  KEY `ix_evt_actor_customer` (`actor_customer_id`),
   CONSTRAINT `fk_evt_activation` FOREIGN KEY (`activation_id`) REFERENCES `tbl_reseller_activations` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_evt_actor` FOREIGN KEY (`actor_user_id`) REFERENCES `tbl_users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_evt_actor_customer` FOREIGN KEY (`actor_customer_id`) REFERENCES `tbl_customers` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `ck_evt_initial` CHECK (`from_state` IS NOT NULL OR `to_state` = 'CREATED'),
   CONSTRAINT `ck_evt_metadata_json` CHECK (`metadata` IS NULL OR JSON_VALID(`metadata`)),
-  CONSTRAINT `ck_evt_staff_actor` CHECK (`actor_type` <> 'STAFF' OR `actor_user_id` IS NOT NULL)
+  CONSTRAINT `ck_evt_staff_actor` CHECK (`actor_type` <> 'STAFF' OR `actor_user_id` IS NOT NULL),
+  CONSTRAINT `ck_evt_customer_actor` CHECK (`actor_type` <> 'CUSTOMER' OR `actor_customer_id` IS NOT NULL)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Append-only activation state-transition timeline (WP1 foundation)'
 SQL;
 
@@ -133,6 +149,7 @@ return [
                     'manager_id' => 'int unsigned not null',
                     'actor_type' => "enum({$actors}){$c} not null",
                     'actor_user_id' => 'int unsigned null',
+                    'actor_customer_id' => 'int null',
                     'customer_id' => 'int not null',
                     'plan_id' => 'int not null',
                     'previous_plan_id' => 'int null',
@@ -152,6 +169,7 @@ return [
                 ],
                 'indexes' => [
                     'INDEX ix_act_actor (actor_user_id)',
+                    'INDEX ix_act_actor_customer (actor_customer_id)',
                     'INDEX ix_act_customer_created (customer_id,created_at)',
                     'INDEX ix_act_legacy_trx (legacy_transaction_id)',
                     'INDEX ix_act_manager_created (manager_id,created_at)',
@@ -164,13 +182,14 @@ return [
                 ],
                 'foreign_keys' => [
                     'fk_act_actor (actor_user_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
+                    'fk_act_actor_customer (actor_customer_id) REFERENCES tbl_customers (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_act_customer (customer_id) REFERENCES tbl_customers (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_act_manager (manager_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_act_plan (plan_id) REFERENCES tbl_plans (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_act_previous_plan (previous_plan_id) REFERENCES tbl_plans (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                 ],
                 'checks' => [
-                    'ck_act_change_plan_previous', 'ck_act_plan_snapshot_json', 'ck_act_pricing_snapshot_json',
+                    'ck_act_change_plan_previous', 'ck_act_customer_actor', 'ck_act_plan_snapshot_json', 'ck_act_pricing_snapshot_json',
                     'ck_act_retail_nonneg', 'ck_act_settlement_nonneg', 'ck_act_staff_actor', 'ck_act_wholesale_nonneg',
                 ],
             ],
@@ -189,19 +208,22 @@ return [
                     'error_message' => "varchar(1000){$c} null",
                     'actor_type' => "enum({$actors}){$c} not null",
                     'actor_user_id' => 'int unsigned null',
+                    'actor_customer_id' => 'int null',
                     'metadata' => "longtext{$c} null",
                     'created_at' => 'datetime(6) not null',
                 ],
                 'indexes' => [
                     'INDEX ix_evt_actor (actor_user_id)',
+                    'INDEX ix_evt_actor_customer (actor_customer_id)',
                     'PRIMARY KEY (id)',
                     'UNIQUE uq_evt_activation_seq (activation_id,sequence_no)',
                 ],
                 'foreign_keys' => [
                     'fk_evt_activation (activation_id) REFERENCES tbl_reseller_activations (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                     'fk_evt_actor (actor_user_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
+                    'fk_evt_actor_customer (actor_customer_id) REFERENCES tbl_customers (id) ON DELETE RESTRICT ON UPDATE RESTRICT',
                 ],
-                'checks' => ['ck_evt_initial', 'ck_evt_metadata_json', 'ck_evt_staff_actor'],
+                'checks' => ['ck_evt_customer_actor', 'ck_evt_initial', 'ck_evt_metadata_json', 'ck_evt_staff_actor'],
             ],
         ],
         'table_parts' => [],

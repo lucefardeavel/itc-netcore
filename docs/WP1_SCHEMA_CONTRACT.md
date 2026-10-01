@@ -19,6 +19,8 @@ Runner and operations: [`system/reseller/README.md`](../system/reseller/README.m
 | C12 legacy price storage | `tbl_plans.price` / `price_old`, `tbl_transactions.price`, `tbl_payment_gateway.price` unchanged (definition and data verified by tests) |
 | Wholesale base cost | explicit new table `tbl_reseller_plan_base_costs` (D009; `tbl_plans.price` not repurposed) |
 | Q4 base-cost history | no history table; current rows carry `created_by/at` + `updated_by/at`; activation snapshots preserve historical pricing (WP5A) |
+| Manager plan availability (owner WP1 review, fix 1) | `tbl_manager_plan_prices.is_enabled` is an **optional** override: `NULL` = inherit (no override), `0` = explicitly disabled, `1` = explicitly enabled (still subject to ancestor/global restrictions, WP3B). An explicit `0`/`1` requires `availability_set_by` (FK `tbl_users.id`, RESTRICT) and `availability_set_at`; `NULL` requires both to be `NULL` (`ck_mpp_enabled_bool`, `ck_mpp_availability_audit`). No row = no manager-specific configuration; a pricing-only row inherits availability. Every override (wholesale, retail, availability) carries its own operator + UTC time. No pricing logic in WP1 |
+| Activation actor identity (owner WP1 review, fix 2) | `actor_customer_id INT NULL` (signed, FK `tbl_customers.id`, RESTRICT) on `tbl_reseller_activations` and `tbl_reseller_activation_events`. `STAFF` requires `actor_user_id`; `CUSTOMER` requires `actor_customer_id`; `SYSTEM` / `CRON` may carry neither; `API` gets no identity rule before the WP2 authorization model. The **initiating** customer is independent of the **target** `customer_id` (customer A gifting / buying for customer B, WP0 entrypoint inventory) |
 | Q5 immutability | no triggers in WP1; enforcement belongs to WP3A (financial history) and WP5A (activation history) |
 | C8 / D027 vouchers | no voucher-commerce schema; `tbl_voucher` untouched |
 | Timestamps | new-domain timestamps are `DATETIME(6)` holding **UTC**, always written by the service (no `DEFAULT CURRENT_TIMESTAMP`, because legacy sessions use the server time zone) |
@@ -74,6 +76,8 @@ MariaDB implements `JSON` as an alias of `LONGTEXT` with an automatic CHECK, whi
 | provider funding without fake root wallet | `ck_trf_shape`: provider funding has no source wallet; mandatory `reason`, `operator_id` |
 | provider settlement auditable, not a wallet credit | `tbl_reseller_activations.provider_settlement_amount`; no ledger row |
 | activation idempotency / state machine (WP5A) | `uq_act_idempotency`, `uq_act_reference`; 4 actions; 15 frozen states; `channel` for WP5B entrypoint binding |
+| plan availability inheritance / ancestor disable (WP3B) | `is_enabled` NULL / 0 / 1 with mandatory operator + time for explicit overrides |
+| actor attribution per operation and per event (WP2 / WP5A / WP5B) | `ck_act_staff_actor`, `ck_act_customer_actor`, `ck_evt_staff_actor`, `ck_evt_customer_actor`; initiator (`actor_customer_id`) separate from target (`customer_id`) |
 | state-transition timeline (WP5A) | `tbl_reseller_activation_events`: `(activation_id, sequence_no)` unique; `from_state` NULL only into CREATED; all 15×15 transitions representable (tested) |
 
 ## 7. Column-level contract (generated from the migration definitions)
@@ -103,7 +107,7 @@ Engine `innodb`, collation `utf8mb4_general_ci`.
 
 ### R0002_pricing_foundation
 
-Provider wholesale base cost per plan + per-manager wholesale/retail/availability overrides. Checksum (sha256 of file): `4f95b48d931bd3ee237ee43b060e2c3d4d8bae923c939c0b0796c668a2ac85c2`. Steps: 2 up / 2 down.
+Provider wholesale base cost per plan + per-manager wholesale/retail/availability overrides. Checksum (sha256 of file): `dc674b5f892ad00d9f518a1d97a4348be4b30dff91e0cfb192df6badfb6dcac6`. Steps: 2 up / 2 down.
 
 #### `tbl_reseller_plan_base_costs`
 
@@ -143,23 +147,26 @@ Engine `innodb`, collation `utf8mb4_general_ci`.
 | `retail_price` | `decimal(18,2) null` |
 | `retail_set_by` | `int unsigned null` |
 | `retail_set_at` | `datetime(6) null` |
-| `is_enabled` | `tinyint not null default '1'` |
+| `is_enabled` | `tinyint null` |
+| `availability_set_by` | `int unsigned null` |
+| `availability_set_at` | `datetime(6) null` |
 | `created_at` | `datetime(6) not null` |
 | `updated_at` | `datetime(6) not null` |
 
-**Keys:** `INDEX ix_mpp_plan (plan_id)`; `INDEX ix_mpp_retail_set_by (retail_set_by)`; `INDEX ix_mpp_wholesale_set_by (wholesale_set_by)`; `PRIMARY KEY (id)`; `UNIQUE uq_mpp_manager_plan (manager_id,plan_id)`
+**Keys:** `INDEX ix_mpp_availability_set_by (availability_set_by)`; `INDEX ix_mpp_plan (plan_id)`; `INDEX ix_mpp_retail_set_by (retail_set_by)`; `INDEX ix_mpp_wholesale_set_by (wholesale_set_by)`; `PRIMARY KEY (id)`; `UNIQUE uq_mpp_manager_plan (manager_id,plan_id)`
 
 **Foreign keys:**
+- `fk_mpp_availability_set_by (availability_set_by) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_mpp_manager (manager_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_mpp_plan (plan_id) REFERENCES tbl_plans (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_mpp_retail_set_by (retail_set_by) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_mpp_wholesale_set_by (wholesale_set_by) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 
-**CHECK constraints:** `ck_mpp_enabled_bool`, `ck_mpp_retail_audit`, `ck_mpp_retail_nonneg`, `ck_mpp_wholesale_audit`, `ck_mpp_wholesale_nonneg`
+**CHECK constraints:** `ck_mpp_availability_audit`, `ck_mpp_enabled_bool`, `ck_mpp_retail_audit`, `ck_mpp_retail_nonneg`, `ck_mpp_wholesale_audit`, `ck_mpp_wholesale_nonneg`
 
 ### R0003_activation_foundation
 
-Reseller activations (frozen state machine, idempotency, snapshots) + append-only transition timeline. Checksum (sha256 of file): `b79e0e0eb01c0c091228b49a42fdaa3ca813d904cfa2c1875adee9d0373e45bc`. Steps: 2 up / 2 down.
+Reseller activations (frozen state machine, idempotency, snapshots) + append-only transition timeline. Checksum (sha256 of file): `60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd`. Steps: 2 up / 2 down.
 
 #### `tbl_reseller_activations`
 
@@ -177,6 +184,7 @@ Engine `innodb`, collation `utf8mb4_general_ci`.
 | `manager_id` | `int unsigned not null` |
 | `actor_type` | `enum('STAFF','CUSTOMER','SYSTEM','CRON','API') collate utf8mb4_general_ci not null` |
 | `actor_user_id` | `int unsigned null` |
+| `actor_customer_id` | `int null` |
 | `customer_id` | `int not null` |
 | `plan_id` | `int not null` |
 | `previous_plan_id` | `int null` |
@@ -194,16 +202,17 @@ Engine `innodb`, collation `utf8mb4_general_ci`.
 | `updated_at` | `datetime(6) not null` |
 | `completed_at` | `datetime(6) null` |
 
-**Keys:** `INDEX ix_act_actor (actor_user_id)`; `INDEX ix_act_customer_created (customer_id,created_at)`; `INDEX ix_act_legacy_trx (legacy_transaction_id)`; `INDEX ix_act_manager_created (manager_id,created_at)`; `INDEX ix_act_plan (plan_id)`; `INDEX ix_act_previous_plan (previous_plan_id)`; `INDEX ix_act_status_updated (status,updated_at)`; `PRIMARY KEY (id)`; `UNIQUE uq_act_idempotency (idempotency_key)`; `UNIQUE uq_act_reference (reference)`
+**Keys:** `INDEX ix_act_actor (actor_user_id)`; `INDEX ix_act_actor_customer (actor_customer_id)`; `INDEX ix_act_customer_created (customer_id,created_at)`; `INDEX ix_act_legacy_trx (legacy_transaction_id)`; `INDEX ix_act_manager_created (manager_id,created_at)`; `INDEX ix_act_plan (plan_id)`; `INDEX ix_act_previous_plan (previous_plan_id)`; `INDEX ix_act_status_updated (status,updated_at)`; `PRIMARY KEY (id)`; `UNIQUE uq_act_idempotency (idempotency_key)`; `UNIQUE uq_act_reference (reference)`
 
 **Foreign keys:**
 - `fk_act_actor (actor_user_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
+- `fk_act_actor_customer (actor_customer_id) REFERENCES tbl_customers (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_act_customer (customer_id) REFERENCES tbl_customers (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_act_manager (manager_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_act_plan (plan_id) REFERENCES tbl_plans (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_act_previous_plan (previous_plan_id) REFERENCES tbl_plans (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 
-**CHECK constraints:** `ck_act_change_plan_previous`, `ck_act_plan_snapshot_json`, `ck_act_pricing_snapshot_json`, `ck_act_retail_nonneg`, `ck_act_settlement_nonneg`, `ck_act_staff_actor`, `ck_act_wholesale_nonneg`
+**CHECK constraints:** `ck_act_change_plan_previous`, `ck_act_customer_actor`, `ck_act_plan_snapshot_json`, `ck_act_pricing_snapshot_json`, `ck_act_retail_nonneg`, `ck_act_settlement_nonneg`, `ck_act_staff_actor`, `ck_act_wholesale_nonneg`
 
 #### `tbl_reseller_activation_events`
 
@@ -222,16 +231,18 @@ Engine `innodb`, collation `utf8mb4_general_ci`.
 | `error_message` | `varchar(1000) collate utf8mb4_general_ci null` |
 | `actor_type` | `enum('STAFF','CUSTOMER','SYSTEM','CRON','API') collate utf8mb4_general_ci not null` |
 | `actor_user_id` | `int unsigned null` |
+| `actor_customer_id` | `int null` |
 | `metadata` | `longtext collate utf8mb4_general_ci null` |
 | `created_at` | `datetime(6) not null` |
 
-**Keys:** `INDEX ix_evt_actor (actor_user_id)`; `PRIMARY KEY (id)`; `UNIQUE uq_evt_activation_seq (activation_id,sequence_no)`
+**Keys:** `INDEX ix_evt_actor (actor_user_id)`; `INDEX ix_evt_actor_customer (actor_customer_id)`; `PRIMARY KEY (id)`; `UNIQUE uq_evt_activation_seq (activation_id,sequence_no)`
 
 **Foreign keys:**
 - `fk_evt_activation (activation_id) REFERENCES tbl_reseller_activations (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 - `fk_evt_actor (actor_user_id) REFERENCES tbl_users (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
+- `fk_evt_actor_customer (actor_customer_id) REFERENCES tbl_customers (id) ON DELETE RESTRICT ON UPDATE RESTRICT`
 
-**CHECK constraints:** `ck_evt_initial`, `ck_evt_metadata_json`, `ck_evt_staff_actor`
+**CHECK constraints:** `ck_evt_customer_actor`, `ck_evt_initial`, `ck_evt_metadata_json`, `ck_evt_staff_actor`
 
 ### R0004_wallet_finance_foundation
 

@@ -38,6 +38,6 @@ The production `Dockerfile` is not used or changed.
 | integration | `RollbackTest` | full rollback per variant restores the pre-migration core fingerprint and every legacy table; history retained; forward after rollback; `--to` partial rollback; data guard |
 | integration | `PartialFailureTest` | injected step failure per variant → FAILED_PARTIAL, durable step journal, migrate blocked, status/verify report, rollback restores the recognised core, forward again; crash → APPLYING → ROLLBACK_REQUIRED; atomic customer ALTER failure; failed rollback resumed; postflight negative control |
 | integration | `DriftAndRegistryTest` | manual change to a project table; edited applied migration file; tampered registry; unknown registry id; lock; variant registry reproducibility |
-| integration | `ConstraintTest` | unique / CHECK / FK behaviour of every new table; every frozen activation state transition representable |
+| integration | `ConstraintTest` | unique / CHECK / FK behaviour of every new table; optional audited plan-availability override (NULL inherit / 0 / 1); customer actor identity on activations and events (initiator ≠ target); every frozen activation state transition representable |
 | integration | `CliOnlyTest` | HTTP requests to the runner, migrations, registry, tests and dev tools return 404 with no output and no DB connection; every new PHP file carries the guard |
 | regression | `AppRegressionTest` | legacy flows (customer create, Dummy-device recharge, user/plan delete, cron, HTTP boot) identical on an unmigrated vs a migrated V2 database |
