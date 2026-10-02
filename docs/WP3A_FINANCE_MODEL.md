@@ -138,7 +138,7 @@ Pricing and activation capabilities stay reserved. Reservation primitives have n
 | `setDebtLimit` | none (audited config change) | valid owner; decrease refused if `balance + new − ACTIVE < 0` |
 | `reverse` | `REVERSAL` `rev:{id}:debit/credit` with `reverses_entry_id` | Admin/SuperAdmin; at most once; original counterparties; current floor on debit legs |
 | `reserve` | none | activation row; `wholesale_cost` (if set) = amount; valid owner; AVAILABLE − amount ≥ 0 |
-| `commit` | `ACTIVATION_DEBIT` `res:{id}:commit` | exactly once; amount = reserved amount |
+| `commit` | `ACTIVATION_DEBIT` `res:{id}:commit` (+ WP3B commissions) | exactly once; amount = reserved amount |
 | `release` | none | ACTIVE → RELEASED; no value moves |
 
 **Shared rules:**
@@ -253,3 +253,20 @@ Binding follow-ups:
 - **WP4:** close SEC-01 (`radius.php` SQL injection) before any release or production acceptance.
 - **WP9:** re-test ledger tamper surfaces.
 - **WP10:** a least-privilege production runtime DB account, with no UPDATE/DELETE on immutable ledger/audit history where operationally feasible.
+
+## WP3B amendment (owner decisions F-1, F-2, F-6, F-7)
+
+WP3B extends two accepted primitives; everything else above is unchanged.
+
+- `LedgerService::postActivationSettlement` replaces `postActivationDebit` as the single activation financial posting
+  primitive: the leaf `ACTIVATION_DEBIT` (`res:{reservation}:commit`, unchanged) plus every positive intermediary
+  `COMMISSION_CREDIT` (`com:{activation}:m{manager}`), re-derived from the locked reservation and the activation's sealed
+  pricing snapshot, in one transaction. An activation without a snapshot (the WP3A fixture shape) posts the debit only.
+  SYSTEM / CRON actors may post both entry types. Provider settlement is never a ledger row.
+- `reserve` additionally checks a sealed snapshot (valid, equal to a fresh resolution, saleable, positive-margin
+  recipients already have a wallet with headroom). WP3B never creates a wallet (the closed policy of §4 is unchanged).
+- `commit` takes the canonical lock order (FK identity rows `LOCK IN SHARE MODE`, activation, one ascending wallet lock
+  of the leaf and the recipients, reservation), re-checks storage headroom and the leaf floor and posts atomically. A
+  failure of the settlement unit is a typed `SettlementFailure`; deadlock / lock-wait keep the retry of §8.
+
+See `docs/WP3B_PRICING_MODEL.md`.

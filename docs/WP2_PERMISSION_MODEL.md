@@ -143,15 +143,20 @@ Principal state rules (`PermissionService`):
 | `wallet.debt_limit` | G | G | — | — | — | yes | yes |
 | `wallet.adjust` | G | G | — | — | — | yes | yes |
 | `wallet.reverse` | G | G | — | — | — | yes | yes |
-| `pricing.base_cost` (reserved) | — | — | — | — | — |  |  |
-| `pricing.child_wholesale` (reserved) | — | — | — | — | — |  |  |
-| `pricing.own_retail` (reserved) | — | — | — | — | — |  |  |
+| `pricing.read` | G | G | T | — | — |  | yes |
+| `pricing.base_cost` | G | G | — | — | — | yes | yes |
+| `pricing.child_wholesale` | G | G | C | — | — | yes | yes |
+| `pricing.own_retail` | G | G | S | — | — | yes | yes |
+| `pricing.child_availability` | G | G | C | — | — | yes | yes |
 | `activation.create` (reserved) | — | — | — | — | — |  |  |
 | `activation.read` (reserved) | — | — | — | — | — |  |  |
 
 Reserved capabilities are defined now and never granted until the owning work package enables them.
 The seven finance capabilities (`wallet.*`, `ledger.read`) were enabled by WP3A (owner decisions P2/P3); they are enforced by
 `Reseller\Finance` services only — there is no finance route, API route or UI (P7). See `docs/WP3A_FINANCE_MODEL.md`.
+The five pricing capabilities were enabled by WP3B (owner decisions OD-3 / OD-4): Agents set wholesale and availability for
+direct children only (never themselves) and their own retail only; Admin/SuperAdmin manage every reseller. They are enforced by
+`Reseller\Finance\PricingService` only — there is no pricing route, API route or UI. See `docs/WP3B_PRICING_MODEL.md`.
 
 **Staff target rules** (`StaffService`, on top of the matrix):
 
