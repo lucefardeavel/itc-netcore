@@ -104,10 +104,12 @@ final class PricingSourceGuardTest extends TestCase
             }
         }
         $this->assertSame([
+            'system/autoload/Reseller/Activation/ActivationStore.php',
+            'system/autoload/Reseller/Activation/ReconciliationService.php',
             'system/autoload/Reseller/Domain/SchemaReadiness.php',
             self::FIN . 'LedgerService.php',
             self::FIN . 'ReservationService.php',
-        ], $refs, 'only the approved files reference the activation table (WP5A will add its ActivationService)');
+        ], $refs, 'only the approved files reference the activation table (WP5A owner decision A1: the activation store and reconciliation)');
         foreach (self::runtime() as $rel => $src) {
             if (preg_match_all('/UPDATE\s+`?tbl_reseller_activations`?\s+SET([^\'"]*)/i', $src, $m)) {
                 foreach ($m[1] as $set) {
@@ -168,7 +170,8 @@ final class PricingSourceGuardTest extends TestCase
     {
         $outside = [];
         foreach (self::runtime() as $rel => $src) {
-            if (str_starts_with($rel, self::FIN)) {
+            // WP5A (owner decision A1): the activation orchestration resolves prices for its sealed snapshot
+            if (str_starts_with($rel, self::FIN) || str_starts_with($rel, 'system/autoload/Reseller/Activation/')) {
                 continue;
             }
             if (preg_match('/\b(PricingService|PricingSnapshot|PricingLink|PricingResult|PricingReadModel|LegacyRetailPrice|SettlementFailure|PostedSettlement)\b/', $src)) {
@@ -248,8 +251,10 @@ final class PricingSourceGuardTest extends TestCase
                 $writers[] = $rel;
             }
         }
-        // ReservationService inserts reservations only; activations are inserted by WP5A (none yet)
-        $this->assertSame([self::FIN . 'PricingService.php'], $writers, 'the only runtime plan-reference writer (WP5A ActivationService must join under the same contract)');
+        // ReservationService inserts reservations only; activations are inserted by the WP5A activation store,
+        // under the tree lock (its own guard: tests/Unit/Wp5a/ActivationSourceGuardTest.php)
+        $this->assertSame(['system/autoload/Reseller/Activation/ActivationStore.php', self::FIN . 'PricingService.php'], $writers,
+            'the only runtime plan-reference writers (owner decision A1)');
         $src = self::runtime()[self::FIN . 'PricingService.php'];
         preg_match_all('/FinanceTx::run\(static function[^{]*\{.*?\n        \}, (true|false)\);/s', $src, $m);
         $this->assertSame(substr_count($src, 'FinanceTx::run('), count($m[1]), 'every pricing transaction is parsed');

@@ -17,7 +17,7 @@ use Reseller\Security\ActorContext;
 define('NUXR_RUNTIME', true);
 $root = dirname(__DIR__, 2);
 spl_autoload_register(static function (string $class) use ($root): void {
-    if (preg_match('/^Reseller\\\\(Security|Domain|Audit|Finance)\\\\[A-Za-z0-9]+$/', $class)) {
+    if (preg_match('/^Reseller\\\\(Security|Domain|Audit|Finance|Radius|Activation)\\\\[A-Za-z0-9]+$/', $class)) {
         $file = $root . '/system/autoload/' . str_replace('\\', '/', $class) . '.php';
         if (is_file($file)) {
             require_once $file;
@@ -32,6 +32,8 @@ $pdo = new PDO('mysql:host=' . getenv('WP1_DB_HOST') . ';charset=utf8mb4;dbname=
     PDO::ATTR_EMULATE_PREPARES => true,
 ]);
 ORM::set_db($pdo);
+ORM::set_db($pdo, 'radius'); // WP5A: the FreeRADIUS schema lives in the same test database
+ini_set('error_log', '/dev/null');
 
 $staff = static function (int $id) use ($pdo): ActorContext {
     $st = $pdo->prepare('SELECT * FROM tbl_users WHERE id = ?');
@@ -78,6 +80,11 @@ try {
         'set_retail' => PricingService::setRetail($staff($op['actor']), $op['manager'], $op['plan'], $op['price']),
         'set_availability' => PricingService::setChildAvailability($staff($op['actor']), $op['manager'], $op['plan'], $op['enabled']),
         'set_base' => PricingService::setBaseCost($staff($op['actor']), $op['plan'], $op['cost']),
+        // WP5A activation and the plan-delete race partner
+        'activate' => \Reseller\Activation\ActivationService::create($staff($op['actor']), $op['customer'], $op['plan'], $op['action'], $op['nonce']),
+        'plan_delete' => \Reseller\Domain\PlanGuard::deleteSerialized((int) $op['plan'], static function () use ($op): void {
+            ORM::for_table('tbl_plans')->find_one((int) $op['plan'])->delete();
+        }) ?? 'DELETED',
     };
     $out = ['ok' => true, 'result' => $r instanceof JsonSerializable ? $r->jsonSerialize() : $r];
 } catch (DomainError $e) {

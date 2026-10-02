@@ -60,10 +60,13 @@ final class FinanceCapabilityTest extends TestCase
         }
     }
 
-    /** WP3B activated the pricing capabilities (exact matrix: Wp3b/PricingCapabilityTest); activation stays reserved. */
+    /**
+     * WP3B activated the pricing capabilities (exact matrix: Wp3b/PricingCapabilityTest) and WP5A the activation
+     * capabilities (owner decision A5; exact matrix: Wp5a/ActivationCapabilityTest): nothing stays reserved.
+     */
     public function testPricingAndActivationStayReserved(): void
     {
-        $this->assertSame([C::ACTIVATION_CREATE, C::ACTIVATION_READ], C::RESERVED);
+        $this->assertSame([], C::RESERVED);
         foreach (RoleCapabilityMap::ROLES as $role) {
             foreach (C::RESERVED as $cap) {
                 $this->assertNull(RoleCapabilityMap::scope($role, $cap));

@@ -18,6 +18,7 @@
             <exclude>Unit/Wp3a</exclude>
             <exclude>Unit/Wp3b</exclude>
             <exclude>Unit/Wp4</exclude>
+            <exclude>Unit/Wp5a</exclude>
         </testsuite>
         <testsuite name="integration">
             <directory>Integration</directory>
@@ -25,6 +26,7 @@
             <exclude>Integration/Wp3a</exclude>
             <exclude>Integration/Wp3b</exclude>
             <exclude>Integration/Wp4</exclude>
+            <exclude>Integration/Wp5a</exclude>
         </testsuite>
         <testsuite name="regression">
             <directory>Regression</directory>
@@ -55,6 +57,12 @@
         </testsuite>
         <testsuite name="wp4-integration">
             <directory>Integration/Wp4</directory>
+        </testsuite>
+        <testsuite name="wp5a-unit">
+            <directory>Unit/Wp5a</directory>
+        </testsuite>
+        <testsuite name="wp5a-integration">
+            <directory>Integration/Wp5a</directory>
         </testsuite>
     </testsuites>
 </phpunit>

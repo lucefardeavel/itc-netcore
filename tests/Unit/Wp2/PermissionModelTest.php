@@ -41,6 +41,8 @@ final class PermissionModelTest extends TestCase
 
     public function testReservedFinanceCapabilitiesAreNeverGranted(): void
     {
+        // WP3B and WP5A (owner decision A5) enabled the last reserved capabilities; any future one stays ungranted
+        $this->assertSame([], C::RESERVED);
         foreach (RoleCapabilityMap::ROLES as $role) {
             foreach (C::RESERVED as $cap) {
                 $this->assertNull(RoleCapabilityMap::scope($role, $cap), "{$role} must not hold {$cap} in WP2");

@@ -35,7 +35,7 @@ final class PricingCapabilityTest extends TestCase
 
     public function testClassification(): void
     {
-        $this->assertSame([C::ACTIVATION_CREATE, C::ACTIVATION_READ], C::RESERVED, 'only activation stays reserved');
+        $this->assertSame([], C::RESERVED, 'activation was enabled by WP5A (owner decision A5); nothing stays reserved');
         foreach (self::PRICING as $cap) {
             $this->assertContains($cap, C::all());
             $this->assertContains($cap, C::SCHEMA_DEPENDENT, $cap);
