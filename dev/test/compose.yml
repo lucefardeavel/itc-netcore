@@ -28,6 +28,25 @@ services:
       timeout: 5s
       retries: 60
 
+  # WP4 (owner decision Q1): FreeRADIUS 3.2.8 with the project configuration, one per engine, pinned by digest.
+  freeradius-mariadb: &freeradius
+    image: freeradius/freeradius-server:3.2.8@sha256:af6fd34a5b7826b6245008732f43fbc0432eb23d23e5de7106371b2941e70a4b
+    environment:
+      WP1_DB_ROOT_PASSWORD: ${WP1_DB_ROOT_PASSWORD:?set by run-tests.sh}
+      NUXR_RADIUS_SECRET: ${NUXR_RADIUS_SECRET:?set by run-tests.sh}
+      NUXR_RADIUS_DB_HOST: mariadb
+    volumes:
+      - ../../install/freeradius:/nuxr/install:ro
+      - ./freeradius:/nuxr/test:ro
+    entrypoint: ["sh", "/nuxr/test/start.sh"]
+
+  freeradius-mysql:
+    <<: *freeradius
+    environment:
+      WP1_DB_ROOT_PASSWORD: ${WP1_DB_ROOT_PASSWORD:?set by run-tests.sh}
+      NUXR_RADIUS_SECRET: ${NUXR_RADIUS_SECRET:?set by run-tests.sh}
+      NUXR_RADIUS_DB_HOST: mysql
+
   php82:
     build:
       context: .
@@ -38,5 +57,6 @@ services:
       - ../..:/repo
     environment:
       WP1_DB_ROOT_PASSWORD: ${WP1_DB_ROOT_PASSWORD:?set by run-tests.sh}
+      NUXR_RADIUS_SECRET: ${NUXR_RADIUS_SECRET:?set by run-tests.sh}
     entrypoint: ["php"]
     profiles: ["runner"]

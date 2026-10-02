@@ -1,0 +1,8 @@
+# PHPNuxBill project dictionary (WP4, owner decision C16 / Q2 option a).
+# Include it from the local dictionary (/etc/freeradius/dictionary):  $INCLUDE dictionary.phpnuxbill
+#
+# Internal attribute (local-use range, never sent on the wire): start of the subscriber's current billing
+# period as a UNIX timestamp, written to radcheck by PHPNuxBill for plans with a time or data quota.
+# The nuxr_* counters (mods-available/nuxr_counters) count only accounting sessions started since then, so a
+# renewal starts a fresh quota without deleting accounting history.
+ATTRIBUTE	Nuxr-Period-Start		3101	integer

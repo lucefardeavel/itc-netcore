@@ -11,12 +11,14 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 export WP1_DB_ROOT_PASSWORD="${WP1_DB_ROOT_PASSWORD:-$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')}"
+# WP4: shared secret between the test runner and the test FreeRADIUS containers (throwaway)
+export NUXR_RADIUS_SECRET="${NUXR_RADIUS_SECRET:-$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')}"
 KEEP="${WP1_KEEP_CONTAINERS:-0}"
 
 cleanup() { if [ "$KEEP" != "1" ]; then docker compose down -v --remove-orphans >/dev/null 2>&1 || true; fi; }
 trap cleanup EXIT
 
-docker compose up -d mariadb mysql >/dev/null
+docker compose up -d mariadb mysql freeradius-mariadb freeradius-mysql >/dev/null
 for i in $(seq 1 120); do
   st="$(docker compose ps --format '{{.Service}}={{.Health}}' | tr '\n' ' ')"
   if [[ "$st" == *"mariadb=healthy"* && "$st" == *"mysql=healthy"* ]]; then break; fi

@@ -1,0 +1,38 @@
+# Development/test only: FreeRADIUS SQL module on the disposable test database (see start.sh).
+sql {
+	dialect = "mysql"
+	driver = "rlm_sql_${dialect}"
+	mysql {
+		warnings = auto
+	}
+	server = $ENV{NUXR_RADIUS_DB_HOST}
+	port = 3306
+	login = "root"
+	password = $ENV{WP1_DB_ROOT_PASSWORD}
+	radius_db = "nuxr_radius"
+	acct_table1 = "radacct"
+	acct_table2 = "radacct"
+	postauth_table = "radpostauth"
+	authcheck_table = "radcheck"
+	groupcheck_table = "radgroupcheck"
+	authreply_table = "radreply"
+	groupreply_table = "radgroupreply"
+	usergroup_table = "radusergroup"
+	read_groups = yes
+	read_profiles = yes
+	delete_stale_sessions = yes
+	read_clients = no
+	client_table = "nas"
+	pool {
+		start = 0
+		min = 0
+		max = 8
+		spare = 1
+		uses = 0
+		retry_delay = 1
+		lifetime = 0
+		idle_timeout = 30
+	}
+	group_attribute = "SQL-Group"
+	$INCLUDE ${modconfdir}/${.:name}/main/${dialect}/queries.conf
+}

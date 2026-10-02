@@ -1,0 +1,55 @@
+# -*- text -*-
+#
+#  Example "sql" module for PHPNuxBill (WP4). Copy to mods-available/sql, adjust the connection, and link it
+#  into mods-enabled/. The database is the PHPNuxBill RADIUS database ($radius_name in config.php; the
+#  installer uses the application database). Use a dedicated database account with the least privileges
+#  FreeRADIUS needs (SELECT on the policy tables and nas; INSERT / UPDATE on radacct).
+#
+
+sql {
+	dialect = "mysql"
+	driver = "rlm_sql_${dialect}"
+
+	mysql {
+		warnings = auto
+	}
+
+	server = "127.0.0.1"
+	port = 3306
+	login = "radius"
+	password = "change-me"
+	radius_db = "phpnuxbill"
+
+	acct_table1 = "radacct"
+	acct_table2 = "radacct"
+	postauth_table = "radpostauth"
+	authcheck_table = "radcheck"
+	groupcheck_table = "radgroupcheck"
+	authreply_table = "radreply"
+	groupreply_table = "radgroupreply"
+	usergroup_table = "radusergroup"
+
+	# plan rate rows live in radgroupreply (group plan_<id>)
+	read_groups = yes
+	read_profiles = yes
+	delete_stale_sessions = yes
+
+	# NAS clients from the PHPNuxBill "nas" table (RADIUS > NAS in the admin UI)
+	read_clients = yes
+	client_table = "nas"
+
+	pool {
+		start = 0
+		min = 0
+		max = 32
+		spare = 3
+		uses = 0
+		retry_delay = 30
+		lifetime = 0
+		idle_timeout = 60
+	}
+
+	group_attribute = "SQL-Group"
+
+	$INCLUDE ${modconfdir}/${.:name}/main/${dialect}/queries.conf
+}

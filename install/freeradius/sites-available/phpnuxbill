@@ -1,0 +1,74 @@
+# -*- text -*-
+#
+#  PHPNuxBill virtual server (WP4, owner decision C16 / Q2 option a): FreeRADIUS 3.2 with the PHPNuxBill
+#  FreeRADIUS SQL schema (install/radius.sql). PHPNuxBill writes radcheck / radreply / radusergroup /
+#  radgroupreply; FreeRADIUS writes the accounting history (radacct), which PHPNuxBill never deletes.
+#
+#  Needs: mods-enabled/sql (MySQL / MariaDB, read_groups = yes), mods-enabled/nuxr_counters,
+#  dictionary.phpnuxbill, and the stock chap, pap, preprocess, expiration, logintime, acct_unique,
+#  attr_filter modules. Enable it instead of "default" (or merge the sections into your own server).
+#
+#  Post-auth SQL logging (radpostauth) is not enabled here: the stock query stores the cleartext password.
+#
+
+server phpnuxbill {
+
+listen {
+	type = auth
+	ipaddr = *
+	port = 1812
+}
+
+listen {
+	type = acct
+	ipaddr = *
+	port = 1813
+}
+
+authorize {
+	filter_username
+	preprocess
+	chap
+	# radcheck / radreply / radusergroup / radgroupreply of the subscriber
+	sql
+	# Expiration: reject after the end date, Session-Timeout up to it
+	expiration
+	logintime
+	# Max-All-Session / Max-Data quotas of the current billing period
+	nuxr_timecounter
+	nuxr_datacounter
+	pap
+}
+
+authenticate {
+	Auth-Type PAP {
+		pap
+	}
+	Auth-Type CHAP {
+		chap
+	}
+}
+
+preacct {
+	preprocess
+	acct_unique
+}
+
+accounting {
+	# accounting history (radacct): written by FreeRADIUS only
+	sql
+	attr_filter.accounting_response
+}
+
+session {
+	# Simultaneous-Use: open sessions in radacct
+	sql
+}
+
+post-auth {
+	Post-Auth-Type REJECT {
+		attr_filter.access_reject
+	}
+}
+
+}
