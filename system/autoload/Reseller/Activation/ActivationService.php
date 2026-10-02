@@ -280,12 +280,12 @@ final class ActivationService
                     'legacy_invoice' => $legacy['invoice'], 'error_code' => null, 'error_message' => null]);
             }, false);
         } catch (\Throwable $e) {
-            $ref = \Reseller\Security\ErrorReporter::report($e, 'activation-commit');
-            $code = $e instanceof \Reseller\Finance\SettlementFailure ? 'SETTLEMENT_' . $e->kind
-                : ($e instanceof DomainError ? $e->reason : 'SETTLEMENT_UNKNOWN');
             if ($e instanceof DomainError && $e->reason === 'ACTIVATION_STATE_CONFLICT') {
                 throw $e;
             }
+            $ref = \Reseller\Security\ErrorReporter::report($e, 'activation-commit');
+            // the WP3B classification of anything the settlement unit raised: TRANSIENT / CAPACITY / INTEGRITY / UNKNOWN
+            $code = 'SETTLEMENT_' . \Reseller\Finance\SettlementFailure::classify($e);
             // provisioned, not settled: the reservation stays ACTIVE (never free service); reconciliation commits it
             self::tx(static fn(\PDO $pdo) => ActivationStore::transition($pdo, $id, [ActivationState::FINANCIAL_COMMITTING], ActivationState::RECONCILIATION_REQUIRED, $actor,
                 ['event_type' => 'FINANCIAL', 'error_code' => $code, 'error_message' => 'The settlement did not complete (ref ' . $ref . ').'],

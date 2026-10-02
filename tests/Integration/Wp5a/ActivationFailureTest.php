@@ -11,6 +11,7 @@ use Reseller\Finance\Money;
 use Reseller\Finance\TransferService;
 use Reseller\Radius\RadiusFaults;
 use Reseller\Tests\Support\ActivationTestCase;
+use Reseller\Tests\Support\StubNas;
 
 /**
  * Failure injection at every boundary (D017; 18_BUSINESS_RULES failure semantics; WP4 §10; A3, A4):
@@ -189,6 +190,95 @@ final class ActivationFailureTest extends ActivationTestCase
         TransferService::withdraw($this->ctx('ad'), $top, '10', 'make room', self::ref('W'));
         $this->assertSame('COMPLETED', ReconciliationService::reconcile($this->system(), $out['reference'])['status']);
         $this->assertSame('985.00', $this->balance($leaf));
+    }
+
+    /** WP3B F-6: whatever the settlement unit raises is classified; the service is never free and settles once. */
+    public function testSettlementFailuresAreClassified(): void
+    {
+        $deadlock = static function (): \PDOException {
+            $e = new \PDOException('Deadlock found');
+            $e->errorInfo = ['40001', 1213, 'Deadlock found'];
+            return $e;
+        };
+        // one deadlock: FinanceTx retries the whole unit, the activation completes in the same request
+        [$plan, $top, $leaf, $c] = $this->setupSale();
+        $calls = 0;
+        ActivationFaults::$hook = static function (string $p) use (&$calls, $deadlock): void {
+            if ($p === 'activation.after_settlement' && ++$calls === 1) {
+                throw $deadlock();
+            }
+        };
+        $this->assertSame('COMPLETED', $this->activate($leaf, $c, $plan, 'NEW')['status']);
+        $this->assertSame(['985.00', '1003.00'], [$this->balance($leaf), $this->balance($top)], 'retried unit settled exactly once');
+        foreach (['SETTLEMENT_TRANSIENT' => static fn() => throw $deadlock(), 'SETTLEMENT_INTEGRITY' => static fn() => throw new \LogicException('injected integrity fault')] as $code => $fault) {
+            [$plan, $top, $leaf, $c] = $this->setupSale();
+            ActivationFaults::$hook = static function (string $p) use ($fault): void {
+                if ($p === 'activation.after_settlement') {
+                    $fault();
+                }
+            };
+            $out = $this->activate($leaf, $c, $plan, 'NEW');
+            $this->assertSame(['RECONCILIATION_REQUIRED', $code], [$out['status'], $out['error_code']], $code);
+            $this->assertSame(['1000.00', '15.00'], [$this->balance($leaf), $this->reserved($leaf)], "{$code}: nothing charged, funds reserved");
+            $this->assertSame(0, $this->rowCount('tbl_transactions', 'user_id = ?', [$c]));
+            ActivationFaults::$hook = null;
+            $this->assertSame('COMPLETED', ReconciliationService::reconcile($this->system(), $out['reference'])['status']);
+            $this->assertSame(['985.00', '1003.00'], [$this->balance($leaf), $this->balance($top)], "{$code}: settled once by reconciliation");
+        }
+    }
+
+    /** The read-back after provisioning disagrees: never settled or released blindly; settled once RADIUS confirms. */
+    public function testVerifyMismatchKeepsTheFundsReservedUntilReconciled(): void
+    {
+        [$plan, $top, $leaf, $c] = $this->setupSale();
+        $u = $this->username($c);
+        $original = null;
+        ActivationFaults::$hook = static function (string $p) use ($u, &$original): void {
+            if ($p === 'activation.after_provision') {
+                ActivationFaults::$hook = null;
+                $original = (string) static::$db->value("SELECT value FROM radcheck WHERE username = ? AND attribute = 'Expiration'", [$u]);
+                static::$db->pdo->prepare("UPDATE radcheck SET value = '01 Jan 2020 00:00:00' WHERE username = ? AND attribute = 'Expiration'")->execute([$u]);
+            }
+        };
+        $out = $this->activate($leaf, $c, $plan, 'NEW');
+        $this->assertSame(['RECONCILIATION_REQUIRED', 'VERIFY_MISMATCH'], [$out['status'], $out['error_code']]);
+        $this->assertContains('VERIFICATION_RESULT:VERIFYING->RECONCILIATION_REQUIRED:UNKNOWN', $this->timeline($out['reference']));
+        $this->noMoneyMoved($top, $leaf);
+        $this->assertSame(['1000.00', '15.00'], [$this->balance($leaf), $this->reserved($leaf)], 'not released: the service may be live');
+        $this->assertSame(0, $this->rowCount('tbl_user_recharges', 'customer_id = ?', [$c]));
+        // RADIUS later shows the activation's policy (e.g. a transient foreign write was corrected): settle exactly once
+        static::$db->pdo->prepare("UPDATE radcheck SET value = ? WHERE username = ? AND attribute = 'Expiration'")->execute([$original, $u]);
+        $this->assertSame('COMPLETED', ReconciliationService::reconcile($this->system(), $out['reference'])['status']);
+        $this->assertSame(['985.00', '1003.00'], [$this->balance($leaf), $this->balance($top)]);
+    }
+
+    /** CHANGE_PLAN ends the open sessions best-effort: a silent NAS never blocks or fails the activation; the result is recorded. */
+    public function testDisconnectIsBestEffortAndRecorded(): void
+    {
+        [$plan, $top, $leaf, $c] = $this->setupSale();
+        $old = $this->radiusPlan('20');
+        $this->recharge($c, $old, '2031-03-10', '12:00:00');
+        $u = $this->username($c);
+        $secret = 'wp5a-coa-' . bin2hex(random_bytes(4));
+        $stub = new StubNas($secret, 'silent');
+        $nas = static::$db->insertRow('nas', ['nasname' => '127.0.0.1', 'shortname' => 'wp5a-stub', 'type' => 'other', 'ports' => $stub->port, 'secret' => $secret, 'description' => 'wp5a']);
+        static::$db->insertRow('radacct', [
+            'acctsessionid' => 'wp5a-open', 'acctuniqueid' => substr(md5($u . 'wp5a-open'), 0, 32), 'username' => $u, 'nasipaddress' => '127.0.0.1',
+            'acctstarttime' => gmdate('Y-m-d H:i:s', time() - 600), 'acctstoptime' => null, 'acctsessiontime' => 60, 'acctinputoctets' => 0, 'acctoutputoctets' => 0,
+            'framedipaddress' => '10.0.0.9', 'calledstationid' => '', 'callingstationid' => '', 'acctterminatecause' => '', 'acctauthentic' => '',
+            'connectinfo_start' => '', 'connectinfo_stop' => '', 'servicetype' => '', 'framedprotocol' => '', 'nasporttype' => '', 'realm' => '',
+        ]);
+        try {
+            $out = $this->activate($leaf, $c, $plan, 'CHANGE_PLAN');
+            $got = $stub->received();
+        } finally {
+            static::$db->exec('DELETE FROM nas WHERE id = ' . (int) $nas);
+        }
+        $this->assertSame('COMPLETED', $out['status'], 'a silent NAS does not block the activation');
+        $this->assertCount(3, $got, 'one Disconnect-Request and two identical retransmissions, never a new request');
+        $note = static::$db->value("SELECT e.metadata FROM tbl_reseller_activation_events e JOIN tbl_reseller_activations a ON a.id = e.activation_id WHERE a.reference = ? AND e.event_type = 'ANNOTATION'", [$out['reference']]);
+        $this->assertSame(['disconnect' => ['UNKNOWN:COA_NO_RESPONSE']], json_decode((string) $note, true), 'the outcome is on the timeline');
+        $this->assertSame(['985.00', '1003.00'], [$this->balance($leaf), $this->balance($top)]);
     }
 
     public function testRollbackRestoresThePreviousService(): void
