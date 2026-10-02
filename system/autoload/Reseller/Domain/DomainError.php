@@ -82,6 +82,16 @@ final class DomainError extends \RuntimeException
         'PRICING_SNAPSHOT_STALE' => 'Prices changed since the activation was priced; price it again.',
         'COMMISSION_RECIPIENT_NO_WALLET' => 'A parent reseller that earns a commission on this sale has no wallet yet.',
         'COMMISSION_RECIPIENT_CAPACITY' => 'A parent reseller wallet cannot receive this commission (money range exceeded).',
+        // WP5A activation
+        'ACTION_MISMATCH' => 'The customer\'s current service changed; review the activation again.',
+        'ACTIVATION_IN_PROGRESS' => 'Another activation for this customer is still in progress; check its status first.',
+        'ACTIVATION_STATE_CONFLICT' => 'The activation is not in a state that allows this step.',
+        'CUSTOMER_NOT_RESELLER_OWNED' => 'Only customers owned by a reseller can be activated here.',
+        'CUSTOMER_INACTIVE' => 'The customer account is not active.',
+        'PLAN_DEVICE_NOT_SUPPORTED' => 'This plan is not provisioned through FreeRADIUS and cannot be activated here.',
+        'PLAN_DISABLED' => 'The plan is disabled.',
+        'PLAN_VALIDITY_INVALID' => 'The plan validity is not valid.',
+        'INVALID_IDEMPOTENCY_KEY' => 'The request identifier is missing or invalid; reload the form.',
     ];
 
     public function __construct(public readonly string $reason, ?string $detail = null)

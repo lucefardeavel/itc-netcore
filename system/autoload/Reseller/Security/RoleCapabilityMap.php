@@ -44,6 +44,8 @@ final class RoleCapabilityMap
         // availability (OD-3) for administrative pricing; the structural parent/child rules still apply
         C::PRICING_READ => 'G', C::PRICING_BASE_COST => 'G', C::PRICING_CHILD_WHOLESALE => 'G',
         C::PRICING_OWN_RETAIL => 'G', C::PRICING_CHILD_AVAILABILITY => 'G',
+        // WP5A activation (A5): any reseller-owned customer; the owner's wallet is always the one debited
+        C::ACTIVATION_CREATE => 'G', C::ACTIVATION_READ => 'G',
     ];
 
     /** @var array<string,array<string,string>> */
@@ -66,6 +68,9 @@ final class RoleCapabilityMap
             // WP3B pricing: own + subtree visibility; wholesale and availability of direct children only
             // (never its own wholesale); its own retail price only
             C::PRICING_READ => 'T', C::PRICING_CHILD_WHOLESALE => 'C', C::PRICING_CHILD_AVAILABILITY => 'C', C::PRICING_OWN_RETAIL => 'S',
+            // WP5A activation (A5): creates only for customers it owns itself (S = own wallet, never a
+            // descendant's); reads its whole subtree
+            C::ACTIVATION_CREATE => 'S', C::ACTIVATION_READ => 'T',
         ],
         'Sales' => [
             C::CUSTOMER_READ => 'A', C::CUSTOMER_CREATE => 'A',
@@ -73,6 +78,8 @@ final class RoleCapabilityMap
             C::MESSAGE_SEND => 'A', C::MESSAGE_SEND_SELECTED => 'A',
             C::DASHBOARD_VIEW => 'S', C::STAFF_READ => 'S',
             C::SELF_UPDATE_PROFILE => 'S', C::SELF_CHANGE_PASSWORD => 'S', C::API_ACCESS => 'S',
+            // WP5A activation (A5): customers explicitly assigned to the Sales account, on its parent's wallet
+            C::ACTIVATION_CREATE => 'A', C::ACTIVATION_READ => 'A',
         ],
         // OD-4: login, an empty dashboard, own profile/password, logout — no data access
         'Report' => [

@@ -42,6 +42,8 @@ final class SchemaReadiness
         'tbl_reseller_activations', 'tbl_manager_wallets', 'tbl_manager_transfers', 'tbl_manager_ledger', 'tbl_manager_wallet_reservations',
         // WP3B pricing runtime authorities
         'tbl_reseller_plan_base_costs', 'tbl_manager_plan_prices',
+        // WP5A activation timeline
+        'tbl_reseller_activation_events',
     ];
     private const REQUIRED_COLUMNS = [['tbl_customers', 'manager_id'], ['tbl_customers', 'assigned_sales_id']];
 
