@@ -1,0 +1,160 @@
+<?php
+namespace Reseller\Activation;
+
+// Runtime class: loaded only through init.php (NUXR_RUNTIME); never executable on its own.
+if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
+
+use Reseller\Domain\DomainError;
+use Reseller\Domain\Tx;
+
+/**
+ * Persistence of activations and their event timeline (R0003). The only writer of
+ * tbl_reseller_activations / tbl_reseller_activation_events besides the finance primitives' own reads.
+ *
+ *  - an activation is inserted exactly once, with its sealed pricing snapshot (all five columns, WP3B);
+ *  - its snapshot columns are never updated;
+ *  - every state change is a guarded UPDATE (the current state must be the expected one and the
+ *    transition must be allowed by ActivationState) plus one appended event with the next sequence number,
+ *    under the activation row lock: a concurrent duplicate step loses cleanly (ACTIVATION_STATE_CONFLICT);
+ *  - events are append-only: never updated or deleted.
+ */
+final class ActivationStore
+{
+    /** Rows needed by the orchestration (snapshot columns included for the finance re-checks). */
+    public static function lock(\PDO $pdo, int $id): array
+    {
+        return Tx::row($pdo, 'SELECT * FROM tbl_reseller_activations WHERE id = ? FOR UPDATE', [$id]) ?? throw new DomainError('NOT_FOUND');
+    }
+
+    /** @return array<string,mixed>|null */
+    public static function find(\PDO $pdo, int $id): ?array
+    {
+        return Tx::row($pdo, 'SELECT * FROM tbl_reseller_activations WHERE id = ?', [$id]);
+    }
+
+    /** @return array<string,mixed>|null */
+    public static function byKey(\PDO $pdo, string $key): ?array
+    {
+        return Tx::row($pdo, 'SELECT * FROM tbl_reseller_activations WHERE idempotency_key = ?', [$key]);
+    }
+
+    /** @return array<string,mixed>|null */
+    public static function byReference(\PDO $pdo, string $reference): ?array
+    {
+        return Tx::row($pdo, 'SELECT * FROM tbl_reseller_activations WHERE reference = ?', [$reference]);
+    }
+
+    /** The customer's non-terminal activation, if any (the in-flight guard). */
+    public static function inFlight(\PDO $pdo, int $customerId): ?array
+    {
+        return Tx::row(
+            $pdo,
+            'SELECT id, reference, status FROM tbl_reseller_activations WHERE customer_id = ? AND status NOT IN (' . implode(', ', array_fill(0, count(ActivationState::TERMINAL), '?')) . ') ORDER BY id LIMIT 1',
+            [$customerId, ...ActivationState::TERMINAL]
+        );
+    }
+
+    /**
+     * The single activation INSERT (status CREATED), with the five sealed snapshot columns.
+     *
+     * @param array<string,mixed>       $f    identity, action, actor, customer, plan, manager
+     * @param array<string,string|null> $snap PricingSnapshot::activationColumns()
+     */
+    public static function insert(\PDO $pdo, array $f, array $snap, string $now): int
+    {
+        Tx::exec(
+            $pdo,
+            'INSERT INTO tbl_reseller_activations (reference, idempotency_key, action, status, channel, manager_id, actor_type, actor_user_id, '
+            . 'customer_id, plan_id, previous_plan_id, wholesale_cost, retail_price, provider_settlement_amount, plan_snapshot, pricing_chain_snapshot, '
+            . "created_at, updated_at) VALUES (?, ?, ?, 'CREATED', 'STAFF_WEB', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                $f['reference'], $f['idempotency_key'], $f['action'], $f['manager_id'], $f['actor_type'], $f['actor_user_id'],
+                $f['customer_id'], $f['plan_id'], $f['previous_plan_id'],
+                $snap['wholesale_cost'], $snap['retail_price'], $snap['provider_settlement_amount'], $snap['plan_snapshot'], $snap['pricing_chain_snapshot'],
+                $now, $now,
+            ]
+        );
+        return (int) $pdo->lastInsertId();
+    }
+
+    /**
+     * Guarded state change + event (caller holds an open transaction). Returns the updated row.
+     *
+     * @param list<string>          $from    acceptable current states
+     * @param array<string,mixed>   $event   event_type, provisioning_result, error_code, error_message, metadata
+     * @param array<string,mixed>   $columns extra activation columns (error_code, error_message, completed_at, legacy_*)
+     */
+    public static function transition(\PDO $pdo, int $id, array $from, string $to, ActivationActor $actor, array $event = [], array $columns = []): array
+    {
+        $row = self::lock($pdo, $id);
+        if (!in_array($row['status'], $from, true)) {
+            throw new DomainError('ACTIVATION_STATE_CONFLICT');
+        }
+        ActivationState::assertTransition((string) $row['status'], $to);
+        $now = Tx::utcNow();
+        $set = ['status' => $to, 'updated_at' => $now] + $columns;
+        $allowed = ['status', 'updated_at', 'error_code', 'error_message', 'completed_at', 'legacy_recharge_id', 'legacy_transaction_id', 'legacy_invoice'];
+        if (array_diff(array_keys($set), $allowed) !== []) {
+            throw new \LogicException('activation column not updatable');
+        }
+        $cols = implode(', ', array_map(static fn(string $c): string => "{$c} = ?", array_keys($set)));
+        $n = Tx::exec($pdo, "UPDATE tbl_reseller_activations SET {$cols} WHERE id = ? AND status = ?", [...array_values($set), $id, $row['status']]);
+        if ($n !== 1) {
+            throw new DomainError('ACTIVATION_STATE_CONFLICT');
+        }
+        self::event($pdo, $id, (string) $row['status'], $to, $actor, $event, $now);
+        return self::lock($pdo, $id);
+    }
+
+    /**
+     * Appends one event (caller holds the activation row lock). An event without a state change uses
+     * from = to = the current state (ANNOTATION / RECONCILIATION records).
+     *
+     * @param array<string,mixed> $event
+     */
+    public static function event(\PDO $pdo, int $id, ?string $from, string $to, ActivationActor $actor, array $event = [], ?string $now = null): void
+    {
+        $seq = (int) Tx::row($pdo, 'SELECT COALESCE(MAX(sequence_no), 0) + 1 AS n FROM tbl_reseller_activation_events WHERE activation_id = ?', [$id])['n'];
+        $meta = $event['metadata'] ?? null;
+        Tx::exec(
+            $pdo,
+            'INSERT INTO tbl_reseller_activation_events (activation_id, sequence_no, event_type, from_state, to_state, provisioning_result, '
+            . 'error_code, error_message, actor_type, actor_user_id, metadata, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                $id, $seq, $event['event_type'] ?? 'STATE_TRANSITION', $from, $to, $event['provisioning_result'] ?? null,
+                isset($event['error_code']) ? substr((string) $event['error_code'], 0, 64) : null,
+                isset($event['error_message']) ? substr((string) $event['error_message'], 0, 1000) : null,
+                $actor->type, $actor->userId,
+                $meta === null ? null : json_encode($meta, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+                $now ?? Tx::utcNow(),
+            ]
+        );
+    }
+
+    /** @return list<array<string,mixed>> the timeline, in order */
+    public static function events(\PDO $pdo, int $id): array
+    {
+        return Tx::rows($pdo, 'SELECT * FROM tbl_reseller_activation_events WHERE activation_id = ? ORDER BY sequence_no', [$id]);
+    }
+
+    /** The service period frozen at validation (VALIDATED event metadata). */
+    public static function period(\PDO $pdo, int $id): array
+    {
+        $row = Tx::row($pdo, "SELECT metadata FROM tbl_reseller_activation_events WHERE activation_id = ? AND to_state = 'VALIDATED' ORDER BY sequence_no LIMIT 1", [$id]);
+        $meta = $row !== null ? json_decode((string) $row['metadata'], true) : null;
+        if (!is_array($meta) || !isset($meta['period'])) {
+            throw new \LogicException('activation without a frozen period');
+        }
+        return $meta;
+    }
+
+    /** @return array<string,mixed>|null the activation's reservation (ACTIVE or COMMITTED first) */
+    public static function reservation(\PDO $pdo, int $id): ?array
+    {
+        return Tx::row(
+            $pdo,
+            "SELECT * FROM tbl_manager_wallet_reservations WHERE activation_id = ? ORDER BY status = 'ACTIVE' DESC, status = 'COMMITTED' DESC, id DESC LIMIT 1",
+            [$id]
+        );
+    }
+}
