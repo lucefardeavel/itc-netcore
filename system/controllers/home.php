@@ -184,6 +184,13 @@ if (isset($_GET['recharge']) && !empty($_GET['recharge'])) {
         }
         if ($tur['status'] != 'on') {
             $p = ORM::for_table('tbl_plans')->findOne($tur['plan_id']);
+            // make customer cannot extend again
+            $days = $config['extend_days'];
+            $expiration = date('Y-m-d', strtotime(" +$days day"));
+            // WP4: save first, so the device provisions the saved billing expiry
+            $tur->expiration = $expiration;
+            $tur->status = "on";
+            $tur->save();
             $dvc = Package::getDevice($p);
             if ($_app_stage != 'demo') {
                 if (file_exists($dvc)) {
@@ -195,13 +202,6 @@ if (isset($_GET['recharge']) && !empty($_GET['recharge'])) {
                     new Exception(Lang::T("Devices Not Found"));
                 }
             }
-
-            // make customer cannot extend again
-            $days = $config['extend_days'];
-            $expiration = date('Y-m-d', strtotime(" +$days day"));
-            $tur->expiration = $expiration;
-            $tur->status = "on";
-            $tur->save();
             App::setToken(_get('stoken'), $id);
             file_put_contents($path, $m);
             _log("Customer $tur[customer_id] $user[fullname] ($tur[username]) extend for $days days", "Customer", $user['id']);

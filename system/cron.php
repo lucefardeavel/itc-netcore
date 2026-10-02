@@ -143,19 +143,8 @@ foreach ($d as $ds) {
 //Cek interim-update radiusrest
 if ($config['frrest_interim_update'] != 0) {
 
-    $r_a = ORM::for_table('rad_acct')
-        ->whereRaw("BINARY acctstatustype = 'Start' OR acctstatustype = 'Interim-Update'")
-        ->where_lte('dateAdded', date("Y-m-d H:i:s"))->find_many();
-
-    foreach ($r_a as $ra) {
-        $interval = $_c['frrest_interim_update'] * 60;
-        $timeUpdate = strtotime($ra['dateAdded']) + $interval;
-        $timeNow = strtotime(date("Y-m-d H:i:s"));
-        if ($timeNow >= $timeUpdate) {
-            $ra->acctstatustype = 'Stop';
-            $ra->save();
-        }
-    }
+    // WP4: open rlm_rest sessions without a report for the interim interval are marked stopped
+    \Reseller\Radius\RestCounter::connection()->reapStale((int) $_c['frrest_interim_update'], new DateTimeImmutable(date('Y-m-d H:i:s')));
 }
 
 if ($config['router_check']) {

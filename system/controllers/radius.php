@@ -39,6 +39,8 @@ switch ($action) {
         if (Validator::Length($shortname, 30, 2) == false) {
             $msg .= 'Name should be between 3 to 30 characters' . '<br>';
         }
+        // WP4 (SEC-17): validated NAS data; the secret is required when adding
+        $msg .= nuxr_nas_validation($nasname, $ports, $secret, true);
         if (empty($ports)) {
             $ports = null;
         }
@@ -100,6 +102,8 @@ switch ($action) {
         if (Validator::Length($shortname, 30, 2) == false) {
             $msg .= 'Name should be between 3 to 30 characters' . '<br>';
         }
+        // WP4 (SEC-17): validated NAS data; an empty secret keeps the stored one (it is never rendered)
+        $msg .= nuxr_nas_validation($nasname, $ports, $secret, false);
         if (empty($ports)) {
             $ports = null;
         }
@@ -148,4 +152,25 @@ switch ($action) {
         $ui->assign('name', $name);
         $ui->assign('nas', $nas);
         $ui->display('admin/radius/nas.tpl');
+}
+
+/** NAS form validation (WP4): address, CoA port and secret; returns the error text ('' when valid). */
+function nuxr_nas_validation($nasname, $ports, $secret, $secretRequired)
+{
+    $msg = '';
+    $name = trim((string) $nasname);
+    $ip = explode('/', $name, 2);
+    $isIp = filter_var($ip[0], FILTER_VALIDATE_IP) !== false && (count($ip) === 1 || (ctype_digit($ip[1]) && (int) $ip[1] <= (strpos($ip[0], ':') !== false ? 128 : 32)));
+    $isHost = (bool) preg_match('/^(?=.{1,128}$)[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/', $name);
+    if (!$isIp && !$isHost) {
+        $msg .= 'NAS address must be an IP address, a CIDR range or a host name<br>';
+    }
+    if (!empty($ports) && (!ctype_digit((string) $ports) || (int) $ports < 1 || (int) $ports > 65535)) {
+        $msg .= 'Port must be a number between 1 and 65535<br>';
+    }
+    $secret = (string) $secret;
+    if (($secretRequired || $secret !== '') && ($secret === '' || strlen($secret) > 60 || preg_match('/[\x00-\x1f\x7f]/', $secret))) {
+        $msg .= 'Secret must be 1 to 60 printable characters<br>';
+    }
+    return $msg;
 }

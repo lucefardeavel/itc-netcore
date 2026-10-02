@@ -421,6 +421,7 @@ switch ($action) {
             // WP2 / OD-11 (E5): editing an active plan can re-provision/extend service
             \Reseller\Domain\ServiceGate::guardCustomer($d['customer_id'], 'planEditPost', 'plan/list');
             run_hook('edit_customer_plan'); #HOOK
+            $nuxrExpiryChanged = $d['expiration'] != $expiration || $d['time'] != $time;
             $d->expiration = $expiration;
             $d->time = $time;
             if ($d['status'] == 'off') {
@@ -432,6 +433,10 @@ switch ($action) {
             if ($oldPlanID != $id_plan) {
                 $d->plan_id = $newPlan['id'];
                 $d->namebp = $newPlan['name_plan'];
+            }
+            // WP4: save first, so the device provisions the saved billing expiry
+            $d->save();
+            if ($oldPlanID != $id_plan) {
                 $customer = User::_info($d['customer_id']);
                 //remove from old plan
                 if ($d['status'] == 'on') {
@@ -457,8 +462,14 @@ switch ($action) {
                         }
                     }
                 }
+            } elseif ($nuxrExpiryChanged && $d['status'] == 'on' && $newPlan['device'] == 'Radius' && $_app_stage != 'demo') {
+                // WP4: the RADIUS Expiration follows the edited billing expiry (it never did before)
+                $dvc = Package::getDevice($newPlan);
+                if (file_exists($dvc)) {
+                    require_once $dvc;
+                    (new $newPlan['device'])->sync_customer(User::_info($d['customer_id']), $newPlan);
+                }
             }
-            $d->save();
             _log('[' . $admin['username'] . ']: ' . 'Edit Plan for Customer ' . $d['username'] . ' to [' . $d['namebp'] . '][' . Lang::moneyFormat($p['price']) . ']', $admin['user_type'], $admin['id']);
             r2(getUrl('plan/list'), 's', Lang::T('Data Updated Successfully'));
         } else {
@@ -1065,6 +1076,10 @@ switch ($action) {
             if ($c) {
                 $p = ORM::for_table('tbl_plans')->find_one($tur['plan_id']);
                 if ($p) {
+                    // WP4: save first, so the device provisions the saved billing expiry
+                    $tur->expiration = $expiration;
+                    $tur->status = "on";
+                    $tur->save();
                     $dvc = Package::getDevice($p);
                     if ($_app_stage != 'demo') {
                         if (file_exists($dvc)) {
@@ -1076,9 +1091,6 @@ switch ($action) {
                             new Exception(Lang::T("Devices Not Found"));
                         }
                     }
-                    $tur->expiration = $expiration;
-                    $tur->status = "on";
-                    $tur->save();
                 } else {
                     r2(getUrl('plan'), 's', "Plan not found");
                 }

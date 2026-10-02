@@ -232,6 +232,29 @@ class Package
                 $isChangePlan = true;
             }
 
+            // if contains 'mikrotik', 'hotspot', 'pppoe', 'radius' then recharge it
+            if (Validator::containsKeyword($p['device'])) {
+                $b->customer_id = $id_customer;
+                $b->username = $c['username'];
+                $b->plan_id = $plan_id;
+                $b->namebp = $p['name_plan'];
+                $b->recharged_on = $date_only;
+                $b->recharged_time = $time_only;
+                $b->expiration = $date_exp;
+                $b->time = $time;
+                $b->status = "on";
+                $b->method = "$gateway - $channel";
+                $b->routers = $router_name;
+                $b->type = $p['type'];
+                if ($admin) {
+                    $b->admin_id = ($admin['id']) ? $admin['id'] : '0';
+                } else {
+                    $b->admin_id = '0';
+                }
+                $b->save();
+            }
+
+            // WP4: the device runs after the recharge row is saved, so it provisions the saved billing expiry
             //if ($b['status'] == 'on') {
             $dvc = Package::getDevice($p);
             if ($_app_stage != 'Demo') {
@@ -256,28 +279,6 @@ class Package
                 }
             }
             //}
-
-            // if contains 'mikrotik', 'hotspot', 'pppoe', 'radius' then recharge it
-            if (Validator::containsKeyword($p['device'])) {
-                $b->customer_id = $id_customer;
-                $b->username = $c['username'];
-                $b->plan_id = $plan_id;
-                $b->namebp = $p['name_plan'];
-                $b->recharged_on = $date_only;
-                $b->recharged_time = $time_only;
-                $b->expiration = $date_exp;
-                $b->time = $time;
-                $b->status = "on";
-                $b->method = "$gateway - $channel";
-                $b->routers = $router_name;
-                $b->type = $p['type'];
-                if ($admin) {
-                    $b->admin_id = ($admin['id']) ? $admin['id'] : '0';
-                } else {
-                    $b->admin_id = '0';
-                }
-                $b->save();
-            }
 
             // insert table transactions
             $t = ORM::for_table('tbl_transactions')->create();
@@ -342,29 +343,6 @@ class Package
                 "\nNote:\n" . $note);
         } else {
             // active plan not exists
-            $dvc = Package::getDevice($p);
-            if ($_app_stage != 'Demo') {
-                try {
-                    if (file_exists($dvc)) {
-                        require_once $dvc;
-                        (new $p['device'])->add_customer($c, $p);
-                    } else {
-                        new Exception(Lang::T("Devices Not Found"));
-                    }
-                } catch (Throwable $e) {
-                    // WP2 / OD-14: sanitized server-side record; the operator notification carries a
-                    // summary and the reference only (no exception text, SQL, paths or trace)
-                    $nuxrRef = \Reseller\Security\ErrorReporter::report($e, 'package-activation');
-                    Message::sendTelegram(
-                        "System Error. When activate Package. You need to sync manually\n" .
-                            "Router: $router_name\n" .
-                            "Customer: u$c[username]\n" .
-                            "Plan: p$p[name_plan]\n" .
-                            "ref=" . $nuxrRef
-                    );
-                }
-            }
-
             // if contains 'mikrotik', 'hotspot', 'pppoe', 'radius' then recharge it
             if (Validator::containsKeyword($p['device'])) {
                 $d = ORM::for_table('tbl_user_recharges')->create();
@@ -386,6 +364,30 @@ class Package
                     $d->admin_id = '0';
                 }
                 $d->save();
+            }
+
+            // WP4: the device runs after the recharge row is saved, so it provisions the saved billing expiry
+            $dvc = Package::getDevice($p);
+            if ($_app_stage != 'Demo') {
+                try {
+                    if (file_exists($dvc)) {
+                        require_once $dvc;
+                        (new $p['device'])->add_customer($c, $p);
+                    } else {
+                        new Exception(Lang::T("Devices Not Found"));
+                    }
+                } catch (Throwable $e) {
+                    // WP2 / OD-14: sanitized server-side record; the operator notification carries a
+                    // summary and the reference only (no exception text, SQL, paths or trace)
+                    $nuxrRef = \Reseller\Security\ErrorReporter::report($e, 'package-activation');
+                    Message::sendTelegram(
+                        "System Error. When activate Package. You need to sync manually\n" .
+                            "Router: $router_name\n" .
+                            "Customer: u$c[username]\n" .
+                            "Plan: p$p[name_plan]\n" .
+                            "ref=" . $nuxrRef
+                    );
+                }
             }
 
             // insert table transactions

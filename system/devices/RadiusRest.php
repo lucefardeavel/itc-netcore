@@ -32,12 +32,8 @@ class RadiusRest {
     {
         // set zero data usage
         if ($plan['typebp'] == "Limited" && ($plan['limit_type'] == "Data_Limit" || $plan['limit_type'] == "Both_Limit")) {
-            $cs = ORM::for_table("rad_acct")->where('username', $customer['username'])->findMany();
-            foreach ($cs as $c) {
-                $c->acctOutputOctets = 0;
-                $c->acctInputOctets = 0;
-                $c->save();
-            }
+            // WP4: local rlm_rest counters (rad_acct) back to zero for the next period; rows are kept
+            \Reseller\Radius\RestCounter::connection()->resetUsage((string) $customer['username']);
         }
     }
 

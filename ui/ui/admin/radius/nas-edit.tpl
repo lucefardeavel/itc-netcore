@@ -27,9 +27,8 @@
                     <div class="form-group">
                         <label class="col-md-2 control-label">Secret</label>
                         <div class="col-md-6">
-                            <input type="password" class="form-control" id="secret" name="secret" required
-                                value="{$d['secret']}" onmouseleave="this.type = 'password'"
-                                onmouseenter="this.type = 'text'" maxlength="60">
+                            <input type="password" class="form-control" id="secret" name="secret" autocomplete="new-password"
+                                placeholder="{Lang::T('Leave empty to keep the current secret')}" maxlength="60">
                         </div>
                     </div>
                     <div class="form-group">

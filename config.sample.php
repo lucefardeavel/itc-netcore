@@ -18,6 +18,11 @@ $db_user    = "root"; # Database Username
 $db_pass    = ""; # Database Password
 $db_name    = "phpnuxbill"; # Database Name
 
+// FreeRADIUS rlm_rest endpoint (radius.php) - OFF unless a secret of at least 32 characters is set.
+// See install/freeradius/README.md. The secret is the HTTP Basic password of the FreeRADIUS rest module.
+// $radius_rest_secret = "";
+// $radius_rest_allow  = "127.0.0.1, ::1"; # IPs / CIDRs of the FreeRADIUS servers calling radius.php
+
 
 
 

@@ -27,7 +27,8 @@ final class SourceGuardTest extends TestCase
         'system/autoload/Reseller/Security/RouteMap.php' => '9ae1260a4e4b1b7734816088bd81d0762247d38baf26c4c00389ab35718ffc53',
         'system/autoload/Reseller/Domain/Tx.php' => '223cfb618ee7372c615bb93f37c86db4da739d47e2da03692f976bf3b2cbccc6',
         'system/autoload/Balance.php' => '143cad4966e580de20a3f575144f347d55f20b36501f482da7dc764443e011ae',
-        'system/autoload/Package.php' => '9f3cc352bc563d689e3cb5e41015b297d1a9f57a2034b618597fd8c80e4ebd4c',
+        // WP4 (owner decision Q5): the device calls in rechargeUser run after the recharge row is saved
+        'system/autoload/Package.php' => 'e4225dd06c4e4b5e555f141f8319f9a2575c4d7461f96ff30dc52b35f1f36346',
         // accepted WP1 migration runner
         'system/reseller/migrate.php' => '8420e021293260ae01f097e5d202221003a172e14e116933831e0087f44803fa',
         'system/reseller/Migration/Db.php' => 'd5123172de0d8bda244c3c8081f8c156e454766d50c3af49958b4f30048c1c51',
