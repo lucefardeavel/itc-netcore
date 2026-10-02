@@ -147,6 +147,16 @@ final class RouteMap
             'language' => ['GET' => C::SYSTEM_ADMIN], 'lang-post' => ['POST' => C::SYSTEM_ADMIN],
             'maintenance' => C::SYSTEM_ADMIN, 'miscellaneous' => C::SYSTEM_ADMIN,
         ],
+        // WP5A reseller activation (owner decision A7): minimal staff flow; reconcile / rollback are further
+        // restricted to Admin / SuperAdmin inside Reseller\Activation\ReconciliationService
+        'activation' => [
+            '' => 'create', '*' => 'create',
+            'create' => ['GET' => C::ACTIVATION_CREATE],
+            'create-post' => ['POST' => C::ACTIVATION_CREATE],
+            'view' => ['GET' => C::ACTIVATION_READ],
+            'reconcile' => ['POST' => C::ACTIVATION_CREATE],
+            'rollback' => ['POST' => C::ACTIVATION_CREATE],
+        ],
         'reseller' => [
             '' => 'tree', '*' => 'tree',
             'tree' => ['GET' => C::RESELLER_TREE_READ],
