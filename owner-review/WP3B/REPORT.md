@@ -313,14 +313,15 @@ Both orders are also exercised deterministically in every run. The WP3B suites (
 | `run-tests.sh` (08:46–09:16, 29m46s) | 467 OK + 3 errors in `Http\RouteMatrixTest` (the `AppServer` port-reuse harness flake, below): 470 / 40172 | **OK 470 / 43219** | matches | 1 |
 | `run-tests.sh --testdox` (09:16–09:50, 34m17s) | **OK 470 / 43219** | **OK 470 / 43219** | matches | 0 |
 | `run-tests.sh` re-run (09:50–, stopped by the owner) | **OK 470 / 43219** | stopped at about 74 %, every test so far passing | — | stopped |
+| `run-tests.sh` complete re-run on `0e8ab4f6` (same code as `9978311a`; 11:54–12:43, 48m31s; owner asked to finish the skipped checks) | **OK 470 / 43219** | **OK 470 / 43219** | matches | 0 |
 
 - **Final totals per engine: 470 tests / 43219 assertions**, identical on both engines in every complete leg.
   - 470 = 465 + 4 `PlanDeleteRaceTest` + 1 new source-guard test; 99 WP3B tests.
 - **Testdox:** 940 ✔ / 0 ✘ (the 930 previous lines unchanged, plus the 5 new tests on each engine). See `TESTDOX.txt`.
 - **Plain-run MariaDB `RouteMatrixTest` errors:** all 3 failed at login with the php -S `404 … /?_route=admin was not found` page. That is the same pre-existing WP2 `AppServer` orphaned-worker port reuse classified in §L.1 and §N; it is unrelated to plan deletion. 40172 + 3047 (the class) = 43219. The class passed on both engines in the testdox run and on MariaDB in the re-run.
-- The re-run of the plain suite was stopped at the owner's instruction ("leave the heavy tests"). Its MySQL leg is therefore incomplete and is not counted.
-- **Route / security matrix:** `RouteMatrixTest` (3 tests, 3047 assertions) passed on both engines in the testdox run. The `WP2_EVIDENCE=1` row comparison (a separate heavy run) was **not repeated** in this round at the owner's instruction. Fix round 2 changes no route, `RouteMap` or capability; the last row comparison (on `e7d2e7a3`, §L.1) was byte-identical to the WP2 evidence.
-- **PHP 8.2.34 lint on `9978311a`:** 355 tracked non-vendor PHP files (+1 `PlanDeleteRaceTest`), 355 pass, 0 fail.
+- The first re-run of the plain suite was stopped at the owner's instruction ("leave the heavy tests"), so its MySQL leg is not counted. Once the owner asked for the skipped checks to be finished, a complete plain run passed on both engines (last table row).
+- **Route / security matrix** (`RouteMatrixTest`, `WP2_EVIDENCE=1`, on `0e8ab4f6` after the owner asked for it; 12:43–12:49): **1442 requests, 1164 denials (all 403), 278 allowed** (243 × 200, 35 × 302). The rows are byte-identical on MariaDB and MySQL and to the accepted WP2 evidence rows. It was first skipped at the owner's instruction, then run to complete the evidence.
+- **PHP 8.2.34 lint on `9978311a` / `0e8ab4f6`:** 355 tracked non-vendor PHP files (+1 `PlanDeleteRaceTest`), 355 pass, 0 fail (twice).
 - **Manifest:** 42/42 OK.
 - **Migrations:** R0001–R0006 only; `system/reseller/` is unchanged against `d4ba4514`; R0006 `f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd`.
 - **Source guards:** `PricingSourceGuardTest` (8) and the accepted WP3A `SourceGuardTest` are green in every complete leg.
@@ -330,6 +331,7 @@ Both orders are also exercised deterministically in every run. The WP3B suites (
   - test peaks: MySQL 193 % / 762 MiB, PHP runner 118 % / 550 MiB, MariaDB 139 % / 468 MiB;
   - the 18 AVAIA containers recorded before were present and unchanged throughout (`avaia-v3-minio-init` stayed `Exited (0)` as before). A new AVAIA container, `avaia-v3-prod-publish-worker`, appeared during the window. That is owner-driven AVAIA activity, not PHPNuxBill;
   - no `nuxbill` container, network or volume left behind; no global prune, no daemon change, no AVAIA access.
+  - **Completion runs** (11:54–12:49 UTC, 275 host samples, 45 AVAIA samples): load1 max 9.60, mean 5.34; CPU max 31 %, mean 19 %; MemAvailable min 41663 MiB; swap 0; test peaks MySQL 178 % / 792 MiB, PHP runner 104 % / 546 MiB, MariaDB 92 % / 495 MiB. The 19 AVAIA containers, including the new publish worker, stayed `Up` in every sample, except the one-shot `avaia-v3-minio-init` (`Exited (0)` as before). Nothing PHPNuxBill was left behind.
 
 ### L.1 Owner fix round 1: deterministic assertion count (fix commit `e7d2e7a3`)
 
