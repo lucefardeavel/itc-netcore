@@ -1,4 +1,5 @@
-Code under test: wp3b/pricing-settlement at 09954cac (code commits b2b147f7..09954cac); run: dev/test/run-tests.sh --testdox (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46)
+Code under test: wp3b/pricing-settlement at e7d2e7a3 (owner fix round 1; original candidate 2c543a63, code 09954cac); run: dev/test/run-tests.sh --testdox (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46), 2026-10-02 07:30-08:07 UTC, exit 0
+Supersedes the original-candidate testdox (463 tests / 43108 assertions per engine, 926 passed); history and the failed testdox run 1 (MySQL StaffManagementTest harness port reuse) are in REPORT.md section L.1
  Image nuxbill-reseller-test-php82 Building 
  Image nuxbill-reseller-test-php82 Built 
 ================ engine: mariadb ================
@@ -8,16 +9,16 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 463 ( 13%)
-............................................................... 126 / 463 ( 27%)
-............................................................... 189 / 463 ( 40%)
-............................................................... 252 / 463 ( 54%)
-............................................................... 315 / 463 ( 68%)
-............................................................... 378 / 463 ( 81%)
-............................................................... 441 / 463 ( 95%)
-......................                                          463 / 463 (100%)
+...............................................................  63 / 465 ( 13%)
+............................................................... 126 / 465 ( 27%)
+............................................................... 189 / 465 ( 40%)
+............................................................... 252 / 465 ( 54%)
+............................................................... 315 / 465 ( 67%)
+............................................................... 378 / 465 ( 81%)
+............................................................... 441 / 465 ( 94%)
+........................                                        465 / 465 (100%)
 
-Time: 13:25.174, Memory: 32.00 MB
+Time: 10:43.374, Memory: 32.00 MB
 
 Adjustment (Reseller\Tests\Integration\Wp3a\Adjustment)
  ✔ Adjustments never create a wallet
@@ -389,6 +390,8 @@ Pricing Concurrency (Reseller\Tests\Integration\Wp3b\PricingConcurrency)
  ✔ Settlement versus every writer on the recipient
  ✔ Settlement versus reversal and reserve and another settlement
  ✔ Settlement versus the leaf agents own transfer
+ ✔ Near maximum settlement first
+ ✔ Near maximum funding first
  ✔ Near maximum recipient balance race
  ✔ Pricing mutation races
  ✔ Reserve versus price change and move
@@ -620,7 +623,7 @@ Wholesale (Reseller\Tests\Integration\Wp3b\Wholesale)
  ✔ Pre existing violation from a move
  ✔ Deep chain and frozen policy
 
-OK (463 tests, 43108 assertions)
+OK (465 tests, 43159 assertions)
 ================ engine: mysql ================
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
@@ -628,16 +631,16 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 463 ( 13%)
-............................................................... 126 / 463 ( 27%)
-............................................................... 189 / 463 ( 40%)
-............................................................... 252 / 463 ( 54%)
-............................................................... 315 / 463 ( 68%)
-............................................................... 378 / 463 ( 81%)
-............................................................... 441 / 463 ( 95%)
-......................                                          463 / 463 (100%)
+...............................................................  63 / 465 ( 13%)
+............................................................... 126 / 465 ( 27%)
+............................................................... 189 / 465 ( 40%)
+............................................................... 252 / 465 ( 54%)
+............................................................... 315 / 465 ( 67%)
+............................................................... 378 / 465 ( 81%)
+............................................................... 441 / 465 ( 94%)
+........................                                        465 / 465 (100%)
 
-Time: 18:01.609, Memory: 32.00 MB
+Time: 25:22.536, Memory: 32.00 MB
 
 Adjustment (Reseller\Tests\Integration\Wp3a\Adjustment)
  ✔ Adjustments never create a wallet
@@ -1009,6 +1012,8 @@ Pricing Concurrency (Reseller\Tests\Integration\Wp3b\PricingConcurrency)
  ✔ Settlement versus every writer on the recipient
  ✔ Settlement versus reversal and reserve and another settlement
  ✔ Settlement versus the leaf agents own transfer
+ ✔ Near maximum settlement first
+ ✔ Near maximum funding first
  ✔ Near maximum recipient balance race
  ✔ Pricing mutation races
  ✔ Reserve versus price change and move
@@ -1240,7 +1245,7 @@ Wholesale (Reseller\Tests\Integration\Wp3b\Wholesale)
  ✔ Pre existing violation from a move
  ✔ Deep chain and frozen policy
 
-OK (463 tests, 43108 assertions)
+OK (465 tests, 43159 assertions)
 ================ variant registry reproducibility ================
 variant registry matches freshly built fixtures
   mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
@@ -1249,4 +1254,3 @@ variant registry matches freshly built fixtures
   mysql V1_FRESH_INSTALL on 8.0.46: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
   mysql V2_FRESH_INSTALL_UPDATED on 8.0.46: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
   mysql V3_LONGLIVED_2023_UPDATED on 8.0.46: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
-

@@ -1,6 +1,6 @@
 # WP3B — Owner review report
 
-**Status: IMPLEMENTED_NOT_ACCEPTED.**
+**Status: IMPLEMENTED_NOT_ACCEPTED** (owner fix round 1 applied: deterministic concurrency assertion count, §L.1).
 - WP3B is implemented on `wp3b/pricing-settlement`, branched from the accepted integration base `d4ba451437c3abf1b6349494b40b93257eaca553` (WP3A accepted at `c329145a`).
 - It follows the owner-approved final plan (Revision 2) and the owner decisions OD-3, OD-4, OD-5, F-1 … F-8.
 - It is waiting for owner review.
@@ -10,10 +10,13 @@
 | Branch | `wp3b/pricing-settlement` (created from `d4ba4514`; nothing reset, rebased or rewritten) |
 | Base | `d4ba451437c3abf1b6349494b40b93257eaca553` = `origin/feat/reseller-system-v1` |
 | Ancestry | `d4ba4514` → `c329145a` (WP3A) → `1c66ec5b` (WP2) → `1f36bfa` (WP1) |
-| Candidate HEAD | the docs commit `docs(wp3b): pricing model and owner-review report` (SHA given in the final response) |
+| Original candidate HEAD | `2c543a63969ec8e4bd1aa541d8249ac219743ba5` (docs commit). Owner review: **WP3B FIX REQUIRED** (non-deterministic assertion totals) |
+| Fix commit | `e7d2e7a3b5ce2d074d3819fd32ec48180a27a217` `test(wp3b): deterministic assertion count for the near-maximum race`: test-only, one file (§L.1) |
+| Candidate HEAD after the fix round | the evidence commit `docs(wp3b): fix-round evidence …` on top of `e7d2e7a3` (SHA given in the final response = `origin/wp3b/pricing-settlement`) |
 | Schema | **no change**: no R0007, no trigger, R0001–R0006 byte-identical (R0006 `f1a76119…7abd`) |
 | `feat/reseller-system-v1` / `main` | unchanged: `d4ba4514` / `500d3a2d15003efeed6e0aad639c13d08101c3b1` |
-| Push / PR / merge / deploy | none |
+| Push | `wp3b/pricing-settlement` only, after the fix round (owner-authorised, normal non-force push) |
+| PR / merge / tag / deploy | none |
 | Production | not touched |
 | WP4 / WP5A / WP5B | not started |
 
@@ -28,9 +31,11 @@ Detailed model: `docs/WP3B_PRICING_MODEL.md`. Test evidence: `owner-review/WP3B/
 | `6e5f2361` feat(wp3b): atomic activation settlement with intermediary commissions | `LedgerService::postActivationSettlement` (replaces `postActivationDebit`), `ReservationService` reserve / commit, `SettlementFailure`, `PostedSettlement`; owner-approved API-pin updates; invariants / worker / barrier |
 | `9045a0cd` feat(wp3b): refuse deleting plans referenced by reseller data | `Domain/PlanGuard`, `system/controllers/services.php` (four delete paths, CRLF kept) |
 | `09954cac` test(wp3b): pricing, settlement, concurrency, failure-injection suites | `tests/Unit/Wp3b` (7), `tests/Integration/Wp3b` (10), support, suites |
-| docs commit | `docs/WP3B_PRICING_MODEL.md`, WP2 permission-model rows, WP3A finance-model amendment note, this report, `TESTDOX.txt` |
+| `2c543a63` docs(wp3b): pricing model and owner-review report | `docs/WP3B_PRICING_MODEL.md`, WP2 permission-model rows, WP3A finance-model amendment note, this report, `TESTDOX.txt` (original candidate HEAD) |
+| `e7d2e7a3` test(wp3b): deterministic assertion count for the near-maximum race | owner fix round 1: `tests/Integration/Wp3b/PricingConcurrencyTest.php` only (§L.1) |
+| evidence commit | this report and `TESTDOX.txt` updated with the fix-round evidence |
 
-All commits are authored by `ALI HENDI <ali.hahuba3@gmail.com>` with the `Co-Authored-By` trailer. Every commit is local only.
+All commits are authored by `ALI HENDI <ali.hahuba3@gmail.com>` with the `Co-Authored-By` trailer. Only `wp3b/pricing-settlement` is pushed (after the fix round); nothing is merged.
 
 ## B. Changed files (`git diff --name-status d4ba4514..HEAD`)
 
@@ -53,6 +58,7 @@ Every new file carries the `NUXR_RUNTIME` guard.
 - `tests/Unit/Wp3b/`: `SettlementMathTest`, `PricingSnapshotTest`, `LegacyRetailPriceTest`, `PricingCapabilityTest`, `PricingReadModelTest`, `SettlementFailureTest`, `PricingSourceGuardTest`.
 - `tests/Integration/Wp3b/`: `BaseCostTest`, `WholesaleTest`, `RetailTest`, `AvailabilityTest`, `ResolutionSnapshotTest`, `SettlementTest`, `PricingFailureInjectionTest`, `PricingSchemaReadinessTest`, `PricingConcurrencyTest`, `PlanDeleteGuardTest` (HTTP).
 - `tests/Support/{PricingTestCase, SnapshotFactory}.php`.
+- Fix round 1 (`e7d2e7a3`) changed **only** `tests/Integration/Wp3b/PricingConcurrencyTest.php` (+108 / −28): 19 → 21 tests. No runtime, support, harness, migration or doc file changed in that commit.
 
 **Tests, modified:**
 - Suites (`phpunit.xml`: `wp3b-unit`, `wp3b-integration`; Wp3b excluded from `unit` / `integration`) and `bootstrap.php` (support list).
@@ -197,7 +203,10 @@ No other accepted test assertion was changed.
 - **Settlement with a commission against each writer on the recipient:** transfer from the recipient, provider funding, withdrawal, debt limit, credit adjustment, debit adjustment. Both commit, with exact balances.
 - **Settlement against a reversal, a second settlement sharing the recipient, and a reserve by the same leaf:** all four commit, with exact balances.
 - **FK identity row:** the leaf agent's own tree-locked transfer races the STAFF-operator settlement of its activation (`LOCK IN SHARE MODE` identity order). Both commit; no deadlock.
-- **Near-maximum recipient balance:** exactly one of the commission and a funding fits. Commit-first → funding `STORAGE_RANGE_EXCEEDED`. Funding-first → `SettlementFailure` CAPACITY with no partial settlement, then an administrative fix leads to one settlement.
+- **Near-maximum recipient balance:** exactly one of the commission and a funding fits. Settlement-first → funding `STORAGE_RANGE_EXCEEDED`. Funding-first → `SettlementFailure` CAPACITY with no partial settlement, then an administrative fix leads to one settlement.
+  - Since fix round 1, every round builds one outcome record (successes, refusal reasons, commissions, reservation status, leaf balance), asserts it equals the expected record of the winner, then drives both orders to the same final state (exactly one settlement). The assertion count is identical whichever worker wins.
+  - Both orders are also run deterministically, without a race: `testNearMaximumSettlementFirst` and `testNearMaximumFundingFirst`.
+  - The retail-versus-raise race asserts one saleability record, independent of the order.
 - **Pricing mutation races:**
   - parent child-set vs ancestor raise: exactly one commits and the wholesale tree is never invalid;
   - own retail vs upstream raise: never saleable below wholesale;
@@ -219,6 +228,8 @@ No other accepted test assertion was changed.
 
 ## L. Test matrix (PHP 8.2.34, PHPUnit 11.5.56, `dev/test/run-tests.sh`)
 
+Original candidate evidence (code `09954cac`, candidate HEAD `2c543a63`). It is kept unchanged as historical evidence; §L.1 supersedes its totals.
+
 | Run | MariaDB 10.11.19 | MySQL 8.0.46 | Registry |
 |---|---|---|---|
 | Accepted WP3A baseline (for reference) | 371 / 24904 | 371 / 24904 | matches |
@@ -226,14 +237,77 @@ No other accepted test assertion was changed.
 | WP3B `--testdox` (32m29s) | **OK 463 / 43108** | **OK 463 / 43108** | matches |
 | WP3B plain re-run (30m25s) | **OK 463 / 43108** | **OK 463 / 43102** | matches |
 
-- **Totals per engine:** 463 tests = the accepted 371 + 92 WP3B tests (34 unit + 58 integration). Assertions rose from 24904 to 43108. The new tests are expected; there is no regression.
-- **Assertion totals vary by race order.** The new near-maximum concurrency case asserts 4 things on its fund-first branch and 2 on its commit-first branch (8 rounds). Totals such as 43102 vs 43108 therefore come from which worker wins, not from a lost test; the test count is always 463 and every test passes.
+- **Totals per engine (original candidate):** 463 tests = the accepted 371 + 92 WP3B tests (34 unit + 58 integration). Assertions rose from 24904 to 43108. The new tests are expected; there is no regression.
+- **Assertion totals vary by race order (original candidate; owner review: FIX REQUIRED; fixed in §L.1).** The new near-maximum concurrency case asserts 4 things on its fund-first branch and 2 on its commit-first branch (8 rounds). Totals such as 43102 vs 43108 therefore come from which worker wins, not from a lost test; the test count is always 463 and every test passes.
 - **Testdox:** 926 ✔ / 0 ✘ (both engines). All 742 accepted testdox lines are present unchanged, plus 184 new lines. See `TESTDOX.txt`.
 - **Known environment race:** `CliOnlyTest::testNewPhpFilesRefuseHttpExecution` failed once in plain run 1 on MySQL (`Connections` 201 → 202). It is the same race recorded in the dev-host baseline (there on MariaDB):
   - The test compares the server-global `Connections` counter, and the compose healthcheck connects on its own: measured on the idle test MySQL, 4 connections in 12 s (`mysqladmin ping` every 3 s); on MariaDB, 2 per healthcheck.
   - The isolated test passed 20/20 on each engine.
   - WP3B changed no file the test probes except one line of `tests/bootstrap.php` (support-class list), which keeps its CLI guard.
   - Classification: ENVIRONMENT / test-harness timing, not a product regression. Not patched (a test change would need owner approval).
+### L.1 Owner fix round 1: deterministic assertion count (fix commit `e7d2e7a3`)
+
+**Finding (owner review of `2c543a63`).** Per-engine assertion totals were not stable (43102 vs 43108 at 463 tests), so the candidate did not report one reproducible total.
+
+**Root cause (test only).** In `PricingConcurrencyTest::testNearMaximumRecipientBalanceRace`, each of the 8 rounds asserted differently depending on which approved outcome won:
+- settlement-first: 2 branch assertions;
+- funding-first: 4 branch assertions, plus one hidden assertion: the `ctx('ad')` helper used by the administrative fix-up calls `assertCount` internally, and it ran only on that branch.
+
+Each funding-first round therefore added 3 assertions (`FinanceTestCase::ctx` makes exactly one `assertCount`). The observed 43108 − 43102 = 6 matches two extra funding-first rounds. No product code was involved. A first fix candidate still varied (4239–4243 for the class) because of the hidden `ctx()` assertion. It was never committed; the committed fix builds the context in every round.
+
+**Fix (`e7d2e7a3`, one file: `tests/Integration/Wp3b/PricingConcurrencyTest.php`; no runtime, support, harness, migration or accepted-test change).**
+- Every race round builds one outcome record: successes, refusal reasons, commissions, reservation status, leaf balance.
+- It asserts that record equals the expected record of the winner (`NEAR_MAX_OUTCOMES`: settlement-first or funding-first).
+- It then drives both orders to the same final state (`COMMITTED`, one 3.00 commission, leaf 85.00, exactly one settlement). The assertions are identical whatever the winner.
+- New deterministic tests run each order without a race: `testNearMaximumSettlementFirst` and `testNearMaximumFundingFirst`. This adds 2 tests per engine.
+- The retail-versus-raise race asserts one saleability record (`RETAIL_BELOW_WHOLESALE` or none) instead of branch-dependent checks.
+- `WP3B_EVIDENCE=1` (optional, off in `run-tests.sh`) prints the winner distribution to STDERR. It makes no assertion.
+- No product defect was found; the race still yields only the two approved outcomes.
+
+**Repeated runs of the affected suite** (`--filter PricingConcurrencyTest`, 21 tests, 8 race rounds each, `WP3B_EVIDENCE=1`):
+
+| Engine | Runs | Result every run | Race winners per run (settlement-first / funding-first) |
+|---|---|---|---|
+| MariaDB 10.11.19 | 5 | **OK 21 / 4247** | 6/2, 6/2, 5/3, 7/1, 6/2 |
+| MySQL 8.0.46 | 5 | **OK 21 / 4247** | 4/4, 7/1, 7/1, 2/6, 4/4 |
+
+Both outcomes occurred in every run, and the assertion total did not move.
+
+**Full canonical validation on `e7d2e7a3`** (PHP 8.2.34, PHPUnit 11.5.56):
+
+| Run (UTC) | MariaDB 10.11.19 | MySQL 8.0.46 | Registry | Exit |
+|---|---|---|---|---|
+| `run-tests.sh` (05:52–06:34, 42m10s) | **OK 465 / 43159** | **OK 465 / 43159** | matches | 0 |
+| `run-tests.sh --testdox` run 1 (06:34–07:18, 44m00s) | **OK 465 / 43159** | 458 OK + 7 errors in `Http\StaffManagementTest` (harness port reuse, below): 465 / 43087 | matches | 1 |
+| `run-tests.sh --testdox` run 2 (07:30–08:07, 37m09s) | **OK 465 / 43159** | **OK 465 / 43159** | matches | 0 |
+
+- **Final stable totals per engine: 465 tests / 43159 assertions** on both engines, in every clean run.
+  - 465 = 371 accepted + 94 WP3B (34 unit + 60 integration); the original candidate's 92 WP3B tests plus the 2 deterministic ordering tests.
+- **Testdox (run 2):** 930 ✔ / 0 ✘. These are the 926 lines of the original candidate, all unchanged, plus `Near maximum settlement first` and `Near maximum funding first` on each engine. See `TESTDOX.txt`.
+- An earlier plain run on `e7d2e7a3` was cut off by the operator's tool time limit before it finished. It is not counted, and nothing in it failed.
+
+**Testdox run 1, MySQL: `StaffManagementTest` (7 errors). Classification: ENVIRONMENT / test-harness, pre-existing WP2 harness flake, not a product or WP3B regression.**
+- Every test failed at setup login with `no CSRF token on admin: 404 … The requested resource /?_route=admin was not found`. That is the built-in `php -S` "file not found" page; a docroot that holds the app never serves it for `/`. The run lost exactly the class's 72 assertions (43159 − 43087).
+- **Cause, reproduced with the unmodified harness:**
+  - `tests/Support/AppServer.php` (WP2, unchanged by WP3B) starts `php -S` with `PHP_CLI_SERVER_WORKERS=4` on a random port in 20000–29999. `stop()` uses `proc_terminate`, which stops only the master.
+  - The forked workers keep the port and answer with that 404 page after `destroy()` removes the docroot.
+  - `start()` accepts any listener (`fsockopen`). So a later class that draws the same port talks to the orphan.
+  - A scratch script using the real `AppServer` showed:
+    - live: 200 app page;
+    - after `destroy()`: the port is still accepting and answers `404 … not found`;
+    - a second server on that port: `start()` succeeds and the request gets the same 404.
+  - Each engine leg starts 23 HTTP test classes, so the chance of a port collision is roughly 2.5% per leg.
+- **Rerun of the class:** MySQL 5/5 and MariaDB 2/2 `OK (7 tests, 72 assertions)`. Run 2 above is fully clean.
+- Not patched: this is accepted WP2 harness code outside this fix's scope. It is listed in §N for an owner-approved harness fix (stop the server's process group or verify the server's identity at start).
+- **Route / security matrix on `e7d2e7a3`:** 1442 requests, 1164 denials (all 403), 278 allowed (243 × 200, 35 × 302). The rows are byte-identical on MariaDB and MySQL and to the accepted WP2 evidence rows.
+- **PHP 8.2.34 lint on `e7d2e7a3`:** 354 tracked non-vendor PHP files, 354 pass, 0 fail. The file list is the same as the original candidate's.
+- **Manifest:** 42/42 OK.
+- **Migrations:** R0001–R0006 only; `system/reseller/` is unchanged against `d4ba4514`; R0006 `f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd`.
+- **Source guards:** `PricingSourceGuardTest` and the accepted WP3A `SourceGuardTest` are green in every run above.
+- **Secret sweep** over `2c543a63..HEAD`: no new credential-like content. The fix changes test logic and this evidence only.
+- **`CliOnlyTest` connection-counter race:** it did not occur in this round. It stays classified as an environment timing flake and the test is not weakened.
+
+### L.0 Original candidate: route matrix, lint, manifest, migrations, secrets (still valid)
 - **Route / security matrix** (`RouteMatrixTest`, `WP2_EVIDENCE=1`): **1442 requests, 1164 denials, 278 allowed**. Every denial is a 403. The rows are identical on MariaDB and MySQL and identical to `owner-review/WP2/ROUTE_MATRIX_EVIDENCE.txt`, so WP3B adds no route and changes no decision.
 - **PHP lint:** 354 tracked non-vendor PHP files (incl. the 43 WP3B changed / added files) are clean on PHP 8.2.34 (authoritative) and PHP 8.3.35 (observation).
 - **Manifest:** `sha256sum --strict -c MANIFEST.sha256` gives 42/42 OK.
@@ -255,6 +329,15 @@ No other accepted test assertion was changed.
 - the same 18 AVAIA containers before and after, no unhealthy or restarting state logged;
 - no `nuxbill` container, network or volume left behind.
 
+**Fix round 1** (05:52–08:08 UTC, 689 host samples, 140 AVAIA samples; repeat runs, plain, two testdox runs, route matrix and lint):
+- host load1 max 9.82, mean 5.26;
+- CPU max 43 %, mean 18 %;
+- MemAvailable min 34978 MiB; swap 0;
+- test container peaks: MySQL 233 % / 766 MiB, PHP runner 173 % / 856 MiB, MariaDB 165 % / 460 MiB;
+- AVAIA: the same 18 containers in every sample and after the round, all `Up`, except the one-shot `avaia-v3-minio-init` (`Exited (0) 11 days ago`, the same as before);
+- no `nuxbill` container, network or volume left behind;
+- no global prune, no daemon change, no AVAIA access.
+
 ## N. Known residuals (not release acceptance)
 1. **Recipient overflow at commit:** a recipient balance can reach the money-range limit between reserve and commit. This is the only post-provisioning capacity refusal; it is atomic and typed (`SettlementFailure` CAPACITY). WP5A reconciliation and an administrative fix resolve it.
 2. **Hierarchy moves** (WP2 `moveSubtree`, unchanged) can create wholesale-chain violations. They fail closed (`PRICING_CHAIN_INVALID`) and are listed by `validateTree`.
@@ -265,6 +348,7 @@ No other accepted test assertion was changed.
 7. **Old ancestors after a move** keep historical commission rows whose counterparty may be outside their current scope (historical truth).
 8. **Zero-cost activation** is deferred policy (F-3). **Balance-plan resale** is excluded (F-4).
 9. **`CliOnlyTest` connection-counter race:** a pre-existing test-harness timing race (§L), unchanged by WP3B.
+10. **`AppServer` orphaned `php -S` workers** (WP2 harness, §L.1): a stopped app server's workers keep its port, and a later HTTP test class that draws the same random port fails at login with a 404. This is rare (about 2.5% per engine leg) and environment / harness only. The fix (kill the process group, or verify server identity at start) needs owner approval, because it changes accepted harness code.
 
 ## O. Binding input for WP5A
 See `docs/WP3B_PRICING_MODEL.md` §9.
@@ -280,8 +364,8 @@ See `docs/WP3B_PRICING_MODEL.md` §9.
 - create an activation without a snapshot.
 
 ## P. Git, push and environment status
-- Working tree: clean after the docs commit (`tests/vendor/` is ignored).
-- Push: **none**. PR / merge / tag / deploy: **none**.
+- Working tree: clean after the evidence commit (`tests/vendor/` is ignored).
+- Push: **only `wp3b/pricing-settlement`** to `origin`, normal non-force push, authorised by the owner for fix round 1. Local HEAD = `origin/wp3b/pricing-settlement` (SHA in the final response). PR / merge / tag / deploy: **none**.
 - `feat/reseller-system-v1` = `d4ba4514`, `main` = `500d3a2d…` (unchanged).
 - Production: not touched. WP4 / WP5A / WP5B: not started.
 
