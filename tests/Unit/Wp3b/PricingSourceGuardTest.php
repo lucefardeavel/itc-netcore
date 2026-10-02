@@ -160,7 +160,7 @@ final class PricingSourceGuardTest extends TestCase
             }
         }
         $guard = self::runtime()['system/autoload/Reseller/Domain/PlanGuard.php'];
-        $this->assertDoesNotMatchRegularExpression('/\b(INSERT\s+INTO|UPDATE|DELETE\s+FROM|REPLACE)\b/i', $guard, 'PlanGuard is SELECT-only');
+        $this->assertDoesNotMatchRegularExpression('/\b(INSERT\s+INTO|(?<!FOR )UPDATE|DELETE\s+FROM|REPLACE)\b/i', $guard, 'PlanGuard is SELECT-only (besides its FOR UPDATE row lock)');
     }
 
     /** No controller, API, plugin, widget, cron or template reaches pricing or settlement; no pricing route. */
@@ -189,24 +189,71 @@ final class PricingSourceGuardTest extends TestCase
         }
     }
 
-    /** The legacy plan delete paths ask PlanGuard before any hook, device call or delete. */
+    /**
+     * The legacy plan delete paths hand the hook, the device call and the delete to PlanGuard, which runs
+     * the final reference check and all of them as one unit under the reseller tree lock (no TOCTOU gap).
+     */
     public function testPlanDeleteIsGuardedBeforeAnySideEffect(): void
     {
         $src = (string) file_get_contents(self::root() . '/system/controllers/services.php');
+        $this->assertStringNotContainsString('PlanGuard::deleteRefusal(', $src, 'no unserialized pre-check remains');
         foreach (['delete' => 'delete_plan', 'pppoe-delete' => 'delete_ppoe', 'balance-delete' => 'delete_balance', 'vpn-delete' => 'delete_vpn'] as $case => $hook) {
             $start = strpos($src, "case '{$case}':");
             $this->assertNotFalse($start, $case);
             $body = substr($src, $start, (int) strpos($src, 'break;', $start) - $start);
-            $guard = strpos($body, 'PlanGuard::deleteRefusal(');
-            $this->assertNotFalse($guard, "{$case}: guarded");
-            $this->assertLessThan(strpos($body, "run_hook('{$hook}')"), $guard, "{$case}: before the hook");
-            $this->assertLessThan(strpos($body, '$d->delete()'), $guard, "{$case}: before the delete");
+            $open = strpos($body, 'PlanGuard::deleteSerialized((int) $d[\'id\'], function () use ($d');
+            $this->assertNotFalse($open, "{$case}: serialized delete");
+            $close = strpos($body, "\n            });", $open);
+            $this->assertNotFalse($close, "{$case}: closure end");
+            $unit = substr($body, $open, $close - $open);
+            $outside = substr($body, 0, $open) . substr($body, $close);
+            $effects = ["run_hook('{$hook}')", '$d->delete()'];
             if (str_contains($body, 'remove_plan')) {
-                $this->assertLessThan(strpos($body, 'remove_plan'), $guard, "{$case}: before the device call");
+                $effects[] = 'remove_plan';
             }
-            $this->assertMatchesRegularExpression('/try \{\s*\$d->delete\(\);\s*\} catch \(\\\\PDOException/', $body, "{$case}: FK race is a clear refusal");
+            foreach ($effects as $effect) {
+                $this->assertSame(1, substr_count($unit, $effect), "{$case}: {$effect} inside the serialized unit");
+                $this->assertStringNotContainsString($effect, $outside, "{$case}: {$effect} never outside the unit");
+            }
+            $this->assertStringNotContainsString('catch (', $body, "{$case}: no controller-level catch (PlanGuard owns the failure policy)");
+            $this->assertMatchesRegularExpression('/if \(\$nuxrRefusal !== null\) \{\s*r2\(getUrl\(\'services\/[a-z]+\'\), \'e\', \$nuxrRefusal\);/', $outside, "{$case}: clear refusal");
         }
         $this->assertStringContainsString("\r\n", $src, 'the legacy CRLF line endings are preserved');
         $this->assertStringNotContainsString("\n\n\n\n", str_replace("\r\n", "\n", $src) . '', 'no stray blank blocks');
+
+        // the guard: tree lock first, then the plan row lock, then the reference check, then the effects
+        $guard = self::runtime()['system/autoload/Reseller/Domain/PlanGuard.php'];
+        $order = [];
+        foreach (['Tx::withTreeLock(', "SELECT id FROM tbl_plans WHERE id = ? FOR UPDATE", "StaffService::isReferenced(\$pdo, 'tbl_plans'", '$effects = true;', '$delete();'] as $step) {
+            $pos = strpos($guard, $step);
+            $this->assertNotFalse($pos, $step);
+            $order[] = $pos;
+        }
+        $sorted = $order;
+        sort($sorted);
+        $this->assertSame($sorted, $order, 'lock, row lock, check, effects');
+        $this->assertSame(1, substr_count($guard, '$delete();'), 'the effects run only inside the locked unit');
+    }
+
+    /**
+     * Shared serialization contract for plan references (WP3B fix round 2): every runtime writer of a table
+     * that references tbl_plans runs under the reseller tree lock, the same lock plan deletion holds.
+     */
+    public function testPlanReferenceWritersHoldTheTreeLock(): void
+    {
+        $refTables = 'tbl_reseller_plan_base_costs|tbl_manager_plan_prices|tbl_reseller_activations';
+        $writers = [];
+        foreach (self::runtime() as $rel => $src) {
+            if (preg_match('/\b(INSERT\s+(IGNORE\s+)?INTO|REPLACE(\s+INTO)?)\s+`?(' . $refTables . ')\b/i', $src)) {
+                $writers[] = $rel;
+            }
+        }
+        // ReservationService inserts reservations only; activations are inserted by WP5A (none yet)
+        $this->assertSame([self::FIN . 'PricingService.php'], $writers, 'the only runtime plan-reference writer (WP5A ActivationService must join under the same contract)');
+        $src = self::runtime()[self::FIN . 'PricingService.php'];
+        preg_match_all('/FinanceTx::run\(static function[^{]*\{.*?\n        \}, (true|false)\);/s', $src, $m);
+        $this->assertSame(substr_count($src, 'FinanceTx::run('), count($m[1]), 'every pricing transaction is parsed');
+        $this->assertNotEmpty($m[1]);
+        $this->assertSame(array_fill(0, count($m[1]), 'true'), $m[1], 'every pricing transaction holds the tree lock');
     }
 }

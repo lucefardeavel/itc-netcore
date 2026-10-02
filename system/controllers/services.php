@@ -200,26 +200,24 @@ switch ($action) {
         $id = $routes['2'];
 
         $d = ORM::for_table('tbl_plans')->find_one($id);
-        if ($d && ($nuxrRefusal = \Reseller\Domain\PlanGuard::deleteRefusal((int) $d['id'])) !== null) {
-            // WP3B: a plan referenced by reseller pricing/activation data is refused before any hook, device call or delete
-            r2(getUrl('services/hotspot'), 'e', $nuxrRefusal);
-        }
         if ($d) {
-            run_hook('delete_plan'); #HOOK
-            $dvc = Package::getDevice($d);
-            if ($_app_stage != 'demo') {
-                if (file_exists($dvc)) {
-                    require_once $dvc;
-                    (new $d['device'])->remove_plan($d);
-                } else {
-                    new Exception(Lang::T("Devices Not Found"));
+            // WP3B: the final reseller-reference check, the hook, the device removal and the delete run as one unit
+            // under the reseller tree lock and a plan row lock (PlanGuard); a referenced plan is refused before any effect
+            $nuxrRefusal = \Reseller\Domain\PlanGuard::deleteSerialized((int) $d['id'], function () use ($d, $_app_stage) {
+                run_hook('delete_plan'); #HOOK
+                $dvc = Package::getDevice($d);
+                if ($_app_stage != 'demo') {
+                    if (file_exists($dvc)) {
+                        require_once $dvc;
+                        (new $d['device'])->remove_plan($d);
+                    } else {
+                        new Exception(Lang::T("Devices Not Found"));
+                    }
                 }
-            }
-            try {
                 $d->delete();
-            } catch (\PDOException $nuxrDeleteError) {
-                // a reseller reference added concurrently (FK RESTRICT): clear refusal, never a 500
-                r2(getUrl('services/hotspot'), 'e', \Reseller\Domain\DomainError::MESSAGES['REFERENCED']);
+            });
+            if ($nuxrRefusal !== null) {
+                r2(getUrl('services/hotspot'), 'e', $nuxrRefusal);
             }
 
             r2(getUrl('services/hotspot'), 's', Lang::T('Data Deleted Successfully'));
@@ -595,27 +593,25 @@ switch ($action) {
         $id = $routes['2'];
 
         $d = ORM::for_table('tbl_plans')->find_one($id);
-        if ($d && ($nuxrRefusal = \Reseller\Domain\PlanGuard::deleteRefusal((int) $d['id'])) !== null) {
-            // WP3B: a plan referenced by reseller pricing/activation data is refused before any hook, device call or delete
-            r2(getUrl('services/pppoe'), 'e', $nuxrRefusal);
-        }
         if ($d) {
-            run_hook('delete_ppoe'); #HOOK
+            // WP3B: the final reseller-reference check, the hook, the device removal and the delete run as one unit
+            // under the reseller tree lock and a plan row lock (PlanGuard); a referenced plan is refused before any effect
+            $nuxrRefusal = \Reseller\Domain\PlanGuard::deleteSerialized((int) $d['id'], function () use ($d, $_app_stage) {
+                run_hook('delete_ppoe'); #HOOK
 
-            $dvc = Package::getDevice($d);
-            if ($_app_stage != 'demo') {
-                if (file_exists($dvc)) {
-                    require_once $dvc;
-                    (new $d['device'])->remove_plan($d);
-                } else {
-                    new Exception(Lang::T("Devices Not Found"));
+                $dvc = Package::getDevice($d);
+                if ($_app_stage != 'demo') {
+                    if (file_exists($dvc)) {
+                        require_once $dvc;
+                        (new $d['device'])->remove_plan($d);
+                    } else {
+                        new Exception(Lang::T("Devices Not Found"));
+                    }
                 }
-            }
-            try {
                 $d->delete();
-            } catch (\PDOException $nuxrDeleteError) {
-                // a reseller reference added concurrently (FK RESTRICT): clear refusal, never a 500
-                r2(getUrl('services/pppoe'), 'e', \Reseller\Domain\DomainError::MESSAGES['REFERENCED']);
+            });
+            if ($nuxrRefusal !== null) {
+                r2(getUrl('services/pppoe'), 'e', $nuxrRefusal);
             }
 
             r2(getUrl('services/pppoe'), 's', Lang::T('Data Deleted Successfully'));
@@ -854,17 +850,15 @@ switch ($action) {
         $id = $routes['2'];
 
         $d = ORM::for_table('tbl_plans')->find_one($id);
-        if ($d && ($nuxrRefusal = \Reseller\Domain\PlanGuard::deleteRefusal((int) $d['id'])) !== null) {
-            // WP3B: a plan referenced by reseller pricing/activation data is refused before any hook, device call or delete
-            r2(getUrl('services/balance'), 'e', $nuxrRefusal);
-        }
         if ($d) {
-            run_hook('delete_balance'); #HOOK
-            try {
+            // WP3B: the final reseller-reference check, the hook and the delete run as one unit under the reseller
+            // tree lock and a plan row lock (PlanGuard); a referenced plan is refused before any effect
+            $nuxrRefusal = \Reseller\Domain\PlanGuard::deleteSerialized((int) $d['id'], function () use ($d) {
+                run_hook('delete_balance'); #HOOK
                 $d->delete();
-            } catch (\PDOException $nuxrDeleteError) {
-                // a reseller reference added concurrently (FK RESTRICT): clear refusal, never a 500
-                r2(getUrl('services/balance'), 'e', \Reseller\Domain\DomainError::MESSAGES['REFERENCED']);
+            });
+            if ($nuxrRefusal !== null) {
+                r2(getUrl('services/balance'), 'e', $nuxrRefusal);
             }
             r2(getUrl('services/balance'), 's', Lang::T('Data Deleted Successfully'));
         }
@@ -1105,27 +1099,25 @@ switch ($action) {
         $id = $routes['2'];
 
         $d = ORM::for_table('tbl_plans')->find_one($id);
-        if ($d && ($nuxrRefusal = \Reseller\Domain\PlanGuard::deleteRefusal((int) $d['id'])) !== null) {
-            // WP3B: a plan referenced by reseller pricing/activation data is refused before any hook, device call or delete
-            r2(getUrl('services/vpn'), 'e', $nuxrRefusal);
-        }
         if ($d) {
-            run_hook('delete_vpn'); #HOOK
+            // WP3B: the final reseller-reference check, the hook, the device removal and the delete run as one unit
+            // under the reseller tree lock and a plan row lock (PlanGuard); a referenced plan is refused before any effect
+            $nuxrRefusal = \Reseller\Domain\PlanGuard::deleteSerialized((int) $d['id'], function () use ($d, $_app_stage) {
+                run_hook('delete_vpn'); #HOOK
 
-            $dvc = Package::getDevice($d);
-            if ($_app_stage != 'demo') {
-                if (file_exists($dvc)) {
-                    require_once $dvc;
-                    (new $d['device'])->remove_plan($d);
-                } else {
-                    new Exception(Lang::T("Devices Not Found"));
+                $dvc = Package::getDevice($d);
+                if ($_app_stage != 'demo') {
+                    if (file_exists($dvc)) {
+                        require_once $dvc;
+                        (new $d['device'])->remove_plan($d);
+                    } else {
+                        new Exception(Lang::T("Devices Not Found"));
+                    }
                 }
-            }
-            try {
                 $d->delete();
-            } catch (\PDOException $nuxrDeleteError) {
-                // a reseller reference added concurrently (FK RESTRICT): clear refusal, never a 500
-                r2(getUrl('services/vpn'), 'e', \Reseller\Domain\DomainError::MESSAGES['REFERENCED']);
+            });
+            if ($nuxrRefusal !== null) {
+                r2(getUrl('services/vpn'), 'e', $nuxrRefusal);
             }
 
             r2(getUrl('services/vpn'), 's', Lang::T('Data Deleted Successfully'));

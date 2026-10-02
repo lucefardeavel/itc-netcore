@@ -44,6 +44,21 @@ if (isset($op['go_file'])) {
         usleep(1000);
     }
 }
+if (isset($op['pause_at'], $op['pause_file'])) {
+    // deterministic barrier inside a writer: at the named fault point (locks held, not committed) signal
+    // "<pause_file>.entered" and wait until the test removes pause_file
+    \Reseller\Finance\FinanceFaults::$hook = static function (string $point) use ($op): void {
+        if ($point !== $op['pause_at']) {
+            return;
+        }
+        touch($op['pause_file'] . '.entered');
+        $deadline = microtime(true) + 30;
+        while (is_file($op['pause_file']) && microtime(true) < $deadline) {
+            usleep(2000);
+            clearstatcache();
+        }
+    };
+}
 try {
     $r = match ($op['op']) {
         'fund' => TransferService::fund($staff($op['actor']), $op['manager'], $op['amount'], 'concurrency funding', $op['reference']),

@@ -26,7 +26,7 @@ Accepted code changed (minimal):
 - `DomainError`: the pricing / settlement reason codes.
 - `SchemaReadiness`: the pricing tables are required.
 - `LedgerService` / `ReservationService`: the settlement extension (§8).
-- `system/controllers/services.php`: the four plan delete paths call `PlanGuard`.
+- `system/controllers/services.php`: the four plan delete paths run their hook, device removal and delete through `PlanGuard::deleteSerialized` (§11).
 
 Byte-identical and still pinned:
 - R0001–R0006 and the migration runner;
@@ -207,7 +207,9 @@ Error handling around it:
    5. WP5A state / event rows.
 2. **Provisioning** happens outside any transaction.
 3. **`ReservationService::commitInTx(pdo, reservation, actor)`** is the first locking work of WP5A's state-transition transaction. Debit, commissions and reservation status commit atomically with WP5A's FINANCIAL event and COMPLETED transition. On a `SettlementFailure` (or `SettlementFailure::classify`), WP5A owns retry or RECONCILIATION_REQUIRED.
-4. **WP5A must never:**
+4. **Plan-reference serialization (shared contract with safe plan deletion, §11):** every activation INSERT, which creates the `plan_id` / `previous_plan_id` references, must happen inside the same tree-locked transaction that resolves the plan (step 1). `PlanGuard::deleteSerialized` holds that lock from its final reference check through the hook, the device removal and the delete commit, so an activation can never reference a plan whose delete has already been decided. WP5A must also add a deterministic race test, activation creation vs plan delete, mirroring `PlanDeleteRaceTest`.
+5. **WP5A must never:**
+   - create a `tbl_plans` reference (activation, pricing or any new table) outside the reseller tree lock;
    - write ledger, wallet or pricing tables;
    - update the snapshot columns;
    - create an activation without a snapshot;
@@ -227,11 +229,23 @@ Error handling around it:
 - **Payload:** before / after contain only the changed override `{value, set_by, set_at}`, the optional reason and any unsaleable-descendant warnings. Snapshots are never copied.
 - **Not audited:** reads, resolution and settlement (the ledger is the financial truth).
 
-## 11. Safe plan deletion (WP1 binding input)
-- The four legacy delete paths (`delete`, `pppoe-delete`, `balance-delete`, `vpn-delete`) ask `PlanGuard` **before** any hook, router / RADIUS removal or delete.
-- A plan referenced by any foreign key (base cost, override row, activation `plan_id` / `previous_plan_id`) is refused with a clear message and a `plan.delete_refused` audit. Discovery is schema-driven and fails closed on error.
-- The delete itself catches a concurrent FK refusal (clear error, no 500).
-- Unreferenced plans and unmigrated installations behave exactly as before.
+## 11. Safe plan deletion (WP1 binding input; serialized since owner code review fix round 2)
+- The four legacy delete paths (`delete`, `pppoe-delete`, `balance-delete`, `vpn-delete`) pass their whole legacy delete to `PlanGuard::deleteSerialized(planId, closure)`: the hook, the router / RADIUS removal and `$d->delete()`, unchanged and in the legacy order. No hook, device call or delete exists outside that closure.
+- **One unit, in this order:**
+  1. `Tx::withTreeLock`: the reseller tree lock (`GET_LOCK`, 10 s) is taken **before** the final check and held until the delete has committed or rolled back. It is the existing lock: every pricing writer (`PricingService`, all `FinanceTx::run(…, true)`) holds it while it creates a base-cost or override reference, and WP5A must hold it for activation references (§9). No new lock exists.
+  2. BEGIN. `SELECT id FROM tbl_plans WHERE id = ? FOR UPDATE`, the plan row lock, taken before the check. This is a database-level backstop for any writer that does not hold the tree lock. Its foreign-key check needs a shared lock on the plan row, so the writer's reference either committed before this point (and is seen) or waits for the unit and then fails because the plan is missing (1452). The pricing writers never reach that point, because the tree lock serializes them first.
+  3. Final reference check (schema-driven, every FK to `tbl_plans.id`). If referenced → refused: no hook, no device call, no database change, a `plan.delete_refused` audit, a clear message.
+  4. The legacy session `sql_mode` is restored for the legacy code. Then the hook, the device removal and the row delete run.
+  5. COMMIT, then the tree lock is released (`finally`).
+- **Failure / timeout policy:**
+  - tree lock not obtained within 10 s → `LOCK_TIMEOUT` ("The hierarchy is busy; please try again."), nothing done;
+  - any error before the effects → fail closed (REFERENCED refusal, nothing done);
+  - a foreign-key refusal during the effects (1451; impossible for in-application writers now) → REFERENCED message and the database part rolled back;
+  - any other error during the effects is rethrown unchanged, as in the legacy code.
+- **Lock hold time:** the tree lock is held during the device call. A tree-locked operation, such as a pricing or finance write, that waits longer than its 10 s timeout fails closed with `LOCK_TIMEOUT` and can be retried. It never becomes inconsistent.
+- **Not compensated:** device state is never recreated after the fact. The serialization makes the reference race impossible instead.
+- **Residual:** an infrastructure failure, such as a lost database connection, between a successful device removal and the commit can still leave the device ahead of the database. This is the legacy ordering (device first) and has nothing to do with references.
+- Unreferenced plans and unmigrated installations (no reseller tables, no FKs) are deleted as before.
 
 ## 12. Source guards (`tests/Unit/Wp3b/PricingSourceGuardTest.php`; the WP3A guards stay in force)
 - Only `PricingService` writes the pricing tables. Its only DELETE is the all-NULL override row. There are no upserts, ORM access, TRUNCATE / ALTER / DROP / LOAD DATA, and base rows are never deleted.
@@ -241,9 +255,10 @@ Error handling around it:
   - any activation INSERT must seal all five columns;
   - no delete, upsert or ORM access.
 - `ACTIVATION_DEBIT` / `COMMISSION_CREDIT` appear only in `LedgerService`, and `postActivationDebit` no longer exists. `postActivationSettlement` takes only ids, an actor and locked wallets, and only `ReservationService` calls it.
-- Pricing code writes no money, legacy price or customer table and calls no finance writer. `PlanGuard` is SELECT-only.
+- Pricing code writes no money, legacy price or customer table and calls no finance writer. `PlanGuard` is SELECT-only, apart from its `FOR UPDATE` row lock.
 - No controller / API / plugin / cron / template reaches pricing or settlement, and no route or `API_ALLOWED` key is about pricing.
-- The four delete paths are guarded before any side effect, with CRLF preserved.
+- The four delete paths run the hook, device call and delete only inside `PlanGuard::deleteSerialized`, which takes the tree lock, then the plan row lock, then the check, then the effects; no unserialized pre-check remains; CRLF is preserved.
+- Plan-reference writers: the only runtime INSERT into a plan-referencing table is in `PricingService`, and every `PricingService` transaction holds the tree lock. WP5A's ActivationService must join under the same contract.
 
 ## 13. Known residuals
 - **Recipient overflow at commit:** a recipient balance can exceed the money range between reserve and commit. This is the only post-delivery capacity refusal; it is atomic and typed, and is resolved through WP5A reconciliation and an administrative fix.
