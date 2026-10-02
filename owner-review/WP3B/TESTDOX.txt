@@ -1,5 +1,5 @@
-Code under test: wp3b/pricing-settlement at e7d2e7a3 (owner fix round 1; original candidate 2c543a63, code 09954cac); run: dev/test/run-tests.sh --testdox (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46), 2026-10-02 07:30-08:07 UTC, exit 0
-Supersedes the original-candidate testdox (463 tests / 43108 assertions per engine, 926 passed); history and the failed testdox run 1 (MySQL StaffManagementTest harness port reuse) are in REPORT.md section L.1
+Code under test: wp3b/pricing-settlement at 9978311a (owner fix round 2: plan-delete TOCTOU race; reviewed candidate ae636d14); run: dev/test/run-tests.sh --testdox (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46), 2026-10-02 09:16-09:50 UTC, exit 0
+Supersedes the fix-round-1 testdox (465 tests / 43159 assertions per engine, 930 passed); history in REPORT.md sections L.1 and L.2
  Image nuxbill-reseller-test-php82 Building 
  Image nuxbill-reseller-test-php82 Built 
 ================ engine: mariadb ================
@@ -9,16 +9,16 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 465 ( 13%)
-............................................................... 126 / 465 ( 27%)
-............................................................... 189 / 465 ( 40%)
-............................................................... 252 / 465 ( 54%)
-............................................................... 315 / 465 ( 67%)
-............................................................... 378 / 465 ( 81%)
-............................................................... 441 / 465 ( 94%)
-........................                                        465 / 465 (100%)
+...............................................................  63 / 470 ( 13%)
+............................................................... 126 / 470 ( 26%)
+............................................................... 189 / 470 ( 40%)
+............................................................... 252 / 470 ( 53%)
+............................................................... 315 / 470 ( 67%)
+............................................................... 378 / 470 ( 80%)
+............................................................... 441 / 470 ( 93%)
+.............................                                   470 / 470 (100%)
 
-Time: 10:43.374, Memory: 32.00 MB
+Time: 12:11.382, Memory: 32.00 MB
 
 Adjustment (Reseller\Tests\Integration\Wp3a\Adjustment)
  ✔ Adjustments never create a wallet
@@ -360,6 +360,12 @@ Plan Delete Guard (Reseller\Tests\Integration\Wp3b\PlanDeleteGuard)
  ✔ Activation references including previous plan are refused
  ✔ Unreferenced plans are deleted as before
 
+Plan Delete Race (Reseller\Tests\Integration\Wp3b\PlanDeleteRace)
+ ✔ Delete wins serialization
+ ✔ Pricing wins serialization
+ ✔ Lock timeout refuses before any effect
+ ✔ Concurrent delete and pricing never split
+
 Preflight (Reseller\Tests\Integration\Preflight)
  ✔ Recognises verified variant with zero mutation with data set "V1_FRESH_INSTALL"
  ✔ Recognises verified variant with zero mutation with data set "V2_FRESH_INSTALL_UPDATED"
@@ -435,6 +441,7 @@ Pricing Source Guard (Reseller\Tests\Unit\Wp3b\PricingSourceGuard)
  ✔ Pricing code writes no money
  ✔ No entrypoint or route
  ✔ Plan delete is guarded before any side effect
+ ✔ Plan reference writers hold the tree lock
 
 Reseller Lifecycle (Reseller\Tests\Http\ResellerLifecycle)
  ✔ Super admin cannot delete an enrolled agent
@@ -623,7 +630,7 @@ Wholesale (Reseller\Tests\Integration\Wp3b\Wholesale)
  ✔ Pre existing violation from a move
  ✔ Deep chain and frozen policy
 
-OK (465 tests, 43159 assertions)
+OK (470 tests, 43219 assertions)
 ================ engine: mysql ================
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
@@ -631,16 +638,16 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 465 ( 13%)
-............................................................... 126 / 465 ( 27%)
-............................................................... 189 / 465 ( 40%)
-............................................................... 252 / 465 ( 54%)
-............................................................... 315 / 465 ( 67%)
-............................................................... 378 / 465 ( 81%)
-............................................................... 441 / 465 ( 94%)
-........................                                        465 / 465 (100%)
+...............................................................  63 / 470 ( 13%)
+............................................................... 126 / 470 ( 26%)
+............................................................... 189 / 470 ( 40%)
+............................................................... 252 / 470 ( 53%)
+............................................................... 315 / 470 ( 67%)
+............................................................... 378 / 470 ( 80%)
+............................................................... 441 / 470 ( 93%)
+.............................                                   470 / 470 (100%)
 
-Time: 25:22.536, Memory: 32.00 MB
+Time: 21:09.250, Memory: 32.00 MB
 
 Adjustment (Reseller\Tests\Integration\Wp3a\Adjustment)
  ✔ Adjustments never create a wallet
@@ -982,6 +989,12 @@ Plan Delete Guard (Reseller\Tests\Integration\Wp3b\PlanDeleteGuard)
  ✔ Activation references including previous plan are refused
  ✔ Unreferenced plans are deleted as before
 
+Plan Delete Race (Reseller\Tests\Integration\Wp3b\PlanDeleteRace)
+ ✔ Delete wins serialization
+ ✔ Pricing wins serialization
+ ✔ Lock timeout refuses before any effect
+ ✔ Concurrent delete and pricing never split
+
 Preflight (Reseller\Tests\Integration\Preflight)
  ✔ Recognises verified variant with zero mutation with data set "V1_FRESH_INSTALL"
  ✔ Recognises verified variant with zero mutation with data set "V2_FRESH_INSTALL_UPDATED"
@@ -1057,6 +1070,7 @@ Pricing Source Guard (Reseller\Tests\Unit\Wp3b\PricingSourceGuard)
  ✔ Pricing code writes no money
  ✔ No entrypoint or route
  ✔ Plan delete is guarded before any side effect
+ ✔ Plan reference writers hold the tree lock
 
 Reseller Lifecycle (Reseller\Tests\Http\ResellerLifecycle)
  ✔ Super admin cannot delete an enrolled agent
@@ -1245,7 +1259,7 @@ Wholesale (Reseller\Tests\Integration\Wp3b\Wholesale)
  ✔ Pre existing violation from a move
  ✔ Deep chain and frozen policy
 
-OK (465 tests, 43159 assertions)
+OK (470 tests, 43219 assertions)
 ================ variant registry reproducibility ================
 variant registry matches freshly built fixtures
   mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
