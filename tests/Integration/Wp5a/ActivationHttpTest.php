@@ -26,6 +26,12 @@ final class ActivationHttpTest extends RadiusHttpTestCase
             'routers' => 'radius', 'is_radius' => 1, 'pool' => '', 'enabled' => 1, 'prepaid' => 'yes', 'plan_type' => 'Personal', 'device' => 'Radius',
         ]);
         // provider base cost, resale and the Agent's funding through the real services (inside the app runtime)
+        // an enabled RADIUS plan nobody prices: never offered to a reseller, listed for Admin only
+        static::$db->insertRow('tbl_plans', [
+            'name_plan' => 'wp5a_unpriced', 'id_bw' => $bw, 'price' => '20', 'type' => 'Hotspot', 'typebp' => 'Unlimited', 'limit_type' => 'Time_Limit',
+            'time_limit' => 0, 'time_unit' => 'Hrs', 'data_limit' => 0, 'data_unit' => 'MB', 'validity' => 30, 'validity_unit' => 'Days', 'shared_users' => 1,
+            'routers' => 'radius', 'is_radius' => 1, 'pool' => '', 'enabled' => 1, 'prepaid' => 'yes', 'plan_type' => 'Personal', 'device' => 'Radius',
+        ]);
         $plan = self::$plan;
         $a = static::$seed->staff['A'];
         $out = static::$app->exec(<<<PHP
@@ -112,6 +118,53 @@ PHP);
             $this->assertStringNotContainsString('activation/create', $r->headers['location'][0] ?? '', "{$route}: not sent to a create form");
         }
         $this->assertSame(403, $this->staff('E')->get('activation')->status, 'a non-enrolled Agent has no tree read scope');
+    }
+
+    /** @return list<string> the plan names offered by the create form */
+    private static function options(\Reseller\Tests\Support\HttpResponse $r): array
+    {
+        preg_match_all('/<option value="\d+"[^>]*>([^<(]*) \(/', $r->body, $m);
+        return array_map('trim', $m[1]);
+    }
+
+    /** Owner fix round 1: actor eligibility and the per-context plan catalog over real HTTP. */
+    public function testEligibilityAndCatalogOverHttp(): void
+    {
+        $customers = static::$seed->customers;
+        $e = $this->staff('E'); // Active Agent, not enrolled
+        $agent = $this->staff('A');
+        $sales = $this->staff('A1'); // Sales of A, assigned to cA1
+        $admin = $this->staff('ad');
+        $before = $this->finance();
+        $this->assertSame(403, $e->get('activation')->status);
+        foreach ([[], ['customer' => $customers['cA0'], 'plan' => self::$plan], ['customer' => 99999999, 'plan' => self::$plan]] as $q) {
+            $r = $e->get('activation/create', $q);
+            $this->assertSame(403, $r->status, 'unenrolled Agent: no create form ' . json_encode($q));
+            $this->assertStringNotContainsString('wp5a_http', $r->body, 'no plan catalog rendered');
+            $this->assertStringNotContainsString('Customer ID', $r->body);
+        }
+        $this->assertSame(403, $e->postWithToken('activation/create-post', ['customer_id' => $customers['cA0'], 'plan_id' => self::$plan, 'expected_action' => 'NEW', 'nonce' => bin2hex(random_bytes(16))])->status);
+        $this->assertUnchanged($before, 'unenrolled Agent', ['tbl_logs', 'tbl_reseller_audit_events']);
+
+        $mine = $agent->get('activation/create');
+        $this->assertSame(200, $mine->status);
+        $this->assertContains('wp5a_http', self::options($mine), 'the enrolled Agent sees its saleable plan');
+        $this->assertNotContains('wp5a_unpriced', self::options($mine), 'never a plan it cannot sell');
+        $this->assertDoesNotMatchRegularExpression('/wholesale|commission|settlement|base cost/i', strip_tags($mine->body), 'no upstream economics');
+
+        $this->assertSame([], self::options($sales->get('activation/create')), 'Sales without a customer: no plans');
+        $this->assertSame(['wp5a_http'], array_values(array_intersect(self::options($sales->get('activation/create', ['customer' => $customers['cA1']])), ['wp5a_http', 'wp5a_unpriced'])),
+            'Sales with its assigned customer: the owner\'s saleable plans');
+        foreach (['cA2', 'cB', 'cNULL'] as $other) {
+            $r = $sales->get('activation/create', ['customer' => $customers[$other]]);
+            $this->assertSame(200, $r->status);
+            $this->assertSame([], self::options($r), "{$other}: not in the Sales scope, nothing listed");
+            $this->assertStringContainsString('Not found', $r->body, "{$other}: same answer as a missing customer");
+        }
+
+        $all = self::options($admin->get('activation/create'));
+        $this->assertContains('wp5a_http', $all);
+        $this->assertContains('wp5a_unpriced', $all, 'Admin keeps the administrative list');
     }
 
     public function testReconciliationIsAdminOnlyAndTheCliToolWorks(): void

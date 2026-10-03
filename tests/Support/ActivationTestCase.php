@@ -185,6 +185,22 @@ abstract class ActivationTestCase extends PricingTestCase
         return $out;
     }
 
+    /** Sum of the ACTIVE reservations of a manager. */
+    protected function reserved(int $manager): string
+    {
+        return (string) static::$db->value("SELECT COALESCE(SUM(amount), 0.00) FROM tbl_manager_wallet_reservations WHERE manager_id = ? AND status = 'ACTIVE'", [$manager]);
+    }
+
+    protected function expectExceptionReason(string $reason, callable $fn, ?string $label = null): void
+    {
+        try {
+            $fn();
+            $this->fail('expected ' . $reason . ($label ? ': ' . $label : ''));
+        } catch (\Reseller\Domain\DomainError $e) {
+            $this->assertSame($reason, $e->reason, $label ?? '');
+        }
+    }
+
     protected function username(int $customer): string
     {
         return (string) static::$db->value('SELECT username FROM tbl_customers WHERE id = ?', [$customer]);

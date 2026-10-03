@@ -281,29 +281,36 @@ final class ActivationFailureTest extends ActivationTestCase
         $this->assertSame(['985.00', '1003.00'], [$this->balance($leaf), $this->balance($top)]);
     }
 
+    /** Rollback restores the RADIUS state captured before provisioning (here a real previous service) and only then releases. */
     public function testRollbackRestoresThePreviousService(): void
     {
         [$plan, $top, $leaf, $c] = $this->setupSale();
-        $this->recharge($c, $plan, '2031-03-10', '12:00:00');
+        $this->assertSame('COMPLETED', $this->activate($leaf, $c, $plan, 'NEW')['status'], 'the previous service');
+        $u = $this->username($c);
+        $previous = $this->radcheck($u);
         self::failAt('activation.after_settlement');
         $out = $this->activate($leaf, $c, $plan, 'RENEW');
-        $this->assertSame('09 Apr 2031 12:00:00', $this->radcheck($this->username($c))['Expiration'], 'the renewal reached RADIUS');
+        $this->assertNotSame($previous['Expiration'], $this->radcheck($u)['Expiration'], 'the renewal reached RADIUS');
         ActivationFaults::$hook = null;
         $row = ReconciliationService::rollback($this->system(), $out['reference']);
         $this->assertSame('ROLLED_BACK', $row['status']);
-        $this->assertSame('10 Mar 2031 12:00:00', $this->radcheck($this->username($c))['Expiration'], 'the previous expiry is back');
-        $this->noMoneyMoved($top, $leaf);
-        $this->assertSame(['2031-03-10'], array_column(static::$db->rows('SELECT expiration FROM tbl_user_recharges WHERE customer_id = ?', [$c]), 'expiration'), 'legacy row untouched');
+        $this->assertSame($previous, $this->radcheck($u), 'the captured previous state is back, password included');
+        $this->assertSame(['985.00', '1003.00'], [$this->balance($leaf), $this->balance($top)], 'only the first activation was charged');
+        $this->assertSame('0.00', $this->reserved($leaf), 'the renewal reservation was released');
+        $this->assertStringContainsString('"password":"restored"', (string) static::$db->value("SELECT e.metadata FROM tbl_reseller_activation_events e JOIN tbl_reseller_activations a ON a.id = e.activation_id WHERE a.reference = ? AND e.to_state = 'ROLLED_BACK'", [$out['reference']]));
     }
 
-    public function testRollbackOfANewServiceSuspendsIt(): void
+    /** A NEW activation rolled back: the captured prior state was empty, so the subscriber's managed rows are removed. */
+    public function testRollbackOfANewServiceRestoresTheEmptyPriorState(): void
     {
         [$plan, $top, $leaf, $c] = $this->setupSale();
         self::failAt('activation.after_settlement');
         $out = $this->activate($leaf, $c, $plan, 'NEW');
         ActivationFaults::$hook = null;
+        $this->assertNotSame([], $this->radcheck($this->username($c)));
         $this->assertSame('ROLLED_BACK', ReconciliationService::rollback($this->system(), $out['reference'])['status']);
-        $this->assertMatchesRegularExpression('/^[0-9a-f]{48}$/', $this->radcheck($this->username($c))['Cleartext-Password'], 'no previous service: suspended');
+        $this->assertSame([], $this->radcheck($this->username($c)), 'no access remains');
+        $this->assertSame(0, (int) static::$db->value('SELECT COUNT(*) FROM radusergroup WHERE username = ?', [$this->username($c)]));
         $this->noMoneyMoved($top, $leaf);
     }
 
@@ -330,20 +337,5 @@ final class ActivationFailureTest extends ActivationTestCase
         $this->assertSame([['reference' => $ref, 'status' => 'FUNDS_RESERVED']], $mine(), 'stale report lists it');
         $this->assertSame('COMPLETED', \Reseller\Activation\ActivationService::execute((int) $this->act($ref)['id'], $this->system())['status'], 'resume continues');
         $this->assertSame([], $mine());
-    }
-
-    private function reserved(int $manager): string
-    {
-        return (string) static::$db->value("SELECT COALESCE(SUM(amount), 0.00) FROM tbl_manager_wallet_reservations WHERE manager_id = ? AND status = 'ACTIVE'", [$manager]);
-    }
-
-    private function expectExceptionReason(string $reason, callable $fn, ?string $label = null): void
-    {
-        try {
-            $fn();
-            $this->fail('expected ' . $reason . ($label ? ': ' . $label : ''));
-        } catch (\Reseller\Domain\DomainError $e) {
-            $this->assertSame($reason, $e->reason, $label ?? '');
-        }
     }
 }

@@ -59,4 +59,29 @@ final class ActivationCapabilityTest extends TestCase
         $customer = ActorContext::make(['type' => ActorContext::CUSTOMER, 'channel' => 'WEB', 'customerId' => 5, 'schemaReady' => true]);
         $this->assertFalse(PermissionService::can($customer, C::ACTIVATION_CREATE), 'customers do not use the staff activation flow (WP5B)');
     }
+
+    /**
+     * Owner fix round 1: activation.create acts for a reseller identity, so an Agent / Sales principal must be
+     * validly placed (enrolled, consistent, with its reseller) whatever its scope letter. The A5 scopes are unchanged.
+     */
+    public function testActivationCreateRequiresAValidlyPlacedResellerIdentity(): void
+    {
+        $this->assertSame([C::ACTIVATION_CREATE], C::PLACEMENT_REQUIRED);
+        foreach (['Agent', 'Sales'] as $role) {
+            foreach (['enrolled' => false, 'inconsistent' => true, 'managerId' => null] as $flag => $value) {
+                $actor = self::staff($role, [$flag => $value]);
+                $this->assertSame(PermissionService::NONE, PermissionService::scopeOf($actor, C::ACTIVATION_CREATE), "{$role}: {$flag}");
+                $this->assertFalse(\Reseller\Activation\ActivationService::eligible($actor), "{$role}: {$flag} not eligible");
+            }
+            $this->assertTrue(\Reseller\Activation\ActivationService::eligible(self::staff($role)), "{$role}: placed and Active");
+            $this->assertFalse(\Reseller\Activation\ActivationService::eligible(self::staff($role, ['frozen' => true])), "{$role}: frozen");
+        }
+        // the unplaced Agent keeps every other self-scoped capability (C20 unchanged)
+        $this->assertSame('S', PermissionService::scopeOf(self::staff('Agent', ['enrolled' => false]), C::DASHBOARD_VIEW));
+        $this->assertSame('S', PermissionService::scopeOf(self::staff('Agent', ['enrolled' => false, 'managerId' => null]), C::PRICING_OWN_RETAIL));
+        foreach (['SuperAdmin', 'Admin'] as $role) {
+            $this->assertTrue(\Reseller\Activation\ActivationService::eligible(self::staff($role)), "{$role}: global behaviour unchanged");
+        }
+        $this->assertFalse(\Reseller\Activation\ActivationService::eligible(self::staff('Report')));
+    }
 }
