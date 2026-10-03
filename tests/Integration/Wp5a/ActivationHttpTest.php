@@ -103,6 +103,15 @@ PHP);
         $this->assertUnchanged($before, 'refused requests', ['tbl_logs', 'tbl_reseller_audit_events']);
         $this->assertSame(0, (int) static::$db->value('SELECT COUNT(*) FROM tbl_reseller_activations WHERE customer_id = ?', [$customer]));
         $this->assertSame(405, $this->staff('A')->get('activation/create-post')->status, 'mutations are POST-only');
+        // the bare controller and unknown actions are the read action: a frozen Agent (read only) never reaches the create form
+        $frozen = $this->staff('F');
+        $this->assertSame(403, $frozen->get('activation/create')->status, 'frozen: no activation.create');
+        foreach (['activation', 'activation/no-such-action'] as $route) {
+            $r = $frozen->get($route);
+            $this->assertSame(302, $r->status, $route);
+            $this->assertStringNotContainsString('activation/create', $r->headers['location'][0] ?? '', "{$route}: not sent to a create form");
+        }
+        $this->assertSame(403, $this->staff('E')->get('activation')->status, 'a non-enrolled Agent has no tree read scope');
     }
 
     public function testReconciliationIsAdminOnlyAndTheCliToolWorks(): void

@@ -38,11 +38,33 @@ switch ($action) {
         r2(getUrl('activation/view/' . $out['reference']), $type, Lang::T('Activation') . ' ' . $out['reference'] . ': ' . $out['status']);
         break;
 
+    case 'create':
+        $customerId = _get('customer');
+        $planId = _get('plan');
+        $preview = null;
+        if (\Reseller\Security\DataScope::validId($customerId) && \Reseller\Security\DataScope::validId($planId)) {
+            try {
+                $preview = \Reseller\Activation\ActivationService::preview($nuxrActor, $customerId, $planId);
+            } catch (\Reseller\Domain\DomainError $e) {
+                $ui->assign('nuxr_error', Lang::T($e->getMessage()));
+            }
+        }
+        $plans = ORM::for_table('tbl_plans')->where('device', 'Radius')->where('enabled', 1)->where_in('type', ['Hotspot', 'PPPOE'])->order_by_asc('name_plan')->find_array();
+        $ui->assign('nuxr_plans', $plans);
+        $ui->assign('nuxr_customer_id', \Reseller\Security\DataScope::validId($customerId) ? (int) $customerId : '');
+        $ui->assign('nuxr_plan_id', \Reseller\Security\DataScope::validId($planId) ? (int) $planId : '');
+        $ui->assign('nuxr_preview', $preview);
+        $ui->assign('nuxr_nonce', bin2hex(random_bytes(16)));
+        $ui->display('admin/activation/create.tpl');
+        break;
+
     case 'view':
+    default:
+        // the bare controller and unknown actions are the read action (RouteMap '' / '*' => view, activation.read)
         try {
             $view = \Reseller\Activation\ActivationService::status($nuxrActor, $routes['2'] ?? '');
         } catch (\Reseller\Domain\DomainError $e) {
-            $nuxrFail($e, 'activation/create');
+            $nuxrFail($e, \Reseller\Security\PermissionService::can($nuxrActor, \Reseller\Security\Capability::ACTIVATION_CREATE) ? 'activation/create' : 'dashboard');
         }
         $ui->assign('nuxr_activation', $view['activation']);
         $ui->assign('nuxr_events', $view['events']);
@@ -63,24 +85,4 @@ switch ($action) {
         }
         r2(getUrl('activation/view/' . $row['reference']), 's', Lang::T('Activation') . ' ' . $row['reference'] . ': ' . $row['status']);
         break;
-
-    case 'create':
-    default:
-        $customerId = _get('customer');
-        $planId = _get('plan');
-        $preview = null;
-        if (\Reseller\Security\DataScope::validId($customerId) && \Reseller\Security\DataScope::validId($planId)) {
-            try {
-                $preview = \Reseller\Activation\ActivationService::preview($nuxrActor, $customerId, $planId);
-            } catch (\Reseller\Domain\DomainError $e) {
-                $ui->assign('nuxr_error', Lang::T($e->getMessage()));
-            }
-        }
-        $plans = ORM::for_table('tbl_plans')->where('device', 'Radius')->where('enabled', 1)->where_in('type', ['Hotspot', 'PPPOE'])->order_by_asc('name_plan')->find_array();
-        $ui->assign('nuxr_plans', $plans);
-        $ui->assign('nuxr_customer_id', \Reseller\Security\DataScope::validId($customerId) ? (int) $customerId : '');
-        $ui->assign('nuxr_plan_id', \Reseller\Security\DataScope::validId($planId) ? (int) $planId : '');
-        $ui->assign('nuxr_preview', $preview);
-        $ui->assign('nuxr_nonce', bin2hex(random_bytes(16)));
-        $ui->display('admin/activation/create.tpl');
 }

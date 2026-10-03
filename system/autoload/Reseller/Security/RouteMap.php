@@ -150,7 +150,7 @@ final class RouteMap
         // WP5A reseller activation (owner decision A7): minimal staff flow; reconcile / rollback are further
         // restricted to Admin / SuperAdmin inside Reseller\Activation\ReconciliationService
         'activation' => [
-            '' => 'create', '*' => 'create',
+            '' => 'view', '*' => 'view',
             'create' => ['GET' => C::ACTIVATION_CREATE],
             'create-post' => ['POST' => C::ACTIVATION_CREATE],
             'view' => ['GET' => C::ACTIVATION_READ],
