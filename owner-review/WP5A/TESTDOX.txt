@@ -1,5 +1,5 @@
-Code under test: wp5a/activation-core at c0302b61 (base feat/reseller-system-v1 0c080a7a = WP4 accepted 58e3e458 + owner metadata); PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 (test containers)
-Both legs and registry: dev/test/run-tests.sh --testdox, 2026-10-03 01:14-01:49 UTC (exit 0).
+Code under test: wp5a/activation-core at c00eb868 (owner fix round 1; reviewed candidate 608260d9; base feat/reseller-system-v1 0c080a7a = WP4 accepted 58e3e458 + owner metadata); PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 (test containers)
+Both legs and registry: dev/test/run-tests.sh --testdox, 2026-10-03 08:31-09:17 UTC (exit 0).
  Image nuxbill-reseller-test-php82 Building 
  Image nuxbill-reseller-test-php82 Built 
 ================ engine: mariadb ================
@@ -9,18 +9,18 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 594 ( 10%)
-............................................................... 126 / 594 ( 21%)
-............................................................... 189 / 594 ( 31%)
-............................................................... 252 / 594 ( 42%)
-............................................................... 315 / 594 ( 53%)
-............................................................... 378 / 594 ( 63%)
-............................................................... 441 / 594 ( 74%)
-............................................................... 504 / 594 ( 84%)
-............................................................... 567 / 594 ( 95%)
-...........................                                     594 / 594 (100%)
+...............................................................  63 / 613 ( 10%)
+............................................................... 126 / 613 ( 20%)
+............................................................... 189 / 613 ( 30%)
+............................................................... 252 / 613 ( 41%)
+............................................................... 315 / 613 ( 51%)
+............................................................... 378 / 613 ( 61%)
+............................................................... 441 / 613 ( 71%)
+............................................................... 504 / 613 ( 82%)
+............................................................... 567 / 613 ( 92%)
+..............................................                  613 / 613 (100%)
 
-Time: 12:07.787, Memory: 42.00 MB
+Time: 11:47.217, Memory: 44.00 MB
 
 Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
  ✔ Owner sales and admin may activate on the owners wallet
@@ -34,6 +34,14 @@ Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorizatio
 Activation Capability (Reseller\Tests\Unit\Wp5a\ActivationCapability)
  ✔ Exact matrix
  ✔ Fail closed principals
+ ✔ Activation create requires a validly placed reseller identity
+
+Activation Catalog (Reseller\Tests\Integration\Wp5a\ActivationCatalog)
+ ✔ Unplaced agent is refused before any data
+ ✔ Agent sees only plans saleable for itself
+ ✔ Invalid wholesale chain is absent
+ ✔ Sales catalog follows the authoritative customer owner
+ ✔ Admin keeps the administrative list
 
 Activation Contract (Reseller\Tests\Integration\Wp5a\ActivationContract)
  ✔ Completed activation authenticates and renewal extends it
@@ -51,12 +59,13 @@ Activation Failure (Reseller\Tests\Integration\Wp5a\ActivationFailure)
  ✔ Verify mismatch keeps the funds reserved until reconciled
  ✔ Disconnect is best effort and recorded
  ✔ Rollback restores the previous service
- ✔ Rollback of a new service suspends it
+ ✔ Rollback of a new service restores the empty prior state
  ✔ Cancel before provisioning and resume
 
 Activation Http (Reseller\Tests\Integration\Wp5a\ActivationHttp)
  ✔ Staff flow completes and repeats are safe
  ✔ Authorization over http
+ ✔ Eligibility and catalog over http
  ✔ Reconciliation is admin only and the cli tool works
 
 Activation Lifecycle (Reseller\Tests\Integration\Wp5a\ActivationLifecycle)
@@ -72,6 +81,17 @@ Activation Race (Reseller\Tests\Integration\Wp5a\ActivationRace)
  ✔ Concurrent activations cannot overspend
  ✔ Activation versus price change is never a mix
  ✔ Activation versus plan delete
+
+Activation Reconciliation (Reseller\Tests\Integration\Wp5a\ActivationReconciliation)
+ ✔ Verified delivery is reconciled financially despite foreign edits
+ ✔ Financial reconciliation that still fails keeps the funds held
+ ✔ Unverified but exactly the target is settled once
+ ✔ Unverified and exactly the prior state is not applied
+ ✔ Unverified foreign state is ambiguous and holds the funds
+ ✔ Rollback from the ambiguous state restores and releases once
+ ✔ Uncertain rollback keeps the funds held
+ ✔ Capture is durable and holds no secret
+ ✔ Unreadable radius never starts provisioning
 
 Activation Source Guard (Reseller\Tests\Unit\Wp5a\ActivationSourceGuard)
  ✔ One sealed insert only under the tree lock
@@ -611,6 +631,11 @@ Radius Source Guard (Reseller\Tests\Unit\Wp4\RadiusSourceGuard)
  ✔ Endpoint gate runs before any action
  ✔ Package calls the device after saving the recharge
 
+Radius State (Reseller\Tests\Unit\Wp5a\RadiusState)
+ ✔ The target is the provisioner contract without the password
+ ✔ Equality is exact and canonical
+ ✔ Diff names components never values
+
 Reseller Lifecycle (Reseller\Tests\Http\ResellerLifecycle)
  ✔ Super admin cannot delete an enrolled agent
  ✔ Super admin cannot delete an unreferenced non enrolled agent
@@ -798,7 +823,7 @@ Wholesale (Reseller\Tests\Integration\Wp3b\Wholesale)
  ✔ Pre existing violation from a move
  ✔ Deep chain and frozen policy
 
-OK (594 tests, 45903 assertions)
+OK (613 tests, 46426 assertions)
 ================ engine: mysql ================
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
@@ -806,18 +831,18 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 594 ( 10%)
-............................................................... 126 / 594 ( 21%)
-............................................................... 189 / 594 ( 31%)
-............................................................... 252 / 594 ( 42%)
-............................................................... 315 / 594 ( 53%)
-............................................................... 378 / 594 ( 63%)
-............................................................... 441 / 594 ( 74%)
-............................................................... 504 / 594 ( 84%)
-............................................................... 567 / 594 ( 95%)
-...........................                                     594 / 594 (100%)
+...............................................................  63 / 613 ( 10%)
+............................................................... 126 / 613 ( 20%)
+............................................................... 189 / 613 ( 30%)
+............................................................... 252 / 613 ( 41%)
+............................................................... 315 / 613 ( 51%)
+............................................................... 378 / 613 ( 61%)
+............................................................... 441 / 613 ( 71%)
+............................................................... 504 / 613 ( 82%)
+............................................................... 567 / 613 ( 92%)
+..............................................                  613 / 613 (100%)
 
-Time: 21:05.916, Memory: 42.00 MB
+Time: 32:31.288, Memory: 44.00 MB
 
 Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
  ✔ Owner sales and admin may activate on the owners wallet
@@ -831,6 +856,14 @@ Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorizatio
 Activation Capability (Reseller\Tests\Unit\Wp5a\ActivationCapability)
  ✔ Exact matrix
  ✔ Fail closed principals
+ ✔ Activation create requires a validly placed reseller identity
+
+Activation Catalog (Reseller\Tests\Integration\Wp5a\ActivationCatalog)
+ ✔ Unplaced agent is refused before any data
+ ✔ Agent sees only plans saleable for itself
+ ✔ Invalid wholesale chain is absent
+ ✔ Sales catalog follows the authoritative customer owner
+ ✔ Admin keeps the administrative list
 
 Activation Contract (Reseller\Tests\Integration\Wp5a\ActivationContract)
  ✔ Completed activation authenticates and renewal extends it
@@ -848,12 +881,13 @@ Activation Failure (Reseller\Tests\Integration\Wp5a\ActivationFailure)
  ✔ Verify mismatch keeps the funds reserved until reconciled
  ✔ Disconnect is best effort and recorded
  ✔ Rollback restores the previous service
- ✔ Rollback of a new service suspends it
+ ✔ Rollback of a new service restores the empty prior state
  ✔ Cancel before provisioning and resume
 
 Activation Http (Reseller\Tests\Integration\Wp5a\ActivationHttp)
  ✔ Staff flow completes and repeats are safe
  ✔ Authorization over http
+ ✔ Eligibility and catalog over http
  ✔ Reconciliation is admin only and the cli tool works
 
 Activation Lifecycle (Reseller\Tests\Integration\Wp5a\ActivationLifecycle)
@@ -869,6 +903,17 @@ Activation Race (Reseller\Tests\Integration\Wp5a\ActivationRace)
  ✔ Concurrent activations cannot overspend
  ✔ Activation versus price change is never a mix
  ✔ Activation versus plan delete
+
+Activation Reconciliation (Reseller\Tests\Integration\Wp5a\ActivationReconciliation)
+ ✔ Verified delivery is reconciled financially despite foreign edits
+ ✔ Financial reconciliation that still fails keeps the funds held
+ ✔ Unverified but exactly the target is settled once
+ ✔ Unverified and exactly the prior state is not applied
+ ✔ Unverified foreign state is ambiguous and holds the funds
+ ✔ Rollback from the ambiguous state restores and releases once
+ ✔ Uncertain rollback keeps the funds held
+ ✔ Capture is durable and holds no secret
+ ✔ Unreadable radius never starts provisioning
 
 Activation Source Guard (Reseller\Tests\Unit\Wp5a\ActivationSourceGuard)
  ✔ One sealed insert only under the tree lock
@@ -1408,6 +1453,11 @@ Radius Source Guard (Reseller\Tests\Unit\Wp4\RadiusSourceGuard)
  ✔ Endpoint gate runs before any action
  ✔ Package calls the device after saving the recharge
 
+Radius State (Reseller\Tests\Unit\Wp5a\RadiusState)
+ ✔ The target is the provisioner contract without the password
+ ✔ Equality is exact and canonical
+ ✔ Diff names components never values
+
 Reseller Lifecycle (Reseller\Tests\Http\ResellerLifecycle)
  ✔ Super admin cannot delete an enrolled agent
  ✔ Super admin cannot delete an unreferenced non enrolled agent
@@ -1595,7 +1645,7 @@ Wholesale (Reseller\Tests\Integration\Wp3b\Wholesale)
  ✔ Pre existing violation from a move
  ✔ Deep chain and frozen policy
 
-OK (594 tests, 45903 assertions)
+OK (613 tests, 46426 assertions)
 ================ variant registry reproducibility ================
 variant registry matches freshly built fixtures
   mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
