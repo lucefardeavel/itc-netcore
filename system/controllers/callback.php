@@ -9,8 +9,11 @@
 $action = $routes['1'];
 
 
-if (file_exists($PAYMENTGATEWAY_PATH . DIRECTORY_SEPARATOR . $action . '.php')) {
-    include $PAYMENTGATEWAY_PATH . DIRECTORY_SEPARATOR . $action . '.php';
+// WP5B §7 (SEC-13): only a configured gateway whose file resolves inside the gateway directory; the
+// notification's authenticity is the gateway plugin's contract
+$pgFile = \Reseller\Domain\PaymentGatewayResolver::resolve($action);
+if ($pgFile !== null) {
+    include $pgFile;
     if (function_exists($action . '_payment_notification')) {
         run_hook('callback_payment_notification'); #HOOK
         call_user_func($action . '_payment_notification');

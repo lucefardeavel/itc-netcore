@@ -167,21 +167,25 @@ switch ($action) {
             r2(getUrl('order/buy/') . (($trx['routers_id'] == 0) ? $trx['routers'] : $trx['routers_id']) . '/' . $trx['plan_id'], 'w', Lang::T("Checking payment"));
         }
         if ($routes['3'] == 'check') {
-            if (!file_exists($PAYMENTGATEWAY_PATH . DIRECTORY_SEPARATOR . $trx['gateway'] . '.php')) {
+            // WP5B §7 (SEC-13): only a configured gateway whose file resolves inside the gateway directory
+            $pgFile = \Reseller\Domain\PaymentGatewayResolver::resolve($trx['gateway']);
+            if ($pgFile === null) {
                 r2(getUrl('order/view/') . $trxid, 'e', Lang::T("No Payment Gateway Available"));
             }
             // WP2 / OD-11 (E10): a gateway status check can complete a payment and grant service
             \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'orderCheck', 'order/view/' . (int) $trxid);
-            run_hook('customer_check_payment_status'); #HOOK
-            include $PAYMENTGATEWAY_PATH . DIRECTORY_SEPARATOR . $trx['gateway'] . '.php';
-            call_user_func($trx['gateway'] . '_validate_config');
-            call_user_func($trx['gateway'] . '_get_status', $trx, $user);
+            // WP5B §7: the plugin runs only while the row is unpaid (a paid / cancelled / held row is final)
+            if ((int) $trx['status'] === 1) {
+                run_hook('customer_check_payment_status'); #HOOK
+                include $pgFile;
+                call_user_func($trx['gateway'] . '_validate_config');
+                call_user_func($trx['gateway'] . '_get_status', $trx, $user);
+            }
         } else if ($routes['3'] == 'cancel') {
             run_hook('customer_cancel_payment'); #HOOK
-            $trx->pg_paid_response = '{}';
-            $trx->status = 4;
-            $trx->paid_date = date('Y-m-d H:i:s');
-            $trx->save();
+            // WP5B §7: conditional transition; a paid (or held) row can never be cancelled
+            $st = ORM::get_db()->prepare("UPDATE tbl_payment_gateway SET pg_paid_response = '{}', status = 4, paid_date = ? WHERE id = ? AND username = ? AND status = 1");
+            $st->execute([date('Y-m-d H:i:s'), (int) $trxid, $user['username']]);
             $trx = ORM::for_table('tbl_payment_gateway')
                 ->where('username', $user['username'])
                 ->find_one($trxid);
@@ -504,6 +508,8 @@ switch ($action) {
                 $plan['price'] -= $discount;
                 $coupon->usage_count = $coupon['usage_count'] + 1;
                 $coupon->save();
+                // WP5B §7 (SEC-14): the buy step uses only this server-validated discount, never a posted one
+                $_SESSION['wp5b_coupon_discount'][(int) $plan['id']] = $discount;
 
                 $ui->assign('discount', $discount);
                 $ui->assign('notify', Lang::T("Coupon applied successfully. You saved " . Lang::moneyFormat($discount)));
@@ -549,7 +555,9 @@ switch ($action) {
         // WP2 / OD-11 (E10): refused before any payment is started
         \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'orderBuy', 'order/package');
         $gateway = _post('gateway');
-        $discount = _post('discount') ?: 0;
+        // WP5B §7 (SEC-14): a posted discount is ignored; only the coupon validated on the gateway page counts
+        $discount = (float) ($_SESSION['wp5b_coupon_discount'][(int) $routes['3']] ?? 0);
+        unset($_SESSION['wp5b_coupon_discount'][(int) $routes['3']]);
         if ($gateway == 'balance') {
             unset($_SESSION['gateway']);
             r2(getUrl('order/pay/') . $routes[2] . '/' . $routes[3]);
@@ -565,8 +573,14 @@ switch ($action) {
         if (empty($gateway)) {
             r2(getUrl('order/gateway/') . $routes[2] . '/' . $routes[3], 'w', Lang::T("Please select Payment Gateway"));
         }
+        // WP5B §7 (SEC-13): only a configured gateway whose file resolves inside the gateway directory
+        $pgFile = \Reseller\Domain\PaymentGatewayResolver::resolve($gateway);
+        if ($pgFile === null) {
+            unset($_SESSION['gateway']);
+            r2(getUrl('order/gateway/') . $routes[2] . '/' . $routes[3], 'e', Lang::T("No Payment Gateway Available"));
+        }
         run_hook('customer_buy_plan'); #HOOK
-        include $PAYMENTGATEWAY_PATH . DIRECTORY_SEPARATOR . $gateway . '.php';
+        include $pgFile;
         call_user_func($gateway . '_validate_config');
 
         switch (_post('custom')) {
@@ -589,8 +603,8 @@ switch ($action) {
                         if ($gateway == $d['gateway']) {
                             $id = $d['id'];
                         } else {
-                            $d->status = 4;
-                            $d->save();
+                            // WP5B §7: conditional switch; only a still unpaid row is cancelled
+                            ORM::get_db()->prepare('UPDATE tbl_payment_gateway SET status = 4 WHERE id = ? AND username = ? AND status = 1')->execute([(int) $d['id'], $user['username']]);
                         }
                     }
                 }
@@ -634,8 +648,8 @@ switch ($action) {
                         if ($gateway == $d['gateway']) {
                             $id = $d['id'];
                         } else {
-                            $d->status = 4;
-                            $d->save();
+                            // WP5B §7: conditional switch; only a still unpaid row is cancelled
+                            ORM::get_db()->prepare('UPDATE tbl_payment_gateway SET status = 4 WHERE id = ? AND username = ? AND status = 1')->execute([(int) $d['id'], $user['username']]);
                         }
                     }
                 }
