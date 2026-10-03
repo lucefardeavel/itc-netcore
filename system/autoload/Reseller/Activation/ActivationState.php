@@ -7,7 +7,7 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
 use Reseller\Domain\DomainError;
 
 /**
- * The activation state machine (D016; owner decision A3). R0003 stores the 15 frozen states but does not
+ * The activation state machine (D016; owner decision A3; WP5B OD-14 / R0007). R0003 + R0007 store the 17 states but do not
  * enforce transitions: this table is the only authority, and every state change goes through
  * ActivationStore::transition(), which appends the matching event.
  *
@@ -21,7 +21,10 @@ use Reseller\Domain\DomainError;
  *  - RECONCILIATION_REQUIRED -> VERIFIED (read-back proves the policy applied) | FAILED (proves it did not)
  *  - RECONCILIATION_REQUIRED / VERIFIED -> ROLLBACK_PENDING -> ROLLED_BACK (Admin: previous policy restored)
  *  - FUNDS_RESERVED / RETRY_PENDING -> CANCELLED (nothing provisioned; reservation released)
- * Terminal: COMPLETED, FAILED, ROLLED_BACK, CANCELLED.
+ *  - COMPLETED -> REVERSAL_PENDING -> REVERSED (WP5B, R0007: Admin reversal of a settled activation; a dedicated
+ *    flow, distinct from the pre-completion ROLLBACK_PENDING / ROLLED_BACK whose reservation is RELEASED)
+ * Not in flight (TERMINAL): COMPLETED, FAILED, ROLLED_BACK, CANCELLED, REVERSED.
+ * Final (no outgoing transition): FAILED, ROLLED_BACK, CANCELLED, REVERSED. COMPLETED only leads to a reversal.
  */
 final class ActivationState
 {
@@ -40,14 +43,21 @@ final class ActivationState
     public const ROLLBACK_PENDING = 'ROLLBACK_PENDING';
     public const ROLLED_BACK = 'ROLLED_BACK';
     public const CANCELLED = 'CANCELLED';
+    public const REVERSAL_PENDING = 'REVERSAL_PENDING';
+    public const REVERSED = 'REVERSED';
 
     public const ALL = [
         self::CREATED, self::VALIDATED, self::FUNDS_RESERVED, self::PROVISIONING, self::PROVISIONED, self::VERIFYING,
         self::VERIFIED, self::FINANCIAL_COMMITTING, self::COMPLETED, self::FAILED, self::RETRY_PENDING,
         self::RECONCILIATION_REQUIRED, self::ROLLBACK_PENDING, self::ROLLED_BACK, self::CANCELLED,
+        self::REVERSAL_PENDING, self::REVERSED,
     ];
 
-    public const TERMINAL = [self::COMPLETED, self::FAILED, self::ROLLED_BACK, self::CANCELLED];
+    /** Not in flight: no step of this activation can still run (the in-flight guard and stale report use this). */
+    public const TERMINAL = [self::COMPLETED, self::FAILED, self::ROLLED_BACK, self::CANCELLED, self::REVERSED];
+
+    /** No outgoing transition at all. */
+    public const FINAL = [self::FAILED, self::ROLLED_BACK, self::CANCELLED, self::REVERSED];
 
     /** @var array<string,list<string>> from => allowed targets */
     public const TRANSITIONS = [
@@ -62,10 +72,12 @@ final class ActivationState
         self::FINANCIAL_COMMITTING => [self::COMPLETED, self::RECONCILIATION_REQUIRED],
         self::RECONCILIATION_REQUIRED => [self::VERIFIED, self::FAILED, self::ROLLBACK_PENDING],
         self::ROLLBACK_PENDING => [self::ROLLED_BACK],
-        self::COMPLETED => [],
+        self::COMPLETED => [self::REVERSAL_PENDING],
         self::FAILED => [],
         self::ROLLED_BACK => [],
         self::CANCELLED => [],
+        self::REVERSAL_PENDING => [self::REVERSED],
+        self::REVERSED => [],
     ];
 
     public static function isTerminal(string $state): bool

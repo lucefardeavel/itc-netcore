@@ -15,7 +15,8 @@ final class ActivationStateAndPeriodTest extends TestCase
 {
     public function testTransitionTableOverTheFullMatrix(): void
     {
-        $this->assertCount(15, S::ALL);
+        // WP5B (OD-14 option B, R0007): + REVERSAL_PENDING, REVERSED
+        $this->assertCount(17, S::ALL);
         $states = S::ALL;
         $rows = array_keys(S::TRANSITIONS);
         sort($states);
@@ -28,9 +29,18 @@ final class ActivationStateAndPeriodTest extends TestCase
                 $allowed += S::allowed($from, $to) ? 1 : 0;
             }
         }
-        $this->assertSame(24, $allowed, 'exactly the approved edges');
-        foreach (S::TERMINAL as $t) {
-            $this->assertSame([], S::TRANSITIONS[$t], "{$t} is terminal");
+        $this->assertSame(26, $allowed, 'exactly the approved edges (WP5A 24 + COMPLETED -> REVERSAL_PENDING -> REVERSED)');
+        foreach (S::FINAL as $t) {
+            $this->assertSame([], S::TRANSITIONS[$t], "{$t} is final");
+            $this->assertContains($t, S::TERMINAL);
+        }
+        $this->assertSame([S::REVERSAL_PENDING], S::TRANSITIONS[S::COMPLETED], 'a settled activation only leads to a reversal');
+        $this->assertSame([S::REVERSED], S::TRANSITIONS[S::REVERSAL_PENDING]);
+        $this->assertContains(S::COMPLETED, S::TERMINAL, 'COMPLETED is not in flight');
+        $this->assertNotContains(S::REVERSAL_PENDING, S::TERMINAL, 'a reversal in progress is in flight');
+        foreach (S::ALL as $from) {
+            $this->assertSame($from === S::COMPLETED, S::allowed($from, S::REVERSAL_PENDING), "{$from} -> REVERSAL_PENDING");
+            $this->assertSame($from === S::REVERSAL_PENDING, S::allowed($from, S::REVERSED), "{$from} -> REVERSED");
         }
         $path = [S::CREATED, S::VALIDATED, S::FUNDS_RESERVED, S::PROVISIONING, S::PROVISIONED, S::VERIFYING, S::VERIFIED, S::FINANCIAL_COMMITTING, S::COMPLETED];
         for ($i = 1; $i < count($path); $i++) {

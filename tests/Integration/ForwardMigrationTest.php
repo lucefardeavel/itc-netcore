@@ -49,13 +49,31 @@ final class ForwardMigrationTest extends IntegrationTestCase
         $this->assertOutcome(Outcome::OK, $r);
         $this->assertSame($variant, $r['report']['variant']);
 
-        // T3: every created object equals its contract (independent re-check here, not only the runner's postflight)
+        // T3: every created object equals its contract (independent re-check here, not only the runner's postflight).
+        // A historical contract is evaluated through the redefinitions declared by LATER migrations, all of which
+        // are APPLIED here (WP5B owner decision: R0007 extends the three R0003 state columns); the R0003 file
+        // itself stays byte-identical (checked separately below).
         $inspector = new SchemaInspector($db->db());
-        foreach (MigrationSet::fromDirectory(dirname(__DIR__, 2) . '/system/reseller/migrations')->migrations as $m) {
+        $set = MigrationSet::fromDirectory(dirname(__DIR__, 2) . '/system/reseller/migrations');
+        foreach ($set->migrations as $m) {
             foreach ($m->contract['tables'] as $t => $expected) {
+                foreach ($set->migrations as $later) {
+                    if ($later->sequence > $m->sequence) {
+                        foreach ($later->redefinitions()[$t] ?? [] as $c => $r) {
+                            $this->assertSame($r['from'], $expected['columns'][$c], "{$later->id} redefines {$t}.{$c} from its contract");
+                            $expected['columns'][$c] = $r['to'];
+                        }
+                    }
+                }
                 $this->assertSame([], SchemaInspector::diff($t, SchemaInspector::normalise($expected), SchemaInspector::normalise($inspector->table($t))), "{$m->id} {$t}");
             }
+            foreach ($m->redefinitions() as $t => $columns) {
+                foreach ($columns as $c => $r) {
+                    $this->assertSame($r['to'], $inspector->table($t)['columns'][$c], "{$m->id} {$t}.{$c}");
+                }
+            }
         }
+        $this->assertSame('60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd', $set->get('R0003_activation_foundation')->checksum, 'R0003 file bytes unchanged');
         foreach ($this->projectTables() as $t) {
             $this->assertSame(0, (int) $db->value("SELECT COUNT(*) FROM `{$t}`"), "{$t} must be empty after WP1");
         }
@@ -90,7 +108,7 @@ final class ForwardMigrationTest extends IntegrationTestCase
         // a fresh connection / process sees the same durable state
         $fresh = new \PDO("mysql:host={$db->host};dbname={$db->name}", 'root', TestDatabase::rootPassword());
         $rows = $fresh->query('SELECT migration_id, status, checksum, steps_total, steps_completed, base_variant, core_fingerprint_before, contract_fingerprint FROM tbl_project_migrations ORDER BY migration_id')->fetchAll(\PDO::FETCH_ASSOC);
-        $this->assertCount(6, $rows);
+        $this->assertCount(7, $rows);
         $set = MigrationSet::fromDirectory(dirname(__DIR__, 2) . '/system/reseller/migrations');
         foreach ($rows as $row) {
             $m = $set->get($row['migration_id']);

@@ -51,6 +51,7 @@ final class Runner
         $this->report['server_version'] = $this->db->serverVersion;
         $this->registry->setCommand($command);
         try {
+            $this->assertRedefinitionTargets();
             return match ($command) {
                 'status' => $this->cmdStatus(),
                 'verify' => $this->cmdVerify(),
@@ -171,6 +172,19 @@ final class Runner
             foreach ($m->foreignKeyNames() as $fk) {
                 if ($this->db->foreignKeyNameExistsAnywhere($fk)) {
                     $a['collisions'][] = "foreign key name {$fk} already used but migration {$m->id} is not applied";
+                }
+            }
+            foreach ($m->redefinitions() as $t => $columns) {
+                foreach ($columns as $c => $r) {
+                    $have = $this->columnDefinition($t, $c);
+                    if ($have === null) {
+                        continue; // the table (created by an earlier migration) is absent: nothing to collide with
+                    }
+                    if ($have === $r['to']) {
+                        $a['collisions'][] = "column {$t}.{$c} already has the definition of migration {$m->id}, which is not applied";
+                    } elseif ($have !== $r['from']) {
+                        $a['collisions'][] = "column {$t}.{$c} has an unexpected definition [{$have}] for migration {$m->id}";
+                    }
                 }
             }
         }
@@ -612,7 +626,16 @@ final class Runner
     {
         $d = [];
         foreach ($m->contract['tables'] as $t => $expected) {
-            $d = array_merge($d, SchemaInspector::diff($t, SchemaInspector::normalise($expected), SchemaInspector::normalise($this->inspector->table($t))));
+            $actual = $this->inspector->table($t);
+            $d = array_merge($d, SchemaInspector::diff($t, SchemaInspector::normalise($this->withLaterRedefinitions($m, $t, $expected, $actual)), SchemaInspector::normalise($actual)));
+        }
+        foreach ($m->redefinitions() as $t => $columns) {
+            foreach ($columns as $c => $r) {
+                $have = $this->columnDefinition($t, $c);
+                if ($have !== $r['to']) {
+                    $d[] = "{$t}.{$c}: expected [{$r['to']}] actual [" . ($have ?? 'missing') . ']';
+                }
+            }
         }
         foreach ($m->contract['table_parts'] as $t => $part) {
             $actual = $this->inspector->table($t);
@@ -643,6 +666,10 @@ final class Runner
         foreach ($m->contract['table_parts'] as $t => $p) {
             $parts[$t . '#part'] = SchemaInspector::normalise($p + ['engine' => null, 'collation' => null]);
         }
+        foreach ($m->redefinitions() as $t => $columns) {
+            ksort($columns);
+            $parts[$t . '#redefines'] = array_map(static fn(array $r): array => ['from' => $r['from'], 'to' => $r['to']], $columns);
+        }
         return SchemaInspector::fingerprint($m->contract['tables'] + $parts);
     }
 
@@ -656,7 +683,15 @@ final class Runner
         foreach ($m->contract['tables'] as $t => $expected) {
             $actual = $this->inspector->table($t);
             if ($actual !== null) {
-                $d = array_merge($d, SchemaInspector::diff($t, SchemaInspector::normalise($expected), SchemaInspector::normalise($actual)));
+                $d = array_merge($d, SchemaInspector::diff($t, SchemaInspector::normalise($this->withLaterRedefinitions($m, $t, $expected, $actual)), SchemaInspector::normalise($actual)));
+            }
+        }
+        foreach ($m->redefinitions() as $t => $columns) {
+            foreach ($columns as $c => $r) {
+                $have = $this->columnDefinition($t, $c);
+                if ($have !== null && $have !== $r['to'] && $have !== $r['from']) {
+                    $d[] = "{$t}.{$c}: expected [{$r['to']}] or [{$r['from']}] actual [{$have}]";
+                }
             }
         }
         foreach ($m->contract['table_parts'] as $t => $part) {
@@ -690,6 +725,13 @@ final class Runner
                 }
             }
         }
+        foreach ($m->redefinitions() as $t => $columns) {
+            foreach ($columns as $c => $r) {
+                if ($this->columnDefinition($t, $c) === $r['to'] && $this->db->value($r['data_guard']) !== null) {
+                    $d[] = "column {$t}.{$c} contains values of the redefined definition";
+                }
+            }
+        }
         return $d;
     }
 
@@ -720,6 +762,14 @@ final class Runner
                 $left[] = "foreign key {$fk}";
             }
         }
+        foreach ($m->redefinitions() as $t => $columns) {
+            foreach ($columns as $c => $r) {
+                $have = $this->columnDefinition($t, $c);
+                if ($have !== null && $have !== $r['from']) {
+                    $left[] = "column definition {$t}.{$c}";
+                }
+            }
+        }
         return $left;
     }
 
@@ -738,7 +788,73 @@ final class Runner
         if (isset($spec['index'])) {
             return $this->indexExists((string) $spec['index'][0], (string) $spec['index'][1]);
         }
+        if (isset($spec['column_definition'])) {
+            return $this->columnDefinition((string) $spec['column_definition'][0], (string) $spec['column_definition'][1]) === (string) $spec['column_definition'][2];
+        }
         throw new StopException(Outcome::USAGE, 'invalid if_exists specification ' . json_encode($spec));
+    }
+
+    /**
+     * Set-level check of the redefines primitive (WP5B, R0007), before any command touches the database:
+     * a redefinition may only target a column of a PROJECT table created ('tables' contract) by an earlier
+     * migration, never a legacy / core table, and its 'from' must be that column's definition as established
+     * by the earlier contracts (the creating migration, or a still earlier redefinition).
+     */
+    private function assertRedefinitionTargets(): void
+    {
+        $columns = [];
+        foreach ($this->set->migrations as $m) {
+            foreach ($m->redefinitions() as $t => $redefined) {
+                if (in_array($t, VariantRegistry::CORE_TABLES, true) || !isset($columns[$t])) {
+                    throw new StopException(Outcome::USAGE, "migration {$m->id}: redefines may only target a project table created by an earlier migration ({$t})");
+                }
+                foreach ($redefined as $c => $r) {
+                    if (($columns[$t][$c] ?? null) !== $r['from']) {
+                        throw new StopException(Outcome::USAGE, "migration {$m->id}: redefines {$t}.{$c} 'from' is not the column's current contract definition");
+                    }
+                    $columns[$t][$c] = $r['to'];
+                }
+            }
+            foreach ($m->contract['tables'] as $t => $def) {
+                $columns[$t] = $def['columns'] ?? [];
+            }
+        }
+    }
+
+    /** The canonical definition of one column (SchemaInspector format), or null when table or column is absent. */
+    private function columnDefinition(string $table, string $column): ?string
+    {
+        $t = $this->inspector->table($table);
+        return $t['columns'][$column] ?? null;
+    }
+
+    /**
+     * The contract of a table created by $m, with the columns that a LATER migration redefined replaced by the
+     * definition that migration establishes (WP5B, R0007): APPLIED -> its 'to'; present but not APPLIED (a run in
+     * progress, failed or rolling back) -> whichever of 'from' / 'to' is actually there, anything else stays drift.
+     *
+     * @param array<string,mixed> $expected
+     * @param array<string,mixed>|null $actual
+     * @return array<string,mixed>
+     */
+    private function withLaterRedefinitions(MigrationDefinition $m, string $table, array $expected, ?array $actual): array
+    {
+        $states = null;
+        foreach ($this->set->migrations as $later) {
+            if ($later->sequence <= $m->sequence || !isset($later->redefinitions()[$table])) {
+                continue;
+            }
+            $states ??= $this->registry->states();
+            $status = $states[$later->id]['status'] ?? null;
+            if ($status === null || $status === 'ROLLED_BACK') {
+                continue;
+            }
+            foreach ($later->redefinitions()[$table] as $c => $r) {
+                $have = $actual['columns'][$c] ?? null;
+                $expected['columns'][$c] = $status !== 'APPLIED' && ($have === $r['from'] || $have === $r['to']) ? $have : $r['to'];
+            }
+        }
+        return $expected;
     }
 
     private function indexExists(string $table, string $name): bool

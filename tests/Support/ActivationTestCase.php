@@ -93,7 +93,8 @@ abstract class ActivationTestCase extends PricingTestCase
             $res = static::$db->rows('SELECT status FROM tbl_manager_wallet_reservations WHERE activation_id = ?', [$a['id']]);
             $statuses = array_column($res, 'status');
             $want = match ($a['status']) {
-                'COMPLETED' => ['COMMITTED'],
+                // WP5B: a reversal keeps the COMMITTED reservation; the ledger REVERSAL entries undo its effects
+                'COMPLETED', 'REVERSAL_PENDING', 'REVERSED' => ['COMMITTED'],
                 'FAILED', 'CANCELLED', 'ROLLED_BACK' => ['RELEASED'],
                 'CREATED', 'VALIDATED' => [],
                 default => ['ACTIVE'],
@@ -101,7 +102,7 @@ abstract class ActivationTestCase extends PricingTestCase
             if ($statuses !== $want) {
                 $problems[] = $tag . $a['status'] . ' with reservations ' . json_encode($statuses);
             }
-            if ($a['status'] === 'COMPLETED' && ($a['legacy_recharge_id'] === null || $a['legacy_transaction_id'] === null || $a['legacy_invoice'] !== 'INV-' . $a['reference'])) {
+            if (in_array($a['status'], ['COMPLETED', 'REVERSAL_PENDING', 'REVERSED'], true) && ($a['legacy_recharge_id'] === null || $a['legacy_transaction_id'] === null || $a['legacy_invoice'] !== 'INV-' . $a['reference'])) {
                 $problems[] = $tag . 'COMPLETED without its legacy records';
             }
         }

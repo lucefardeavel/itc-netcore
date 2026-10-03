@@ -34,6 +34,7 @@ final class SchemaReadiness
         'R0004_wallet_finance_foundation',
         'R0005_customer_ownership',
         'R0006_reseller_audit',
+        'R0007_activation_reversal_states',
     ];
     public const BLOCKING = ['APPLYING', 'FAILED_PARTIAL', 'ROLLBACK_REQUIRED', 'ROLLING_BACK', 'ROLLBACK_FAILED'];
     private const REQUIRED_TABLES = [

@@ -25,12 +25,15 @@ final class MigrationDefinitionsTest extends TestCase
             'R0004_wallet_finance_foundation',
             'R0005_customer_ownership',
             'R0006_reseller_audit',
+            'R0007_activation_reversal_states',
         ], self::set()->ids());
     }
 
     /**
      * R0005 is the only migration touching a legacy table (one atomic ALTER). Since WP2 (owner
-     * decision OD-1) later migrations may exist, but they only create new tables.
+     * decision OD-1) later migrations may exist, but they only create new tables, with one explicit
+     * exception approved by the owner for WP5B: R0007 may only extend (ALTER ... MODIFY) the three R0003
+     * activation state columns through 'redefines' (no table, no table part, no DML, no legacy table).
      */
     public function testOnlyLegacyChangeIsCustomerOwnershipAndLaterMigrationsOnlyCreateTables(): void
     {
@@ -43,6 +46,9 @@ final class MigrationDefinitionsTest extends TestCase
                 $this->assertCount(1, $m->up, 'customer ownership must be one atomic ALTER');
             } else {
                 $this->assertSame([], $parts, "{$m->id} must not alter legacy tables");
+            }
+            if ($m->id !== 'R0007_activation_reversal_states') {
+                $this->assertSame([], $m->redefinitions(), "{$m->id}: only R0007 redefines columns");
             }
             foreach ($m->up as $step) {
                 // each step is exactly one DDL statement: CREATE TABLE or ALTER TABLE, never DML
@@ -63,9 +69,15 @@ final class MigrationDefinitionsTest extends TestCase
             }
         }
         $seenR0005 = false;
+        $seenR0007 = false;
         foreach ($set->migrations as $m) {
             if ($seenR0005) {
                 $this->assertSame([], $m->contract['table_parts'], "{$m->id} after R0005 must not alter legacy tables");
+                if ($m->id === 'R0007_activation_reversal_states') {
+                    $seenR0007 = true;
+                    $this->assertR0007OnlyExtendsTheApprovedStateColumns($m, $set);
+                    continue;
+                }
                 foreach ($m->up as $step) {
                     $this->assertMatchesRegularExpression('/^\s*CREATE TABLE\s/i', $step['sql'], "{$m->id} after R0005 only creates tables");
                 }
@@ -73,6 +85,40 @@ final class MigrationDefinitionsTest extends TestCase
             $seenR0005 = $seenR0005 || $m->id === 'R0005_customer_ownership';
         }
         $this->assertTrue($seenR0005);
+        $this->assertTrue($seenR0007);
+    }
+
+    /** The one approved exception (WP5B, OD-14 option B): append REVERSAL_PENDING, REVERSED to the R0003 state ENUMs. */
+    private function assertR0007OnlyExtendsTheApprovedStateColumns(\Reseller\Migration\MigrationDefinition $m, MigrationSet $set): void
+    {
+        $approved = ['tbl_reseller_activations' => ['status'], 'tbl_reseller_activation_events' => ['from_state', 'to_state']];
+        $this->assertSame([], $m->contract['tables'], 'R0007 creates no table');
+        $this->assertSame([], $m->contract['table_parts'], 'R0007 has no table part');
+        $this->assertSame($approved, array_map('array_keys', $m->redefinitions()), 'R0007 redefines exactly the three approved columns');
+        $r0003 = $set->get('R0003_activation_foundation')->contract['tables'];
+        foreach ($m->redefinitions() as $t => $columns) {
+            foreach ($columns as $c => $r) {
+                $this->assertSame($r0003[$t]['columns'][$c], $r['from'], "{$t}.{$c}: from is the R0003 definition");
+                $this->assertSame(preg_replace("/^(enum\\(.*)\\)( collate )/", "$1,'REVERSAL_PENDING','REVERSED')$2", $r['from']), $r['to'], "{$t}.{$c}: to only appends the two reversal states");
+                $this->assertNotSame($r['from'], $r['to']);
+                $this->assertMatchesRegularExpression('/^SELECT 1 FROM `' . $t . '` WHERE .*REVERSAL_PENDING.*REVERSED.* LIMIT 1$/', $r['data_guard']);
+            }
+        }
+        foreach (['up' => $m->up, 'down' => $m->down] as $dir => $steps) {
+            $this->assertCount(2, $steps, "R0007 {$dir}");
+            foreach ($steps as $step) {
+                $sql = $step['sql'];
+                $this->assertCount(1, \Reseller\Tests\Support\FixtureBuilder::splitSql($sql), 'one statement per step');
+                $this->assertMatchesRegularExpression('/^ALTER TABLE `(tbl_reseller_activations|tbl_reseller_activation_events)` MODIFY /', $sql, 'R0007 only ALTERs the two activation tables');
+                preg_match('/^ALTER TABLE `([a-z_]+)`/', $sql, $tm);
+                preg_match_all('/(?:^ALTER TABLE `[a-z_]+` |, )MODIFY `([a-z_]+)` ENUM\(/', $sql, $cm);
+                $this->assertSame($approved[$tm[1]], $cm[1], "R0007 {$dir} modifies exactly the approved columns of {$tm[1]}");
+                $this->assertDoesNotMatchRegularExpression('/\b(ADD|DROP|CHANGE|RENAME|INSERT|UPDATE|DELETE|REPLACE|TRUNCATE|CONVERT|ENGINE|INDEX|KEY|CONSTRAINT)\b/i', $sql, 'no other DDL, no DML');
+                foreach (VariantRegistry::CORE_TABLES as $legacy) {
+                    $this->assertStringNotContainsString("`{$legacy}`", $sql, 'no legacy / core table');
+                }
+            }
+        }
     }
 
     public function testEveryForeignKeyIsRestrictNeverCascade(): void

@@ -34,11 +34,11 @@ final class SourceGuardTest extends TestCase
         'system/reseller/migrate.php' => '8420e021293260ae01f097e5d202221003a172e14e116933831e0087f44803fa',
         'system/reseller/Migration/Db.php' => 'd5123172de0d8bda244c3c8081f8c156e454766d50c3af49958b4f30048c1c51',
         'system/reseller/Migration/Grants.php' => '321f1e3a69d23000417a2bab638383c25d05fd62fa4048446b08a4e2b5ab1d58',
-        'system/reseller/Migration/MigrationDefinition.php' => '7489a85b6aff66630491974e5b44f456499959d860770c5e5c9e3e4d3ea1c6e9',
+        'system/reseller/Migration/MigrationDefinition.php' => 'faf492d26e3598927ac7c99b2730ecdb57672ae86936e4b0a7923caa8393ddf2',
         'system/reseller/Migration/MigrationSet.php' => '7421f6f5ce66ca4bd87000d9c57a9e1afd03a07bb6b88353209699111c48187e',
         'system/reseller/Migration/Outcome.php' => 'af89a92118e38c2f6a952bfa3e7e9ce2d2f8d3f095ae6d5485174326e78ff491',
         'system/reseller/Migration/Registry.php' => 'dceb66f1c05450df45e4452d2407edcecf8fd60af24744dc9ef96d010e9a26a2',
-        'system/reseller/Migration/Runner.php' => 'c09c040646ff9129996f0ffb004362d90c886f6aff5da49763fdb5580ad83ce0',
+        'system/reseller/Migration/Runner.php' => 'c0172038c69f6ee3da86faaee2ea0f777028d805d1361d4d9c1abc65dbdfc247',
         'system/reseller/Migration/SchemaInspector.php' => '7ee73bfd5319c81c7169c631a5de497af09502c2c0b39bd27dbf65c702c5a5a0',
         'system/reseller/Migration/VariantRegistry.php' => 'f11f0031041a2d610dbdb2675e92885f510ca8ac039e856f06cdb05e18d006d6',
         'system/reseller/Migration/variants.php' => '4d9f7f8a38c81d29164a474aaa36a0d29ef10bc7c12beecdc37f02b391022202',
@@ -48,6 +48,7 @@ final class SourceGuardTest extends TestCase
         'system/reseller/migrations/R0004_wallet_finance_foundation.php' => '7f3bc5bc8479bfe0f186ec4ae00af4623cc0c8d7201f13897f7184d4b92dffa7',
         'system/reseller/migrations/R0005_customer_ownership.php' => 'b69135eab8b70f3bed2355946d959be356c3d48897df9db6cb41c6c7e45b3854',
         'system/reseller/migrations/R0006_reseller_audit.php' => 'f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd',
+        'system/reseller/migrations/R0007_activation_reversal_states.php' => 'b7edce53accd75a5af7bce6cbf66a9bae02b90f8f67211000a5fb08328ef00f6',
     ];
 
     private static ?array $files = null;
@@ -231,7 +232,10 @@ final class SourceGuardTest extends TestCase
         $this->assertMatchesRegularExpression('/private static function insert\(/', $src);
     }
 
-    /** Accepted R0001–R0006, the migration runner, the WP2 ServiceGate and other untouched files stay byte-identical; no R0007. */
+    /**
+     * Accepted R0001–R0006, the migration runner, the WP2 ServiceGate and other untouched files stay byte-identical.
+     * WP5B: the owner-approved R0007 (activation reversal states) and the runner's 'redefines' primitive are pinned.
+     */
     public function testAcceptedFilesAreByteIdentical(): void
     {
         foreach (self::PINNED as $rel => $sha) {
@@ -240,7 +244,8 @@ final class SourceGuardTest extends TestCase
         $migrations = array_map('basename', glob(self::root() . '/system/reseller/migrations/*.php'));
         sort($migrations);
         $this->assertSame(['R0001_manager_tree.php', 'R0002_pricing_foundation.php', 'R0003_activation_foundation.php',
-            'R0004_wallet_finance_foundation.php', 'R0005_customer_ownership.php', 'R0006_reseller_audit.php'], $migrations, 'no R0007');
+            'R0004_wallet_finance_foundation.php', 'R0005_customer_ownership.php', 'R0006_reseller_audit.php',
+            'R0007_activation_reversal_states.php'], $migrations, 'R0001–R0007 only');
         $this->assertSame([], self::hits('/CREATE\s+TRIGGER/i'), 'no triggers (P1)');
     }
 }
