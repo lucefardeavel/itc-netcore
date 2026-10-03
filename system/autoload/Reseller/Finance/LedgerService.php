@@ -12,7 +12,8 @@ use Reseller\Security\Capability as C;
 use Reseller\Security\DataScope;
 
 /**
- * The reseller wallet ledger (WP3A, owner decision P1; activation settlement WP3B F-2): the ONLY runtime
+ * The reseller wallet ledger (WP3A, owner decision P1; activation settlement WP3B F-2; completed-activation
+ * reversal WP5B OD-12): the ONLY runtime
  * writer of tbl_manager_ledger and of tbl_manager_wallets.balance. Append-only — there is no update, delete or edit method;
  * corrections are compensating REVERSAL entries.
  *
@@ -181,6 +182,153 @@ final class LedgerService
         }
         FinanceFaults::hit('commit.after_commissions');
         return new PostedSettlement($debit, $credits);
+    }
+
+    /**
+     * The original settlement legs of a COMPLETED activation (WP5B reversal, OD-12), read from the immutable
+     * ledger rows and never recomputed from the current pricing tree: the reservation's ACTIVATION_DEBIT and
+     * every COMMISSION_CREDIT of the activation. They are cross-checked against the reservation and the sealed
+     * pricing snapshot (amounts, leaf, recipients, conservation L = sum(margins) + provider settlement); any
+     * inconsistency is refused. Reads only (no lock): the rows never change; the caller locks before posting.
+     *
+     * @return array{reservation_id:int,activation_id:int,leaf:int,debit:array{id:int,amount:Money},credits:array<int,array{id:int,amount:Money}>}
+     */
+    public static function activationReversalLegs(\PDO $pdo, int $activationId): array
+    {
+        $r = Tx::row($pdo, "SELECT * FROM tbl_manager_wallet_reservations WHERE activation_id = ? AND status = 'COMMITTED'", [$activationId]);
+        $act = Tx::row(
+            $pdo,
+            'SELECT id, manager_id, plan_id, wholesale_cost, retail_price, provider_settlement_amount, plan_snapshot, pricing_chain_snapshot '
+            . 'FROM tbl_reseller_activations WHERE id = ?',
+            [$activationId]
+        );
+        if ($r === null || $act === null || $r['committed_ledger_entry_id'] === null) {
+            throw new DomainError('REVERSAL_FINANCIAL_REFUSED', 'The activation has no committed settlement to reverse.');
+        }
+        $leaf = (int) $r['manager_id'];
+        $debit = Tx::row($pdo, 'SELECT * FROM tbl_manager_ledger WHERE id = ?', [(int) $r['committed_ledger_entry_id']]);
+        $amount = Money::fromDb($r['amount']);
+        if ($debit === null || $debit['entry_type'] !== 'ACTIVATION_DEBIT' || $debit['direction'] !== 'DEBIT' || (int) $debit['manager_id'] !== $leaf
+            || (int) $debit['activation_id'] !== $activationId || $debit['entry_key'] !== "res:{$r['id']}:commit" || !Money::fromDb($debit['amount'])->equals($amount)) {
+            throw new \LogicException('activation settlement debit does not match its reservation');
+        }
+        $credits = [];
+        foreach (Tx::rows($pdo, "SELECT * FROM tbl_manager_ledger WHERE activation_id = ? AND entry_type = 'COMMISSION_CREDIT' ORDER BY manager_id", [$activationId]) as $c) {
+            if ($c['direction'] !== 'CREDIT' || $c['entry_key'] !== "com:{$activationId}:m{$c['manager_id']}" || (int) $c['counterparty_manager_id'] !== $leaf) {
+                throw new \LogicException('activation commission entry is malformed');
+            }
+            $credits[(int) $c['manager_id']] = ['id' => (int) $c['id'], 'amount' => Money::fromDb($c['amount'])];
+        }
+        if ($act['pricing_chain_snapshot'] === null) {
+            if ($credits !== []) {
+                throw new \LogicException('commissions without a pricing snapshot');
+            }
+        } else {
+            $snap = PricingSnapshot::fromActivationRow($act);
+            $margins = $snap->commissionRecipients();
+            ksort($margins);
+            $sum = Money::zero();
+            foreach ($margins as $m => $margin) {
+                if (!isset($credits[$m]) || !$credits[$m]['amount']->equals($margin)) {
+                    throw new \LogicException('activation commissions do not match the pricing snapshot');
+                }
+                $sum = $sum->plus($margin);
+            }
+            if (count($margins) !== count($credits) || !$snap->leafDebit->equals($amount) || $snap->leafManagerId !== $leaf
+                || !$sum->plus(Money::fromDb($act['provider_settlement_amount']))->equals($amount)) {
+                throw new \LogicException('activation settlement does not match the pricing snapshot');
+            }
+        }
+        return ['reservation_id' => (int) $r['id'], 'activation_id' => $activationId, 'leaf' => $leaf,
+            'debit' => ['id' => (int) $debit['id'], 'amount' => $amount], 'credits' => $credits];
+    }
+
+    /**
+     * Validates, on the caller's locked wallets and without writing, that the original legs can be reversed
+     * exactly (WP5B reversal phase 1 and again before posting): no leg reversed before; the passed wallets are
+     * exactly the leaf and the commission recipients; the leaf credit is storable; every recipient keeps
+     * available credit (balance + debt limit - ACTIVE reservations) >= 0 after its clawback (the WP3A reversal
+     * rule; frozen or inactive owners are allowed for this administrative reversal). Refusal:
+     * REVERSAL_FINANCIAL_REFUSED (the detail names the failing check, never a balance).
+     *
+     * @param array{reservation_id:int,activation_id:int,leaf:int,debit:array{id:int,amount:Money},credits:array<int,array{id:int,amount:Money}>} $legs
+     */
+    public static function assertActivationReversible(\PDO $pdo, array $legs, LockedWallet $leaf, LockedWallet ...$recipients): void
+    {
+        FinanceTx::assertInTransaction($pdo);
+        $ids = array_merge([$legs['debit']['id']], array_column($legs['credits'], 'id'));
+        if (Tx::row($pdo, 'SELECT id FROM tbl_manager_ledger WHERE reverses_entry_id IN (' . ResellerTreeService::ph($ids) . ') LIMIT 1', $ids) !== null) {
+            throw new DomainError('ALREADY_REVERSED');
+        }
+        $byManager = [];
+        foreach ($recipients as $w) {
+            if ($w->managerId === $leaf->managerId || isset($byManager[$w->managerId])) {
+                throw new \LogicException('reversal recipients must be distinct and exclude the leaf');
+            }
+            $byManager[$w->managerId] = $w;
+        }
+        ksort($byManager);
+        if ($leaf->managerId !== $legs['leaf'] || array_keys($byManager) !== array_keys($legs['credits'])) {
+            throw new \LogicException('reversal wallets do not match the original legs');
+        }
+        if (!$leaf->balance->plus($legs['debit']['amount'])->isStorable()) {
+            throw new DomainError('REVERSAL_FINANCIAL_REFUSED', 'The reseller wallet cannot receive the reversal credit (money range exceeded).');
+        }
+        foreach ($legs['credits'] as $m => $leg) {
+            if (WalletService::available($byManager[$m], WalletService::activeReservedLocked($pdo, $byManager[$m]))->minus($leg['amount'])->isNegative()) {
+                throw new DomainError('REVERSAL_FINANCIAL_REFUSED', 'A parent reseller does not have enough available credit to return its commission.');
+            }
+        }
+    }
+
+    /**
+     * The single completed-activation reversal posting (WP5B, OD-12): one REVERSAL CREDIT of the original
+     * ACTIVATION_DEBIT to the leaf and one REVERSAL DEBIT of each original COMMISSION_CREDIT (clawback), in the
+     * caller's transaction, all-or-nothing. Amounts come only from the original ledger rows
+     * (activationReversalLegs); every leg is validated before the first write (assertActivationReversible).
+     * Keys rev:{activation}:e{original entry id}; reverses_entry_id = the original entry (database-unique), so
+     * a leg can never be reversed twice. STAFF actor with the reason. Provider settlement is reversed in the
+     * activation record only (it was never a ledger row).
+     */
+    public static function postActivationReversal(\PDO $pdo, int $activationId, FinanceActor $actor, string $reason, LockedWallet $leaf, LockedWallet ...$recipients): PostedReversal
+    {
+        FinanceTx::assertInTransaction($pdo);
+        if ($actor->type !== FinanceActor::STAFF) {
+            throw new DomainError('INVALID_ACTOR');
+        }
+        $legs = self::activationReversalLegs($pdo, $activationId);
+        self::assertActivationReversible($pdo, $legs, $leaf, ...$recipients);
+        $byManager = [];
+        foreach ($recipients as $w) {
+            $byManager[$w->managerId] = $w;
+        }
+        $actorFields = ['actor_type' => $actor->type, 'operator_id' => $actor->operatorId, 'actor_customer_id' => null, 'reason' => $reason];
+        $credit = self::insert($pdo, $leaf, [
+            'entry_key' => "rev:{$activationId}:e{$legs['debit']['id']}",
+            'entry_type' => 'REVERSAL',
+            'direction' => 'CREDIT',
+            'amount' => $legs['debit']['amount'],
+            'activation_id' => $activationId,
+            'transfer_id' => null,
+            'counterparty_manager_id' => null,
+            'reverses_entry_id' => $legs['debit']['id'],
+        ] + $actorFields);
+        FinanceFaults::hit('reverse.activation_after_credit');
+        $clawbacks = [];
+        foreach ($legs['credits'] as $m => $leg) {
+            $clawbacks[] = self::insert($pdo, $byManager[$m], [
+                'entry_key' => "rev:{$activationId}:e{$leg['id']}",
+                'entry_type' => 'REVERSAL',
+                'direction' => 'DEBIT',
+                'amount' => $leg['amount'],
+                'activation_id' => $activationId,
+                'transfer_id' => null,
+                'counterparty_manager_id' => $leaf->managerId,
+                'reverses_entry_id' => $leg['id'],
+            ] + $actorFields);
+        }
+        FinanceFaults::hit('reverse.activation_after_clawbacks');
+        return new PostedReversal($credit, $clawbacks);
     }
 
     /** @return list<array<string,mixed>> entries of one wallet in the actor's ledger.read scope */

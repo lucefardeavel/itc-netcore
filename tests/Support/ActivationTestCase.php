@@ -105,6 +105,11 @@ abstract class ActivationTestCase extends PricingTestCase
             if (in_array($a['status'], ['COMPLETED', 'REVERSAL_PENDING', 'REVERSED'], true) && ($a['legacy_recharge_id'] === null || $a['legacy_transaction_id'] === null || $a['legacy_invoice'] !== 'INV-' . $a['reference'])) {
                 $problems[] = $tag . 'COMPLETED without its legacy records';
             }
+            // WP5B: exactly one compensating 'REV-' transaction for a REVERSED activation, none otherwise
+            $rev = (int) static::$db->value('SELECT COUNT(*) FROM tbl_transactions WHERE invoice = ?', ['REV-' . $a['reference']]);
+            if ($rev !== ($a['status'] === 'REVERSED' ? 1 : 0)) {
+                $problems[] = $tag . $a['status'] . " with {$rev} REV- transaction(s)";
+            }
         }
         return $problems;
     }

@@ -25,6 +25,7 @@ use Reseller\Finance\PricingSnapshot;
  *    positive margins (manager, amount, key com:{activation}:m{manager}, counterparty = leaf, same actor
  *    as the debit); debit = wholesale_cost = leaf wholesale; sum(commissions) + provider settlement =
  *    debit; an activation without a snapshot has no commission
+ *  - WP5B activation reversals (activationReversals below)
  */
 final class FinanceInvariants
 {
@@ -42,10 +43,11 @@ final class FinanceInvariants
             if ($e['transfer_id'] !== null) {
                 $byTransfer[(int) $e['transfer_id']][] = $e;
             }
-            if (!preg_match('/^(trf:[1-9][0-9]*:(credit|debit|out|in)|rev:[1-9][0-9]*:(credit|debit)|res:[1-9][0-9]*:commit|com:[1-9][0-9]*:m[1-9][0-9]*)$/D', (string) $e['entry_key'])) {
+            if (!preg_match('/^(trf:[1-9][0-9]*:(credit|debit|out|in)|rev:[1-9][0-9]*:(credit|debit|e[1-9][0-9]*)|res:[1-9][0-9]*:commit|com:[1-9][0-9]*:m[1-9][0-9]*)$/D', (string) $e['entry_key'])) {
                 $issues[] = "ledger {$e['id']}: unexpected entry key {$e['entry_key']}";
             }
-            if ($e['transfer_id'] === null && !in_array($e['entry_type'], ['ACTIVATION_DEBIT', 'COMMISSION_CREDIT'], true)) {
+            if ($e['transfer_id'] === null && !in_array($e['entry_type'], ['ACTIVATION_DEBIT', 'COMMISSION_CREDIT'], true)
+                && !($e['entry_type'] === 'REVERSAL' && $e['activation_id'] !== null)) {
                 $issues[] = "ledger {$e['id']}: {$e['entry_type']} without an operation";
             }
         }
@@ -188,7 +190,55 @@ final class FinanceInvariants
                 $issues[] = "ledger {$e['id']}: ACTIVATION_DEBIT not linked to exactly one committed reservation";
             }
         }
-        return array_merge($issues, self::settlements($db, $ledger, $reservations, $byId));
+        return array_merge($issues, self::settlements($db, $ledger, $reservations, $byId), self::activationReversals($db, $ledger, $byId));
+    }
+
+    /**
+     * WP5B completed-activation reversals: every activation REVERSAL entry compensates exactly one original leg
+     * of its activation (ACTIVATION_DEBIT / COMMISSION_CREDIT: same wallet and amount, opposite direction, key
+     * rev:{activation}:e{original}, STAFF actor with a reason); a REVERSED activation has every original leg
+     * reversed exactly once and any other activation none (the reversal commits all-or-nothing).
+     *
+     * @param list<array<string,mixed>> $ledger
+     * @param array<int,array<string,mixed>> $byId
+     * @return list<string>
+     */
+    private static function activationReversals(TestDatabase $db, array $ledger, array $byId): array
+    {
+        $issues = [];
+        $legs = [];
+        $reversed = [];
+        foreach ($ledger as $e) {
+            if ($e['activation_id'] !== null && in_array($e['entry_type'], ['ACTIVATION_DEBIT', 'COMMISSION_CREDIT'], true)) {
+                $legs[(int) $e['activation_id']][] = (int) $e['id'];
+            }
+            if ($e['entry_type'] !== 'REVERSAL' || $e['transfer_id'] !== null) {
+                continue;
+            }
+            $act = (int) $e['activation_id'];
+            $o = $byId[(int) ($e['reverses_entry_id'] ?? 0)] ?? null;
+            if ($o === null || (int) $o['activation_id'] !== $act || !in_array($o['entry_type'], ['ACTIVATION_DEBIT', 'COMMISSION_CREDIT'], true)
+                || (int) $o['manager_id'] !== (int) $e['manager_id'] || $o['direction'] === $e['direction'] || $o['amount'] !== $e['amount']
+                || $e['entry_key'] !== "rev:{$act}:e{$o['id']}" || $e['actor_type'] !== 'STAFF' || $e['operator_id'] === null || $e['reason'] === null) {
+                $issues[] = "ledger {$e['id']}: activation reversal does not compensate one original leg of activation {$act}";
+                continue;
+            }
+            $reversed[$act][] = (int) $o['id'];
+        }
+        $status = [];
+        foreach ($db->rows('SELECT id, status FROM tbl_reseller_activations') as $a) {
+            $status[(int) $a['id']] = $a['status'];
+        }
+        foreach ($status as $act => $st) {
+            $want = $st === 'REVERSED' ? ($legs[$act] ?? []) : [];
+            $got = $reversed[$act] ?? [];
+            sort($want);
+            sort($got);
+            if ($want !== $got || ($st === 'REVERSED' && $want === [])) {
+                $issues[] = "activation {$act}: {$st} with reversed legs " . json_encode($got) . ', expected ' . json_encode($want);
+            }
+        }
+        return $issues;
     }
 
     /**

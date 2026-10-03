@@ -13,6 +13,10 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  *  - activation.after_provision     RADIUS applied, before the outcome is persisted (crash = in flight)
  *  - activation.before_commit       FINANCIAL_COMMITTING persisted, before the settlement transaction
  *  - activation.after_settlement    inside the settlement transaction, after the debit and the legacy rows
+ *  - reversal.after_start            REVERSAL_PENDING committed, before the RADIUS restore (WP5B)
+ *  - reversal.after_restore          RADIUS restored, before the evidence is persisted
+ *  - reversal.after_evidence         evidence persisted, before the financial / legacy transaction
+ *  - reversal.after_ledger           inside the reversal transaction, after the ledger and legacy writes
  */
 final class ActivationFaults
 {

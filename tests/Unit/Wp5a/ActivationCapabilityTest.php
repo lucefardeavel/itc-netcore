@@ -13,12 +13,13 @@ use Reseller\Security\RoleCapabilityMap;
 /** The activation capability matrix (owner decision A5), exactly; fail-closed principals. */
 final class ActivationCapabilityTest extends TestCase
 {
+    // WP5B (OD-11): activation.reverse is Admin / SuperAdmin only
     private const MATRIX = [
-        'SuperAdmin' => [C::ACTIVATION_CREATE => 'G', C::ACTIVATION_READ => 'G'],
-        'Admin' => [C::ACTIVATION_CREATE => 'G', C::ACTIVATION_READ => 'G'],
-        'Agent' => [C::ACTIVATION_CREATE => 'S', C::ACTIVATION_READ => 'T'],
-        'Sales' => [C::ACTIVATION_CREATE => 'A', C::ACTIVATION_READ => 'A'],
-        'Report' => [C::ACTIVATION_CREATE => null, C::ACTIVATION_READ => null],
+        'SuperAdmin' => [C::ACTIVATION_CREATE => 'G', C::ACTIVATION_READ => 'G', C::ACTIVATION_REVERSE => 'G'],
+        'Admin' => [C::ACTIVATION_CREATE => 'G', C::ACTIVATION_READ => 'G', C::ACTIVATION_REVERSE => 'G'],
+        'Agent' => [C::ACTIVATION_CREATE => 'S', C::ACTIVATION_READ => 'T', C::ACTIVATION_REVERSE => null],
+        'Sales' => [C::ACTIVATION_CREATE => 'A', C::ACTIVATION_READ => 'A', C::ACTIVATION_REVERSE => null],
+        'Report' => [C::ACTIVATION_CREATE => null, C::ACTIVATION_READ => null, C::ACTIVATION_REVERSE => null],
     ];
 
     private static function staff(string $role, array $over = []): ActorContext
@@ -42,6 +43,9 @@ final class ActivationCapabilityTest extends TestCase
         $this->assertNotContains(C::ACTIVATION_READ, C::MUTATING);
         $this->assertContains(C::ACTIVATION_CREATE, C::SCHEMA_DEPENDENT);
         $this->assertContains(C::ACTIVATION_READ, C::SCHEMA_DEPENDENT);
+        $this->assertContains(C::ACTIVATION_REVERSE, C::MUTATING);
+        $this->assertContains(C::ACTIVATION_REVERSE, C::SCHEMA_DEPENDENT);
+        $this->assertNotContains(C::ACTIVATION_REVERSE, C::PLACEMENT_REQUIRED);
         $this->assertSame([], C::RESERVED);
     }
 

@@ -77,8 +77,10 @@ final class LedgerTest extends FinanceTestCase
         $public = array_map(static fn(\ReflectionMethod $m) => $m->getName(), $rc->getMethods(\ReflectionMethod::IS_PUBLIC));
         sort($public);
         // WP3B F-2: postActivationSettlement (leaf debit + commissions, atomic) replaced postActivationDebit
-        $this->assertSame(['continuity', 'entries', 'entry', 'postActivationSettlement', 'postTransferLeg'], $public);
-        foreach (['postTransferLeg', 'postActivationSettlement'] as $m) {
+        // WP5B (OD-12): completed-activation reversal: the original legs (read), the no-write check, the single posting
+        $this->assertSame(['activationReversalLegs', 'assertActivationReversible', 'continuity', 'entries', 'entry', 'postActivationReversal',
+            'postActivationSettlement', 'postTransferLeg'], $public);
+        foreach (['postTransferLeg', 'postActivationSettlement', 'postActivationReversal', 'activationReversalLegs', 'assertActivationReversible'] as $m) {
             $params = array_map(static fn(\ReflectionParameter $p) => strtolower($p->getName()), $rc->getMethod($m)->getParameters());
             foreach ($params as $p) {
                 $this->assertDoesNotMatchRegularExpression('/amount|key|balance|operator|customer|before|after/', $p, "{$m}({$p})");

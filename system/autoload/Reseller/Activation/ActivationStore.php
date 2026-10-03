@@ -206,6 +206,37 @@ final class ActivationStore
         return Tx::row($pdo, "SELECT 1 AS x FROM tbl_reseller_activation_events WHERE activation_id = ? AND to_state = 'VERIFIED' LIMIT 1", [$id]) !== null;
     }
 
+    /** WP5B reversal: the metadata of the COMPLETED (FINANCIAL) event, or null. */
+    public static function completion(\PDO $pdo, int $id): ?array
+    {
+        $row = Tx::row($pdo, "SELECT metadata FROM tbl_reseller_activation_events WHERE activation_id = ? AND to_state = 'COMPLETED' AND event_type = 'FINANCIAL' ORDER BY sequence_no DESC LIMIT 1", [$id]);
+        $meta = $row !== null && $row['metadata'] !== null ? json_decode((string) $row['metadata'], true) : null;
+        return is_array($meta) ? $meta : null;
+    }
+
+    /**
+     * WP5B reversal: the metadata of the PROVISIONING_RESULT events recorded while in $state with $result.
+     *
+     * @return list<mixed>
+     */
+    public static function results(\PDO $pdo, int $id, string $state, string $result): array
+    {
+        return array_map(static fn(array $e): mixed => json_decode((string) $e['metadata'], true), Tx::rows($pdo,
+            "SELECT metadata FROM tbl_reseller_activation_events WHERE activation_id = ? AND from_state = ? AND to_state = ? AND event_type = 'PROVISIONING_RESULT' AND provisioning_result = ? ORDER BY sequence_no",
+            [$id, $state, $state, $result]));
+    }
+
+    /**
+     * WP5B reversal: a later activation of the customer (higher id) whose status is not in $excluded, or null.
+     *
+     * @param list<string> $excluded
+     */
+    public static function later(\PDO $pdo, int $customerId, int $id, array $excluded): ?array
+    {
+        return Tx::row($pdo, 'SELECT id, reference, status FROM tbl_reseller_activations WHERE customer_id = ? AND id > ? AND status NOT IN ('
+            . implode(', ', array_fill(0, count($excluded), '?')) . ') ORDER BY id LIMIT 1', [$customerId, $id, ...$excluded]);
+    }
+
     /** @return array<string,mixed>|null the activation's reservation (ACTIVE or COMMITTED first) */
     public static function reservation(\PDO $pdo, int $id): ?array
     {

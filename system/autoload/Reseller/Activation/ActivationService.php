@@ -427,7 +427,9 @@ final class ActivationService
                 ActivationStore::transition($pdo, $id, [ActivationState::FINANCIAL_COMMITTING], ActivationState::COMPLETED, $actor, [
                     'event_type' => 'FINANCIAL',
                     'metadata' => ['reservation_id' => $settled->reservationId, 'ledger_entry_id' => $settled->committedLedgerEntryId,
-                        'invoice' => $legacy['invoice'], 'recharge_id' => $legacy['recharge'], 'transaction_id' => $legacy['transaction']],
+                        'invoice' => $legacy['invoice'], 'recharge_id' => $legacy['recharge'], 'transaction_id' => $legacy['transaction'],
+                        // WP5B: what a later reversal needs to undo exactly the legacy writes of this transaction
+                        'reversal_context' => $legacy['context']],
                 ], ['completed_at' => Tx::utcNow(), 'legacy_recharge_id' => $legacy['recharge'], 'legacy_transaction_id' => $legacy['transaction'],
                     'legacy_invoice' => $legacy['invoice'], 'error_code' => null, 'error_message' => null]);
             }, false);

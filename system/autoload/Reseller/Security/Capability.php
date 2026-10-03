@@ -78,6 +78,9 @@ final class Capability
     // reseller activation (WP5A; owner decision A5): granted by RoleCapabilityMap, enforced by Reseller\Activation
     public const ACTIVATION_CREATE = 'activation.create';
     public const ACTIVATION_READ = 'activation.read';
+    // completed-activation reversal (WP5B; owner decision OD-11): Admin / SuperAdmin only, enforced by
+    // Reseller\Activation\ActivationReversalService
+    public const ACTIVATION_REVERSE = 'activation.reverse';
 
     /** Capabilities defined for a later work package and never granted until then (none since WP5A). */
     public const RESERVED = [];
@@ -96,7 +99,7 @@ final class Capability
         self::SYSTEM_ADMIN, self::SYSTEM_CODE, self::SYSTEM_COUPONS, self::SYSTEM_BACKUP, self::SYSTEM_RESTORE, self::SYSTEM_UPDATE,
         self::WALLET_FUND_WITHDRAW, self::WALLET_TRANSFER, self::WALLET_DEBT_LIMIT, self::WALLET_ADJUST, self::WALLET_REVERSE,
         self::PRICING_BASE_COST, self::PRICING_CHILD_WHOLESALE, self::PRICING_OWN_RETAIL, self::PRICING_CHILD_AVAILABILITY,
-        self::ACTIVATION_CREATE,
+        self::ACTIVATION_CREATE, self::ACTIVATION_REVERSE,
     ];
 
     /**
@@ -118,7 +121,7 @@ final class Capability
         self::WALLET_READ, self::LEDGER_READ, self::WALLET_FUND_WITHDRAW, self::WALLET_TRANSFER,
         self::WALLET_DEBT_LIMIT, self::WALLET_ADJUST, self::WALLET_REVERSE,
         self::PRICING_READ, self::PRICING_BASE_COST, self::PRICING_CHILD_WHOLESALE, self::PRICING_OWN_RETAIL, self::PRICING_CHILD_AVAILABILITY,
-        self::ACTIVATION_CREATE, self::ACTIVATION_READ,
+        self::ACTIVATION_CREATE, self::ACTIVATION_READ, self::ACTIVATION_REVERSE,
     ];
 
     /** @return list<string> every defined capability */

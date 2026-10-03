@@ -140,7 +140,7 @@ final class ReconciliationService
         if (!in_array($act['status'], [ActivationState::RECONCILIATION_REQUIRED, ActivationState::VERIFIED, ActivationState::ROLLBACK_PENDING], true)) {
             throw new DomainError('ACTIVATION_STATE_CONFLICT');
         }
-        $restore = self::restorePlan($act);
+        $restore = RestorePlan::build($act);
         if (isset($restore['refused'])) {
             $code = $restore['refused'];
             self::audit($actor, 'activation.rollback', $act, ['restore' => 'REFUSED:' . $code]);
@@ -235,51 +235,6 @@ final class ReconciliationService
             [...ActivationState::TERMINAL, $cutoff]);
         return array_map(static fn(array $r): array => ['reference' => (string) $r['reference'], 'status' => (string) $r['status'],
             'customer_id' => (int) $r['customer_id'], 'manager_id' => (int) $r['manager_id'], 'updated_at' => (string) $r['updated_at']], $rows);
-    }
-
-    /**
-     * The exact rows a rollback writes, resolved WITHOUT writing anything. The captured prior state stores the
-     * password only as a digest (a verifier): it proves whether a known candidate matches, it cannot reconstruct
-     * an unknown value. Each prior password row is therefore restored only when it equals, exactly, one of the
-     * customer's own passwords (customer.password, customer.pppoe_password); otherwise the rollback is refused
-     * (PRIOR_SECRET_UNRESTORABLE). A prior state without a password row restores that absence.
-     *
-     * @return array{refused:string}|array{username:string,check:list<array{0:string,1:string,2:string}>,reply:list<array{0:string,1:string,2:string}>,groups:list<array{0:string,1:int}>,prior:array,password:string}
-     */
-    private static function restorePlan(array $act): array
-    {
-        $pdo = FinanceTx::pdo();
-        $prior = ActivationStore::radius($pdo, (int) $act['id'])['prior'];
-        if (!is_array($prior) || !is_string($prior['username'] ?? null) || !is_array($prior['subscriber'] ?? null)) {
-            return ['refused' => 'PRIOR_STATE_NOT_CAPTURED'];
-        }
-        $customer = Tx::row($pdo, 'SELECT password, pppoe_password FROM tbl_customers WHERE id = ?', [(int) $act['customer_id']]) ?? [];
-        $candidates = array_values(array_filter([(string) ($customer['password'] ?? ''), (string) ($customer['pppoe_password'] ?? '')], static fn(string $c): bool => $c !== ''));
-        $salt = (string) $act['reference'];
-        $password = 'none';
-        $check = [];
-        foreach ($prior['subscriber']['check'] ?? [] as $row) {
-            [$attribute, $op, $value] = [(string) $row[0], (string) $row[1], (string) $row[2]];
-            if ($attribute === 'Cleartext-Password') {
-                $known = null;
-                foreach ($candidates as $candidate) {
-                    if (hash_equals($value, RadiusState::digest($salt, $candidate))) {
-                        $known = $candidate;
-                        break;
-                    }
-                }
-                if ($known === null) {
-                    return ['refused' => 'PRIOR_SECRET_UNRESTORABLE'];
-                }
-                $value = $known;
-                $password = 'restored';
-            }
-            $check[] = [$attribute, $op, $value];
-        }
-        return ['username' => (string) $prior['username'], 'check' => $check,
-            'reply' => array_map(static fn(array $r): array => [(string) $r[0], (string) $r[1], (string) $r[2]], $prior['subscriber']['reply'] ?? []),
-            'groups' => array_map(static fn(array $g): array => [(string) $g[0], (int) $g[1]], $prior['subscriber']['groups'] ?? []),
-            'prior' => $prior, 'password' => $password];
     }
 
     private static function find(string $reference): array

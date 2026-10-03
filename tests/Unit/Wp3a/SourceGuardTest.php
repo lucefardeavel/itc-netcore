@@ -226,7 +226,8 @@ final class SourceGuardTest extends TestCase
         ));
         sort($writes);
         // WP3B F-2: the single activation financial posting primitive replaced postActivationDebit
-        $this->assertSame(['postActivationSettlement', 'postTransferLeg'], $writes);
+        // WP5B (OD-12): the single completed-activation reversal posting
+        $this->assertSame(['postActivationReversal', 'postActivationSettlement', 'postTransferLeg'], $writes);
         $src = self::runtime()[self::FIN . 'LedgerService.php'];
         $this->assertSame(1, preg_match_all('/INSERT INTO tbl_manager_ledger/', $src));
         $this->assertMatchesRegularExpression('/private static function insert\(/', $src);

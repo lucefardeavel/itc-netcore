@@ -46,6 +46,8 @@ final class RoleCapabilityMap
         C::PRICING_OWN_RETAIL => 'G', C::PRICING_CHILD_AVAILABILITY => 'G',
         // WP5A activation (A5): any reseller-owned customer; the owner's wallet is always the one debited
         C::ACTIVATION_CREATE => 'G', C::ACTIVATION_READ => 'G',
+        // WP5B (OD-11): reversal of a COMPLETED activation; never Agent, Sales or Report
+        C::ACTIVATION_REVERSE => 'G',
     ];
 
     /** @var array<string,array<string,string>> */

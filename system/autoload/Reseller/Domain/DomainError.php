@@ -94,6 +94,11 @@ final class DomainError extends \RuntimeException
         'INVALID_IDEMPOTENCY_KEY' => 'The request identifier is missing or invalid; reload the form.',
         'PRIOR_STATE_NOT_CAPTURED' => 'The RADIUS state before this activation was not captured; it cannot be restored automatically. RADIUS was not changed and the reservation remains held.',
         'PRIOR_SECRET_UNRESTORABLE' => 'The exact prior authentication state cannot be restored automatically: the previous RADIUS password is not one of the customer\'s own passwords. RADIUS was not changed and the reservation remains held; operator review is required.',
+        // WP5B completed-activation reversal and legacy entrypoint closure
+        'REVERSAL_CONTEXT_NOT_CAPTURED' => 'This activation was completed without the context needed to reverse it exactly; nothing was changed. Operator review is required.',
+        'REVERSAL_EXTERNAL_STATE_CHANGED' => 'The customer\'s service changed after this activation (a later activation, a RADIUS edit or a billing change); nothing was reversed.',
+        'REVERSAL_RADIUS_NOT_RESTORED' => 'RADIUS still shows the activation\'s service: the restore did not apply. Nothing else changed; the reversal can be repeated.',
+        'REVERSAL_FINANCIAL_REFUSED' => 'The settlement of this activation cannot be reversed now; nothing was changed.',
     ];
 
     public function __construct(public readonly string $reason, ?string $detail = null)
