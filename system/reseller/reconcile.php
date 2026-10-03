@@ -1,4 +1,10 @@
 <?php
+// CLI ONLY: refused before anything else (the usage below is long; the guard stays first)
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 /**
  * Activation reconciliation tool (WP5A, owner decision A4). CLI ONLY; acts as the SYSTEM actor.
  *
@@ -26,11 +32,6 @@
  *
  * Exit codes: 0 OK, 2 refused (state / not found), 3 failed, 4 external state ambiguous (funds held), 5 usage.
  */
-
-if (PHP_SAPI !== 'cli') {
-    http_response_code(404);
-    exit;
-}
 
 require dirname(__DIR__, 2) . '/init.php';
 
