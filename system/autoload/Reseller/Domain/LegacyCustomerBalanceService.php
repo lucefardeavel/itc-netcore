@@ -206,6 +206,17 @@ final class LegacyCustomerBalanceService
             throw new DomainError('INVALID_INPUT');
         }
         ErrorReporter::log('balance.resolve', 'journal=' . $id . ' decision=' . $decision . ' applied=' . ($ok ? 'yes' : 'no'));
+        if ($ok) {
+            try {
+                $j = Tx::row(self::pdo(), 'SELECT user_id, gateway_trx_id FROM tbl_payment_gateway WHERE id = ?', [$id]);
+                \Reseller\Audit\AuditLog::record('balance.resolve', \Reseller\Security\ActorContext::system('CLI'), [
+                    'target_type' => 'customer', 'target_customer_id' => (int) ($j['user_id'] ?? 0) ?: null,
+                    'after' => ['journal_id' => $id, 'decision' => $decision, 'operation' => (string) ($j['gateway_trx_id'] ?? '')],
+                ]);
+            } catch (\Throwable $e) {
+                ErrorReporter::report($e, 'balance-resolve-audit');
+            }
+        }
         if (!$ok) {
             throw new DomainError('ACTIVATION_STATE_CONFLICT', 'The operation is not HELD (already resolved or unknown); nothing was changed.');
         }

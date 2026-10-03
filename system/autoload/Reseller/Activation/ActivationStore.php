@@ -237,6 +237,12 @@ final class ActivationStore
             . implode(', ', array_fill(0, count($excluded), '?')) . ') ORDER BY id LIMIT 1', [$customerId, $id, ...$excluded]);
     }
 
+    /** WP5B drift report: the customer's latest activation in $status, or null. */
+    public static function latest(\PDO $pdo, int $customerId, string $status): ?array
+    {
+        return Tx::row($pdo, 'SELECT * FROM tbl_reseller_activations WHERE customer_id = ? AND status = ? ORDER BY id DESC LIMIT 1', [$customerId, $status]);
+    }
+
     /** @return array<string,mixed>|null the activation's reservation (ACTIVE or COMMITTED first) */
     public static function reservation(\PDO $pdo, int $id): ?array
     {

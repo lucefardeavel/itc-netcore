@@ -15,6 +15,15 @@
  *   php system/reseller/reconcile.php rollback <ACT-...>         restore the captured prior RADIUS state; release only once verified
  *   php system/reseller/reconcile.php cancel <ACT-...>           before provisioning: release, CANCELLED
  *
+ * WP5B operator commands (read-only unless stated):
+ *   php system/reseller/reconcile.php drift [--no-radius]        detective report: periods not backed by an activation,
+ *                       RADIUS drift, paid legacy payments of reseller-owned customers, CLAIMED vouchers,
+ *                       REPROVISION_UNCONFIRMED customers, HELD balance operations (exit 4 when anything is found)
+ *   php system/reseller/reconcile.php expired-autorenew         AUTO_RENEW_UNAVAILABLE records (reseller-owned, not renewed)
+ *   php system/reseller/reconcile.php balance-held              HELD legacy balance operations
+ *   php system/reseller/reconcile.php balance-resolve <id> <completed|refund>
+ *                       operator decision on one HELD operation (exactly once, audited; refund credits back)
+ *
  * Exit codes: 0 OK, 2 refused (state / not found), 3 failed, 4 external state ambiguous (funds held), 5 usage.
  */
 
@@ -81,8 +90,31 @@ try {
         case 'cancel':
             $print(ReconciliationService::cancel($actor, $reference));
             exit(0);
+        case 'drift':
+            $found = \Reseller\Activation\DriftReport::collect(!in_array('--no-radius', $args, true));
+            foreach ($found as $f) {
+                echo json_encode($f, JSON_UNESCAPED_SLASHES) . "\n";
+            }
+            exit($found === [] ? 0 : 4);
+        case 'expired-autorenew':
+            foreach (\Reseller\Activation\DriftReport::autoRenewUnavailable() as $r) {
+                echo json_encode($r, JSON_UNESCAPED_SLASHES) . "\n";
+            }
+            exit(0);
+        case 'balance-held':
+            foreach (\Reseller\Domain\LegacyCustomerBalanceService::held() as $r) {
+                echo json_encode($r, JSON_UNESCAPED_SLASHES) . "\n";
+            }
+            exit(0);
+        case 'balance-resolve':
+            if (!ctype_digit($reference) || !in_array($args[2] ?? '', ['completed', 'refund'], true)) {
+                fwrite(STDERR, "usage: php system/reseller/reconcile.php balance-resolve <journal id> <completed|refund>\n");
+                exit(5);
+            }
+            echo json_encode(['journal_id' => (int) $reference, 'resolved' => \Reseller\Domain\LegacyCustomerBalanceService::resolve((int) $reference, $args[2])]) . "\n";
+            exit(0);
         default:
-            fwrite(STDERR, "usage: php system/reseller/reconcile.php <stale|show|reconcile|resume|rollback|cancel> [ACT-reference] [--seconds=N]\n");
+            fwrite(STDERR, "usage: php system/reseller/reconcile.php <stale|show|reconcile|resume|rollback|cancel|drift|expired-autorenew|balance-held|balance-resolve> [ACT-reference|id] [--seconds=N]\n");
             exit(5);
     }
 } catch (DomainError $e) {
