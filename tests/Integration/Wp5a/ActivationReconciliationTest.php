@@ -254,6 +254,150 @@ final class ActivationReconciliationTest extends ActivationTestCase
         $this->assertSame(['1000.00', '0.00'], [$this->balance($leaf), $this->reserved($leaf)]);
     }
 
+    // ---- exact rollback (final owner review of ca1b12c7): the captured prior secret must be reconstructed exactly ----
+
+    /** Every RADIUS row of the subscriber with its id: "row-for-row unchanged". */
+    private function radiusExact(string $username): array
+    {
+        return [static::$db->rows('SELECT id, attribute, op, value FROM radcheck WHERE username = ? ORDER BY id', [$username]),
+            static::$db->rows('SELECT id, attribute, op, value FROM radreply WHERE username = ? ORDER BY id', [$username]),
+            static::$db->rows('SELECT id, groupname, priority FROM radusergroup WHERE username = ? ORDER BY id', [$username])];
+    }
+
+    /** The captured prior projection of an activation, compared with what RADIUS holds now. */
+    private function priorRestored(string $reference): bool
+    {
+        $prior = \Reseller\Activation\ActivationStore::radius(static::$svc, $this->id($reference))['prior'];
+        return \Reseller\Activation\RadiusState::sameSubscriber(
+            \Reseller\Activation\RadiusState::read((string) $prior['username'], (int) $this->act($reference)['plan_id'], $reference), $prior);
+    }
+
+    /**
+     * A completed NEW (the previous service), an optional change before the renewal, then a RENEW whose
+     * settlement fails after VERIFIED: RECONCILIATION_REQUIRED, with the previous service as the captured prior.
+     *
+     * @return array{0:string,1:int,2:int,3:int}
+     */
+    private function renewOverPreviousService(string $type = 'Hotspot', array $customer = [], ?callable $beforeRenew = null): array
+    {
+        [$plan, [$top, $leaf]] = $this->pricedChain(['12', '15'], '10', '20', $type);
+        $c = $this->customer($leaf, null, $customer);
+        $this->assertSame('COMPLETED', $this->activate($leaf, $c, $plan, 'NEW')['status']);
+        if ($beforeRenew !== null) {
+            $beforeRenew($c);
+        }
+        ActivationFaults::$hook = static function (string $p): void {
+            if ($p === 'activation.after_settlement') {
+                throw new \RuntimeException('injected: settlement interrupted');
+            }
+        };
+        $out = $this->activate($leaf, $c, $plan, 'RENEW');
+        ActivationFaults::$hook = null;
+        $this->assertSame('RECONCILIATION_REQUIRED', $out['status']);
+        return [$out['reference'], $top, $leaf, $c];
+    }
+
+    private function assertRefusedUnrestorable(string $ref, int $leaf, int $c): void
+    {
+        $u = $this->username($c);
+        $rows = $this->radiusExact($u);
+        $events = null;
+        foreach ([1, 2, 3] as $attempt) {
+            $this->expectExceptionReason('PRIOR_SECRET_UNRESTORABLE', fn() => ReconciliationService::rollback($this->system(), $ref), "attempt {$attempt}");
+            $this->assertSame($rows, $this->radiusExact($u), "attempt {$attempt}: RADIUS row-for-row unchanged");
+            $act = $this->act($ref);
+            $this->assertSame(['ROLLBACK_PENDING', 'PRIOR_SECRET_UNRESTORABLE', 'ACTIVE'], [$act['status'], $act['error_code'], $this->reservation($ref)], "attempt {$attempt}: funds held");
+            $this->assertSame(0, $this->ledgerRows($ref), 'zero ledger movement');
+            $this->assertSame('15.00', $this->reserved($leaf));
+            $events ??= $this->events($ref);
+            $this->assertSame($events, $this->events($ref), "attempt {$attempt}: a repeated refusal records nothing new");
+        }
+    }
+
+    /** 1: the prior password is customer.password: restored exactly, full projection verified, then released. */
+    public function testRollbackRestoresTheCustomerPasswordExactly(): void
+    {
+        $previous = null;
+        [$ref, $top, $leaf, $c] = $this->renewOverPreviousService('Hotspot', [], function (int $c) use (&$previous): void {
+            $previous = $this->radcheck($this->username($c));
+        });
+        $this->assertSame('ROLLED_BACK', ReconciliationService::rollback($this->system(), $ref)['status']);
+        $this->assertSame($previous, $this->radcheck($this->username($c)), 'the previous service, password included');
+        $this->assertSame('pw-' . $this->username($c), $this->radcheck($this->username($c))['Cleartext-Password']);
+        $this->assertTrue($this->priorRestored($ref), 'complete subscriber projection == captured prior');
+        $this->assertSame(['RELEASED', '0.00', 0], [$this->reservation($ref), $this->reserved($leaf), $this->ledgerRows($ref)]);
+    }
+
+    /** 2: the prior password is customer.pppoe_password (PPPoE): restored exactly. */
+    public function testRollbackRestoresThePppoePasswordExactly(): void
+    {
+        $pppoe = 'ppp-' . bin2hex(random_bytes(6));
+        [$ref, , $leaf, $c] = $this->renewOverPreviousService('PPPOE', ['pppoe_password' => $pppoe, 'service_type' => 'PPPoE']);
+        $this->assertSame($pppoe, $this->radcheck($this->username($c))['Cleartext-Password'], 'PPPoE authenticates with pppoe_password');
+        $this->assertSame('ROLLED_BACK', ReconciliationService::rollback($this->system(), $ref)['status']);
+        $this->assertSame($pppoe, $this->radcheck($this->username($c))['Cleartext-Password']);
+        $this->assertTrue($this->priorRestored($ref));
+        $this->assertSame(['RELEASED', '0.00'], [$this->reservation($ref), $this->reserved($leaf)]);
+    }
+
+    /** 3, 5: the prior password is foreign / unknown: refused before any write, repeatedly; funds held. */
+    public function testUnknownPriorPasswordIsRefusedBeforeAnyWrite(): void
+    {
+        [$ref, $top, $leaf, $c] = $this->renewOverPreviousService('Hotspot', [], function (int $c): void {
+            static::$db->pdo->prepare("UPDATE radcheck SET value = 'foreign-secret-x' WHERE username = ? AND attribute = 'Cleartext-Password'")->execute([$this->username($c)]);
+        });
+        $this->assertSame('pw-' . $this->username($c), $this->radcheck($this->username($c))['Cleartext-Password'], 'the renewal wrote the customer password');
+        $before = [$this->balance($leaf), $this->balance($top)];
+        $this->assertRefusedUnrestorable($ref, $leaf, $c);
+        $this->assertSame($before, [$this->balance($leaf), $this->balance($top)]);
+        $this->assertSame(1, $this->rowCount('tbl_user_recharges', 'customer_id = ?', [$c]), 'no legacy financial finalization of the renewal');
+        $this->assertStringContainsString('cannot be restored automatically', (string) $this->act($ref)['error_message']);
+    }
+
+    /** 4: a prior state without a password row is restored as exactly that absence. */
+    public function testPriorWithoutPasswordRestoresTheAbsence(): void
+    {
+        [$plan, [, $leaf]] = $this->pricedChain(['12', '15'], '10', '20');
+        $c = $this->customer($leaf);
+        $u = $this->username($c);
+        static::$db->pdo->prepare("INSERT INTO radcheck (username, attribute, op, value) VALUES (?, 'Simultaneous-Use', ':=', '7')")->execute([$u]);
+        ActivationFaults::$hook = static function (string $p): void {
+            if ($p === 'activation.after_settlement') {
+                throw new \RuntimeException('injected: settlement interrupted');
+            }
+        };
+        $out = $this->activate($leaf, $c, $plan, 'NEW');
+        ActivationFaults::$hook = null;
+        $this->assertArrayHasKey('Cleartext-Password', $this->radcheck($u));
+        $this->assertSame('ROLLED_BACK', ReconciliationService::rollback($this->system(), $out['reference'])['status']);
+        $this->assertSame(['Simultaneous-Use' => '7'], $this->radcheck($u), 'exactly the prior rows; no password invented');
+        $this->assertTrue($this->priorRestored($out['reference']));
+        $this->assertSame('RELEASED', $this->reservation($out['reference']));
+        $this->assertStringContainsString('"password":"none"', (string) static::$db->value("SELECT metadata FROM tbl_reseller_activation_events WHERE activation_id = ? AND to_state = 'ROLLED_BACK'", [$this->id($out['reference'])]));
+    }
+
+    /** 6: ambiguous external state + an unknown prior password: never converted into a random-password state. */
+    public function testAmbiguousStateWithUnknownPriorPasswordStaysUntouched(): void
+    {
+        [$plan, [, $leaf]] = $this->pricedChain(['12', '15'], '10', '20');
+        $c = $this->customer($leaf);
+        $u = $this->username($c);
+        static::$db->pdo->prepare("INSERT INTO radcheck (username, attribute, op, value) VALUES (?, 'Cleartext-Password', ':=', 'legacy-foreign')")->execute([$u]);
+        $calls = 0;
+        RadiusFaults::$hook = static function (string $p) use (&$calls): void {
+            if ($p === 'radius.commit_lost' && ++$calls === 2) {
+                throw new \PDOException('MySQL server has gone away');
+            }
+        };
+        $out = $this->activate($leaf, $c, $plan, 'NEW');
+        RadiusFaults::$hook = null;
+        $ref = $out['reference'];
+        $this->foreignGroup($c);
+        $this->assertSame(ReconciliationService::AMBIGUOUS, ReconciliationService::reconcile($this->system(), $ref)['error_code']);
+        $this->assertRefusedUnrestorable($ref, $leaf, $c);
+        $this->assertSame('pw-' . $u, $this->radcheck($u)['Cleartext-Password'], 'not re-keyed to a random value');
+    }
+
     /** The prior and target states are durable, captured before any write, and hold no password. */
     public function testCaptureIsDurableAndHoldsNoSecret(): void
     {
