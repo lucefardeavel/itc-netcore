@@ -33,8 +33,10 @@ use Reseller\Security\PermissionService;
  *    In-flight states (PROVISIONING .. FINANCIAL_COMMITTING) are reconciled only when stale, so a request
  *    that is still running is never raced.
  *  - rollback (explicit operator decision): the captured prior subscriber state is restored exactly and
- *    verified by reading it back; only then is the reservation released (ROLLED_BACK). An uncertain or
- *    failed restore keeps ROLLBACK_PENDING with the reservation held; it can be repeated.
+ *    verified by reading it back (complete projection); only then is the reservation released (ROLLED_BACK).
+ *    A prior secret that cannot be reconstructed exactly is refused before any write
+ *    (PRIOR_SECRET_UNRESTORABLE: ROLLBACK_PENDING, reservation held, RADIUS unchanged); an uncertain or failed
+ *    restore also keeps ROLLBACK_PENDING with the reservation held; it can be repeated.
  *  - cancel: before any provisioning (FUNDS_RESERVED / RETRY_PENDING) -> reservation released -> CANCELLED.
  */
 final class ReconciliationService
@@ -122,28 +124,54 @@ final class ReconciliationService
         return self::find($reference);
     }
 
-    /** @return array<string,mixed> */
+    /**
+     * Rollback (explicit operator decision): restore the captured prior subscriber state EXACTLY, verify it by
+     * reading RADIUS back, and only then release the reservation (ROLLED_BACK). Everything the restore needs,
+     * the prior password above all, is resolved BEFORE any RADIUS write: when the prior state was not captured
+     * or a prior secret cannot be reconstructed exactly, nothing is written, the activation stays
+     * ROLLBACK_PENDING with the reservation held (PRIOR_STATE_NOT_CAPTURED / PRIOR_SECRET_UNRESTORABLE).
+     *
+     * @return array<string,mixed>
+     */
     public static function rollback(ActivationActor $actor, string $reference): array
     {
         $act = self::find($reference);
         $id = (int) $act['id'];
-        if (in_array($act['status'], [ActivationState::RECONCILIATION_REQUIRED, ActivationState::VERIFIED], true)) {
-            self::tx(static fn(\PDO $pdo) => ActivationStore::transition($pdo, $id, [ActivationState::RECONCILIATION_REQUIRED, ActivationState::VERIFIED], ActivationState::ROLLBACK_PENDING, $actor,
-                ['event_type' => 'RECONCILIATION', 'metadata' => ['rollback' => 'requested']]));
-        } elseif ($act['status'] !== ActivationState::ROLLBACK_PENDING) {
+        if (!in_array($act['status'], [ActivationState::RECONCILIATION_REQUIRED, ActivationState::VERIFIED, ActivationState::ROLLBACK_PENDING], true)) {
             throw new DomainError('ACTIVATION_STATE_CONFLICT');
         }
-        $act = self::find($reference);
-        [$result, $password] = self::restorePrior($act);
+        $restore = self::restorePlan($act);
+        if (isset($restore['refused'])) {
+            $code = $restore['refused'];
+            self::audit($actor, 'activation.rollback', $act, ['restore' => 'REFUSED:' . $code]);
+            self::hold($actor, $act, $code);
+            throw new DomainError($code);
+        }
+        if ($act['status'] !== ActivationState::ROLLBACK_PENDING) {
+            self::tx(static fn(\PDO $pdo) => ActivationStore::transition($pdo, $id, [ActivationState::RECONCILIATION_REQUIRED, ActivationState::VERIFIED], ActivationState::ROLLBACK_PENDING, $actor,
+                ['event_type' => 'RECONCILIATION', 'metadata' => ['rollback' => 'requested']]));
+        }
+        $result = RadiusProvisioner::connection()->restore($restore['username'], $restore['check'], $restore['reply'], $restore['groups']);
+        if ($result->isSuccess()) {
+            // released only when the complete subscriber projection equals the captured prior projection
+            try {
+                $restored = RadiusState::sameSubscriber(RadiusState::read($restore['username'], (int) ActivationService::plan($act)['id'], (string) $act['reference']), $restore['prior']);
+            } catch (\Throwable $e) {
+                \Reseller\Security\ErrorReporter::report($e, 'activation-rollback-verify');
+                $restored = false;
+            }
+            if (!$restored) {
+                $result = \Reseller\Radius\ProvisionResult::unknown('ROLLBACK_VERIFY_MISMATCH', 'RADIUS does not show the captured prior state after the restore.');
+            }
+        }
         self::audit($actor, 'activation.rollback', $act, ['restore' => $result->status . ':' . $result->code]);
         if (!$result->isSuccess()) {
-            self::tx(static function (\PDO $pdo) use ($id, $actor, $result): void {
-                ActivationStore::lock($pdo, $id);
-                ActivationStore::event($pdo, $id, ActivationState::ROLLBACK_PENDING, ActivationState::ROLLBACK_PENDING, $actor,
-                    ['event_type' => 'RECONCILIATION', 'provisioning_result' => $result->status, 'error_code' => $result->code, 'error_message' => $result->message]);
-            });
+            self::tx(static fn(\PDO $pdo) => ActivationStore::note($pdo, $id, ActivationState::ROLLBACK_PENDING, $actor,
+                ['event_type' => 'RECONCILIATION', 'provisioning_result' => $result->status, 'error_code' => $result->code, 'error_message' => $result->message],
+                ['error_code' => $result->code, 'error_message' => 'The prior RADIUS state could not be restored and verified; the reservation remains held and the rollback can be repeated.']));
             throw new DomainError('ACTIVATION_STATE_CONFLICT', 'The previous RADIUS state could not be restored and verified (' . $result->code . '); the reservation stays held and the rollback can be repeated.');
         }
+        $password = $restore['password'];
         self::tx(static function (\PDO $pdo) use ($id, $actor, $password): void {
             $reservation = ActivationStore::reservation($pdo, $id);
             if ($reservation !== null && $reservation['status'] === 'ACTIVE') {
@@ -154,6 +182,23 @@ final class ReconciliationService
                 ['error_code' => 'ROLLED_BACK', 'error_message' => 'The activation was rolled back; nothing was charged.']);
         });
         return self::find($reference);
+    }
+
+    /**
+     * A rollback refused before any RADIUS write: the activation is (or stays) ROLLBACK_PENDING with the refusal
+     * recorded and the reservation held. Repeating the same refused rollback records nothing new.
+     */
+    private static function hold(ActivationActor $actor, array $act, string $code): void
+    {
+        $id = (int) $act['id'];
+        $message = DomainError::MESSAGES[$code] ?? $code;
+        $event = ['event_type' => 'RECONCILIATION', 'error_code' => $code, 'error_message' => $message, 'metadata' => ['rollback' => 'refused']];
+        $columns = ['error_code' => $code, 'error_message' => $message];
+        if ($act['status'] !== ActivationState::ROLLBACK_PENDING) {
+            self::tx(static fn(\PDO $pdo) => ActivationStore::transition($pdo, $id, [ActivationState::RECONCILIATION_REQUIRED, ActivationState::VERIFIED], ActivationState::ROLLBACK_PENDING, $actor, $event, $columns));
+        } elseif ($act['error_code'] !== $code) {
+            self::tx(static fn(\PDO $pdo) => ActivationStore::note($pdo, $id, ActivationState::ROLLBACK_PENDING, $actor, $event, $columns));
+        }
     }
 
     /** @return array<string,mixed> */
@@ -193,40 +238,48 @@ final class ReconciliationService
     }
 
     /**
-     * Restores the subscriber rows captured before provisioning (exactly, verified by read-back). The password
-     * is stored only as a digest: it is restored when it is one of the customer's own passwords; otherwise the
-     * access is re-keyed to an unguessable value (never re-enabled with a value that cannot be proven).
-     * The plan group rows (shared by every subscriber of the plan) are plan configuration and are not rolled back.
+     * The exact rows a rollback writes, resolved WITHOUT writing anything. The captured prior state stores the
+     * password only as a digest (a verifier): it proves whether a known candidate matches, it cannot reconstruct
+     * an unknown value. Each prior password row is therefore restored only when it equals, exactly, one of the
+     * customer's own passwords (customer.password, customer.pppoe_password); otherwise the rollback is refused
+     * (PRIOR_SECRET_UNRESTORABLE). A prior state without a password row restores that absence.
      *
-     * @return array{0:\Reseller\Radius\ProvisionResult,1:string} result, password handling (restored|rekeyed|none)
+     * @return array{refused:string}|array{username:string,check:list<array{0:string,1:string,2:string}>,reply:list<array{0:string,1:string,2:string}>,groups:list<array{0:string,1:int}>,prior:array,password:string}
      */
-    private static function restorePrior(array $act): array
+    private static function restorePlan(array $act): array
     {
         $pdo = FinanceTx::pdo();
         $prior = ActivationStore::radius($pdo, (int) $act['id'])['prior'];
         if (!is_array($prior) || !is_string($prior['username'] ?? null) || !is_array($prior['subscriber'] ?? null)) {
-            return [\Reseller\Radius\ProvisionResult::failed('PRIOR_STATE_NOT_CAPTURED', 'The RADIUS state before this activation was not captured; nothing was changed.', false), 'none'];
+            return ['refused' => 'PRIOR_STATE_NOT_CAPTURED'];
         }
         $customer = Tx::row($pdo, 'SELECT password, pppoe_password FROM tbl_customers WHERE id = ?', [(int) $act['customer_id']]) ?? [];
+        $candidates = array_values(array_filter([(string) ($customer['password'] ?? ''), (string) ($customer['pppoe_password'] ?? '')], static fn(string $c): bool => $c !== ''));
         $salt = (string) $act['reference'];
         $password = 'none';
         $check = [];
-        foreach ($prior['subscriber']['check'] ?? [] as [$attribute, $op, $value]) {
+        foreach ($prior['subscriber']['check'] ?? [] as $row) {
+            [$attribute, $op, $value] = [(string) $row[0], (string) $row[1], (string) $row[2]];
             if ($attribute === 'Cleartext-Password') {
                 $known = null;
-                foreach ([(string) ($customer['password'] ?? ''), (string) ($customer['pppoe_password'] ?? '')] as $candidate) {
-                    if ($candidate !== '' && hash_equals((string) $value, RadiusState::digest($salt, $candidate))) {
+                foreach ($candidates as $candidate) {
+                    if (hash_equals($value, RadiusState::digest($salt, $candidate))) {
                         $known = $candidate;
+                        break;
                     }
                 }
-                $password = $known !== null ? 'restored' : 'rekeyed';
-                $value = $known ?? bin2hex(random_bytes(24));
+                if ($known === null) {
+                    return ['refused' => 'PRIOR_SECRET_UNRESTORABLE'];
+                }
+                $value = $known;
+                $password = 'restored';
             }
-            $check[] = [(string) $attribute, (string) $op, (string) $value];
+            $check[] = [$attribute, $op, $value];
         }
-        $reply = array_map(static fn(array $r): array => [(string) $r[0], (string) $r[1], (string) $r[2]], $prior['subscriber']['reply'] ?? []);
-        $groups = array_map(static fn(array $g): array => [(string) $g[0], (int) $g[1]], $prior['subscriber']['groups'] ?? []);
-        return [RadiusProvisioner::connection()->restore((string) $prior['username'], $check, $reply, $groups), $password];
+        return ['username' => (string) $prior['username'], 'check' => $check,
+            'reply' => array_map(static fn(array $r): array => [(string) $r[0], (string) $r[1], (string) $r[2]], $prior['subscriber']['reply'] ?? []),
+            'groups' => array_map(static fn(array $g): array => [(string) $g[0], (int) $g[1]], $prior['subscriber']['groups'] ?? []),
+            'prior' => $prior, 'password' => $password];
     }
 
     private static function find(string $reference): array

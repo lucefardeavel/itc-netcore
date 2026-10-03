@@ -15,6 +15,8 @@
                 </table>
                 {if $nuxr_activation['status'] eq 'RECONCILIATION_REQUIRED' && $nuxr_activation['error_code'] eq 'EXTERNAL_STATE_AMBIGUOUS'}
                     <div class="alert alert-danger">{Lang::T('The current RADIUS state differs from both the activation target and the state captured before provisioning. No funds were released automatically; the reservation remains held. Operator review is required: roll back to restore the captured prior state, or correct RADIUS and reconcile again.')}</div>
+                {elseif $nuxr_activation['status'] eq 'ROLLBACK_PENDING' && ($nuxr_activation['error_code'] eq 'PRIOR_SECRET_UNRESTORABLE' || $nuxr_activation['error_code'] eq 'PRIOR_STATE_NOT_CAPTURED')}
+                    <div class="alert alert-danger">{Lang::T('The exact prior authentication state cannot be restored automatically. RADIUS was not changed, nothing was released and the reservation remains held. Operator review is required.')}</div>
                 {elseif $nuxr_activation['status'] eq 'RECONCILIATION_REQUIRED'}
                     <div class="alert alert-warning">{Lang::T('The outcome is being checked. Do not repeat the activation; an administrator reconciles it. The reserved funds stay held until then.')}</div>
                 {/if}

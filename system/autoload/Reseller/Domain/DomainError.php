@@ -92,6 +92,8 @@ final class DomainError extends \RuntimeException
         'PLAN_DISABLED' => 'The plan is disabled.',
         'PLAN_VALIDITY_INVALID' => 'The plan validity is not valid.',
         'INVALID_IDEMPOTENCY_KEY' => 'The request identifier is missing or invalid; reload the form.',
+        'PRIOR_STATE_NOT_CAPTURED' => 'The RADIUS state before this activation was not captured; it cannot be restored automatically. RADIUS was not changed and the reservation remains held.',
+        'PRIOR_SECRET_UNRESTORABLE' => 'The exact prior authentication state cannot be restored automatically: the previous RADIUS password is not one of the customer\'s own passwords. RADIUS was not changed and the reservation remains held; operator review is required.',
     ];
 
     public function __construct(public readonly string $reason, ?string $detail = null)
