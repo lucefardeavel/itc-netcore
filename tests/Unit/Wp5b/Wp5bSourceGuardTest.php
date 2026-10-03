@@ -106,6 +106,68 @@ final class Wp5bSourceGuardTest extends TestCase
             'plusByPhone / minByPhone resolve exactly one id by username');
     }
 
+    /** §4.3: every legacy device grant method asks LegacyReprovisionService first; only the service grants a permit. */
+    public function testDeviceGrantsAreDefaultDeny(): void
+    {
+        foreach (['Radius', 'RadiusRest', 'MikrotikHotspot', 'MikrotikPppoe', 'MikrotikVpn'] as $d) {
+            $src = self::runtime()["system/devices/{$d}.php"];
+            foreach (['add_customer' => '$customer', 'sync_customer' => '$customer', 'change_username' => 'null, $from, $to'] as $m => $arg) {
+                $call = preg_quote('\Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed(' . $arg . ');', '/');
+                $this->assertMatchesRegularExpression('/function ' . $m . '\([^)]*\)\s*\{\s*' . $call . '/', $src, "{$d}::{$m} starts with the default deny");
+            }
+        }
+        $svc = self::runtime()['system/autoload/Reseller/Domain/LegacyReprovisionService.php'];
+        $this->assertSame(2, substr_count($svc, 'self::$permit = '), 'the permit is set and cleared only inside the service');
+        $this->assertMatchesRegularExpression('/private static \?array \$permit/', $svc, 'private, never a public permit API');
+        $this->assertSame(['system/autoload/Reseller/Domain/LegacyReprovisionService.php'], self::hits('/\$permit\s*=/'));
+    }
+
+    /** §4.2: for a reseller-owned customer the controllers never write the identity / password themselves. */
+    public function testReprovisionControllersNeverPreSave(): void
+    {
+        $edit = self::runtime()['system/controllers/customers.php'];
+        $this->assertMatchesRegularExpression('/if \(!\$resellerOwned\) \{\s*if \(\$userDiff\) \{\s*\$c->username = \$username;/', $edit);
+        $this->assertSame(1, preg_match_all('/\$c->password = \$password;/', $edit), 'one identity write site, inside the unassigned branch');
+        $acc = self::runtime()['system/controllers/accounts.php'];
+        $owned = strpos($acc, 'LegacyReprovisionService::owned($user[\'id\'])');
+        $write = strpos($acc, '$user->password = $npass;');
+        $this->assertNotFalse($owned);
+        $this->assertGreaterThan($owned, $write, 'the legacy password write is reached only after the reseller-owned branch ended the request');
+        $this->assertMatchesRegularExpression('/LegacyReprovisionService::PASSWORD_CHANGE[^;]*;\s*\} catch[^}]*\}\s*User::removeCookie\(\);\s*session_destroy\(\);[^_]*_log\([^;]*;\s*_alert\(/', $acc);
+    }
+
+    /** §7: one gateway resolution; no gateway file is included from a request value. */
+    public function testSingleGatewayResolver(): void
+    {
+        foreach (['system/controllers/order.php', 'system/controllers/callback.php'] as $rel) {
+            $src = self::runtime()[$rel];
+            $this->assertDoesNotMatchRegularExpression('/include\s+\$PAYMENTGATEWAY_PATH/', $src, $rel);
+            $this->assertStringContainsString('PaymentGatewayResolver::resolve(', $src, $rel);
+            $this->assertDoesNotMatchRegularExpression("/_post\('discount'\)/", $src, "{$rel}: no posted discount");
+        }
+    }
+
+    /** §7a: the hardened legacy balance paths use the journaled service, never Balance::*. */
+    public function testHardenedControllersNeverCallBalance(): void
+    {
+        foreach (['system/controllers/order.php', 'system/controllers/home.php', 'system/cron.php'] as $rel) {
+            $this->assertDoesNotMatchRegularExpression('/\bBalance::(min|plus|transfer|minByPhone|plusByPhone)\(/', self::runtime()[$rel], $rel);
+        }
+        $plan = self::runtime()['system/controllers/plan.php'];
+        $post = substr($plan, (int) strpos($plan, "case 'recharge-post':"), 9000);
+        $this->assertDoesNotMatchRegularExpression('/\bBalance::/', substr($post, 0, (int) strpos($post, "case 'view':")), 'E1 using=balance');
+    }
+
+    /** §2: the reversal is the only REVERSAL ledger caller and the only REV- writer; hooks are never decisions. */
+    public function testReversalAndHookGuards(): void
+    {
+        $this->assertSame(['system/autoload/Reseller/Activation/ActivationReversalService.php'], self::hits('/LedgerService::postActivationReversal\(/'));
+        $this->assertSame(['system/autoload/Reseller/Activation/LegacyBridge.php'], self::hits("/'REV-'/"));
+        $this->assertSame([], self::hits('/(=|if\s*\(|return)\s*!?\s*run_hook\(/'), 'no hook result is used as a decision');
+        $this->assertSame(['system/autoload/Reseller/Activation/ActivationStore.php'], array_values(array_filter(self::hits("/'STAFF_WEB'/"),
+            static fn(string $rel): bool => !str_starts_with($rel, 'system/reseller/migrations/'))), 'no new activation channel or entry');
+    }
+
     /** E6: voucher codes come from the CSPRNG. */
     public function testVoucherGenerationUsesTheCsprng(): void
     {

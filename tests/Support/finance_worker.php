@@ -90,6 +90,11 @@ try {
         // WP5B reversal and bounded re-provision race partners
         'reverse_activation' => \Reseller\Activation\ActivationReversalService::reverse($staff($op['actor']), $op['reference'], $op['reason']),
         'reprovision' => \Reseller\Domain\LegacyReprovisionService::run($staff($op['actor']), (int) $op['customer'], $op['reprovision'], $op['requested'] ?? []),
+        'reprovision_customer' => \Reseller\Domain\LegacyReprovisionService::run((static function (int $id) use ($pdo): ActorContext {
+            $st = $pdo->prepare('SELECT * FROM tbl_customers WHERE id = ?');
+            $st->execute([$id]);
+            return ActorContext::forCustomer($st->fetch(PDO::FETCH_ASSOC), 'CLI');
+        })((int) $op['customer']), (int) $op['customer'], $op['reprovision'], $op['requested'] ?? []),
         'plan_delete' => \Reseller\Domain\PlanGuard::deleteSerialized((int) $op['plan'], static function () use ($op): void {
             ORM::for_table('tbl_plans')->find_one((int) $op['plan'])->delete();
         }) ?? 'DELETED',

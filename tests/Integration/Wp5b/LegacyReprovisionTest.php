@@ -252,4 +252,26 @@ final class LegacyReprovisionTest extends ActivationTestCase
             $this->assertTrue(\Reseller\Activation\RadiusState::same(\Reseller\Activation\RadiusState::read($this->username($c), $plan, $ref), $target), "round {$round}");
         }
     }
+
+    /** §10: activation open vs PASSWORD_CHANGE of the same customer: serialized by the tree lock. */
+    public function testActivationOpenAndPasswordChangeAreSerialized(): void
+    {
+        [$plan, [, $leaf]] = $this->pricedChain(['12', '15'], '10', '20');
+        for ($round = 1; $round <= 4; $round++) {
+            $c = $this->customer($leaf);
+            $this->assertSame('COMPLETED', $this->activate($leaf, $c, $plan, 'NEW')['status']);
+            $customer = static::$db->rows('SELECT * FROM tbl_customers WHERE id = ?', [$c])[0];
+            [$open, $pw] = FinanceWorkers::stampede(static::$db, [
+                ['op' => 'activate', 'actor' => $leaf, 'customer' => $c, 'plan' => $plan, 'action' => 'RENEW', 'nonce' => self::nonce()],
+                ['op' => 'reprovision_customer', 'customer' => $c, 'reprovision' => R::PASSWORD_CHANGE, 'requested' => ['password' => 'race-pass-' . $round]],
+            ]);
+            $this->assertTrue($open['ok'] && $open['result']['status'] === 'COMPLETED', json_encode($open));
+            $this->assertTrue($pw['ok'] ? $pw['result']['status'] === 'DONE' : $pw['reason'] === 'ACTIVATION_IN_PROGRESS', json_encode($pw));
+            // whichever order: RADIUS holds the renewal with the customer's current password
+            $now = (string) static::$db->value('SELECT password FROM tbl_customers WHERE id = ?', [$c]);
+            $this->assertSame($pw['ok'] ? 'race-pass-' . $round : $customer['password'], $now);
+            $this->assertSame($now, $this->radcheck($this->username($c))['Cleartext-Password'], "round {$round}");
+            $this->customersChanged();
+        }
+    }
 }
