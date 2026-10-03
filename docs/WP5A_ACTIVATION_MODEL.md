@@ -225,3 +225,11 @@ In-flight states are reconciled only when stale (default 300 s), so a running re
    - The approved state machine has no automatic exit from ROLLBACK_PENDING other than a verified restore. Such an activation needs operator review, and a future owner-approved recovery mechanism (for example encrypted secret capture) to resolve automatically.
 10. **Activations without a captured state.** Activations that reached provisioning before fix round 1 have no captured state. A never-verified one of these is always ambiguous, and rollback refuses `PRIOR_STATE_NOT_CAPTURED` with the funds held. None exists outside development databases.
 11. **Catalog under the tree lock.** The catalog resolves each candidate plan under the global tree lock. This is correct but serialized; WP9 measures it.
+
+## WP5B amendment (R0007, owner decisions OD-11 .. OD-14)
+
+- 17 states, 26 edges: `COMPLETED → REVERSAL_PENDING → REVERSED` (R0007). `TERMINAL` (not in flight) adds REVERSED; REVERSAL_PENDING is
+  in flight (opens and re-provisions of the customer refuse). The pre-completion ROLLBACK_PENDING / ROLLED_BACK meaning is unchanged.
+- `LegacyBridge::record` also stores a version-1 `reversal_context` in the COMPLETED event metadata (additive).
+- `ReconciliationService::rollback` uses the extracted `RestorePlan` (same behaviour).
+- Completed-activation reversal: `docs/WP5B_LEGACY_CLOSURE_MODEL.md` §5.

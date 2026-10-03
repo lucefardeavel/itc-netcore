@@ -270,3 +270,14 @@ WP3B extends two accepted primitives; everything else above is unchanged.
   failure of the settlement unit is a typed `SettlementFailure`; deadlock / lock-wait keep the retry of §8.
 
 See `docs/WP3B_PRICING_MODEL.md`.
+
+## WP5B amendment (owner decisions OD-12, OD-14)
+
+- `LedgerService::postActivationReversal` is the single completed-activation reversal posting: one REVERSAL credit of the
+  original ACTIVATION_DEBIT to the leaf and one REVERSAL debit (clawback) per original COMMISSION_CREDIT, in the caller's
+  transaction, all-or-nothing. Keys `rev:{activation}:e{original entry}`; `reverses_entry_id` = the original entry (unique).
+  Amounts come only from the original ledger rows (`activationReversalLegs`, cross-checked with the sealed snapshot and the
+  reservation); `assertActivationReversible` validates on locked wallets without writing (no leg reversed before, leaf credit
+  storable, every recipient keeps available credit ≥ 0 after its clawback). STAFF actor with the reason. The reservation stays
+  COMMITTED; provider settlement is reversed in the activation record only.
+- Its only caller is `Reseller\Activation\ActivationReversalService` (source guard).

@@ -609,3 +609,14 @@ _257 route entries; default actions: '' and unknown actions resolve to each cont
 3. Assign legacy customers explicitly: customer view → *Assign owner* (or bulk assign on unassigned
    customers), optionally with a Sales user of that owner. Nothing is derived from `created_by`.
 4. Verify with `php system/reseller/hierarchy.php inspect` (expect `tree_drift: []`).
+
+## WP5B amendment (owner decisions OD-6, OD-10, OD-11, OD-15)
+
+- `activation.reverse` (new): SuperAdmin G, Admin G; mutating and schema-dependent; never Agent, Sales or Report. Route
+  `activation/reverse` (POST, web only, not API-allowed); enforced again inside `Reseller\Activation\ActivationReversalService`.
+  (`activation.create` / `activation.read` were enabled by WP5A: see `docs/WP5A_ACTIVATION_MODEL.md` §7.)
+- RouteMap (pinned, re-pinned under OD-15): `order/pay` and `order/buy` POST only; `order/view#check` / `order/view#cancel`
+  POST-only variants (segment 3).
+- The OD-11 ServiceGate is unchanged and still refuses every legacy grant for a reseller-owned customer. On top of it: E1 web
+  continues at `activation/create`; E19 / E20 / E21 (sync, password change, identity edit) are bounded re-provisions through
+  `Reseller\Domain\LegacyReprovisionService`. Details: `docs/WP5B_LEGACY_CLOSURE_MODEL.md`.
