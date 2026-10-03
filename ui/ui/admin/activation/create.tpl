@@ -20,6 +20,7 @@
                                     <option value="{$p['id']}" {if $p['id'] eq $nuxr_plan_id}selected{/if}>{$p['name_plan']|escape} ({$p['type']|escape})</option>
                                 {/foreach}
                             </select>
+                            {if !$nuxr_plans}<p class="help-block">{Lang::T('No plan is available for activation here. Enter the customer ID and press Review to list the plans available for that customer.')}</p>{/if}
                         </div>
                     </div>
                     <div class="form-group"><div class="col-md-offset-3 col-md-6"><button class="btn btn-default" type="submit">{Lang::T('Review')}</button></div></div>

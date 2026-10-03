@@ -46,6 +46,27 @@ final class RadiusProvisioner
         });
     }
 
+    /**
+     * Restores a subscriber's managed rows exactly (WP5A rollback); SUCCESS only when the read-back equals the
+     * requested rows.
+     *
+     * @param list<array{0:string,1:string,2:string}> $check
+     * @param list<array{0:string,1:string,2:string}> $reply
+     * @param list<array{0:string,1:int}>             $groups
+     */
+    public function restore(string $username, array $check, array $reply, array $groups): ProvisionResult
+    {
+        $sortRows = static function (array $rows): array {
+            sort($rows);
+            return $rows;
+        };
+        $sortGroups = static fn(array $rows): array => RadiusRepository::orderGroups($rows);
+        return $this->run('restore', fn(): bool => $this->repo->restoreUser($username, $check, $reply, $groups), function () use ($username, $check, $reply, $groups, $sortRows, $sortGroups): bool {
+            $s = $this->repo->snapshotUser($username);
+            return $s['check'] === $sortRows($check) && $s['reply'] === $sortRows($reply) && $s['groups'] === $sortGroups($groups);
+        });
+    }
+
     public function suspend(string $username): ProvisionResult
     {
         return $this->run('suspend', fn(): int => $this->repo->suspendUser($username), null);

@@ -8,12 +8,14 @@
  *   php system/reseller/reconcile.php stale [--seconds=300]      list non-terminal activations not updated for N seconds
  *   php system/reseller/reconcile.php show <ACT-...>             state and event timeline
  *   php system/reseller/reconcile.php reconcile <ACT-...> [--stale-seconds=300]
- *                                                                read RADIUS back: applied -> settle once; absent -> release, FAILED
+ *                       delivery already verified -> retry the settlement only (RADIUS is not consulted);
+ *                       never verified -> RADIUS == target: settle once; == captured prior state: release,
+ *                       FAILED (NOT_APPLIED); anything else: EXTERNAL_STATE_AMBIGUOUS, nothing changed (exit 4)
  *   php system/reseller/reconcile.php resume <ACT-...>           continue from FUNDS_RESERVED / RETRY_PENDING / VERIFIED
- *   php system/reseller/reconcile.php rollback <ACT-...>         restore the previous RADIUS state, release, ROLLED_BACK
+ *   php system/reseller/reconcile.php rollback <ACT-...>         restore the captured prior RADIUS state; release only once verified
  *   php system/reseller/reconcile.php cancel <ACT-...>           before provisioning: release, CANCELLED
  *
- * Exit codes: 0 OK, 2 refused (state / not found), 3 failed, 5 usage.
+ * Exit codes: 0 OK, 2 refused (state / not found), 3 failed, 4 external state ambiguous (funds held), 5 usage.
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -62,7 +64,12 @@ try {
             }
             exit(0);
         case 'reconcile':
-            $print(ReconciliationService::reconcile($actor, $reference, $option('stale-seconds', ReconciliationService::STALE_SECONDS)));
+            $row = ReconciliationService::reconcile($actor, $reference, $option('stale-seconds', ReconciliationService::STALE_SECONDS));
+            $print($row);
+            if ($row['error_code'] === ReconciliationService::AMBIGUOUS) {
+                fwrite(STDERR, ReconciliationService::AMBIGUOUS . ': ' . ReconciliationService::AMBIGUOUS_MESSAGE . "\n");
+                exit(4);
+            }
             exit(0);
         case 'resume':
             $row = ActivationStore::byReference(\ORM::get_db(), $reference) ?? throw new DomainError('NOT_FOUND');

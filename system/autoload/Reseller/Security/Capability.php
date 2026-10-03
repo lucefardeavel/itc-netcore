@@ -100,6 +100,13 @@ final class Capability
     ];
 
     /**
+     * Capabilities that act for a reseller identity (WP5A owner decision, fix round 1): an Agent / Sales
+     * principal must be validly placed in the hierarchy (enrolled, consistent) whatever its scope letter.
+     * The approved scopes are unchanged (Agent S, Sales A); an unplaced principal simply has none.
+     */
+    public const PLACEMENT_REQUIRED = [self::ACTIVATION_CREATE];
+
+    /**
      * Capabilities that depend on the reseller ownership / hierarchy / audit schema. When the schema
      * is not ready (SchemaReadiness) they are refused for EVERY role, SuperAdmin included.
      */

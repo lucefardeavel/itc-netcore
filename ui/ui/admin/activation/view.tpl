@@ -13,8 +13,10 @@
                     {if $nuxr_activation['error_code']}<tr><th>{Lang::T('Error')}</th><td>{$nuxr_activation['error_code']|escape}: {$nuxr_activation['error_message']|escape}</td></tr>{/if}
                     {if $nuxr_activation['legacy_invoice']}<tr><th>{Lang::T('Invoice')}</th><td>{$nuxr_activation['legacy_invoice']|escape}</td></tr>{/if}
                 </table>
-                {if $nuxr_activation['status'] eq 'RECONCILIATION_REQUIRED'}
-                    <div class="alert alert-warning">{Lang::T('The outcome is being checked. Do not repeat the activation; an administrator reconciles it.')}</div>
+                {if $nuxr_activation['status'] eq 'RECONCILIATION_REQUIRED' && $nuxr_activation['error_code'] eq 'EXTERNAL_STATE_AMBIGUOUS'}
+                    <div class="alert alert-danger">{Lang::T('The current RADIUS state differs from both the activation target and the state captured before provisioning. No funds were released automatically; the reservation remains held. Operator review is required: roll back to restore the captured prior state, or correct RADIUS and reconcile again.')}</div>
+                {elseif $nuxr_activation['status'] eq 'RECONCILIATION_REQUIRED'}
+                    <div class="alert alert-warning">{Lang::T('The outcome is being checked. Do not repeat the activation; an administrator reconciles it. The reserved funds stay held until then.')}</div>
                 {/if}
                 {if $nuxr_can_reconcile && ($nuxr_activation['status'] eq 'RECONCILIATION_REQUIRED' || $nuxr_activation['status'] eq 'VERIFIED' || $nuxr_activation['status'] eq 'ROLLBACK_PENDING')}
                     <form method="post" action="{Text::url('activation/reconcile/', $nuxr_activation['reference'])}" style="display:inline">
@@ -23,7 +25,7 @@
                     </form>
                     <form method="post" action="{Text::url('activation/rollback/', $nuxr_activation['reference'])}" style="display:inline">
                         <input type="hidden" name="csrf_token" value="{$csrf_token}">
-                        <button class="btn btn-danger btn-sm" type="submit" onclick="return ask(this, '{Lang::T('Restore the previous service and release the funds?')}')">{Lang::T('Roll back')}</button>
+                        <button class="btn btn-danger btn-sm" type="submit" onclick="return ask(this, '{Lang::T('Restore the RADIUS state captured before this activation and, once verified, release the reserved funds?')}')">{Lang::T('Roll back')}</button>
                     </form>
                 {/if}
                 <h4>{Lang::T('Timeline')}</h4>

@@ -33,6 +33,10 @@ final class PermissionService
         if ($treeScoped && (!$a->enrolled || $a->inconsistent)) {
             return self::NONE; // C20: a non-enrolled Agent/Sales has an empty tree scope
         }
+        if (in_array($capability, Capability::PLACEMENT_REQUIRED, true) && in_array($a->role, ['Agent', 'Sales'], true)
+            && (!$a->enrolled || $a->inconsistent || $a->managerId === null)) {
+            return self::NONE; // acts for a reseller identity: only a validly placed Agent / Sales (WP5A)
+        }
         if (in_array($capability, Capability::MUTATING, true) && !$a->canMutate()) {
             return self::NONE; // frozen (self or ancestor not Active) / inconsistent: read only
         }

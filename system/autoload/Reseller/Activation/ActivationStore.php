@@ -92,18 +92,44 @@ final class ActivationStore
         }
         ActivationState::assertTransition((string) $row['status'], $to);
         $now = Tx::utcNow();
-        $set = ['status' => $to, 'updated_at' => $now] + $columns;
+        self::write($pdo, $id, (string) $row['status'], ['status' => $to, 'updated_at' => $now] + $columns);
+        self::event($pdo, $id, (string) $row['status'], $to, $actor, $event, $now);
+        return self::lock($pdo, $id);
+    }
+
+    /**
+     * A recorded outcome without a state change (e.g. EXTERNAL_STATE_AMBIGUOUS): the activation must be in
+     * $state; its error columns are updated and one event from = to = $state is appended.
+     *
+     * @param array<string,mixed> $event
+     * @param array<string,mixed> $columns error_code, error_message
+     */
+    public static function note(\PDO $pdo, int $id, string $state, ActivationActor $actor, array $event, array $columns = []): array
+    {
+        $row = self::lock($pdo, $id);
+        if ($row['status'] !== $state) {
+            throw new DomainError('ACTIVATION_STATE_CONFLICT');
+        }
+        $now = Tx::utcNow();
+        if ($columns !== []) {
+            self::write($pdo, $id, $state, ['updated_at' => $now] + $columns);
+        }
+        self::event($pdo, $id, $state, $state, $actor, $event, $now);
+        return self::lock($pdo, $id);
+    }
+
+    /** The single guarded UPDATE of an activation row: only the columns below, never a snapshot column. */
+    private static function write(\PDO $pdo, int $id, string $expected, array $set): void
+    {
         $allowed = ['status', 'updated_at', 'error_code', 'error_message', 'completed_at', 'legacy_recharge_id', 'legacy_transaction_id', 'legacy_invoice'];
         if (array_diff(array_keys($set), $allowed) !== []) {
             throw new \LogicException('activation column not updatable');
         }
         $cols = implode(', ', array_map(static fn(string $c): string => "{$c} = ?", array_keys($set)));
-        $n = Tx::exec($pdo, "UPDATE tbl_reseller_activations SET {$cols} WHERE id = ? AND status = ?", [...array_values($set), $id, $row['status']]);
+        $n = Tx::exec($pdo, "UPDATE tbl_reseller_activations SET {$cols} WHERE id = ? AND status = ?", [...array_values($set), $id, $expected]);
         if ($n !== 1) {
             throw new DomainError('ACTIVATION_STATE_CONFLICT');
         }
-        self::event($pdo, $id, (string) $row['status'], $to, $actor, $event, $now);
-        return self::lock($pdo, $id);
     }
 
     /**
@@ -146,6 +172,38 @@ final class ActivationStore
             throw new \LogicException('activation without a frozen period');
         }
         return $meta;
+    }
+
+    /**
+     * The RADIUS states captured when provisioning started (PROVISIONING event metadata): the prior state of
+     * the FIRST attempt (what a rollback restores) and the target of the LATEST attempt (what it applied).
+     *
+     * @return array{prior:?array,target:?array}
+     */
+    public static function radius(\PDO $pdo, int $id): array
+    {
+        $prior = null;
+        $target = null;
+        foreach (Tx::rows($pdo, "SELECT metadata FROM tbl_reseller_activation_events WHERE activation_id = ? AND to_state = 'PROVISIONING' ORDER BY sequence_no", [$id]) as $r) {
+            $meta = $r['metadata'] !== null ? json_decode((string) $r['metadata'], true) : null;
+            $radius = is_array($meta) ? ($meta['radius'] ?? null) : null;
+            if (!is_array($radius)) {
+                continue;
+            }
+            if ($prior === null && is_array($radius['prior'] ?? null)) {
+                $prior = $radius['prior'];
+            }
+            if (is_array($radius['target'] ?? null)) {
+                $target = $radius['target'];
+            }
+        }
+        return ['prior' => $prior, 'target' => $target];
+    }
+
+    /** Durable evidence that the delivery was verified: the timeline reached VERIFIED at least once. */
+    public static function wasVerified(\PDO $pdo, int $id): bool
+    {
+        return Tx::row($pdo, "SELECT 1 AS x FROM tbl_reseller_activation_events WHERE activation_id = ? AND to_state = 'VERIFIED' LIMIT 1", [$id]) !== null;
     }
 
     /** @return array<string,mixed>|null the activation's reservation (ACTIVE or COMMITTED first) */

@@ -71,6 +71,75 @@ final class RadiusRepository
     }
 
     /**
+     * Exact rows of the attributes this application manages for one subscriber (WP5A reconciliation): every
+     * managed radcheck / radreply row as [attribute, op, value] (duplicates kept, canonical order) and every
+     * radusergroup row as [groupname, priority] in priority order. Unmanaged rows are not part of it.
+     *
+     * @return array{check:list<array{0:string,1:string,2:string}>,reply:list<array{0:string,1:string,2:string}>,groups:list<array{0:string,1:int}>}
+     */
+    public function snapshotUser(string $username): array
+    {
+        $managed = function (string $table, array $attributes) use ($username): array {
+            $out = [];
+            foreach ($this->rows("SELECT attribute, op, value FROM {$table} WHERE username = ?", [$username]) as $r) {
+                if (in_array((string) $r['attribute'], $attributes, true)) {
+                    $out[] = [(string) $r['attribute'], (string) $r['op'], (string) $r['value']];
+                }
+            }
+            sort($out);
+            return $out;
+        };
+        $groups = self::orderGroups(array_map(static fn(array $r): array => [(string) $r['groupname'], (int) $r['priority']],
+            $this->rows('SELECT groupname, priority FROM radusergroup WHERE username = ?', [$username])));
+        return ['check' => $managed('radcheck', RadiusPolicy::MANAGED_CHECK), 'reply' => $managed('radreply', RadiusPolicy::MANAGED_REPLY), 'groups' => $groups];
+    }
+
+    /**
+     * Exact managed radgroupreply rows of a plan group (plan_<id>) as [attribute, op, value], canonical order.
+     *
+     * @return list<array{0:string,1:string,2:string}>
+     */
+    public function snapshotGroup(int $planId): array
+    {
+        $out = [];
+        foreach ($this->rows('SELECT attribute, op, value FROM radgroupreply WHERE groupname = ?', ['plan_' . $planId]) as $r) {
+            if (in_array((string) $r['attribute'], self::GROUP_MANAGED, true)) {
+                $out[] = [(string) $r['attribute'], (string) $r['op'], (string) $r['value']];
+            }
+        }
+        sort($out);
+        return $out;
+    }
+
+    /**
+     * Restores a subscriber's managed rows exactly (WP5A rollback to a captured prior state): every managed
+     * attribute ends with exactly the given rows (none when absent), and radusergroup with exactly the given
+     * [groupname, priority] rows. Unmanaged rows are never touched; radacct is never touched.
+     *
+     * @param list<array{0:string,1:string,2:string}> $check
+     * @param list<array{0:string,1:string,2:string}> $reply
+     * @param list<array{0:string,1:int}>             $groups
+     */
+    public function restoreUser(string $username, array $check, array $reply, array $groups): bool
+    {
+        return $this->tx(function () use ($username, $check, $reply, $groups): bool {
+            $changed = $this->syncExact('radcheck', $username, $check, RadiusPolicy::MANAGED_CHECK);
+            $changed = $this->syncExact('radreply', $username, $reply, RadiusPolicy::MANAGED_REPLY) || $changed;
+            $have = self::orderGroups(array_map(static fn(array $r): array => [(string) $r['groupname'], (int) $r['priority']],
+                $this->rows('SELECT groupname, priority FROM radusergroup WHERE username = ? FOR UPDATE', [$username])));
+            $want = self::orderGroups($groups);
+            if ($have !== $want) {
+                $this->exec('DELETE FROM radusergroup WHERE username = ?', [$username]);
+                foreach ($want as [$group, $priority]) {
+                    $this->exec('INSERT INTO radusergroup (username, groupname, priority) VALUES (?, ?, ?)', [$username, $group, $priority]);
+                }
+                $changed = true;
+            }
+            return $changed;
+        });
+    }
+
+    /**
      * Suspends a subscriber without deleting anything: the password becomes an unguessable random value
      * (the legacy behaviour, without the database password as salt). Returns the number of rows changed.
      */
@@ -239,6 +308,54 @@ final class RadiusRepository
             }
         }
         return $changed;
+    }
+
+    /**
+     * Like sync(), but list-exact per managed attribute (several rows of one attribute are kept as given).
+     *
+     * @param list<array{0:string,1:string,2:string}> $desired
+     * @param list<string> $managed
+     */
+    private function syncExact(string $table, string $username, array $desired, array $managed): bool
+    {
+        $existing = $this->rows("SELECT attribute, op, value FROM {$table} WHERE username = ? ORDER BY id FOR UPDATE", [$username]);
+        $changed = false;
+        foreach ($managed as $attribute) {
+            $have = [];
+            foreach ($existing as $r) {
+                if ($r['attribute'] === $attribute) {
+                    $have[] = [(string) $r['attribute'], (string) $r['op'], (string) $r['value']];
+                }
+            }
+            $want = array_values(array_filter($desired, static fn(array $d): bool => $d[0] === $attribute));
+            $sortedHave = $have;
+            $sortedWant = $want;
+            sort($sortedHave);
+            sort($sortedWant);
+            if ($sortedHave === $sortedWant) {
+                continue;
+            }
+            if ($have !== []) {
+                $this->exec("DELETE FROM {$table} WHERE username = ? AND attribute = ?", [$username, $attribute]);
+            }
+            foreach ($want as [$a, $op, $v]) {
+                $this->exec("INSERT INTO {$table} (username, attribute, op, value) VALUES (?, ?, ?, ?)", [$username, $a, $op, $v]);
+            }
+            $changed = true;
+        }
+        return $changed;
+    }
+
+    /**
+     * Canonical radusergroup order (priority, then name; byte order, independent of the SQL collation).
+     *
+     * @param list<array{0:string,1:int}> $groups
+     * @return list<array{0:string,1:int}>
+     */
+    public static function orderGroups(array $groups): array
+    {
+        usort($groups, static fn(array $x, array $y): int => [(int) $x[1], (string) $x[0]] <=> [(int) $y[1], (string) $y[0]]);
+        return array_values($groups);
     }
 
     private function groupHasPlanColumn(): bool

@@ -15,7 +15,6 @@ use Reseller\Radius\ProvisionResult;
 use Reseller\Radius\RadiusPolicy;
 use Reseller\Radius\RadiusPolicyBuilder;
 use Reseller\Radius\RadiusProvisioner;
-use Reseller\Radius\RadiusRepository;
 use Reseller\Security\ActorContext;
 use Reseller\Security\Capability as C;
 use Reseller\Security\DataScope;
@@ -52,7 +51,7 @@ final class ActivationService
      */
     public static function create(ActorContext $a, mixed $customerId, mixed $planId, mixed $expectedAction, mixed $nonce): array
     {
-        ResellerTreeService::authorize($a, C::ACTIVATION_CREATE);
+        self::assertEligible($a);
         if (!DataScope::validId($customerId) || !DataScope::validId($planId)) {
             throw new DomainError('NOT_FOUND');
         }
@@ -79,16 +78,19 @@ final class ActivationService
      */
     public static function preview(ActorContext $a, mixed $customerId, mixed $planId): array
     {
-        ResellerTreeService::authorize($a, C::ACTIVATION_CREATE);
+        self::assertEligible($a);
         if (!DataScope::validId($customerId) || !DataScope::validId($planId)) {
             throw new DomainError('NOT_FOUND');
         }
         $pdo = FinanceTx::pdo();
         $customer = Tx::row($pdo, 'SELECT * FROM tbl_customers WHERE id = ?', [(int) $customerId]) ?? throw new DomainError('NOT_FOUND');
-        self::authorizeCustomer($a, $customer);
+        $manager = self::authorizeCustomer($a, $customer);
         $plan = Tx::row($pdo, 'SELECT * FROM tbl_plans WHERE id = ?', [(int) $planId]) ?? throw new DomainError('NOT_FOUND');
-        if ($plan['device'] !== 'Radius' || !in_array($plan['type'], self::PLAN_TYPES, true)) {
-            throw new DomainError('PLAN_DEVICE_NOT_SUPPORTED');
+        // only a plan of the actor's catalog is previewed; Agent / Sales never learn why another plan is not offered
+        $reason = (string) $plan['enabled'] !== '1' ? 'PLAN_DISABLED'
+            : ($plan['device'] !== 'Radius' || !in_array($plan['type'], self::PLAN_TYPES, true) ? 'PLAN_DEVICE_NOT_SUPPORTED' : self::unsaleable($manager, (int) $planId));
+        if ($reason !== null) {
+            throw new DomainError(PermissionService::scopeOf($a, C::ACTIVATION_CREATE) === 'G' ? $reason : 'NOT_FOUND');
         }
         $now = self::now();
         $current = LegacyBridge::currentRecharge($pdo, (int) $customerId, (string) $plan['type']);
@@ -96,6 +98,110 @@ final class ActivationService
         [$start, $expiry] = ServicePeriod::compute($action, $plan, $action === 'RENEW' ? $current : null, $now, self::dayExp($pdo, (int) $customerId, $plan));
         return ['action' => $action, 'start' => $start->format('Y-m-d H:i:s'), 'expiry' => $expiry->format('Y-m-d H:i:s'),
             'plan' => (string) $plan['name_plan'], 'customer' => (string) $customer['username']];
+    }
+
+    /**
+     * Activation actor eligibility (owner fix round 1). Admin / SuperAdmin keep the approved global behaviour;
+     * an Agent must be Active, enrolled, consistent, not frozen and its own reseller identity; a Sales account
+     * must be Active, enrolled, consistent, not frozen and placed under an Agent. The central PermissionService
+     * applies the same placement rule (Capability::PLACEMENT_REQUIRED), and open() revalidates the actor in
+     * the database inside the transaction.
+     */
+    public static function eligible(ActorContext $a): bool
+    {
+        if (!$a->isStaff() || !PermissionService::can($a, C::ACTIVATION_CREATE)) {
+            return false;
+        }
+        $placed = $a->status === 'Active' && $a->enrolled && !$a->inconsistent && !$a->frozen;
+        return match ($a->role) {
+            'SuperAdmin', 'Admin' => true,
+            'Agent' => $placed && $a->managerId === (int) $a->userId,
+            'Sales' => $placed && $a->managerId !== null && $a->managerId !== (int) $a->userId,
+            default => false,
+        };
+    }
+
+    /** Schema readiness + capability (ResellerTreeService::authorize) + eligibility, before any data access. */
+    private static function assertEligible(ActorContext $a): void
+    {
+        ResellerTreeService::authorize($a, C::ACTIVATION_CREATE);
+        if (!self::eligible($a)) {
+            throw new DomainError('FORBIDDEN');
+        }
+    }
+
+    /**
+     * The plans the actor may activate in this context (owner fix round 1): id, name and type only; no price,
+     * cost, chain, commission or settlement data.
+     *  - Admin / SuperAdmin: the administrative list of enabled RADIUS Hotspot / PPPoE plans (unchanged);
+     *  - Agent: the plans saleable for its own reseller identity (PricingService resolution);
+     *  - Sales: the plans saleable for the authoritative owner of the selected customer, which must be in its
+     *    scope (no customer: no plans). The owner is read from the customer row, never from the request.
+     *
+     * @return list<array{id:int,name_plan:string,type:string}>
+     */
+    public static function catalog(ActorContext $a, mixed $customerId = null): array
+    {
+        self::assertEligible($a);
+        $pdo = FinanceTx::pdo();
+        $plans = array_map(static fn(array $p): array => ['id' => (int) $p['id'], 'name_plan' => (string) $p['name_plan'], 'type' => (string) $p['type']],
+            Tx::rows($pdo, "SELECT id, name_plan, type FROM tbl_plans WHERE device = 'Radius' AND enabled = 1 AND type IN ('Hotspot', 'PPPOE') ORDER BY name_plan, id"));
+        $scope = PermissionService::scopeOf($a, C::ACTIVATION_CREATE);
+        if ($scope === 'G') {
+            return $plans;
+        }
+        if ($scope === 'S') {
+            $owner = (int) $a->userId;
+        } else {
+            if ($customerId === null || $customerId === '') {
+                return [];
+            }
+            if (!DataScope::validId($customerId)) {
+                throw new DomainError('NOT_FOUND');
+            }
+            $customer = Tx::row($pdo, 'SELECT * FROM tbl_customers WHERE id = ?', [(int) $customerId]) ?? throw new DomainError('NOT_FOUND');
+            $owner = self::authorizeCustomer($a, $customer);
+        }
+        $ok = self::saleable($owner, array_column($plans, 'id'));
+        return array_values(array_filter($plans, static fn(array $p): bool => isset($ok[$p['id']])));
+    }
+
+    /**
+     * Authoritative saleability of plans for one reseller owner (PricingService::resolveInTx under the tree
+     * lock; every fail-closed pricing reason excludes the plan). The snapshot is discarded.
+     *
+     * @param list<int> $planIds
+     * @return array<int,true>
+     */
+    private static function saleable(int $owner, array $planIds): array
+    {
+        if ($planIds === []) {
+            return [];
+        }
+        return FinanceTx::run(static function (\PDO $pdo) use ($owner, $planIds): array {
+            $ok = [];
+            foreach ($planIds as $planId) {
+                try {
+                    PricingService::resolveInTx($pdo, $owner, (int) $planId);
+                    $ok[(int) $planId] = true;
+                } catch (DomainError) {
+                }
+            }
+            return $ok;
+        }, true);
+    }
+
+    /** The pricing reason a plan is not saleable for $owner, or null. */
+    private static function unsaleable(int $owner, int $planId): ?string
+    {
+        return FinanceTx::run(static function (\PDO $pdo) use ($owner, $planId): ?string {
+            try {
+                PricingService::resolveInTx($pdo, $owner, $planId);
+                return null;
+            } catch (DomainError $e) {
+                return $e->reason;
+            }
+        }, true);
     }
 
     /** @return array{0:int,1:bool} [activation id, replayed] */
@@ -175,7 +281,9 @@ final class ActivationService
                 switch ($row['status']) {
                     case ActivationState::FUNDS_RESERVED:
                     case ActivationState::RETRY_PENDING:
-                        self::provisionStep($row, $actor);
+                        if (!self::provisionStep($row, $actor)) {
+                            return ActivationStore::find($pdo, $id) ?? $row;
+                        }
                         continue 2;
                     case ActivationState::VERIFIED:
                         self::commitStep($row, $actor);
@@ -194,15 +302,26 @@ final class ActivationService
         return ActivationStore::find($pdo, $id) ?? throw new DomainError('NOT_FOUND');
     }
 
-    private static function provisionStep(array $row, ActivationActor $actor): void
+    /** @return bool false when provisioning could not start (the prior RADIUS state could not be captured) */
+    private static function provisionStep(array $row, ActivationActor $actor): bool
     {
         $id = (int) $row['id'];
         $attempts = count(array_filter(ActivationStore::events(FinanceTx::pdo(), $id), static fn(array $e): bool => $e['to_state'] === ActivationState::PROVISIONING));
         if ($row['status'] === ActivationState::RETRY_PENDING && $attempts > self::PROVISION_RETRIES) {
             self::fail($id, [ActivationState::RETRY_PENDING], $actor, 'PROVISION_RETRIES_EXHAUSTED', 'The RADIUS change could not be applied.', 'STATE_TRANSITION', null);
-            return;
+            return true;
         }
-        self::tx(static fn(\PDO $pdo) => ActivationStore::transition($pdo, $id, [ActivationState::FUNDS_RESERVED, ActivationState::RETRY_PENDING], ActivationState::PROVISIONING, $actor));
+        // the prior and target RADIUS states are captured BEFORE any write, durably (owner fix round 1)
+        $capture = self::capture($row);
+        if ($capture === false) {
+            $status = (string) $row['status'];
+            self::tx(static fn(\PDO $pdo) => ActivationStore::note($pdo, $id, $status, $actor,
+                ['event_type' => 'ANNOTATION', 'error_code' => 'RADIUS_READ_FAILED', 'error_message' => 'The RADIUS state could not be read; provisioning did not start.'],
+                ['error_code' => 'RADIUS_READ_FAILED', 'error_message' => 'The RADIUS state could not be read; provisioning did not start. Resume or cancel.']));
+            return false;
+        }
+        self::tx(static fn(\PDO $pdo) => ActivationStore::transition($pdo, $id, [ActivationState::FUNDS_RESERVED, ActivationState::RETRY_PENDING], ActivationState::PROVISIONING, $actor,
+            $capture === null ? [] : ['metadata' => $capture]));
         ActivationFaults::hit('activation.before_provision');
         [$result, $policy] = self::provision($row);
         ActivationFaults::hit('activation.after_provision');
@@ -211,19 +330,49 @@ final class ActivationService
         if ($result->status === ProvisionResult::SUCCESS) {
             self::tx(static fn(\PDO $pdo) => ActivationStore::transition($pdo, $id, [ActivationState::PROVISIONING], ActivationState::PROVISIONED, $actor, $event));
             self::verifyStep($row, $policy, $actor);
-            return;
+            return true;
         }
         if ($result->status === ProvisionResult::FAILED && $result->retryable) {
             self::tx(static fn(\PDO $pdo) => ActivationStore::transition($pdo, $id, [ActivationState::PROVISIONING], ActivationState::RETRY_PENDING, $actor, $event));
-            return;
+            return true;
         }
         if ($result->status === ProvisionResult::FAILED) {
             self::fail($id, [ActivationState::PROVISIONING], $actor, $result->code, $result->message, 'PROVISIONING_RESULT', ProvisionResult::FAILED);
-            return;
+            return true;
         }
         // UNKNOWN: the change may have been applied; the reservation stays ACTIVE until reconciliation
         self::tx(static fn(\PDO $pdo) => ActivationStore::transition($pdo, $id, [ActivationState::PROVISIONING], ActivationState::RECONCILIATION_REQUIRED, $actor,
             $event, ['error_code' => $result->code, 'error_message' => $result->message]));
+        return true;
+    }
+
+    /**
+     * The RADIUS states for the PROVISIONING event: the prior state (first attempt only; what a rollback
+     * restores and what proves NOT_APPLIED) and the exact target of this attempt. null when no policy can be
+     * built (the attempt then fails before any write); false when the current state cannot be read.
+     *
+     * @return array{radius:array{prior?:array,target:array}}|null|false
+     */
+    private static function capture(array $row): array|null|false
+    {
+        try {
+            $policy = self::policy($row);
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
+        $plan = self::plan($row);
+        $bw = Tx::row(FinanceTx::pdo(), 'SELECT * FROM tbl_bandwidth WHERE id = ?', [(int) $plan['id_bw']]);
+        $salt = (string) $row['reference'];
+        $radius = ['target' => RadiusState::target($policy, $bw, $salt)];
+        if (ActivationStore::radius(FinanceTx::pdo(), (int) $row['id'])['prior'] === null) {
+            try {
+                $radius = ['prior' => RadiusState::read($policy->username, (int) $plan['id'], $salt)] + $radius;
+            } catch (\Throwable $e) {
+                \Reseller\Security\ErrorReporter::report($e, 'activation-capture');
+                return false;
+            }
+        }
+        return ['radius' => $radius];
     }
 
     private static function verifyStep(array $row, ?RadiusPolicy $policy, ActivationActor $actor): void
@@ -232,7 +381,10 @@ final class ActivationService
         self::tx(static fn(\PDO $pdo) => ActivationStore::transition($pdo, $id, [ActivationState::PROVISIONED], ActivationState::VERIFYING, $actor));
         $ok = false;
         try {
-            $ok = $policy !== null && self::applied(RadiusRepository::connection()->readUser($policy->username), $policy);
+            // the whole captured target (subscriber and plan group rows), not only the activation-specific facts
+            $target = ActivationStore::radius(FinanceTx::pdo(), $id)['target'];
+            $ok = $policy !== null && $target !== null
+                && RadiusState::same(RadiusState::read($policy->username, (int) self::plan($row)['id'], (string) $row['reference']), $target);
         } catch (\Throwable $e) {
             \Reseller\Security\ErrorReporter::report($e, 'activation-verify');
         }
@@ -346,13 +498,6 @@ final class ActivationService
         $start = ServicePeriod::at(substr($meta['period']['start'], 0, 10), substr($meta['period']['start'], 11), $zone);
         $expiry = ServicePeriod::at(substr($meta['period']['expiry'], 0, 10), substr($meta['period']['expiry'], 11), $zone);
         return RadiusPolicyBuilder::build($customer, $plan, $bw, $expiry, $start);
-    }
-
-    /** RADIUS shows the activation's policy: its expiry and its plan group (the activation-specific facts). */
-    public static function applied(array $state, RadiusPolicy $policy): bool
-    {
-        $want = $policy->checkMap();
-        return ($state['check']['Expiration'] ?? null) === ($want['Expiration'] ?? null) && $state['groups'] === [$policy->group];
     }
 
     /** The sealed plan (plan_snapshot) of the activation. */

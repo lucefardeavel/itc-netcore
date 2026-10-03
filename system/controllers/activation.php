@@ -28,6 +28,10 @@ $nuxrFail = static function (\Reseller\Domain\DomainError $e, string $back): voi
 
 switch ($action) {
     case 'create-post':
+        // eligibility before any business work (also enforced centrally and inside ActivationService)
+        if (!\Reseller\Activation\ActivationService::eligible($nuxrActor)) {
+            \Reseller\Security\RouteGuard::deny(403, 'activation actor not eligible');
+        }
         $customerId = _post('customer_id');
         try {
             $out = \Reseller\Activation\ActivationService::create($nuxrActor, $customerId, _post('plan_id'), _post('expected_action'), _post('nonce'));
@@ -39,17 +43,25 @@ switch ($action) {
         break;
 
     case 'create':
+        if (!\Reseller\Activation\ActivationService::eligible($nuxrActor)) {
+            \Reseller\Security\RouteGuard::deny(403, 'activation actor not eligible');
+        }
         $customerId = _get('customer');
         $planId = _get('plan');
         $preview = null;
-        if (\Reseller\Security\DataScope::validId($customerId) && \Reseller\Security\DataScope::validId($planId)) {
-            try {
+        $plans = [];
+        try {
+            // only the plans this actor can sell in this context (Sales: for the selected customer's owner)
+            $plans = \Reseller\Activation\ActivationService::catalog($nuxrActor, \Reseller\Security\DataScope::validId($customerId) ? $customerId : null);
+            if (\Reseller\Security\DataScope::validId($customerId) && \Reseller\Security\DataScope::validId($planId)) {
                 $preview = \Reseller\Activation\ActivationService::preview($nuxrActor, $customerId, $planId);
-            } catch (\Reseller\Domain\DomainError $e) {
-                $ui->assign('nuxr_error', Lang::T($e->getMessage()));
             }
+        } catch (\Reseller\Domain\DomainError $e) {
+            if ($e->reason === 'FORBIDDEN') {
+                \Reseller\Security\RouteGuard::deny(403, 'activation actor not eligible');
+            }
+            $ui->assign('nuxr_error', Lang::T($e->getMessage()));
         }
-        $plans = ORM::for_table('tbl_plans')->where('device', 'Radius')->where('enabled', 1)->where_in('type', ['Hotspot', 'PPPOE'])->order_by_asc('name_plan')->find_array();
         $ui->assign('nuxr_plans', $plans);
         $ui->assign('nuxr_customer_id', \Reseller\Security\DataScope::validId($customerId) ? (int) $customerId : '');
         $ui->assign('nuxr_plan_id', \Reseller\Security\DataScope::validId($planId) ? (int) $planId : '');
@@ -82,6 +94,10 @@ switch ($action) {
                 : \Reseller\Activation\ReconciliationService::rollback($actor, $reference);
         } catch (\Reseller\Domain\DomainError $e) {
             $nuxrFail($e, 'activation/view/' . (preg_match('/^ACT-[0-9A-F]{16}$/D', $reference) ? $reference : ''));
+        }
+        if ($row['error_code'] === \Reseller\Activation\ReconciliationService::AMBIGUOUS) {
+            // never presented as "not applied": nothing was released, the operator decides
+            r2(getUrl('activation/view/' . $row['reference']), 'w', Lang::T(\Reseller\Activation\ReconciliationService::AMBIGUOUS_MESSAGE));
         }
         r2(getUrl('activation/view/' . $row['reference']), 's', Lang::T('Activation') . ' ' . $row['reference'] . ': ' . $row['status']);
         break;
