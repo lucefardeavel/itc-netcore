@@ -146,6 +146,12 @@ abstract class ActivationTestCase extends PricingTestCase
         return $id;
     }
 
+    /** WP5B: the test changed tbl_customers on purpose (a re-provision); re-take the baseline. */
+    protected function customersChanged(): void
+    {
+        $this->customersBaseline = $this->customersChecksum();
+    }
+
     /** A legacy recharge row (test fixture for RENEW / REACTIVATE / CHANGE_PLAN). */
     protected function recharge(int $customer, int $plan, string $expiration, string $time, string $status = 'on', string $type = 'Hotspot'): int
     {

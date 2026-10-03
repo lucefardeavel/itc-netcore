@@ -20,10 +20,14 @@ class RadiusRest {
     // Add Customer to Mikrotik/Device
     function add_customer($customer, $plan)
     {
+        // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
+        \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed($customer);
     }
 	
 	function sync_customer($customer, $plan)
     {	
+        // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
+        \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed($customer);
         $this->add_customer($customer, $plan);
     }
 
@@ -40,6 +44,8 @@ class RadiusRest {
     // customer change username
     public function change_username($plan, $from, $to)
     {
+        // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
+        \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed(null, $from, $to);
     }
 
     // Add Plan to Mikrotik/Device

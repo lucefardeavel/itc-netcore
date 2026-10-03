@@ -48,6 +48,8 @@ class Radius
     /** Activation / renewal / re-provisioning: the policy of the active recharge of this plan. */
     function add_customer($customer, $plan)
     {
+        // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
+        \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed($customer);
         $p = ORM::for_table('tbl_plans')->where('id', $plan['id'])->findOne();
         if (!$p) {
             throw new ProvisionFailure(ProvisionResult::failed('PLAN_NOT_FOUND', 'The plan does not exist.', false));
@@ -61,6 +63,8 @@ class Radius
 
     function sync_customer($customer, $plan)
     {
+        // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
+        \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed($customer);
         $this->add_customer($customer, $plan);
     }
 
@@ -80,6 +84,8 @@ class Radius
 
     public function change_username($plan, $from, $to)
     {
+        // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
+        \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed(null, $from, $to);
         self::check((new RadiusProvisioner(self::repository()))->rename((string) $from, (string) $to));
     }
 

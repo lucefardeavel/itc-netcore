@@ -29,6 +29,8 @@ class MikrotikPppoe
 
     function add_customer($customer, $plan)
     {
+        // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
+        \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed($customer);
         global $isChangePlan;
         $mikrotik = $this->info($plan['routers']);
         $client = $this->getClient($mikrotik['ip_address'], $mikrotik['username'], $mikrotik['password']);
@@ -80,6 +82,8 @@ class MikrotikPppoe
 
 	function sync_customer($customer, $plan)
     {
+        // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
+        \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed($customer);
         $this->add_customer($customer, $plan);
     }
 
@@ -111,6 +115,8 @@ class MikrotikPppoe
     // customer change username
     public function change_username($plan, $from, $to)
     {
+        // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
+        \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed(null, $from, $to);
         $mikrotik = $this->info($plan['routers']);
         $client = $this->getClient($mikrotik['ip_address'], $mikrotik['username'], $mikrotik['password']);
         //check if customer exists

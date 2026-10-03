@@ -98,6 +98,10 @@ final class DomainError extends \RuntimeException
         'REVERSAL_CONTEXT_NOT_CAPTURED' => 'This activation was completed without the context needed to reverse it exactly; nothing was changed. Operator review is required.',
         'REVERSAL_EXTERNAL_STATE_CHANGED' => 'The customer\'s service changed after this activation (a later activation, a RADIUS edit or a billing change); nothing was reversed.',
         'REVERSAL_RADIUS_NOT_RESTORED' => 'RADIUS still shows the activation\'s service: the restore did not apply. Nothing else changed; the reversal can be repeated.',
+        'REPROVISION_FAILED' => 'The device rejected the change; nothing was changed.',
+        'REPROVISION_UNCONFIRMED' => 'The change was saved but the device result could not be confirmed. It was not retried; an administrator must synchronize this customer.',
+        'CUSTOMER_RESELLER_OWNED' => 'This operation is not available for reseller-managed customers.',
+        'INSUFFICIENT_BALANCE' => 'Insufficient balance.',
         'REVERSAL_FINANCIAL_REFUSED' => 'The settlement of this activation cannot be reversed now; nothing was changed.',
     ];
 

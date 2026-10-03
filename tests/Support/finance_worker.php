@@ -25,6 +25,11 @@ spl_autoload_register(static function (string $class) use ($root): void {
     }
 });
 require_once $root . '/system/orm.php';
+// WP5B: the legacy classes and device path the bounded re-provision uses
+$GLOBALS['DEVICE_PATH'] = $root . '/system/devices';
+$GLOBALS['_app_stage'] = 'Live';
+require_once $root . '/system/autoload/Package.php';
+require_once $root . '/system/autoload/Text.php';
 
 $op = json_decode((string) ($argv[2] ?? ''), true);
 $pdo = new PDO('mysql:host=' . getenv('WP1_DB_HOST') . ';charset=utf8mb4;dbname=' . ($argv[1] ?? ''), 'root', (string) getenv('WP1_DB_ROOT_PASSWORD'), [
@@ -82,6 +87,9 @@ try {
         'set_base' => PricingService::setBaseCost($staff($op['actor']), $op['plan'], $op['cost']),
         // WP5A activation and the plan-delete race partner
         'activate' => \Reseller\Activation\ActivationService::create($staff($op['actor']), $op['customer'], $op['plan'], $op['action'], $op['nonce']),
+        // WP5B reversal and bounded re-provision race partners
+        'reverse_activation' => \Reseller\Activation\ActivationReversalService::reverse($staff($op['actor']), $op['reference'], $op['reason']),
+        'reprovision' => \Reseller\Domain\LegacyReprovisionService::run($staff($op['actor']), (int) $op['customer'], $op['reprovision'], $op['requested'] ?? []),
         'plan_delete' => \Reseller\Domain\PlanGuard::deleteSerialized((int) $op['plan'], static function () use ($op): void {
             ORM::for_table('tbl_plans')->find_one((int) $op['plan'])->delete();
         }) ?? 'DELETED',
