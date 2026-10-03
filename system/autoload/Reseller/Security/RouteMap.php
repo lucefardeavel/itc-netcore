@@ -59,8 +59,10 @@ final class RouteMap
         'order' => [
             '' => 'package', '*' => 'package',
             'voucher' => 'customer', 'history' => 'customer', 'balance' => 'customer', 'package' => 'customer',
-            'unpaid' => 'customer', 'view' => 'customer', 'pay' => 'customer', 'send' => 'customer',
-            'gateway' => 'customer', 'buy' => 'customer',
+            'unpaid' => 'customer', 'view' => 'customer', 'send' => 'customer', 'gateway' => 'customer',
+            // WP5B §7 / §7a: purchases and payment-state changes are POST (+ CSRF) only
+            'pay' => ['POST' => 'customer'], 'buy' => ['POST' => 'customer'],
+            'view#check' => ['POST' => 'customer'], 'view#cancel' => ['POST' => 'customer'],
         ],
         'page' => ['' => 'view', '*' => 'view', 'view' => 'customer'],
         'voucher' => ['' => '404', '*' => '404', '404' => 'customer', 'activation' => 'customer', 'activation-post' => ['POST' => 'customer'], 'list-activated' => 'customer', 'invoice' => 'customer'],
@@ -156,6 +158,8 @@ final class RouteMap
             'view' => ['GET' => C::ACTIVATION_READ],
             'reconcile' => ['POST' => C::ACTIVATION_CREATE],
             'rollback' => ['POST' => C::ACTIVATION_CREATE],
+            // WP5B (OD-11): reversal of a COMPLETED activation; Admin / SuperAdmin only (activation.reverse G)
+            'reverse' => ['POST' => C::ACTIVATION_REVERSE],
         ],
         'reseller' => [
             '' => 'tree', '*' => 'tree',
@@ -246,6 +250,7 @@ final class RouteMap
         'customers/edit' => [['seg', 3, 'deletePhoto', 'edit#deletePhoto']],
         'settings/users-edit' => [['seg', 3, 'deletePhoto', 'users-edit#deletePhoto']],
         'plan/view' => [['seg', 3, 'send', 'view#send']],
+        'order/view' => [['seg', 3, 'check', 'view#check'], ['seg', 3, 'cancel', 'view#cancel']],
         'dashboard/view' => [['query', 'refresh', null, 'view#refresh']],
         'settings/app' => [
             ['query', 'testWa', null, 'app#test'], ['query', 'testSms', null, 'app#test'],

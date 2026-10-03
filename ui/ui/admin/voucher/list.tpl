@@ -118,7 +118,8 @@
                                 onmouseenter="this.style.backgroundColor = 'white';">
                                 {$ds['code']}</td>
                             <td>{if $ds['status'] eq '0'} <label class="btn-tag btn-tag-success"> Not Use
-                                </label> {else} <label class="btn-tag btn-tag-danger">Used</label>
+                                </label> {elseif $ds['status'] eq 'CLAIMED'} <label class="btn-tag btn-tag-warning">{Lang::T('Claimed - under review')}</label>
+                                {else} <label class="btn-tag btn-tag-danger">Used</label>
                                 {/if}</td>
                             <td>{if $ds['user'] eq '0'} -
                                 {else}<a href="{Text::url('')}customers/viewu/{$ds['user']}">{$ds['user']}</a>

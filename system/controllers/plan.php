@@ -50,8 +50,21 @@ switch ($action) {
         $turs = ORM::for_table('tbl_user_recharges')->where('status', 'on')->find_many();
         $log = '';
         $router = '';
+        $resellerSynced = [];
         foreach ($turs as $tur) {
-            // WP2 / OD-11 (E19a): reseller-owned customers are skipped (pending WP5B)
+            // WP5B (OD-10, E19a): reseller-owned customers are re-provisioned once each by LegacyReprovisionService
+            if (\Reseller\Domain\LegacyReprovisionService::owned($tur['customer_id'])) {
+                if (!isset($resellerSynced[(int) $tur['customer_id']])) {
+                    $resellerSynced[(int) $tur['customer_id']] = true;
+                    try {
+                        \Reseller\Domain\LegacyReprovisionService::run(\Reseller\Security\ActorContext::current(), (int) $tur['customer_id'], \Reseller\Domain\LegacyReprovisionService::ADMIN_BULK_SYNC_ROW);
+                        $log .= "DONE (reseller-managed) : " . htmlspecialchars((string) $tur['username']) . "<br>";
+                    } catch (\Reseller\Domain\DomainError $e) {
+                        $log .= "NOT SYNCED (reseller-managed) : " . htmlspecialchars((string) $tur['username']) . ' ' . htmlspecialchars($e->reason) . "<br>";
+                    }
+                }
+                continue;
+            }
             if (\Reseller\Domain\ServiceGate::isBlockedCustomerId($tur['customer_id'])) {
                 \Reseller\Domain\ServiceGate::refused('planSyncAll', $tur['customer_id']);
                 $log .= "SKIPPED (reseller-managed) : " . htmlspecialchars((string) $tur['username']) . "<br>";
@@ -109,6 +122,20 @@ switch ($action) {
         $server = _post('server');
         $planId = _post('plan');
         $using = _post('using');
+        // WP5B (OD-6, E1): a reseller-owned customer is charged through the reseller activation (wallet, pricing,
+        // RADIUS): the legacy action writes nothing and the web flow continues at activation/create; recharge
+        // "zero" / "balance" and the API are refused
+        if (\Reseller\Domain\LegacyReprovisionService::owned($id_customer)) {
+            if (\Reseller\Security\ActorContext::current()->channel === 'API' || in_array($using, ['zero', 'balance'], true)) {
+                \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'planRechargeConfirm', 'plan/recharge');
+            }
+            r2(getUrl('activation/create&customer=' . (int) $id_customer . '&plan=' . (int) $planId), 'w', Lang::T('Reseller-managed customers are activated through the reseller activation.'));
+        }
+        // WP5B: "zero" is a free grant: only with service.recharge_free (checked again at recharge-post)
+        if ($using == 'zero' && !\Reseller\Security\PermissionService::can(\Reseller\Security\ActorContext::current(), \Reseller\Security\Capability::SERVICE_RECHARGE_FREE)) {
+            r2(getUrl('plan/recharge'), 'e', Lang::T('You do not have permission to access this page'));
+        }
+        $ui->assign('nuxr_nonce', bin2hex(random_bytes(16)));
 
         $msg = '';
         if ($id_customer == '' or $server == '' or $planId == '' or $using == '') {
@@ -194,8 +221,19 @@ switch ($action) {
         $planId = _post('plan');
         $using = _post('using');
         $svoucher = _post('svoucher');
-        // WP2 / OD-11 (E1): no legacy recharge (any method, incl. using=zero) for reseller-owned customers
+        // WP5B (OD-6, E1): a reseller-owned customer is charged through the reseller activation (wallet, pricing,
+        // RADIUS): the legacy action writes nothing and the web flow continues at activation/create; recharge
+        // "zero" / "balance" and the API are refused
+        if (\Reseller\Domain\LegacyReprovisionService::owned($id_customer)) {
+            if (\Reseller\Security\ActorContext::current()->channel === 'API' || in_array($using, ['zero', 'balance'], true)) {
+                \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'planRechargePost', 'plan/recharge');
+            }
+            r2(getUrl('activation/create&customer=' . (int) $id_customer . '&plan=' . (int) $planId), 'w', Lang::T('Reseller-managed customers are activated through the reseller activation.'));
+        }
         \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'planRechargePost', 'plan/recharge');
+        if ($using == 'zero' && !\Reseller\Security\PermissionService::can(\Reseller\Security\ActorContext::current(), \Reseller\Security\Capability::SERVICE_RECHARGE_FREE)) {
+            r2(getUrl('plan/recharge'), 'e', Lang::T('You do not have permission to access this page'));
+        }
 
         $plan = ORM::for_table('tbl_plans')->find_one($planId);
 
@@ -237,16 +275,16 @@ switch ($action) {
             // Tax calculation stop
             $total_cost = $plan['price'] + $add_cost + $tax;
 
-            if ($using == 'balance' && $config['enable_balance'] == 'yes') {
+            if ($using == 'balance') {
                 //$plan = ORM::for_table('tbl_plans')->find_one($planId);
+                if ($config['enable_balance'] != 'yes') {
+                    r2(getUrl('plan/recharge'), 'e', Lang::T("Balance not enabled"));
+                }
                 if (!$cust) {
                     r2(getUrl('plan/recharge'), 'e', Lang::T('Customer not found'));
                 }
                 if (!$plan) {
                     r2(getUrl('plan/recharge'), 'e', Lang::T('Plan not found'));
-                }
-                if ($cust['balance'] < $total_cost) {
-                    r2(getUrl('plan/recharge'), 'e', Lang::T('insufficient balance'));
                 }
                 $gateway = 'Recharge Balance';
             }
@@ -255,10 +293,27 @@ switch ($action) {
                 $zero = 1;
                 $gateway = 'Recharge Zero';
             }
-            if (Package::rechargeUser($id_customer, $server, $planId, $gateway, $channel)) {
-                if ($using == 'balance') {
-                    Balance::min($cust['id'], $total_cost);
+            $nuxrGranted = false;
+            if ($using == 'balance') {
+                // WP5B §7a.2 (E1, unassigned): the confirmation total debited exactly once per request nonce under the
+                // customer row lock, HELD before the grant; replays never debit or grant again (no Balance::*)
+                try {
+                    $nuxrAdmin = \Reseller\Domain\LegacyCustomerBalanceService::purchase([
+                        'kind' => 'admin', 'key' => \Reseller\Domain\LegacyCustomerBalanceService::key('admin', (int) $admin['id'], (string) _post('nuxr_nonce')),
+                        'payer_id' => (int) $cust['id'], 'target_id' => (int) $cust['id'], 'plan_id' => (int) $planId, 'routers' => (string) $server,
+                        'amount' => $total_cost, 'grant' => [$gateway, $channel],
+                    ]);
+                } catch (\Reseller\Domain\DomainError $e) {
+                    r2(getUrl('plan/recharge'), 'e', $e->reason === 'INSUFFICIENT_BALANCE' ? Lang::T('insufficient balance') : Lang::T($e->getMessage()));
                 }
+                if ($nuxrAdmin['status'] === 'HELD') {
+                    r2(getUrl('plan/recharge'), 'w', Lang::T('The recharge is held for review; the amount was debited and is not lost') . ' (#' . $nuxrAdmin['journal_id'] . ')');
+                }
+                $nuxrGranted = $nuxrAdmin['status'] === 'COMPLETED';
+            } else {
+                $nuxrGranted = (bool) Package::rechargeUser($id_customer, $server, $planId, $gateway, $channel);
+            }
+            if ($nuxrGranted) {
                 $in = ORM::for_table('tbl_transactions')->where('username', $cust['username'])->order_by_desc('id')->find_one();
                 Package::createInvoice($in);
                 App::setVoucher($svoucher, $cust['username']);
@@ -471,6 +526,7 @@ switch ($action) {
                 }
             }
             _log('[' . $admin['username'] . ']: ' . 'Edit Plan for Customer ' . $d['username'] . ' to [' . $d['namebp'] . '][' . Lang::moneyFormat($p['price']) . ']', $admin['user_type'], $admin['id']);
+            \Reseller\Domain\ServiceAudit::record('service.plan_edit', $d['customer_id'], ['recharge_id' => (int) $d['id'], 'plan_id' => (int) $d['plan_id'], 'expiration' => (string) $d['expiration']]); // WP5B OD-7
             r2(getUrl('plan/list'), 's', Lang::T('Data Updated Successfully'));
         } else {
             r2(getUrl('plan/edit/') . $id, 'e', $msg);
@@ -1036,6 +1092,7 @@ switch ($action) {
             $plan['price'] = $amount;
             $trxId = Package::rechargeBalance($c, $plan, "Deposit", $admin['fullname'], $note);
             if ($trxId > 0) {
+                \Reseller\Domain\ServiceAudit::record('service.deposit', $c['id'], ['transaction_id' => (int) $trxId, 'amount' => (string) $amount]); // WP5B OD-7
                 $in = ORM::for_table('tbl_transactions')->find_one($trxId);
                 Package::createInvoice($in);
                 if (!empty($svoucher)) {
@@ -1049,6 +1106,7 @@ switch ($action) {
             $p = ORM::for_table('tbl_plans')->find_one($plan);
             $trxId = Package::rechargeBalance($c, $p, "Deposit", $admin['fullname'], $note);
             if ($trxId > 0) {
+                \Reseller\Domain\ServiceAudit::record('service.deposit', $c['id'], ['transaction_id' => (int) $trxId, 'plan_id' => (int) $p['id']]); // WP5B OD-7
                 $in = ORM::for_table('tbl_transactions')->find_one($trxId);
                 Package::createInvoice($in);
                 if (!empty($svoucher)) {
@@ -1120,6 +1178,7 @@ switch ($action) {
                 "\nCustomer: " . $c['fullname'] .
                 "\nNew Expired: " . Lang::dateAndTimeFormat($expiration, $tur['time']));
             _log("$admin[fullname] extend Customer $tur[customer_id] $tur[username] #$tur[customer_id] for $days days", $admin['user_type'], $admin['id']);
+            \Reseller\Domain\ServiceAudit::record('service.extend', $tur['customer_id'], ['recharge_id' => (int) $tur['id'], 'days' => $days, 'expiration' => $expiration]); // WP5B OD-7
             r2(getUrl('plan'), 's', "Extend until $expiration");
         } else {
             r2(getUrl('plan'), 's', "Customer is not expired yet");

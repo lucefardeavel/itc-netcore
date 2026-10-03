@@ -6,6 +6,7 @@
         </div>
         <div class="box-body p-0">
             <form method="post" onsubmit="return askConfirm()" role="form" action="{Text::url('home')}">
+                <input type="hidden" name="nuxr_nonce" value="{bin2hex(random_bytes(16))}">
                 <div class="form-group">
                     <div class="col-sm-5">
                         <input type="text" id="username" name="username" class="form-control" required

@@ -86,7 +86,7 @@ final class LegacyCustomerBalanceService
     // ------------------------------------------------------------------ purchase
 
     /**
-     * @param array{kind:string,key:string,payer_id:int,target_id:int,plan_id:int,routers:string,routers_id?:int,amount:mixed,grant_channel:string,actor?:string} $op
+     * @param array{kind:string,key:string,payer_id:int,target_id:int,plan_id:int,routers:string,routers_id?:int,amount:mixed,grant_channel?:string,grant?:array{0:string,1:string}} $op
      * @return array{status:string,journal_id:int,invoice:?string,replayed:bool}
      */
     public static function purchase(array $op): array
@@ -142,7 +142,9 @@ final class LegacyCustomerBalanceService
         $id = $held['id'];
         // dispatch: outside any transaction, no lock held
         try {
-            $result = \Package::rechargeUser($target, (string) $op['routers'], (int) $op['plan_id'], (string) $op['grant_channel'], self::GATEWAY);
+            // the legacy grant call of the path, unchanged: [gateway, channel] (default: the path's label, 'Balance')
+            [$gw, $ch] = $op['grant'] ?? [(string) $op['grant_channel'], self::GATEWAY];
+            $result = \Package::rechargeUser($target, (string) $op['routers'], (int) $op['plan_id'], (string) $gw, (string) $ch);
         } catch (\Throwable $e) {
             ErrorReporter::report($e, 'balance-grant');
             return ['status' => 'HELD', 'journal_id' => $id, 'invoice' => null, 'replayed' => false];

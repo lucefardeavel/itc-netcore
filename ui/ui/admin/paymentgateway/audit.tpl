@@ -56,7 +56,7 @@
                             <td>{if $pg['paid_date'] != null}{Lang::dateTimeFormat($pg['paid_date'])}{/if}</td>
                             <td>{if $pg['trx_invoice']}<a href="{Text::url('reports/activation&q=')}{$pg['trx_invoice']}"
                                     class="text-black">{$pg['trx_invoice']}</a>{/if}</td>
-                            <td>{if $pg['status'] == 1}UNPAID{elseif $pg['status'] == 2}PAID{elseif $pg['status'] == 3}FAILED{else}CANCELED{/if}
+                            <td>{if $pg['status'] == 1}UNPAID{elseif $pg['status'] == 2}PAID{elseif $pg['status'] == 3}FAILED{elseif $pg['status'] == 5}HELD{else}CANCELED{/if}
                             </td>
                         </tr>
                     {/foreach}

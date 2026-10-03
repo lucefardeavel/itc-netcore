@@ -144,6 +144,7 @@
 
                 <!-- Payment Gateway Form -->
                 <form method="post" action="{Text::url('order/buy/')}{$route2}/{$route3}">
+                    <input type="hidden" name="nuxr_nonce" value="{bin2hex(random_bytes(16))}">
                     <input type="hidden" name="coupon" value="{$discount}">
                     {if $custom == '1' && $amount neq ''}
                         <input type="hidden" name="custom" value="1">

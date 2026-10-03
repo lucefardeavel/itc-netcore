@@ -29,11 +29,13 @@
         <div class="box-footer p-2">
             <div class="btn-group btn-group-justified mb15">
                 <div class="btn-group">
-                    <a href="{Text::url('order/view/', $unpaid['id'], '/cancel')}" class="btn btn-danger btn-sm"
-                        onclick="return ask(this, '{Lang::T('Cancel it?')}')">
-                        <span class="glyphicon glyphicon-trash"></span>
-                        {Lang::T('Cancel')}
-                    </a>
+                    <form method="post" action="{Text::url('order/view/', $unpaid['id'], '/cancel')}" style="display:inline">
+                        <input type="hidden" name="csrf_token" value="{$csrf_token|escape:'html'}">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return ask(this, '{Lang::T('Cancel it?')}')">
+                            <span class="glyphicon glyphicon-trash"></span>
+                            {Lang::T('Cancel')}
+                        </button>
+                    </form>
                 </div>
                 <div class="btn-group">
                     <a class="btn btn-success btn-block btn-sm" href="{Text::url('order/view/',$unpaid['id'])}">

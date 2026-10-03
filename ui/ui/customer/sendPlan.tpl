@@ -46,6 +46,7 @@
             </div>
             <div class="box-footer">
                 <form method="post" onsubmit="return askConfirm()" role="form">
+                    <input type="hidden" name="nuxr_nonce" value="{bin2hex(random_bytes(16))}">
                     <div class="form-group">
                         <div class="col-sm-9">
                             <input type="text" id="username" name="username" class="form-control" required

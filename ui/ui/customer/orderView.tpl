@@ -56,7 +56,7 @@
                         <tbody>
                             <tr>
                                 <td>{Lang::T('Status')}</td>
-                                <td>{if $trx['status']==1}{Lang::T('UNPAID')}{elseif $trx['status']==2}{Lang::T('PAID')}{elseif $trx['status']==3}{Lang::T('FAILED')}{elseif $trx['status']==4}{Lang::T('CANCELED')}{else}{Lang::T('UNKNOWN')}{/if}
+                                <td>{if $trx['status']==1}{Lang::T('UNPAID')}{elseif $trx['status']==2}{Lang::T('PAID')}{elseif $trx['status']==3}{Lang::T('FAILED')}{elseif $trx['status']==4}{Lang::T('CANCELED')}{elseif $trx['status']==5}{Lang::T('HELD - under review')}{else}{Lang::T('UNKNOWN')}{/if}
                                 </td>
                             </tr>
                             <tr>
@@ -140,13 +140,17 @@
                     <div class="btn-group btn-group-justified">
                         <a href="{$trx['pg_url_payment']}" {if $trx['gateway']=='midtrans'} target="_blank" {/if}
                             class="btn btn-primary">{Lang::T('Pay Now')}</a>
-                        <a href="{Text::url('order/view/', $trx['id'], '/check')}"
-                            class="btn btn-info">{Lang::T('Check for Payment')}</a>
+                        <form method="post" action="{Text::url('order/view/', $trx['id'], '/check')}" style="display:inline">
+                            <input type="hidden" name="csrf_token" value="{$csrf_token|escape:'html'}">
+                            <button type="submit" class="btn btn-info">{Lang::T('Check for Payment')}</button>
+                        </form>
                     </div>
                 </div>
                 <div class="panel-footer">
-                    <a href="{Text::url('order/view/', $trx['id'], '/cancel')}" class="btn btn-danger"
-                        onclick="return ask(this, '{Lang::T('Cancel it?')}')">{Lang::T('Cancel')}</a>
+                    <form method="post" action="{Text::url('order/view/', $trx['id'], '/cancel')}" style="display:inline">
+                        <input type="hidden" name="csrf_token" value="{$csrf_token|escape:'html'}">
+                        <button type="submit" class="btn btn-danger" onclick="return ask(this, '{Lang::T('Cancel it?')}')">{Lang::T('Cancel')}</button>
+                    </form>
                 </div>
             {/if}
         </div>

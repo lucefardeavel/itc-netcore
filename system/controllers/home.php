@@ -39,42 +39,18 @@ if (_post('send') == 'balance') {
         if ($user['username'] == $target['username']) {
             r2(getUrl('home'), 'd', Lang::T('Cannot send to yourself'));
         }
-        if (Balance::transfer($user['id'], $username, $balance)) {
-            //sender
-            $d = ORM::for_table('tbl_payment_gateway')->create();
-            $d->username = $user['username'];
-            $d->gateway = $target['username'];
-            $d->plan_id = 0;
-            $d->plan_name = 'Send Balance';
-            $d->routers_id = 0;
-            $d->routers = 'balance';
-            $d->price = $balance;
-            $d->payment_method = "Customer";
-            $d->payment_channel = "Balance";
-            $d->created_date = date('Y-m-d H:i:s');
-            $d->paid_date = date('Y-m-d H:i:s');
-            $d->expired_date = date('Y-m-d H:i:s');
-            $d->pg_url_payment = 'balance';
-            $d->status = 2;
-            $d->save();
-            //receiver
-            $d = ORM::for_table('tbl_payment_gateway')->create();
-            $d->username = $target['username'];
-            $d->gateway = $user['username'];
-            $d->plan_id = 0;
-            $d->plan_name = 'Receive Balance';
-            $d->routers_id = 0;
-            $d->routers = 'balance';
-            $d->payment_method = "Customer";
-            $d->payment_channel = "Balance";
-            $d->price = $balance;
-            $d->created_date = date('Y-m-d H:i:s');
-            $d->paid_date = date('Y-m-d H:i:s');
-            $d->expired_date = date('Y-m-d H:i:s');
-            $d->pg_url_payment = 'balance';
-            $d->status = 2;
-            $d->save();
-            //
+        // WP5B §7a.4 (E18; SEC-15): one atomic locked transfer (both rows locked, no reseller-owned party, strictly
+        // positive minor-unit amount, never a negative balance), replay-safe per request nonce; no Balance::*
+        try {
+            $nuxrTransfer = \Reseller\Domain\LegacyCustomerBalanceService::transfer((int) $user['id'], (string) $username, (string) $balance,
+                (string) _post('nuxr_nonce'), $config['minimum_transfer'] ?? 0);
+        } catch (\Reseller\Domain\DomainError $e) {
+            r2(getUrl('home'), 'd', $e->reason === 'INSUFFICIENT_BALANCE' ? Lang::T('insufficient balance') : Lang::T($e->getMessage()));
+        }
+        if ($nuxrTransfer['replayed']) {
+            r2(getUrl('home'), 's', Lang::T('Sending balance success'));
+        }
+        if (!$nuxrTransfer['replayed']) {
             Message::sendBalanceNotification($user, $target, $balance, ($user['balance'] - $balance), Lang::getNotifText('balance_send'), $config['user_notification_payment']);
             Message::sendBalanceNotification($target, $user, $balance, ($target['balance'] + $balance), Lang::getNotifText('balance_received'), $config['user_notification_payment']);
             Message::sendTelegram("#u$user[username] send balance to #u$target[username] \n" . Lang::moneyFormat($balance));
@@ -102,7 +78,10 @@ if (_post('send') == 'balance') {
 
 // Sync plan to router
 if (isset($_GET['sync']) && !empty($_GET['sync'])) {
-    // WP2 / OD-11 (E19c): no self re-provisioning for a reseller-owned customer
+    // WP5B (OD-10, E19c): a reseller-owned customer re-provisions itself only through LegacyReprovisionService
+    if (\Reseller\Domain\LegacyReprovisionService::owned($user['id'])) {
+        \Reseller\Domain\LegacyReprovisionService::web(\Reseller\Domain\LegacyReprovisionService::PORTAL_SYNC, $user['id'], [], 'home');
+    }
     \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'homeSync', 'home');
     $log = '';
     foreach ($_bill as $tur) {

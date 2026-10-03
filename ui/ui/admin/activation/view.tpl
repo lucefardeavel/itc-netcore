@@ -30,6 +30,14 @@
                         <button class="btn btn-danger btn-sm" type="submit" onclick="return ask(this, '{Lang::T('Restore the RADIUS state captured before this activation and, once verified, release the reserved funds?')}')">{Lang::T('Roll back')}</button>
                     </form>
                 {/if}
+                {if $nuxr_can_reverse && ($nuxr_activation['status'] eq 'COMPLETED' || $nuxr_activation['status'] eq 'REVERSAL_PENDING')}
+                    {* WP5B (OD-11): Admin / SuperAdmin reversal of a settled activation; a reason is required *}
+                    <form method="post" action="{Text::url('activation/reverse/', $nuxr_activation['reference'])}" class="form-inline" style="margin-top:8px">
+                        <input type="hidden" name="csrf_token" value="{$csrf_token}">
+                        <input type="text" name="reason" class="form-control input-sm" required minlength="3" maxlength="255" placeholder="{Lang::T('Reason')}">
+                        <button class="btn btn-danger btn-sm" type="submit" onclick="return ask(this, '{Lang::T('Reverse this completed activation: restore the previous RADIUS state, credit the reseller and claw back the commissions?')}')">{if $nuxr_activation['status'] eq 'REVERSAL_PENDING'}{Lang::T('Resume reversal')}{else}{Lang::T('Reverse')}{/if}</button>
+                    </form>
+                {/if}
                 <h4>{Lang::T('Timeline')}</h4>
                 <table class="table table-bordered table-condensed">
                     <thead><tr><th>#</th><th>{Lang::T('Event')}</th><th>{Lang::T('From')}</th><th>{Lang::T('To')}</th><th>{Lang::T('Result')}</th><th>{Lang::T('Error')}</th><th>{Lang::T('Time (UTC)')}</th></tr></thead>

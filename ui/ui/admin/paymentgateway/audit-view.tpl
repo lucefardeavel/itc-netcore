@@ -20,7 +20,7 @@
                     </li>
                     <li class="list-group-item">
                         <b>{Lang::T('Status')}</b> <span
-                            class="pull-right">&nbsp;{if $pg['status'] == 1}UNPAID{elseif $pg['status'] == 2}PAID{elseif $pg['status'] == 3}FAILED{else}CANCELED{/if}&nbsp;</span>
+                            class="pull-right">&nbsp;{if $pg['status'] == 1}UNPAID{elseif $pg['status'] == 2}PAID{elseif $pg['status'] == 3}FAILED{elseif $pg['status'] == 5}HELD{else}CANCELED{/if}&nbsp;</span>
                     </li>
                     <li class="list-group-item">
                         <b>{Lang::T('Username')}</b>

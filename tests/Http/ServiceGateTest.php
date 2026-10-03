@@ -75,18 +75,32 @@ final class ServiceGateTest extends Wp2HttpTestCase
             $auditBefore = count($this->auditRows('service.refused'));
             $before = $this->snapshot();
             foreach ($this->serviceRequests('cA1') as $name => [$route, $post]) {
+                if ($name === 'customers sync') {
+                    continue; // WP5B (OD-10, E19b): a bounded re-provision through LegacyReprovisionService, below
+                }
                 $r = $c->postWithToken($route, $post);
                 $this->assertSame(302, $r->status, "{$staff} {$name}: " . $r->excerpt());
                 $this->assertFalse($r->leaksInternals());
+                if ($name === 'recharge-post cash') {
+                    // WP5B (OD-6, E1): the legacy action writes nothing and continues at the reseller activation
+                    $this->assertStringContainsString('activation/create', (string) $r->location(), "{$staff} {$name}");
+                }
             }
             $r = $c->get('customers/recharge/' . $this->cid('cA1') . '/' . static::$seed->planId, ['token' => $c->token()]);
-            $this->assertSame(302, $r->status, "{$staff} recharge confirmation form refused before display");
+            $this->assertSame(302, $r->status, "{$staff} recharge confirmation form not displayed (activation instead)");
+            $this->assertStringContainsString('activation/create', (string) $r->location());
             $this->assertUnchanged($before, "{$staff} service attempts on cA1");
             $this->assertSame([], static::$app->probe('device'), "{$staff}: no device call");
             $this->assertGreaterThan($auditBefore, count($this->auditRows('service.refused')), 'refusals are audited');
             // the refusal message is shown on the next page
+            $c->postWithToken('plan/deposit-post', ['id_customer' => $this->cid('cA1'), 'amount' => '777']);
             $page = $c->get('plan/recharge');
             $this->assertStringContainsString('pending WP5B', $page->body);
+            // E19b is a bounded re-provision now: the device sync runs through the service, billing unchanged
+            $r = $c->postWithToken('customers/sync/' . $this->cid('cA1'));
+            $this->assertSame(302, $r->status);
+            $this->assertSame(['add_customer'], array_values(array_unique(array_column(static::$app->probe('device'), 'call'))), "{$staff}: re-provisioned");
+            $this->assertUnchanged($before, "{$staff} re-provision changes no billing data");
         }
         $rows = $this->auditRows('service.refused');
         $last = end($rows);
@@ -139,8 +153,9 @@ final class ServiceGateTest extends Wp2HttpTestCase
         static::$app->clearProbes();
         [$exit, $out] = static::$app->run(['cron.php'], 'system');
         $this->assertSame(0, $exit, $out);
-        $this->assertStringContainsString('reseller-managed customer (pending WP5B)', $out);
-        $this->assertStringContainsString('auto renewal Success', $out, 'the loop continued and renewed the unassigned customer');
+        // WP5B (OD-3): no reseller auto-renew; one AUTO_RENEW_UNAVAILABLE record per obligation
+        $this->assertStringContainsString('reseller-managed customer: AUTO_RENEW_UNAVAILABLE', $out);
+        $this->assertStringContainsString('auto renewal COMPLETED', $out, 'the loop continued and renewed the unassigned customer');
         $this->assertSame($balA, (string) $db->value('SELECT balance FROM tbl_customers WHERE id = ?', [$this->cid('cA1')]), 'no debit');
         $this->assertSame($trxA, (int) $db->value('SELECT COUNT(*) FROM tbl_transactions WHERE user_id = ?', [$this->cid('cA1')]));
         $this->assertNotSame($balN, (string) $db->value('SELECT balance FROM tbl_customers WHERE id = ?', [$this->cid('cNULL')]), 'unassigned customer debited');
@@ -148,7 +163,7 @@ final class ServiceGateTest extends Wp2HttpTestCase
         foreach (static::$app->probe('telegram') as $msg) {
             $this->assertStringNotContainsString('FAILED RENEWAL #cron\n\n#u.cA1', (string) $msg, 'no false failed-renewal alert');
         }
-        $this->assertStringContainsString('cronAutoRenewal', static::$app->serverLog());
+        $this->assertCount(1, $db->rows("SELECT id FROM tbl_reseller_audit_events WHERE event_type = 'service.auto_renew_unavailable' AND target_customer_id = ?", [$this->cid('cA1')]));
     }
 
     /** OD-11 required test 4: customer portal of a reseller-owned customer. */
@@ -169,10 +184,9 @@ final class ServiceGateTest extends Wp2HttpTestCase
             ['order/gateway/' . static::$seed->routerId . '/' . static::$seed->planId, [], []],
             ['order/buy/' . static::$seed->routerId . '/' . static::$seed->planId, ['gateway' => 'balance'], []],
             ['home', [], ['extend' => (string) static::$seed->recharges['cA1'], 'stoken' => 'x']],
-            ['home', [], ['sync' => '1']],
             ['home', ['send' => 'balance', 'username' => 'cNULL', 'balance' => '10'], []],
-            ['accounts/change-password-post', ['password' => Wp2Seed::customerPassword('cA1'), 'npass' => 'newpass1', 'cnpass' => 'newpass1'], []],
         ];
+        // WP5B (OD-10, E19c / E20): the portal sync and password change are bounded re-provisions now (below)
         foreach ($attempts as [$route, $post, $query]) {
             $r = $c->postWithToken($route, $post, $query, 'home');
             $this->assertContains($r->status, [200, 302], $route . ' ' . $r->excerpt());
@@ -182,6 +196,16 @@ final class ServiceGateTest extends Wp2HttpTestCase
         $this->assertSame([], static::$app->probe('device'));
         $this->assertSame($pw, (string) $db->value('SELECT password FROM tbl_customers WHERE id = ?', [$this->cid('cA1')]));
         $this->assertSame('0', (string) $db->value('SELECT status FROM tbl_voucher WHERE code = ?', [$code]), 'voucher not consumed');
+        // E19c / E20 through LegacyReprovisionService: the device is updated, billing never (an active period is needed)
+        $db->exec("UPDATE tbl_user_recharges SET status = 'on', expiration = '" . gmdate('Y-m-d', time() + 86400 * 10) . "' WHERE id = " . (int) static::$seed->recharges['cA1']);
+        $billing = $db->rows('SELECT * FROM tbl_user_recharges WHERE customer_id = ? ORDER BY id', [$this->cid('cA1')]);
+        $c->postWithToken('home', [], ['sync' => '1'], 'home');
+        $this->assertSame(['add_customer'], array_values(array_unique(array_column(static::$app->probe('device'), 'call'))), 'portal sync re-provisioned');
+        $c->postWithToken('accounts/change-password-post', ['password' => Wp2Seed::customerPassword('cA1'), 'npass' => 'newpass1', 'cnpass' => 'newpass1'], [], 'home');
+        $this->assertSame('newpass1', (string) $db->value('SELECT password FROM tbl_customers WHERE id = ?', [$this->cid('cA1')]), 'E20 through the service');
+        $this->assertSame($billing, $db->rows('SELECT * FROM tbl_user_recharges WHERE customer_id = ? ORDER BY id', [$this->cid('cA1')]));
+        $this->assertNotEmpty($this->auditRows('reprovision.password_change'));
+        $db->pdo->prepare('UPDATE tbl_customers SET password = ? WHERE id = ?')->execute([$pw, $this->cid('cA1')]);
     }
 
     /** OD-11 required test 5: public voucher + username activation for a reseller-owned username. */
@@ -203,7 +227,7 @@ final class ServiceGateTest extends Wp2HttpTestCase
         $this->assertUnchanged($before, 'voucher-only collision');
     }
 
-    /** E21: identity / password / re-activation edits of a reseller-owned customer are refused; profile edits remain. */
+    /** E21: identity edits of a reseller-owned customer go through LegacyReprovisionService (WP5B, OD-10); re-activation is refused; profile edits remain. */
     public function testCustomerEditRefusesReprovisioningChangesForResellerOwned(): void
     {
         $db = static::$db;
@@ -215,14 +239,17 @@ final class ServiceGateTest extends Wp2HttpTestCase
         $sa = $this->staff('sa');
         static::$app->clearProbes();
         $before = $this->snapshot();
-        foreach (['username' => ['username' => 'cA1renamed'], 'password' => ['password' => 'new-secret-77'],
-            'pppoe identity' => ['pppoe_username' => 'pp_cA1', 'pppoe_ip' => '10.9.9.9']] as $name => $change) {
-            $r = $sa->postWithToken('customers/edit-post', $change + $form);
-            $this->assertSame(302, $r->status, $name . ' ' . $r->excerpt());
-            $this->assertStringContainsString('customers/edit', (string) $r->location());
-        }
-        $this->assertUnchanged($before, 'identity edits of a reseller-owned customer');
-        $this->assertSame([], static::$app->probe('device'));
+        // WP5B (OD-10, E21): identity edits go through LegacyReprovisionService (device-verified, never a grant)
+        $db->exec("UPDATE tbl_user_recharges SET status = 'on', expiration = '" . gmdate('Y-m-d', time() + 86400 * 10) . "' WHERE id = " . (int) static::$seed->recharges['cA1']);
+        $before = $this->snapshot();
+        $r = $sa->postWithToken('customers/edit-post', ['password' => 'new-secret-77'] + $form);
+        $this->assertSame(302, $r->status, $r->excerpt());
+        $this->assertSame('new-secret-77', (string) $db->value('SELECT password FROM tbl_customers WHERE id = ?', [$cid]));
+        $this->assertSame(['add_customer'], array_values(array_unique(array_column(static::$app->probe('device'), 'call'))));
+        $this->assertNotEmpty($this->auditRows('reprovision.identity_edit'));
+        $db->pdo->prepare('UPDATE tbl_customers SET password = ? WHERE id = ?')->execute([$row['password'], $cid]);
+        static::$app->clearProbes();
+        $before = $this->snapshot();
         // re-activation (Inactive -> Active) is a service grant as well
         $db->exec("UPDATE tbl_customers SET status = 'Inactive' WHERE id = {$cid}");
         $before = $this->snapshot();
@@ -239,7 +266,7 @@ final class ServiceGateTest extends Wp2HttpTestCase
         $this->assertNotEmpty(array_filter($this->auditRows('service.refused'), static fn($a) => (int) $a['target_customer_id'] === $cid));
     }
 
-    /** E19a: the bulk plan sync skips reseller-owned customers and still provisions unassigned ones. */
+    /** E19a: the bulk plan sync re-provisions reseller-owned customers only through the service (WP5B, OD-10). */
     public function testBulkPlanSyncSkipsResellerOwnedCustomers(): void
     {
         // every seeded recharge active (an earlier test may have expired some)
@@ -252,10 +279,13 @@ final class ServiceGateTest extends Wp2HttpTestCase
         $this->assertSame(302, $r->status, $r->excerpt());
         $calls = array_column(static::$app->probe('device'), 'username');
         $this->assertContains('cNULL', $calls, 'unassigned customer provisioned');
+        // WP5B (OD-10, E19a): reseller-owned customers are re-provisioned through LegacyReprovisionService, once each
+        $synced = array_map(static fn(array $a): int => (int) $a['target_customer_id'], $this->auditRows('reprovision.admin_bulk_sync_row'));
         foreach (['cA1', 'cB', 'cC1'] as $owned) {
-            $this->assertNotContains($owned, $calls, "{$owned} (reseller-owned) skipped");
+            $this->assertContains($owned, $calls, "{$owned} (reseller-owned) re-provisioned by the service");
+            $this->assertContains($this->cid($owned), $synced, "{$owned} audited");
         }
-        $this->assertGreaterThanOrEqual($before + 3, count($this->auditRows('service.refused')), 'each skip audited');
+        $this->assertSame($before, count($this->auditRows('service.refused')), 'nothing refused');
         $this->assertSame(403, $this->staff('A')->postWithToken('plan/sync')->status, 'Agent has no service.sync_all');
     }
 

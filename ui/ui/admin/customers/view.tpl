@@ -240,7 +240,7 @@
                                         {elseif $ds['status']==2}{Lang::T('PAID')}
                                         {elseif $ds['status']==3}{$_L['FAILED']}
                                         {elseif $ds['status']==4}{Lang::T('CANCELED')}
-                                        {elseif $ds['status']==5}{Lang::T('UNKNOWN')}
+                                        {elseif $ds['status']==5}{Lang::T('HELD - under review')}
                                         {/if}</td>
                                 </tr>
                             {/foreach}

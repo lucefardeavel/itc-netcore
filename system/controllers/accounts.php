@@ -29,7 +29,25 @@ switch ($action) {
         if (!Csrf::check($csrf_token)) {
             r2(getUrl('accounts/change-password'), 'e', Lang::T('Invalid or Expired CSRF Token') . ".");
         }
-        // WP2 / OD-11 (E20): the password change re-provisions active plans on the device
+        // WP5B (OD-10, E20): a reseller-owned customer's password change (and the device update it needs) is
+        // owned by LegacyReprovisionService; the legacy checks of the current / repeated password stay here
+        if (\Reseller\Domain\LegacyReprovisionService::owned($user['id'])) {
+            if ($password == '' || $password != $user['password']) {
+                r2(getUrl('accounts/change-password'), 'e', Lang::T('Incorrect Current Password'));
+            }
+            if (_post('npass') != _post('cnpass')) {
+                r2(getUrl('accounts/change-password'), 'e', 'Both Password should be same');
+            }
+            try {
+                \Reseller\Domain\LegacyReprovisionService::run(\Reseller\Security\ActorContext::current(), (int) $user['id'], \Reseller\Domain\LegacyReprovisionService::PASSWORD_CHANGE, ['password' => (string) _post('npass')]);
+            } catch (\Reseller\Domain\DomainError $e) {
+                r2(getUrl('accounts/change-password'), 'e', $e->getMessage());
+            }
+            User::removeCookie();
+            session_destroy();
+            _log('[' . $user['username'] . ']: Password changed successfully', 'User', $user['id']);
+            _alert(Lang::T('Password changed successfully, Please login again'), 'success', "login");
+        }
         \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'accountsChangePassword', 'accounts/change-password');
         run_hook('customer_change_password'); #HOOK
         if ($password != '') {

@@ -6,6 +6,7 @@
             <div class="panel-heading">{Lang::T('Confirm')}</div>
             <div class="panel-body">
                 <form class="form-horizontal" method="post" role="form" action="{Text::url('')}plan/recharge-post">
+                    <input type="hidden" name="nuxr_nonce" value="{$nuxr_nonce}">
                     <center><b>{Lang::T('Customer')}</b></center>
                     <ul class="list-group list-group-unbordered">
                         <li class="list-group-item">

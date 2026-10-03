@@ -10,6 +10,12 @@ $action = $routes['1'];
 $user = User::_info();
 $ui->assign('_user', $user);
 
+// WP5B §7a.2 (E8): a buy with the balance "gateway" is the balance purchase itself, in the same POST
+if ($action === 'buy' && _post('gateway') === 'balance') {
+    unset($_SESSION['gateway']);
+    $action = 'pay';
+}
+
 switch ($action) {
     case 'voucher':
         $ui->assign('_system_menu', 'voucher');
@@ -212,10 +218,6 @@ switch ($action) {
         }
         // WP2 / OD-11 (E8): no balance purchase for a reseller-owned customer
         \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'orderPay', 'order/package');
-        if (!empty(App::getTokenValue($_GET['stoken']))) {
-            r2(getUrl('voucher/invoice/'));
-            die();
-        }
         if ($user['status'] != 'Active') {
             _alert(Lang::T('This account status') . ' : ' . Lang::T($user['status']), 'danger', "");
         }
@@ -250,21 +252,25 @@ switch ($action) {
         }
         // Tax calculation stop
         $total_cost = $plan['price'] + $add_cost + $tax;
-        if ($plan && $plan['enabled'] && $user['balance'] >= $total_cost) {
-            if (Package::rechargeUser($user['id'], $router_name, $plan['id'], 'Customer', 'Balance')) {
-                // if success, then get the balance
-                Balance::min($user['id'], $total_cost);
-                App::setToken($_GET['stoken'], "success");
-                r2(getUrl('voucher/invoice/'), 's', Lang::T("Success to buy package"));
-            } else {
-                r2(getUrl('order/package'), 'e', Lang::T("Failed to buy package"));
-                Message::sendTelegram("Buy Package with Balance Failed\n\n#u$c[username] #buy \n" . $plan['name_plan'] .
-                    "\nRouter: " . $router_name .
-                    "\nPrice: " . $total_cost);
-            }
-        } else {
-            r2(getUrl('order/gateway/$routes[2]/$routes[3]'), 'e', Lang::T("Insufficient balance"));
+        // WP5B §7a.2 (E8): the legacy amount, debited exactly once per request nonce under the customer row lock,
+        // HELD before the grant; a replay never debits or grants again (POST + CSRF; no Balance::*)
+        try {
+            $nuxrBuy = \Reseller\Domain\LegacyCustomerBalanceService::purchase([
+                'kind' => 'buy', 'key' => \Reseller\Domain\LegacyCustomerBalanceService::key('buy', (int) $user['id'], (string) _post('nuxr_nonce')),
+                'payer_id' => (int) $user['id'], 'target_id' => (int) $user['id'], 'plan_id' => (int) $plan['id'], 'routers' => (string) $router_name,
+                'amount' => $total_cost, 'grant' => ['Customer', 'Balance'],
+            ]);
+        } catch (\Reseller\Domain\DomainError $e) {
+            r2(getUrl('order/gateway/' . $routes[2] . '/' . $routes[3]), 'e', $e->reason === 'INSUFFICIENT_BALANCE' ? Lang::T("Insufficient balance") : Lang::T($e->getMessage()));
         }
+        if ($nuxrBuy['status'] === 'COMPLETED') {
+            r2(getUrl('voucher/invoice/'), 's', Lang::T("Success to buy package"));
+        } elseif ($nuxrBuy['status'] === 'HELD') {
+            r2(getUrl('order/view/' . $nuxrBuy['journal_id']), 'w', Lang::T("Your purchase is being reviewed; the amount is held"));
+        }
+        Message::sendTelegram("Buy Package with Balance Failed\n\n#u$user[username] #buy \n" . $plan['name_plan'] .
+            "\nRouter: " . $router_name . "\nPrice: " . $total_cost);
+        r2(getUrl('order/package'), 'e', Lang::T("Failed to buy package"));
         break;
 
     case 'send':
@@ -339,30 +345,24 @@ switch ($action) {
             if ($active && $active['plan_id'] != $plan['id']) {
                 r2(getUrl('order/package'), 'e', Lang::T("Target has active plan, different with current plant.") . " [ <b>$active[namebp]</b> ]");
             }
-            $result = Package::rechargeUser($target['id'], $router_name, $plan['id'], $user['username'], 'Balance');
+            // WP5B §7a.2 (E9): sender debited exactly once per request nonce (journal = the sender's "Send Plan"
+            // row), target granted; replays never debit or grant again (no Balance::*)
+            try {
+                $nuxrGift = \Reseller\Domain\LegacyCustomerBalanceService::purchase([
+                    'kind' => 'gift', 'key' => \Reseller\Domain\LegacyCustomerBalanceService::key('gift', (int) $user['id'], (string) _post('nuxr_nonce')),
+                    'payer_id' => (int) $user['id'], 'target_id' => (int) $target['id'], 'plan_id' => (int) $plan['id'], 'routers' => (string) $router_name,
+                    'routers_id' => (int) $routes['2'], 'amount' => $plan['price'], 'grant' => [(string) $user['username'], 'Balance'],
+                ]);
+            } catch (\Reseller\Domain\DomainError $e) {
+                r2(getUrl('order/package'), 'e', $e->reason === 'INSUFFICIENT_BALANCE' ? Lang::T('insufficient balance') : Lang::T($e->getMessage()));
+            }
+            $result = $nuxrGift['status'] === 'COMPLETED' && !$nuxrGift['replayed'] ? $nuxrGift['invoice'] : null;
+            if ($nuxrGift['replayed'] || $nuxrGift['status'] === 'HELD') {
+                r2(getUrl('order/view/' . $nuxrGift['journal_id']), $nuxrGift['status'] === 'COMPLETED' ? 's' : 'w', $nuxrGift['status'] === 'COMPLETED'
+                    ? Lang::T("Success to send package") : Lang::T("Your purchase is being reviewed; the amount is held"));
+            }
             if (!empty($result)) {
-                // if success, then get the balance
-                Balance::min($user['id'], $plan['price']);
-                //sender
-                $d = ORM::for_table('tbl_payment_gateway')->create();
-                $d->username = $user['username'];
-                $d->user_id = $user['id'];
-                $d->gateway = $target['username'];
-                $d->plan_id = $plan['id'];
-                $d->plan_name = $plan['name_plan'];
-                $d->routers_id = $routes['2'];
-                $d->routers = $router_name;
-                $d->price = $plan['price'];
-                $d->payment_method = "Balance";
-                $d->payment_channel = "Send Plan";
-                $d->created_date = date('Y-m-d H:i:s');
-                $d->paid_date = date('Y-m-d H:i:s');
-                $d->expired_date = date('Y-m-d H:i:s');
-                $d->pg_url_payment = 'balance';
-                $d->trx_invoice = $result;
-                $d->status = 2;
-                $d->save();
-                $trx_id = $d->id();
+                $trx_id = $nuxrGift['journal_id'];
                 //receiver
                 $d = ORM::for_table('tbl_payment_gateway')->create();
                 $d->username = $target['username'];
@@ -559,8 +559,10 @@ switch ($action) {
         $discount = (float) ($_SESSION['wp5b_coupon_discount'][(int) $routes['3']] ?? 0);
         unset($_SESSION['wp5b_coupon_discount'][(int) $routes['3']]);
         if ($gateway == 'balance') {
+            // unreachable since WP5B: a buy with gateway=balance is dispatched to the order/pay code below the
+            // switch header (order/pay is POST-only and never reached by a GET redirect)
             unset($_SESSION['gateway']);
-            r2(getUrl('order/pay/') . $routes[2] . '/' . $routes[3]);
+            r2(getUrl('order/package'), 'e', Lang::T("Failed to buy package"));
         }
         if (empty($gateway) && !empty($_SESSION['gateway'])) {
             $gateway = $_SESSION['gateway'];

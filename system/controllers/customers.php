@@ -180,7 +180,13 @@ switch ($action) {
         if (!Csrf::check($csrf_token)) {
             r2(getUrl('customers/view/') . $id_customer, 'e', Lang::T('Invalid or Expired CSRF Token') . ".");
         }
-        // WP2 / OD-11 (E1): the re-recharge confirmation leads to plan/recharge-post; refuse early
+        // WP5B (OD-6, E1): a reseller-owned customer continues at activation/create (web) or is refused (API)
+        if (\Reseller\Domain\LegacyReprovisionService::owned($id_customer)) {
+            if (\Reseller\Security\ActorContext::current()->channel === 'API') {
+                \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'customerRecharge', 'customers/view/' . (int) $id_customer);
+            }
+            r2(getUrl('activation/create&customer=' . (int) $id_customer . '&plan=' . (int) $plan_id), 'w', Lang::T('Reseller-managed customers are activated through the reseller activation.'));
+        }
         \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'customerRecharge', 'customers/view/' . (int) $id_customer);
         $b = ORM::for_table('tbl_user_recharges')->where('customer_id', $id_customer)->where('plan_id', $plan_id)->find_one();
         if ($b) {
@@ -242,6 +248,7 @@ switch ($action) {
             $ui->assign('plan', $plan);
 			$ui->assign('add_inv', $add_inv);
             $ui->assign('csrf_token',  Csrf::generateAndStoreToken());
+            $ui->assign('nuxr_nonce', bin2hex(random_bytes(16)));
             $ui->display('admin/plan/recharge-confirm.tpl');
         } else {
             r2(getUrl('customers/view/') . $id_customer, 'e', 'Cannot find active plan');
@@ -289,7 +296,11 @@ switch ($action) {
         if (!Csrf::check($csrf_token)) {
             r2(getUrl('customers/view/') . $id_customer, 'e', Lang::T('Invalid or Expired CSRF Token') . ".");
         }
-        // WP2 / OD-11 (E19b): no re-provisioning of reseller-owned customers
+        // WP5B (OD-10, E19b): a reseller-owned customer is re-provisioned only by LegacyReprovisionService
+        // (serialized with activations and reversals, never a grant); the legacy sync stays for the others
+        if (\Reseller\Domain\LegacyReprovisionService::owned($id_customer)) {
+            \Reseller\Domain\LegacyReprovisionService::web(\Reseller\Domain\LegacyReprovisionService::ADMIN_SYNC, $id_customer, [], 'customers/view/' . (int) $id_customer);
+        }
         \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'customerSync', 'customers/view/' . (int) $id_customer);
         $bs = ORM::for_table('tbl_user_recharges')->where('customer_id', $id_customer)->where('status', 'on')->findMany();
         if ($bs) {
@@ -673,12 +684,29 @@ switch ($action) {
         if ($password != '' && $oldPassPassword != $password) {
             $passDiff = true;
         }
-        // WP2 / OD-11 (E21): for a reseller-owned customer, changes that re-provision the device
-        // (username, PPPoE username/IP, password) or re-activate the account are refused.
-        if ($c && ($userDiff || $pppoeDiff || $pppoeIpDiff || $passDiff || ($status === 'Active' && $c['status'] !== 'Active'))
+        // WP5B (OD-10, E21): a reseller-owned customer's identity (username, PPPoE username / password / IP,
+        // password) is changed only by LegacyReprovisionService: serialized with activations, device-verified,
+        // reverted on a confirmed device failure. The controller never writes these fields for such a customer.
+        // Re-activation (status -> Active) stays refused; while ownership cannot be evaluated everything is refused.
+        $resellerOwned = $c && \Reseller\Domain\LegacyReprovisionService::owned($c['id']);
+        if ($c && ($resellerOwned ? ($status === 'Active' && $c['status'] !== 'Active')
+                : ($userDiff || $pppoeDiff || $pppoeIpDiff || $passDiff || ($status === 'Active' && $c['status'] !== 'Active')))
             && \Reseller\Domain\ServiceGate::isBlockedCustomerId($c['id'])) {
             \Reseller\Domain\ServiceGate::refused('customerEditPost', $c['id']);
             r2(getUrl('customers/edit/') . (int) $id, 'e', \Reseller\Domain\ServiceGate::message());
+        }
+        if ($resellerOwned && $msg == '' && ($userDiff || $pppoeDiff || $pppoeIpDiff || $passDiff)) {
+            try {
+                \Reseller\Domain\LegacyReprovisionService::run(\Reseller\Security\ActorContext::current(), (int) $c['id'], \Reseller\Domain\LegacyReprovisionService::IDENTITY_EDIT, [
+                    'username' => $username, 'password' => $password, 'pppoe_username' => $pppoe_username, 'pppoe_password' => $pppoe_password, 'pppoe_ip' => $pppoe_ip,
+                ]);
+            } catch (\Reseller\Domain\DomainError $e) {
+                r2(getUrl('customers/edit/') . (int) $id, 'e', $e->getMessage());
+            }
+            $c = ORM::for_table('tbl_customers')->find_one($id);
+        }
+        if ($resellerOwned) {
+            $userDiff = $pppoeDiff = $pppoeIpDiff = $passDiff = false;
         }
 
         if ($msg == '') {
@@ -730,15 +758,17 @@ switch ($action) {
                     r2(getUrl('settings/app'), 'e', 'PHP GD is not installed');
                 }
             }
-            if ($userDiff) {
-                $c->username = $username;
+            if (!$resellerOwned) {
+                if ($userDiff) {
+                    $c->username = $username;
+                }
+                if ($password != '') {
+                    $c->password = $password;
+                }
+                $c->pppoe_username = $pppoe_username;
+                $c->pppoe_password = $pppoe_password;
+                $c->pppoe_ip = $pppoe_ip;
             }
-            if ($password != '') {
-                $c->password = $password;
-            }
-            $c->pppoe_username = $pppoe_username;
-            $c->pppoe_password = $pppoe_password;
-            $c->pppoe_ip = $pppoe_ip;
             $c->fullname = $fullname;
             $c->email = $email;
             $c->account_type = $account_type;

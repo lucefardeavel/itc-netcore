@@ -12,6 +12,7 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  *   view         GET   state and event timeline
  *   reconcile    POST  Admin / SuperAdmin: read RADIUS back and settle or release
  *   rollback     POST  Admin / SuperAdmin: restore the previous RADIUS state and release
+ *   reverse      POST  Admin / SuperAdmin (WP5B, OD-11): reverse a COMPLETED activation (reason required)
  */
 
 _admin();
@@ -81,7 +82,19 @@ switch ($action) {
         $ui->assign('nuxr_activation', $view['activation']);
         $ui->assign('nuxr_events', $view['events']);
         $ui->assign('nuxr_can_reconcile', \Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::ACTIVATION_CREATE) === 'G');
+        $ui->assign('nuxr_can_reverse', \Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::ACTIVATION_REVERSE) === 'G');
         $ui->display('admin/activation/view.tpl');
+        break;
+
+    case 'reverse':
+        $reference = (string) ($routes['2'] ?? '');
+        $back = 'activation/view/' . (preg_match('/^ACT-[0-9A-F]{16}$/D', $reference) ? $reference : '');
+        try {
+            $row = \Reseller\Activation\ActivationReversalService::reverse($nuxrActor, $reference, _post('reason'));
+        } catch (\Reseller\Domain\DomainError $e) {
+            $nuxrFail($e, $back);
+        }
+        r2(getUrl('activation/view/' . $row['reference']), 's', Lang::T('Activation') . ' ' . $row['reference'] . ': ' . $row['status']);
         break;
 
     case 'reconcile':
