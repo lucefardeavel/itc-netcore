@@ -212,7 +212,8 @@ PHP;
     {
         $file = $this->dir . '/wp2_exec_' . bin2hex(random_bytes(4)) . '.php';
         file_put_contents($file, self::EXEC_HEAD . "\n" . $code . "\necho \"\\n@@WP2JSON@@\" . json_encode(\$result);\n");
-        $proc = proc_open([PHP_BINARY, $file], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        // as exec(): PHP diagnostics go to the probe log, never into the JSON result (WP5B concurrency tests)
+        $proc = proc_open([PHP_BINARY, '-d', 'error_log=' . $this->dir . '/wp2_probe/php_error.log', '-d', 'display_errors=0', $file], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
         return ['proc' => $proc, 'pipes' => $pipes, 'file' => $file];
     }
 

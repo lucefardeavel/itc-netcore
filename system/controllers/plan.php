@@ -780,13 +780,24 @@ switch ($action) {
                 $vouchers = generateUniqueNumericVouchers($numbervoucher, $lengthcode);
             } else {
                 for ($i = 0; $i < $numbervoucher; $i++) {
-                    $code = strtoupper(substr(md5(time() . rand(10000, 99999)), 0, $lengthcode));
+                    // WP5B (E6): CSPRNG codes
+                    $code = strtoupper(substr(bin2hex(random_bytes(16)), 0, $lengthcode));
                     if ($voucher_format == 'low') {
                         $code = strtolower($code);
                     } else if ($voucher_format == 'rand') {
-                        $code = Lang::randomUpLowCase($code);
+                        $code = implode('', array_map(static fn(string $ch): string => random_int(0, 1) ? strtolower($ch) : $ch, str_split($code)));
                     }
                     $vouchers[] = $code;
+                }
+            }
+            // WP5B (E6): never a duplicate of an existing code or within the batch (regenerated with the CSPRNG)
+            foreach ($vouchers as $i => $code) {
+                for ($try = 0; $try < 20 && (count(array_keys($vouchers, $code, true)) > 1
+                    || ORM::for_table('tbl_voucher')->where_raw('BINARY code = ?', [$prefix . $code])->count() > 0); $try++) {
+                    $code = $voucher_format == 'numbers'
+                        ? implode('', array_map(static fn(): string => (string) random_int(0, 9), range(1, max(1, (int) $lengthcode))))
+                        : strtoupper(substr(bin2hex(random_bytes(16)), 0, $lengthcode));
+                    $vouchers[$i] = $code;
                 }
             }
 
@@ -863,8 +874,11 @@ switch ($action) {
                 $voucherIds = array_map('intval', $voucherIds);
 
                 try {
+                    // WP5B §6.4: CLAIMED vouchers (redemption in progress or under review) are never deleted
+                    $skipped = ORM::for_table('tbl_voucher')->where_in('id', $voucherIds)->where('status', \Reseller\Domain\VoucherRedemptionService::CLAIMED)->count();
                     ORM::for_table('tbl_voucher')
                         ->where_in('id', $voucherIds)
+                        ->where_not_equal('status', \Reseller\Domain\VoucherRedemptionService::CLAIMED)
                         ->delete_many();
                 } catch (Exception $e) {
                     echo json_encode(['status' => 'error', 'message' => Lang::T('Failed to delete vouchers.')]);
@@ -872,7 +886,8 @@ switch ($action) {
                 }
 
                 // Return success response
-                echo json_encode(['status' => 'success', 'message' => Lang::T("Vouchers Deleted Successfully.")]);
+                echo json_encode(['status' => 'success', 'skipped' => (int) $skipped, 'message' => Lang::T("Vouchers Deleted Successfully.")
+                    . ($skipped > 0 ? ' ' . $skipped . ' ' . Lang::T('claimed voucher(s) kept for review.') : '')]);
                 exit;
             } else {
                 echo json_encode(['status' => 'error', 'message' => Lang::T("Invalid or missing voucher IDs.")]);
@@ -936,7 +951,11 @@ switch ($action) {
         run_hook('delete_voucher'); #HOOK
         $d = ORM::for_table('tbl_voucher')->find_one($id);
         if ($d) {
-            $d->delete();
+            // WP5B §6.4: a CLAIMED voucher (redemption in progress or under review) is never deleted
+            if ((string) $d['status'] === \Reseller\Domain\VoucherRedemptionService::CLAIMED) {
+                r2(getUrl('plan/voucher'), 'e', Lang::T('This voucher is being redeemed or under review and cannot be deleted'));
+            }
+            ORM::for_table('tbl_voucher')->where('id', $d['id'])->where_not_equal('status', \Reseller\Domain\VoucherRedemptionService::CLAIMED)->delete_many();
             r2(getUrl('plan/voucher'), 's', Lang::T('Data Deleted Successfully'));
         }
         break;
@@ -960,22 +979,21 @@ switch ($action) {
         // WP2 / OD-11 (E2): no voucher refill for reseller-owned customers
         \Reseller\Domain\ServiceGate::guardCustomer(_post('id_customer'), 'planRefillPost', 'plan/refill');
         $user = ORM::for_table('tbl_customers')->where('id', _post('id_customer'))->find_one();
-        $v1 = ORM::for_table('tbl_voucher')->whereRaw("BINARY code = '$code'")->where('status', 0)->find_one();
+        if (!$user) {
+            r2(getUrl('plan/refill'), 'e', Lang::T('Customer not found'));
+        }
 
         run_hook('refill_customer'); #HOOK
-        if ($v1) {
-            if (Package::rechargeUser($user['id'], $v1['routers'], $v1['id_plan'], "Voucher", $code)) {
-                $v1->status = "1";
-                $v1->user = $user['username'];
-                $v1->save();
-                $in = ORM::for_table('tbl_transactions')->where('username', $user['username'])->order_by_desc('id')->find_one();
-                Package::createInvoice($in);
-                $ui->display('admin/plan/invoice.tpl');
-            } else {
-                r2(getUrl('plan/refill'), 'e', "Failed to refill account");
-            }
-        } else {
+        // WP5B (E2; SEC-23): the single atomic voucher redemption path (claim -> grant -> finalize), audited for the staff actor
+        $out = \Reseller\Domain\VoucherRedemptionService::redeem((string) $code, \Reseller\Domain\RedemptionTarget::customer($user), \Reseller\Domain\RedemptionSource::staff(\Reseller\Security\ActorContext::current()));
+        if ($out['status'] === \Reseller\Domain\VoucherRedemptionService::GRANTED) {
+            $in = ORM::for_table('tbl_transactions')->where('username', $user['username'])->order_by_desc('id')->find_one();
+            Package::createInvoice($in);
+            $ui->display('admin/plan/invoice.tpl');
+        } elseif ($out['status'] === \Reseller\Domain\VoucherRedemptionService::NOT_VALID) {
             r2(getUrl('plan/refill'), 'e', Lang::T('Voucher Not Valid'));
+        } else {
+            r2(getUrl('plan/refill'), 'e', "Failed to refill account");
         }
         break;
     case 'deposit':

@@ -130,10 +130,10 @@ switch ($do) {
                 if (!$v) {
                     _alert(Lang::T('Voucher invalid'), 'danger', "login");
                 }
-                if ($v['status'] == 0) {
-                    if (Package::rechargeUser(0, $v['routers'], $v['id_plan'], "Voucher", $voucher)) {
-                        $v->status = "1";
-                        $v->save();
+                if ((string) $v['status'] === '0') {
+                    // WP5B (E12; SEC-23): the single atomic voucher redemption path (claim -> grant -> finalize)
+                    $out = \Reseller\Domain\VoucherRedemptionService::redeem($voucher, \Reseller\Domain\RedemptionTarget::voucherOnly($voucher), \Reseller\Domain\RedemptionSource::public());
+                    if ($out['status'] === \Reseller\Domain\VoucherRedemptionService::GRANTED) {
                         $tur = ORM::for_table('tbl_user_recharges')->where('username', $voucher)->find_one();
                         if ($tur) {
                             $p = ORM::for_table('tbl_plans')->where('id', $tur['plan_id'])->find_one();
@@ -187,129 +187,58 @@ switch ($do) {
             \Reseller\Domain\ServiceGate::guardUsername($username, 'loginVoucherActivation', 'login');
             $v1 = ORM::for_table('tbl_voucher')->whereRaw("BINARY code = '$voucher'")->find_one();
             if ($v1) {
-                // voucher exists, check customer exists or not
+                // the session is connected to the hotspot (when the portal knows the device) and redirected
+                $connected = static function ($user, $v1) use ($config, $_app_stage): void {
+                    $to = !empty($config['voucher_redirect']) ? $config['voucher_redirect'] : getUrl('login');
+                    if (!empty($_SESSION['nux-mac']) && !empty($_SESSION['nux-ip'])) {
+                        try {
+                            $p = ORM::for_table('tbl_plans')->where('id', $v1['id_plan'])->find_one();
+                            $dvc = Package::getDevice($p);
+                            if ($_app_stage != 'demo') {
+                                if (file_exists($dvc)) {
+                                    require_once $dvc;
+                                    (new $p['device'])->connect_customer($user, $_SESSION['nux-ip'], $_SESSION['nux-mac'], $v1['routers']);
+                                    r2($to, 's', Lang::T("Voucher activation success, now you can login"));
+                                } else {
+                                    new Exception(Lang::T("Devices Not Found"));
+                                }
+                            }
+                            r2($to, 's', !empty($config['voucher_redirect']) ? Lang::T("Voucher activation success, you are connected to internet") : Lang::T("Voucher activation success, now you can login"));
+                        } catch (Exception $e) {
+                            r2($to, 's', Lang::T("Voucher activation success, now you can login"));
+                        }
+                    }
+                    r2($to, 's', !empty($config['voucher_redirect']) ? Lang::T("Voucher activation success, you are connected to internet") : Lang::T("Voucher activation success, now you can login"));
+                };
                 $user = ORM::for_table('tbl_customers')->where('username', $username)->find_one();
-                if (!$user) {
-                    $d = ORM::for_table('tbl_customers')->create();
-                    $d->username = alphanumeric($username, "+_.@-");
-                    $d->password = $voucher;
-                    $d->fullname = '';
-                    $d->address = '';
-                    $d->email = '';
-                    $d->phonenumber = (strlen($username) < 21) ? $username : '';
-                    if ($d->save()) {
-                        $user = ORM::for_table('tbl_customers')->where('username', $username)->find_one($d->id());
-                        if (!$user) {
-                            r2(getUrl('login'), 'e', Lang::T('Voucher activation failed'));
-                        }
-                    } else {
-                        _alert(Lang::T('Login Successful'), 'success', "dashboard");
-                        r2(getUrl('login'), 'e', Lang::T('Voucher activation failed') . '.');
+                if ((string) $v1['status'] === '0') {
+                    // WP5B (OD-9, E13; SEC-16 / SEC-23): a voucher with a username creates a NEW customer exactly once,
+                    // serialized per username, through the single redemption path; an existing customer is never
+                    // touched (no password overwrite, no recharge)
+                    if ($user) {
+                        r2(getUrl('login'), 'e', Lang::T('Username already used by another customer'));
                     }
-                }
-                if ($v1['status'] == 0) {
-                    // WP2 / OD-11 (E13): refused BEFORE the customer password is overwritten
-                    \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'loginVoucherActivation', 'login');
-                    $oldPass = $user['password'];
-                    // change customer password to voucher code
-                    $user->password = $voucher;
+                    $out = \Reseller\Domain\VoucherRedemptionService::redeemForNewUsername($voucher, (string) $username, \Reseller\Domain\RedemptionSource::public());
+                    if ($out['status'] !== \Reseller\Domain\VoucherRedemptionService::GRANTED) {
+                        r2(getUrl('login'), 'e', match ($out['status']) {
+                            \Reseller\Domain\VoucherRedemptionService::USERNAME_TAKEN => Lang::T('Username already used by another customer'),
+                            \Reseller\Domain\VoucherRedemptionService::NOT_VALID, \Reseller\Domain\VoucherRedemptionService::REFUSED => Lang::T('Voucher Not Valid'),
+                            \Reseller\Domain\VoucherRedemptionService::REVIEW => Lang::T('Voucher activation is pending review'),
+                            default => Lang::T('Failed to activate voucher'),
+                        });
+                    }
+                    $user = ORM::for_table('tbl_customers')->find_one($out['customer_id']);
+                    $user->last_login = date('Y-m-d H:i:s');
                     $user->save();
-                    // voucher activation
-                    if (Package::rechargeUser($user['id'], $v1['routers'], $v1['id_plan'], "Voucher", $voucher)) {
-                        $v1->status = "1";
-                        $v1->used_date = date('Y-m-d H:i:s');
-                        $v1->user = $user['username'];
-                        $v1->save();
-                        $user->last_login = date('Y-m-d H:i:s');
-                        $user->save();
-                        // add customer to mikrotik
-                        if (!empty($_SESSION['nux-mac']) && !empty($_SESSION['nux-ip'])) {
-                            try {
-                                $p = ORM::for_table('tbl_plans')->where('id', $v1['id_plan'])->find_one();
-                                $dvc = Package::getDevice($p);
-                                if ($_app_stage != 'demo') {
-                                    if (file_exists($dvc)) {
-                                        require_once $dvc;
-                                        (new $p['device'])->connect_customer($user, $_SESSION['nux-ip'], $_SESSION['nux-mac'], $v1['routers']);
-                                        if (!empty($config['voucher_redirect'])) {
-                                            r2($config['voucher_redirect'], 's', Lang::T("Voucher activation success, now you can login"));
-                                        } else {
-                                            r2(getUrl('login'), 's', Lang::T("Voucher activation success, now you can login"));
-                                        }
-                                    } else {
-                                        new Exception(Lang::T("Devices Not Found"));
-                                    }
-                                }
-                                if (!empty($config['voucher_redirect'])) {
-                                    r2($config['voucher_redirect'], 's', Lang::T("Voucher activation success, you are connected to internet"));
-                                } else {
-                                    r2(getUrl('login'), 's', Lang::T("Voucher activation success, you are connected to internet"));
-                                }
-                            } catch (Exception $e) {
-                                if (!empty($config['voucher_redirect'])) {
-                                    r2($config['voucher_redirect'], 's', Lang::T("Voucher activation success, now you can login"));
-                                } else {
-                                    r2(getUrl('login'), 's', Lang::T("Voucher activation success, now you can login"));
-                                }
-                            }
-                        }
-                        if (!empty($config['voucher_redirect'])) {
-                            r2($config['voucher_redirect'], 's', Lang::T("Voucher activation success, now you can login"));
-                        } else {
-                            r2(getUrl('login'), 's', Lang::T("Voucher activation success, now you can login"));
-                        }
-                    } else {
-                        // if failed to recharge, restore old password
-                        $user->password = $oldPass;
-                        $user->save();
-                        r2(getUrl('login'), 'e', Lang::T("Failed to activate voucher"));
-                    }
+                    $connected($user, $v1);
+                } elseif ($user && (string) $v1['status'] === '1' && $v1['user'] == $user['username']) {
+                    // a voucher this customer already redeemed: the session logs in again (no grant)
+                    $user->last_login = date('Y-m-d H:i:s');
+                    $user->save();
+                    $connected($user, $v1);
                 } else {
-                    // used voucher
-                    // check if voucher used by this username
-                    if ($v1['user'] == $user['username']) {
-                        $user->last_login = date('Y-m-d H:i:s');
-                        $user->save();
-                        if (!empty($_SESSION['nux-mac']) && !empty($_SESSION['nux-ip'])) {
-                            try {
-                                $p = ORM::for_table('tbl_plans')->where('id', $v1['id_plan'])->find_one();
-                                $dvc = Package::getDevice($p);
-                                if ($_app_stage != 'demo') {
-                                    if (file_exists($dvc)) {
-                                        require_once $dvc;
-                                        (new $p['device'])->connect_customer($user, $_SESSION['nux-ip'], $_SESSION['nux-mac'], $v1['routers']);
-                                        if (!empty($config['voucher_redirect'])) {
-                                            r2($config['voucher_redirect'], 's', Lang::T("Voucher activation success, now you can login"));
-                                        } else {
-                                            r2(getUrl('login'), 's', Lang::T("Voucher activation success, now you can login"));
-                                        }
-                                    } else {
-                                        new Exception(Lang::T("Devices Not Found"));
-                                    }
-                                }
-                                if (!empty($config['voucher_redirect'])) {
-                                    r2($config['voucher_redirect'], 's', Lang::T("Voucher activation success, you are connected to internet"));
-                                } else {
-                                    r2(getUrl('login'), 's', Lang::T("Voucher activation success, now you can login"));
-                                }
-                            } catch (Exception $e) {
-                                if (!empty($config['voucher_redirect'])) {
-                                    r2($config['voucher_redirect'], 's', Lang::T("Voucher activation success, now you can login"));
-                                } else {
-                                    r2(getUrl('login'), 's', Lang::T("Voucher activation success, now you can login"));
-                                }
-                            }
-                        } else {
-                            if (!empty($config['voucher_redirect'])) {
-                                r2($config['voucher_redirect'], 's', Lang::T("Voucher activation success, you are connected to internet"));
-                            } else {
-                                r2(getUrl('login'), 's', Lang::T("Voucher activation success, now you can login"));
-                            }
-                        }
-                    } else {
-                        // voucher used by other customer
-                        r2(getUrl('login'), 'e', Lang::T('Voucher Not Valid'));
-                    }
+                    // used by another customer, or claimed and under review
+                    r2(getUrl('login'), 'e', Lang::T('Voucher Not Valid'));
                 }
             } else {
                 _msglog('e', Lang::T('Invalid Username or Password'));

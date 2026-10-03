@@ -319,7 +319,7 @@ function generateUniqueNumericVouchers($totalVouchers, $length = 8)
             $voucherCode = '';
             // Generate the voucher code
             for ($i = 0; $i < $length; $i++) {
-                $voucherCode .= $characters[rand(0, $charactersLength - 1)];
+                $voucherCode .= $characters[random_int(0, $charactersLength - 1)]; // WP5B (E6): CSPRNG
             }
             // Check if the generated voucher code already exists in the array
             $isUnique = !in_array($voucherCode, $vouchers);

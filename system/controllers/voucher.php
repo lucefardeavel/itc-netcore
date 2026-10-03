@@ -62,20 +62,15 @@ switch ($action) {
         $code = alphanumeric(_post('code'), "-_.,");
         // WP2 / OD-11 (E7): no voucher activation for a reseller-owned customer (pending WP5B)
         \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'voucherActivation', 'voucher/activation');
-        $v1 = ORM::for_table('tbl_voucher')->whereRaw("BINARY code = '$code'")->where('status', 0)->find_one();
         run_hook('customer_activate_voucher'); #HOOK
-        if ($v1) {
-            if (Package::rechargeUser($user['id'], $v1['routers'], $v1['id_plan'], "Voucher", $code)) {
-                $v1->status = "1";
-                $v1->used_date = date('Y-m-d H:i:s');
-                $v1->user = $user['username'];
-                $v1->save();
-                r2(getUrl('voucher/list-activated'), 's', Lang::T('Activation Vouchers Successfully'));
-            } else {
-                r2(getUrl('voucher/activation'), 'e', "Failed to refill account");
-            }
-        } else {
+        // WP5B (E7; SEC-23): the single atomic voucher redemption path (claim -> grant -> finalize), audited for the customer
+        $out = \Reseller\Domain\VoucherRedemptionService::redeem((string) $code, \Reseller\Domain\RedemptionTarget::customer($user), \Reseller\Domain\RedemptionSource::customer(\Reseller\Security\ActorContext::current()));
+        if ($out['status'] === \Reseller\Domain\VoucherRedemptionService::GRANTED) {
+            r2(getUrl('voucher/list-activated'), 's', Lang::T('Activation Vouchers Successfully'));
+        } elseif ($out['status'] === \Reseller\Domain\VoucherRedemptionService::NOT_VALID) {
             r2(getUrl('voucher/activation'), 'e', Lang::T('Voucher Not Valid'));
+        } else {
+            r2(getUrl('voucher/activation'), 'e', "Failed to refill account");
         }
         break;
 

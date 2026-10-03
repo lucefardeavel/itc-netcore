@@ -158,11 +158,10 @@ try {
                     $username = Text::alphanumeric($username, "-_.,");
                     $v = ORM::for_table('tbl_voucher')->where_raw("BINARY code = ? AND routers = 'radius'", [$username])->find_one();
                     if ($v) {
-                        if ($v['status'] == 0) {
-                            if (Package::rechargeUser(0, $v['routers'], $v['id_plan'], "Voucher", $username)) {
-                                $v->status = "1";
-                                $v->used_date = date('Y-m-d H:i:s');
-                                $v->save();
+                        if ((string) $v['status'] === '0') {
+                            // WP5B (E15; SEC-23): the single atomic voucher redemption path; no principal, the client is logged
+                            $out = \Reseller\Domain\VoucherRedemptionService::redeem($username, \Reseller\Domain\RedemptionTarget::voucherOnly($username), \Reseller\Domain\RedemptionSource::radius((string) ($_SERVER['REMOTE_ADDR'] ?? '')));
+                            if ($out['status'] === \Reseller\Domain\VoucherRedemptionService::GRANTED) {
                                 $tur = radius_recharge($username);
                                 if ($tur) {
                                     process_radiust_rest($tur, $code);
