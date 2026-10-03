@@ -1,4 +1,7 @@
 <?php
+// WP5B §8 (OD-8): CLI only. A web request never obtains cron authority: no body, before init.php, the lock
+// file or any work (run it as `php system/cron.php` from a crontab).
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
 include "../init.php";
 $lockFile = "$CACHE_PATH/router_monitor.lock";
@@ -102,30 +105,30 @@ foreach ($d as $ds) {
 
             // Auto-renewal from deposit
             if ($config['enable_balance'] == 'yes' && $c['auto_renewal'] && \Reseller\Domain\ServiceGate::isBlockedCustomerId($ds['customer_id'])) {
-                // WP2 / OD-11 (E11): no legacy auto-renewal for reseller-owned customers (pending WP5B);
-                // skipped and logged, no debit, no "FAILED RENEWAL" alert; the loop continues
-                \Reseller\Domain\ServiceGate::refused('cronAutoRenewal', $ds['customer_id']);
-                echo "no renewal | reseller-managed customer (pending WP5B)\n";
+                // WP5B (OD-3, E11): no reseller auto-renew in V1. The expiry above is enforced; no activation, no
+                // wallet or balance debit; one AUTO_RENEW_UNAVAILABLE record per obligation; the loop continues
+                \Reseller\Domain\AutoRenewPolicy::unavailable($ds->as_array());
+                echo "no renewal | reseller-managed customer: AUTO_RENEW_UNAVAILABLE\n";
             } else if ($config['enable_balance'] == 'yes' && $c['auto_renewal']) {
                 [$bills, $add_cost] = User::getBills($ds['customer_id']);
                 if ($add_cost != 0) {
                     $p['price'] += $add_cost;
                 }
-
-                if ($p && $c['balance'] >= $p['price']) {
-                    if (Package::rechargeUser($ds['customer_id'], $ds['routers'], $p['id'], 'Customer', 'Balance')) {
-                        Balance::min($ds['customer_id'], $p['price']);
-                        echo "plan enabled: " . (string) $p['enabled'] . " | User balance: " . (string) $c['balance'] . " | price " . (string) $p['price'] . "\n";
-                        echo "auto renewal Success\n";
-                    } else {
-                        echo "plan enabled: " . $p['enabled'] . " | User balance: " . $c['balance'] . " | price " . $p['price'] . "\n";
-                        echo "auto renewal Failed\n";
+                // WP5B §7a.3: the legacy amount, debited exactly once per obligation (key = recharge + expiry) under the
+                // customer row lock; replays never debit or grant again; an interrupted grant stays HELD for review
+                try {
+                    $renewal = \Reseller\Domain\LegacyCustomerBalanceService::purchase([
+                        'kind' => 'cron', 'key' => \Reseller\Domain\LegacyCustomerBalanceService::cronKey($ds->as_array()),
+                        'payer_id' => (int) $ds['customer_id'], 'target_id' => (int) $ds['customer_id'], 'plan_id' => (int) $p['id'],
+                        'routers' => (string) $ds['routers'], 'amount' => $p['price'], 'grant_channel' => 'Customer',
+                    ]);
+                    echo "auto renewal " . $renewal['status'] . ($renewal['replayed'] ? ' (already processed)' : '') . " | journal " . $renewal['journal_id'] . "\n";
+                    if (!$renewal['replayed'] && $renewal['status'] !== 'COMPLETED') {
                         Message::sendTelegram("FAILED RENEWAL #cron\n\n#u." . $c['username'] . " #buy #Hotspot \n" . $p['name_plan'] .
-                            "\nRouter: " . $p['routers'] .
-                            "\nPrice: " . $p['price']);
+                            "\nRouter: " . $p['routers'] . "\nPrice: " . $p['price'] . "\nStatus: " . $renewal['status']);
                     }
-                } else {
-                    echo "no renewal | plan enabled: " . (string) $p['enabled'] . " | User balance: " . (string) $c['balance'] . " | price " . (string) $p['price'] . "\n";
+                } catch (\Reseller\Domain\DomainError $e) {
+                    echo "no renewal | " . $e->reason . " | plan enabled: " . (string) $p['enabled'] . " | price " . (string) $p['price'] . "\n";
                 }
             } else {
                 echo "no renewal | balance" . $config['enable_balance'] . " auto_renewal " . $c['auto_renewal'] . "\n";
