@@ -9,7 +9,9 @@ Detailed model: `docs/WP5A_ACTIVATION_MODEL.md`. Test evidence: `owner-review/WP
 - the global plan catalog was exposed to Agent / Sales;
 - reconcile could release reserved funds while a modified, usable service remained live.
 
-They were fixed under the owner decisions "WP5A FIX REQUIRED" (§N). This report describes the fixed candidate.
+They were fixed under the owner decisions "WP5A FIX REQUIRED" (§N).
+
+**Final owner code review.** Candidate `ca1b12c70d16fa75935d11cd266bb9342c5c323b` accepted the eligibility, the scoped catalog and the reconciliation redesign. It found one blocker: rollback re-keyed an unknown prior password and still reported ROLLED_BACK. This is fixed under the decision "FINAL OWNER CODE REVIEW — WP5A FIX REQUIRED" (§O). This report describes the fixed candidate.
 
 ## A. Baseline ancestry / accepted prior HEAD / current HEAD / branch / worktree
 
@@ -20,8 +22,9 @@ They were fixed under the owner decisions "WP5A FIX REQUIRED" (§N). This report
 | Execution base | `feat/reseller-system-v1` = `0c080a7aa80f032ea1d6a9497fcd9b6cdf8680bc`: `58e3e458` plus the owner-metadata commit "docs: record WP4 owner acceptance and decisions" (local, not pushed) |
 | Branch | `wp5a/activation-core`, from `0c080a7a` (nothing reset or rewritten) |
 | Reviewed candidate that exposed the issues | `608260d940c042ff6e585f9694ad2a4581415168` (code `c0302b61`) |
-| Implementation HEAD validated (fix round 1) | `c00eb86802b85296f332963fc9eab32125f1b570` |
-| Candidate HEAD | the evidence commit `docs(wp5a): owner fix round 1 — model, report and testdox` (SHA in the final response) |
+| Reviewed candidate where the rollback blocker was found | `ca1b12c70d16fa75935d11cd266bb9342c5c323b` (code `c00eb868`) |
+| Implementation HEAD validated (exact-rollback fix) | `06ee827560aecab7ca30febcf974d62ff2afe8d2` |
+| Candidate HEAD | the evidence commit `docs(wp5a): exact rollback — model, report and testdox` (SHA in the final response) |
 | Worktree | clean after the evidence commit (`tests/vendor/` ignored) |
 | Push / PR / merge / deploy | only `wp5a/activation-core` is pushed, after validation (owner-authorized, normal, non-force); no PR, merge or deploy |
 
@@ -44,6 +47,7 @@ They were fixed under the owner decisions "WP5A FIX REQUIRED" (§N). This report
 | Activation vs plan-delete race (WP3B binding) | Real worker race test (§G). |
 | **Fix round 1: actor eligibility** | `Capability::PLACEMENT_REQUIRED` = [`activation.create`], enforced in the central `PermissionService`; the A5 scope letters are unchanged. `ActivationService::eligible()` / `assertEligible()` run before any data access. An unenrolled or inconsistent Agent / Sales gets 403 on the form, the preview and the POST. |
 | **Fix round 1: plan catalog** | `ActivationService::catalog()` returns only plans saleable for the actor's authoritative reseller identity (id, name, type): the Agent itself, or the owner of a customer in the Sales scope. Admin keeps the administrative list. |
+| **Final review: exact rollback** | Every value the restore needs is resolved before any RADIUS write. A prior password is restored only when it equals `customer.password` / `customer.pppoe_password` exactly; otherwise `PRIOR_SECRET_UNRESTORABLE` (ROLLBACK_PENDING, RADIUS untouched, funds held). The reservation is released only after the complete subscriber projection equals the captured prior one. |
 | **Fix round 1: reconciliation** | Split by the durable history. VERIFIED reached → financial retry only. Never verified → the canonical `RadiusState` projection is compared with the captured target and prior state; anything else is `EXTERNAL_STATE_AMBIGUOUS`, with the funds held. Rollback restores the captured prior state and releases only after verification. |
 
 **Forbidden scope respected:**
@@ -66,7 +70,7 @@ They were fixed under the owner decisions "WP5A FIX REQUIRED" (§N). This report
 - `Security/Capability.php`: `RESERVED = []`; `activation.create` is mutating; both capabilities are schema-dependent.
 - `Security/RoleCapabilityMap.php`: the A5 matrix.
 - `Security/RouteMap.php` (**pinned, owner-approved A7**): the `activation` entry only. Not API-allowed.
-- `Domain/DomainError.php`: 9 activation reasons.
+- `Domain/DomainError.php`: 9 activation reasons, plus `PRIOR_STATE_NOT_CAPTURED` and `PRIOR_SECRET_UNRESTORABLE` (final review).
 - `Domain/SchemaReadiness.php`: `tbl_reseller_activation_events` is required.
 - **Fix round 1:**
   - `Security/Capability.php`: `PLACEMENT_REQUIRED`.
@@ -114,6 +118,9 @@ Commits (author `ALI HENDI <ali.hahuba3@gmail.com>`, `Co-Authored-By` trailer):
 | `608260d9` docs(wp5a): activation model, owner-review report and testdox | **the reviewed candidate** |
 | `39ba63be` wp5a: activation actor eligibility, saleable plan catalog, reconciliation by durable history | fix round 1, runtime |
 | `c00eb868` wp5a: tests for eligibility, catalog and reconciliation scenarios A-I | fix round 1, tests |
+| `ca1b12c7` docs(wp5a): owner fix round 1 — model, report and testdox | **the reviewed candidate of the final review** |
+| `7e65cb6c` wp5a: exact rollback fails closed on an unrestorable prior secret | final review, runtime |
+| `06ee8275` wp5a: exact rollback tests (customer / PPPoE password, unknown secret, no password, repeats, ambiguous) | final review, tests |
 | evidence commit | model doc, this report, `TESTDOX.txt` |
 
 ## D. Important design notes
@@ -144,7 +151,7 @@ Commits (author `ALI HENDI <ali.hahuba3@gmail.com>`, `Co-Authored-By` trailer):
   | VERIFIED evidence exists | FINANCIAL | Retry the exact settlement; RADIUS is not consulted. |
   | Never verified | EXTERNAL | Current == target → settle once. Current == prior → NOT_APPLIED, released. Anything else → `EXTERNAL_STATE_AMBIGUOUS`: nothing changes, funds held. |
 
-  - **Rollback** restores the captured prior subscriber rows and releases only after a verified read-back.
+  - **Rollback** restores the captured prior subscriber rows exactly. It is automatic only when every prior secret can be reconstructed exactly from the customer's own passwords; otherwise it stays ROLLBACK_PENDING with `PRIOR_SECRET_UNRESTORABLE` before any write. The reservation is released only when the complete subscriber projection equals the captured prior one.
   - There is no timeout release, in-flight activations younger than 300 s are not raced, and a RADIUS read error changes nothing.
 - **Eligibility in two layers.**
   - The central `PermissionService` makes the RouteGuard answer 403 before the controller runs.
@@ -164,23 +171,25 @@ Commits (author `ALI HENDI <ali.hahuba3@gmail.com>`, `Co-Authored-By` trailer):
 
 ## F. Test commands + exact results
 
-Canonical runs on `c00eb868` (fix round 1): PHP 8.2.34, PHPUnit 11.5.56, FreeRADIUS 3.2.8 test containers.
+Final canonical run on `06ee8275` (exact-rollback fix): PHP 8.2.34, PHPUnit 11.5.56, FreeRADIUS 3.2.8 test containers.
 
 | Command | MariaDB 10.11.19 | MySQL 8.0.46 | Registry | Exit |
 |---|---|---|---|---|
-| `dev/test/run-tests.sh` (2026-10-03 07:53–08:31 UTC, 38m05s) | **OK 613 / 46426** | **OK 613 / 46426** | matches | 0 |
-| `dev/test/run-tests.sh --testdox` (08:31–09:17, 45m54s) | **OK 613 / 46426** | **OK 613 / 46426** | matches | 0 |
-| `RouteMatrixTest` with `WP2_EVIDENCE=1` (09:17–09:27) | OK 3 / 3096 | OK 3 / 3096 | — | 0 |
+| `dev/test/run-tests.sh` (2026-10-03 09:47–10:26 UTC, 38m41s) | **OK 618 / 46587** | 615 OK + 3 errors in `Wp3b\PlanDeleteGuardTest`, all `no CSRF token on admin: 404 … /?_route=admin was not found`: the known `AppServer` port-reuse harness flake (§L) | matches | 1 |
+| `phpunit` MySQL plain leg, clean rerun of the same suite (11:12–11:38, 25m42s) | — | **OK 618 / 46587** | — | 0 |
+| `PlanDeleteGuardTest` in isolation, MySQL, 3 runs | — | OK 3 / 55, three times | — | — |
+| `dev/test/run-tests.sh --testdox` (10:26–11:04, 38m30s) | **OK 618 / 46587** | **OK 618 / 46587** | matches | 0 |
+| `RouteMatrixTest` with `WP2_EVIDENCE=1` (11:04–11:09) | OK 3 / 3096 | OK 3 / 3096 | — | 0 |
 
-**Totals.** Each engine runs **613 tests / 46426 assertions**.
-- 613 = 539 (accepted WP4 baseline) + 74 WP5A tests (4 unit classes, 8 integration classes).
-- The reviewed candidate had 594 / 45903. Fix round 1 adds 19 tests: 2 test classes for eligibility / catalog and reconciliation, the projection unit test, an HTTP test and a capability test.
+**Totals.** Each engine runs **618 tests / 46587 assertions**.
+- 618 = 539 (accepted WP4 baseline) + 79 WP5A tests.
+- The exact-rollback fix adds 5 test methods. The 6 owner-required cases are covered; case 5 (repeated rollback) is asserted inside cases 3 and 6.
 
-**Testdox** (`TESTDOX.txt`): 1226 passed / 0 failed (613 × 2).
-- All 1078 accepted WP4 lines are present unchanged.
-- Compared with the reviewed candidate, the only line that disappeared is the intentionally replaced "Rollback of a new service suspends it". It is now "Rollback of a new service restores the empty prior state", because rollback restores the captured prior state (decision 5).
+**Testdox** (`TESTDOX.txt`): 1236 passed / 0 failed (618 × 2).
+- All 1078 accepted WP4 lines are present.
+- Every line of the `ca1b12c7` candidate is still present.
 
-**Route / security matrix: 1465 requests, 1178 denials (all 403), 287 allowed.**
+**Route / security matrix: 1465 requests, 1178 denials (all 403), 287 allowed.** Unchanged by the exact-rollback fix.
 - The rows are byte-identical on both engines.
 - Compared with the accepted 1442 / 1164 / 278, **every accepted row is unchanged (0 removed or altered)**, and exactly **23 rows are added**, all for `activation`:
 
@@ -204,13 +213,15 @@ rp   POST activation/create-post / reconcile / rollback   activation.create DENY
 
 **Other checks:**
 - **PHP 8.2.34 lint:** 409 tracked non-vendor PHP files (+24 for WP5A): 409 pass, 0 fail.
+- **Source guards** (WP3A, WP3B, WP4, WP5A): pass on both engines in the final run.
 - **Manifest:** 42/42 OK.
 - **Migrations:** R0001–R0006 only. `system/reseller/migrations/` and `install/radius.sql` are unchanged against `0c080a7a`. R0006 is `f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd`.
-- **Source guards** (WP3A, WP3B, WP4, WP5A) pass unchanged in fix round 1. The only guard edits in WP5A are the A1 / A7 ones listed in §C.
+- The only guard edits in WP5A are the A1 / A7 ones listed in §C.
 - **Secret sweep** over `0c080a7a..HEAD`: no private-key, cloud, VCS, chat, payment or JWT pattern. The secret-shaped literals are:
   - the attribute-name constant `'Cleartext-Password'`;
   - the per-test random stub NAS secret;
-  - the unit-test fixture password `pw-secret-1`.
+  - the unit-test fixture password `pw-secret-1`;
+  - the status word `'restored'`.
 
   Runner secrets are generated at runtime.
 
@@ -237,7 +248,7 @@ rp   POST activation/create-post / reconcile / rollback   activation.create DENY
 - one deadlock in the settlement → retried, completes once;
 - read-back mismatch → funds kept, settled once RADIUS confirms;
 - silent NAS on CHANGE_PLAN → completes, and the CoA outcome is recorded;
-- rollback restores the captured prior state (a previous service, password included, or the empty state of a NEW customer);
+- rollback restores the captured prior state exactly: a previous service with its own password, or the empty state of a NEW customer. An unrestorable prior secret is refused before any write (§O);
 - cancel before provisioning; resume.
 
 **Fix round 1 tests.** Every case below runs on both engines.
@@ -248,6 +259,19 @@ rp   POST activation/create-post / reconcile / rollback   activation.create DENY
 | Plan catalog | **Agent:** only plans saleable for itself. Absent: resale disabled, no base cost, disabled by an ancestor, retail below wholesale, malformed legacy retail, zero wholesale, invalid wholesale chain (a real `moveSubtree`), plan disabled, MikroTik device, VPN type, Balance plan. Rows are exactly id / name / type. A plan outside the catalog is not previewed (NOT_FOUND, no reason). **Sales:** no customer → no plans; its customer → the owner's saleable plans only; another reseller's customer, a customer assigned to it but owned elsewhere, a missing id and an injection string → the same NOT_FOUND. The approved Sales flow completes on the owner wallet. **Admin / SuperAdmin:** the administrative list, unchanged, and the reason on preview. **HTTP:** the Agent sees `wp5a_http` but not `wp5a_unpriced` and no economics words; Sales sees plans only for its assigned customer; Admin sees both. |
 | Reconciliation A–I (`ActivationReconciliationTest`) | **A/B:** VERIFIED → settlement failure → foreign expiry or extra group → reconcile → COMPLETED, COMMITTED, one debit and one commission, RADIUS untouched, `mode: FINANCIAL`. **A/I:** a settlement that keeps failing → RR, ACTIVE, zero ledger rows, twice, then COMPLETED once. **C:** UNKNOWN commit + exact target → VERIFIED → COMPLETED once; a second reconcile is refused with no double debit. **D:** crash before the RADIUS call (NEW, and RENEW over a real previous service) + exact prior → FAILED NOT_APPLIED, RELEASED, zero ledger rows. **E/F:** UNKNOWN + foreign expiry or extra group → `EXTERNAL_STATE_AMBIGUOUS`, RR, ACTIVE, zero ledger rows, no legacy rows, RADIUS byte-identical, the differing component named without values; repeated reconcile → no new event. **G:** ambiguous → rollback → prior restored (including group memberships), RELEASED exactly once; a second rollback or reconcile is refused. **H:** a rollback whose commit is lost or whose write is rejected → ROLLBACK_PENDING with funds held, then a repeated rollback completes. **Capture:** durable, salted password digest, no customer password anywhere in the activation history. **Unreadable RADIUS:** provisioning never starts (FUNDS_RESERVED, `RADIUS_READ_FAILED`), resumable. |
 | Projection (`RadiusStateTest`) | The target equals the provisioner contract; the password never appears and the digest is salted per activation; equality survives the JSON round trip and is independent of order; a password, expiry or extra-group difference is detected; a malformed projection never matches; diagnostics name components only. |
+
+**Final review tests** (`ActivationReconciliationTest`, both engines):
+
+| # | Case | Result |
+|---|---|---|
+| 1 | Prior password = `customer.password` (RENEW over a real previous service) | Exact password restored, previous rows identical, complete projection == captured prior, RELEASED, ROLLED_BACK, zero ledger rows. |
+| 2 | Prior password = `customer.pppoe_password` (PPPoE) | Exact PPPoE password restored, projection == prior, RELEASED. |
+| 3 | Prior password set directly in RADIUS (foreign / unknown) | `PRIOR_SECRET_UNRESTORABLE`; RADIUS row-for-row identical, ids included; ROLLBACK_PENDING; reservation ACTIVE; zero ledger rows; balances unchanged; no legacy finalization; the operator message says the prior authentication state cannot be restored automatically. |
+| 4 | Prior state has a managed row but no password | Exactly that row restored, no password invented, RELEASED, `password: none`. |
+| 5 | Rollback repeated three times after the refusal | The same refusal each time: no RADIUS write, no release, no new event after the first. |
+| 6 | Ambiguous external state + unknown prior password | Refused with `PRIOR_SECRET_UNRESTORABLE`; the RADIUS password stays the activation's, never a random value. |
+
+The reconciliation tests A–I stay green.
 
 **Invariants checked after every test:**
 - `FinanceInvariants` (ledger / wallet / reservation conservation);
@@ -269,7 +293,9 @@ See `docs/WP5A_ACTIVATION_MODEL.md` §10:
 6. **Disconnect scope.** Disconnect on CHANGE_PLAN / REACTIVATE is best effort; RENEW does not disconnect. No real NAS was tested (WP8).
 7. **Pre-WP4 PPPoE rows** keyed by `username` remain.
 8. **Plan group rows are not rolled back.** They are shared plan configuration. Reconcile still requires them to match exactly before it settles or releases, so a foreign plan edit leaves the activation ambiguous, with the funds held.
-9. **Password re-keying on rollback.** Used when the captured prior password is not one of the customer's own current passwords, for example after a suspension.
+9. **Unrestorable prior secret.** When the captured prior password is not exactly one of the customer's own current passwords (set directly in RADIUS, a suspension value, or a password changed since), rollback is refused: ROLLBACK_PENDING with `PRIOR_SECRET_UNRESTORABLE` and the funds held.
+   - The digest is only a verifier and cannot reconstruct the value.
+   - There is no automatic exit until an operator acts, or until a future owner-approved secure recovery mechanism is designed (no encryption or schema change in WP5A).
 10. **Activations without a captured state.** These are activations that reached provisioning before fix round 1. They are always ambiguous when never verified, and rollback refuses them with the funds held. They exist only in development databases.
 11. **Catalog under the tree lock.** The catalog resolves each candidate plan under the global tree lock: correct but serialized (WP9).
 12. **Ambiguous activations hold reseller credit until an operator acts.** There is no automatic path out, by design; WP6B adds the views.
@@ -305,21 +331,29 @@ Not touched. No real NAS, RADIUS server or MikroTik was contacted. Everything ra
    - **The accepted `RouteMatrixTest` was not changed.**
 3. **`c0302b61`.** Every leg is clean: 594 / 45903 per engine, route matrix 1462 / 1174 / 288. This is the commit the owner reviewed as candidate `608260d9`, with evidence.
 4. **Owner review of `608260d9`.** Three product issues were found (§N). They are fixed in `39ba63be` and `c00eb868`. Focused runs on both engines were clean, and the new tests were proven to fail on the previous runtime (§N).
-5. **`c00eb868`.** Every leg is clean (§F).
+5. **`c00eb868`.** Every leg is clean: 613 / 46426 per engine; route matrix 1465 / 1178 / 287. This is the commit the owner reviewed as candidate `ca1b12c7`, with evidence.
+6. **Final owner code review of `ca1b12c7`.** One blocker: the rollback re-keyed an unknown prior password (§O). It is fixed in `7e65cb6c` and `06ee8275`. The focused rollback and reconciliation tests (28) are clean on both engines, and the new tests were proven to fail on the previous runtime (§O).
+7. **`06ee8275`.** Final canonical run:
+   - MariaDB is clean in both the plain and the testdox runs; the MySQL testdox run is clean; the route matrix, lint and registry are clean.
+   - The MySQL **plain** leg had 3 errors, all in the accepted WP3B `PlanDeleteGuardTest`, all `RuntimeException: no CSRF token on admin: 404 … The requested resource /?_route=admin was not found`.
+   - This is the known `AppServer` port-reuse harness flake (classified in the WP3B report §L.1 and seen in WP4 on `AppSurfaceTest`): a stopped `php -S` server's orphaned worker answers on a reused random port. The class does not involve activation code.
+   - The class then passed 3/3 in isolation on MySQL, and a clean rerun of the complete MySQL plain leg passed (618 / 46587, exit 0).
+   - The harness is not patched; that needs owner approval.
 
 ### Shared host (AVAIA)
-The final canonical run took place 07:53–09:27 UTC, with 477 host samples and 79 AVAIA samples.
+The final canonical run took place 09:47–11:09 UTC, with 427 host samples and 71 AVAIA samples. The MySQL rerun followed at 11:12–11:38.
 
 | Metric | Value |
 |---|---|
-| Host load1 | max 13.12, mean 6.70 |
-| CPU | max 67 %, mean 25 % |
-| MemAvailable | min 38352 MiB |
-| Swap used | flat 581 MiB for the whole run (the run did not add swap) |
+| Host load1 | max 8.37, mean 5.07 |
+| CPU | max 46 %, mean 21 % |
+| MemAvailable | min 39355 MiB |
+| Swap used | flat 577–582 MiB |
 
 **Containers:**
-- The 21 non-nuxbill containers are the same set before and after the run.
-- Every AVAIA service was `Up` in every sample, except the three one-shot containers that were `Exited (0)` before the run and throughout it: `avaia-v3-minio-init`, and `gracious_chaplygin` / `hopeful_lederberg` (owner-created `avaia-v3-prod-api` one-offs).
+- Every AVAIA service was `Up` in every sample, except `avaia-v3-minio-init` and the owner one-offs `gracious_chaplygin` / `hopeful_lederberg` (`Exited (0)` throughout, present before the run).
+- **Observed and not touched:** the owner's tooling started new `avaia-v3-prod-api:4a86d886…` one-off containers during the run. `tender_liskov` was seen once as `Created` at 10:41 and was gone later. `elegant_swartz` was created at 11:07:42 and was `Up (unhealthy)` afterwards.
+- These have no compose project and are not related to this work. They are reported for the owner's information only.
 
 **Isolation:**
 - Only the `nuxbill-reseller-test` compose project and one-shot `nuxbill-reseller-test-*` containers were used.
@@ -327,7 +361,7 @@ The final canonical run took place 07:53–09:27 UTC, with 477 host samples and 
 - Nothing was left behind.
 
 ### Harness
-- Neither known flake occurred in the final run: the `CliOnlyTest` healthcheck race and the `AppServer` port reuse.
+- The known `AppServer` port-reuse flake occurred once, in the final run's MySQL plain leg (item 7 above); the isolated reruns and the full leg rerun were clean. The other known flake, the `CliOnlyTest` healthcheck race, did not occur. A harness fix (terminate the server's process group, or check the server identity at start) remains an owner decision.
 - The harness is unchanged, apart from the WP5A test-support additions listed in §C.
 
 ## N. Owner fix round 1 (decisions "WP5A FIX REQUIRED")
@@ -366,6 +400,27 @@ The final canonical run took place 07:53–09:27 UTC, with 477 host samples and 
 
 On the fixed runtime all four pass (§F).
 
+## O. Final owner code review (decision "FINAL OWNER CODE REVIEW — WP5A FIX REQUIRED")
+
+**Finding on the reviewed candidate `ca1b12c7`.** `restorePrior()` resolved the prior `Cleartext-Password` from its digest against `customer.password` / `customer.pppoe_password`. When neither matched, it wrote a new random password and verified that new state. It then released the reservation and reported ROLLED_BACK. That is not an exact restoration: a previously working subscriber could be disabled while the activation reported "rolled back, nothing charged".
+
+**Correction (`7e65cb6c`):**
+
+| Owner requirement | Implementation |
+|---|---|
+| Validate before writing | `ReconciliationService::restorePlan()` resolves every row to write, every prior password included, **before** `RadiusProvisioner::restore()` and before any state change other than the refusal record. |
+| Unknown prior secret | `PRIOR_SECRET_UNRESTORABLE` (a new `DomainError` reason with an operator message). RADIUS is not modified, the reservation is not released, the activation is (or stays) ROLLBACK_PENDING, and there is no ledger movement or legacy finalization. The refusal is recorded once (event plus error columns). A repeated rollback re-checks, writes nothing and records nothing new. A missing capture is handled the same way (`PRIOR_STATE_NOT_CAPTURED`). |
+| Known password | The exact plaintext of `customer.password` or `customer.pppoe_password`, matched with `hash_equals` against the digest. After the restore RADIUS is read back. Release and ROLLED_BACK happen **only** if the complete subscriber projection (`RadiusState::sameSubscriber`) equals the captured prior projection; otherwise `ROLLBACK_VERIFY_MISMATCH`, ROLLBACK_PENDING, funds held. |
+| No prior password | The exact absence is restored; nothing is invented. |
+| Digest | It remains a verifier only and is documented as insufficient by itself for exact rollback. No encryption, new secret, schema change or migration. |
+| Operator surface | The view page shows that the exact prior authentication state cannot be restored automatically, that RADIUS was not changed and that the reservation remains held. The CLI prints `refused: PRIOR_SECRET_UNRESTORABLE …` (exit 2). |
+
+**Proof on the previous runtime.** The new tests were run on MySQL with `system/` and `ui/` from `ca1b12c7`; the worktree was restored afterwards:
+- `testUnknownPriorPasswordIsRefusedBeforeAnyWrite` → `expected PRIOR_SECRET_UNRESTORABLE: attempt 1`: the old rollback succeeded.
+- `testAmbiguousStateWithUnknownPriorPasswordStaysUntouched` → the same.
+
+Both pass on the fixed runtime (§F).
+
 ## M. Final state
 
-`STOPPED_WAITING_OWNER_REVIEW`: `WP5A_FIX_COMPLETE_PUSHED_WAITING_OWNER_CODE_REVIEW`. WP5B has not started.
+`STOPPED_WAITING_OWNER_REVIEW`: `WP5A_EXACT_ROLLBACK_FIXED_WAITING_OWNER_FINAL_REVIEW`. WP5B has not started.

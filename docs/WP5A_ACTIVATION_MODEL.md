@@ -133,13 +133,18 @@ In-flight states are reconciled only when stale (default 300 s), so a running re
 
 | Command | Effect |
 |---|---|
-| `rollback` | An explicit operator decision, from RECONCILIATION_REQUIRED (ambiguous included) or VERIFIED. The captured prior subscriber rows are restored exactly (`RadiusProvisioner::restore`) and verified by read-back; **only then** is the reservation released → ROLLED_BACK. An uncertain or failed restore stays ROLLBACK_PENDING with the reservation held, and can be repeated. Password handling is described below. |
+| `rollback` | An explicit operator decision, from RECONCILIATION_REQUIRED (ambiguous included), VERIFIED or ROLLBACK_PENDING. **Exact rollback is automatic only when every required prior managed secret can be reconstructed** (rules below).<br>• Every value the restore needs is resolved **before** any RADIUS write. If a prior secret cannot be reconstructed: **ROLLBACK_PENDING + `PRIOR_SECRET_UNRESTORABLE`**, RADIUS untouched, reservation held, no ledger movement, no legacy rows (`PRIOR_STATE_NOT_CAPTURED` likewise). Repeating it changes and records nothing new.<br>• Otherwise the captured prior subscriber rows are written exactly (`RadiusProvisioner::restore`) and read back. Only when the complete subscriber projection equals the captured prior projection is the reservation released → ROLLED_BACK.<br>• An uncertain or failed restore stays ROLLBACK_PENDING with the reservation held, and can be repeated. |
 | `cancel` | FUNDS_RESERVED or RETRY_PENDING (nothing provisioned) → released → CANCELLED. |
 | `resume` | Continues from FUNDS_RESERVED, RETRY_PENDING or VERIFIED. |
 | `stale` | A report only. |
 
 **Rollback details:**
-- **Password:** the captured password is a digest. It is restored when it equals one of the customer's own passwords; otherwise the access is re-keyed to an unguessable value, and the event records `password: restored|rekeyed`.
+- **Password.** The captured password is only a salted digest: a **verifier**. It proves whether a known candidate matches, but it cannot reconstruct an unknown password, so it is not sufficient by itself for an exact rollback.
+  - A prior `Cleartext-Password` row is restored only when it equals, exactly, `customer.password` or `customer.pppoe_password`.
+  - Otherwise the rollback fails closed (`PRIOR_SECRET_UNRESTORABLE`). No value is ever invented, randomised or re-keyed.
+  - A prior state without a password row is restored as exactly that absence.
+  - The ROLLED_BACK event records `password: restored|none`.
+  - No encryption, new secret or schema change is introduced; a secure recovery mechanism can be designed separately.
 - **Plan group rows** are plan configuration shared by every subscriber of the plan, so rollback does not revert them.
 
 **Operator surfaces:**
@@ -216,6 +221,7 @@ In-flight states are reconciled only when stale (default 300 s), so a running re
 7. **Pre-WP4 PPPoE rows.** RADIUS rows keyed by `username` for PPPoE customers (WP4 residual 1) are not cleaned by WP5A.
 8. **Plan group rows are not rolled back.** Rollback restores the subscriber's rows exactly. The plan group's rows are shared plan configuration and stay as the plan defines them.
    - Reconcile still requires them to match exactly, for both the target and the prior state, before it settles or releases. A foreign plan edit between provisioning and reconcile therefore leaves the activation ambiguous, with the funds held.
-9. **Password re-keying.** When the captured prior password is not one of the customer's own current passwords (for example, an earlier suspension), rollback re-keys the access to an unguessable value instead of re-enabling an unprovable one.
+9. **Unrestorable prior secret.** The captured prior password may not be one of the customer's own current passwords: for example a password set directly in RADIUS, a suspended (random) password, or a customer password changed since the activation started. Rollback then stays ROLLBACK_PENDING with `PRIOR_SECRET_UNRESTORABLE` and the funds held.
+   - The approved state machine has no automatic exit from ROLLBACK_PENDING other than a verified restore. Such an activation needs operator review, and a future owner-approved recovery mechanism (for example encrypted secret capture) to resolve automatically.
 10. **Activations without a captured state.** Activations that reached provisioning before fix round 1 have no captured state. A never-verified one of these is always ambiguous, and rollback refuses `PRIOR_STATE_NOT_CAPTURED` with the funds held. None exists outside development databases.
 11. **Catalog under the tree lock.** The catalog resolves each candidate plan under the global tree lock. This is correct but serialized; WP9 measures it.

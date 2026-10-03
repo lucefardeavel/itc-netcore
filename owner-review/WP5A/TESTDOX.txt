@@ -1,5 +1,5 @@
-Code under test: wp5a/activation-core at c00eb868 (owner fix round 1; reviewed candidate 608260d9; base feat/reseller-system-v1 0c080a7a = WP4 accepted 58e3e458 + owner metadata); PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 (test containers)
-Both legs and registry: dev/test/run-tests.sh --testdox, 2026-10-03 08:31-09:17 UTC (exit 0).
+Code under test: wp5a/activation-core at 06ee8275 (exact-rollback fix; reviewed candidates 608260d9 and ca1b12c7; base feat/reseller-system-v1 0c080a7a = WP4 accepted 58e3e458 + owner metadata); PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 (test containers)
+Both legs and registry: dev/test/run-tests.sh --testdox, 2026-10-03 10:25-11:04 UTC (exit 0).
  Image nuxbill-reseller-test-php82 Building 
  Image nuxbill-reseller-test-php82 Built 
 ================ engine: mariadb ================
@@ -9,18 +9,18 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 613 ( 10%)
-............................................................... 126 / 613 ( 20%)
-............................................................... 189 / 613 ( 30%)
-............................................................... 252 / 613 ( 41%)
-............................................................... 315 / 613 ( 51%)
-............................................................... 378 / 613 ( 61%)
-............................................................... 441 / 613 ( 71%)
-............................................................... 504 / 613 ( 82%)
-............................................................... 567 / 613 ( 92%)
-..............................................                  613 / 613 (100%)
+...............................................................  63 / 618 ( 10%)
+............................................................... 126 / 618 ( 20%)
+............................................................... 189 / 618 ( 30%)
+............................................................... 252 / 618 ( 40%)
+............................................................... 315 / 618 ( 50%)
+............................................................... 378 / 618 ( 61%)
+............................................................... 441 / 618 ( 71%)
+............................................................... 504 / 618 ( 81%)
+............................................................... 567 / 618 ( 91%)
+...................................................             618 / 618 (100%)
 
-Time: 11:47.217, Memory: 44.00 MB
+Time: 13:02.554, Memory: 44.00 MB
 
 Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
  ✔ Owner sales and admin may activate on the owners wallet
@@ -90,6 +90,11 @@ Activation Reconciliation (Reseller\Tests\Integration\Wp5a\ActivationReconciliat
  ✔ Unverified foreign state is ambiguous and holds the funds
  ✔ Rollback from the ambiguous state restores and releases once
  ✔ Uncertain rollback keeps the funds held
+ ✔ Rollback restores the customer password exactly
+ ✔ Rollback restores the pppoe password exactly
+ ✔ Unknown prior password is refused before any write
+ ✔ Prior without password restores the absence
+ ✔ Ambiguous state with unknown prior password stays untouched
  ✔ Capture is durable and holds no secret
  ✔ Unreadable radius never starts provisioning
 
@@ -823,7 +828,7 @@ Wholesale (Reseller\Tests\Integration\Wp3b\Wholesale)
  ✔ Pre existing violation from a move
  ✔ Deep chain and frozen policy
 
-OK (613 tests, 46426 assertions)
+OK (618 tests, 46587 assertions)
 ================ engine: mysql ================
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
@@ -831,18 +836,18 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 613 ( 10%)
-............................................................... 126 / 613 ( 20%)
-............................................................... 189 / 613 ( 30%)
-............................................................... 252 / 613 ( 41%)
-............................................................... 315 / 613 ( 51%)
-............................................................... 378 / 613 ( 61%)
-............................................................... 441 / 613 ( 71%)
-............................................................... 504 / 613 ( 82%)
-............................................................... 567 / 613 ( 92%)
-..............................................                  613 / 613 (100%)
+...............................................................  63 / 618 ( 10%)
+............................................................... 126 / 618 ( 20%)
+............................................................... 189 / 618 ( 30%)
+............................................................... 252 / 618 ( 40%)
+............................................................... 315 / 618 ( 50%)
+............................................................... 378 / 618 ( 61%)
+............................................................... 441 / 618 ( 71%)
+............................................................... 504 / 618 ( 81%)
+............................................................... 567 / 618 ( 91%)
+...................................................             618 / 618 (100%)
 
-Time: 32:31.288, Memory: 44.00 MB
+Time: 24:34.722, Memory: 44.00 MB
 
 Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
  ✔ Owner sales and admin may activate on the owners wallet
@@ -912,6 +917,11 @@ Activation Reconciliation (Reseller\Tests\Integration\Wp5a\ActivationReconciliat
  ✔ Unverified foreign state is ambiguous and holds the funds
  ✔ Rollback from the ambiguous state restores and releases once
  ✔ Uncertain rollback keeps the funds held
+ ✔ Rollback restores the customer password exactly
+ ✔ Rollback restores the pppoe password exactly
+ ✔ Unknown prior password is refused before any write
+ ✔ Prior without password restores the absence
+ ✔ Ambiguous state with unknown prior password stays untouched
  ✔ Capture is durable and holds no secret
  ✔ Unreadable radius never starts provisioning
 
@@ -1645,7 +1655,7 @@ Wholesale (Reseller\Tests\Integration\Wp3b\Wholesale)
  ✔ Pre existing violation from a move
  ✔ Deep chain and frozen policy
 
-OK (613 tests, 46426 assertions)
+OK (618 tests, 46587 assertions)
 ================ variant registry reproducibility ================
 variant registry matches freshly built fixtures
   mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
