@@ -27,7 +27,7 @@ final class SourceGuardTest extends TestCase
         // WP5A (owner decision A7): the activation routes
         'system/autoload/Reseller/Security/RouteMap.php' => '21f46e168fd1fb8d58058adff16cb9767ec3f750415bde2e97f41169bd9de770',
         'system/autoload/Reseller/Domain/Tx.php' => '223cfb618ee7372c615bb93f37c86db4da739d47e2da03692f976bf3b2cbccc6',
-        'system/autoload/Balance.php' => '143cad4966e580de20a3f575144f347d55f20b36501f482da7dc764443e011ae',
+        'system/autoload/Balance.php' => '9652370fcc1d7ca370ff9061c4631fa34531f2049a5da9c0b9b8601ab00c57ae',
         // WP4 (owner decision Q5): the device calls in rechargeUser run after the recharge row is saved
         'system/autoload/Package.php' => 'e4225dd06c4e4b5e555f141f8319f9a2575c4d7461f96ff30dc52b35f1f36346',
         // accepted WP1 migration runner

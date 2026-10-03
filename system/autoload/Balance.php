@@ -12,9 +12,10 @@ class Balance
 
     public static function plus($id_customer, $amount)
     {
-        $c = ORM::for_table('tbl_customers')->where('id', $id_customer)->find_one();
-        $c->balance = $amount + $c['balance'];
-        $c->save();
+        // WP5B §14 (owner-approved): one atomic relative update, never an absolute write-back of a stale
+        // read, so a concurrent locked debit is never lost
+        $st = ORM::get_db()->prepare('UPDATE tbl_customers SET balance = balance + ? WHERE id = ?');
+        $st->execute([$amount, $id_customer]);
     }
 
     public static function transfer($id_customer, $phoneTarget, $amount)
@@ -35,32 +36,49 @@ class Balance
 
     public static function min($id_customer, $amount)
     {
-        $c = ORM::for_table('tbl_customers')->where('id', $id_customer)->find_one();
-        $c->balance = $c['balance'] - $amount;
-        $c->save();
+        // WP5B §14: atomic relative update (the legacy no-floor semantics are unchanged)
+        $st = ORM::get_db()->prepare('UPDATE tbl_customers SET balance = balance - ? WHERE id = ?');
+        $st->execute([$amount, $id_customer]);
         return true;
     }
 
     public static function plusByPhone($phone_customer, $amount)
     {
-        $c = ORM::for_table('tbl_customers')->where('username', $phone_customer)->find_one();
-        if ($c) {
-            $c->balance = $amount + $c['balance'];
-            $c->save();
-            return true;
+        // WP5B §14: tbl_customers.username is not unique: exactly one row (the lowest id, as the legacy
+        // find_one) is resolved, then updated by id, atomically and relatively
+        $id = self::idByUsername($phone_customer);
+        if ($id === null) {
+            return false;
         }
-        return false;
+        $st = ORM::get_db()->prepare('UPDATE tbl_customers SET balance = balance + ? WHERE id = ?');
+        $st->execute([$amount, $id]);
+        return true;
     }
 
     public static function minByPhone($phone_customer, $amount)
     {
-        $c = ORM::for_table('tbl_customers')->where('username', $phone_customer)->find_one();
-        if ($c && $c['balance'] >= $amount) {
-            $c->balance = $c['balance'] - $amount;
-            $c->save();
-            return true;
-        } else {
+        // WP5B §14: one row by id; the floor is checked by the same atomic statement
+        $id = self::idByUsername($phone_customer);
+        if ($id === null) {
             return false;
         }
+        $db = ORM::get_db();
+        $st = $db->prepare('UPDATE tbl_customers SET balance = balance - ? WHERE id = ? AND balance >= ?');
+        $st->execute([$amount, $id, $amount]);
+        if ($st->rowCount() > 0) {
+            return true;
+        }
+        // a zero amount changes no row: the legacy result is whether the balance covers it
+        $chk = $db->prepare('SELECT balance >= ? FROM tbl_customers WHERE id = ?');
+        $chk->execute([$amount, $id]);
+        return (float) $amount == 0 && (string) $chk->fetchColumn() === '1';
+    }
+
+    private static function idByUsername($username)
+    {
+        $st = ORM::get_db()->prepare('SELECT id FROM tbl_customers WHERE username = ? ORDER BY id LIMIT 1');
+        $st->execute([$username]);
+        $id = $st->fetchColumn();
+        return $id === false ? null : (int) $id;
     }
 }
