@@ -245,7 +245,7 @@ final class ActivationService
         }
         [$start, $expiry] = ServicePeriod::compute($action, $plan, $action === 'RENEW' ? $current : null, $now, self::dayExp($pdo, $customerId, $plan));
         $snap = PricingService::resolveInTx($pdo, $manager, $planId);
-        if ($preview !== null && !$preview->matches(ActivationPreviewService::material($customerId, $planId, $manager, $action, $current, $plan, $snap, self::dayExp($pdo, $customerId, $plan)))) {
+        if ($preview !== null && !$preview->matches(ActivationPreviewService::material($customerId, $planId, $manager, $action, $current, $snap, self::dayExp($pdo, $customerId, $plan), ActivationPreviewService::serviceTerms($pdo, $snap)))) {
             throw new DomainError('ACTIVATION_PREVIEW_CHANGED'); // WP6A OD-B: nothing written (no row, reservation or provisioning)
         }
         $utcNow = Tx::utcNow();
