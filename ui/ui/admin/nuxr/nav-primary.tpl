@@ -4,7 +4,7 @@
     {foreach $_nav.primary as $p}
         <li>
             {if isset($p.sheet)}
-                <button type="button" class="nuxr-primary-item{if $p.sheet eq 'quick'} nuxr-primary-quick{/if}" data-nuxr-open="nuxr-{$p.sheet}-sheet" aria-haspopup="dialog">
+                <button type="button" class="nuxr-primary-item{if $p.sheet eq 'quick'} nuxr-primary-quick{/if}" data-nuxr-open="nuxr-{$p.sheet|escape}-sheet" aria-haspopup="dialog">
                     <i class="fa {$p.icon}" aria-hidden="true"></i><span>{Lang::T($p.label)}</span>
                 </button>
             {else}

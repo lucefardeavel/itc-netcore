@@ -99,7 +99,7 @@
             <dl class="nuxr-kv">
                 <div><dt>{Lang::T('Plan')}</dt><dd>{$q.plan_name|escape}</dd></div>
                 <div><dt>{Lang::T('Current expiry')}</dt><dd>{if $q.current_expiry}<bdi dir="ltr">{$q.current_expiry|escape}</bdi>{else}-{/if}</dd></div>
-                <div><dt>{Lang::T('New period')}</dt><dd><bdi dir="ltr">{$q.start|escape}</bdi> → <bdi dir="ltr">{$q.expiry|escape}</bdi></dd></div>
+                <div><dt>{Lang::T('New period')}</dt><dd><bdi dir="ltr">{$q.start|escape} → {$q.expiry|escape}</bdi></dd></div>
                 {if $q.full && $q.payer}<div><dt>{Lang::T('Paid from the wallet of')}</dt><dd><bdi dir="ltr">{$q.payer|escape}</bdi></dd></div>{/if}
             </dl>
             <div class="nuxr-money-grid" style="margin-top:14px">

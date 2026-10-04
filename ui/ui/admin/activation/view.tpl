@@ -19,7 +19,7 @@
         <div class="nuxr-card-body" style="border-top:1px solid var(--nx-border)">
             <ol class="nuxr-stepper" aria-label="{Lang::T('Progress')}" style="margin:0">
                 {foreach $nuxr_progress as $s}
-                    <li class="is-{$s.state}"{if $s.state eq 'current'} aria-current="step"{/if}>{Lang::T($s.label)}{if $s.state eq 'failed'} <span class="sr-only">({Lang::T('stopped')})</span>{/if}</li>
+                    <li class="is-{$s.state|escape}"{if $s.state eq 'current'} aria-current="step"{/if}>{Lang::T($s.label)}{if $s.state eq 'failed'} <span class="sr-only">({Lang::T('stopped')})</span>{/if}</li>
                 {/foreach}
             </ol>
         </div>
@@ -72,7 +72,7 @@
             <dl class="nuxr-kv">
                 <div><dt>{Lang::T('Subscriber')}</dt><dd><a href="{Text::url('customers/view/', $a.customer_id)}">{$a.customer_fullname|escape}</a><br><bdi dir="ltr" class="nuxr-muted">{$a.customer_username|escape}</bdi></dd></div>
                 <div><dt>{Lang::T('Plan')}</dt><dd>{$a.plan_name|escape}</dd></div>
-                {if $a.period_expiry}<div><dt>{Lang::T('Service period')}</dt><dd><bdi dir="ltr">{$a.period_start|escape}</bdi> → <bdi dir="ltr">{$a.period_expiry|escape}</bdi></dd></div>{/if}
+                {if $a.period_expiry}<div><dt>{Lang::T('Service period')}</dt><dd><bdi dir="ltr">{$a.period_start|escape} → {$a.period_expiry|escape}</bdi></dd></div>{/if}
                 {if $a.manager_username}<div><dt>{Lang::T('Paid by (reseller)')}</dt><dd><bdi dir="ltr">{$a.manager_username|escape}</bdi></dd></div>{/if}
                 {if $a.actor_username}<div><dt>{Lang::T('Requested by')}</dt><dd><bdi dir="ltr">{$a.actor_username|escape}</bdi></dd></div>{/if}
                 {if $a.legacy_invoice}<div><dt>{Lang::T('Invoice')}</dt><dd><bdi dir="ltr" class="nuxr-mono">{$a.legacy_invoice|escape}</bdi></dd></div>{/if}

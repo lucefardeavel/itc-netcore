@@ -10,7 +10,7 @@
 </div>
 <nav class="nuxr-filters" aria-label="{Lang::T('Filter activations')}">
     {foreach ['' => 'All', 'processing' => 'Processing', 'attention' => 'Needs attention', 'completed' => 'Completed', 'failed' => 'Failed / cancelled', 'reversed' => 'Reversed'] as $g => $label}
-        <a class="nuxr-chip{if $nuxr_group eq $g} is-active{/if}" href="{Text::url('activation/list')}{if $g}&group={$g}{/if}"{if $nuxr_group eq $g} aria-current="page"{/if}>{Lang::T($label)}</a>
+        <a class="nuxr-chip{if $nuxr_group eq $g} is-active{/if}" href="{Text::url('activation/list')}{if $g}&group={$g|escape:'url'}{/if}"{if $nuxr_group eq $g} aria-current="page"{/if}>{Lang::T($label)}</a>
     {/foreach}
 </nav>
 <section class="nuxr-card">
