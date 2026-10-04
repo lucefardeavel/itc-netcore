@@ -506,10 +506,10 @@ switch ($action) {
                 }
 
                 $plan['price'] -= $discount;
-                $coupon->usage_count = $coupon['usage_count'] + 1;
-                $coupon->save();
-                // WP5B §7 (SEC-14): the buy step uses only this server-validated discount, never a posted one
-                $_SESSION['wp5b_coupon_discount'][(int) $plan['id']] = $discount;
+                // WP5B fix round 1 (blocker 5): a preview only. No use is consumed here and no amount is kept as
+                // authority: the buy step re-resolves this coupon code and consumes one use atomically with the
+                // payment row (CouponAuthority::buy); a posted discount is never read
+                $_SESSION['wp5b_coupon'][(int) $plan['id']] = (string) $coupon['code'];
 
                 $ui->assign('discount', $discount);
                 $ui->assign('notify', Lang::T("Coupon applied successfully. You saved " . Lang::moneyFormat($discount)));
@@ -555,9 +555,11 @@ switch ($action) {
         // WP2 / OD-11 (E10): refused before any payment is started
         \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'orderBuy', 'order/package');
         $gateway = _post('gateway');
-        // WP5B §7 (SEC-14): a posted discount is ignored; only the coupon validated on the gateway page counts
-        $discount = (float) ($_SESSION['wp5b_coupon_discount'][(int) $routes['3']] ?? 0);
-        unset($_SESSION['wp5b_coupon_discount'][(int) $routes['3']]);
+        // WP5B §7 (SEC-14) / fix round 1 (blocker 5): a posted discount is ignored; the coupon previewed on the gateway
+        // page is re-resolved and consumed at the payment-row boundary below (CouponAuthority::buy)
+        $nuxrCoupon = $_SESSION['wp5b_coupon'][(int) $routes['3']] ?? null;
+        unset($_SESSION['wp5b_coupon'][(int) $routes['3']]);
+        $discount = 0;
         if ($gateway == 'balance') {
             // unreachable since WP5B: a buy with gateway=balance is dispatched to the order/pay code below the
             // switch header (order/pay is POST-only and never reached by a GET redirect)
@@ -673,53 +675,62 @@ switch ($action) {
                     $tax = Package::tax($plan['price'], $tax_rate);
                 }
                 // Tax calculation stop
-                if (empty($id)) {
-                    $d = ORM::for_table('tbl_payment_gateway')->create();
-                    $d->username = $user['username'];
-                    $d->user_id = $user['id'];
-                    $d->gateway = $gateway;
-                    $d->plan_id = $plan['id'];
-                    $d->plan_name = $plan['name_plan'];
-                    $d->routers_id = $router['id'];
-                    $d->routers = $router['name'];
-                    if ($plan['validity_unit'] == 'Period') {
-                        // Postpaid price from field
-                        $add_inv = User::getAttribute("Invoice", $id_customer);
-                        if (empty($add_inv) or $add_inv == 0) {
-                            $d->price = $plan['price'] + $add_cost + $tax - $discount;
+                // WP5B fix round 1 (blocker 5): the coupon is re-fetched, re-validated and one use consumed in the SAME
+                // transaction that writes the payment row; an invalid or exhausted coupon writes nothing
+                try {
+                    \Reseller\Domain\CouponAuthority::buy($nuxrCoupon, $plan['price'], (string) $plan['routers'], function ($nuxrDiscount) use (&$d, &$id, &$discount, $plan, $router, $gateway, $user, $add_cost, $tax, $id_customer): void {
+                        $discount = $nuxrDiscount;
+                        if (empty($id)) {
+                            $d = ORM::for_table('tbl_payment_gateway')->create();
+                            $d->username = $user['username'];
+                            $d->user_id = $user['id'];
+                            $d->gateway = $gateway;
+                            $d->plan_id = $plan['id'];
+                            $d->plan_name = $plan['name_plan'];
+                            $d->routers_id = $router['id'];
+                            $d->routers = $router['name'];
+                            if ($plan['validity_unit'] == 'Period') {
+                                // Postpaid price from field
+                                $add_inv = User::getAttribute("Invoice", $id_customer);
+                                if (empty($add_inv) or $add_inv == 0) {
+                                    $d->price = $plan['price'] + $add_cost + $tax - $discount;
+                                } else {
+                                    $d->price = $add_inv + $add_cost + $tax - $discount;
+                                }
+                            } else {
+                                $d->price = $plan['price'] + $add_cost + $tax - $discount;
+                            }
+                            $d->created_date = date('Y-m-d H:i:s');
+                            $d->status = 1;
+                            $d->save();
+                            $id = $d->id();
                         } else {
-                            $d->price = $add_inv + $add_cost + $tax - $discount;
+                            $d->username = $user['username'];
+                            $d->user_id = $user['id'];
+                            $d->gateway = $gateway;
+                            $d->plan_id = $plan['id'];
+                            $d->plan_name = $plan['name_plan'];
+                            $d->routers_id = $router['id'];
+                            $d->routers = $router['name'];
+                            if ($plan['validity_unit'] == 'Period') {
+                                // Postpaid price from field
+                                $add_inv = User::getAttribute("Invoice", $id_customer);
+                                if (empty($add_inv) or $add_inv == 0) {
+                                    $d->price = ($plan['price'] + $add_cost + $tax - $discount);
+                                } else {
+                                    $d->price = ($add_inv + $add_cost + $tax - $discount);
+                                }
+                            } else {
+                                $d->price = ($plan['price'] + $add_cost + $tax - $discount);
+                            }
+                            //$d->price = ($plan['price'] + $add_cost);
+                            $d->created_date = date('Y-m-d H:i:s');
+                            $d->status = 1;
+                            $d->save();
                         }
-                    } else {
-                        $d->price = $plan['price'] + $add_cost + $tax - $discount;
-                    }
-                    $d->created_date = date('Y-m-d H:i:s');
-                    $d->status = 1;
-                    $d->save();
-                    $id = $d->id();
-                } else {
-                    $d->username = $user['username'];
-                    $d->user_id = $user['id'];
-                    $d->gateway = $gateway;
-                    $d->plan_id = $plan['id'];
-                    $d->plan_name = $plan['name_plan'];
-                    $d->routers_id = $router['id'];
-                    $d->routers = $router['name'];
-                    if ($plan['validity_unit'] == 'Period') {
-                        // Postpaid price from field
-                        $add_inv = User::getAttribute("Invoice", $id_customer);
-                        if (empty($add_inv) or $add_inv == 0) {
-                            $d->price = ($plan['price'] + $add_cost + $tax - $discount);
-                        } else {
-                            $d->price = ($add_inv + $add_cost + $tax - $discount);
-                        }
-                    } else {
-                        $d->price = ($plan['price'] + $add_cost + $tax - $discount);
-                    }
-                    //$d->price = ($plan['price'] + $add_cost);
-                    $d->created_date = date('Y-m-d H:i:s');
-                    $d->status = 1;
-                    $d->save();
+                    });
+                } catch (\Reseller\Domain\DomainError $e) {
+                    r2(getUrl('order/gateway/') . $routes[2] . '/' . $routes[3], 'e', Lang::T($e->getMessage()) . ' ' . Lang::T('Nothing was charged.'));
                 }
                 break;
         }

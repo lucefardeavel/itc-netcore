@@ -34,7 +34,7 @@ PHP;
         }
         file_put_contents(static::$app->dir . '/system/Balance.php', "<?php echo 'BALANCE_PSEUDO_GATEWAY_INCLUDED';");
         $db = static::$db;
-        foreach (['payment_gateway' => 'wp5bpay,Balance,unlisted_missing', 'enable_coupons' => ''] as $k => $v) {
+        foreach (['payment_gateway' => 'wp5bpay,Balance,unlisted_missing', 'enable_coupons' => '1'] as $k => $v) {
             if ((int) $db->value('SELECT COUNT(*) FROM tbl_appconfig WHERE setting = ?', [$k]) === 0) {
                 $db->insertRow('tbl_appconfig', ['setting' => $k, 'value' => $v]);
             } else {
@@ -116,5 +116,84 @@ PHP;
             . '$result = array_map(fn($n) => \Reseller\Domain\PaymentGatewayResolver::resolve($n, $cfg, $d) === null ? null : basename(\Reseller\Domain\PaymentGatewayResolver::resolve($n, $cfg, $d)),'
             . ' ["wp5bpay", "Balance", "balance", "unlisted", "unlisted_missing", "../wp5bpay", "wp5bpay\0", 5, null]);');
         $this->assertSame(['wp5bpay.php', null, null, null, null, null, null, null, null], $res);
+    }
+
+    // ---- fix round 1, blocker 5: the coupon is server-authoritative at BUY time ----
+
+    private function coupon(array $over = []): array
+    {
+        $code = 'W5BC' . strtoupper(bin2hex(random_bytes(4)));
+        $id = static::$db->insertRow('tbl_coupons', $over + ['code' => $code, 'type' => 'fixed', 'value' => '100', 'description' => 'wp5b', 'max_usage' => 5,
+            'usage_count' => 0, 'status' => 'active', 'min_order_amount' => '0', 'max_discount_amount' => '0', 'start_date' => gmdate('Y-m-d', time() - 86400),
+            'end_date' => gmdate('Y-m-d', time() + 86400 * 5)]);
+        return [$id, $code];
+    }
+
+    private function usage(int $id): int
+    {
+        return (int) static::$db->value('SELECT usage_count FROM tbl_coupons WHERE id = ?', [$id]);
+    }
+
+    /** Preview on the gateway page, then (optionally) change the coupon, then buy; returns the new payment rows. */
+    private function previewThenBuy(string $code, ?callable $between = null): array
+    {
+        static::$db->pdo->prepare('DELETE FROM tbl_payment_gateway WHERE user_id = ? AND status = 1')->execute([$this->cid('cNULL')]);
+        $c = $this->customer('cNULL');
+        $plan = static::$seed->planId;
+        $c->postWithToken('order/gateway/0/' . $plan, ['coupon' => $code], [], 'order/package');
+        if ($between !== null) {
+            $between();
+        }
+        $before = (int) static::$db->value('SELECT COALESCE(MAX(id), 0) FROM tbl_payment_gateway');
+        $c->postWithToken('order/buy/0/' . $plan, ['gateway' => 'wp5bpay', 'discount' => '999'], [], 'order/package');
+        return static::$db->rows('SELECT id, price, status FROM tbl_payment_gateway WHERE id > ? AND user_id = ?', [$before, $this->cid('cNULL')]);
+    }
+
+    public function testAValidCouponIsConsumedOnceWithThePaymentRow(): void
+    {
+        [$id, $code] = $this->coupon();
+        $rows = $this->previewThenBuy($code);
+        $this->assertCount(1, $rows);
+        $this->assertSame(900.0, (float) $rows[0]['price'], 'the server-derived discount, never the posted one');
+        $this->assertSame(1, $this->usage($id), 'consumed at buy, not at preview');
+    }
+
+    /** @return array<string,array{0:string}> */
+    public static function staleCoupons(): array
+    {
+        return [
+            'A: disabled before buy' => ["UPDATE tbl_coupons SET status = 'inactive' WHERE id = ?"],
+            'B: expired before buy' => ['UPDATE tbl_coupons SET end_date = DATE_SUB(CURDATE(), INTERVAL 2 DAY), start_date = DATE_SUB(CURDATE(), INTERVAL 9 DAY) WHERE id = ?'],
+            'C: exhausted before buy' => ['UPDATE tbl_coupons SET usage_count = max_usage WHERE id = ?'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('staleCoupons')]
+    public function testAStaleCouponNeverDiscounts(string $sql): void
+    {
+        [$id, $code] = $this->coupon();
+        $usage = null;
+        $rows = $this->previewThenBuy($code, function () use ($sql, $id, &$usage): void {
+            static::$db->pdo->prepare($sql)->execute([$id]);
+            $usage = $this->usage($id);
+        });
+        $this->assertSame([], array_filter($rows, static fn(array $r): bool => (float) $r['price'] < 1000.0), 'no stale discount');
+        $this->assertSame($usage, $this->usage($id), 'no use consumed');
+    }
+
+    public function testConcurrentBuysCannotBothConsumeTheLastUse(): void
+    {
+        for ($round = 1; $round <= 4; $round++) {
+            [$id, $code] = $this->coupon(['max_usage' => 3, 'usage_count' => 2]);
+            $h = [];
+            foreach ([1, 2] as $i) {
+                $h[] = static::$app->execStart(sprintf('try { $result = \Reseller\Domain\CouponAuthority::buy(%s, "1000", "wp2_router", function ($d) { usleep(200000); return (string) $d; }); } catch (\Reseller\Domain\DomainError $e) { $result = $e->reason; }',
+                    var_export($code, true)));
+            }
+            $out = array_map(static fn(array $x) => static::$app->execFinish($x), $h);
+            sort($out);
+            $this->assertSame(['100', 'COUPON_INVALID'], $out, "round {$round}: at most one gets the discount");
+            $this->assertSame(3, $this->usage($id), "round {$round}: never above max_usage");
+        }
     }
 }
