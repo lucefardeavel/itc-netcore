@@ -1,55 +1,56 @@
-WP6A — PHPUnit testdox, candidate e21ff68778dde4763e4f58c0372be5641ed9bd4a (implementation HEAD 4722fd53 adds CSS / JS / template markup only; see REPORT.md §F)
-Canonical run: dev/test/run-tests.sh --testdox (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers), 2026-10-04T14:23Z – 15:29Z
-Result: MariaDB OK (812 tests, 51284 assertions); MySQL OK (812 tests, 51284 assertions); 1624 passed, 0 failed; variant registry matches freshly built fixtures
+WP6A — PHPUnit testdox, fix round 1 implementation HEAD f71e239f09b6288e83ecdf2753407c8badfdc339
+Canonical run: dev/test/run-tests.sh --testdox (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers), 2026-10-04T17:26Z – 18:39Z
+Result: MariaDB OK (828 tests, 51576 assertions); MySQL OK (828 tests, 51579 assertions); 1656 passed, 0 failed; variant registry matches freshly built fixtures
 
  Network nuxbill-reseller-test_default Creating 
  Network nuxbill-reseller-test_default Creating 
  Network nuxbill-reseller-test_default Created 
  Network nuxbill-reseller-test_default Created 
- Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
  Container nuxbill-reseller-test-mysql-1 Creating 
  Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
  Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
- Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
  Container nuxbill-reseller-test-freeradius-mysql-1 Created 
- Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
  Container nuxbill-reseller-test-mysql-1 Created 
- Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Created 
  Container nuxbill-reseller-test-mariadb-1 Starting 
  Container nuxbill-reseller-test-mysql-1 Starting 
  Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
- Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
  Container nuxbill-reseller-test-mariadb-1 Started 
  Container nuxbill-reseller-test-mysql-1 Started 
  Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
  Image nuxbill-reseller-test-php82 Building 
  Image nuxbill-reseller-test-php82 Built 
 ================ engine: mariadb ================
- Container nuxbill-reseller-test-php82-run-bebe73858384 Creating 
- Container nuxbill-reseller-test-php82-run-bebe73858384 Created 
+ Container nuxbill-reseller-test-php82-run-052ec8771c61 Creating 
+ Container nuxbill-reseller-test-php82-run-052ec8771c61 Created 
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
- Container nuxbill-reseller-test-php82-run-722ac4d3c0b0 Creating 
- Container nuxbill-reseller-test-php82-run-722ac4d3c0b0 Created 
+ Container nuxbill-reseller-test-php82-run-ece16aacb33f Creating 
+ Container nuxbill-reseller-test-php82-run-ece16aacb33f Created 
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 812 (  7%)
-............................................................... 126 / 812 ( 15%)
-............................................................... 189 / 812 ( 23%)
-............................................................... 252 / 812 ( 31%)
-............................................................... 315 / 812 ( 38%)
-............................................................... 378 / 812 ( 46%)
-............................................................... 441 / 812 ( 54%)
-............................................................... 504 / 812 ( 62%)
-............................................................... 567 / 812 ( 69%)
-............................................................... 630 / 812 ( 77%)
-............................................................... 693 / 812 ( 85%)
-............................................................... 756 / 812 ( 93%)
-........................................................        812 / 812 (100%)
+...............................................................  63 / 828 (  7%)
+............................................................... 126 / 828 ( 15%)
+............................................................... 189 / 828 ( 22%)
+............................................................... 252 / 828 ( 30%)
+............................................................... 315 / 828 ( 38%)
+............................................................... 378 / 828 ( 45%)
+............................................................... 441 / 828 ( 53%)
+............................................................... 504 / 828 ( 60%)
+............................................................... 567 / 828 ( 68%)
+............................................................... 630 / 828 ( 76%)
+............................................................... 693 / 828 ( 83%)
+............................................................... 756 / 828 ( 91%)
+............................................................... 819 / 828 ( 98%)
+.........                                                       828 / 828 (100%)
 
-Time: 22:14.499, Memory: 52.00 MB
+Time: 22:04.639, Memory: 52.00 MB
 
 Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
  ✔ Owner sales and admin may activate on the owners wallet
@@ -111,6 +112,22 @@ Activation Preview (Reseller\Tests\Integration\Wp6a\ActivationPreview)
  ✔ Missing forged or foreign fingerprints are refused
  ✔ Replay returns the same activation whatever changed later
  ✔ Insufficient credit is a yes no for sales
+ ✔ A changed plan service term refuses the old quote with data set "id_bw"
+ ✔ A changed plan service term refuses the old quote with data set "typebp"
+ ✔ A changed plan service term refuses the old quote with data set "limit_type"
+ ✔ A changed plan service term refuses the old quote with data set "time_limit"
+ ✔ A changed plan service term refuses the old quote with data set "time_unit"
+ ✔ A changed plan service term refuses the old quote with data set "data_limit"
+ ✔ A changed plan service term refuses the old quote with data set "data_unit"
+ ✔ A changed plan service term refuses the old quote with data set "shared_users"
+ ✔ A changed plan service term refuses the old quote with data set "pool"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_up"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_up_unit"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_down"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_down_unit"
+ ✔ A changed bandwidth rate refuses the old quote with data set "burst"
+ ✔ Presentation only renames keep the quote
+ ✔ Every service term the policy consumes is bound
 
 Activation Race (Reseller\Tests\Integration\Wp5a\ActivationRace)
  ✔ Double submit with the same key is one activation
@@ -1099,33 +1116,34 @@ Wp6a Source Guard (Reseller\Tests\Unit\Wp6a\Wp6aSourceGuard)
  ✔ Activation flow never shows the legacy plan price
  ✔ Ui helpers stay outside finance and translation stays local
 
-OK (812 tests, 51284 assertions)
+OK (828 tests, 51576 assertions)
 ================ engine: mysql ================
- Container nuxbill-reseller-test-php82-run-42837514fb35 Creating 
- Container nuxbill-reseller-test-php82-run-42837514fb35 Created 
+ Container nuxbill-reseller-test-php82-run-1c3f2ab8c44f Creating 
+ Container nuxbill-reseller-test-php82-run-1c3f2ab8c44f Created 
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
- Container nuxbill-reseller-test-php82-run-eb2f27ec0d03 Creating 
- Container nuxbill-reseller-test-php82-run-eb2f27ec0d03 Created 
+ Container nuxbill-reseller-test-php82-run-75ebe3e59bba Creating 
+ Container nuxbill-reseller-test-php82-run-75ebe3e59bba Created 
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 812 (  7%)
-............................................................... 126 / 812 ( 15%)
-............................................................... 189 / 812 ( 23%)
-............................................................... 252 / 812 ( 31%)
-............................................................... 315 / 812 ( 38%)
-............................................................... 378 / 812 ( 46%)
-............................................................... 441 / 812 ( 54%)
-............................................................... 504 / 812 ( 62%)
-............................................................... 567 / 812 ( 69%)
-............................................................... 630 / 812 ( 77%)
-............................................................... 693 / 812 ( 85%)
-............................................................... 756 / 812 ( 93%)
-........................................................        812 / 812 (100%)
+...............................................................  63 / 828 (  7%)
+............................................................... 126 / 828 ( 15%)
+............................................................... 189 / 828 ( 22%)
+............................................................... 252 / 828 ( 30%)
+............................................................... 315 / 828 ( 38%)
+............................................................... 378 / 828 ( 45%)
+............................................................... 441 / 828 ( 53%)
+............................................................... 504 / 828 ( 60%)
+............................................................... 567 / 828 ( 68%)
+............................................................... 630 / 828 ( 76%)
+............................................................... 693 / 828 ( 83%)
+............................................................... 756 / 828 ( 91%)
+............................................................... 819 / 828 ( 98%)
+.........                                                       828 / 828 (100%)
 
-Time: 42:54.630, Memory: 52.00 MB
+Time: 49:15.741, Memory: 52.00 MB
 
 Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
  ✔ Owner sales and admin may activate on the owners wallet
@@ -1187,6 +1205,22 @@ Activation Preview (Reseller\Tests\Integration\Wp6a\ActivationPreview)
  ✔ Missing forged or foreign fingerprints are refused
  ✔ Replay returns the same activation whatever changed later
  ✔ Insufficient credit is a yes no for sales
+ ✔ A changed plan service term refuses the old quote with data set "id_bw"
+ ✔ A changed plan service term refuses the old quote with data set "typebp"
+ ✔ A changed plan service term refuses the old quote with data set "limit_type"
+ ✔ A changed plan service term refuses the old quote with data set "time_limit"
+ ✔ A changed plan service term refuses the old quote with data set "time_unit"
+ ✔ A changed plan service term refuses the old quote with data set "data_limit"
+ ✔ A changed plan service term refuses the old quote with data set "data_unit"
+ ✔ A changed plan service term refuses the old quote with data set "shared_users"
+ ✔ A changed plan service term refuses the old quote with data set "pool"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_up"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_up_unit"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_down"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_down_unit"
+ ✔ A changed bandwidth rate refuses the old quote with data set "burst"
+ ✔ Presentation only renames keep the quote
+ ✔ Every service term the policy consumes is bound
 
 Activation Race (Reseller\Tests\Integration\Wp5a\ActivationRace)
  ✔ Double submit with the same key is one activation
@@ -2175,10 +2209,10 @@ Wp6a Source Guard (Reseller\Tests\Unit\Wp6a\Wp6aSourceGuard)
  ✔ Activation flow never shows the legacy plan price
  ✔ Ui helpers stay outside finance and translation stays local
 
-OK (812 tests, 51284 assertions)
+OK (828 tests, 51579 assertions)
 ================ variant registry reproducibility ================
- Container nuxbill-reseller-test-php82-run-30187970ac96 Creating 
- Container nuxbill-reseller-test-php82-run-30187970ac96 Created 
+ Container nuxbill-reseller-test-php82-run-2c907f159598 Creating 
+ Container nuxbill-reseller-test-php82-run-2c907f159598 Created 
 variant registry matches freshly built fixtures
   mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
   mariadb V2_FRESH_INSTALL_UPDATED on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
@@ -2187,7 +2221,7 @@ variant registry matches freshly built fixtures
   mysql V2_FRESH_INSTALL_UPDATED on 8.0.46: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
   mysql V3_LONGLIVED_2023_UPDATED on 8.0.46: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
 
-real	66m16.107s
-user	0m7.296s
-sys	0m11.330s
+real	72m53.904s
+user	0m9.108s
+sys	0m13.429s
 exit=0

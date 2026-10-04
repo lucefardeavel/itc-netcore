@@ -1,8 +1,8 @@
 # WP6A — Adaptive Shell and Subscriber UX — Owner review report
 
-**Status: IMPLEMENTED_NOT_ACCEPTED**, waiting for the owner's code review. Final state: `WP6A_IMPLEMENTATION_COMPLETE_PUSHED_WAITING_OWNER_CODE_REVIEW`.
+**Status: IMPLEMENTED_NOT_ACCEPTED** — fix round 1 applied ("WP6A OWNER CODE REVIEW VERDICT: FIX_REQUIRED", one blocker: the preview fingerprint did not bind the material service terms), waiting for the owner's review. Final state: `STOPPED_WAITING_OWNER_REVIEW` (fix round 1).
 
-Model: `docs/WP6A_UX_MODEL.md`. Test evidence: `owner-review/WP6A/TESTDOX.txt`. Visual evidence: `owner-review/WP6A/VISUAL_QA.md` and `owner-review/WP6A/visual/`.
+Model: `docs/WP6A_UX_MODEL.md`. Test evidence: `owner-review/WP6A/TESTDOX.txt` (final run on the fix-round-1 HEAD). Blocker reproduction on the reviewed implementation: `owner-review/WP6A/FIX_ROUND_1_REPRODUCTION.txt`. Visual evidence: `owner-review/WP6A/VISUAL_QA.md` and `owner-review/WP6A/visual/`.
 
 Plan: `WP6A_PLAN.md`, accepted by "OWNER REVIEW — WP6A PLAN ACCEPTED WITH DECISIONS / IMPLEMENTATION GO" (decisions OD-A … OD-L).
 
@@ -13,8 +13,9 @@ Plan: `WP6A_PLAN.md`, accepted by "OWNER REVIEW — WP6A PLAN ACCEPTED WITH DECI
 | Accepted prior head (base) | `feat/reseller-system-v1` = `f806a6186ee1ff2b6037e4af702245a59113c9da` (WP5B acceptance recorded) |
 | Branch | `wp6a/adaptive-shell-subscriber-ux` from `f806a618` (linear, no squash, nothing reset) |
 | Full-validation candidate | `e21ff68778dde4763e4f58c0372be5641ed9bd4a` |
-| Implementation HEAD | `4722fd53`: the visual-QA fix on top of the candidate (CSS / JS / template markup only, §F) |
-| Evidence HEAD | the evidence commit `docs(wp6a): model, owner-review report, testdox, curated visual QA` (its SHA is in the final response) |
+| Reviewed implementation (owner code review) | `4722fd53`, evidence `9812ad7b` — FIX_REQUIRED (one blocker, §C1) |
+| Implementation HEAD (fix round 1, validated) | `f71e239f09b6288e83ecdf2753407c8badfdc339` |
+| Evidence HEAD | the evidence commit `docs(wp6a): fix round 1 — reproduction, report, testdox` (its SHA is in the final response) |
 | Worktree | clean apart from the ignored `tests/vendor/` |
 | `main` / `feat` | untouched: `main` = `500d3a2d`, `feat/reseller-system-v1` = `f806a618` |
 
@@ -33,6 +34,8 @@ All commits are authored `ALI HENDI <ali.hahuba3@gmail.com>` and carry the `Co-A
 | `85e0d564` | Slice 7: scoped dashboard foundation (OD-L) |
 | `e21ff687` | Slice 8: Arabic catalog (OD-F), adaptive staff login, WP6A source guards |
 | `4722fd53` | Candidate visual-QA fix: link contrast, search listbox semantics, card-head touch size |
+| `9812ad7b` | docs(wp6a): model, owner-review report, testdox, curated visual QA (first evidence) |
+| `f71e239f` | Fix round 1: bind the material service terms in the activation preview |
 
 Scope by owner decision:
 
@@ -51,6 +54,56 @@ Scope by owner decision:
 | OD-L | Dashboard foundation in the actor's scope, with a 7-day expiring threshold. No finance figures. |
 
 Search covers username, full name, phone, PPPoE username, IP (prefix and open RADIUS sessions), email, `#id` and numeric id. It is Arabic-safe, server-side, applied after `DataScope`, and bounded (2–64 characters; 8 typeahead results; paginated list).
+
+## C1. Fix round 1 (owner code review of `4722fd53`)
+
+**Blocker:** the activation-preview fingerprint did not bind the full material service terms (OD-B).
+
+**Root cause.** `ActivationPreviewService::material()` (version 1) bound:
+- customer, plan id, payer, action;
+- wholesale and retail;
+- the current recharge;
+- from the plan, only `type`, `validity`, `validity_unit` and the expired day.
+
+`ActivationService::open()` re-derived exactly that, so the following could change between review and confirmation and the old fingerprint still matched:
+- every other service-affecting plan column (`id_bw`, `typebp`, `limit_type`, `time_limit` / `time_unit`, `data_limit` / `data_unit`, `shared_users`, `pool`, …);
+- the plan's live bandwidth row, which `RadiusPolicyBuilder` turns into the RADIUS rate policy (`rate_up` / `rate_up_unit`, `rate_down` / `rate_down_unit`, `burst`).
+
+The confirmation then sealed and provisioned terms the operator never reviewed.
+
+**Reproduction** (`FIX_ROUND_1_REPRODUCTION.txt`). The regression tests were added first and run against the unchanged runtime code of the reviewed implementation:
+- **MariaDB 14 / 14 and MySQL 14 / 14** service-term cases failed with `expected refusal ACTIVATION_PREVIEW_CHANGED`: the stale confirm executed. The cases are 9 plan columns and 5 bandwidth rate fields.
+- The 7 earlier preview tests and the rename test passed.
+
+**Fix** (`f71e239f`: `ActivationPreviewService.php`, one call in `ActivationService::open()`, tests). No schema, no WP5A / WP5B semantic change, API / CLI unchanged.
+- `ActivationPreviewService::serviceTerms(\PDO, PricingSnapshot)` builds the canonical service terms from authoritative state in the caller's transaction:
+  - the plan snapshot the activation seals (`PricingSnapshot::planJson`, the same canonical text), minus the presentation-only `name_plan` and raw `price` (the effective retail stays bound on its own). A snapshot column added later is bound by default.
+  - the `RATE_COLUMNS` of the plan's bandwidth row.
+- `material()` version 2 includes them. The preview and `open()` derive them identically. A version-1 fingerprint is refused (fail closed: an open confirmation page is simply re-reviewed).
+
+**Regression tests** (`ActivationPreviewTest`, +16 test cases):
+- `testAChangedPlanServiceTermRefusesTheOldQuote`, one case per column: `id_bw`, `typebp`, `limit_type`, `time_limit`, `time_unit`, `data_limit`, `data_unit`, `shared_users`, `pool`.
+- `testAChangedBandwidthRateRefusesTheOldQuote`, one case per field: `rate_up`, `rate_up_unit`, `rate_down`, `rate_down_unit`, `burst`.
+
+  For each of those cases, with action, wholesale, retail and validity unchanged:
+  - the confirm is refused with `ACTIVATION_PREVIEW_CHANGED`;
+  - no activation, reservation, ledger, wallet-balance, `tbl_user_recharges`, `tbl_transactions`, `radcheck`, `radreply` or `radgroupreply` change, and the checksum of every table is unchanged;
+  - a fresh quote yields a new fingerprint.
+- `testPresentationOnlyRenamesKeepTheQuote`: plan / bandwidth renames still confirm.
+- `testEveryServiceTermThePolicyConsumesIsBound`: drift guard over the keys read by `RadiusPolicyBuilder` and `ServicePeriod`.
+- Kept green:
+  - unchanged terms confirm;
+  - wholesale / retail / period changes are refused;
+  - Sales sees only retail + credit-sufficient;
+  - forged / foreign fingerprints are refused;
+  - replay;
+  - the web flow (`ActivationHttpTest`, `ActivationUxTest`).
+
+**Focused regression** (`wp6a-unit`, `wp6a-integration`, `wp5a-unit`, `wp5a-integration`, `wp5b-unit`, `wp5b-integration`): **MariaDB OK (220 tests, 5 919 assertions); MySQL OK (220 tests, 5 919 assertions)**.
+
+**Rendered output is unchanged** (only the hidden fingerprint value differs), so the curated visual suite was not repeated (owner instruction).
+
+**Residual (documented).** The plan terms are sealed in the activation row. The bandwidth row is read live again at provisioning (accepted WP5A design). A bandwidth edit committed in the seconds between the confirm transaction and provisioning is therefore applied, as for every activation. Sealing it would need a schema change.
 
 ## C. Files changed
 
@@ -135,9 +188,25 @@ Search covers username, full name, phone, PPPoE username, IP (prefix and open RA
 
 ## F. Test commands and exact results
 
+**Final canonical full validation (fix round 1), on the implementation HEAD `f71e239f09b6288e83ecdf2753407c8badfdc339`.** This is the second and final full run under the owner's cadence. Dev host, isolated compose project `nuxbill-reseller-test` only (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers), 2026-10-04T17:26Z – 18:45Z.
+
+| Check | Result |
+|---|---|
+| `dev/test/run-tests.sh --testdox` | MariaDB **OK (828 tests, 51 576 assertions)**; MySQL **OK (828 tests, 51 579 assertions)**; **1656 ✔, 0 ✘** (`TESTDOX.txt`); exit 0 (72 m 54 s; race tests take one of two valid branches, hence the small assertion difference). The +16 over the first candidate are the fix-round-1 regression cases. |
+| Variant registry reproducibility | matches freshly built fixtures |
+| Route matrix | **1477 requests / 1185 denials / 292 allowed**, identical on both engines; unchanged from the first candidate (RouteMap untouched by the fix) |
+| PHP 8.2 lint | 456 / 456 |
+| Manifest | 42 / 42 |
+| R0001–R0007 | byte-identical |
+| Untouched since `f806a618` | `Package.php`, `Balance.php`, `Tx.php`, `ServiceGate.php`, `RadiusPolicyBuilder.php`, the runner, migrations, `install/radius.sql` |
+| Secret sweep | `git diff f806a618..f71e239f` clean |
+| Shared host | observe-only sampler: max load 10.17, min MemAvailable 40 398 MiB. The AVAIA container set (23 names, Up / Exited) is identical before and after, and no container was created during the run. No AVAIA container was touched. Test containers were removed. |
+
+### First candidate validation (`e21ff687`, history)
+
 **Focused, per slice** (owner cadence; `devloop.sh run <engine> …`, isolated `nuxbill-reseller-test` project): read model + preview 9/9; activation HTTP and guards; `wp5a-integration` 55/55; `wp2-http` 104/104; search 3/3; 360 4/4; create 3/3; activation UX 4/4; dashboard 2/2; guards (`Wp6a|ActivationReversal|LegacyEntrypointClosure|SourceGuard`) 84/84. All green, and new tests were also run on MySQL before each commit.
 
-**One canonical full validation, on the first complete candidate `e21ff687`.** Dev host, isolated compose project `nuxbill-reseller-test` only (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers), 2026-10-04T14:23Z – 15:37Z.
+**First canonical full validation, on the first complete candidate `e21ff687`.** Dev host, isolated compose project `nuxbill-reseller-test` only (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers), 2026-10-04T14:23Z – 15:37Z.
 
 | Check | Result |
 |---|---|
@@ -158,7 +227,7 @@ That delta came from the curated visual QA and was covered by:
 - `node --check` on `nuxr-shell.js`;
 - the final curated visual QA pass.
 
-Under the owner's cadence (at most two full runs), the second full run is kept for a possible owner-fix round.
+Under the owner's cadence (at most two full runs), the second full run was kept for the owner-fix round (above).
 
 **Curated visual QA, once, on the candidate** (`VISUAL_QA.md`). 18 screenshots across desktop / phone, Arabic RTL, and Admin / Agent / Sales / Report, plus 3 tablet probes.
 - First pass on `e21ff687`: axe `color-contrast` (links), `link-in-text-block` (footer) and `aria-required-children` (search box). These were fixed in `4722fd53`.
@@ -213,6 +282,7 @@ Totals: **1477 / 1185 / 292**. The full list behaviour is covered by `Activation
 | R-11 | Bulk-select row checkboxes (desktop / tablet table) and the labelled welcome-message checkbox are below the 44 px shell target. They meet WCAG 2.5.8 through its spacing exception. |
 | R-12 | Lab fixture plugins ("WP2 Probe / Fail …") appear in the lab navigation. They are test fixtures and do not ship. |
 | R-13 | The preview fingerprint binds the web confirm only. API / CLI callers keep the accepted WP5A behaviour (re-derivation without a binding). |
+| R-15 | Fix round 1: the bandwidth row is bound at confirm time but read live again at provisioning (accepted WP5A design). An edit in the seconds between the confirm transaction and provisioning is applied; sealing it would need a schema change. |
 | R-14 | The harness flakes are known and unchanged: the AppServer port-reuse flake and the CliOnlyTest healthcheck race. Neither occurred in this run. |
 
 **Stop conditions:** none encountered. No schema, no business-semantics change, no new mutation or capability, no framework, no pinned-file change beyond the authorized RouteMap, and the staleness guarantee did not require WP5A transaction changes.
@@ -223,13 +293,14 @@ Not deployed. No production system or AVAIA container was touched.
 
 ## K. Push status
 
-Only `wp6a/adaptive-shell-subscriber-ux` is pushed (normal, non-force). `feat/reseller-system-v1` (`f806a618`) and `main` (`500d3a2d`) are untouched. No PR, merge, tag or deploy. WP6B and WP7 are not started.
+Only `wp6a/adaptive-shell-subscriber-ux` is pushed (normal, non-force), including fix round 1. `feat/reseller-system-v1` (`f806a618`) and `main` (`500d3a2d`) are untouched. No PR, merge, tag or deploy. WP6B and WP7 are not started.
 
 ## L. Owner-review artifact path
 
 `owner-review/WP6A/`:
 - `REPORT.md`
 - `TESTDOX.txt`
+- `FIX_ROUND_1_REPRODUCTION.txt`
 - `VISUAL_QA.md`
 - `visual/`: 18 PNG, `visualqa-final.json`, `visualqa-found-e21ff687.json`, `visualqa-tablet.json`, `visualqa.py`
 
@@ -237,4 +308,4 @@ Only `wp6a/adaptive-shell-subscriber-ux` is pushed (normal, non-force). `feat/re
 
 ## M. Final state
 
-`STOPPED_WAITING_OWNER_REVIEW`, reported as `WP6A_IMPLEMENTATION_COMPLETE_PUSHED_WAITING_OWNER_CODE_REVIEW`.
+`STOPPED_WAITING_OWNER_REVIEW` (fix round 1 complete and pushed; waiting for the owner's review).

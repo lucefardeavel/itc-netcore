@@ -50,16 +50,30 @@ manager tables, no INSERT / UPDATE / DELETE / `->save()` / `->delete()`.
    pricing snapshot exactly as the activation would seal it and reads the paying owner's locked available credit.
 2. Visibility: G and the paying Agent (S) see wholesale, retail, available credit before / after, current and new expiry,
    the paying owner. Sales (A) sees customer, plan, action, expiries, retail and **"credit sufficient: yes / no"** only.
-3. The quote carries `fingerprint = HMAC-SHA256(per-session key, material)`. Material = `{v, customer, plan, payer, action,
-   wholesale, retail, current recharge (id, plan_id, expiration, time, status), plan type / validity / unit, expired day}`.
-   Wall-clock time and the available credit are deliberately excluded (the reservation re-checks credit authoritatively).
+3. The quote carries `fingerprint = HMAC-SHA256(per-session key, material)`. Material (version 2, fix round 1) =
+   `{v, customer, plan, payer, action, wholesale, retail, current recharge (id, plan_id, expiration, time, status), expired
+   day, service terms}`. The service terms (`ActivationPreviewService::serviceTerms`) are
+   - the plan snapshot the activation seals (`PricingSnapshot::planJson`, same canonical text, same transaction) without
+     the presentation-only `name_plan` and raw `price` (the effective retail is bound on its own): `id_bw`, `type`,
+     `typebp`, `limit_type`, time / data limit and unit, `validity` / `validity_unit`, `shared_users`, `routers`,
+     `is_radius`, `pool`, `plan_expired`, `expired_date`, `enabled`, `prepaid`, `plan_type`, `device`. A column added to the
+     snapshot later is bound by default;
+   - the rate fields of the plan's live bandwidth row that `RadiusPolicyBuilder` turns into the RADIUS policy:
+     `rate_up`, `rate_up_unit`, `rate_down`, `rate_down_unit`, `burst` (`RATE_COLUMNS`; null when the plan has none).
+   A drift-guard test fails if `RadiusPolicyBuilder` or `ServicePeriod` ever consumes a plan / bandwidth field that is not
+   bound. Wall-clock time and the available credit are deliberately excluded (the reservation re-checks credit
+   authoritatively). A version-1 fingerprint never matches (fail closed).
    The key is `$_SESSION['nuxr_activation_preview_key']` (64 hex, server-side, never rendered).
 4. The web confirm (`activation/create-post`) posts `preview`; `ActivationService::create(..., PreviewBinding)` re-derives
    the material inside `open()` — after the authoritative `resolveInTx`, before the activation INSERT, the reservation, any
    wallet change, provisioning or legacy write — and fails closed with **`ACTIVATION_PREVIEW_CHANGED`** on any difference
    or a missing / malformed fingerprint. The user is sent back to a fresh confirmation for the same customer and plan.
-5. WP5A transaction semantics are unchanged: the check is one extra comparison inside the existing transaction; callers
-   without a binding (API, CLI, tests) behave exactly as before. No schema.
+5. WP5A transaction semantics are unchanged: the check is one extra comparison (plus one bandwidth row read) inside the
+   existing transaction; callers without a binding (API, CLI, tests) behave exactly as before. No schema.
+6. Limit: the plan terms are sealed in the activation row; the bandwidth row is read live again at provisioning (accepted
+   WP5A design: "sealed plan, live customer and bandwidth"). A bandwidth edit committed in the short window between the
+   confirm transaction and provisioning is therefore applied, as for every activation; WP6A cannot seal it without a
+   schema change.
 
 ## 4. Search
 

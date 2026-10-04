@@ -243,6 +243,8 @@ In-flight states are reconciled only when stale (default 300 s), so a running re
   seals) returns a role-filtered quote and an HMAC fingerprint of the material quote. `ActivationService::create` takes an
   optional `PreviewBinding`; `open()` compares it after `resolveInTx` and before the activation INSERT and refuses with the
   new `DomainError` **`ACTIVATION_PREVIEW_CHANGED`** (nothing written: no activation, reservation, wallet, provisioning or
-  legacy row). Without a binding (API, CLI) the behaviour is unchanged. New public helpers `payerOf()` and `expiredDay()`
+  legacy row). The material includes the service terms (WP6A fix round 1): the sealed plan snapshot minus
+  `name_plan` / `price`, and the RADIUS rate fields of the plan's bandwidth row. Without a binding (API, CLI) the
+  behaviour is unchanged. New public helpers `payerOf()` and `expiredDay()`
   wrap the existing private logic. No state, edge, transaction or schema change. Details: `docs/WP6A_UX_MODEL.md` §2–§3.
 - Route (OD-C): `activation/list` `GET` → `activation.read` (web only).

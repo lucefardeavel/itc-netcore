@@ -1,0 +1,164 @@
+WP6A fix round 1 — blocker reproduction on the reviewed implementation 4722fd53 (evidence head 9812ad7b), runtime code unchanged,
+with only the new regression tests added to tests/Integration/Wp6a/ActivationPreviewTest.php.
+Command: tests/vendor/bin/phpunit -c tests/phpunit.xml --filter ActivationPreviewTest (php82 harness image, isolated nuxbill-reseller-test project)
+Expected on the defective code: every service-term case fails with 'expected refusal ACTIVATION_PREVIEW_CHANGED' (the stale confirm executed).
+
+================ engine: mariadb ================
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......FFFFFFFFFFFFFF.                                             21 / 21 (100%)
+Time: 00:22.381, Memory: 24.00 MB
+There were 14 failures:
+1) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "id_bw" ('id_bw', '@other')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+2) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "typebp" ('typebp', 'IF(typebp = 'Limited', 'Unlim...ited')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+3) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "limit_type" ('limit_type', 'IF(limit_type = 'Data_Limit',...imit')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+4) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "time_limit" ('time_limit', 'COALESCE(time_limit, 0) + 7')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+5) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "time_unit" ('time_unit', 'IF(time_unit = 'Mins', 'Hrs', 'Mins')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+6) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "data_limit" ('data_limit', 'COALESCE(data_limit, 0) + 9')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+7) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "data_unit" ('data_unit', 'IF(data_unit = 'MB', 'GB', 'MB')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+8) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "shared_users" ('shared_users', 'COALESCE(shared_users, 1) + 2')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+9) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "pool" ('pool', 'CONCAT(COALESCE(pool, ''), 'x')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+10) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote with data set "rate_up" ('rate_up = rate_up + 1')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:229
+11) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote with data set "rate_up_unit" ('rate_up_unit = IF(rate_up_uni...Kbps')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:229
+12) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote with data set "rate_down" ('rate_down = rate_down + 1')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:229
+13) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote with data set "rate_down_unit" ('rate_down_unit = IF(rate_down...Kbps')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:229
+14) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote with data set "burst" ('burst = '20M/10M 15M/8M 16/16'')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:229
+FAILURES!
+Tests: 21, Assertions: 290, Failures: 14.
+
+================ engine: mysql ================
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......FFFFFFFFFFFFFF.                                             21 / 21 (100%)
+Time: 00:31.274, Memory: 24.00 MB
+There were 14 failures:
+1) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "id_bw" ('id_bw', '@other')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+2) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "typebp" ('typebp', 'IF(typebp = 'Limited', 'Unlim...ited')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+3) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "limit_type" ('limit_type', 'IF(limit_type = 'Data_Limit',...imit')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+4) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "time_limit" ('time_limit', 'COALESCE(time_limit, 0) + 7')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+5) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "time_unit" ('time_unit', 'IF(time_unit = 'Mins', 'Hrs', 'Mins')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+6) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "data_limit" ('data_limit', 'COALESCE(data_limit, 0) + 9')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+7) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "data_unit" ('data_unit', 'IF(data_unit = 'MB', 'GB', 'MB')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+8) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "shared_users" ('shared_users', 'COALESCE(shared_users, 1) + 2')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+9) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote with data set "pool" ('pool', 'CONCAT(COALESCE(pool, ''), 'x')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:201
+10) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote with data set "rate_up" ('rate_up = rate_up + 1')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:229
+11) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote with data set "rate_up_unit" ('rate_up_unit = IF(rate_up_uni...Kbps')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:229
+12) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote with data set "rate_down" ('rate_down = rate_down + 1')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:229
+13) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote with data set "rate_down_unit" ('rate_down_unit = IF(rate_down...Kbps')')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:229
+14) Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote with data set "burst" ('burst = '20M/10M 15M/8M 16/16'')
+expected refusal ACTIVATION_PREVIEW_CHANGED
+/repo/tests/Support/FinanceTestCase.php:178
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:164
+/repo/tests/Integration/Wp6a/ActivationPreviewTest.php:229
+FAILURES!
+Tests: 21, Assertions: 290, Failures: 14.
