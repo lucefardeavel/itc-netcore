@@ -1,0 +1,129 @@
+/*
+ * WP6A (OD-F): hand-written right-to-left compatibility layer for the legacy Bootstrap 3 / AdminLTE pages that
+ * render inside the adaptive shell. Loaded only when the document is dir="rtl". Scoped to the classes the legacy
+ * templates actually use; WP6A screens are RTL-clean through logical properties and do not need it.
+ */
+[dir="rtl"] body {
+    text-align: right;
+}
+
+[dir="rtl"] .pull-right { float: left !important; }
+[dir="rtl"] .pull-left { float: right !important; }
+[dir="rtl"] .text-right { text-align: left !important; }
+[dir="rtl"] .text-left { text-align: right !important; }
+
+[dir="rtl"] [class*="col-xs-"], [dir="rtl"] [class*="col-sm-"], [dir="rtl"] [class*="col-md-"], [dir="rtl"] [class*="col-lg-"] {
+    float: right;
+}
+
+@media (min-width: 768px) {
+    [dir="rtl"] .col-sm-offset-1 { margin-left: 0; margin-right: 8.33333333%; }
+    [dir="rtl"] .col-sm-offset-2 { margin-left: 0; margin-right: 16.66666667%; }
+    [dir="rtl"] .col-sm-offset-3 { margin-left: 0; margin-right: 25%; }
+    [dir="rtl"] .form-horizontal .control-label { text-align: left; }
+}
+
+@media (min-width: 992px) {
+    [dir="rtl"] .col-md-offset-1 { margin-left: 0; margin-right: 8.33333333%; }
+    [dir="rtl"] .col-md-offset-2 { margin-left: 0; margin-right: 16.66666667%; }
+    [dir="rtl"] .col-md-offset-3 { margin-left: 0; margin-right: 25%; }
+}
+
+@media (min-width: 1200px) {
+    [dir="rtl"] .col-lg-offset-9 { margin-left: 0; margin-right: 75%; }
+}
+
+[dir="rtl"] .navbar-nav > li, [dir="rtl"] .nav-tabs > li, [dir="rtl"] .nav-pills > li {
+    float: right;
+}
+
+[dir="rtl"] .nav-tabs > li {
+    margin-right: 0;
+    margin-left: -1px;
+}
+
+[dir="rtl"] .dropdown-menu {
+    right: 0;
+    left: auto;
+    text-align: right;
+}
+
+[dir="rtl"] .dropdown-menu-right {
+    left: 0;
+    right: auto;
+}
+
+[dir="rtl"] .input-group .form-control:first-child,
+[dir="rtl"] .input-group-addon:first-child,
+[dir="rtl"] .input-group-btn:first-child > .btn {
+    border-radius: 0 4px 4px 0;
+}
+
+[dir="rtl"] .input-group .form-control:last-child,
+[dir="rtl"] .input-group-addon:last-child,
+[dir="rtl"] .input-group-btn:last-child > .btn {
+    border-radius: 4px 0 0 4px;
+}
+
+[dir="rtl"] .input-group-addon:first-child {
+    border-right: 1px solid #ccc;
+    border-left: 0;
+}
+
+[dir="rtl"] .input-group-addon:last-child {
+    border-left: 1px solid #ccc;
+    border-right: 0;
+}
+
+[dir="rtl"] .pagination > li {
+    display: inline;
+}
+
+[dir="rtl"] .pagination > li:first-child > a, [dir="rtl"] .pagination > li:first-child > span {
+    border-radius: 0 4px 4px 0;
+    margin-left: -1px;
+}
+
+[dir="rtl"] .pagination > li:last-child > a, [dir="rtl"] .pagination > li:last-child > span {
+    border-radius: 4px 0 0 4px;
+}
+
+[dir="rtl"] .list-group-item > .badge, [dir="rtl"] .list-group-item > .pull-right {
+    float: left !important;
+}
+
+[dir="rtl"] .box-header > .box-tools {
+    right: auto;
+    left: 10px;
+}
+
+[dir="rtl"] .box-header > .fa, [dir="rtl"] .box-header > .glyphicon, [dir="rtl"] .box-header > .ion, [dir="rtl"] .box-header .box-title {
+    float: right;
+}
+
+[dir="rtl"] .checkbox input[type="checkbox"], [dir="rtl"] .radio input[type="radio"] {
+    margin-left: 0;
+    margin-right: -20px;
+}
+
+[dir="rtl"] .checkbox label, [dir="rtl"] .radio label {
+    padding-left: 0;
+    padding-right: 20px;
+}
+
+[dir="rtl"] .table > thead > tr > th, [dir="rtl"] .table > tbody > tr > td, [dir="rtl"] .table th, [dir="rtl"] .table td {
+    text-align: right;
+}
+
+[dir="rtl"] .fa-angle-left, [dir="rtl"] .fa-angle-right, [dir="rtl"] .fa-chevron-left, [dir="rtl"] .fa-chevron-right,
+[dir="rtl"] .fa-arrow-left, [dir="rtl"] .fa-arrow-right, [dir="rtl"] .fa-angle-double-left, [dir="rtl"] .fa-angle-double-right {
+    transform: scaleX(-1);
+}
+
+[dir="rtl"] .select2-container {
+    text-align: right;
+}
+
+[dir="rtl"] .swal2-popup {
+    direction: rtl;
+}

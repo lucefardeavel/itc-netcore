@@ -49,6 +49,10 @@ $ui->assign('_url', APP_URL . '/?_route=');
 $ui->assign('_path', __DIR__);
 $ui->assign('_c', $config);
 $ui->assign('user_language', $config['language']);
+// WP6A (OD-F): document direction / language of the adaptive shell; presentation helpers for templates
+$ui->assign('nuxr_dir', \Reseller\Ui\Format::dir($config['language'] ?? null));
+$ui->assign('nuxr_lang', \Reseller\Ui\Format::iso($config['language'] ?? null));
+$ui->registerClass('NuxrUi', '\\Reseller\\Ui\\Format');
 $ui->assign('UPLOAD_PATH', str_replace($root_path, '',  $UPLOAD_PATH));
 $ui->assign('CACHE_PATH', str_replace($root_path, '',  $CACHE_PATH));
 $ui->assign('PAGES_PATH', str_replace($root_path, '',  $PAGES_PATH));
@@ -165,6 +169,10 @@ try {
         }
         foreach ($menus as $k => $v) {
             $ui->assign('_MENU_' . $k, $v);
+        }
+        // WP6A: the adaptive shell's navigation (presentation only; every route stays authorized by RouteGuard)
+        if ($nuxrActor->isStaff()) {
+            $ui->assign('_nav', \Reseller\Ui\Navigation::for($nuxrActor, $config, $menus, $routes));
         }
         unset($menus, $menu_registered);
         include($sys_render);
