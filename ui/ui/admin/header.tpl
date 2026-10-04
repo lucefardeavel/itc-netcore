@@ -33,7 +33,7 @@
     {/if}
 
     <script src="{$app_url}/ui/ui/scripts/sweetalert2.all.min.js"></script>
-    {if in_array($_routes[0], ['dashboard', 'reports', ''])}
+    {if $_routes[0] eq 'reports' || $nuxr_charts|default:false}
         {* OD-H residual: Chart.js stays a CDN asset, loaded only by the pages that draw charts *}
         <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
     {/if}

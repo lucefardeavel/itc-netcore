@@ -91,7 +91,7 @@ final class Navigation
             ['settings/maintenance', 'Maintenance Mode', 'fa-exclamation-triangle', $admin],
             ['widgets', 'Widgets', 'fa-th-large', $admin],
             ['settings/notifications', 'User Notification', 'fa-bell', $admin],
-            ['settings/devices', 'Devices', 'fa-microchip', $admin],
+            ['settings/devices', 'Devices', 'fa-mobile', $admin],
             ['settings/users', 'Administrator Users', 'fa-user-secret', in_array($role, ['SuperAdmin', 'Admin', 'Agent'], true)],
             ['reseller/tree', 'Reseller Tree', 'fa-sitemap', true],
             ['settings/dbstatus', 'Backup/Restore', 'fa-hdd-o', $admin],

@@ -123,7 +123,7 @@
                             <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">
                                 <strong style="font-size:16px">{$package['namebp']|escape}</strong>
                                 {if $package['status'] neq 'on' || $pdays === null || $pdays < 0}{call name=nuxr_badge tone='danger' label=Lang::T('Expired') icon='fa-clock-o'}
-                                {elseif $pdays <= 7}{call name=nuxr_badge tone='warning' label=Lang::T('Expiring') icon='fa-hourglass-half'}
+                                {elseif $pdays <= 7}{call name=nuxr_badge tone='warning' label=Lang::T('Expiring') icon='fa-exclamation-circle'}
                                 {else}{call name=nuxr_badge tone='success' label=Lang::T('Active')}{/if}
                             </div>
                             <dl class="nuxr-kv" style="margin-top:6px">
@@ -249,7 +249,7 @@
                             {elseif $ds['status']==2}{call name=nuxr_badge tone='success' label=Lang::T('Paid')}
                             {elseif $ds['status']==3}{call name=nuxr_badge tone='danger' label=Lang::T('Failed')}
                             {elseif $ds['status']==4}{call name=nuxr_badge tone='neutral' label=Lang::T('Cancelled')}
-                            {elseif $ds['status']==5}{call name=nuxr_badge tone='warning' label=Lang::T('Held - under review') icon='fa-pause-circle'}{/if}
+                            {elseif $ds['status']==5}{call name=nuxr_badge tone='warning' label=Lang::T('Held - under review') icon='fa-pause'}{/if}
                             <bdi dir="ltr">{Lang::moneyFormat($ds['price'])}</bdi></span></div></li>{/foreach}</ul>
                     {include file="admin/nuxr/pager.tpl"}
                 {else}

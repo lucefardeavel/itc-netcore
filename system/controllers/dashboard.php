@@ -50,6 +50,20 @@ if (in_array($tipeUser, ['SuperAdmin', 'Admin'])) {
 // are rendered only for global scopes. Agent/Sales/Report dashboards get the scope-safe allowlist,
 // which is empty in V1 (scoped widgets are WP6B).
 $nuxrDashboardGlobal = \Reseller\Security\PermissionService::scopeOf(\Reseller\Security\ActorContext::current(), \Reseller\Security\Capability::REPORT_READ) === 'G';
+// WP6A (OD-L, OD-H): the scoped dashboard foundation is the landing view for every role; the legacy global widgets
+// (charts) stay available to global scopes on their own tab, so the landing page loads no chart bundle
+$nuxrWidgetsView = $nuxrDashboardGlobal && _get('widgets') === '1';
+$ui->assign('nuxr_widgets_view', $nuxrWidgetsView);
+$ui->assign('nuxr_widgets_available', $nuxrDashboardGlobal);
+$ui->assign('nuxr_charts', $nuxrWidgetsView);
+if (!$nuxrWidgetsView) {
+    $nuxrActor = \Reseller\Security\ActorContext::current();
+    $ui->assign('nuxr_home', \Reseller\Ui\Dashboard::foundation($nuxrActor));
+    $ui->assign('_title', Lang::T('Dashboard'));
+    run_hook('view_dashboard'); #HOOK
+    $ui->display('admin/dashboard.tpl');
+    return;
+}
 $widgets = $nuxrDashboardGlobal ? ORM::for_table('tbl_widgets')->where("enabled", 1)->where('user', $tipeUser)->order_by_asc("orders")->findArray() : [];
 $count = count($widgets);
 for ($i = 0; $i < $count; $i++) {

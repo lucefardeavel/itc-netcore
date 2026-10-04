@@ -1,5 +1,5 @@
 {* WP6A: activation rows from ActivationReadService (display fields only): table on >= 768px, cards on phone. *}
-<div class="nuxr-table-wrap">
+{if !$nuxr_compact|default:false}<div class="nuxr-table-wrap">
     <table class="nuxr-table">
         <thead><tr><th>{Lang::T('Reference')}</th>{if $nuxr_show_customer}<th>{Lang::T('Subscriber')}</th>{/if}<th>{Lang::T('Plan')}</th><th>{Lang::T('Action')}</th><th>{Lang::T('Status')}</th><th>{Lang::T('Updated (UTC)')}</th></tr></thead>
         <tbody>
@@ -15,8 +15,8 @@
             {/foreach}
         </tbody>
     </table>
-</div>
-<ul class="nuxr-mlist">
+</div>{/if}
+<ul class="nuxr-mlist"{if $nuxr_compact|default:false} style="display:block"{/if}>
     {foreach $nuxr_rows as $r}
         <li>
             <a class="nuxr-mcard" href="{Text::url('activation/view/', $r.reference)}">

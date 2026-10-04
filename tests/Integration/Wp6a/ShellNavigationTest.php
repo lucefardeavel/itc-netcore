@@ -99,7 +99,8 @@ final class ShellNavigationTest extends Wp2HttpTestCase
         $ar = $c->get('customers/list')->body;
         $this->assertMatchesRegularExpression('/<html lang="ar" dir="rtl">/', $ar);
         $this->assertStringContainsString('nuxr-rtl-legacy.css', $ar);
-        $this->assertStringContainsString('chart.min.js', $this->staff('ad')->get('dashboard')->body, 'Chart.js only where charts are drawn');
+        $this->assertStringNotContainsString('chart.min.js', $this->staff('ad')->get('dashboard')->body, 'no chart bundle on the landing page');
+        $this->assertStringContainsString('chart.min.js', $this->staff('ad')->get('dashboard', ['widgets' => 1])->body, 'Chart.js only where charts are drawn');
     }
 
     public function testMissingTranslationsNeverLeaveTheServer(): void

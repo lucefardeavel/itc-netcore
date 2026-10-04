@@ -16,7 +16,7 @@
 {function nuxr_plan_state p=null}
     {if !$p}{call name=nuxr_badge tone='neutral' label=Lang::T('No service')}
     {elseif !$p.on || $p.days === null || $p.days < 0}{call name=nuxr_badge tone='danger' label=Lang::T('Expired') icon='fa-clock-o'}
-    {elseif $p.days <= 7}{call name=nuxr_badge tone='warning' label=Lang::T('Expiring') icon='fa-hourglass-half'}
+    {elseif $p.days <= 7}{call name=nuxr_badge tone='warning' label=Lang::T('Expiring') icon='fa-exclamation-circle'}
     {else}{call name=nuxr_badge tone='success' label=Lang::T('Active')}{/if}
 {/function}
 
