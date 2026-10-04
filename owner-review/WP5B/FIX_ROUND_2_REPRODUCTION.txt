@@ -1,0 +1,25 @@
+WP5B fix round 2 (blocker 5B) — the new tests run against the fix round 1 runtime 5d76a09be4f03e99b21efeff67bc8166824a437f
+(working tree at 5d76a09b with only tests/Integration/Wp5b/PaymentHardeningTest.php extended; system/ unchanged), MySQL 8.0.46
+Expected: the three tests encoding the Invoice basis fail on 5d76a09b (the buy derived the coupon from the raw plan price);
+the no-Invoice case and every earlier coupon / stale / concurrency test pass on both.
+
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........FFF.                                                     13 / 13 (100%)
+Time: 00:33.908, Memory: 22.00 MB
+There were 3 failures:
+1) Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testPercentCouponUsesTheInvoiceOverrideAsItsBasis
+10% of the Invoice override (50), not of the raw plan price (100)
+Failed asserting that 900.0 is identical to 950.0.
+/repo/tests/Integration/Wp5b/PaymentHardeningTest.php:226
+2) Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testMinimumOrderIsCheckedAgainstTheInvoiceOverride
+valid at preview, still valid at buy with the same current override
+Failed asserting that actual size 0 matches expected size 1.
+/repo/tests/Integration/Wp5b/PaymentHardeningTest.php:235
+3) Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testBuyReadsTheCurrentInvoiceOverride
+10% of the CURRENT override (80), not the preview-time one (50)
+Failed asserting that 900.0 is identical to 920.0.
+/repo/tests/Integration/Wp5b/PaymentHardeningTest.php:246
+FAILURES!
+Tests: 13, Assertions: 54, Failures: 3.

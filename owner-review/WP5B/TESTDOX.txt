@@ -1,6 +1,6 @@
-WP5B — PHPUnit testdox, fix round 1 implementation HEAD 5d76a09be4f03e99b21efeff67bc8166824a437f
+WP5B — PHPUnit testdox, fix round 2 implementation HEAD cdaebba22e163e2fc5e68b9ce111e34b3f3f3538
 Canonical run: dev/test/run-tests.sh --testdox (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers)
-Result: MariaDB OK (774 tests, 50016 assertions); MySQL OK (774 tests, 50016 assertions); 1548 passed, 0 failed
+Result: MariaDB OK (778 tests, 50023 assertions); MySQL OK (778 tests, 50026 assertions); 1556 passed, 0 failed
 
 ================ engine: mariadb ================
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
@@ -9,21 +9,21 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 774 (  8%)
-............................................................... 126 / 774 ( 16%)
-............................................................... 189 / 774 ( 24%)
-............................................................... 252 / 774 ( 32%)
-............................................................... 315 / 774 ( 40%)
-............................................................... 378 / 774 ( 48%)
-............................................................... 441 / 774 ( 56%)
-............................................................... 504 / 774 ( 65%)
-............................................................... 567 / 774 ( 73%)
-............................................................... 630 / 774 ( 81%)
-............................................................... 693 / 774 ( 89%)
-............................................................... 756 / 774 ( 97%)
-..................                                              774 / 774 (100%)
+...............................................................  63 / 778 (  8%)
+............................................................... 126 / 778 ( 16%)
+............................................................... 189 / 778 ( 24%)
+............................................................... 252 / 778 ( 32%)
+............................................................... 315 / 778 ( 40%)
+............................................................... 378 / 778 ( 48%)
+............................................................... 441 / 778 ( 56%)
+............................................................... 504 / 778 ( 64%)
+............................................................... 567 / 778 ( 72%)
+............................................................... 630 / 778 ( 80%)
+............................................................... 693 / 778 ( 89%)
+............................................................... 756 / 778 ( 97%)
+......................                                          778 / 778 (100%)
 
-Time: 21:22.407, Memory: 50.00 MB
+Time: 19:44.863, Memory: 50.00 MB
 
 Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
  ✔ Owner sales and admin may activate on the owners wallet
@@ -604,6 +604,10 @@ Payment Hardening (Reseller\Tests\Integration\Wp5b\PaymentHardening)
  ✔ A stale coupon never discounts with data set "B: expired before buy"
  ✔ A stale coupon never discounts with data set "C: exhausted before buy"
  ✔ Concurrent buys cannot both consume the last use
+ ✔ Percent coupon uses the invoice override as its basis
+ ✔ Minimum order is checked against the invoice override
+ ✔ Buy reads the current invoice override
+ ✔ Without an override the percent coupon uses the plan price
 
 Permission Model (Reseller\Tests\Unit\Wp2\PermissionModel)
  ✔ Every mapped capability is defined and every scope known
@@ -1017,7 +1021,7 @@ Wp5b Source Guard (Reseller\Tests\Unit\Wp5b\Wp5bSourceGuard)
  ✔ Reversal and hook guards
  ✔ Voucher generation uses the csprng
 
-OK (774 tests, 50016 assertions)
+OK (778 tests, 50023 assertions)
 ================ engine: mysql ================
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
@@ -1025,21 +1029,21 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 774 (  8%)
-............................................................... 126 / 774 ( 16%)
-............................................................... 189 / 774 ( 24%)
-............................................................... 252 / 774 ( 32%)
-............................................................... 315 / 774 ( 40%)
-............................................................... 378 / 774 ( 48%)
-............................................................... 441 / 774 ( 56%)
-............................................................... 504 / 774 ( 65%)
-............................................................... 567 / 774 ( 73%)
-............................................................... 630 / 774 ( 81%)
-............................................................... 693 / 774 ( 89%)
-............................................................... 756 / 774 ( 97%)
-..................                                              774 / 774 (100%)
+...............................................................  63 / 778 (  8%)
+............................................................... 126 / 778 ( 16%)
+............................................................... 189 / 778 ( 24%)
+............................................................... 252 / 778 ( 32%)
+............................................................... 315 / 778 ( 40%)
+............................................................... 378 / 778 ( 48%)
+............................................................... 441 / 778 ( 56%)
+............................................................... 504 / 778 ( 64%)
+............................................................... 567 / 778 ( 72%)
+............................................................... 630 / 778 ( 80%)
+............................................................... 693 / 778 ( 89%)
+............................................................... 756 / 778 ( 97%)
+......................                                          778 / 778 (100%)
 
-Time: 46:07.558, Memory: 50.00 MB
+Time: 42:16.420, Memory: 50.00 MB
 
 Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
  ✔ Owner sales and admin may activate on the owners wallet
@@ -1620,6 +1624,10 @@ Payment Hardening (Reseller\Tests\Integration\Wp5b\PaymentHardening)
  ✔ A stale coupon never discounts with data set "B: expired before buy"
  ✔ A stale coupon never discounts with data set "C: exhausted before buy"
  ✔ Concurrent buys cannot both consume the last use
+ ✔ Percent coupon uses the invoice override as its basis
+ ✔ Minimum order is checked against the invoice override
+ ✔ Buy reads the current invoice override
+ ✔ Without an override the percent coupon uses the plan price
 
 Permission Model (Reseller\Tests\Unit\Wp2\PermissionModel)
  ✔ Every mapped capability is defined and every scope known
@@ -2033,7 +2041,7 @@ Wp5b Source Guard (Reseller\Tests\Unit\Wp5b\Wp5bSourceGuard)
  ✔ Reversal and hook guards
  ✔ Voucher generation uses the csprng
 
-OK (774 tests, 50016 assertions)
+OK (778 tests, 50026 assertions)
 ================ variant registry reproducibility ================
 variant registry matches freshly built fixtures
   mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3

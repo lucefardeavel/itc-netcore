@@ -1,8 +1,8 @@
 # WP5B — Legacy Service Entrypoint Closure — Owner review report
 
-**Status: IMPLEMENTED_NOT_ACCEPTED** — fix round 1 applied ("OWNER CODE REVIEW — WP5B FIX REQUIRED ROUND 1" on candidate `bb15ffc8`), waiting for the owner's final review. Final state: `WP5B_FIX_ROUND_1_COMPLETE_PUSHED_WAITING_OWNER_FINAL_REVIEW`.
+**Status: IMPLEMENTED_NOT_ACCEPTED** — fix round 2 applied ("OWNER FINAL REVIEW — WP5B FIX REQUIRED ROUND 2": blockers 1–5 closed, blocker 5B open on `5d76a09b`), waiting for the owner's final acceptance. Final state: `WP5B_FIX_ROUND_2_COMPLETE_PUSHED_WAITING_OWNER_FINAL_ACCEPTANCE`.
 
-Model: `docs/WP5B_LEGACY_CLOSURE_MODEL.md`. Test evidence: `owner-review/WP5B/TESTDOX.txt`; fix round 1 defect reproduction on the reviewed candidate: `owner-review/WP5B/FIX_ROUND_1_REPRODUCTION.txt`. Plan: `WP5B_PLAN.md` revision 2, accepted by "OWNER FINAL DECISION — WP5B PLAN ACCEPTED / IMPLEMENTATION GO" (with the `Balance.php` one-row correction and the one-transaction E13 cleanup), plus "OWNER DECISION — R0007 RUNNER EXTENSION APPROVED" after the stop on condition E.
+Model: `docs/WP5B_LEGACY_CLOSURE_MODEL.md`. Test evidence: `owner-review/WP5B/TESTDOX.txt`; fix round 1 defect reproduction on the reviewed candidate: `owner-review/WP5B/FIX_ROUND_1_REPRODUCTION.txt`; fix round 2 reproduction on `5d76a09b`: `owner-review/WP5B/FIX_ROUND_2_REPRODUCTION.txt`. Plan: `WP5B_PLAN.md` revision 2, accepted by "OWNER FINAL DECISION — WP5B PLAN ACCEPTED / IMPLEMENTATION GO" (with the `Balance.php` one-row correction and the one-transaction E13 cleanup), plus "OWNER DECISION — R0007 RUNNER EXTENSION APPROVED" after the stop on condition E.
 
 ## A. Ancestry / branch / heads
 
@@ -11,8 +11,9 @@ Model: `docs/WP5B_LEGACY_CLOSURE_MODEL.md`. Test evidence: `owner-review/WP5B/TE
 | Base | `feat/reseller-system-v1` = `427799f53a570846659796b13e0fbad82175eb6e` (WP3B + WP4 + WP5A integrated, WP5A acceptance recorded) |
 | Branch | `wp5b/legacy-entrypoint-closure` from `427799f5` (nothing reset, no squash) |
 | Reviewed candidate (fix round 1) | `bb15ffc8d1ff9234c4bcebed5dbf2a8bb9405747`, evidence `0d9d6eb7471bdbbffbf779583262ca27cee37abe` |
-| Implementation HEAD (validated, fix round 1) | `5d76a09be4f03e99b21efeff67bc8166824a437f` |
-| Evidence HEAD | the evidence commit `docs(wp5b): fix round 1 — model, report and testdox` (SHA in the final response) |
+| Fix round 1 implementation / evidence | `5d76a09be4f03e99b21efeff67bc8166824a437f` / `152b43cc` (owner final review: blockers 1–5 closed, blocker 5B open) |
+| Implementation HEAD (validated, fix round 2) | `cdaebba22e163e2fc5e68b9ce111e34b3f3f3538` |
+| Evidence HEAD | the evidence commit `docs(wp5b): fix round 2 — report and testdox` (SHA in the final response) |
 | Push | only `wp5b/legacy-entrypoint-closure`, normal, non-force. No PR, merge, tag or deploy; `main` untouched. |
 
 ## B. Commits (author `ALI HENDI <ali.hahuba3@gmail.com>`, `Co-Authored-By` trailer)
@@ -37,8 +38,26 @@ Model: `docs/WP5B_LEGACY_CLOSURE_MODEL.md`. Test evidence: `owner-review/WP5B/TE
 | `e8d5d51a` | fix round 1, blocker 3: re-provision tracks external progress per step |
 | `0bb83fad` | fix round 1, blocker 4: MikroTik rename bug and the expiry path vs the grant guard |
 | `5d76a09b` | fix round 1, blocker 5: coupons are server-authoritative at buy time |
+| `152b43cc` | docs(wp5b): fix round 1 — model, report and testdox |
+| `cdaebba2` | fix round 2, blocker 5B: buy-time coupon price basis = the gateway preview's legacy rule (current `Invoice` override, else plan price) |
 
 The commits are reviewable units in plan order; the canonical evidence (§F) is for the whole implementation HEAD. Note: `Wp5bSourceGuardTest` was committed with slice 4 already containing the `Balance.php` guard that only becomes true with slice 7, so slices 4–6 are not individually green on that one guard.
+
+## C2. Fix round 2 (owner final review of `5d76a09b`)
+
+Blockers 1–5 closed by the owner. **Blocker 5B:** the buy-time coupon re-validation used the raw plan price, while the gateway preview (legacy rule, `order.php` gateway action) uses the customer's `Invoice` attribute when set (it overrides the plan price; `User::getAttribute` without an id resolves the logged-in customer). A percent coupon, a minimum order or a maximum discount could therefore be judged on a different price at preview and at buy.
+
+**Fix** (one additive commit `cdaebba2`, `system/controllers/order.php` only): before `CouponAuthority::buy`, the coupon price basis is read again from the server — the buying customer's **current** `Invoice` attribute when non-empty, else `$plan['price']` — and passed as the price to validate and derive the discount from. Nothing else changed: the retail price formula, tax, bills (`add_cost`), the `Invoice` semantics and the payment-row amount composition (plan price + bills + tax − discount) are unchanged; no schema. No stop condition: the `Invoice` override is applied as the legacy preview applies it (not restricted to Period plans), and bills / tax do not join the coupon basis.
+
+| Required test | `PaymentHardeningTest` |
+|---|---|
+| 1 percent coupon, `Invoice` lower than the plan | `testPercentCouponUsesTheInvoiceOverrideAsItsBasis` (Invoice 500, 10 % → discount 50, payment 950) |
+| 2 `Invoice` higher than the plan + minimum order | `testMinimumOrderIsCheckedAgainstTheInvoiceOverride` (Invoice 2000, min order 1500: valid at preview and buy, one use, payment 900) |
+| 3 `Invoice` changed after preview | `testBuyReadsTheCurrentInvoiceOverride` (500 at preview, 800 at buy → discount 80, payment 920) |
+| 4 no `Invoice` | `testWithoutAnOverrideThePercentCouponUsesThePlanPrice` (payment 900) |
+| 5 stale / concurrent | the fix round 1 tests (disabled / expired / exhausted between preview and buy; concurrent last use) unchanged and green |
+
+Reproduction (`FIX_ROUND_2_REPRODUCTION.txt`): the new tests against the `5d76a09b` runtime (MySQL) → **3 failures** (900 vs 950; coupon refused although the current override meets the minimum order; 900 vs 920); the no-`Invoice` case and all earlier coupon tests passed. After the fix: focused `PaymentHardeningTest|LegacyEntrypointClosureTest|Wp5bSourceGuardTest` OK 28 / 621 on both engines; wp5b / wp5a / wp4 integration + wp2-http OK 293 on both engines; then the canonical run (§F). No accepted test changed.
 
 ## C1. Fix round 1 (owner code review of `bb15ffc8`)
 
@@ -64,6 +83,10 @@ No other stop condition was hit:
 - G no reseller retail, payment or auto-renew commerce was enabled.
 
 ## D. Files (`git diff --name-status 427799f5..bb15ffc8`: 89 files; 89 files changed, 5425 insertions(+), 447 deletions(-))
+
+**Fix round 2** (`git diff 5d76a09b..cdaebba2`: 2 files changed, 68 insertions(+), 1 deletion(-)):
+- `system/controllers/order.php` (modified)
+- `tests/Integration/Wp5b/PaymentHardeningTest.php` (modified)
 
 **Fix round 1** (`git diff bb15ffc8..5d76a09b -- system tests`: 15 files changed, 826 insertions(+), 185 deletions(-)):
 - `system/autoload/Reseller/Activation/ActivationFaults.php` (modified)
@@ -116,15 +139,35 @@ No other stop condition was hit:
 
 `PricingSourceGuardTest` and `ActivationSourceGuardTest` needed no change (the reversal / drift queries live in `ActivationStore`).
 
-## F. Validation (fix round 1, `5d76a09b`)
+## F. Validation (fix round 2, `cdaebba2`)
 
-The `bb15ffc8` validation is NOT reused. One new canonical run on the dev host, isolated compose project `nuxbill-reseller-test` only (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers), 2026-10-04T05:02Z – 07:22Z. Focused suites before it: wp5b / wp5a / wp4 integration + wp2-http, 293 / 293 on both engines.
+The `5d76a09b` validation is NOT reused (the payment-critical code changed). One new canonical run on the dev host at `cdaebba22e163e2fc5e68b9ce111e34b3f3f3538`, isolated compose project `nuxbill-reseller-test` only (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers), 2026-10-04T09:41Z – 11:56Z.
+
+| Check | Result |
+|---|---|
+| `dev/test/run-tests.sh` (plain) | MariaDB **OK (778 tests, 50 026 assertions)**; MySQL **OK (778 tests, 50 026 assertions)**; exit 0 (65 m 32 s) |
+| Variant registry reproducibility | matches freshly built fixtures |
+| `dev/test/run-tests.sh --testdox` | MariaDB OK 778 (50 023 assertions) / MySQL OK 778 (50 026); **1556 ✔, 0 ✘** (`TESTDOX.txt`); exit 0 (63 m 28 s). (Race tests take one of two valid branches, hence the small assertion difference.) |
+| Migration / R0007 | `R0007ReversalStatesMigrationTest`, `MigrationRedefinesTest` and the WP1 migration suites green on both engines |
+| WP4 FreeRADIUS contract, WP5A regression, WP3A / WP3B guards, WP5B source guards | included, all green |
+| Real-worker concurrency | all WP5B races incl. the fix round 1 races (balance dispatch vs resolve, coupon last use) |
+| Route matrix | 1470 / 1183 / 287, identical on both engines; 0 rows removed vs the accepted 1442, 28 added (23 WP5A + 5 `activation/reverse`); unchanged from fix round 1 (§G) |
+| PHP 8.2 lint | 439 / 439 |
+| Manifest | 42 / 42 |
+| R0001–R0006 | byte-identical (`a0b52f7f…`, `38bceb1f…`, `60e63156…`, `7f3bc5bc…`, `b69135ea…`, `f1a76119…`); R0007 `b7edce53…` |
+| Untouched since `427799f5` | `Package.php`, `Tx.php`, `ServiceGate.php`, `install/radius.sql` |
+| Secret sweep | `git diff 152b43cc..cdaebba2` clean |
+| Shared host | observe-only sampler; max load 14.3, min MemAvailable 38 626 MiB; the AVAIA container set (23 names, Up / Exited states) is identical before and after; no AVAIA container was touched by this session (`avaia-v3-prod-api` and `avaia-v3-prod-web` were recreated at 11:13Z / 11:37Z by AVAIA's own deployment during the run, both healthy); test containers removed |
+
+### Fix round 1 validation (`5d76a09b`, history)
+
+One canonical run on the dev host, isolated compose project `nuxbill-reseller-test` only (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers), 2026-10-04T05:02Z – 07:22Z. Focused suites before it: wp5b / wp5a / wp4 integration + wp2-http, 293 / 293 on both engines.
 
 | Check | Result |
 |---|---|
 | `dev/test/run-tests.sh` (plain) | MariaDB **OK (774 tests, 50 015 assertions)**; MySQL **OK (774 tests, 50 016 assertions)**; exit 0 (63 m 14 s). (One race test takes one of two valid branches, hence ±1 assertion.) |
 | Variant registry reproducibility | matches freshly built fixtures |
-| `dev/test/run-tests.sh --testdox` | MariaDB OK 774 / MySQL OK 774; **1548 ✔, 0 ✘** (`TESTDOX.txt`); exit 0 |
+| `dev/test/run-tests.sh --testdox` | MariaDB OK 774 / MySQL OK 774; **1548 ✔, 0 ✘** (`TESTDOX.txt` of `152b43cc`, superseded); exit 0 |
 | Migration / R0007 | `R0007ReversalStatesMigrationTest`, `MigrationRedefinesTest` and the WP1 migration suites green on both engines |
 | WP4 FreeRADIUS contract, WP5A regression, WP3A / WP3B guards, WP5B source guards | included, all green |
 | Real-worker concurrency | the round-1 races (balance dispatch vs resolve, coupon last use) plus all earlier WP5B races |
