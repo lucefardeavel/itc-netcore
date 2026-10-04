@@ -33,6 +33,16 @@ class MikrotikHotspot
     {
         // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
         \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed($customer);
+        $this->provisionCustomer($customer, $plan);
+    }
+
+    /**
+     * WP5B fix round 1 (4B): the device provisioning itself, private. The public grant method add_customer() is
+     * guarded (default deny for reseller-managed customers); the allowed expiry path of remove_customer() applies the
+     * restricted "expired plan" through this primitive directly, never through the guarded grant.
+     */
+    private function provisionCustomer($customer, $plan)
+    {
         $mikrotik = $this->info($plan['routers']);
         $client = $this->getClient($mikrotik['ip_address'], $mikrotik['username'], $mikrotik['password']);
 		$isExp = ORM::for_table('tbl_plans')->select("id")->where('plan_expired', $plan['id'])->find_one();
@@ -64,7 +74,7 @@ class MikrotikHotspot
 				$setRequest->setArgument('profile', $t['namebp']);
 				$client->sendSync($setRequest);
 			} else {
-				$this->add_customer($customer, $plan);
+				$this->provisionCustomer($customer, $plan);
 			}
 		}
 	}
@@ -77,7 +87,7 @@ class MikrotikHotspot
         if (!empty($plan['plan_expired'])) {
             $p = ORM::for_table("tbl_plans")->find_one($plan['plan_expired']);
             if($p){
-                $this->add_customer($customer, $p);
+                $this->provisionCustomer($customer, $p); // WP5B 4B: the allowed expiry path, not the guarded grant
                 $this->removeHotspotActiveUser($client, $customer['username']);
                 return;
             }
@@ -99,7 +109,9 @@ class MikrotikHotspot
         $printRequest->setQuery(RouterOS\Query::where('name', $from));
         $id = $client->sendSync($printRequest)->getProperty('.id');
 
-        if (!empty($cid)) {
+        // WP5B fix round 1 (4A): the found id is $id (the pre-WP5B code tested an undefined $cid, so a Hotspot
+        // rename never ran and the old username stayed on the router)
+        if (!empty($id)) {
             $setRequest = new RouterOS\Request('/ip/hotspot/user/set');
             $setRequest->setArgument('numbers', $id);
             $setRequest->setArgument('name', $to);

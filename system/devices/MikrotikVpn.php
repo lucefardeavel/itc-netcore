@@ -24,6 +24,16 @@ class MikrotikVpn
     {
         // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
         \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed($customer);
+        $this->provisionCustomer($customer, $plan);
+    }
+
+    /**
+     * WP5B fix round 1 (4B): the device provisioning itself, private. The public grant method add_customer() is
+     * guarded (default deny for reseller-managed customers); the allowed expiry path of remove_customer() applies the
+     * restricted "expired plan" through this primitive directly, never through the guarded grant.
+     */
+    private function provisionCustomer($customer, $plan)
+    {
         global $isChangePlan;
         $mikrotik = $this->info($plan['routers']);
         $client = $this->getClient($mikrotik['ip_address'], $mikrotik['username'], $mikrotik['password']);
@@ -64,7 +74,7 @@ class MikrotikVpn
     {	
         // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
         \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed($customer);
-        $this->add_customer($customer, $plan);
+        $this->provisionCustomer($customer, $plan);
     }
 
     function remove_customer($customer, $plan)
@@ -74,7 +84,7 @@ class MikrotikVpn
         if (!empty($plan['plan_expired'])) {
             $p = ORM::for_table("tbl_plans")->find_one($plan['plan_expired']);
             if ($p) {
-                $this->add_customer($customer, $p);
+                $this->provisionCustomer($customer, $p); // WP5B 4B: the allowed expiry path, not the guarded grant
                 $this->removeVpnActive($client, $customer['username']);
                 if (!empty($customer['pppoe_username'])) {
                     $this->removeVpnActive($client, $customer['pppoe_username']);
