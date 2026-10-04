@@ -97,6 +97,20 @@ body.nuxr-shell .wrapper {
     overflow: visible;
 }
 
+/* links: AA contrast on every surface (the vendored #3c8dbc is 3.6:1 on white). :where() keeps the specificity of a
+   bare "a" so legacy .btn / label / menu colours still win. Footer links are underlined (they sit in running text). */
+:where(body.nuxr-shell) a {
+    color: var(--nx-primary);
+}
+
+:where(body.nuxr-shell) a:hover, :where(body.nuxr-shell) a:focus {
+    color: var(--nx-focus);
+}
+
+.nuxr-footer a {
+    text-decoration: underline;
+}
+
 .nuxr-shell :focus-visible {
     outline: 2px solid var(--nx-focus);
     outline-offset: 2px;
@@ -867,6 +881,15 @@ body.nuxr-shell .content {
     gap: 8px;
     padding: 12px 16px;
     border-bottom: 1px solid var(--nx-border);
+}
+
+.nuxr-card-head > a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--nx-touch);
+    padding-inline: 8px;
+    margin-block: -8px;
+    font-weight: 600;
 }
 
 .nuxr-card-head h2, .nuxr-card-head h3 {

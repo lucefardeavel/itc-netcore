@@ -10,4 +10,4 @@
         <span class="nuxr-mcard-end">{call name=nuxr_plan_state p=$nuxr_plans[$c['id']]|default:null}<bdi dir="ltr" class="nuxr-muted">#{$c['id']}</bdi></span>
     </a>
 {/foreach}
-<a href="{$nuxr_more_url}" class="nuxr-btn" style="width:100%;margin-top:6px">{Lang::T('See all results')}</a>
+<a role="option" href="{$nuxr_more_url}" class="nuxr-btn" style="width:100%;margin-top:6px">{Lang::T('See all results')}</a>

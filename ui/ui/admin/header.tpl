@@ -27,7 +27,7 @@
         <link rel="stylesheet" href="{$app_url}/ui/ui/summernote/summernote.min.css" />
     {/if}
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/phpnuxbill.css?2025.2.4" />
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp6a.1" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp6a.2" />
     {if $nuxr_dir eq 'rtl'}
         <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?wp6a.1" />
     {/if}

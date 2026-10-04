@@ -91,6 +91,8 @@
         function options() { return qa('[role="option"]', box); }
         function hide() { box.hidden = true; input.setAttribute('aria-expanded', 'false'); active = -1; }
         function show() { box.hidden = false; input.setAttribute('aria-expanded', 'true'); }
+        // a listbox only while it holds options; a message (too short, searching, none found, failed) is a status
+        function fill(html) { box.innerHTML = html; box.setAttribute('role', options().length ? 'listbox' : 'status'); }
         function mark(i) {
             var o = options();
             o.forEach(function (el, k) { el.setAttribute('aria-selected', k === i ? 'true' : 'false'); });
@@ -103,12 +105,12 @@
             clearTimeout(timer);
             if (ctrl) { ctrl.abort(); }
             if (term.length < 2) {
-                if (term.length === 0) { hide(); } else { box.innerHTML = '<p class="nuxr-search-msg">' + (T.minChars || '') + '</p>'; show(); }
+                if (term.length === 0) { hide(); } else { fill('<p class="nuxr-search-msg">' + (T.minChars || '') + '</p>'); show(); }
                 return;
             }
             timer = setTimeout(function () {
                 ctrl = window.AbortController ? new AbortController() : null;
-                box.innerHTML = '<p class="nuxr-search-msg" aria-busy="true">' + (T.searching || '') + '</p>';
+                fill('<p class="nuxr-search-msg" aria-busy="true">' + (T.searching || '') + '</p>');
                 show();
                 fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'query=' + encodeURIComponent(term), {
                     credentials: 'same-origin', headers: { 'X-Requested-With': 'nuxr-search' }, signal: ctrl ? ctrl.signal : undefined
@@ -116,14 +118,14 @@
                     if (!r.ok) { throw new Error('search ' + r.status); }
                     return r.text();
                 }).then(function (html) {
-                    box.innerHTML = html;
+                    fill(html);
                     options().forEach(function (o, k) { o.id = form.id + '-opt-' + k + '-' + (input.id || 's'); o.setAttribute('aria-selected', 'false'); });
                     active = -1;
                     var n = options().length;
                     announce(n ? String(n) : (q('.nuxr-search-msg', box) || {}).textContent || '');
                 }).catch(function (err) {
                     if (err && err.name === 'AbortError') { return; }
-                    box.innerHTML = '<p class="nuxr-search-msg">' + (T.failed || '') + '</p>';
+                    fill('<p class="nuxr-search-msg">' + (T.failed || '') + '</p>');
                 });
             }, 250);
         });

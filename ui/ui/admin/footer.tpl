@@ -65,7 +65,7 @@
             working: '{Lang::T('Working...')|escape:'javascript'}'
         };
     </script>
-    <script src="{$app_url}/ui/ui/scripts/nuxr-shell.js?wp6a.1"></script>
+    <script src="{$app_url}/ui/ui/scripts/nuxr-shell.js?wp6a.2"></script>
 
     {if isset($xfooter)}
         {$xfooter}
