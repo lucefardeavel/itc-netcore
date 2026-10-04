@@ -1,0 +1,58 @@
+WP5B fix round 1 — the new tests run against the reviewed candidate bb15ffc8 runtime (git archive bb15ffc8 + the fix-round tests), MySQL 8.0.46
+Expected: the tests encoding the five blockers fail on the candidate; tests that must hold on both pass.
+
+1) Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testConcurrentBuysCannotBothConsumeTheLastUse
+1) Reseller\Tests\Integration\Wp5b\ActivationReversalTest::testRadiusIsReadAndRestoredWithNoDatabaseTransactionOpen
+2) Reseller\Tests\Integration\Wp5b\LegacyCustomerBalanceTest::testOperatorResolutionWaitsForTheLiveDispatcher with data set "A: refund" ('refund')
+3) Reseller\Tests\Integration\Wp5b\LegacyCustomerBalanceTest::testOperatorResolutionWaitsForTheLiveDispatcher with data set "B: completed" ('completed')
+4) Reseller\Tests\Integration\Wp5b\LegacyCustomerBalanceTest::testFinalizerThatLosesItsConditionalUpdateReportsThePersistedState
+5) Reseller\Tests\Integration\Wp5b\LegacyReprovisionTest::testPartialSuccessAcrossTargetsIsUnconfirmedAndNeverReverted
+6) Reseller\Tests\Integration\Wp5b\LegacyReprovisionTest::testRenameAppliedThenAddFailedIsUnconfirmedAndNeverReverted
+7) Reseller\Tests\Integration\Wp5b\MikrotikDeviceTest::testHotspotRenameReallyRenamesTheExistingUser
+8) Reseller\Tests\Integration\Wp5b\MikrotikDeviceTest::testExpiryOfAResellerOwnedCustomerAppliesTheRestrictedPlanWithoutTheGrantGuard
+9) Reseller\Tests\Integration\Wp5b\MikrotikDeviceTest::testThePrimitiveIsPrivateAndNotABypass
+10) Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testAStaleCouponNeverDiscounts with data set "A: disabled before buy" ('UPDATE tbl_coupons SET status...id = ?')
+11) Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testAStaleCouponNeverDiscounts with data set "B: expired before buy" ('UPDATE tbl_coupons SET end_da...id = ?')
+12) Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testAStaleCouponNeverDiscounts with data set "C: exhausted before buy" ('UPDATE tbl_coupons SET usage_...id = ?')
+Tests: 16, Assertions: 68, Errors: 1, Failures: 12.
+
+Assertion details:
+1) Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testConcurrentBuysCannotBothConsumeTheLastUse
+RuntimeException: exec failed: 
+1) Reseller\Tests\Integration\Wp5b\ActivationReversalTest::testRadiusIsReadAndRestoredWithNoDatabaseTransactionOpen
+phase 0, the start under the tree lock and phase 2b
+Failed asserting that 0 is equal to 3 or is greater than 3.
+2) Reseller\Tests\Integration\Wp5b\LegacyCustomerBalanceTest::testOperatorResolutionWaitsForTheLiveDispatcher with data set "A: refund" ('refund')
+the operator waits on the operation lock
+Failed asserting that false is true.
+3) Reseller\Tests\Integration\Wp5b\LegacyCustomerBalanceTest::testOperatorResolutionWaitsForTheLiveDispatcher with data set "B: completed" ('completed')
+the operator waits on the operation lock
+Failed asserting that false is true.
+4) Reseller\Tests\Integration\Wp5b\LegacyCustomerBalanceTest::testFinalizerThatLosesItsConditionalUpdateReportsThePersistedState
+the persisted state, not a fabricated COMPLETED
+Failed asserting that two strings are identical.
+5) Reseller\Tests\Integration\Wp5b\LegacyReprovisionTest::testPartialSuccessAcrossTargetsIsUnconfirmedAndNeverReverted
+Failed asserting that two strings are identical.
+6) Reseller\Tests\Integration\Wp5b\LegacyReprovisionTest::testRenameAppliedThenAddFailedIsUnconfirmedAndNeverReverted
+Failed asserting that two strings are identical.
+7) Reseller\Tests\Integration\Wp5b\MikrotikDeviceTest::testHotspotRenameReallyRenamesTheExistingUser
+the same router user, renamed; the old name is gone
+Failed asserting that two arrays are identical.
+8) Reseller\Tests\Integration\Wp5b\MikrotikDeviceTest::testExpiryOfAResellerOwnedCustomerAppliesTheRestrictedPlanWithoutTheGrantGuard
+Wp5bHotspot: the expiry applied the restricted plan (no RESELLER_OWNED_REFUSED)
+Failed asserting that 'Reseller\Radius\ProvisionFailure:RESELLER_OWNED_REFUSED' is identical to Array &0 [
+].
+9) Reseller\Tests\Integration\Wp5b\MikrotikDeviceTest::testThePrimitiveIsPrivateAndNotABypass
+MikrotikHotspot
+Failed asserting that '<?php\n
+\n
+/**\n
+10) Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testAStaleCouponNeverDiscounts with data set "A: disabled before buy" ('UPDATE tbl_coupons SET status...id = ?')
+no stale discount
+Failed asserting that two arrays are identical.
+11) Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testAStaleCouponNeverDiscounts with data set "B: expired before buy" ('UPDATE tbl_coupons SET end_da...id = ?')
+no stale discount
+Failed asserting that two arrays are identical.
+12) Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testAStaleCouponNeverDiscounts with data set "C: exhausted before buy" ('UPDATE tbl_coupons SET usage_...id = ?')
+no stale discount
+Failed asserting that two arrays are identical.

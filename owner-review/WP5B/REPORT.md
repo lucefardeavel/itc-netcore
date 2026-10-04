@@ -1,8 +1,8 @@
 # WP5B — Legacy Service Entrypoint Closure — Owner review report
 
-**Status: IMPLEMENTED_NOT_ACCEPTED** (waiting for owner code review). Final state: `WP5B_IMPLEMENTATION_COMPLETE_PUSHED_WAITING_OWNER_CODE_REVIEW`.
+**Status: IMPLEMENTED_NOT_ACCEPTED** — fix round 1 applied ("OWNER CODE REVIEW — WP5B FIX REQUIRED ROUND 1" on candidate `bb15ffc8`), waiting for the owner's final review. Final state: `WP5B_FIX_ROUND_1_COMPLETE_PUSHED_WAITING_OWNER_FINAL_REVIEW`.
 
-Model: `docs/WP5B_LEGACY_CLOSURE_MODEL.md`. Test evidence: `owner-review/WP5B/TESTDOX.txt`. Plan: `WP5B_PLAN.md` revision 2, accepted by "OWNER FINAL DECISION — WP5B PLAN ACCEPTED / IMPLEMENTATION GO" (with the `Balance.php` one-row correction and the one-transaction E13 cleanup), plus "OWNER DECISION — R0007 RUNNER EXTENSION APPROVED" after the stop on condition E.
+Model: `docs/WP5B_LEGACY_CLOSURE_MODEL.md`. Test evidence: `owner-review/WP5B/TESTDOX.txt`; fix round 1 defect reproduction on the reviewed candidate: `owner-review/WP5B/FIX_ROUND_1_REPRODUCTION.txt`. Plan: `WP5B_PLAN.md` revision 2, accepted by "OWNER FINAL DECISION — WP5B PLAN ACCEPTED / IMPLEMENTATION GO" (with the `Balance.php` one-row correction and the one-transaction E13 cleanup), plus "OWNER DECISION — R0007 RUNNER EXTENSION APPROVED" after the stop on condition E.
 
 ## A. Ancestry / branch / heads
 
@@ -10,8 +10,9 @@ Model: `docs/WP5B_LEGACY_CLOSURE_MODEL.md`. Test evidence: `owner-review/WP5B/TE
 |---|---|
 | Base | `feat/reseller-system-v1` = `427799f53a570846659796b13e0fbad82175eb6e` (WP3B + WP4 + WP5A integrated, WP5A acceptance recorded) |
 | Branch | `wp5b/legacy-entrypoint-closure` from `427799f5` (nothing reset, no squash) |
-| Implementation HEAD (validated) | `bb15ffc8d1ff9234c4bcebed5dbf2a8bb9405747` |
-| Evidence HEAD | the evidence commit `docs(wp5b): model, owner-review report and testdox` (SHA in the final response) |
+| Reviewed candidate (fix round 1) | `bb15ffc8d1ff9234c4bcebed5dbf2a8bb9405747`, evidence `0d9d6eb7471bdbbffbf779583262ca27cee37abe` |
+| Implementation HEAD (validated, fix round 1) | `5d76a09be4f03e99b21efeff67bc8166824a437f` |
+| Evidence HEAD | the evidence commit `docs(wp5b): fix round 1 — model, report and testdox` (SHA in the final response) |
 | Push | only `wp5b/legacy-entrypoint-closure`, normal, non-force. No PR, merge, tag or deploy; `main` untouched. |
 
 ## B. Commits (author `ALI HENDI <ali.hahuba3@gmail.com>`, `Co-Authored-By` trailer)
@@ -30,8 +31,28 @@ Model: `docs/WP5B_LEGACY_CLOSURE_MODEL.md`. Test evidence: `owner-review/WP5B/TE
 | `1a443943` | WP5B slice 10: drift report and operator commands |
 | `b3298acd` | WP5B slice 11: focused race tests and source guards |
 | `bb15ffc8` | WP5B slice 10 fix: keep the reconcile.php CLI guard first |
+| `0d9d6eb7` | docs(wp5b): model, owner-review report and testdox (first candidate evidence) |
+| `3a0a7210` | fix round 1, blocker 1: serialize HELD balance operations with the operator resolution |
+| `dadaa11a` | fix round 1, blocker 2: no DB transaction open across the reversal RADIUS read |
+| `e8d5d51a` | fix round 1, blocker 3: re-provision tracks external progress per step |
+| `0bb83fad` | fix round 1, blocker 4: MikroTik rename bug and the expiry path vs the grant guard |
+| `5d76a09b` | fix round 1, blocker 5: coupons are server-authoritative at buy time |
 
 The commits are reviewable units in plan order; the canonical evidence (§F) is for the whole implementation HEAD. Note: `Wp5bSourceGuardTest` was committed with slice 4 already containing the `Balance.php` guard that only becomes true with slice 7, so slices 4–6 are not individually green on that one guard.
+
+## C1. Fix round 1 (owner code review of `bb15ffc8`)
+
+Additive commits on top of the reviewed candidate (no amend, no squash). Every blocker got tests first; the new tests were run against the reviewed candidate's runtime (`git archive bb15ffc8` + the new tests, MySQL): **12 failures + 1 error reproduce the defects** (refund / completed resolution completing during a live dispatch; finalizer reporting a fabricated state; `REPROVISION_FAILED` + DB revert after a partial external apply, twice; Hotspot rename not applied; the expiry path refused with `RESELLER_OWNED_REFUSED`; the private primitive missing; disabled / expired / exhausted coupons still discounted; no RADIUS-read instrumentation; `CouponAuthority` absent). The tests that must pass on both (abandoned HELD resolution, first-operation FAILED revert, a valid coupon) passed on the candidate too.
+
+| Blocker | Fix | Tests |
+|---|---|---|
+| 1 HELD balance resolution race | operation-level advisory lock on the operation key: taken before the HELD row, held through the HELD commit, the grant and the classification (no DB transaction across the grant); `balance-resolve` takes the same lock (≤ 10 s, then `BALANCE_OPERATION_BUSY`), re-reads; checked affected rows, persisted state reported when another transition won | real workers with a barrier inside the dispatch: refund / completed vs live dispatch (operator waits, one final state, never service + refund); abandoned HELD resolvable after its lock is gone; finalizer losing its update reports the persisted state |
+| 2 RADIUS read inside the reversal transaction | `start` = `TreeSerialization::hold`: short DB check transaction → RADIUS read with no transaction → short transaction re-lock + re-check + COMPLETED → REVERSAL_PENDING | instrumentation: `inTransaction() === false` on the application and RADIUS connections at every reversal RADIUS read (phase 0, start, 2b) and restore; reversal races green |
+| 3 re-provision partial external success | per-target / per-step progress; a confirmed FAILED after any applied step is promoted to UNKNOWN → `REPROVISION_UNCONFIRMED` (no revert, no retry); first non-success stops further steps | target 1 applied / target 2 FAILED; rename applied / add FAILED; first operation FAILED still reverted; UNKNOWN unchanged |
+| 4 MikroTik | 4A Hotspot rename uses the found `$id`; 4B private `provisionCustomer()` in Hotspot / PPPoE / VPN, public `add_customer` guard → primitive, `remove_customer` expiry → primitive directly (no bypass flag) | fake RouterOS client in the app: the existing Hotspot user renamed (same id, old name gone); expiry of a reseller-owned customer applies the expired plan on all three devices while the public grant stays refused |
+| 5 coupon authority | `CouponAuthority`: preview consumes nothing and keeps only the code; buy re-fetches `FOR UPDATE`, re-validates, re-derives, consumes one use conditionally in the payment-row transaction | valid coupon consumed once at buy; disabled / expired / exhausted between preview and buy → no stale discount, no use consumed; concurrent last use → at most one |
+
+No stop condition: no schema change, `Package.php` / `Tx.php` / `ServiceGate.php` / R0001–R0006 unchanged, no accepted test changed in this round (only WP5B tests added / extended).
 
 ## C. Stop condition E and the owner decision
 
@@ -43,6 +64,25 @@ No other stop condition was hit:
 - G no reseller retail, payment or auto-renew commerce was enabled.
 
 ## D. Files (`git diff --name-status 427799f5..bb15ffc8`: 89 files; 89 files changed, 5425 insertions(+), 447 deletions(-))
+
+**Fix round 1** (`git diff bb15ffc8..5d76a09b -- system tests`: 15 files changed, 826 insertions(+), 185 deletions(-)):
+- `system/autoload/Reseller/Activation/ActivationFaults.php` (modified)
+- `system/autoload/Reseller/Activation/ActivationReversalService.php` (modified)
+- `system/autoload/Reseller/Domain/CouponAuthority.php` (added)
+- `system/autoload/Reseller/Domain/DomainError.php` (modified)
+- `system/autoload/Reseller/Domain/LegacyCustomerBalanceService.php` (modified)
+- `system/autoload/Reseller/Domain/LegacyReprovisionService.php` (modified)
+- `system/controllers/order.php` (modified)
+- `system/devices/MikrotikHotspot.php` (modified)
+- `system/devices/MikrotikPppoe.php` (modified)
+- `system/devices/MikrotikVpn.php` (modified)
+- `tests/Integration/Wp5b/ActivationReversalTest.php` (modified)
+- `tests/Integration/Wp5b/LegacyCustomerBalanceTest.php` (modified)
+- `tests/Integration/Wp5b/LegacyReprovisionTest.php` (modified)
+- `tests/Integration/Wp5b/MikrotikDeviceTest.php` (added)
+- `tests/Integration/Wp5b/PaymentHardeningTest.php` (modified)
+
+**Through the first candidate:**
 
 **Runtime, added:** `Activation/{ActivationReversalService, RestorePlan, DriftReport}`, `Domain/{TreeSerialization, LegacyReprovisionService, VoucherRedemptionService, RedemptionSource, RedemptionTarget, PaymentGatewayResolver, LegacyCustomerBalanceService, AutoRenewPolicy, ServiceAudit}`, `Finance/PostedReversal`, `system/reseller/migrations/R0007_activation_reversal_states.php`.
 
@@ -76,30 +116,27 @@ No other stop condition was hit:
 
 `PricingSourceGuardTest` and `ActivationSourceGuardTest` needed no change (the reversal / drift queries live in `ActivationStore`).
 
-## F. Validation (bb15ffc8)
+## F. Validation (fix round 1, `5d76a09b`)
 
-Canonical runs on the dev host, isolated compose project `nuxbill-reseller-test` only (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers), started 2026-10-03T18:55Z, finished 22:15Z.
+The `bb15ffc8` validation is NOT reused. One new canonical run on the dev host, isolated compose project `nuxbill-reseller-test` only (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers), 2026-10-04T05:02Z – 07:22Z. Focused suites before it: wp5b / wp5a / wp4 integration + wp2-http, 293 / 293 on both engines.
 
 | Check | Result |
 |---|---|
-| `dev/test/run-tests.sh` (plain) | MariaDB **OK (758 tests, 49 886 assertions)**; MySQL **OK (758 tests, 49 886 assertions)**; exit 0 (79 m 57 s) |
+| `dev/test/run-tests.sh` (plain) | MariaDB **OK (774 tests, 50 015 assertions)**; MySQL **OK (774 tests, 50 016 assertions)**; exit 0 (63 m 14 s). (One race test takes one of two valid branches, hence ±1 assertion.) |
 | Variant registry reproducibility | matches freshly built fixtures |
-| `dev/test/run-tests.sh --testdox` | MariaDB OK 758 / MySQL OK 758; **1516 ✔, 0 ✘** (`TESTDOX.txt`); exit 0 |
-| R0007 apply / inspect / rollback | `R0007ReversalStatesMigrationTest` (clean apply + verify on V1 / V2 / V3, no false R0003 drift, collision, unknown definition, interrupted apply after the first ALTER, failed second ALTER, exact R0003 restore, rollback refused for each new state in `status` / `from_state` / `to_state`, deterministic checksum / fingerprint, non-project targets refused) and `MigrationRedefinesTest` (malformed entries, mutating / non-SELECT guards) |
-| WP4 FreeRADIUS contract, WP5A regression, WP3A / WP3B guards | included in the 758 per engine, all green |
-| Real-worker concurrency | reversal vs open, reversal vs re-provision, open vs ADMIN_SYNC, open vs PASSWORD_CHANGE, concurrent voucher redemption of one code, concurrent E13 usernames, concurrent same-key purchases, concurrent transfer drain, hardened debit vs `Balance::plus` / `plusByPhone` |
-| Route matrix (`RouteMatrixTest`, WP2_EVIDENCE) | 1470 requests, 1183 denials, 287 allowed; identical on both engines (§G) |
-| PHP 8.2 lint | 437 / 437 tracked non-vendor PHP files |
-| Manifest | `MANIFEST.sha256` 42 / 42 OK |
-| R0001–R0006 | byte-identical: `a0b52f7f…a5a7`, `38bceb1f…b771`, `60e63156…acd`, `7f3bc5bc…dffa7`, `b69135ea…3854`, `f1a76119…7abd` |
-| R0007 | `b7edce53accd75a5af7bce6cbf66a9bae02b90f8f67211000a5fb08328ef00f6` |
-| Untouched | `Package.php`, `Tx.php`, `ServiceGate.php`, `install/radius.sql`: no diff since `427799f5` |
-| Secret sweep | added lines and evidence files: no credential, token or secret value |
-| Shared host | AVAIA container set identical before / after (observe only); max load 18.8, min MemAvailable 40 200 MiB; no global prune, no daemon change; test containers removed |
+| `dev/test/run-tests.sh --testdox` | MariaDB OK 774 / MySQL OK 774; **1548 ✔, 0 ✘** (`TESTDOX.txt`); exit 0 |
+| Migration / R0007 | `R0007ReversalStatesMigrationTest`, `MigrationRedefinesTest` and the WP1 migration suites green on both engines |
+| WP4 FreeRADIUS contract, WP5A regression, WP3A / WP3B guards, WP5B source guards | included, all green |
+| Real-worker concurrency | the round-1 races (balance dispatch vs resolve, coupon last use) plus all earlier WP5B races |
+| Route matrix | 1470 / 1183 / 287, identical on both engines; unchanged from the first candidate (§G) |
+| PHP 8.2 lint | 439 / 439 |
+| Manifest | 42 / 42 |
+| R0001–R0006 | byte-identical (`a0b52f7f…`, `38bceb1f…`, `60e63156…`, `7f3bc5bc…`, `b69135ea…`, `f1a76119…`); R0007 `b7edce53…` |
+| Untouched since `427799f5` | `Package.php`, `Tx.php`, `ServiceGate.php`, `install/radius.sql` |
+| Secret sweep | clean |
+| Shared host | observe-only sampler; max load 10.2, min MemAvailable 38 569 MiB; no AVAIA container removed or changed by this session (two new `avaia-v3-prod-motion-card-worker-*` containers were created by AVAIA's own deployment at 06:58Z / 07:11Z during the run); test containers removed |
 
-Harness notes (not product failures):
-- An earlier canonical attempt was stopped by me: it showed one real defect (the WP5B usage block had pushed the `reconcile.php` CLI guard below the 25 lines `CliOnlyTest` inspects), fixed in `bb15ffc8` before the run above, plus the known `CliOnlyTest` healthcheck race (`Connections` 30 vs 29).
-- During slice validation one MySQL `ActivationHttpTest` batch hit the known AppServer port-reuse flake (404 from another built-in server on `/`); isolated reruns 2 / 2 clean. Neither flake occurred in the final canonical run.
+First candidate (`bb15ffc8`) evidence, for history: 758 / 758 per engine, testdox 1516 / 0, lint 437 / 437.
 
 ## G. Route matrix delta
 

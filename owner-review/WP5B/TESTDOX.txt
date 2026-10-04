@@ -1,6 +1,6 @@
-WP5B — PHPUnit testdox, implementation HEAD bb15ffc8d1ff9234c4bcebed5dbf2a8bb9405747
+WP5B — PHPUnit testdox, fix round 1 implementation HEAD 5d76a09be4f03e99b21efeff67bc8166824a437f
 Canonical run: dev/test/run-tests.sh --testdox (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers)
-Result: MariaDB OK (758 tests, 49886 assertions); MySQL OK (758 tests, 49886 assertions); 1516 passed, 0 failed
+Result: MariaDB OK (774 tests, 50016 assertions); MySQL OK (774 tests, 50016 assertions); 1548 passed, 0 failed
 
 ================ engine: mariadb ================
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
@@ -9,21 +9,21 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 758 (  8%)
-............................................................... 126 / 758 ( 16%)
-............................................................... 189 / 758 ( 24%)
-............................................................... 252 / 758 ( 33%)
-............................................................... 315 / 758 ( 41%)
-............................................................... 378 / 758 ( 49%)
-............................................................... 441 / 758 ( 58%)
-............................................................... 504 / 758 ( 66%)
-............................................................... 567 / 758 ( 74%)
-............................................................... 630 / 758 ( 83%)
-............................................................... 693 / 758 ( 91%)
-............................................................... 756 / 758 ( 99%)
-..                                                              758 / 758 (100%)
+...............................................................  63 / 774 (  8%)
+............................................................... 126 / 774 ( 16%)
+............................................................... 189 / 774 ( 24%)
+............................................................... 252 / 774 ( 32%)
+............................................................... 315 / 774 ( 40%)
+............................................................... 378 / 774 ( 48%)
+............................................................... 441 / 774 ( 56%)
+............................................................... 504 / 774 ( 65%)
+............................................................... 567 / 774 ( 73%)
+............................................................... 630 / 774 ( 81%)
+............................................................... 693 / 774 ( 89%)
+............................................................... 756 / 774 ( 97%)
+..................                                              774 / 774 (100%)
 
-Time: 34:15.211, Memory: 50.00 MB
+Time: 21:22.407, Memory: 50.00 MB
 
 Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
  ✔ Owner sales and admin may activate on the owners wallet
@@ -115,6 +115,7 @@ Activation Reversal (Reseller\Tests\Integration\Wp5b\ActivationReversal)
  ✔ Crash after the restore records the evidence without a second write
  ✔ Financial commit failure after the restore holds and resumes without a second radius write
  ✔ Financial refusal after the restore keeps reversal pending for the operator
+ ✔ Radius is read and restored with no database transaction open
 
 Activation Reversal Race (Reseller\Tests\Integration\Wp5b\ActivationReversalRace)
  ✔ Reversal start and activation open never both proceed
@@ -429,6 +430,10 @@ Legacy Customer Balance (Reseller\Tests\Integration\Wp5b\LegacyCustomerBalance)
  ✔ Reseller owned payer or target is refused
  ✔ Transfer is atomic and validated
  ✔ Concurrent transfers never overdraw
+ ✔ Operator resolution waits for the live dispatcher with data set "A: refund"
+ ✔ Operator resolution waits for the live dispatcher with data set "B: completed"
+ ✔ Abandoned held operation is resolvable once its lock is gone
+ ✔ Finalizer that loses its conditional update reports the persisted state
 
 Legacy Entrypoint Closure (Reseller\Tests\Integration\Wp5b\LegacyEntrypointClosure)
  ✔ Admin recharge of a reseller owned customer continues at the activation
@@ -450,6 +455,9 @@ Legacy Reprovision (Reseller\Tests\Integration\Wp5b\LegacyReprovision)
  ✔ Device default deny for reseller owned customers
  ✔ Activation open and admin sync are serialized
  ✔ Activation open and password change are serialized
+ ✔ Partial success across targets is unconfirmed and never reverted
+ ✔ Rename applied then add failed is unconfirmed and never reverted
+ ✔ First operation failed is still reverted
 
 Legacy Retail Price (Reseller\Tests\Unit\Wp3b\LegacyRetailPrice)
  ✔ Accepted
@@ -512,6 +520,11 @@ Migration Redefines (Reseller\Tests\Unit\MigrationRedefines)
  ✔ Mutating or non select data guard is rejected with data set "replace"
  ✔ Mutating or non select data guard is rejected with data set "set"
  ✔ Read only guards accepted
+
+Mikrotik Device (Reseller\Tests\Integration\Wp5b\MikrotikDevice)
+ ✔ Hotspot rename really renames the existing user
+ ✔ Expiry of a reseller owned customer applies the restricted plan without the grant guard
+ ✔ The primitive is private and not a bypass
 
 Money (Reseller\Tests\Unit\Wp3a\Money)
  ✔ Exact smallest unit and canonical forms
@@ -586,6 +599,11 @@ Payment Hardening (Reseller\Tests\Integration\Wp5b\PaymentHardening)
  ✔ Posted discount is ignored
  ✔ A paid row is never cancelled or checked again
  ✔ Resolver unit
+ ✔ A valid coupon is consumed once with the payment row
+ ✔ A stale coupon never discounts with data set "A: disabled before buy"
+ ✔ A stale coupon never discounts with data set "B: expired before buy"
+ ✔ A stale coupon never discounts with data set "C: exhausted before buy"
+ ✔ Concurrent buys cannot both consume the last use
 
 Permission Model (Reseller\Tests\Unit\Wp2\PermissionModel)
  ✔ Every mapped capability is defined and every scope known
@@ -999,7 +1017,7 @@ Wp5b Source Guard (Reseller\Tests\Unit\Wp5b\Wp5bSourceGuard)
  ✔ Reversal and hook guards
  ✔ Voucher generation uses the csprng
 
-OK (758 tests, 49886 assertions)
+OK (774 tests, 50016 assertions)
 ================ engine: mysql ================
 PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
 PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
@@ -1007,21 +1025,21 @@ PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.2.34
 Configuration: /repo/tests/phpunit.xml
 
-...............................................................  63 / 758 (  8%)
-............................................................... 126 / 758 ( 16%)
-............................................................... 189 / 758 ( 24%)
-............................................................... 252 / 758 ( 33%)
-............................................................... 315 / 758 ( 41%)
-............................................................... 378 / 758 ( 49%)
-............................................................... 441 / 758 ( 58%)
-............................................................... 504 / 758 ( 66%)
-............................................................... 567 / 758 ( 74%)
-............................................................... 630 / 758 ( 83%)
-............................................................... 693 / 758 ( 91%)
-............................................................... 756 / 758 ( 99%)
-..                                                              758 / 758 (100%)
+...............................................................  63 / 774 (  8%)
+............................................................... 126 / 774 ( 16%)
+............................................................... 189 / 774 ( 24%)
+............................................................... 252 / 774 ( 32%)
+............................................................... 315 / 774 ( 40%)
+............................................................... 378 / 774 ( 48%)
+............................................................... 441 / 774 ( 56%)
+............................................................... 504 / 774 ( 65%)
+............................................................... 567 / 774 ( 73%)
+............................................................... 630 / 774 ( 81%)
+............................................................... 693 / 774 ( 89%)
+............................................................... 756 / 774 ( 97%)
+..................                                              774 / 774 (100%)
 
-Time: 01:11:52.084, Memory: 50.00 MB
+Time: 46:07.558, Memory: 50.00 MB
 
 Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
  ✔ Owner sales and admin may activate on the owners wallet
@@ -1113,6 +1131,7 @@ Activation Reversal (Reseller\Tests\Integration\Wp5b\ActivationReversal)
  ✔ Crash after the restore records the evidence without a second write
  ✔ Financial commit failure after the restore holds and resumes without a second radius write
  ✔ Financial refusal after the restore keeps reversal pending for the operator
+ ✔ Radius is read and restored with no database transaction open
 
 Activation Reversal Race (Reseller\Tests\Integration\Wp5b\ActivationReversalRace)
  ✔ Reversal start and activation open never both proceed
@@ -1427,6 +1446,10 @@ Legacy Customer Balance (Reseller\Tests\Integration\Wp5b\LegacyCustomerBalance)
  ✔ Reseller owned payer or target is refused
  ✔ Transfer is atomic and validated
  ✔ Concurrent transfers never overdraw
+ ✔ Operator resolution waits for the live dispatcher with data set "A: refund"
+ ✔ Operator resolution waits for the live dispatcher with data set "B: completed"
+ ✔ Abandoned held operation is resolvable once its lock is gone
+ ✔ Finalizer that loses its conditional update reports the persisted state
 
 Legacy Entrypoint Closure (Reseller\Tests\Integration\Wp5b\LegacyEntrypointClosure)
  ✔ Admin recharge of a reseller owned customer continues at the activation
@@ -1448,6 +1471,9 @@ Legacy Reprovision (Reseller\Tests\Integration\Wp5b\LegacyReprovision)
  ✔ Device default deny for reseller owned customers
  ✔ Activation open and admin sync are serialized
  ✔ Activation open and password change are serialized
+ ✔ Partial success across targets is unconfirmed and never reverted
+ ✔ Rename applied then add failed is unconfirmed and never reverted
+ ✔ First operation failed is still reverted
 
 Legacy Retail Price (Reseller\Tests\Unit\Wp3b\LegacyRetailPrice)
  ✔ Accepted
@@ -1510,6 +1536,11 @@ Migration Redefines (Reseller\Tests\Unit\MigrationRedefines)
  ✔ Mutating or non select data guard is rejected with data set "replace"
  ✔ Mutating or non select data guard is rejected with data set "set"
  ✔ Read only guards accepted
+
+Mikrotik Device (Reseller\Tests\Integration\Wp5b\MikrotikDevice)
+ ✔ Hotspot rename really renames the existing user
+ ✔ Expiry of a reseller owned customer applies the restricted plan without the grant guard
+ ✔ The primitive is private and not a bypass
 
 Money (Reseller\Tests\Unit\Wp3a\Money)
  ✔ Exact smallest unit and canonical forms
@@ -1584,6 +1615,11 @@ Payment Hardening (Reseller\Tests\Integration\Wp5b\PaymentHardening)
  ✔ Posted discount is ignored
  ✔ A paid row is never cancelled or checked again
  ✔ Resolver unit
+ ✔ A valid coupon is consumed once with the payment row
+ ✔ A stale coupon never discounts with data set "A: disabled before buy"
+ ✔ A stale coupon never discounts with data set "B: expired before buy"
+ ✔ A stale coupon never discounts with data set "C: exhausted before buy"
+ ✔ Concurrent buys cannot both consume the last use
 
 Permission Model (Reseller\Tests\Unit\Wp2\PermissionModel)
  ✔ Every mapped capability is defined and every scope known
@@ -1997,7 +2033,7 @@ Wp5b Source Guard (Reseller\Tests\Unit\Wp5b\Wp5bSourceGuard)
  ✔ Reversal and hook guards
  ✔ Voucher generation uses the csprng
 
-OK (758 tests, 49886 assertions)
+OK (774 tests, 50016 assertions)
 ================ variant registry reproducibility ================
 variant registry matches freshly built fixtures
   mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
