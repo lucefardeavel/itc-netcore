@@ -18,7 +18,18 @@ final class LegacyCustomerBalanceTest extends Wp2HttpTestCase
 <?php
 // test-only (disposable app copy): failure injection inside the legacy grant
 register_hook('recharge_user', 'wp5bbal_recharge');
-function wp5bbal_recharge() { if (is_file(__DIR__ . '/../../wp2_probe/wp5b_throw.flag')) { throw new RuntimeException('injected: grant interrupted'); } }
+function wp5bbal_recharge() {
+    $d = __DIR__ . '/../../wp2_probe/';
+    if (is_file($d . 'wp5b_throw.flag')) { throw new RuntimeException('injected: grant interrupted'); }
+    // another transition wins while the grant is dispatched (fix round 1, blocker 1 D)
+    if (is_file($d . 'wp5b_override.flag')) { ORM::get_db()->prepare('UPDATE tbl_payment_gateway SET status = 4 WHERE gateway_trx_id = ?')->execute([trim((string) file_get_contents($d . 'wp5b_override.flag'))]); }
+    // deterministic barrier inside the live dispatch (fix round 1, blocker 1 A-C)
+    if (is_file($d . 'wp5b_barrier.flag')) {
+        touch($d . 'wp5b_barrier.entered');
+        $until = microtime(true) + 30;
+        while (is_file($d . 'wp5b_barrier.flag') && microtime(true) < $until) { usleep(20000); clearstatcache(); }
+    }
+}
 PHP;
     private const S = '\Reseller\Domain\LegacyCustomerBalanceService';
 
@@ -30,7 +41,9 @@ PHP;
 
     protected function tearDown(): void
     {
-        @unlink(static::$app->dir . '/wp2_probe/wp5b_throw.flag');
+        foreach (['wp5b_throw.flag', 'wp5b_override.flag', 'wp5b_barrier.flag', 'wp5b_barrier.entered'] as $f) {
+            @unlink(static::$app->dir . '/wp2_probe/' . $f);
+        }
     }
 
     private function customer2(string $balance, ?int $manager = null): array
@@ -203,5 +216,84 @@ PHP;
             $this->assertSame('20.00', $this->balance($a));
             $this->assertSame('100.00', number_format((float) $this->balance($a) + (float) $this->balance($b) + (float) $this->balance($c), 2, '.', ''), 'conserved');
         }
+    }
+
+    // ---- fix round 1, blocker 1: the operator resolution never races a live dispatch ----
+
+    private function probe(string $f): string
+    {
+        return static::$app->dir . '/wp2_probe/' . $f;
+    }
+
+    /** Starts a purchase that stops inside its grant dispatch (HELD committed, operation lock held). */
+    private function liveDispatch(int $id, string $key): array
+    {
+        @unlink($this->probe('wp5b_barrier.entered'));
+        touch($this->probe('wp5b_barrier.flag'));
+        $h = static::$app->execStart($this->purchaseCode('buy', $id, $id, $key, '1000') . '$result = $result["status"];');
+        $until = microtime(true) + 20;
+        while (!is_file($this->probe('wp5b_barrier.entered')) && microtime(true) < $until) {
+            usleep(20000);
+            clearstatcache();
+        }
+        $this->assertFileExists($this->probe('wp5b_barrier.entered'), 'the dispatcher reached the barrier');
+        $this->assertSame('5', (string) $this->journal($key)[0]['status'], 'HELD committed before the dispatch');
+        return $h;
+    }
+
+    private function resolveCode(int $journal, string $decision): string
+    {
+        return 'try { $result = ' . self::S . '::resolve(' . $journal . ', ' . var_export($decision, true) . '); } catch (\Reseller\Domain\DomainError $e) { $result = $e->reason; }';
+    }
+
+    /** @return array<string,array{0:string}> */
+    public static function decisions(): array
+    {
+        return ['A: refund' => ['refund'], 'B: completed' => ['completed']];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('decisions')]
+    public function testOperatorResolutionWaitsForTheLiveDispatcher(string $decision): void
+    {
+        [$id] = $this->customer2('5000.00');
+        $key = 'balance:buy:' . $id . ':' . self::nonce();
+        $a = $this->liveDispatch($id, $key);
+        $journal = (int) $this->journal($key)[0]['id'];
+        $b = static::$app->execStart($this->resolveCode($journal, $decision));
+        usleep(1500000);
+        $this->assertTrue(proc_get_status($b['proc'])['running'], 'the operator waits on the operation lock');
+        $this->assertSame(['5', '4000.00'], [(string) $this->journal($key)[0]['status'], $this->balance($id)], 'nothing resolved meanwhile');
+        unlink($this->probe('wp5b_barrier.flag'));
+        $this->assertSame('COMPLETED', static::$app->execFinish($a));
+        $this->assertSame('ACTIVATION_STATE_CONFLICT', static::$app->execFinish($b), 'the operator re-reads: no longer HELD, nothing changed');
+        $this->assertSame(['2', '4000.00', 1], [(string) $this->journal($key)[0]['status'], $this->balance($id), $this->grants($id)], 'one final state; never service + refund');
+    }
+
+    public function testAbandonedHeldOperationIsResolvableOnceItsLockIsGone(): void
+    {
+        [$id] = $this->customer2('5000.00');
+        $key = 'balance:buy:' . $id . ':' . self::nonce();
+        $a = $this->liveDispatch($id, $key);
+        // the dispatcher dies: its connection, and so its operation lock, goes away
+        proc_terminate($a['proc'], 9);
+        fclose($a['pipes'][1]);
+        fclose($a['pipes'][2]);
+        proc_close($a['proc']);
+        @unlink($a['file']);
+        unlink($this->probe('wp5b_barrier.flag'));
+        $journal = (int) $this->journal($key)[0]['id'];
+        $this->assertSame(['5', '4000.00', 0], [(string) $this->journal($key)[0]['status'], $this->balance($id), $this->grants($id)]);
+        $this->assertSame('refund', static::$app->exec($this->resolveCode($journal, 'refund')));
+        $this->assertSame(['4', '5000.00', 0], [(string) $this->journal($key)[0]['status'], $this->balance($id), $this->grants($id)]);
+    }
+
+    public function testFinalizerThatLosesItsConditionalUpdateReportsThePersistedState(): void
+    {
+        [$id] = $this->customer2('5000.00');
+        $key = 'balance:buy:' . $id . ':' . self::nonce();
+        file_put_contents($this->probe('wp5b_override.flag'), $key);
+        $out = $this->purchase('buy', $id, $id, $key, '1000');
+        $this->assertSame('REFUNDED', $out['status'], 'the persisted state, not a fabricated COMPLETED');
+        $this->assertSame('4', (string) $this->journal($key)[0]['status']);
     }
 }

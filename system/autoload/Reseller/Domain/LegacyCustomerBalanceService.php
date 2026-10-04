@@ -26,6 +26,9 @@ use Reseller\Security\ErrorReporter;
  *  3. dispatch the legacy grant (Package::rechargeUser) outside any transaction;
  *  4. invoice -> COMPLETED once; exactly false (proven pre-write refusal) -> REFUNDED once with the credit back;
  *     anything else -> stays HELD for operator review (reconcile.php balance-held / balance-resolve).
+ *  Steps 1-4 run under the operation's advisory lock (fix round 1): an operator resolution takes the same lock, so it
+ *  waits for (or fails closed against) a live dispatcher; every conditional finalization checks its affected row and
+ *  otherwise reports the persisted state.
  */
 final class LegacyCustomerBalanceService
 {
@@ -36,6 +39,8 @@ final class LegacyCustomerBalanceService
     public const CHANNELS = ['buy' => 'Buy Plan', 'gift' => 'Send Plan', 'admin' => 'Admin Recharge', 'cron' => 'Auto Renew'];
     private const MAX_MINOR = 9999999999999; // DECIMAL(15,2): 13 integer digits
     private const NONCE = '/^[A-Za-z0-9_-]{16,64}$/D';
+    /** seconds a purchase or an operator resolution waits for the operation lock before failing closed */
+    public const OP_LOCK_TIMEOUT = 10;
 
     // ------------------------------------------------------------------ operation keys
 
@@ -97,68 +102,80 @@ final class LegacyCustomerBalanceService
         $payer = (int) $op['payer_id'];
         $target = (int) $op['target_id'];
         $key = (string) $op['key'];
-        // Tx1: identify / replay, validate, debit, HELD
-        $held = Tx::run(static function (\PDO $pdo) use ($op, $channel, $amount, $payer, $target, $key): array {
-            $rows = self::lockCustomers($pdo, array_unique([$payer, $target]));
-            $journal = self::journal($pdo, $payer, $key);
-            if ($journal !== null) {
-                return ['replay' => $journal];
-            }
-            $p = $rows[$payer] ?? throw new DomainError('NOT_FOUND');
-            $t = $rows[$target] ?? throw new DomainError('NOT_FOUND');
-            foreach ([$p, $t] as $c) {
-                if ($c['manager_id'] !== null) {
-                    throw new DomainError('CUSTOMER_RESELLER_OWNED');
+        // WP5B fix round 1 (blocker 1): the operation lock (durable identity = the key) is taken BEFORE the HELD row
+        // exists and held through the HELD commit, the external grant and the final classification; no DB transaction
+        // stays open across the grant. balance-resolve takes the same lock, so an operator never races a live dispatcher;
+        // a crashed dispatcher's connection releases it.
+        return self::withOperationLock($key, static function () use ($op, $channel, $amount, $payer, $target, $key): array {
+            // Tx1: identify / replay, validate, debit, HELD
+            $held = Tx::run(static function (\PDO $pdo) use ($op, $channel, $amount, $payer, $target, $key): array {
+                $rows = self::lockCustomers($pdo, array_unique([$payer, $target]));
+                $journal = self::journal($pdo, $payer, $key);
+                if ($journal !== null) {
+                    return ['replay' => $journal];
                 }
+                $p = $rows[$payer] ?? throw new DomainError('NOT_FOUND');
+                $t = $rows[$target] ?? throw new DomainError('NOT_FOUND');
+                foreach ([$p, $t] as $c) {
+                    if ($c['manager_id'] !== null) {
+                        throw new DomainError('CUSTOMER_RESELLER_OWNED');
+                    }
+                }
+                if ($t['status'] !== 'Active' || ($op['kind'] !== 'admin' && $p['status'] !== 'Active')) {
+                    throw new DomainError('CUSTOMER_INACTIVE');
+                }
+                $plan = Tx::row($pdo, 'SELECT * FROM tbl_plans WHERE id = ?', [(int) $op['plan_id']]);
+                if ($plan === null || (string) $plan['enabled'] !== '1') {
+                    throw new DomainError('PLAN_DISABLED');
+                }
+                $balance = self::balanceMinor($p['balance']);
+                if ($balance < $amount) {
+                    throw new DomainError('INSUFFICIENT_BALANCE');
+                }
+                Tx::exec($pdo, 'UPDATE tbl_customers SET balance = ? WHERE id = ?', [self::format($balance - $amount), $payer]);
+                $now = date('Y-m-d H:i:s');
+                Tx::exec($pdo, 'INSERT INTO tbl_payment_gateway (username, user_id, gateway, gateway_trx_id, plan_id, plan_name, routers_id, routers, price, '
+                    . 'pg_url_payment, payment_method, payment_channel, pg_request, pg_paid_response, expired_date, created_date, paid_date, trx_invoice, status) '
+                    . "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'balance', ?, ?, ?, NULL, NULL, ?, NULL, '', ?)", [
+                    (string) $p['username'], $payer, self::GATEWAY, $key, (int) $plan['id'], (string) $plan['name_plan'], (int) ($op['routers_id'] ?? 0),
+                    (string) $op['routers'], self::format($amount), self::GATEWAY, $channel,
+                    json_encode(['op' => $op['kind'], 'amount_minor' => $amount, 'target_customer_id' => $target, 'plan_id' => (int) $plan['id'],
+                        'routers' => (string) $op['routers'], 'created' => $now], JSON_UNESCAPED_SLASHES),
+                    $now, self::HELD,
+                ]);
+                return ['id' => (int) $pdo->lastInsertId(), 'target' => $t];
+            });
+            if (isset($held['replay'])) {
+                $j = $held['replay'];
+                return ['status' => self::statusName((int) $j['status']), 'journal_id' => (int) $j['id'], 'invoice' => $j['trx_invoice'] !== '' ? $j['trx_invoice'] : null, 'replayed' => true];
             }
-            if ($t['status'] !== 'Active' || ($op['kind'] !== 'admin' && $p['status'] !== 'Active')) {
-                throw new DomainError('CUSTOMER_INACTIVE');
+            $id = $held['id'];
+            // dispatch: no DB transaction and no row lock open; only the operation's advisory lock is held
+            try {
+                // the legacy grant call of the path, unchanged: [gateway, channel] (default: the path's label, 'Balance')
+                [$gw, $ch] = $op['grant'] ?? [(string) $op['grant_channel'], self::GATEWAY];
+                $result = \Package::rechargeUser($target, (string) $op['routers'], (int) $op['plan_id'], (string) $gw, (string) $ch);
+            } catch (\Throwable $e) {
+                ErrorReporter::report($e, 'balance-grant');
+                return ['status' => 'HELD', 'journal_id' => $id, 'invoice' => null, 'replayed' => false];
             }
-            $plan = Tx::row($pdo, 'SELECT * FROM tbl_plans WHERE id = ?', [(int) $op['plan_id']]);
-            if ($plan === null || (string) $plan['enabled'] !== '1') {
-                throw new DomainError('PLAN_DISABLED');
+            if (is_string($result) && $result !== '') {
+                $n = Tx::run(static fn(\PDO $pdo): int => Tx::exec($pdo, 'UPDATE tbl_payment_gateway SET status = ?, paid_date = ?, trx_invoice = ? WHERE id = ? AND status = ?',
+                    [self::COMPLETED, date('Y-m-d H:i:s'), substr($result, 0, 25), $id, self::HELD]));
+                if ($n !== 1) {
+                    // another transition won: report the persisted state, never a fabricated COMPLETED
+                    return self::actual($id) + ['journal_id' => $id, 'invoice' => $result, 'replayed' => false];
+                }
+                return ['status' => 'COMPLETED', 'journal_id' => $id, 'invoice' => $result, 'replayed' => false];
             }
-            $balance = self::balanceMinor($p['balance']);
-            if ($balance < $amount) {
-                throw new DomainError('INSUFFICIENT_BALANCE');
+            if ($result === false) {
+                if (!self::refund($id, ['refund' => 'not_granted'])) {
+                    return self::actual($id) + ['journal_id' => $id, 'invoice' => null, 'replayed' => false];
+                }
+                return ['status' => 'REFUNDED', 'journal_id' => $id, 'invoice' => null, 'replayed' => false];
             }
-            Tx::exec($pdo, 'UPDATE tbl_customers SET balance = ? WHERE id = ?', [self::format($balance - $amount), $payer]);
-            $now = date('Y-m-d H:i:s');
-            Tx::exec($pdo, 'INSERT INTO tbl_payment_gateway (username, user_id, gateway, gateway_trx_id, plan_id, plan_name, routers_id, routers, price, '
-                . 'pg_url_payment, payment_method, payment_channel, pg_request, pg_paid_response, expired_date, created_date, paid_date, trx_invoice, status) '
-                . "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'balance', ?, ?, ?, NULL, NULL, ?, NULL, '', ?)", [
-                (string) $p['username'], $payer, self::GATEWAY, $key, (int) $plan['id'], (string) $plan['name_plan'], (int) ($op['routers_id'] ?? 0),
-                (string) $op['routers'], self::format($amount), self::GATEWAY, $channel,
-                json_encode(['op' => $op['kind'], 'amount_minor' => $amount, 'target_customer_id' => $target, 'plan_id' => (int) $plan['id'],
-                    'routers' => (string) $op['routers'], 'created' => $now], JSON_UNESCAPED_SLASHES),
-                $now, self::HELD,
-            ]);
-            return ['id' => (int) $pdo->lastInsertId(), 'target' => $t];
-        });
-        if (isset($held['replay'])) {
-            $j = $held['replay'];
-            return ['status' => self::statusName((int) $j['status']), 'journal_id' => (int) $j['id'], 'invoice' => $j['trx_invoice'] !== '' ? $j['trx_invoice'] : null, 'replayed' => true];
-        }
-        $id = $held['id'];
-        // dispatch: outside any transaction, no lock held
-        try {
-            // the legacy grant call of the path, unchanged: [gateway, channel] (default: the path's label, 'Balance')
-            [$gw, $ch] = $op['grant'] ?? [(string) $op['grant_channel'], self::GATEWAY];
-            $result = \Package::rechargeUser($target, (string) $op['routers'], (int) $op['plan_id'], (string) $gw, (string) $ch);
-        } catch (\Throwable $e) {
-            ErrorReporter::report($e, 'balance-grant');
             return ['status' => 'HELD', 'journal_id' => $id, 'invoice' => null, 'replayed' => false];
-        }
-        if (is_string($result) && $result !== '') {
-            Tx::run(static fn(\PDO $pdo) => Tx::exec($pdo, 'UPDATE tbl_payment_gateway SET status = ?, paid_date = ?, trx_invoice = ? WHERE id = ? AND status = ?',
-                [self::COMPLETED, date('Y-m-d H:i:s'), substr($result, 0, 25), $id, self::HELD]));
-            return ['status' => 'COMPLETED', 'journal_id' => $id, 'invoice' => $result, 'replayed' => false];
-        }
-        if ($result === false) {
-            self::refund($id, ['refund' => 'not_granted']);
-            return ['status' => 'REFUNDED', 'journal_id' => $id, 'invoice' => null, 'replayed' => false];
-        }
-        return ['status' => 'HELD', 'journal_id' => $id, 'invoice' => null, 'replayed' => false];
+        });
     }
 
     /** Exactly-once refund of a HELD journal row: status 5 -> 4 and the locked credit back, in one transaction. */
@@ -196,31 +213,67 @@ final class LegacyCustomerBalanceService
     /** Operator decision on one HELD row (exactly once): completed -> 2; refund -> 4 + credit back. */
     public static function resolve(int $id, string $decision): string
     {
-        if ($decision === 'completed') {
-            $n = Tx::run(static fn(\PDO $pdo): int => Tx::exec($pdo, "UPDATE tbl_payment_gateway SET status = ?, paid_date = ?, pg_paid_response = '{\"resolved\":\"completed\"}' WHERE id = ? AND gateway = ? AND status = ?",
-                [self::COMPLETED, date('Y-m-d H:i:s'), $id, self::GATEWAY, self::HELD]));
-            $ok = $n === 1;
-        } elseif ($decision === 'refund') {
-            $ok = self::refund($id, ['resolved' => 'refund']);
-        } else {
+        if ($decision !== 'completed' && $decision !== 'refund') {
             throw new DomainError('INVALID_INPUT');
         }
-        ErrorReporter::log('balance.resolve', 'journal=' . $id . ' decision=' . $decision . ' applied=' . ($ok ? 'yes' : 'no'));
-        if ($ok) {
-            try {
-                $j = Tx::row(self::pdo(), 'SELECT user_id, gateway_trx_id FROM tbl_payment_gateway WHERE id = ?', [$id]);
-                \Reseller\Audit\AuditLog::record('balance.resolve', \Reseller\Security\ActorContext::system('CLI'), [
-                    'target_type' => 'customer', 'target_customer_id' => (int) ($j['user_id'] ?? 0) ?: null,
-                    'after' => ['journal_id' => $id, 'decision' => $decision, 'operation' => (string) ($j['gateway_trx_id'] ?? '')],
-                ]);
-            } catch (\Throwable $e) {
-                ErrorReporter::report($e, 'balance-resolve-audit');
+        $j = Tx::row(self::pdo(), 'SELECT gateway_trx_id FROM tbl_payment_gateway WHERE id = ? AND gateway = ? AND payment_method = ?', [$id, self::GATEWAY, self::GATEWAY])
+            ?? throw new DomainError('NOT_FOUND');
+        // the SAME operation lock as the dispatcher: waits for a live dispatch (or fails closed), then re-reads
+        $ok = self::withOperationLock((string) $j['gateway_trx_id'], static function () use ($id, $decision): bool {
+            if ($decision === 'completed') {
+                return Tx::run(static fn(\PDO $pdo): int => Tx::exec($pdo, "UPDATE tbl_payment_gateway SET status = ?, paid_date = ?, pg_paid_response = '{\"resolved\":\"completed\"}' WHERE id = ? AND gateway = ? AND status = ?",
+                    [self::COMPLETED, date('Y-m-d H:i:s'), $id, self::GATEWAY, self::HELD])) === 1;
             }
-        }
+            return self::refund($id, ['resolved' => 'refund']);
+        });
+        ErrorReporter::log('balance.resolve', 'journal=' . $id . ' decision=' . $decision . ' applied=' . ($ok ? 'yes' : 'no'));
         if (!$ok) {
-            throw new DomainError('ACTIVATION_STATE_CONFLICT', 'The operation is not HELD (already resolved or unknown); nothing was changed.');
+            throw new DomainError('ACTIVATION_STATE_CONFLICT', 'The operation is not HELD (now ' . self::actual($id)['status'] . '); nothing was changed.');
+        }
+        try {
+            $row = Tx::row(self::pdo(), 'SELECT user_id, gateway_trx_id FROM tbl_payment_gateway WHERE id = ?', [$id]);
+            \Reseller\Audit\AuditLog::record('balance.resolve', \Reseller\Security\ActorContext::system('CLI'), [
+                'target_type' => 'customer', 'target_customer_id' => (int) ($row['user_id'] ?? 0) ?: null,
+                'after' => ['journal_id' => $id, 'decision' => $decision, 'operation' => (string) ($row['gateway_trx_id'] ?? '')],
+            ]);
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'balance-resolve-audit');
         }
         return $decision;
+    }
+
+    /**
+     * Runs $fn holding the advisory lock of one balance operation (its durable identity, the operation key). Taken
+     * outside any transaction; waits up to OP_LOCK_TIMEOUT seconds, then fails closed (BALANCE_OPERATION_BUSY).
+     *
+     * @template T
+     * @param callable():T $fn
+     * @return T
+     */
+    private static function withOperationLock(string $key, callable $fn): mixed
+    {
+        $pdo = self::pdo();
+        if ($pdo->inTransaction()) {
+            throw new \LogicException('the balance operation lock is taken outside any transaction');
+        }
+        $name = 'nuxr_bop_' . sha1((string) $pdo->query('SELECT DATABASE()')->fetchColumn() . '|' . $key);
+        $st = $pdo->prepare('SELECT GET_LOCK(?, ?)');
+        $st->execute([$name, self::OP_LOCK_TIMEOUT]);
+        if ((string) $st->fetchColumn() !== '1') {
+            throw new DomainError('BALANCE_OPERATION_BUSY');
+        }
+        try {
+            return $fn();
+        } finally {
+            $pdo->prepare('SELECT RELEASE_LOCK(?)')->execute([$name]);
+        }
+    }
+
+    /** @return array{status:string} the persisted state of a journal row */
+    private static function actual(int $id): array
+    {
+        $r = Tx::row(self::pdo(), 'SELECT status FROM tbl_payment_gateway WHERE id = ?', [$id]);
+        return ['status' => $r === null ? 'UNKNOWN' : self::statusName((int) $r['status'])];
     }
 
     // ------------------------------------------------------------------ transfer (E18)

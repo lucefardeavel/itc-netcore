@@ -102,6 +102,7 @@ final class DomainError extends \RuntimeException
         'REPROVISION_UNCONFIRMED' => 'The change was saved but the device result could not be confirmed. It was not retried; an administrator must synchronize this customer.',
         'CUSTOMER_RESELLER_OWNED' => 'This operation is not available for reseller-managed customers.',
         'INSUFFICIENT_BALANCE' => 'Insufficient balance.',
+        'BALANCE_OPERATION_BUSY' => 'This balance operation is being processed right now; nothing was changed. Try again shortly.',
         'REVERSAL_FINANCIAL_REFUSED' => 'The settlement of this activation cannot be reversed now; nothing was changed.',
     ];
 
