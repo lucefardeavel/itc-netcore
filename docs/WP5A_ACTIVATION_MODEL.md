@@ -233,3 +233,16 @@ In-flight states are reconciled only when stale (default 300 s), so a running re
 - `LegacyBridge::record` also stores a version-1 `reversal_context` in the COMPLETED event metadata (additive).
 - `ReconciliationService::rollback` uses the extracted `RestorePlan` (same behaviour).
 - Completed-activation reversal: `docs/WP5B_LEGACY_CLOSURE_MODEL.md` §5.
+
+## WP6A amendment (owner decisions OD-A, OD-B, OD-C)
+
+- Read model (OD-A): `ActivationReadService` (`list`, `counts`, `view`, `customerFlags`) over new read-only
+  `ActivationStore::displayPage / displayCount / statusCounts / displayById` (display columns only, never the sealed
+  snapshot JSON). Visibility is the §7 `activation.read` scope; wholesale is shown only to G and the paying Agent.
+- Confirmation (OD-B): `ActivationPreviewService::quote` (read-only, tree-locked, the same `resolveInTx` the activation
+  seals) returns a role-filtered quote and an HMAC fingerprint of the material quote. `ActivationService::create` takes an
+  optional `PreviewBinding`; `open()` compares it after `resolveInTx` and before the activation INSERT and refuses with the
+  new `DomainError` **`ACTIVATION_PREVIEW_CHANGED`** (nothing written: no activation, reservation, wallet, provisioning or
+  legacy row). Without a binding (API, CLI) the behaviour is unchanged. New public helpers `payerOf()` and `expiredDay()`
+  wrap the existing private logic. No state, edge, transaction or schema change. Details: `docs/WP6A_UX_MODEL.md` §2–§3.
+- Route (OD-C): `activation/list` `GET` → `activation.read` (web only).

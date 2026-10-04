@@ -620,3 +620,10 @@ _257 route entries; default actions: '' and unknown actions resolve to each cont
 - The OD-11 ServiceGate is unchanged and still refuses every legacy grant for a reseller-owned customer. On top of it: E1 web
   continues at `activation/create`; E19 / E20 / E21 (sync, password change, identity edit) are bounded re-provisions through
   `Reseller\Domain\LegacyReprovisionService`. Details: `docs/WP5B_LEGACY_CLOSURE_MODEL.md`.
+
+## WP6A amendment (owner decision OD-C)
+
+- RouteMap (pinned, re-pinned under OD-C): `activation/list` `GET` → `activation.read` (ActivationReadService visibility;
+  web only, not API-allowed). No other route, capability or scope changed. The staff navigation
+  (`Reseller\Ui\Navigation`) lists a destination only when this RouteMap rule and `PermissionService::can` allow it;
+  hidden navigation is never authorization. Details: `docs/WP6A_UX_MODEL.md`.

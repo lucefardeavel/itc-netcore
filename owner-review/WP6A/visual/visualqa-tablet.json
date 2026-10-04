@@ -1,0 +1,56 @@
+[
+ {
+  "name": "t1-tablet-agent-subscribers-arabic",
+  "role": "A",
+  "viewport": "tablet",
+  "lang": "ar",
+  "route": "customers/list",
+  "dir": "rtl",
+  "overflow": false,
+  "targets": 131,
+  "small": [
+   "تحديد كل ما في هذه الصفحة",
+   "تحديد ali.hassan",
+   "تحديد bulk001",
+   "تحديد bulk002",
+   "تحديد bulk003",
+   "تحديد bulk004",
+   "تحديد bulk005",
+   "تحديد bulk006"
+  ],
+  "smallCount": 31,
+  "axe": [],
+  "external": [],
+  "errors": []
+ },
+ {
+  "name": "t2-tablet-admin-360",
+  "role": "ad",
+  "viewport": "tablet",
+  "lang": "en",
+  "route": "customers/view/10",
+  "dir": "ltr",
+  "overflow": false,
+  "targets": 21,
+  "small": [],
+  "smallCount": 0,
+  "axe": [],
+  "external": [],
+  "errors": []
+ },
+ {
+  "name": "t3-tablet-agent-activation-confirm",
+  "role": "A",
+  "viewport": "tablet",
+  "lang": "en",
+  "route": "activation/create&customer=9&plan=2",
+  "dir": "ltr",
+  "overflow": false,
+  "targets": 6,
+  "small": [],
+  "smallCount": 0,
+  "axe": [],
+  "external": [],
+  "errors": []
+ }
+]
