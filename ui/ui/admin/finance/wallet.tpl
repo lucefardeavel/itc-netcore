@@ -19,6 +19,13 @@
         <div style="margin-top:12px">{include file="admin/nuxr/wallet-money.tpl" w=$w}</div>
     </div>
     <div class="nuxr-card-body nuxr-actions" style="border-top:1px solid var(--nx-border)">
+        {if in_array('send', $nuxr_page.actions) || in_array('send_from_parent', $nuxr_page.actions)}
+            <a class="nuxr-btn nuxr-btn-primary" href="{Text::url('finance/send&to=', $w.id)}"><i class="fa fa-exchange" aria-hidden="true"></i>{if in_array('send', $nuxr_page.actions)}{Lang::T('Send to this reseller')}{else}{Lang::T('Transfer from its parent')}{/if}</a>
+        {/if}
+        {if in_array('fund', $nuxr_page.actions)}
+            <a class="nuxr-btn nuxr-btn-primary" href="{Text::url('finance/funding/', $w.id, '&op=fund')}"><i class="fa fa-plus-circle" aria-hidden="true"></i>{Lang::T('Provider funding')}</a>
+            <a class="nuxr-btn" href="{Text::url('finance/funding/', $w.id, '&op=withdraw')}"><i class="fa fa-minus-circle" aria-hidden="true"></i>{Lang::T('Provider withdrawal')}</a>
+        {/if}
         <a class="nuxr-btn" href="{Text::url('finance/ledger/', $w.id)}"><i class="fa fa-list" aria-hidden="true"></i>{Lang::T('Ledger')}</a>
         <a class="nuxr-btn" href="{Text::url('finance/transfers&manager=', $w.id)}"><i class="fa fa-exchange" aria-hidden="true"></i>{Lang::T('Transfers')}</a>
     </div>

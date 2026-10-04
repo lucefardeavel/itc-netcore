@@ -6,7 +6,10 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
 
 use Reseller\Activation\ActivationReadService;
 use Reseller\Domain\DomainError;
+use Reseller\Finance\FinanceInput;
 use Reseller\Finance\LedgerReadModel;
+use Reseller\Finance\TransferService;
+use Reseller\Finance\WalletPreview;
 use Reseller\Security\ActorContext;
 use Reseller\Security\Capability as C;
 use Reseller\Security\PermissionService;
@@ -123,6 +126,188 @@ final class WalletDesk
             $out[] = 'adjust';
         }
         return $out;
+    }
+
+    // ------------------------------------------------------------------ money operations (review -> execute)
+
+    /**
+     * Provider funding / withdrawal form (Admin / SuperAdmin; wallet.fund_withdraw G).
+     *
+     * @return array<string,mixed>
+     */
+    public static function fundingForm(ActorContext $a, mixed $managerId, mixed $op): array
+    {
+        self::requireGlobal($a, C::WALLET_FUND_WITHDRAW);
+        return ['op' => self::fundingOp($op), 'wallet' => LedgerReadModel::wallet($a, $managerId)];
+    }
+
+    /**
+     * Review of a provider funding / withdrawal (no write): normalised amount, validated reason / external reference,
+     * informational before / after, a new server reference and the confirm token.
+     *
+     * @param array<string,mixed> $in manager_id, op, amount, reason, external_reference
+     * @return array<string,mixed>
+     */
+    public static function reviewFunding(ActorContext $a, string $key, array $in): array
+    {
+        self::requireGlobal($a, C::WALLET_FUND_WITHDRAW);
+        $op = self::fundingOp($in['op'] ?? null);
+        $wallet = LedgerReadModel::wallet($a, $in['manager_id'] ?? null);
+        $amount = self::amount($in['amount'] ?? null);
+        $preview = $op === 'fund' ? WalletPreview::fund($a, $wallet['id'], $amount) : WalletPreview::withdraw($a, $wallet['id'], $amount);
+        $fields = [
+            'op' => $op, 'target' => $wallet['id'], 'amount' => $preview['amount'], 'reason' => FinanceInput::reason($in['reason'] ?? null),
+            'external' => FinanceInput::externalReference(self::blankToNull($in['external_reference'] ?? null)),
+            'reference' => ConfirmToken::reference($op === 'fund' ? 'FND' : 'WDR'),
+        ];
+        return ['kind' => 'funding', 'op' => $op, 'post_route' => 'finance/funding-post', 'wallet' => $wallet, 'preview' => $preview, 'fields' => $fields,
+            'token' => ConfirmToken::sign($key, $fields), 'typed' => $op === 'withdraw' ? $wallet['username'] : null];
+    }
+
+    /**
+     * Executes a reviewed provider funding / withdrawal through the accepted TransferService (unchanged). A double
+     * submit replays the same operation (same reference and payload).
+     *
+     * @param array<string,mixed> $in the reviewed fields + token (+ typed confirmation for a withdrawal)
+     * @return array<string,mixed> the TransferService result
+     */
+    public static function executeFunding(ActorContext $a, string $key, array $in): array
+    {
+        $fields = self::posted($in, ['op', 'target', 'amount', 'reason', 'external', 'reference']);
+        ConfirmToken::verify($key, $fields, $in['token'] ?? null);
+        if ($fields['op'] === 'withdraw') {
+            self::typed($in['confirm'] ?? null, LedgerReadModel::wallet($a, $fields['target'])['username']);
+        }
+        $r = $fields['op'] === 'fund'
+            ? TransferService::fund($a, $fields['target'], $fields['amount'], $fields['reason'], $fields['reference'], self::blankToNull($fields['external']))
+            : TransferService::withdraw($a, $fields['target'], $fields['amount'], $fields['reason'], $fields['reference'], self::blankToNull($fields['external']));
+        return $r->toArray();
+    }
+
+    /**
+     * Parent -> direct-child transfer form. An Agent always sends from its own wallet to one of its direct child
+     * resellers; Admin / SuperAdmin send from the destination's actual parent (the accepted direct-child rule).
+     *
+     * @return array<string,mixed>
+     */
+    public static function sendForm(ActorContext $a, mixed $toId): array
+    {
+        [$from, $to, $children] = self::sendParties($a, $toId, true);
+        return ['from' => $from, 'to' => $to, 'children' => $children];
+    }
+
+    /** @param array<string,mixed> $in to_id, amount, reason @return array<string,mixed> */
+    public static function reviewSend(ActorContext $a, string $key, array $in): array
+    {
+        [$from, $to] = self::sendParties($a, $in['to_id'] ?? null, false);
+        $amount = self::amount($in['amount'] ?? null);
+        $preview = WalletPreview::transfer($a, $from['id'], $to['id'], $amount);
+        $fields = [
+            'op' => 'send', 'from' => $from['id'], 'to' => $to['id'], 'amount' => $preview['amount'],
+            'reason' => FinanceInput::reason($in['reason'] ?? null), 'reference' => ConfirmToken::reference('TRF'),
+        ];
+        return ['kind' => 'send', 'op' => 'send', 'post_route' => 'finance/send-post', 'from' => $from, 'to' => $to, 'preview' => $preview, 'fields' => $fields,
+            'token' => ConfirmToken::sign($key, $fields), 'typed' => null];
+    }
+
+    /** @param array<string,mixed> $in @return array<string,mixed> */
+    public static function executeSend(ActorContext $a, string $key, array $in): array
+    {
+        $fields = self::posted($in, ['op', 'from', 'to', 'amount', 'reason', 'reference']);
+        ConfirmToken::verify($key, $fields, $in['token'] ?? null);
+        if ($fields['op'] !== 'send') {
+            throw new DomainError('REVIEW_EXPIRED');
+        }
+        return TransferService::transferToChild($a, $fields['from'], $fields['to'], $fields['amount'], $fields['reason'], $fields['reference'])->toArray();
+    }
+
+    /**
+     * The transfer parties: [source wallet, destination wallet|null, selectable children]. Offers only; the service
+     * enforces source = self (Agent), the direct-child relation and both owners' state.
+     *
+     * @return array{0:array<string,mixed>,1:?array<string,mixed>,2:list<array<string,mixed>>}
+     */
+    private static function sendParties(ActorContext $a, mixed $toId, bool $allowNoTarget): array
+    {
+        $scope = PermissionService::scopeOf($a, C::WALLET_TRANSFER);
+        if ($scope === 'C') {
+            $from = LedgerReadModel::wallet($a, (int) $a->userId);
+            $children = LedgerReadModel::wallets($a, ['parent' => (int) $a->userId], 1)['rows'];
+            if ($toId === null || $toId === '') {
+                if ($allowNoTarget) {
+                    return [$from, null, $children];
+                }
+                throw new DomainError('NOT_FOUND');
+            }
+            foreach ($children as $c) {
+                if ((string) $c['id'] === (string) $toId) {
+                    return [$from, $c, $children];
+                }
+            }
+            throw new DomainError('NOT_FOUND'); // not a direct child of the actor (the service refuses it as well)
+        }
+        if ($scope !== 'G') {
+            throw new DomainError('FORBIDDEN');
+        }
+        $to = LedgerReadModel::wallet($a, $toId);
+        if (($to['parent']['id'] ?? null) === null) {
+            throw new DomainError('NOT_DIRECT_CHILD');
+        }
+        return [LedgerReadModel::wallet($a, $to['parent']['id']), $to, []];
+    }
+
+    /** Lossless digit mapping (Arabic-Indic / Extended Arabic-Indic digits, Arabic decimal separator) before the strict Money grammar. */
+    public static function amount(mixed $raw): string
+    {
+        if (!is_string($raw)) {
+            return '';
+        }
+        $map = ['٫' => '.'];
+        foreach (['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'] as $i => $d) {
+            $map[$d] = (string) $i;
+        }
+        foreach (['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'] as $i => $d) {
+            $map[$d] = (string) $i;
+        }
+        return trim(strtr($raw, $map));
+    }
+
+    private static function fundingOp(mixed $op): string
+    {
+        if (!in_array($op, ['fund', 'withdraw'], true)) {
+            throw new DomainError('NOT_FOUND');
+        }
+        return $op;
+    }
+
+    private static function requireGlobal(ActorContext $a, string $capability): void
+    {
+        if (PermissionService::scopeOf($a, $capability) !== 'G') {
+            throw new DomainError('FORBIDDEN');
+        }
+    }
+
+    /** @param array<string,mixed> $in @param list<string> $keys @return array<string,string> */
+    private static function posted(array $in, array $keys): array
+    {
+        $out = [];
+        foreach ($keys as $k) {
+            $v = $in[$k] ?? '';
+            $out[$k] = is_string($v) || is_int($v) ? (string) $v : '';
+        }
+        return $out;
+    }
+
+    private static function typed(mixed $typed, string $expected): void
+    {
+        if (!is_string($typed) || !hash_equals($expected, trim($typed))) {
+            throw new DomainError('CONFIRMATION_MISMATCH');
+        }
+    }
+
+    private static function blankToNull(mixed $v): mixed
+    {
+        return is_string($v) && trim($v) === '' ? null : $v;
     }
 
     /**

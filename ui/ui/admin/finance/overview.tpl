@@ -13,6 +13,7 @@
             {include file="admin/nuxr/wallet-money.tpl" w=$w}
         </div>
         <div class="nuxr-card-body nuxr-actions" style="border-top:1px solid var(--nx-border)">
+            {if $nuxr_home.can_send && !$w.frozen}<a class="nuxr-btn nuxr-btn-primary" href="{Text::url('finance/send')}"><i class="fa fa-exchange" aria-hidden="true"></i>{Lang::T('Send to a child reseller')}</a>{/if}
             <a class="nuxr-btn" href="{Text::url('finance/ledger/', $w.id)}"><i class="fa fa-list" aria-hidden="true"></i>{Lang::T('Ledger')}</a>
             <a class="nuxr-btn" href="{Text::url('finance/transfers')}"><i class="fa fa-exchange" aria-hidden="true"></i>{Lang::T('Transfers')}</a>
         </div>

@@ -15,6 +15,12 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  *   entry      GET  one ledger entry with its links
  *   transfers  GET  transfers in scope (+csv, date range required)
  *   transfer   GET  one transfer with its in-scope legs
+ *   funding    GET  Admin: provider funding / withdrawal form (op=fund|withdraw)
+ *   funding-review POST  review (no write): normalised amount, before / after, reference, confirm token
+ *   funding-post   POST  execute the reviewed operation (TransferService::fund / withdraw)
+ *   send       GET  parent -> direct child transfer form (Agent: own wallet; Admin: the child's parent)
+ *   send-review    POST  review (no write)
+ *   send-post      POST  execute the reviewed transfer (TransferService::transferToChild)
  */
 
 _admin();
@@ -25,6 +31,20 @@ $action = $routes['1'] ?? '';
 $nuxrActor = \Reseller\Security\ActorContext::current();
 $nuxrFail = static function (\Reseller\Domain\DomainError $e, string $back): void {
     r2(getUrl($back), 'e', Lang::T($e->getMessage()));
+};
+// review -> execute binding key (per session, never rendered; Backoffice\ConfirmToken)
+if (!isset($_SESSION['nuxr_finance_key']) || !is_string($_SESSION['nuxr_finance_key']) || strlen($_SESSION['nuxr_finance_key']) !== 64) {
+    $_SESSION['nuxr_finance_key'] = bin2hex(random_bytes(32));
+}
+$nuxrKey = $_SESSION['nuxr_finance_key'];
+/** @return array<string,?string> the named POST fields (strings only) */
+$nuxrPost = static function (array $keys): array {
+    $out = [];
+    foreach ($keys as $k) {
+        $v = _post($k);
+        $out[$k] = is_string($v) ? $v : null;
+    }
+    return $out;
 };
 /** @return array<string,string> the accepted filter keys of this request (trimmed strings only) */
 $nuxrFilters = static function (array $keys): array {
@@ -133,6 +153,89 @@ switch ($action) {
         $ui->assign('_title', Lang::T('Transfer') . ' ' . $transfer['reference']);
         $ui->assign('nuxr_transfer', $transfer);
         $ui->display('admin/finance/transfer.tpl');
+        break;
+
+    case 'funding':
+        try {
+            $form = \Reseller\Backoffice\WalletDesk::fundingForm($nuxrActor, $nuxrId, _get('op'));
+        } catch (\Reseller\Domain\DomainError $e) {
+            $nuxrFail($e, 'finance');
+        }
+        $ui->assign('_title', $form['op'] === 'fund' ? Lang::T('Provider funding') : Lang::T('Provider withdrawal'));
+        $ui->assign('nuxr_form', $form);
+        $ui->assign('nuxr_values', []);
+        $ui->display('admin/finance/funding.tpl');
+        break;
+
+    case 'funding-review':
+    case 'funding-post':
+        $in = $action === 'funding-review'
+            ? $nuxrPost(['manager_id', 'op', 'amount', 'reason', 'external_reference'])
+            : $nuxrPost(['op', 'target', 'amount', 'reason', 'external', 'reference', 'token', 'confirm']);
+        try {
+            if ($action === 'funding-review') {
+                $review = \Reseller\Backoffice\WalletDesk::reviewFunding($nuxrActor, $nuxrKey, $in);
+                $ui->assign('_title', Lang::T('Review'));
+                $ui->assign('nuxr_review', $review);
+                $ui->display('admin/finance/review.tpl');
+                break;
+            }
+            $done = \Reseller\Backoffice\WalletDesk::executeFunding($nuxrActor, $nuxrKey, $in);
+            r2(getUrl('finance/transfer/' . $done['transfer_id']), 's', $done['replayed'] ? Lang::T('Already recorded: this confirmation was processed once.') : Lang::T('Recorded.'));
+        } catch (\Reseller\Domain\DomainError $e) {
+            // re-show the form with the operator's values and the fixed message (nothing was written)
+            try {
+                $form = \Reseller\Backoffice\WalletDesk::fundingForm($nuxrActor, $in['manager_id'] ?? $in['target'] ?? null, $in['op'] ?? null);
+            } catch (\Reseller\Domain\DomainError $e2) {
+                $nuxrFail($e, 'finance');
+            }
+            $ui->assign('_title', Lang::T('Provider funding'));
+            $ui->assign('nuxr_form', $form);
+            $ui->assign('nuxr_values', ['amount' => $in['amount'] ?? '', 'reason' => $in['reason'] ?? '', 'external_reference' => $in['external_reference'] ?? $in['external'] ?? '']);
+            $ui->assign('nuxr_error', Lang::T($e->getMessage()));
+            $ui->display('admin/finance/funding.tpl');
+        }
+        break;
+
+    case 'send':
+        try {
+            $form = \Reseller\Backoffice\WalletDesk::sendForm($nuxrActor, _get('to'));
+        } catch (\Reseller\Domain\DomainError $e) {
+            $nuxrFail($e, 'finance');
+        }
+        $ui->assign('_title', Lang::T('Send to a child reseller'));
+        $ui->assign('nuxr_form', $form);
+        $ui->assign('nuxr_values', []);
+        $ui->display('admin/finance/send.tpl');
+        break;
+
+    case 'send-review':
+    case 'send-post':
+        $in = $action === 'send-review'
+            ? $nuxrPost(['to_id', 'amount', 'reason'])
+            : $nuxrPost(['op', 'from', 'to', 'amount', 'reason', 'reference', 'token']);
+        try {
+            if ($action === 'send-review') {
+                $review = \Reseller\Backoffice\WalletDesk::reviewSend($nuxrActor, $nuxrKey, $in);
+                $ui->assign('_title', Lang::T('Review'));
+                $ui->assign('nuxr_review', $review);
+                $ui->display('admin/finance/review.tpl');
+                break;
+            }
+            $done = \Reseller\Backoffice\WalletDesk::executeSend($nuxrActor, $nuxrKey, $in);
+            r2(getUrl('finance/transfer/' . $done['transfer_id']), 's', $done['replayed'] ? Lang::T('Already recorded: this confirmation was processed once.') : Lang::T('Recorded.'));
+        } catch (\Reseller\Domain\DomainError $e) {
+            try {
+                $form = \Reseller\Backoffice\WalletDesk::sendForm($nuxrActor, $in['to_id'] ?? $in['to'] ?? null);
+            } catch (\Reseller\Domain\DomainError $e2) {
+                $nuxrFail($e, 'finance');
+            }
+            $ui->assign('_title', Lang::T('Send to a child reseller'));
+            $ui->assign('nuxr_form', $form);
+            $ui->assign('nuxr_values', ['amount' => $in['amount'] ?? '', 'reason' => $in['reason'] ?? '']);
+            $ui->assign('nuxr_error', Lang::T($e->getMessage()));
+            $ui->display('admin/finance/send.tpl');
+        }
         break;
 
     case 'overview':

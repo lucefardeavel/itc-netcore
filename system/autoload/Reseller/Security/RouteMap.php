@@ -174,6 +174,13 @@ final class RouteMap
             'entry' => ['GET' => C::LEDGER_READ],
             'transfers' => ['GET' => C::LEDGER_READ],
             'transfer' => ['GET' => C::LEDGER_READ],
+            // review (no write) -> execute through the accepted TransferService (OD-1 / plan §8)
+            'funding' => ['GET' => C::WALLET_FUND_WITHDRAW],
+            'funding-review' => ['POST' => C::WALLET_FUND_WITHDRAW],
+            'funding-post' => ['POST' => C::WALLET_FUND_WITHDRAW],
+            'send' => ['GET' => C::WALLET_TRANSFER],
+            'send-review' => ['POST' => C::WALLET_TRANSFER],
+            'send-post' => ['POST' => C::WALLET_TRANSFER],
         ],
         'reseller' => [
             '' => 'tree', '*' => 'tree',
