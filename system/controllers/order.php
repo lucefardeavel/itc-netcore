@@ -677,8 +677,17 @@ switch ($action) {
                 // Tax calculation stop
                 // WP5B fix round 1 (blocker 5): the coupon is re-fetched, re-validated and one use consumed in the SAME
                 // transaction that writes the payment row; an invalid or exhausted coupon writes nothing
+                // WP5B fix round 2 (blocker 5B): the coupon price basis is the gateway preview's legacy rule, read
+                // again now from the server: the customer's current "Invoice" attribute when set, else the plan
+                // price (the preview resolves the logged-in customer, User::getAttribute without an id). The
+                // payment-row amount composition below is unchanged.
+                $nuxrCouponBase = $plan['price'];
+                $nuxrInvoiceOverride = User::getAttribute("Invoice", (int) $user['id']);
+                if (!empty($nuxrInvoiceOverride)) {
+                    $nuxrCouponBase = $nuxrInvoiceOverride;
+                }
                 try {
-                    \Reseller\Domain\CouponAuthority::buy($nuxrCoupon, $plan['price'], (string) $plan['routers'], function ($nuxrDiscount) use (&$d, &$id, &$discount, $plan, $router, $gateway, $user, $add_cost, $tax, $id_customer): void {
+                    \Reseller\Domain\CouponAuthority::buy($nuxrCoupon, $nuxrCouponBase, (string) $plan['routers'], function ($nuxrDiscount) use (&$d, &$id, &$discount, $plan, $router, $gateway, $user, $add_cost, $tax, $id_customer): void {
                         $discount = $nuxrDiscount;
                         if (empty($id)) {
                             $d = ORM::for_table('tbl_payment_gateway')->create();

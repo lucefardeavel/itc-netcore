@@ -196,4 +196,62 @@ PHP;
             $this->assertSame(3, $this->usage($id), "round {$round}: never above max_usage");
         }
     }
+
+    // ---- fix round 2, blocker 5B: the buy-time coupon price basis is the preview's (legacy Invoice override) ----
+
+    private function invoice(?string $value): void
+    {
+        static::$db->pdo->prepare("DELETE FROM tbl_customers_fields WHERE customer_id = ? AND field_name = 'Invoice'")->execute([$this->cid('cNULL')]);
+        if ($value !== null) {
+            static::$db->insertRow('tbl_customers_fields', ['customer_id' => $this->cid('cNULL'), 'field_name' => 'Invoice', 'field_value' => $value]);
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        $this->invoice(null);
+    }
+
+    private function percentCoupon(array $over = []): array
+    {
+        return $this->coupon($over + ['type' => 'percent', 'value' => '10', 'max_discount_amount' => '100000']);
+    }
+
+    public function testPercentCouponUsesTheInvoiceOverrideAsItsBasis(): void
+    {
+        $this->invoice('500');
+        [$id, $code] = $this->percentCoupon();
+        $rows = $this->previewThenBuy($code);
+        $this->assertCount(1, $rows);
+        $this->assertSame(950.0, (float) $rows[0]['price'], '10% of the Invoice override (50), not of the raw plan price (100)');
+        $this->assertSame(1, $this->usage($id));
+    }
+
+    public function testMinimumOrderIsCheckedAgainstTheInvoiceOverride(): void
+    {
+        $this->invoice('2000');
+        [$id, $code] = $this->coupon(['min_order_amount' => '1500']);
+        $rows = $this->previewThenBuy($code);
+        $this->assertCount(1, $rows, 'valid at preview, still valid at buy with the same current override');
+        $this->assertSame(900.0, (float) $rows[0]['price'], 'the payment-row composition is unchanged (plan price + bills + tax - discount)');
+        $this->assertSame(1, $this->usage($id));
+    }
+
+    public function testBuyReadsTheCurrentInvoiceOverride(): void
+    {
+        $this->invoice('500');
+        [$id, $code] = $this->percentCoupon();
+        $rows = $this->previewThenBuy($code, fn() => $this->invoice('800'));
+        $this->assertCount(1, $rows);
+        $this->assertSame(920.0, (float) $rows[0]['price'], '10% of the CURRENT override (80), not the preview-time one (50)');
+    }
+
+    public function testWithoutAnOverrideThePercentCouponUsesThePlanPrice(): void
+    {
+        $this->invoice(null);
+        [$id, $code] = $this->percentCoupon();
+        $rows = $this->previewThenBuy($code);
+        $this->assertCount(1, $rows);
+        $this->assertSame(900.0, (float) $rows[0]['price']);
+    }
 }
