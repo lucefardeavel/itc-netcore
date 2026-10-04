@@ -28,8 +28,8 @@
                 {if $nuxr_preview}
                     <hr>
                     <table class="table table-condensed">
-                        <tr><th>{Lang::T('Customer')}</th><td>{$nuxr_preview['customer']|escape}</td></tr>
-                        <tr><th>{Lang::T('Plan')}</th><td>{$nuxr_preview['plan']|escape}</td></tr>
+                        <tr><th>{Lang::T('Customer')}</th><td>{$nuxr_preview['customer_username']|escape}</td></tr>
+                        <tr><th>{Lang::T('Plan')}</th><td>{$nuxr_preview['plan_name']|escape}</td></tr>
                         <tr><th>{Lang::T('Action')}</th><td>{$nuxr_preview['action']|escape}</td></tr>
                         <tr><th>{Lang::T('Starts')}</th><td>{$nuxr_preview['start']|escape}</td></tr>
                         <tr><th>{Lang::T('Expires')}</th><td>{$nuxr_preview['expiry']|escape}</td></tr>
@@ -40,6 +40,7 @@
                         <input type="hidden" name="plan_id" value="{$nuxr_plan_id}">
                         <input type="hidden" name="expected_action" value="{$nuxr_preview['action']|escape}">
                         <input type="hidden" name="nonce" value="{$nuxr_nonce}">
+                        <input type="hidden" name="preview" value="{$nuxr_preview['fingerprint']|escape}">
                         <button class="btn btn-primary" type="submit">{Lang::T('Confirm activation')}</button>
                     </form>
                 {/if}

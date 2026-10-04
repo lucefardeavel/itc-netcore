@@ -47,9 +47,15 @@ final class ActivationService
     /**
      * Creates (or replays) an activation and drives it as far as is safe in this request.
      *
+     * WP6A (owner decision OD-B, preview staleness): a $preview binding carries the fingerprint of the quote the
+     * operator confirmed (ActivationPreviewService). The material quote is re-derived inside the open transaction,
+     * under the tree lock, right after the authoritative pricing resolution; if it differs the request is refused
+     * with ACTIVATION_PREVIEW_CHANGED before the activation row, the reservation, provisioning or any legacy write.
+     * A replay of an existing idempotency key returns that activation (the binding is not re-checked).
+     *
      * @return array{reference:string,status:string,action:string,replayed:bool,error_code:?string,error_message:?string}
      */
-    public static function create(ActorContext $a, mixed $customerId, mixed $planId, mixed $expectedAction, mixed $nonce): array
+    public static function create(ActorContext $a, mixed $customerId, mixed $planId, mixed $expectedAction, mixed $nonce, ?PreviewBinding $preview = null): array
     {
         self::assertEligible($a);
         if (!DataScope::validId($customerId) || !DataScope::validId($planId)) {
@@ -64,7 +70,7 @@ final class ActivationService
         $actor = ActivationActor::staff($a);
         $key = 'staff:' . (int) $a->userId . ':' . $nonce;
         [$id, $replayed] = FinanceTx::run(
-            static fn(\PDO $pdo): array => self::open($pdo, $a, (int) $customerId, (int) $planId, $expectedAction, $key),
+            static fn(\PDO $pdo): array => self::open($pdo, $a, (int) $customerId, (int) $planId, $expectedAction, $key, $preview),
             true
         );
         return self::outcome(self::execute($id, $actor), $replayed);
@@ -205,7 +211,7 @@ final class ActivationService
     }
 
     /** @return array{0:int,1:bool} [activation id, replayed] */
-    private static function open(\PDO $pdo, ActorContext $a, int $customerId, int $planId, string $expected, string $key): array
+    private static function open(\PDO $pdo, ActorContext $a, int $customerId, int $planId, string $expected, string $key, ?PreviewBinding $preview = null): array
     {
         $existing = ActivationStore::byKey($pdo, $key);
         if ($existing !== null) {
@@ -239,6 +245,9 @@ final class ActivationService
         }
         [$start, $expiry] = ServicePeriod::compute($action, $plan, $action === 'RENEW' ? $current : null, $now, self::dayExp($pdo, $customerId, $plan));
         $snap = PricingService::resolveInTx($pdo, $manager, $planId);
+        if ($preview !== null && !$preview->matches(ActivationPreviewService::material($customerId, $planId, $manager, $action, $current, $plan, $snap, self::dayExp($pdo, $customerId, $plan)))) {
+            throw new DomainError('ACTIVATION_PREVIEW_CHANGED'); // WP6A OD-B: nothing written (no row, reservation or provisioning)
+        }
         $utcNow = Tx::utcNow();
         $id = ActivationStore::insert($pdo, [
             'reference' => self::reference(), 'idempotency_key' => $key, 'action' => $action, 'manager_id' => $manager,
@@ -558,6 +567,18 @@ final class ActivationService
     {
         return ['reference' => (string) $row['reference'], 'status' => (string) $row['status'], 'action' => (string) $row['action'],
             'replayed' => $replayed, 'error_code' => $row['error_code'], 'error_message' => $row['error_message']];
+    }
+
+    /** WP6A: the paying owner manager of a customer in the actor's activation scope (authorizeCustomer, read-only callers). */
+    public static function payerOf(ActorContext $a, array $customer): int
+    {
+        return self::authorizeCustomer($a, $customer);
+    }
+
+    /** WP6A: the legacy "Expired Date" day used by the service period (read-only callers). */
+    public static function expiredDay(\PDO $pdo, int $customerId, array $plan): int
+    {
+        return self::dayExp($pdo, $customerId, $plan);
     }
 
     /** The owner manager whose wallet pays (A5): S = own customers, A = assigned customers, G = any reseller customer. */

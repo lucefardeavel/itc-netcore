@@ -24,8 +24,8 @@ final class SourceGuardTest extends TestCase
      */
     private const PINNED = [
         'system/autoload/Reseller/Domain/ServiceGate.php' => 'f0d6f3d96283725b134433122aaf8442eb8db983148b0a45379d8a6cb4f0ed82',
-        // WP5A (owner decision A7): the activation routes
-        'system/autoload/Reseller/Security/RouteMap.php' => 'dba623a12c86284a3496c72fff8e8c35125f0675fce5bfe6764b3dc71ef092fc',
+        // WP5A (owner decision A7): the activation routes; WP6A (owner decision OD-C): + read-only activation/list
+        'system/autoload/Reseller/Security/RouteMap.php' => '0a2610f6c3014a14cdadddec9f6a1e4dcd219c7696f5b999365f6a9c95543ea3',
         'system/autoload/Reseller/Domain/Tx.php' => '223cfb618ee7372c615bb93f37c86db4da739d47e2da03692f976bf3b2cbccc6',
         'system/autoload/Balance.php' => '9652370fcc1d7ca370ff9061c4631fa34531f2049a5da9c0b9b8601ab00c57ae',
         // WP4 (owner decision Q5): the device calls in rechargeUser run after the recharge row is saved

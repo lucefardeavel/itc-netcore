@@ -7,9 +7,11 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  * (RouteGuard / RouteMap) and again inside Reseller\Activation (capability, customer scope, actor
  * revalidation inside the transaction). Mutations are POST + CSRF. No prices are taken from the browser.
  *
- *   create       GET   form / server-derived preview (customer, plan)
- *   create-post  POST  create or replay (idempotency nonce) and run the activation
- *   view         GET   state and event timeline
+ *   create       GET   form / live server-calculated confirmation (WP6A OD-B: ActivationPreviewService)
+ *   create-post  POST  create or replay (idempotency nonce) and run the activation; the confirmed quote's
+ *                      fingerprint is re-checked server-side (ACTIVATION_PREVIEW_CHANGED, nothing written)
+ *   view         GET   state and event timeline (WP6A OD-A: ActivationReadService, display fields only)
+ *   list         GET   WP6A OD-C: activations visible to the actor (read only, paginated)
  *   reconcile    POST  Admin / SuperAdmin: read RADIUS back and settle or release
  *   rollback     POST  Admin / SuperAdmin: restore the previous RADIUS state and release
  *   reverse      POST  Admin / SuperAdmin (WP5B, OD-11): reverse a COMPLETED activation (reason required)
@@ -22,6 +24,11 @@ $ui->assign('_admin', $admin);
 
 $action = $routes['1'] ?? '';
 $nuxrActor = \Reseller\Security\ActorContext::current();
+// WP6A (OD-B): per-session server key of the confirmation fingerprint (never sent to the browser)
+if (!isset($_SESSION['nuxr_activation_preview_key']) || !is_string($_SESSION['nuxr_activation_preview_key']) || strlen($_SESSION['nuxr_activation_preview_key']) !== 64) {
+    $_SESSION['nuxr_activation_preview_key'] = bin2hex(random_bytes(32));
+}
+$nuxrPreviewKey = $_SESSION['nuxr_activation_preview_key'];
 
 $nuxrFail = static function (\Reseller\Domain\DomainError $e, string $back): void {
     r2(getUrl($back), 'e', Lang::T($e->getMessage()));
@@ -34,10 +41,13 @@ switch ($action) {
             \Reseller\Security\RouteGuard::deny(403, 'activation actor not eligible');
         }
         $customerId = _post('customer_id');
+        $planId = _post('plan_id');
         try {
-            $out = \Reseller\Activation\ActivationService::create($nuxrActor, $customerId, _post('plan_id'), _post('expected_action'), _post('nonce'));
+            $out = \Reseller\Activation\ActivationService::create($nuxrActor, $customerId, $planId, _post('expected_action'), _post('nonce'),
+                \Reseller\Activation\PreviewBinding::of(_post('preview'), $nuxrPreviewKey));
         } catch (\Reseller\Domain\DomainError $e) {
-            $nuxrFail($e, 'activation/create&customer=' . (\Reseller\Security\DataScope::validId($customerId) ? (int) $customerId : 0));
+            $nuxrFail($e, 'activation/create&customer=' . (\Reseller\Security\DataScope::validId($customerId) ? (int) $customerId : 0)
+                . (\Reseller\Security\DataScope::validId($planId) ? '&plan=' . (int) $planId : ''));
         }
         $type = $out['status'] === 'COMPLETED' ? 's' : ($out['status'] === 'FAILED' ? 'e' : 'w');
         r2(getUrl('activation/view/' . $out['reference']), $type, Lang::T('Activation') . ' ' . $out['reference'] . ': ' . $out['status']);
@@ -55,7 +65,7 @@ switch ($action) {
             // only the plans this actor can sell in this context (Sales: for the selected customer's owner)
             $plans = \Reseller\Activation\ActivationService::catalog($nuxrActor, \Reseller\Security\DataScope::validId($customerId) ? $customerId : null);
             if (\Reseller\Security\DataScope::validId($customerId) && \Reseller\Security\DataScope::validId($planId)) {
-                $preview = \Reseller\Activation\ActivationService::preview($nuxrActor, $customerId, $planId);
+                $preview = \Reseller\Activation\ActivationPreviewService::quote($nuxrActor, $customerId, $planId, $nuxrPreviewKey);
             }
         } catch (\Reseller\Domain\DomainError $e) {
             if ($e->reason === 'FORBIDDEN') {
@@ -71,11 +81,25 @@ switch ($action) {
         $ui->display('admin/activation/create.tpl');
         break;
 
+    case 'list':
+        $nuxrGroup = _get('group');
+        $nuxrGroup = is_string($nuxrGroup) && isset(\Reseller\Activation\ActivationReadService::GROUPS[$nuxrGroup]) ? $nuxrGroup : '';
+        try {
+            $list = \Reseller\Activation\ActivationReadService::list($nuxrActor, ['group' => $nuxrGroup], (int) _get('page', 1));
+        } catch (\Reseller\Domain\DomainError $e) {
+            $nuxrFail($e, 'dashboard');
+        }
+        $ui->assign('_title', Lang::T('Activations'));
+        $ui->assign('nuxr_list', $list);
+        $ui->assign('nuxr_group', $nuxrGroup);
+        $ui->display('admin/activation/list.tpl');
+        break;
+
     case 'view':
     default:
         // the bare controller and unknown actions are the read action (RouteMap '' / '*' => view, activation.read)
         try {
-            $view = \Reseller\Activation\ActivationService::status($nuxrActor, $routes['2'] ?? '');
+            $view = \Reseller\Activation\ActivationReadService::view($nuxrActor, $routes['2'] ?? '');
         } catch (\Reseller\Domain\DomainError $e) {
             $nuxrFail($e, \Reseller\Security\PermissionService::can($nuxrActor, \Reseller\Security\Capability::ACTIVATION_CREATE) ? 'activation/create' : 'dashboard');
         }

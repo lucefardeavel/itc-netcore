@@ -156,6 +156,8 @@ final class RouteMap
             'create' => ['GET' => C::ACTIVATION_CREATE],
             'create-post' => ['POST' => C::ACTIVATION_CREATE],
             'view' => ['GET' => C::ACTIVATION_READ],
+            // WP6A (owner decision OD-C): read-only activation list (ActivationReadService visibility)
+            'list' => ['GET' => C::ACTIVATION_READ],
             'reconcile' => ['POST' => C::ACTIVATION_CREATE],
             'rollback' => ['POST' => C::ACTIVATION_CREATE],
             // WP5B (OD-11): reversal of a COMPLETED activation; Admin / SuperAdmin only (activation.reverse G)

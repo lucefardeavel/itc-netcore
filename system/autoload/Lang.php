@@ -23,18 +23,9 @@ class Lang
         } else if (isset($_L[$key])) {
             return $_L[$key];
         } else {
-            $iso = Lang::getIsoLang()[$config['language']];
-            if (empty($iso)) {
-                return $val;
-            }
-            if (!empty($iso) && !empty($val) && $iso != 'en') {
-                $temp = Lang::translate($val, $iso);
-                if (!empty($temp)) {
-                    $val = $temp;
-                }
-            }
+            // WP6A (owner decision OD-F, SEC-25 closed): a missing translation falls back locally to the source
+            // (English) text. No external translation request and no runtime rewrite of the language file.
             $_L[$key] = $val;
-            file_put_contents($lan_file, json_encode($_L, JSON_PRETTY_PRINT));
             return $val;
         }
     }
@@ -220,25 +211,9 @@ class Lang
         return $textLeft . str_pad($textRight, $cols - strlen($textLeft), $pad_string, 0);
     }
 
+    /** WP6A (SEC-25 closed): kept for plugin compatibility; never contacts an external translation service. */
     public static function translate($txt, $to = 'id')
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://translate.google.com/m?hl=en&sl=en&tl=$to&ie=UTF-8&prev=_m&q=" . urlencode($txt));
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (iPhone; CPU OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/28.1 Mobile/15E148 Safari/605.1.15");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        $hasil = curl_exec($ch);
-        curl_close($ch);
-        $temp = explode('<div class="result-container">', $hasil);
-        if (count($temp) > 0) {
-            $temp =  explode("</div", $temp[1]);
-            if (!empty($temp[0])) {
-                return $temp[0];
-            }
-        }
         return $txt;
     }
 

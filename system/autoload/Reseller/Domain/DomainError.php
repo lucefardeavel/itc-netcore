@@ -85,6 +85,8 @@ final class DomainError extends \RuntimeException
         // WP5A activation
         'ACTION_MISMATCH' => 'The customer\'s current service changed; review the activation again.',
         'ACTIVATION_IN_PROGRESS' => 'Another activation for this customer is still in progress; check its status first.',
+        // WP6A (OD-B): the confirmed quote no longer matches the authoritative one; nothing was written
+        'ACTIVATION_PREVIEW_CHANGED' => 'The price or terms changed since you reviewed them. Nothing was charged; review the updated confirmation.',
         'ACTIVATION_STATE_CONFLICT' => 'The activation is not in a state that allows this step.',
         'CUSTOMER_NOT_RESELLER_OWNED' => 'Only customers owned by a reseller can be activated here.',
         'CUSTOMER_INACTIVE' => 'The customer account is not active.',

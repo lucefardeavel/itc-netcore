@@ -243,6 +243,53 @@ final class ActivationStore
         return Tx::row($pdo, 'SELECT * FROM tbl_reseller_activations WHERE customer_id = ? AND status = ? ORDER BY id DESC LIMIT 1', [$customerId, $status]);
     }
 
+    /**
+     * WP6A (owner decision OD-A): read-only display rows for the activation read model. $where is a visibility
+     * predicate over the alias `a` built by ActivationReadService (placeholders only); the joined columns are
+     * display fields. No snapshot, settlement or chain column is selected.
+     *
+     * @param list<mixed> $params
+     * @return list<array<string,mixed>>
+     */
+    public static function displayPage(\PDO $pdo, string $where, array $params, int $limit, int $offset): array
+    {
+        return Tx::rows($pdo, self::DISPLAY . " WHERE {$where} ORDER BY a.id DESC LIMIT " . max(1, $limit) . ' OFFSET ' . max(0, $offset), $params);
+    }
+
+    /** @param list<mixed> $params */
+    public static function displayCount(\PDO $pdo, string $where, array $params): int
+    {
+        return (int) (Tx::row($pdo, "SELECT COUNT(*) AS n FROM tbl_reseller_activations a WHERE {$where}", $params)['n'] ?? 0);
+    }
+
+    /**
+     * WP6A: activation counts per status within a visibility predicate, optionally only rows updated since $sinceUtc.
+     *
+     * @param list<mixed> $params
+     * @return array<string,int>
+     */
+    public static function statusCounts(\PDO $pdo, string $where, array $params, ?string $sinceUtc = null): array
+    {
+        $sql = "SELECT a.status, COUNT(*) AS n FROM tbl_reseller_activations a WHERE {$where}" . ($sinceUtc !== null ? ' AND a.updated_at >= ?' : '') . ' GROUP BY a.status';
+        $out = [];
+        foreach (Tx::rows($pdo, $sql, $sinceUtc !== null ? [...$params, $sinceUtc] : $params) as $r) {
+            $out[(string) $r['status']] = (int) $r['n'];
+        }
+        return $out;
+    }
+
+    /** WP6A: one display row by id (same columns as displayPage), or null. */
+    public static function displayById(\PDO $pdo, int $id): ?array
+    {
+        return Tx::row($pdo, self::DISPLAY . ' WHERE a.id = ?', [$id]);
+    }
+
+    private const DISPLAY = 'SELECT a.id, a.reference, a.action, a.status, a.error_code, a.customer_id, a.plan_id, a.previous_plan_id, a.manager_id, '
+        . 'a.actor_type, a.actor_user_id, a.legacy_invoice, a.created_at, a.updated_at, c.username AS customer_username, c.fullname AS customer_fullname, '
+        . 'p.name_plan AS plan_name, p.type AS plan_type, m.username AS manager_username, u.username AS actor_username '
+        . 'FROM tbl_reseller_activations a LEFT JOIN tbl_customers c ON c.id = a.customer_id LEFT JOIN tbl_plans p ON p.id = a.plan_id '
+        . 'LEFT JOIN tbl_users m ON m.id = a.manager_id LEFT JOIN tbl_users u ON u.id = a.actor_user_id';
+
     /** @return array<string,mixed>|null the activation's reservation (ACTIVE or COMMITTED first) */
     public static function reservation(\PDO $pdo, int $id): ?array
     {

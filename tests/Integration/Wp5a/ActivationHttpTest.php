@@ -52,8 +52,11 @@ PHP);
         $this->assertSame(200, $page->status, $page->excerpt());
         preg_match('/name="expected_action" value="([A-Z_]+)"/', $page->body, $a);
         preg_match('/name="nonce" value="([0-9a-f]{32})"/', $page->body, $n);
+        // WP6A (owner decision OD-B): the confirmation carries the server-rendered quote fingerprint
+        preg_match('/name="preview" value="([0-9a-f]{64})"/', $page->body, $f);
         $this->assertNotEmpty($a, 'preview shown: ' . $page->excerpt());
-        return ['customer_id' => $customer, 'plan_id' => self::$plan, 'expected_action' => $a[1], 'nonce' => $n[1]];
+        $this->assertNotEmpty($f, 'quote fingerprint rendered: ' . $page->excerpt());
+        return ['customer_id' => $customer, 'plan_id' => self::$plan, 'expected_action' => $a[1], 'nonce' => $n[1], 'preview' => $f[1]];
     }
 
     private function finance(): array
