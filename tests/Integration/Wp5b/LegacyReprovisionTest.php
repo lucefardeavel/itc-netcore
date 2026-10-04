@@ -274,4 +274,59 @@ final class LegacyReprovisionTest extends ActivationTestCase
             $this->customersChanged();
         }
     }
+
+    /** Fails the $n-th RADIUS write (a confirmed FAILED: the write transaction is rolled back). */
+    private function failWrite(int $n): void
+    {
+        $count = 0;
+        RadiusFaults::$hook = static function (string $p) use (&$count, $n): void {
+            if ($p === 'radius.after_write' && ++$count === $n) {
+                throw new \RuntimeException('injected: write rejected');
+            }
+        };
+    }
+
+    /** Fix round 1, blocker 3A: target 1 applied, target 2 confirmed FAILED -> UNCONFIRMED, the new values stay. */
+    public function testPartialSuccessAcrossTargetsIsUnconfirmedAndNeverReverted(): void
+    {
+        [$plan, , $c] = $this->activated();
+        $pppoe = $this->radiusPlan('20', 'PPPOE');
+        $this->recharge($c, $pppoe, '2031-01-01', '10:00:00', 'on', 'PPPOE');
+        $this->failWrite(2);
+        $this->expectExceptionReason(R::UNCONFIRMED, fn() => R::run($this->self($c), $c, R::PASSWORD_CHANGE, ['password' => 'partial-secret']));
+        RadiusFaults::$hook = null;
+        $this->assertSame('partial-secret', $this->customerRow($c)['password'], 'no DB revert after an external step applied');
+        $this->assertSame('partial-secret', $this->radcheck($this->username($c))['Cleartext-Password'], 'the first target holds the new state');
+        $last = $this->audits(R::PASSWORD_CHANGE)[count($this->audits(R::PASSWORD_CHANGE)) - 1];
+        $this->assertSame(R::UNCONFIRMED, $last['outcome']);
+        $this->assertStringNotContainsString('partial-secret', json_encode($last), 'no secret in the audit');
+        $this->customersChanged();
+    }
+
+    /** Fix round 1, blocker 3B: change_username applied, the following add_customer confirmed FAILED -> UNCONFIRMED. */
+    public function testRenameAppliedThenAddFailedIsUnconfirmedAndNeverReverted(): void
+    {
+        [, , $c] = $this->activated();
+        $old = $this->username($c);
+        $new = 'rn' . bin2hex(random_bytes(4));
+        $this->failWrite(2);
+        $this->expectExceptionReason(R::UNCONFIRMED, fn() => R::run($this->ctx('ad'), $c, R::IDENTITY_EDIT, ['username' => $new, 'password' => '']));
+        RadiusFaults::$hook = null;
+        $this->assertSame($new, $this->customerRow($c)['username'], 'no DB rollback of the identity');
+        $this->assertSame([], $this->radcheck($old), 'the rename did apply on RADIUS');
+        $this->assertNotSame([], $this->radcheck($new));
+        $this->customersChanged();
+    }
+
+    /** Fix round 1, blocker 3C: the very first external operation confirmed FAILED -> FAILED_REVERTED stays allowed. */
+    public function testFirstOperationFailedIsStillReverted(): void
+    {
+        [, , $c] = $this->activated();
+        $before = $this->customerRow($c);
+        $this->failWrite(1);
+        $this->expectExceptionReason('REPROVISION_FAILED', fn() => R::run($this->ctx('ad'), $c, R::IDENTITY_EDIT, ['username' => 'rn' . bin2hex(random_bytes(4)), 'password' => '']));
+        RadiusFaults::$hook = null;
+        $this->assertSame($before, $this->customerRow($c));
+        $this->assertSame('FAILED_REVERTED', $this->audits(R::IDENTITY_EDIT)[count($this->audits(R::IDENTITY_EDIT)) - 1]['outcome']);
+    }
 }

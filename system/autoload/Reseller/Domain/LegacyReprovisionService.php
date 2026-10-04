@@ -293,6 +293,25 @@ final class LegacyReprovisionService
         $outcome = ProvisionResult::SUCCESS;
         $routers = [];
         $radius = [];
+        // WP5B fix round 1 (blocker 3): external progress is tracked per target and per service-affecting step. A
+        // confirmed FAILED is "nothing applied" only while no earlier step succeeded; once any step has changed the
+        // external state, a later failure is promoted to UNKNOWN (REPROVISION_UNCONFIRMED: no DB revert, no retry).
+        // The first non-success stops every further step (no blind continuation).
+        $applied = 0;
+        $step = static function (callable $call) use (&$applied, &$outcome): bool {
+            try {
+                $call();
+                $applied++;
+                return true;
+            } catch (ProvisionFailure $e) {
+                $outcome = $e->result->status === ProvisionResult::FAILED && $applied === 0 ? ProvisionResult::FAILED : ProvisionResult::UNKNOWN;
+                ErrorReporter::report($e, 'reprovision-device');
+            } catch (\Throwable $e) {
+                $outcome = ProvisionResult::UNKNOWN;
+                ErrorReporter::report($e, 'reprovision-device');
+            }
+            return false;
+        };
         try {
             foreach ($billing as $b) {
                 $plan = \ORM::for_table('tbl_plans')->find_one((int) $b['plan_id']);
@@ -306,33 +325,30 @@ final class LegacyReprovisionService
                 }
                 require_once $dvc;
                 $device = new $plan['device']();
-                $orm = \ORM::for_table('tbl_customers')->find_one((int) $customer['id']);
-                try {
-                    if ($op === self::IDENTITY_EDIT) {
-                        if ($new['username'] !== $old['username']) {
-                            $device->change_username($plan, $old['username'], $new['username']);
-                        }
-                        if ($new['pppoe_username'] !== $old['pppoe_username'] && $b['type'] === 'PPPOE') {
-                            if (empty($old['pppoe_username']) && !empty($new['pppoe_username'])) {
-                                $device->change_username($plan, $new['username'], $new['pppoe_username']);
-                            } elseif (empty($new['pppoe_username']) && !empty($old['pppoe_username'])) {
-                                $device->change_username($plan, $old['pppoe_username'], $new['username']);
-                            } else {
-                                $device->change_username($plan, $old['pppoe_username'], $new['pppoe_username']);
-                            }
-                        }
-                        $device->add_customer($orm, $plan);
-                    } elseif ($op === self::PASSWORD_CHANGE || !method_exists($device, 'sync_customer')) {
-                        $device->add_customer($orm, $plan);
-                    } else {
-                        $device->sync_customer($orm, $plan);
+                $steps = [];
+                if ($op === self::IDENTITY_EDIT) {
+                    if ($new['username'] !== $old['username']) {
+                        $steps[] = static fn() => $device->change_username($plan, $old['username'], $new['username']);
                     }
-                } catch (ProvisionFailure $e) {
-                    $outcome = self::worse($outcome, $e->result->status);
-                    ErrorReporter::report($e, 'reprovision-device');
-                } catch (\Throwable $e) {
-                    $outcome = self::worse($outcome, ProvisionResult::UNKNOWN);
-                    ErrorReporter::report($e, 'reprovision-device');
+                    if ($new['pppoe_username'] !== $old['pppoe_username'] && $b['type'] === 'PPPOE') {
+                        if (empty($old['pppoe_username']) && !empty($new['pppoe_username'])) {
+                            $steps[] = static fn() => $device->change_username($plan, $new['username'], $new['pppoe_username']);
+                        } elseif (empty($new['pppoe_username']) && !empty($old['pppoe_username'])) {
+                            $steps[] = static fn() => $device->change_username($plan, $old['pppoe_username'], $new['username']);
+                        } else {
+                            $steps[] = static fn() => $device->change_username($plan, $old['pppoe_username'], $new['pppoe_username']);
+                        }
+                    }
+                    $steps[] = static fn() => $device->add_customer(\ORM::for_table('tbl_customers')->find_one((int) $customer['id']), $plan);
+                } elseif ($op === self::PASSWORD_CHANGE || !method_exists($device, 'sync_customer')) {
+                    $steps[] = static fn() => $device->add_customer(\ORM::for_table('tbl_customers')->find_one((int) $customer['id']), $plan);
+                } else {
+                    $steps[] = static fn() => $device->sync_customer(\ORM::for_table('tbl_customers')->find_one((int) $customer['id']), $plan);
+                }
+                foreach ($steps as $call) {
+                    if (!$step($call)) {
+                        break 2;
+                    }
                 }
                 if ($plan['device'] === 'Radius') {
                     $radius[] = [$plan->as_array(), $b];
@@ -361,12 +377,6 @@ final class LegacyReprovisionService
             }
         }
         return [$outcome, array_values(array_unique($routers)), $verified];
-    }
-
-    private static function worse(string $a, string $b): string
-    {
-        $rank = [ProvisionResult::SUCCESS => 0, ProvisionResult::FAILED => 1, ProvisionResult::UNKNOWN => 2];
-        return $rank[$b] > $rank[$a] ? $b : $a;
     }
 
     private static function audit(ActorContext $a, array $customer, string $op, array $after): void
