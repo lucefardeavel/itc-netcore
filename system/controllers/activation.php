@@ -119,6 +119,7 @@ switch ($action) {
         $ui->assign('_title', Lang::T('Activation') . ' ' . $view['activation']['reference']);
         $ui->assign('nuxr_activation', $view['activation']);
         $ui->assign('nuxr_events', $view['events']);
+        $ui->assign('nuxr_settlement', $view['settlement']);
         $ui->assign('nuxr_progress', \Reseller\Ui\Format::progress($view['events'], (string) $view['activation']['status']));
         // WP6B slice 0: only the operator actions the accepted primitives accept in this state (no dead actions)
         $ui->assign('nuxr_actions', \Reseller\Activation\ActivationOperatorService::actionsFor($nuxrActor, $view['activation']['reference']));

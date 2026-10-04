@@ -109,6 +109,8 @@ final class PricingSourceGuardTest extends TestCase
             'system/autoload/Reseller/Domain/SchemaReadiness.php',
             self::FIN . 'LedgerService.php',
             self::FIN . 'ReservationService.php',
+            // WP6B (OD-1, narrow): the read-only settlement projection (SELECT-only: Wp6bBoundaryTest)
+            self::FIN . 'SettlementReadModel.php',
         ], $refs, 'only the approved files reference the activation table (WP5A owner decision A1: the activation store and reconciliation)');
         foreach (self::runtime() as $rel => $src) {
             if (preg_match_all('/UPDATE\s+`?tbl_reseller_activations`?\s+SET([^\'"]*)/i', $src, $m)) {
@@ -137,7 +139,7 @@ final class PricingSourceGuardTest extends TestCase
     {
         // WP6B (OD-1, narrow): the entry-type names may also appear in the two read-only display files (the finance read
         // model's filter list and the UI label map); neither can post (asserted below)
-        $display = [self::FIN . 'LedgerReadModel.php', 'system/autoload/Reseller/Ui/Format.php'];
+        $display = [self::FIN . 'LedgerReadModel.php', self::FIN . 'SettlementReadModel.php', 'system/autoload/Reseller/Ui/Format.php'];
         $this->assertSame([self::FIN . 'LedgerService.php'], array_values(array_diff(array_unique(self::hits('/COMMISSION_CREDIT/')), $display)));
         $this->assertSame([self::FIN . 'LedgerService.php'], array_values(array_diff(array_unique(self::hits('/ACTIVATION_DEBIT/')), $display)));
         foreach ($display as $rel) {

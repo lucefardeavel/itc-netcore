@@ -191,6 +191,11 @@ final class RouteMap
             'reverse' => ['GET' => C::WALLET_REVERSE],
             'reverse-review' => ['POST' => C::WALLET_REVERSE],
             'reverse-post' => ['POST' => C::WALLET_REVERSE],
+            // finance reports from immutable history (settlement: the read model requires the global scope)
+            'sales' => ['GET' => C::LEDGER_READ],
+            'commissions' => ['GET' => C::LEDGER_READ],
+            'settlement' => ['GET' => C::LEDGER_READ],
+            'performance' => ['GET' => C::WALLET_READ],
         ],
         // WP6B (owner decisions OD-1 / OD-9): the pricing web surface through Reseller\Backoffice; web only; reads are
         // PricingReadModel projections; the setters are the accepted PricingService methods

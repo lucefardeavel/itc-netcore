@@ -10,6 +10,7 @@ use Reseller\Domain\ResellerTreeService;
 use Reseller\Domain\Tx;
 use Reseller\Finance\FinanceTx;
 use Reseller\Finance\Money;
+use Reseller\Finance\SettlementReadModel;
 use Reseller\Security\ActorContext;
 use Reseller\Security\Capability as C;
 use Reseller\Security\DataScope;
@@ -124,7 +125,17 @@ final class ActivationReadService
             'to_state' => (string) $e['to_state'], 'provisioning_result' => $e['provisioning_result'] !== null ? (string) $e['provisioning_result'] : null,
             'error_code' => $e['error_code'] !== null ? (string) $e['error_code'] : null, 'created_at' => (string) $e['created_at'],
         ], $status['events']);
-        return ['activation' => $out, 'events' => $events];
+        // WP6B: the settlement card (immutable ledger legs + sealed snapshot, role-projected by the finance read model);
+        // absent when nothing of it is in the actor's ledger.read scope (e.g. Sales)
+        $settlement = null;
+        if (PermissionService::can($a, C::LEDGER_READ)) {
+            try {
+                $settlement = SettlementReadModel::forActivation($a, (int) $act['id']);
+            } catch (DomainError) {
+                $settlement = null;
+            }
+        }
+        return ['activation' => $out, 'events' => $events, 'settlement' => $settlement];
     }
 
     /**

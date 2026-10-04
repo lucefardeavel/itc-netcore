@@ -393,8 +393,8 @@ final class LedgerReadModel
         return [$where, $params];
     }
 
-    /** @return array{0:?string,1:?string} strict Y-m-d bounds (invalid values are ignored) */
-    private static function range(array $f): array
+    /** @return array{0:?string,1:?string} strict Y-m-d bounds (invalid values are ignored); shared by the WP6B finance read models */
+    public static function range(array $f): array
     {
         $d = static function (mixed $v): ?string {
             if (!is_string($v) || !preg_match('/^\d{4}-\d{2}-\d{2}$/D', $v)) {
@@ -406,8 +406,8 @@ final class LedgerReadModel
         return [$d($f['from'] ?? null), $d($f['to'] ?? null)];
     }
 
-    /** Exports of time series require a valid range of at most EXPORT_MAX_DAYS days. */
-    private static function exportRange(array $f): void
+    /** Exports of time series require a valid range of at most EXPORT_MAX_DAYS days (shared by the WP6B finance read models). */
+    public static function exportRange(array $f): void
     {
         [$from, $to] = self::range($f);
         if ($from === null || $to === null || $from > $to) {
@@ -506,7 +506,7 @@ final class LedgerReadModel
      * @param list<?int> $ids
      * @return array<int,array{id:?int,username:?string,fullname:?string,label:?string}>
      */
-    private static function names(ActorContext $a, string $capability, array $ids): array
+    public static function names(ActorContext $a, string $capability, array $ids): array
     {
         $ids = array_values(array_unique(array_filter($ids, static fn($v): bool => is_int($v) && $v > 0)));
         if ($ids === []) {

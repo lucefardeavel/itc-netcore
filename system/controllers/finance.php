@@ -24,6 +24,7 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  *   debt-limit / -review / -post   Admin: debt line change (WalletService::setDebtLimit)        OD-2
  *   adjust / -review / -post       Admin: credit / debit adjustment (TransferService::adjust*) OD-2
  *   reverse / -review / -post      Admin: reversal of one reversible transfer (TransferService::reverse) OD-2
+ *   sales / commissions / settlement / performance   GET  finance reports (+csv) from immutable history
  */
 
 _admin();
@@ -308,6 +309,29 @@ switch ($action) {
             $ui->assign('nuxr_error', Lang::T($e->getMessage()));
             $ui->display('admin/finance/' . $kind . '.tpl');
         }
+        break;
+
+    case 'sales':
+    case 'commissions':
+    case 'settlement':
+    case 'performance':
+        $f = $nuxrFilters(['from', 'to', 'manager']);
+        try {
+            if ($nuxrCsv) {
+                \Reseller\Backoffice\SettlementDesk::export($nuxrActor, $action, $f);
+                exit;
+            }
+            $report = \Reseller\Backoffice\SettlementDesk::report($nuxrActor, $action, $f, $nuxrPage());
+        } catch (\Reseller\Domain\DomainError $e) {
+            $nuxrFail($e, in_array($e->reason, ['EXPORT_RANGE_REQUIRED', 'EXPORT_TOO_LARGE'], true) ? 'finance/' . $action : 'finance');
+        }
+        $ui->assign('_title', Lang::T('Finance reports'));
+        $ui->assign('nuxr_kind', $action);
+        $ui->assign('nuxr_report', $report);
+        $ui->assign('nuxr_reports', \Reseller\Backoffice\SettlementDesk::available($nuxrActor));
+        $ui->assign('nuxr_filters', $f);
+        $nuxrUrls('finance/' . $action, $f);
+        $ui->display('admin/finance/reports.tpl');
         break;
 
     case 'overview':

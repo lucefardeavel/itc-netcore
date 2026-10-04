@@ -128,6 +128,7 @@
     </section>
 </div>
 
+{include file="admin/nuxr/settlement-card.tpl" s=$nuxr_settlement}
 {if in_array('rollback', $nuxr_actions)}
     <dialog id="nuxr-rollback-dialog" class="nuxr-sheet" aria-labelledby="nuxr-rollback-t">
         <div class="nuxr-sheet-head"><h2 id="nuxr-rollback-t">{Lang::T('Roll back')}</h2>
