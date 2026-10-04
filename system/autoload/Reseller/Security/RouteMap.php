@@ -281,7 +281,9 @@ final class RouteMap
         'search_user' => '*',
         'maps' => '*',
         'settings' => ['users', 'users-view', 'users-post', 'users-edit-post', 'users-delete', 'change-password-post'],
-        'reseller' => '*',
+        // WP6B (owner decision OD-1): the exact accepted reseller actions instead of '*', so a new reseller web action
+        // (reseller/detail) never becomes API-reachable by default; unknown actions still resolve to 'tree' as before
+        'reseller' => ['tree', 'place-post', 'move-post', 'status-post', 'customer-assign-sales', 'customer-clear-sales', 'customer-transfer', 'customer-assign-owner'],
         'bandwidth' => '*', 'routers' => '*', 'odp' => '*', 'radius' => '*', 'pool' => '*', 'services' => '*',
         'coupons' => '*', 'logs' => ['list', 'radius', 'message'],
     ];

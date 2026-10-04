@@ -83,16 +83,19 @@
                 {if $a.retail}{call name=nuxr_money domain='retail' label=Lang::T('Retail - customer price') amount=$a.retail}{/if}
             </div>
         </div>
-        {if ($nuxr_can_reconcile && in_array($st, ['RECONCILIATION_REQUIRED', 'VERIFIED', 'ROLLBACK_PENDING'])) || ($nuxr_can_reverse && in_array($st, ['COMPLETED', 'REVERSAL_PENDING']))}
+        {if $nuxr_actions}
             <div class="nuxr-card-body nuxr-actions" style="border-top:1px solid var(--nx-border)">
-                {if $nuxr_can_reconcile && in_array($st, ['RECONCILIATION_REQUIRED', 'VERIFIED', 'ROLLBACK_PENDING'])}
+                {* WP6B slice 0: only the operations the accepted primitives accept in this state (ActivationOperatorService) *}
+                {if in_array('reconcile', $nuxr_actions)}
                     <form method="post" action="{Text::url('activation/reconcile/', $a.reference)}">
                         <input type="hidden" name="csrf_token" value="{$csrf_token}">
                         <button class="nuxr-btn nuxr-btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i>{Lang::T('Reconcile')}</button>
                     </form>
-                    <button type="button" class="nuxr-btn nuxr-btn-danger" data-nuxr-open="nuxr-rollback-dialog"><i class="fa fa-undo" aria-hidden="true"></i>{Lang::T('Roll back')}</button>
                 {/if}
-                {if $nuxr_can_reverse && in_array($st, ['COMPLETED', 'REVERSAL_PENDING'])}
+                {if in_array('rollback', $nuxr_actions)}
+                    <button type="button" class="nuxr-btn nuxr-btn-danger" data-nuxr-open="nuxr-rollback-dialog"><i class="fa fa-undo" aria-hidden="true"></i>{if $st eq 'ROLLBACK_PENDING'}{Lang::T('Retry roll back')}{else}{Lang::T('Roll back')}{/if}</button>
+                {/if}
+                {if in_array('reverse', $nuxr_actions)}
                     <button type="button" class="nuxr-btn nuxr-btn-danger" data-nuxr-open="nuxr-reverse-dialog"><i class="fa fa-history" aria-hidden="true"></i>{if $st eq 'REVERSAL_PENDING'}{Lang::T('Resume reversal')}{else}{Lang::T('Reverse')}{/if}</button>
                 {/if}
             </div>
@@ -125,20 +128,24 @@
     </section>
 </div>
 
-{if $nuxr_can_reconcile && in_array($st, ['RECONCILIATION_REQUIRED', 'VERIFIED', 'ROLLBACK_PENDING'])}
+{if in_array('rollback', $nuxr_actions)}
     <dialog id="nuxr-rollback-dialog" class="nuxr-sheet" aria-labelledby="nuxr-rollback-t">
         <div class="nuxr-sheet-head"><h2 id="nuxr-rollback-t">{Lang::T('Roll back')}</h2>
             <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="{Lang::T('Close')}"><i class="fa fa-times" aria-hidden="true"></i></button></div>
         <form method="post" action="{Text::url('activation/rollback/', $a.reference)}">
             <input type="hidden" name="csrf_token" value="{$csrf_token}">
             <div class="nuxr-dialog-body"><div class="nuxr-alert is-danger"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
-                <div>{Lang::T('Restore the RADIUS state captured before this activation and, once verified, release the reserved funds?')}</div></div></div>
+                <div>{Lang::T('Restore the RADIUS state captured before this activation and, once verified, release the reserved funds?')}
+                    {if $st neq 'ROLLBACK_PENDING'}<br><strong>{Lang::T('Roll back is one-way: after a roll back attempt this activation can never be settled. The reserved funds stay held until the restore is verified.')}</strong>{/if}</div></div>
+                <label for="nuxr-rollback-confirm" style="margin-top:10px">{Lang::T('Type the reference to confirm')}: <bdi dir="ltr" class="nuxr-mono">{$a.reference|escape}</bdi></label>
+                <input id="nuxr-rollback-confirm" class="form-control nuxr-input ltr" dir="ltr" autocomplete="off" data-nuxr-match="{$a.reference|escape}">
+            </div>
             <div class="nuxr-dialog-foot"><button type="button" class="nuxr-btn" data-nuxr-close autofocus>{Lang::T('Cancel')}</button>
-                <button type="submit" class="nuxr-btn nuxr-btn-danger-solid">{Lang::T('Roll back')}</button></div>
+                <button type="submit" class="nuxr-btn nuxr-btn-danger-solid" data-nuxr-match-submit disabled>{if $st eq 'ROLLBACK_PENDING'}{Lang::T('Retry roll back')}{else}{Lang::T('Roll back')}{/if}</button></div>
         </form>
     </dialog>
 {/if}
-{if $nuxr_can_reverse && in_array($st, ['COMPLETED', 'REVERSAL_PENDING'])}
+{if in_array('reverse', $nuxr_actions)}
     <dialog id="nuxr-reverse-dialog" class="nuxr-sheet" aria-labelledby="nuxr-reverse-t">
         <div class="nuxr-sheet-head"><h2 id="nuxr-reverse-t">{if $st eq 'REVERSAL_PENDING'}{Lang::T('Resume reversal')}{else}{Lang::T('Reverse')}{/if}</h2>
             <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="{Lang::T('Close')}"><i class="fa fa-times" aria-hidden="true"></i></button></div>

@@ -24,8 +24,9 @@ final class SourceGuardTest extends TestCase
      */
     private const PINNED = [
         'system/autoload/Reseller/Domain/ServiceGate.php' => 'f0d6f3d96283725b134433122aaf8442eb8db983148b0a45379d8a6cb4f0ed82',
-        // WP5A (owner decision A7): the activation routes; WP6A (owner decision OD-C): + read-only activation/list
-        'system/autoload/Reseller/Security/RouteMap.php' => '0a2610f6c3014a14cdadddec9f6a1e4dcd219c7696f5b999365f6a9c95543ea3',
+        // WP5A (owner decision A7): the activation routes; WP6A (owner decision OD-C): + read-only activation/list;
+        // WP6B (owner decision OD-1): the WP6B web surface and the explicit reseller API allow-list
+        'system/autoload/Reseller/Security/RouteMap.php' => 'd209649e75a8e068154b191c5f8e16eccca4266f4ca9300e367747288335e7df',
         'system/autoload/Reseller/Domain/Tx.php' => '223cfb618ee7372c615bb93f37c86db4da739d47e2da03692f976bf3b2cbccc6',
         'system/autoload/Balance.php' => '9652370fcc1d7ca370ff9061c4631fa34531f2049a5da9c0b9b8601ab00c57ae',
         // WP4 (owner decision Q5): the device calls in rechargeUser run after the recharge row is saved
@@ -186,12 +187,27 @@ final class SourceGuardTest extends TestCase
     }
 
     /** No controller, API, plugin, widget, cron or template reaches the financial services (P7). */
+    /**
+     * WP6B owner decision OD-1 (narrow amendment of the WP3A P7 guard): the finance web surface exists only as the
+     * exact 'finance' controller actions below, reached through the Reseller\\Backoffice gateway; nothing else in the
+     * runtime (no controller, template or other class) reaches the finance services, and nothing finance-named is
+     * API-reachable.
+     */
+    public const WP6B_FINANCE_ACTIONS = [
+        'overview', 'wallets', 'wallet', 'ledger', 'entry', 'transfers', 'transfer',
+        'funding', 'funding-review', 'funding-post', 'send', 'send-review', 'send-post',
+        'debt-limit', 'debt-limit-review', 'debt-limit-post', 'adjust', 'adjust-review', 'adjust-post',
+        'reverse', 'reverse-review', 'reverse-post', 'sales', 'commissions', 'settlement', 'performance',
+    ];
+
     public function testNoEntrypointReachesTheFinanceServices(): void
     {
         $outside = [];
         foreach (self::runtime() as $rel => $src) {
-            // WP5A (owner decision A1): the activation orchestration is the one authorized finance caller
-            if (str_starts_with($rel, self::FIN) || str_starts_with($rel, 'system/autoload/Reseller/Activation/')) {
+            // WP5A (owner decision A1): the activation orchestration is an authorized finance caller;
+            // WP6B (OD-1): the Backoffice gateway is the only other one (controllers / templates never)
+            if (str_starts_with($rel, self::FIN) || str_starts_with($rel, 'system/autoload/Reseller/Activation/')
+                || str_starts_with($rel, 'system/autoload/Reseller/Backoffice/')) {
                 continue;
             }
             if (preg_match('/Reseller\\\\+Finance|\b(TransferService|WalletService|LedgerService|ReservationService|LockedWallet|FinanceTx|FinanceFaults)\b/', self::code($src))) {
@@ -200,11 +216,17 @@ final class SourceGuardTest extends TestCase
         }
         $this->assertSame([], $outside);
         foreach (RouteMap::ROUTES as $controller => $actions) {
+            if ($controller === 'finance') {
+                $named = array_values(array_filter(array_keys($actions), static fn($k): bool => $k !== '' && $k !== '*'));
+                $this->assertSame([], array_values(array_diff($named, self::WP6B_FINANCE_ACTIONS)), 'finance: only the owner-approved WP6B actions');
+                continue;
+            }
             $this->assertDoesNotMatchRegularExpression('/wallet|ledger|finance|reservation/i', (string) $controller);
             foreach (array_keys($actions) as $action) {
                 $this->assertDoesNotMatchRegularExpression('/wallet|ledger|finance|reservation|debt|fund/i', (string) $action, "{$controller}/{$action}");
             }
         }
+        $this->assertArrayNotHasKey('finance', RouteMap::API_ALLOWED, 'the finance web surface is never API-reachable');
         foreach (RouteMap::API_ALLOWED as $k => $v) {
             $this->assertDoesNotMatchRegularExpression('/wallet|ledger|finance|reservation|debt|fund/i', is_string($k) ? $k : (string) json_encode($v));
         }

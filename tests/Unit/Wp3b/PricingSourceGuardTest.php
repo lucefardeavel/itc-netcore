@@ -166,12 +166,24 @@ final class PricingSourceGuardTest extends TestCase
     }
 
     /** No controller, API, plugin, widget, cron or template reaches pricing or settlement; no pricing route. */
+    /**
+     * WP6B owner decision OD-1 (narrow amendment): the pricing / commission / settlement web surface exists only as these
+     * exact controller actions, reached through the Reseller\\Backoffice gateway; pricing.* rules appear only on the
+     * 'pricing' controller; nothing pricing-named is API-reachable.
+     */
+    public const WP6B_PRICING_ROUTES = [
+        'pricing' => ['plans', 'plan', 'catalog', 'base-cost-post', 'resale-post', 'wholesale-post', 'retail-post', 'availability-post'],
+        'finance' => ['commissions', 'settlement'],
+    ];
+
     public function testNoEntrypointOrRoute(): void
     {
         $outside = [];
         foreach (self::runtime() as $rel => $src) {
-            // WP5A (owner decision A1): the activation orchestration resolves prices for its sealed snapshot
-            if (str_starts_with($rel, self::FIN) || str_starts_with($rel, 'system/autoload/Reseller/Activation/')) {
+            // WP5A (owner decision A1): the activation orchestration resolves prices for its sealed snapshot;
+            // WP6B (OD-1): the Backoffice gateway is the only other caller (controllers / templates never)
+            if (str_starts_with($rel, self::FIN) || str_starts_with($rel, 'system/autoload/Reseller/Activation/')
+                || str_starts_with($rel, 'system/autoload/Reseller/Backoffice/')) {
                 continue;
             }
             if (preg_match('/\b(PricingService|PricingSnapshot|PricingLink|PricingResult|PricingReadModel|LegacyRetailPrice|SettlementFailure|PostedSettlement)\b/', $src)) {
@@ -181,12 +193,23 @@ final class PricingSourceGuardTest extends TestCase
         $this->assertSame([], $outside);
         $pattern = '/pric|wholesale|retail|base_cost|commission|availability|settlement/i';
         foreach (RouteMap::ROUTES as $controller => $actions) {
-            $this->assertDoesNotMatchRegularExpression($pattern, (string) $controller);
+            $approved = self::WP6B_PRICING_ROUTES[$controller] ?? [];
+            if ($controller !== 'pricing') {
+                $this->assertDoesNotMatchRegularExpression($pattern, (string) $controller);
+            }
             foreach ($actions as $action => $rule) {
-                $this->assertDoesNotMatchRegularExpression($pattern, (string) $action, "{$controller}/{$action}");
-                $this->assertDoesNotMatchRegularExpression('/^pricing\./', is_string($rule) ? $rule : (string) json_encode($rule), "{$controller}/{$action}: no pricing capability on a route");
+                $ruleText = is_string($rule) ? $rule : (string) json_encode($rule);
+                if ($controller === 'pricing') {
+                    $this->assertTrue($action === '' || $action === '*' || in_array($action, $approved, true), "pricing/{$action}: only the owner-approved WP6B actions");
+                    continue;
+                }
+                if (!in_array($action, $approved, true)) {
+                    $this->assertDoesNotMatchRegularExpression($pattern, (string) $action, "{$controller}/{$action}");
+                }
+                $this->assertDoesNotMatchRegularExpression('/^pricing\./', $ruleText, "{$controller}/{$action}: no pricing capability outside the pricing controller");
             }
         }
+        $this->assertArrayNotHasKey('pricing', RouteMap::API_ALLOWED, 'the pricing web surface is never API-reachable');
         foreach (RouteMap::API_ALLOWED as $k => $v) {
             $this->assertDoesNotMatchRegularExpression($pattern, is_string($k) ? $k : (string) json_encode($v));
         }
