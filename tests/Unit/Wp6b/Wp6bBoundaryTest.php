@@ -104,6 +104,25 @@ final class Wp6bBoundaryTest extends TestCase
         }
     }
 
+    /** OD-9: each bounded pricing read is ONE tree-locked evaluation (never quote() per plan, never an unbounded catalog). */
+    public function testPricingPagesTakeOneTreeLockPerPage(): void
+    {
+        $src = (string) file_get_contents(self::root() . '/system/autoload/Reseller/Finance/PricingService.php');
+        foreach (['catalogForManager', 'matrixForPlan'] as $fn) {
+            $start = strpos($src, 'public static function ' . $fn . '(');
+            $this->assertNotFalse($start, $fn);
+            $body = substr($src, (int) $start, (int) strpos($src, "\n    }\n", (int) $start) - (int) $start);
+            $this->assertSame(1, substr_count($body, 'FinanceTx::run('), "{$fn}: one tree-locked read");
+            $this->assertStringContainsString('}, true);', $body, "{$fn}: under the tree lock");
+            $this->assertStringNotContainsString('self::quote(', $body, "{$fn}: no quote() per row");
+            $this->assertMatchesRegularExpression('/LIMIT \' \. self::PAGE_(PLANS|MANAGERS)/', $body, "{$fn}: bounded page");
+            $this->assertStringContainsString('PricingReadModel::project(', $body, "{$fn}: the accepted projection");
+        }
+        foreach (self::files('system/autoload/Reseller/Backoffice') as $rel => $code) {
+            $this->assertDoesNotMatchRegularExpression('/PricingService::(quote|validateTree)\(/', self::code($code), "{$rel}: pages use the bounded reads");
+        }
+    }
+
     public function testFinanceReadModelsAreReadOnly(): void
     {
         $this->assertNotEmpty(self::FINANCE_READ_MODELS);

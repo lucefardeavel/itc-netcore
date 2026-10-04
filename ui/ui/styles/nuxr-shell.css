@@ -1779,3 +1779,7 @@ a.nuxr-stat:hover, a.nuxr-stat:focus {
 .nuxr-mcard-form { flex-wrap: wrap; }
 .nuxr-mcard-form form { flex: 1 1 100%; }
 .nuxr-tree-indent { display: inline-block; }
+.nuxr-inline-edit { display: inline-block; }
+.nuxr-inline-edit[open] { display: block; flex: 1 1 100%; }
+.nuxr-inline-edit form { margin-top: 8px; }
+.nuxr-reasons { margin: 6px 0 0; padding-inline-start: 18px; font-size: 13px; color: var(--nx-muted); }

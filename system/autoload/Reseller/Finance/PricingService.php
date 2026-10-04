@@ -331,6 +331,124 @@ final class PricingService
         }, true);
     }
 
+    /** WP6B (OD-9) page sizes of the bounded pricing reads (one tree-locked evaluation per page). */
+    public const PAGE_PLANS = 25;
+    public const PAGE_MANAGERS = 50;
+
+    /**
+     * WP6B (owner decision OD-9): one reseller's pricing catalog, one bounded page of resellable plans (plans with a
+     * provider base cost; Balance plans excluded), evaluated in ONE tree-locked read and projected per row through
+     * PricingReadModel (the accepted role redaction: an Agent never sees base cost, provider settlement or anything
+     * above itself). pricing.read: Admin any reseller, Agent its own subtree (NOT_FOUND otherwise).
+     * "relation" is the viewer's relation to the target (self / child / descendant / global) for offering edits;
+     * the setters re-check everything.
+     *
+     * @return array{target:array<string,mixed>,relation:string,rows:list<array<string,mixed>>,total:int,page:int,pages:int}
+     */
+    public static function catalogForManager(ActorContext $a, mixed $managerId, int $page = 1): array
+    {
+        $scope = ResellerTreeService::authorize($a, C::PRICING_READ);
+        $target = FinanceInput::id($managerId);
+        return FinanceTx::run(static function (\PDO $pdo) use ($a, $scope, $target, $page): array {
+            [$pred, $params] = DataScope::staffPredicate($a, C::PRICING_READ, 'u.id') ?? ['(1 = 1)', []];
+            $who = Tx::row($pdo, "SELECT u.id, u.username, u.fullname, u.status FROM tbl_users u WHERE u.id = ? AND u.user_type = 'Agent' AND {$pred}", array_merge([$target], $params));
+            if ($who === null) {
+                throw new DomainError('NOT_FOUND');
+            }
+            $total = (int) (Tx::row($pdo, "SELECT COUNT(*) AS n FROM tbl_plans p JOIN tbl_reseller_plan_base_costs b ON b.plan_id = p.id WHERE p.type <> 'Balance'")['n'] ?? 0);
+            $pages = max(1, intdiv($total + self::PAGE_PLANS - 1, self::PAGE_PLANS));
+            $page = min(max(1, $page), $pages);
+            $plans = Tx::rows($pdo, "SELECT p.id, p.name_plan, p.type FROM tbl_plans p JOIN tbl_reseller_plan_base_costs b ON b.plan_id = p.id WHERE p.type <> 'Balance' "
+                . 'ORDER BY p.name_plan, p.id LIMIT ' . self::PAGE_PLANS . ' OFFSET ' . (($page - 1) * self::PAGE_PLANS));
+            $rows = [];
+            foreach ($plans as $p) {
+                $rows[] = ['plan_name' => (string) $p['name_plan'], 'plan_type' => (string) $p['type']]
+                    + PricingReadModel::project($a, $scope, self::evaluate($pdo, $target, (int) $p['id'], null));
+            }
+            return ['target' => ['id' => (int) $who['id'], 'username' => (string) $who['username'], 'fullname' => (string) $who['fullname'], 'status' => (string) $who['status']],
+                'relation' => self::relation($pdo, $a, $scope, $target), 'rows' => $rows, 'total' => $total, 'page' => $page, 'pages' => $pages];
+        }, true);
+    }
+
+    /**
+     * WP6B (OD-9): one plan across resellers, one bounded page evaluated in ONE tree-locked read. Admin: every enrolled
+     * reseller (50 per page); Agent: itself and its direct children (whose wholesale / availability it sets). Rows are
+     * PricingReadModel projections plus the reseller's identity.
+     *
+     * @return array{plan:array<string,mixed>,rows:list<array<string,mixed>>,total:int,page:int,pages:int}
+     */
+    public static function matrixForPlan(ActorContext $a, mixed $planId, int $page = 1): array
+    {
+        $scope = ResellerTreeService::authorize($a, C::PRICING_READ);
+        $plan = FinanceInput::id($planId);
+        return FinanceTx::run(static function (\PDO $pdo) use ($a, $scope, $plan, $page): array {
+            $p = Tx::row($pdo, "SELECT id, name_plan, type, price FROM tbl_plans WHERE id = ? AND type <> 'Balance'", [$plan]) ?? throw new DomainError('NOT_FOUND');
+            if ($scope === 'G') {
+                $where = "u.user_type = 'Agent' AND EXISTS (SELECT 1 FROM tbl_manager_tree s WHERE s.descendant_id = u.id AND s.depth = 0)";
+                $params = [];
+            } else {
+                $where = "u.user_type = 'Agent' AND u.id IN (SELECT c.descendant_id FROM tbl_manager_tree c WHERE c.ancestor_id = ? AND c.depth <= 1)";
+                $params = [(int) $a->userId];
+            }
+            $total = (int) (Tx::row($pdo, "SELECT COUNT(*) AS n FROM tbl_users u WHERE {$where}", $params)['n'] ?? 0);
+            $pages = max(1, intdiv($total + self::PAGE_MANAGERS - 1, self::PAGE_MANAGERS));
+            $page = min(max(1, $page), $pages);
+            $who = Tx::rows($pdo, "SELECT u.id, u.username, u.fullname, u.status, (SELECT MAX(d.depth) FROM tbl_manager_tree d WHERE d.descendant_id = u.id) AS lvl FROM tbl_users u WHERE {$where} "
+                . 'ORDER BY lvl, u.username LIMIT ' . self::PAGE_MANAGERS . ' OFFSET ' . (($page - 1) * self::PAGE_MANAGERS), $params);
+            $state = self::state($pdo, $plan);
+            $kids = $scope === 'G' ? [] : array_flip(array_map(static fn(array $r): int => (int) $r['descendant_id'],
+                Tx::rows($pdo, 'SELECT descendant_id FROM tbl_manager_tree WHERE ancestor_id = ? AND depth = 1', [(int) $a->userId])));
+            $rows = [];
+            foreach ($who as $w) {
+                $wid = (int) $w['id'];
+                $rows[] = ['username' => (string) $w['username'], 'fullname' => (string) $w['fullname'], 'status' => (string) $w['status'],
+                    'relation' => $scope === 'G' ? 'global' : ($wid === (int) $a->userId ? 'self' : (isset($kids[$wid]) ? 'child' : 'descendant'))]
+                    + PricingReadModel::project($a, $scope, self::evaluate($pdo, (int) $w['id'], $plan, $state));
+            }
+            return ['plan' => ['id' => (int) $p['id'], 'name' => (string) $p['name_plan'], 'type' => (string) $p['type'], 'legacy_price' => (string) $p['price']],
+                'rows' => $rows, 'total' => $total, 'page' => $page, 'pages' => $pages];
+        }, true);
+    }
+
+    /**
+     * WP6B (OD-9): Admin / SuperAdmin plan list for pricing administration: every non-Balance plan with its provider base
+     * cost and resale switch (null when not yet resellable) and the legacy default retail text. Plain bounded read, no
+     * evaluation and no lock.
+     *
+     * @return array{rows:list<array<string,mixed>>,total:int,page:int,pages:int}
+     */
+    public static function baseCosts(ActorContext $a, int $page = 1): array
+    {
+        if (ResellerTreeService::authorize($a, C::PRICING_READ) !== 'G') {
+            throw new DomainError('FORBIDDEN');
+        }
+        $pdo = FinanceTx::pdo();
+        $total = (int) (Tx::row($pdo, "SELECT COUNT(*) AS n FROM tbl_plans WHERE type <> 'Balance'")['n'] ?? 0);
+        $pages = max(1, intdiv($total + self::PAGE_PLANS - 1, self::PAGE_PLANS));
+        $page = min(max(1, $page), $pages);
+        $rows = Tx::rows($pdo, "SELECT p.id, p.name_plan, p.type, p.price, p.enabled, b.base_cost, b.is_resale_enabled FROM tbl_plans p "
+            . "LEFT JOIN tbl_reseller_plan_base_costs b ON b.plan_id = p.id WHERE p.type <> 'Balance' ORDER BY p.type, p.name_plan, p.id LIMIT "
+            . self::PAGE_PLANS . ' OFFSET ' . (($page - 1) * self::PAGE_PLANS));
+        return ['rows' => array_map(static fn(array $r): array => [
+            'plan_id' => (int) $r['id'], 'plan_name' => (string) $r['name_plan'], 'plan_type' => (string) $r['type'], 'enabled' => (string) $r['enabled'] === '1',
+            'legacy_price' => (string) $r['price'], 'base_cost' => $r['base_cost'] !== null ? Money::fromDb($r['base_cost'])->format() : null,
+            'resale_enabled' => $r['is_resale_enabled'] !== null ? (int) $r['is_resale_enabled'] === 1 : null,
+        ], $rows), 'total' => $total, 'page' => $page, 'pages' => $pages];
+    }
+
+    /** The viewer's relation to a reseller: global (G), self, child (closure depth 1), descendant. */
+    private static function relation(\PDO $pdo, ActorContext $a, string $scope, int $target): string
+    {
+        if ($scope === 'G') {
+            return 'global';
+        }
+        if ($target === (int) $a->userId) {
+            return 'self';
+        }
+        $d = Tx::row($pdo, 'SELECT depth FROM tbl_manager_tree WHERE ancestor_id = ? AND descendant_id = ?', [(int) $a->userId, $target]);
+        return $d !== null && (int) $d['depth'] === 1 ? 'child' : 'descendant';
+    }
+
     /**
      * Administrative diagnostics of one plan (Admin/SuperAdmin): every reseller with its effective
      * wholesale / retail and every reason it is not saleable (including wholesale-chain violations

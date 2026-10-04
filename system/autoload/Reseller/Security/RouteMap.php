@@ -192,6 +192,19 @@ final class RouteMap
             'reverse-review' => ['POST' => C::WALLET_REVERSE],
             'reverse-post' => ['POST' => C::WALLET_REVERSE],
         ],
+        // WP6B (owner decisions OD-1 / OD-9): the pricing web surface through Reseller\Backoffice; web only; reads are
+        // PricingReadModel projections; the setters are the accepted PricingService methods
+        'pricing' => [
+            '' => 'plans', '*' => 'plans',
+            'plans' => ['GET' => C::PRICING_READ],
+            'plan' => ['GET' => C::PRICING_READ],
+            'catalog' => ['GET' => C::PRICING_READ],
+            'base-cost-post' => ['POST' => C::PRICING_BASE_COST],
+            'resale-post' => ['POST' => C::PRICING_BASE_COST],
+            'wholesale-post' => ['POST' => C::PRICING_CHILD_WHOLESALE],
+            'retail-post' => ['POST' => C::PRICING_OWN_RETAIL],
+            'availability-post' => ['POST' => C::PRICING_CHILD_AVAILABILITY],
+        ],
         'reseller' => [
             '' => 'tree', '*' => 'tree',
             'tree' => ['GET' => C::RESELLER_TREE_READ],
