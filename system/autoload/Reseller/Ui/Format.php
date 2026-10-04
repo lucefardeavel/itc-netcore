@@ -59,6 +59,53 @@ final class Format
         return $code !== '' ? $code . ' ' . $text : $text;
     }
 
+    /** WP6B: plain-language labels of ledger entry types (the finance read model's ENTRY_TYPES). */
+    public const LEDGER_TYPE = [
+        'FUNDING' => 'Provider funding', 'WITHDRAWAL' => 'Provider withdrawal', 'ACTIVATION_DEBIT' => 'Activation (wholesale)',
+        'COMMISSION_CREDIT' => 'Commission', 'TRANSFER_OUT' => 'Transfer sent', 'TRANSFER_IN' => 'Transfer received',
+        'REFUND' => 'Refund', 'REVERSAL' => 'Reversal (compensating entry)', 'ADJUSTMENT' => 'Accounting adjustment',
+    ];
+
+    /** WP6B: plain-language labels of transfer operation types. */
+    public const TRANSFER_TYPE = [
+        'PROVIDER_FUNDING' => 'Provider funding', 'PROVIDER_WITHDRAWAL' => 'Provider withdrawal', 'ADJUSTMENT_CREDIT' => 'Credit adjustment',
+        'ADJUSTMENT_DEBIT' => 'Debit adjustment', 'PARENT_CHILD_TRANSFER' => 'Transfer to child reseller',
+    ];
+
+    public static function ledgerType(?string $type): string
+    {
+        return self::LEDGER_TYPE[(string) $type] ?? (string) $type;
+    }
+
+    public static function transferType(?string $type): string
+    {
+        return self::TRANSFER_TYPE[(string) $type] ?? (string) $type;
+    }
+
+    /**
+     * WP6B: display text of a party from the finance read model ({id, username, fullname, label}): the username when
+     * it is inside the viewer's scope, otherwise the translated role label only (never an id or a name).
+     *
+     * @param array<string,mixed>|null $party
+     */
+    public static function party(?array $party): string
+    {
+        if ($party === null) {
+            return '';
+        }
+        if (($party['username'] ?? null) !== null) {
+            return (string) $party['username'];
+        }
+        return \Lang::T(['provider' => 'Provider (administrator)', 'upstream' => 'Upstream reseller', 'staff' => 'Staff'][(string) ($party['label'] ?? '')] ?? 'Not shown');
+    }
+
+    /** WP6B: CSV cell text with spreadsheet formula injection neutralised (leading = + - @ tab CR). */
+    public static function csvCell(mixed $v): string
+    {
+        $t = $v === null ? '' : (is_bool($v) ? ($v ? 'yes' : 'no') : (string) $v);
+        return preg_match('/^[=+\-@\t\r]/', $t) && !preg_match('/^-?\d+(\.\d+)?$/D', $t) ? "'" . $t : $t;
+    }
+
     public static function icon(?string $tone): string
     {
         return self::TONE_ICON[(string) $tone] ?? 'fa-circle';

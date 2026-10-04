@@ -107,6 +107,10 @@ final class DomainError extends \RuntimeException
         'COUPON_INVALID' => 'The coupon is not valid.',
         'BALANCE_OPERATION_BUSY' => 'This balance operation is being processed right now; nothing was changed. Try again shortly.',
         'REVERSAL_FINANCIAL_REFUSED' => 'The settlement of this activation cannot be reversed now; nothing was changed.',
+        // WP6B finance / reseller / reports UX (presentation safety limits and review binding; no business rule)
+        'EXPORT_RANGE_REQUIRED' => 'Choose a date range of at most 366 days for this export.',
+        'EXPORT_TOO_LARGE' => 'The export would exceed 20,000 rows; narrow the filters and try again.',
+        'REVIEW_EXPIRED' => 'This confirmation is no longer valid; nothing was changed. Review the operation again.',
     ];
 
     public function __construct(public readonly string $reason, ?string $detail = null)

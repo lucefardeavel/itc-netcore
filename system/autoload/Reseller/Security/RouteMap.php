@@ -163,6 +163,18 @@ final class RouteMap
             // WP5B (OD-11): reversal of a COMPLETED activation; Admin / SuperAdmin only (activation.reverse G)
             'reverse' => ['POST' => C::ACTIVATION_REVERSE],
         ],
+        // WP6B (owner decision OD-1): the finance web surface through Reseller\Backoffice; web only (never API_ALLOWED);
+        // reads are scoped again by the Finance read models (wallet.read / ledger.read: G Admin, T Agent)
+        'finance' => [
+            '' => 'overview', '*' => 'overview',
+            'overview' => ['GET' => C::WALLET_READ],
+            'wallets' => ['GET' => C::WALLET_READ],
+            'wallet' => ['GET' => C::WALLET_READ],
+            'ledger' => ['GET' => C::LEDGER_READ],
+            'entry' => ['GET' => C::LEDGER_READ],
+            'transfers' => ['GET' => C::LEDGER_READ],
+            'transfer' => ['GET' => C::LEDGER_READ],
+        ],
         'reseller' => [
             '' => 'tree', '*' => 'tree',
             'tree' => ['GET' => C::RESELLER_TREE_READ],

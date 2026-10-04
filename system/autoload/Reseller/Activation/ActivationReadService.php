@@ -128,6 +128,29 @@ final class ActivationReadService
     }
 
     /**
+     * WP6B: references of the given activation ids that the actor may read (activation.read visibility; others are
+     * simply absent). Used to link finance rows (ledger / settlement) to their activation pages.
+     *
+     * @param list<int> $ids
+     * @return array<int,string> id => reference
+     */
+    public static function references(ActorContext $a, array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter($ids, static fn($v): bool => is_int($v) && $v > 0)));
+        if ($ids === [] || !PermissionService::can($a, C::ACTIVATION_READ)) {
+            return [];
+        }
+        [$pred, $params] = self::visible($a);
+        $rows = ActivationStore::displayPage(FinanceTx::pdo(), 'a.id IN (' . implode(',', array_fill(0, count($ids), '?')) . ') AND ' . $pred,
+            array_merge($ids, $params), count($ids), 0);
+        $out = [];
+        foreach ($rows as $r) {
+            $out[(int) $r['id']] = (string) $r['reference'];
+        }
+        return $out;
+    }
+
+    /**
      * Subscriber 360 operational flags for a customer the actor may read: the visible in-flight activation (if any)
      * and an unconfirmed legacy re-provision (the latest reprovision.* audit outcome, as the drift report).
      *

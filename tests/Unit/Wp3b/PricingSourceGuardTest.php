@@ -135,8 +135,14 @@ final class PricingSourceGuardTest extends TestCase
     /** One activation-settlement ledger authority; no generic writer. */
     public function testOneSettlementAuthority(): void
     {
-        $this->assertSame([self::FIN . 'LedgerService.php'], array_values(array_unique(self::hits('/COMMISSION_CREDIT/'))));
-        $this->assertSame([self::FIN . 'LedgerService.php'], array_values(array_unique(self::hits('/ACTIVATION_DEBIT/'))));
+        // WP6B (OD-1, narrow): the entry-type names may also appear in the two read-only display files (the finance read
+        // model's filter list and the UI label map); neither can post (asserted below)
+        $display = [self::FIN . 'LedgerReadModel.php', 'system/autoload/Reseller/Ui/Format.php'];
+        $this->assertSame([self::FIN . 'LedgerService.php'], array_values(array_diff(array_unique(self::hits('/COMMISSION_CREDIT/')), $display)));
+        $this->assertSame([self::FIN . 'LedgerService.php'], array_values(array_diff(array_unique(self::hits('/ACTIVATION_DEBIT/')), $display)));
+        foreach ($display as $rel) {
+            $this->assertDoesNotMatchRegularExpression('/\\b(INSERT|UPDATE|DELETE|REPLACE)\\s+(INTO\\s+|FROM\\s+)?`?tbl_|LedgerService::post|FinanceTx::run\\(/i', self::runtime()[$rel], "{$rel}: display only, never a writer");
+        }
         $rc = new \ReflectionClass(LedgerService::class);
         $this->assertFalse($rc->hasMethod('postActivationDebit'), 'the old independent activation-debit path is removed');
         $p = array_map(static fn(\ReflectionParameter $x) => $x->getName(), $rc->getMethod('postActivationSettlement')->getParameters());
