@@ -69,6 +69,12 @@ final class Format
         return is_string($amount) && str_starts_with($amount, '-');
     }
 
+    /** Plain-language label of the server-derived activation action. */
+    public static function actionLabel(?string $action): string
+    {
+        return ['NEW' => 'New activation', 'RENEW' => 'Renewal', 'CHANGE_PLAN' => 'Plan change', 'REACTIVATE' => 'Reactivation'][(string) $action] ?? (string) $action;
+    }
+
     public static function tone(?string $state): string
     {
         return self::STATE_TONE[(string) $state] ?? 'neutral';
@@ -87,5 +93,27 @@ final class Format
         }
         $d = \DateTimeImmutable::createFromFormat('!Y-m-d', substr($date, 0, 10));
         return $d === false ? null : (int) (new \DateTimeImmutable('today'))->diff($d)->format('%r%a');
+    }
+
+    /** "1.2 GB" style size for octet counters (display only). */
+    public static function bytes(int $n): string
+    {
+        $u = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $i = 0;
+        $v = (float) $n;
+        while ($v >= 1024 && $i < count($u) - 1) {
+            $v /= 1024;
+            $i++;
+        }
+        return ($i === 0 ? (string) $n : number_format($v, 1, '.', '')) . ' ' . $u[$i];
+    }
+
+    /** "2h 05m" style duration (display only). */
+    public static function duration(int $seconds): string
+    {
+        $d = intdiv($seconds, 86400);
+        $h = intdiv($seconds % 86400, 3600);
+        $m = intdiv($seconds % 3600, 60);
+        return ($d > 0 ? $d . 'd ' : '') . $h . 'h ' . str_pad((string) $m, 2, '0', STR_PAD_LEFT) . 'm';
     }
 }

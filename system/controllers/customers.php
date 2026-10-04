@@ -360,9 +360,12 @@ switch ($action) {
             $customFields = ORM::for_table('tbl_customers_fields')
                 ->where('customer_id', $customer['id'])
                 ->find_many();
-            $v = $routes['3'];
-            if (empty($v)) {
-                $v = 'activation';
+            // WP6A Subscriber 360 tabs: overview (default), activations (reseller read model), invoices (legacy
+            // transactions; the former "activation" tab key still opens it), order (payment gateway rows)
+            $v = $routes['3'] ?? '';
+            $v = $v === 'activation' ? 'invoices' : $v;
+            if (!in_array($v, ['overview', 'activations', 'invoices', 'order'], true)) {
+                $v = 'overview';
             }
             switch ($v) {
                 case 'order':
@@ -373,7 +376,7 @@ switch ($action) {
 
                     $ui->assign('order', $order);
                     break;
-                case 'activation':
+                case 'invoices':
                     // WP2: by customer id only (usernames are mutable and reusable)
                     $query = ORM::for_table('tbl_transactions')->where('user_id', $customer['id'])->order_by_desc('id');
                     $activation = Paginator::findMany($query);
@@ -393,10 +396,39 @@ switch ($action) {
             if (\Reseller\Security\PermissionService::can($nuxrActor, \Reseller\Security\Capability::CUSTOMER_TRANSFER_OWNER)) {
                 $ui->assign('nuxr_owner_options', \Reseller\Domain\CustomerService::ownerOptions());
             }
+            // WP6A (OD-A, OD-D, OD-E): read-model activation history and flags, RADIUS session state from existing
+            // accounting data, and the actions this actor can actually perform (the server re-authorizes all of them)
+            $nuxrCid = (int) $customer['id'];
+            $nuxrGlobal = \Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ) === 'G';
+            $nuxrCanRead = \Reseller\Security\PermissionService::can($nuxrActor, \Reseller\Security\Capability::ACTIVATION_READ);
+            $ui->assign('nuxr_flags', \Reseller\Activation\ActivationReadService::customerFlags($nuxrActor, $nuxrCid));
+            if ($nuxrCanRead && $v === 'activations') {
+                $ui->assign('nuxr_activations', \Reseller\Activation\ActivationReadService::list($nuxrActor, ['customer' => $nuxrCid], (int) _get('page', 1)));
+            } elseif ($nuxrCanRead) {
+                $ui->assign('nuxr_recent', array_slice(\Reseller\Activation\ActivationReadService::list($nuxrActor, ['customer' => $nuxrCid])['rows'], 0, 3));
+            }
+            $ui->assign('nuxr_can_activations', $nuxrCanRead);
+            $nuxrActivate = false;
+            if (\Reseller\Activation\ActivationService::eligible($nuxrActor) && $customer['manager_id'] !== null) {
+                try {
+                    \Reseller\Activation\ActivationService::payerOf($nuxrActor, $customer->as_array());
+                    $nuxrActivate = true;
+                } catch (\Reseller\Domain\DomainError $e) {
+                    $nuxrActivate = false;
+                }
+            }
+            $ui->assign('nuxr_can_activate', $nuxrActivate);
+            $ui->assign('nuxr_session', \Reseller\Ui\Subscriber::session($customer->as_array(), $nuxrGlobal));
+            $ui->assign('nuxr_global', $nuxrGlobal);
+            if ($nuxrGlobal && $customer['created_by']) {
+                $nuxrCreator = ORM::for_table('tbl_users')->select_many('id', 'username')->find_one((int) $customer['created_by']);
+                $ui->assign('nuxr_creator', $nuxrCreator ? $nuxrCreator['username'] : null);
+            }
+            $ui->assign('nuxr_created', _get('created') === '1');
+            $ui->assign('_title', $customer['fullname']);
             $ui->assign('v', $v);
             $ui->assign('d', $customer);
             $ui->assign('customFields', $customFields);
-            $ui->assign('xheader', $leafletpickerHeader);
             $ui->assign('csrf_token',  Csrf::generateAndStoreToken());
             $ui->display('admin/customers/view.tpl');
         } else {

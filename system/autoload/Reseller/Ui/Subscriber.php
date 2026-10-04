@@ -109,26 +109,4 @@ final class Subscriber
         }
         return $out;
     }
-
-    /** "1.2 GB" style size for octet counters (display only). */
-    public static function bytes(int $n): string
-    {
-        $u = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $i = 0;
-        $v = (float) $n;
-        while ($v >= 1024 && $i < count($u) - 1) {
-            $v /= 1024;
-            $i++;
-        }
-        return ($i === 0 ? (string) $n : number_format($v, 1, '.', '')) . ' ' . $u[$i];
-    }
-
-    /** "2h 05m" style duration (display only). */
-    public static function duration(int $seconds): string
-    {
-        $d = intdiv($seconds, 86400);
-        $h = intdiv($seconds % 86400, 3600);
-        $m = intdiv($seconds % 3600, 60);
-        return ($d > 0 ? $d . 'd ' : '') . $h . 'h ' . str_pad((string) $m, 2, '0', STR_PAD_LEFT) . 'm';
-    }
 }

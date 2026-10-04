@@ -64,6 +64,18 @@ body.nuxr-shell.dark-mode {
     --nx-processing-soft: #262d52;
 }
 
+/* ---------- vendored AdminLTE resets ----------
+ * modern-AdminLTE gives many elements min-height:100% (cards stretched to their column) and a !important Nunito
+ * font (specificity raised by :not(#id)). Reset here, before every component rule: min-height through :where()
+ * (components below still set their own), the font through :is(..., #nuxr-none) to outrank the vendored rule. */
+body.nuxr-shell :where(section, details, summary, article, aside, footer, main, menu, h1, h2, h3, h4, h5, h6) {
+    min-height: 0;
+}
+
+body.nuxr-shell, body.nuxr-shell :is(h1, h2, h3, h4, h5, h6, input, textarea, optgroup, select, button, article, aside, details, figcaption, figure, footer, hgroup, main, menu, section, summary, .select2-selection, #nuxr-none) {
+    font-family: var(--nx-font) !important;
+}
+
 /* ---------- base ---------- */
 body.nuxr-shell {
     background: var(--nx-bg);
@@ -873,12 +885,18 @@ body.nuxr-shell .content {
 
 .nuxr-grid {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
+}
+
+.nuxr-grid > *, .nuxr-kv dd, .nuxr-kv dd bdi {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 @media (min-width: 992px) {
     .nuxr-grid-360 {
-        grid-template-columns: minmax(300px, 380px) 1fr;
+        grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
         align-items: start;
     }
 
@@ -1563,5 +1581,16 @@ a.nuxr-stat:hover, a.nuxr-stat:focus {
 
 /* WP6A pages own their header; the legacy content header is kept for legacy pages only */
 .nuxr-page .content-header {
+    display: none;
+}
+
+@media (max-width: 991px) {
+    .nuxr-360-main {
+        order: -1;
+    }
+}
+
+/* the legacy Pace loading bar stays; its corner spinner overlapped the account button */
+.nuxr-shell .pace .pace-activity {
     display: none;
 }
