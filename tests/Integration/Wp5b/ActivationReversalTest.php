@@ -313,4 +313,26 @@ final class ActivationReversalTest extends ActivationTestCase
         $this->assertSame('REVERSED', $this->reverse($ref)['status'], 'resumed after the operator funded the clawback');
         $this->assertSame(['1000.00', '0.00'], [$this->balance($leaf), $this->balance($top)]);
     }
+
+    /** Fix round 1, blocker 2: no application DB transaction (and so no activation / wallet row lock) is open at any RADIUS read / restore. */
+    public function testRadiusIsReadAndRestoredWithNoDatabaseTransactionOpen(): void
+    {
+        [$ref, , $top, $leaf] = $this->completed();
+        $seen = [];
+        ActivationFaults::$hook = static function (string $p) use (&$seen): void {
+            if ($p === 'reversal.radius_read' || $p === 'reversal.radius_restore') {
+                $seen[] = [$p, \ORM::get_db()->inTransaction(), \ORM::get_db('radius')->inTransaction()];
+            }
+        };
+        $this->assertSame('REVERSED', $this->reverse($ref)['status']);
+        ActivationFaults::$hook = null;
+        $points = array_count_values(array_column($seen, 0));
+        $this->assertGreaterThanOrEqual(3, $points['reversal.radius_read'] ?? 0, 'phase 0, the start under the tree lock and phase 2b');
+        $this->assertSame(1, $points['reversal.radius_restore'] ?? 0);
+        foreach ($seen as [$point, $app, $radius]) {
+            $this->assertFalse($app, "{$point}: no application DB transaction open");
+            $this->assertFalse($radius, "{$point}: no RADIUS DB transaction open");
+        }
+        $this->assertSame(['1000.00', '1000.00'], [$this->balance($leaf), $this->balance($top)]);
+    }
 }

@@ -17,6 +17,8 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  *  - reversal.after_restore          RADIUS restored, before the evidence is persisted
  *  - reversal.after_evidence         evidence persisted, before the financial / legacy transaction
  *  - reversal.after_ledger           inside the reversal transaction, after the ledger and legacy writes
+ *  - reversal.radius_read / reversal.radius_restore   immediately before each RADIUS read / restore of the reversal
+ *    (fix round 1: instrumentation proving no application DB transaction is open there)
  */
 final class ActivationFaults
 {

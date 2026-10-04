@@ -7,6 +7,7 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
 use Reseller\Audit\AuditLog;
 use Reseller\Domain\DomainError;
 use Reseller\Domain\ResellerTreeService;
+use Reseller\Domain\TreeSerialization;
 use Reseller\Domain\Tx;
 use Reseller\Finance\FinanceInput;
 use Reseller\Finance\FinanceTx;
@@ -130,6 +131,17 @@ final class ActivationReversalService
      */
     private static function externalChecks(\PDO $pdo, array $act, array $context): array
     {
+        return array_merge(self::databaseChecks($pdo, $act, $context), self::radiusChecks($act, $context));
+    }
+
+    /**
+     * The database part of the safety proof (no external I/O): a later service-affecting or in-flight activation,
+     * and the legacy recharge row still equal to legacy.post.
+     *
+     * @return list<string>
+     */
+    private static function databaseChecks(\PDO $pdo, array $act, array $context): array
+    {
         $failed = [];
         if (ActivationStore::later($pdo, (int) $act['customer_id'], (int) $act['id'], self::SERVICE_AFFECTING_EXCLUDED) !== null) {
             $failed[] = 'later_activation';
@@ -141,7 +153,20 @@ final class ActivationReversalService
         if (!LegacyBridge::unchangedSince($pdo, $context['legacy'])) {
             $failed[] = 'legacy_recharge';
         }
+        return $failed;
+    }
+
+    /**
+     * The RADIUS part of the safety proof: the subscriber still shows exactly the captured target. External I/O:
+     * never called while an application DB transaction (or any activation / wallet row lock) is open.
+     *
+     * @return list<string>
+     */
+    private static function radiusChecks(array $act, array $context): array
+    {
+        $failed = [];
         try {
+            ActivationFaults::hit('reversal.radius_read');
             $current = RadiusState::read((string) $context['target']['username'], (int) ActivationService::plan($act)['id'], (string) $act['reference']);
             if (!RadiusState::same($current, $context['target'])) {
                 foreach (RadiusState::diff($current, $context['target']) as $component) {
@@ -215,26 +240,45 @@ final class ActivationReversalService
     {
         $id = (int) $act['id'];
         try {
-            FinanceTx::run(static function (\PDO $pdo) use ($actor, $act, $id, $context, $reason): void {
-                $row = ActivationStore::lock($pdo, $id);
-                if ($row['status'] !== ActivationState::COMPLETED) {
-                    throw new DomainError('ACTIVATION_STATE_CONFLICT');
-                }
-                $failed = self::externalChecks($pdo, $row, $context);
+            // WP5B fix round 1 (blocker 2): the tree lock (the serialization boundary shared with ActivationService::open
+            // and LegacyReprovisionService) is held lock-only; no application DB transaction and no row lock stays open
+            // across the RADIUS read.
+            TreeSerialization::hold(static function () use ($actor, $act, $id, $context, $reason): void {
+                // 1. short transaction: the database state
+                $failed = FinanceTx::run(static function (\PDO $pdo) use ($id, $context): array {
+                    $row = ActivationStore::find($pdo, $id) ?? throw new DomainError('NOT_FOUND');
+                    if ($row['status'] !== ActivationState::COMPLETED) {
+                        throw new DomainError('ACTIVATION_STATE_CONFLICT');
+                    }
+                    return self::databaseChecks($pdo, $row, $context);
+                }, true);
+                // 2. no transaction: RADIUS still shows the captured target
+                $failed = array_merge($failed, self::radiusChecks($act, $context));
                 if ($failed !== []) {
                     throw new DomainError('REVERSAL_EXTERNAL_STATE_CHANGED', implode(',', $failed));
                 }
-                $legs = LedgerService::activationReversalLegs($pdo, $id);
-                ActivationStore::transition($pdo, $id, [ActivationState::COMPLETED], ActivationState::REVERSAL_PENDING, $actor, [
-                    'event_type' => 'RECONCILIATION',
-                    'metadata' => ['reversal' => 'started', 'reason' => $reason, 'retail' => 'not_collected_by_system', 'legs' => [
-                        'leaf' => $legs['leaf'], 'debit' => $legs['debit']['amount']->format(),
-                        'commissions' => array_map(static fn(array $l): string => $l['amount']->format(), $legs['credits']),
-                        'provider_settlement' => $act['provider_settlement_amount'],
-                    ]],
-                ], ['error_code' => null, 'error_message' => null]);
-                self::audit($actor, $act, ['reversal' => 'started'], $pdo, $reason);
-            }, true);
+                // 3. short transaction: re-lock the activation, re-check the database conditions, COMPLETED -> REVERSAL_PENDING
+                FinanceTx::run(static function (\PDO $pdo) use ($actor, $act, $id, $context, $reason): void {
+                    $row = ActivationStore::lock($pdo, $id);
+                    if ($row['status'] !== ActivationState::COMPLETED) {
+                        throw new DomainError('ACTIVATION_STATE_CONFLICT');
+                    }
+                    $failed = self::databaseChecks($pdo, $row, $context);
+                    if ($failed !== []) {
+                        throw new DomainError('REVERSAL_EXTERNAL_STATE_CHANGED', implode(',', $failed));
+                    }
+                    $legs = LedgerService::activationReversalLegs($pdo, $id);
+                    ActivationStore::transition($pdo, $id, [ActivationState::COMPLETED], ActivationState::REVERSAL_PENDING, $actor, [
+                        'event_type' => 'RECONCILIATION',
+                        'metadata' => ['reversal' => 'started', 'reason' => $reason, 'retail' => 'not_collected_by_system', 'legs' => [
+                            'leaf' => $legs['leaf'], 'debit' => $legs['debit']['amount']->format(),
+                            'commissions' => array_map(static fn(array $l): string => $l['amount']->format(), $legs['credits']),
+                            'provider_settlement' => $act['provider_settlement_amount'],
+                        ]],
+                    ], ['error_code' => null, 'error_message' => null]);
+                    self::audit($actor, $act, ['reversal' => 'started'], $pdo, $reason);
+                }, true);
+            });
         } catch (DomainError $e) {
             if ($e->reason === 'REVERSAL_EXTERNAL_STATE_CHANGED') {
                 self::audit($actor, $act, ['refused' => $e->reason, 'checks' => explode(',', $e->getMessage())], null);
@@ -259,6 +303,7 @@ final class ActivationReversalService
         $salt = (string) $act['reference'];
         $read = static function () use ($context, $planId, $salt): ?array {
             try {
+                ActivationFaults::hit('reversal.radius_read');
                 return RadiusState::read((string) $context['target']['username'], $planId, $salt);
             } catch (\Throwable $e) {
                 \Reseller\Security\ErrorReporter::report($e, 'activation-reversal-read');
@@ -272,6 +317,7 @@ final class ActivationReversalService
             if (isset($plan['refused'])) {
                 self::hold($actor, $id, $plan['refused'], null);
             }
+            ActivationFaults::hit('reversal.radius_restore');
             $result = RadiusProvisioner::connection()->restore($plan['username'], $plan['check'], $plan['reply'], $plan['groups']);
             ActivationFaults::hit('reversal.after_restore');
             $current = $read();
