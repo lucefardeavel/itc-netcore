@@ -34,7 +34,7 @@ switch ($action) {
         if (!$d) {
             $d = ORM::for_table('tbl_routers')->where_equal('name', _get('name'))->find_one();
         }
-        $ui->assign('xheader', $leafletpickerHeader);
+        // WP6A (OD-H): no eager map stylesheet; the map loads when opened
         if ($d) {
             $ui->assign('d', $d);
             run_hook('view_router_edit'); #HOOK

@@ -157,14 +157,23 @@ switch ($action) {
         if (!in_array($admin['user_type'], ['SuperAdmin', 'Admin', 'Agent', 'Sales'])) {
             _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
         }
-        $ui->assign('xheader', $leafletpickerHeader);
         // WP2: ownership choices are offered by role; the server re-validates everything on add-post
+        // WP6A: no eager map assets (the map loads when the operator opens it); Admin gets the owner -> Sales map
         $nuxrCreateScope = \Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::CUSTOMER_CREATE);
         $ui->assign('nuxr_create_scope', $nuxrCreateScope);
         if ($nuxrCreateScope === 'G') {
-            $ui->assign('nuxr_owner_options', \Reseller\Domain\CustomerService::ownerOptions());
+            $nuxrOwners = \Reseller\Domain\CustomerService::ownerOptions();
+            $ui->assign('nuxr_owner_options', $nuxrOwners);
+            $nuxrOwnerSales = [];
+            foreach ($nuxrOwners as $o) {
+                $nuxrOwnerSales[(int) $o['id']] = \Reseller\Domain\CustomerService::salesOptions((int) $o['id']);
+            }
+            $ui->assign('nuxr_owner_sales', $nuxrOwnerSales);
         } elseif ($nuxrCreateScope === 'T') {
             $ui->assign('nuxr_sales_options', \Reseller\Domain\CustomerService::salesOptions((int) $nuxrActor->userId));
+        } elseif ($nuxrCreateScope === 'A' && $nuxrActor->managerId !== null) {
+            $nuxrParent = ORM::for_table('tbl_users')->select_many('id', 'username')->find_one((int) $nuxrActor->managerId);
+            $ui->assign('nuxr_parent_owner', $nuxrParent ? $nuxrParent['username'] : null);
         }
         run_hook('view_add_customer'); #HOOK
         $ui->assign('csrf_token',  Csrf::generateAndStoreToken());
@@ -467,7 +476,7 @@ switch ($action) {
             $ui->assign('d', $d);
             $ui->assign('statuses', ORM::for_table('tbl_customers')->getEnum("status"));
             $ui->assign('customFields', $customFields);
-            $ui->assign('xheader', $leafletpickerHeader);
+            // WP6A (OD-H): no eager map stylesheet; the map loads when opened
             $ui->assign('csrf_token',  Csrf::generateAndStoreToken());
             $ui->display('admin/customers/edit.tpl');
         } else {
@@ -553,8 +562,9 @@ switch ($action) {
         if (Validator::Length($username, 55, 2) == false) {
             $msg .= 'Username should be between 3 to 54 characters' . '<br>';
         }
-        if (Validator::Length($fullname, 36, 1) == false) {
-            $msg .= 'Full Name should be between 2 to 25 characters' . '<br>';
+        // WP6A (Arabic-first): characters, not bytes, within the accepted CustomerService rule and the column (1-45)
+        if (mb_strlen((string) $fullname) < 1 || mb_strlen((string) $fullname) > 45) {
+            $msg .= Lang::T('Full Name should be between 1 to 45 characters') . '<br>';
         }
         if (!Validator::Length($password, 36, 2)) {
             $msg .= 'Password should be between 3 to 35 characters' . '<br>';
@@ -630,7 +640,8 @@ switch ($action) {
                     }
                 }
             }
-            r2(getUrl('customers/list'), 's', Lang::T('Account Created Successfully'));
+            // WP6A: continue on the new subscriber's 360 (Activate now / Later)
+            r2(getUrl('customers/view/') . (int) $customerId . '&created=1', 's', Lang::T('Account Created Successfully'));
         } else {
             r2(getUrl('customers/add'), 'e', $msg);
         }
@@ -665,8 +676,9 @@ switch ($action) {
         if (Validator::Length($username, 55, 2) == false) {
             $msg .= 'Username should be between 3 to 54 characters' . '<br>';
         }
-        if (Validator::Length($fullname, 36, 1) == false) {
-            $msg .= 'Full Name should be between 2 to 25 characters' . '<br>';
+        // WP6A (Arabic-first): characters, not bytes, within the accepted CustomerService rule and the column (1-45)
+        if (mb_strlen((string) $fullname) < 1 || mb_strlen((string) $fullname) > 45) {
+            $msg .= Lang::T('Full Name should be between 1 to 45 characters') . '<br>';
         }
 
         $c = ORM::for_table('tbl_customers')->find_one($id);

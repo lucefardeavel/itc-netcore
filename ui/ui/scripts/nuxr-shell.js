@@ -291,7 +291,8 @@
             document.head.appendChild(css);
             var js = document.createElement('script');
             js.src = 'https://unpkg.com/leaflet@1.9.3/dist/leaflet.js';
-            js.onload = function () { if (typeof window[holder.getAttribute('data-init')] === 'function') { window[holder.getAttribute('data-init')](holder); } };
+            var init = btn.getAttribute('data-nuxr-map-init') || holder.getAttribute('data-init');
+            js.onload = function () { if (init && typeof window[init] === 'function') { window[init](holder); } };
             document.body.appendChild(js);
             btn.hidden = true;
         });

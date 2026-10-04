@@ -1594,3 +1594,86 @@ a.nuxr-stat:hover, a.nuxr-stat:focus {
 .nuxr-shell .pace .pace-activity {
     display: none;
 }
+
+/* ---------- forms (create flow) ---------- */
+.nuxr-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nuxr-fields > label, .nuxr-form label {
+    margin: 8px 0 2px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--nx-text);
+}
+
+.nuxr-fields > label:first-child {
+    margin-top: 0;
+}
+
+.nuxr-fields small {
+    display: block;
+}
+
+.nuxr-pppoe {
+    padding: 10px 12px;
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-sm);
+}
+
+.nuxr-pppoe.is-muted {
+    opacity: .7;
+}
+
+.nuxr-step-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--nx-border);
+}
+
+.nuxr-step-nav:not(:has(> :not([hidden]))) {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .nuxr-create.is-stepping .nuxr-grid {
+        display: block;
+    }
+
+    .nuxr-step-nav .nuxr-btn {
+        flex: 1;
+        min-height: 48px;
+    }
+}
+
+@media (min-width: 768px) {
+    .nuxr-create .nuxr-step-nav:not(.nuxr-step-final) {
+        display: none;
+    }
+
+    .nuxr-create .nuxr-step-final {
+        background: var(--nx-surface);
+        border-radius: 0 0 var(--nx-radius) var(--nx-radius);
+    }
+}
+
+.nuxr-shell [hidden] {
+    display: none !important;
+}
+
+.nuxr-stepno {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    margin-inline-end: 8px;
+    border-radius: 50%;
+    background: var(--nx-primary-soft);
+    color: var(--nx-primary);
+    font-size: 13px;
+}

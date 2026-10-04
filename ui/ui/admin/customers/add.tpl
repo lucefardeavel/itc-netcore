@@ -1,341 +1,234 @@
 {include file="sections/header.tpl"}
-
-<form class="form-horizontal" method="post" role="form" action="{Text::url('customers/add-post')}">
+{include file="admin/nuxr/macros.tpl"}
+{* WP6A create subscriber: one form, one POST (customers/add-post, CustomerService re-validates everything and resolves
+   ownership by role). Phone: a 4-step stepper (identity -> credentials / network -> owner / Sales -> review); tablet and
+   desktop: the same sections on one page. Nothing is stored between steps. *}
+<ol class="nuxr-stepper nuxr-only-phone" aria-label="{Lang::T('Steps')}">
+    <li>{Lang::T('Identity')}</li>
+    <li>{Lang::T('Access')}</li>
+    <li>{Lang::T('Owner')}</li>
+    <li>{Lang::T('Review')}</li>
+</ol>
+<form class="nuxr-form nuxr-create" method="post" action="{Text::url('customers/add-post')}" data-nuxr-steps autocomplete="off">
     <input type="hidden" name="csrf_token" value="{$csrf_token}">
-    <div class="row">
-        <div class="col-md-6">
-            <div class="panel panel-primary panel-hovered panel-stacked mb30">
-                <div class="panel-heading">{Lang::T('Add New Contact')}</div>
-                <div class="panel-body">
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Username')}</label>
-                        <div class="col-md-9">
-                            <div class="input-group">
-                                {if $_c['country_code_phone'] != ''}
-                                    <span class="input-group-addon" id="basic-addon1"><i
-                                            class="glyphicon glyphicon-phone-alt"></i></span>
-                                {else}
-                                    <span class="input-group-addon" id="basic-addon1"><i
-                                            class="glyphicon glyphicon-user"></i></span>
-                                {/if}
-                                <input type="text" class="form-control" name="username" required
-                                    placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']} {Lang::T('Phone Number')}{else}{Lang::T('Usernames')}{/if}">
-                            </div>
-                        </div>
+    <div class="nuxr-grid nuxr-grid-2">
+        <section class="nuxr-card" data-nuxr-step aria-labelledby="nuxr-step-1">
+            <div class="nuxr-card-head"><h2 id="nuxr-step-1"><span class="nuxr-stepno" aria-hidden="true">1</span>{Lang::T('Identity and service')}</h2></div>
+            <div class="nuxr-card-body nuxr-fields">
+                <label for="fullname">{Lang::T('Full Name')} <span aria-hidden="true">*</span></label>
+                <input id="fullname" name="fullname" class="form-control nuxr-input" required maxlength="45" autocomplete="off">
+                <label for="phonenumber">{Lang::T('Phone Number')}</label>
+                <input id="phonenumber" name="phonenumber" class="form-control nuxr-input ltr" dir="ltr" inputmode="tel" maxlength="20"
+                    placeholder="{if $_c['country_code_phone'] neq ''}{$_c['country_code_phone']|escape}…{/if}">
+                <label for="email">{Lang::T('Email')}</label>
+                <input id="email" type="email" name="email" class="form-control nuxr-input ltr" dir="ltr" maxlength="128">
+                <label for="service_type">{Lang::T('Service Type')}</label>
+                <select id="service_type" name="service_type" class="form-control nuxr-input">
+                    <option value="Hotspot">Hotspot</option>
+                    <option value="PPPoE">PPPoE</option>
+                    <option value="VPN">VPN</option>
+                    <option value="Others">{Lang::T('Other')}</option>
+                </select>
+                <label for="account_type">{Lang::T('Account Type')}</label>
+                <select id="account_type" name="account_type" class="form-control nuxr-input">
+                    <option value="Personal">{Lang::T('Personal')}</option>
+                    <option value="Business">{Lang::T('Business')}</option>
+                </select>
+            </div>
+            <div class="nuxr-step-nav"><button type="button" class="nuxr-btn nuxr-btn-primary" data-nuxr-step-next>{Lang::T('Next')}<i class="fa fa-angle-right nuxr-dir-icon" aria-hidden="true"></i></button></div>
+        </section>
+
+        <section class="nuxr-card" data-nuxr-step aria-labelledby="nuxr-step-2">
+            <div class="nuxr-card-head"><h2 id="nuxr-step-2"><span class="nuxr-stepno" aria-hidden="true">2</span>{Lang::T('Credentials and network')}</h2></div>
+            <div class="nuxr-card-body nuxr-fields">
+                <label for="username">{Lang::T('Username')} <span aria-hidden="true">*</span></label>
+                <input id="username" name="username" class="form-control nuxr-input ltr" dir="ltr" required minlength="3" maxlength="45" pattern="[A-Za-z0-9:+_.@\-]+"
+                    aria-describedby="nuxr-username-help" autocapitalize="off" spellcheck="false">
+                <small id="nuxr-username-help" class="nuxr-muted">{Lang::T('Letters, digits and : + _ . @ - only.')}</small>
+                <label for="password">{Lang::T('Password')} <span aria-hidden="true">*</span></label>
+                <div class="nuxr-filters" style="margin:0">
+                    <input id="password" name="password" class="form-control nuxr-input ltr" dir="ltr" required minlength="3" maxlength="35" style="flex:1 1 180px" spellcheck="false">
+                    <button type="button" class="nuxr-btn" data-nuxr-genpass="password"><i class="fa fa-random" aria-hidden="true"></i>{Lang::T('Generate')}</button>
+                </div>
+                <fieldset class="nuxr-pppoe" style="margin-top:12px">
+                    <legend style="font-size:15px;font-weight:700;border:0;margin:0 0 4px">PPPoE <span class="nuxr-muted" style="font-weight:400">({Lang::T('optional')})</span></legend>
+                    <label for="pppoe_username">{Lang::T('PPPoE username')}</label>
+                    <input id="pppoe_username" name="pppoe_username" class="form-control nuxr-input ltr" dir="ltr" maxlength="45" autocapitalize="off" spellcheck="false"
+                        aria-describedby="nuxr-pppoe-help">
+                    <label for="pppoe_password">{Lang::T('PPPoE password')}</label>
+                    <input id="pppoe_password" name="pppoe_password" class="form-control nuxr-input ltr" dir="ltr" maxlength="45" spellcheck="false">
+                    <label for="pppoe_ip">{Lang::T('Static IP')}</label>
+                    <input id="pppoe_ip" name="pppoe_ip" class="form-control nuxr-input ltr" dir="ltr" maxlength="32" inputmode="decimal" placeholder="10.0.0.10">
+                    <small id="nuxr-pppoe-help" class="nuxr-muted">{Lang::T('When empty, the PPPoE login uses the subscriber\'s username and password.')}</small>
+                </fieldset>
+                <label for="address" style="margin-top:12px">{Lang::T('Home Address')}</label>
+                <textarea id="address" name="address" class="form-control" rows="2" maxlength="255"></textarea>
+                <label for="coordinates">{Lang::T('Coordinates')}</label>
+                <input id="coordinates" name="coordinates" class="form-control nuxr-input ltr" dir="ltr" maxlength="64" placeholder="lat,lng">
+                <button type="button" class="nuxr-btn" style="margin-top:8px" data-nuxr-map="nuxr-map" ><i class="fa fa-map-marker" aria-hidden="true"></i>{Lang::T('Pick on map')}</button>
+                <div id="nuxr-map" data-init="nuxrInitCreateMap" style="height:260px;margin-top:8px;border-radius:8px" hidden></div>
+                <details style="margin-top:12px">
+                    <summary class="nuxr-btn">{Lang::T('Additional information')}</summary>
+                    <div class="nuxr-fields" style="margin-top:8px">
+                        <label for="city">{Lang::T('City')}</label><input id="city" name="city" class="form-control nuxr-input" maxlength="64">
+                        <label for="district">{Lang::T('District')}</label><input id="district" name="district" class="form-control nuxr-input" maxlength="64">
+                        <label for="state">{Lang::T('State')}</label><input id="state" name="state" class="form-control nuxr-input" maxlength="64">
+                        <label for="zip">{Lang::T('Zip')}</label><input id="zip" name="zip" class="form-control nuxr-input ltr" dir="ltr" maxlength="16">
+                        <div id="nuxr-custom-fields"></div>
+                        <button type="button" class="nuxr-btn" id="nuxr-add-field"><i class="fa fa-plus" aria-hidden="true"></i>{Lang::T('Add attribute')}</button>
                     </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Full Name')}</label>
-                        <div class="col-md-9">
-                            <input type="text" required class="form-control" id="fullname" name="fullname">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Email')}</label>
-                        <div class="col-md-9">
-                            <input type="email" class="form-control" id="email" name="email">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Phone Number')}</label>
-                        <div class="col-md-9">
-                            <div class="input-group">
-                                {if $_c['country_code_phone']!= ''}
-                                    <span class="input-group-addon" id="basic-addon1">+</span>
-                                {else}
-                                    <span class="input-group-addon" id="basic-addon1"><i
-                                            class="glyphicon glyphicon-phone-alt"></i></span>
-                                {/if}
-                                <input type="text" class="form-control" name="phonenumber"
-                                    placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']}{/if} {Lang::T('Phone Number')}">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Password')}</label>
-                        <div class="col-md-9">
-                            <input type="password" class="form-control" autocomplete="off" required id="password"
-                                value="{rand(000000,999999)}" name="password" onmouseleave="this.type = 'password'"
-                                onmouseenter="this.type = 'text'">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Home Address')}</label>
-                        <div class="col-md-9">
-                            <textarea name="address" id="address" class="form-control"></textarea>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Service Type')}</label>
-                        <div class="col-md-9">
-                            <select class="form-control" id="service_type" name="service_type">
-                                <option value="Hotspot">Hotspot
-                                </option>
-                                <option value="PPPoE">PPPoE</option>
-                                <option value="VPN">VPN</option>
-                                <option value="Others">{Lang::T('Other')}</option>
-                            </select>
-                        </div>
-                    </div>
-                    {* WP2: ownership is resolved server-side; these choices are re-validated on save *}
-                    {if $nuxr_create_scope eq 'G'}
-                        <div class="form-group">
-                            <label class="col-md-3 control-label">{Lang::T('Owner (Agent)')}</label>
-                            <div class="col-md-9">
-                                <select class="form-control" name="manager_id">
-                                    <option value="">{Lang::T('None (unassigned)')}</option>
-                                    {foreach $nuxr_owner_options as $o}<option value="{$o['id']}">{$o['username']|escape} | {$o['fullname']|escape}</option>{/foreach}
-                                </select>
-                            </div>
-                        </div>
-                    {elseif $nuxr_create_scope eq 'T' && $nuxr_sales_options}
-                        <div class="form-group">
-                            <label class="col-md-3 control-label">{Lang::T('Sales')}</label>
-                            <div class="col-md-9">
-                                <select class="form-control" name="assigned_sales_id">
-                                    <option value="">{Lang::T('None')}</option>
-                                    {foreach $nuxr_sales_options as $o}<option value="{$o['id']}">{$o['username']|escape} | {$o['fullname']|escape}</option>{/foreach}
-                                </select>
-                            </div>
-                        </div>
+                </details>
+            </div>
+            <div class="nuxr-step-nav"><button type="button" class="nuxr-btn" data-nuxr-step-prev><i class="fa fa-angle-left nuxr-dir-icon" aria-hidden="true"></i>{Lang::T('Back')}</button>
+                <button type="button" class="nuxr-btn nuxr-btn-primary" data-nuxr-step-next>{Lang::T('Next')}<i class="fa fa-angle-right nuxr-dir-icon" aria-hidden="true"></i></button></div>
+        </section>
+
+        {* owner / Sales: what the actor may choose (the server resolves and re-validates ownership by role) *}
+        <section class="nuxr-card" data-nuxr-step aria-labelledby="nuxr-step-3">
+            <div class="nuxr-card-head"><h2 id="nuxr-step-3"><span class="nuxr-stepno" aria-hidden="true">3</span>{Lang::T('Commercial owner and Sales')}</h2></div>
+            <div class="nuxr-card-body nuxr-fields">
+                {if $nuxr_create_scope eq 'G'}
+                    <label for="manager_id">{Lang::T('Owner (reseller)')}</label>
+                    <select id="manager_id" name="manager_id" class="form-control nuxr-input">
+                        <option value="">{Lang::T('Unassigned - legacy customer, Admin only')}</option>
+                        {foreach $nuxr_owner_options as $o}<option value="{$o['id']}">{$o['username']|escape} | {$o['fullname']|escape}</option>{/foreach}
+                    </select>
+                    <small class="nuxr-muted">{Lang::T('A reseller-owned subscriber is served only through reseller activations, paid from the owner\'s wallet.')}</small>
+                    <label for="assigned_sales_id">{Lang::T('Sales')}</label>
+                    <select id="assigned_sales_id" name="assigned_sales_id" class="form-control nuxr-input" data-nuxr-owner-filter="manager_id">
+                        <option value="">{Lang::T('None')}</option>
+                        {foreach $nuxr_owner_options as $o}
+                            {if $nuxr_owner_sales[$o['id']]|default:[]}
+                                <optgroup label="{$o['username']|escape}" data-owner="{$o['id']}">
+                                    {foreach $nuxr_owner_sales[$o['id']] as $s}<option value="{$s['id']}">{$s['username']|escape} | {$s['fullname']|escape}</option>{/foreach}
+                                </optgroup>
+                            {/if}
+                        {/foreach}
+                    </select>
+                    <small class="nuxr-muted">{Lang::T('Only a Sales account of the chosen owner; none for an unassigned customer.')}</small>
+                {elseif $nuxr_create_scope eq 'T'}
+                    <dl class="nuxr-kv"><div><dt>{Lang::T('Owner (reseller)')}</dt><dd>{Lang::T('You')} (<bdi dir="ltr">{$_admin['username']|escape}</bdi>)</dd></div></dl>
+                    {if $nuxr_sales_options}
+                        <label for="assigned_sales_id">{Lang::T('Sales')}</label>
+                        <select id="assigned_sales_id" name="assigned_sales_id" class="form-control nuxr-input">
+                            <option value="">{Lang::T('None')}</option>
+                            {foreach $nuxr_sales_options as $o}<option value="{$o['id']}">{$o['username']|escape} | {$o['fullname']|escape}</option>{/foreach}
+                        </select>
+                    {else}
+                        <p class="nuxr-muted">{Lang::T('You have no Sales accounts; the subscriber is yours only.')}</p>
                     {/if}
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Account Type')}</label>
-                        <div class="col-md-9">
-                            <select class="form-control" id="account_type" name="account_type">
-                                <option value="Personal">{Lang::T('Personal')}
-                                </option>
-                                <option value="Business">{Lang::T('Business')}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Coordinates')}</label>
-                        <div class="col-md-9">
-                            <input name="coordinates" id="coordinates" class="form-control" value=""
-                                placeholder="-6.465422, 3.406448">
-                            <div id="map" style="width: '100%'; height: 200px; min-height: 150px;"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel-heading">PPPoE</div>
-                <div class="panel-body">
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Usernames')} <span class="label label-danger"
-                                id="warning_username"></span></label>
-                        <div class="col-md-9">
-                            <input type="username" class="form-control" id="pppoe_username" name="pppoe_username"
-                                onkeyup="checkUsername(this, '0')">
-                            <span class="help-block">{Lang::T('Not Working for freeradius')}</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Password')}</label>
-                        <div class="col-md-9">
-                            <input type="password" class="form-control" id="pppoe_password" name="pppoe_password"
-                                onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">Remote IP <span class="label label-danger"
-                                id="warning_ip"></span></label>
-                        <div class="col-md-9">
-                            <input type="text" class="form-control" id="pppoe_ip" name="pppoe_ip"
-                                onkeyup="checkIP(this, '0')">
-                            <span class="help-block">{Lang::T('Also Working for freeradius')}</span>
-                        </div>
-                    </div>
-                    <span class="help-block">
-                        {Lang::T('User Cannot change this, only admin. if it Empty it will use Customer Credentials')}
-                    </span>
-                </div>
-                <div class="panel-heading"></div>
-                <div class="panel-body">
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Send welcome message')}</label>
-                        <div class="col-md-9">
-                            <label class="switch">
-                                <input type="checkbox" id="send_welcome_message" value="1" name="send_welcome_message">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="form-group" id="method" style="display: none;">
-                        <label class="col-md-3 control-label">{Lang::T('Notification via')}</label>
-                        <label class="col-md-3 control-label"><input type="checkbox" name="sms" value="1">
-                            {Lang::T('SMS')}</label>
-                        <label class="col-md-2 control-label"><input type="checkbox" name="wa" value="1">
-                            {Lang::T('WA')}</label>
-                        <label class="col-md-2 control-label"><input type="checkbox" name="mail" value="1">
-                            {Lang::T('Email')}</label>
-                    </div>
-                </div>
+                {else}
+                    <dl class="nuxr-kv">
+                        <div><dt>{Lang::T('Owner (reseller)')}</dt><dd>{if $nuxr_parent_owner|default:''}<bdi dir="ltr">{$nuxr_parent_owner|escape}</bdi>{else}{Lang::T('Your reseller')}{/if}</dd></div>
+                        <div><dt>{Lang::T('Sales')}</dt><dd>{Lang::T('You')} (<bdi dir="ltr">{$_admin['username']|escape}</bdi>)</dd></div>
+                    </dl>
+                    <p class="nuxr-muted">{Lang::T('A subscriber you create belongs to your reseller and is assigned to you.')}</p>
+                {/if}
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="panel panel-primary panel-hovered panel-stacked mb30">
-                <div class="panel-heading">{Lang::T('Attributes')}</div>
-                <div class="panel-body">
-                    <!-- Customers Attributes add start -->
-                    <div id="custom-fields-container">
-                    </div>
-                    <!-- Customers Attributes add end -->
+            <div class="nuxr-step-nav"><button type="button" class="nuxr-btn" data-nuxr-step-prev><i class="fa fa-angle-left nuxr-dir-icon" aria-hidden="true"></i>{Lang::T('Back')}</button>
+                <button type="button" class="nuxr-btn nuxr-btn-primary" data-nuxr-step-next>{Lang::T('Next')}<i class="fa fa-angle-right nuxr-dir-icon" aria-hidden="true"></i></button></div>
+        </section>
+
+        <section class="nuxr-card" data-nuxr-step aria-labelledby="nuxr-step-4">
+            <div class="nuxr-card-head"><h2 id="nuxr-step-4"><span class="nuxr-stepno" aria-hidden="true">4</span>{Lang::T('Review and create')}</h2></div>
+            <div class="nuxr-card-body">
+                <dl class="nuxr-kv nuxr-only-phone">
+                    <div><dt>{Lang::T('Full Name')}</dt><dd data-nuxr-review="fullname">-</dd></div>
+                    <div><dt>{Lang::T('Username')}</dt><dd><bdi dir="ltr" data-nuxr-review="username">-</bdi></dd></div>
+                    <div><dt>{Lang::T('Phone')}</dt><dd><bdi dir="ltr" data-nuxr-review="phonenumber">-</bdi></dd></div>
+                    <div><dt>{Lang::T('Service Type')}</dt><dd data-nuxr-review="service_type">-</dd></div>
+                    <div><dt>{Lang::T('PPPoE username')}</dt><dd><bdi dir="ltr" data-nuxr-review="pppoe_username">-</bdi></dd></div>
+                    <div><dt>{Lang::T('Static IP')}</dt><dd><bdi dir="ltr" data-nuxr-review="pppoe_ip">-</bdi></dd></div>
+                    {if $nuxr_create_scope eq 'G'}<div><dt>{Lang::T('Owner (reseller)')}</dt><dd data-nuxr-review="manager_id">-</dd></div>{/if}
+                    {if $nuxr_create_scope eq 'G' || ($nuxr_create_scope eq 'T' && $nuxr_sales_options)}<div><dt>{Lang::T('Sales')}</dt><dd data-nuxr-review="assigned_sales_id">-</dd></div>{/if}
+                </dl>
+                <label style="display:flex;gap:8px;align-items:center;margin-top:10px">
+                    <input type="checkbox" id="send_welcome_message" name="send_welcome_message" value="1"> {Lang::T('Send welcome message')}</label>
+                <div id="nuxr-welcome-channels" class="nuxr-filters" style="margin:6px 0 0" hidden>
+                    <label class="nuxr-chip"><input type="checkbox" name="sms" value="1"> SMS</label>
+                    <label class="nuxr-chip"><input type="checkbox" name="wa" value="1"> WhatsApp</label>
+                    <label class="nuxr-chip"><input type="checkbox" name="mail" value="1"> {Lang::T('Email')}</label>
                 </div>
-                <div class="panel-footer">
-                    <button class="btn btn-success btn-block" type="button"
-                        id="add-custom-field">{Lang::T('Add')}</button>
-                </div>
+                <p class="nuxr-muted" style="margin:12px 0 0">{Lang::T('After creating, you can activate the service now or later.')}</p>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="box box-primary box-solid collapsed-box">
-                <div class="box-header with-border">
-                    <h3 class="box-title">{Lang::T('Additional Information')}</h3>
-                    <div class="box-tools pull-right">
-                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="box-body" style="display: none;">
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('City')}</label>
-                        <div class="col-md-9">
-                            <input type="text" class="form-control" id="city" name="city" value="{$d['city']}">
-                            <small class="form-text text-muted">{Lang::T('City of Resident')}</small>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('District')}</label>
-                        <div class="col-md-9">
-                            <input type="text" class="form-control" id="district" name="district"
-                                value="{$d['district']}">
-                            <small class="form-text text-muted">{Lang::T('District')}</small>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('State')}</label>
-                        <div class="col-md-9">
-                            <input type="text" class="form-control" id="state" name="state" value="{$d['state']}">
-                            <small class="form-text text-muted">{Lang::T('State of Resident')}</small>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Zip')}</label>
-                        <div class="col-md-9">
-                            <input type="text" class="form-control" id="zip" name="zip" value="{$d['zip']}">
-                            <small class="form-text text-muted">{Lang::T('Zip Code')}</small>
-                        </div>
-                    </div>
-                </div>
+            <div class="nuxr-step-nav nuxr-step-final">
+                <button type="button" class="nuxr-btn" data-nuxr-step-prev><i class="fa fa-angle-left nuxr-dir-icon" aria-hidden="true"></i>{Lang::T('Back')}</button>
+                <a href="{Text::url('customers/list')}" class="nuxr-btn nuxr-hide-phone">{Lang::T('Cancel')}</a>
+                <button type="submit" class="nuxr-btn nuxr-btn-primary" data-nuxr-step-submit><i class="fa fa-user-plus" aria-hidden="true"></i>{Lang::T('Create subscriber')}</button>
             </div>
-        </div>
+        </section>
     </div>
-    <center>
-        <button class="btn btn-primary"
-            onclick="return ask(this, '{Lang::T("Continue the process of adding Customer Data?")}')" type="submit">
-            {Lang::T('Save Changes')}
-        </button>
-        <br><a href="{Text::url('customers/list')}" class="btn btn-link">{Lang::T('Cancel')}</a>
-    </center>
 </form>
-{literal}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var sendWelcomeCheckbox = document.getElementById('send_welcome_message');
-            var methodSection = document.getElementById('method');
-
-            function toggleMethodSection() {
-                if (sendWelcomeCheckbox.checked) {
-                    methodSection.style.display = 'block';
-                } else {
-                    methodSection.style.display = 'none';
-                }
-            }
-
-            toggleMethodSection();
-
-            sendWelcomeCheckbox.addEventListener('change', toggleMethodSection);
-            document.querySelector('form').addEventListener('submit', function(event) {
-                if (sendWelcomeCheckbox.checked) {
-                    var methodCheckboxes = methodSection.querySelectorAll('input[type="checkbox"]');
-                    var oneChecked = Array.from(methodCheckboxes).some(function(checkbox) {
-                        return checkbox.checked;
-                    });
-
-                    if (!oneChecked) {
-                        event.preventDefault();
-                        alert('Please choose at least one method notification.');
-                        methodSection.focus();
-                    }
-                }
-            });
+<script>
+    (function () {
+        // suggested password (UX only; the server validates)
+        function gen(n) {
+            var chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', out = '', buf = new Uint32Array(n);
+            (window.crypto || window.msCrypto).getRandomValues(buf);
+            for (var i = 0; i < n; i++) { out += chars[buf[i] % chars.length]; }
+            return out;
+        }
+        document.querySelectorAll('[data-nuxr-genpass]').forEach(function (b) {
+            var f = document.getElementById(b.getAttribute('data-nuxr-genpass'));
+            if (f && !f.value) { f.value = gen(10); }
+            b.addEventListener('click', function () { f.value = gen(10); f.dispatchEvent(new Event('input', { bubbles: true })); });
         });
-    </script>
-    <script type="text/javascript">
-        document.addEventListener("DOMContentLoaded", function() {
-            var customFieldsContainer = document.getElementById('custom-fields-container');
-            var addCustomFieldButton = document.getElementById('add-custom-field');
-
-            addCustomFieldButton.addEventListener('click', function() {
-                var fieldIndex = customFieldsContainer.children.length;
-                var newField = document.createElement('div');
-                newField.className = 'form-group';
-                newField.innerHTML = `
-                <div class="col-md-4">
-                    <input type="text" class="form-control" name="custom_field_name[]" placeholder="Name">
-                </div>
-                <div class="col-md-6">
-                    <input type="text" class="form-control" name="custom_field_value[]" placeholder="Value">
-                </div>
-                <div class="col-md-2">
-                    <button type="button" class="remove-custom-field btn btn-danger btn-sm">-</button>
-                </div>
-            `;
-                customFieldsContainer.appendChild(newField);
-            });
-
-            customFieldsContainer.addEventListener('click', function(event) {
-                if (event.target.classList.contains('remove-custom-field')) {
-                    var fieldContainer = event.target.parentNode.parentNode;
-                    fieldContainer.parentNode.removeChild(fieldContainer);
+        // PPPoE fields are emphasized for PPPoE subscribers (still available for any type, as before)
+        var type = document.getElementById('service_type'), pppoe = document.querySelector('.nuxr-pppoe');
+        function syncType() { if (pppoe) { pppoe.classList.toggle('is-muted', type.value !== 'PPPoE'); } }
+        if (type) { type.addEventListener('change', syncType); syncType(); }
+        // Admin: only the chosen owner's Sales accounts are selectable (the server re-validates)
+        var sales = document.querySelector('[data-nuxr-owner-filter]');
+        if (sales) {
+            var owner = document.getElementById(sales.getAttribute('data-nuxr-owner-filter'));
+            var syncSales = function () {
+                Array.prototype.forEach.call(sales.querySelectorAll('optgroup'), function (g) {
+                    var on = g.getAttribute('data-owner') === owner.value;
+                    g.hidden = !on; g.disabled = !on;
+                });
+                var opt = sales.options[sales.selectedIndex];
+                if (opt && opt.parentNode.tagName === 'OPTGROUP' && opt.parentNode.disabled) { sales.value = ''; }
+                sales.disabled = owner.value === '';
+            };
+            owner.addEventListener('change', syncSales); syncSales();
+        }
+        // welcome message channels: at least one when sending
+        var welcome = document.getElementById('send_welcome_message'), channels = document.getElementById('nuxr-welcome-channels');
+        if (welcome) {
+            welcome.addEventListener('change', function () { channels.hidden = !welcome.checked; });
+            welcome.form.addEventListener('submit', function (e) {
+                if (welcome.checked && !channels.querySelector('input:checked')) {
+                    e.preventDefault();
+                    Swal.fire({ icon: 'info', title: '{Lang::T('Choose at least one channel for the welcome message.')|escape:'javascript'}' });
                 }
             });
-        });
-    </script>
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-    <script>
-        function getLocation() {
-            if (window.location.protocol == "https:" && navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition);
-            } else {
-                setupMap(51.505, -0.09);
-            }
         }
-
-        function showPosition(position) {
-            setupMap(position.coords.latitude, position.coords.longitude);
+        // custom attributes (sent as custom_field_name[] / custom_field_value[] as before)
+        var wrap = document.getElementById('nuxr-custom-fields'), add = document.getElementById('nuxr-add-field');
+        if (add) {
+            add.addEventListener('click', function () {
+                var row = document.createElement('div');
+                row.className = 'nuxr-filters';
+                row.innerHTML = '<input class="form-control nuxr-input" name="custom_field_name[]" placeholder="{Lang::T('Name')|escape:'javascript'}" aria-label="{Lang::T('Attribute name')|escape:'javascript'}" style="flex:1 1 120px">'
+                    + '<input class="form-control nuxr-input" name="custom_field_value[]" placeholder="{Lang::T('Value')|escape:'javascript'}" aria-label="{Lang::T('Attribute value')|escape:'javascript'}" style="flex:1 1 120px">'
+                    + '<button type="button" class="nuxr-btn" aria-label="{Lang::T('Remove')|escape:'javascript'}">&times;</button>';
+                row.querySelector('button').addEventListener('click', function () { row.remove(); });
+                wrap.appendChild(row);
+            });
         }
-
-        function setupMap(lat, lon) {
-            var map = L.map('map').setView([lat, lon], 13);
-            L.tileLayer('https://{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga', {
-            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-                maxZoom: 20
-        }).addTo(map);
-        var marker = L.marker([lat, lon]).addTo(map);
-        map.on('click', function(e) {
-            var coord = e.latlng;
-            var lat = coord.lat;
-            var lng = coord.lng;
-            var newLatLng = new L.LatLng(lat, lng);
-            marker.setLatLng(newLatLng);
-            $('#coordinates').val(lat + ',' + lng);
-        });
-        }
-        window.onload = function() {
-            getLocation();
-        }
-    </script>
-{/literal}
-
-
+    })();
+    // lazy map (OD-H): Leaflet and the map tiles load only after "Pick on map"
+    function nuxrInitCreateMap(holder) {
+        var start = function (lat, lon) {
+            var map = L.map(holder).setView([lat, lon], 13);
+            L.tileLayer('https://{literal}{s}{/literal}.google.com/vt/lyrs=m&hl=en&x={literal}{x}{/literal}&y={literal}{y}{/literal}&z={literal}{z}{/literal}&s=Ga', { subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], maxZoom: 20 }).addTo(map);
+            var marker = L.marker([lat, lon]).addTo(map);
+            map.on('click', function (e) { marker.setLatLng(e.latlng); document.getElementById('coordinates').value = e.latlng.lat.toFixed(6) + ',' + e.latlng.lng.toFixed(6); });
+        };
+        var c = (document.getElementById('coordinates').value || '').split(',');
+        if (c.length === 2 && !isNaN(parseFloat(c[0]))) { start(parseFloat(c[0]), parseFloat(c[1])); }
+        else if (window.location.protocol === 'https:' && navigator.geolocation) { navigator.geolocation.getCurrentPosition(function (p) { start(p.coords.latitude, p.coords.longitude); }, function () { start(33.3152, 44.3661); }); }
+        else { start(33.3152, 44.3661); }
+    }
+</script>
 {include file="sections/footer.tpl"}

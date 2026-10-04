@@ -23,7 +23,7 @@ EOT;
 switch ($action) {
     case 'add':
         run_hook('view_add_odp'); #HOOK
-        $ui->assign('xheader', $leafletpickerHeader);
+        // WP6A (OD-H): no eager map stylesheet; the map loads when opened
         $ui->display('admin/odp/add.tpl');
         break;
 
@@ -32,7 +32,7 @@ switch ($action) {
         run_hook('view_edit_odp'); #HOOK
         $d = ORM::for_table('tbl_odps')->find_one($id);
         if($d){
-        	$ui->assign('xheader', $leafletpickerHeader);
+        	// WP6A (OD-H): no eager map stylesheet; the map loads when opened
             $ui->assign('d',$d);
             $ui->display('admin/odp/edit.tpl');
         }else{

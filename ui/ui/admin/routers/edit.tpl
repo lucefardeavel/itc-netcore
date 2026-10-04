@@ -63,7 +63,8 @@
                         <div class="col-md-6">
                             <input name="coordinates" id="coordinates" class="form-control" value="{$d['coordinates']}"
                                 placeholder="6.465422, 3.406448">
-                            <div id="map" style="width: '100%'; height: 200px; min-height: 150px;"></div>
+                            <button type="button" class="nuxr-btn" data-nuxr-map="map" data-nuxr-map-init="nuxrMapStart"><i class="fa fa-map-marker" aria-hidden="true"></i> {Lang::T('Show map')}</button>
+                            <div id="map" style="width: '100%'; height: 200px; min-height: 150px;" hidden></div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -90,7 +91,7 @@
 </div>
 
 {literal}
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    {* WP6A (OD-H): Leaflet and the map tiles load only when the operator opens the map (nuxr-shell.js) *}
     <script>
         var circle;
         function getLocation() {
@@ -135,7 +136,7 @@
             });
             updateCoverage();
         }
-        window.onload = function() {
+        window.nuxrMapStart = function() {
         {/literal}
         {if $d['coordinates']}
             setupMap({$d['coordinates']});
