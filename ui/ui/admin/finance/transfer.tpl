@@ -19,6 +19,12 @@
             {if $t.reversed_by}<div><dt>{Lang::T('Reversed by')}</dt><dd><a href="{Text::url('finance/transfer/', $t.reversed_by.id)}"><bdi dir="ltr" class="nuxr-mono">{$t.reversed_by.reference|escape}</bdi></a></dd></div>{/if}
         </dl>
     </div>
+    {if $t.can_reverse}
+        <div class="nuxr-card-body nuxr-actions nuxr-admin-zone" style="border-top:1px solid var(--nx-border)">
+            <span class="nuxr-muted"><i class="fa fa-balance-scale" aria-hidden="true"></i> {Lang::T('Accounting corrections')}</span>
+            <a class="nuxr-btn nuxr-btn-danger" href="{Text::url('finance/reverse/', $t.id)}"><i class="fa fa-history" aria-hidden="true"></i>{Lang::T('Reverse this transfer')}</a>
+        </div>
+    {/if}
 </section>
 <section class="nuxr-card" aria-labelledby="nuxr-legs">
     <div class="nuxr-card-head"><h2 id="nuxr-legs">{Lang::T('Ledger entries')}</h2></div>

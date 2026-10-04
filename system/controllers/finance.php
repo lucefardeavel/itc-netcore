@@ -21,6 +21,9 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  *   send       GET  parent -> direct child transfer form (Agent: own wallet; Admin: the child's parent)
  *   send-review    POST  review (no write)
  *   send-post      POST  execute the reviewed transfer (TransferService::transferToChild)
+ *   debt-limit / -review / -post   Admin: debt line change (WalletService::setDebtLimit)        OD-2
+ *   adjust / -review / -post       Admin: credit / debit adjustment (TransferService::adjust*) OD-2
+ *   reverse / -review / -post      Admin: reversal of one reversible transfer (TransferService::reverse) OD-2
  */
 
 _admin();
@@ -235,6 +238,75 @@ switch ($action) {
             $ui->assign('nuxr_values', ['amount' => $in['amount'] ?? '', 'reason' => $in['reason'] ?? '']);
             $ui->assign('nuxr_error', Lang::T($e->getMessage()));
             $ui->display('admin/finance/send.tpl');
+        }
+        break;
+
+    case 'debt-limit':
+    case 'adjust':
+    case 'reverse':
+        try {
+            $form = match ($action) {
+                'debt-limit' => \Reseller\Backoffice\WalletDesk::debtLimitForm($nuxrActor, $nuxrId),
+                'adjust' => \Reseller\Backoffice\WalletDesk::adjustForm($nuxrActor, $nuxrId, _get('op')),
+                'reverse' => \Reseller\Backoffice\WalletDesk::reverseForm($nuxrActor, $nuxrId),
+            };
+        } catch (\Reseller\Domain\DomainError $e) {
+            $nuxrFail($e, 'finance');
+        }
+        $ui->assign('_title', ['debt-limit' => Lang::T('Debt line'), 'adjust' => Lang::T('Accounting adjustment'), 'reverse' => Lang::T('Transfer reversal')][$action]);
+        $ui->assign('nuxr_form', $form);
+        $ui->assign('nuxr_values', []);
+        $ui->display('admin/finance/' . $action . '.tpl');
+        break;
+
+    case 'debt-limit-review':
+    case 'debt-limit-post':
+    case 'adjust-review':
+    case 'adjust-post':
+    case 'reverse-review':
+    case 'reverse-post':
+        $review = str_ends_with($action, '-review');
+        $kind = substr($action, 0, (int) strrpos($action, '-')); // debt-limit | adjust | reverse
+        $in = match ($kind) {
+            'debt-limit' => $review ? $nuxrPost(['manager_id', 'limit', 'reason']) : $nuxrPost(['op', 'target', 'amount', 'reason', 'decrease', 'token', 'confirm']),
+            'adjust' => $review ? $nuxrPost(['manager_id', 'op', 'amount', 'reason', 'external_reference']) : $nuxrPost(['op', 'target', 'amount', 'reason', 'external', 'reference', 'token', 'confirm']),
+            default => $review ? $nuxrPost(['transfer_id', 'reason']) : $nuxrPost(['op', 'target', 'reason', 'reference', 'token', 'confirm']),
+        };
+        try {
+            if ($review) {
+                $r = match ($kind) {
+                    'debt-limit' => \Reseller\Backoffice\WalletDesk::reviewDebtLimit($nuxrActor, $nuxrKey, $in),
+                    'adjust' => \Reseller\Backoffice\WalletDesk::reviewAdjust($nuxrActor, $nuxrKey, $in),
+                    default => \Reseller\Backoffice\WalletDesk::reviewReverse($nuxrActor, $nuxrKey, $in),
+                };
+                $ui->assign('_title', Lang::T('Review'));
+                $ui->assign('nuxr_review', $r);
+                $ui->display('admin/finance/review.tpl');
+                break;
+            }
+            if ($kind === 'debt-limit') {
+                $view = \Reseller\Backoffice\WalletDesk::executeDebtLimit($nuxrActor, $nuxrKey, $in);
+                r2(getUrl('finance/wallet/' . $view['manager_id']), 's', Lang::T('Debt line saved.'));
+            }
+            $done = $kind === 'adjust'
+                ? \Reseller\Backoffice\WalletDesk::executeAdjust($nuxrActor, $nuxrKey, $in)
+                : \Reseller\Backoffice\WalletDesk::executeReverse($nuxrActor, $nuxrKey, $in);
+            r2(getUrl('finance/transfer/' . $done['transfer_id']), 's', $done['replayed'] ? Lang::T('Already recorded: this confirmation was processed once.') : Lang::T('Recorded.'));
+        } catch (\Reseller\Domain\DomainError $e) {
+            try {
+                $form = match ($kind) {
+                    'debt-limit' => \Reseller\Backoffice\WalletDesk::debtLimitForm($nuxrActor, $in['manager_id'] ?? $in['target'] ?? null),
+                    'adjust' => \Reseller\Backoffice\WalletDesk::adjustForm($nuxrActor, $in['manager_id'] ?? $in['target'] ?? null, $in['op'] ?? null),
+                    default => \Reseller\Backoffice\WalletDesk::reverseForm($nuxrActor, $in['transfer_id'] ?? $in['target'] ?? null),
+                };
+            } catch (\Reseller\Domain\DomainError $e2) {
+                $nuxrFail($e, 'finance');
+            }
+            $ui->assign('_title', Lang::T('Review'));
+            $ui->assign('nuxr_form', $form);
+            $ui->assign('nuxr_values', ['amount' => $in['amount'] ?? '', 'limit' => $in['limit'] ?? '', 'reason' => $in['reason'] ?? '', 'external_reference' => $in['external_reference'] ?? $in['external'] ?? '']);
+            $ui->assign('nuxr_error', Lang::T($e->getMessage()));
+            $ui->display('admin/finance/' . $kind . '.tpl');
         }
         break;
 

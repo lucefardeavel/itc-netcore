@@ -15,7 +15,16 @@
     <div class="nuxr-card-body">
         {if $p.hint|default:null}<div class="nuxr-alert is-warning" role="status"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
             <div>{Lang::T('With the current figures the system is likely to refuse this')}: {Lang::T(NuxrUi::errorText($p.hint))|escape}</div></div>{/if}
-        {if $r.kind eq 'send'}
+        {if !empty($r.blocked)}<div="nuxr-alert is-info" role="status"><i class="fa fa-info-circle" aria-hidden="true"></i><div>{Lang::T($r.blocked)|escape}</div></div>{/if}
+        {if $r.kind eq 'reverse'}
+            {assign var=x value=$p}
+            <p>{Lang::T('Original transfer')}: <bdi dir="ltr" class="nuxr-mono">{$x.reference|escape}</bdi> · {Lang::T(NuxrUi::transferType($x.operation_type))} · <bdi dir="ltr">{NuxrUi::money($x.amount)|escape}</bdi></p>
+            <p>{Lang::T('Compensating operation')}: <strong>{Lang::T(NuxrUi::transferType($x.compensating_type))}</strong></p>
+            <dl class="nuxr-kv">
+                {if $x.debit}<div><dt>{Lang::T('Debited')} · {$x.debit.wallet.fullname|escape}</dt><dd>{Lang::T('Available credit')} <bdi dir="ltr">{NuxrUi::money($x.debit.available[0])|escape} → {NuxrUi::money($x.debit.available[1])|escape}</bdi></dd></div>{/if}
+                {if $x.credit}<div><dt>{Lang::T('Credited')} · {$x.credit.wallet.fullname|escape}</dt><dd>{Lang::T('Balance')} <bdi dir="ltr">{NuxrUi::money($x.credit.balance[0])|escape} → {NuxrUi::money($x.credit.balance[1])|escape}</bdi></dd></div>{/if}
+            </dl>
+        {elseif $r.kind eq 'send'}
             <p class="nuxr-transfer-line"><strong>{Lang::T('You are sending')} <bdi dir="ltr">{NuxrUi::money($p.amount)|escape}</bdi></strong>
                 {Lang::T('from')} <strong>{$r.from.fullname|escape}</strong> <bdi dir="ltr" class="nuxr-muted">{$r.from.username|escape}</bdi>
                 {Lang::T('to')} <strong>{$r.to.fullname|escape}</strong> <bdi dir="ltr" class="nuxr-muted">{$r.to.username|escape}</bdi>.
@@ -49,12 +58,12 @@
             {foreach $r.fields as $k => $v}<input type="hidden" name="{$k|escape}" value="{$v|escape}">{/foreach}
             <input type="hidden" name="token" value="{$r.token|escape}">
             {if $r.typed}
-                <label for="nuxr-typed">{Lang::T('Type the reseller username to confirm')}: <bdi dir="ltr" class="nuxr-mono">{$r.typed|escape}</bdi></label>
+                <label for="nuxr-typed">{if $r.kind eq 'reverse'}{Lang::T('Type the original transfer reference to confirm')}{else}{Lang::T('Type the reseller username to confirm')}{/if}: <bdi dir="ltr" class="nuxr-mono">{$r.typed|escape}</bdi></label>
                 <input id="nuxr-typed" name="confirm" class="form-control nuxr-input ltr" dir="ltr" autocomplete="off" required data-nuxr-match="{$r.typed|escape}">
             {/if}
             <div class="nuxr-step-nav"><a class="nuxr-btn" href="{Text::url('finance')}">{Lang::T('Cancel')}</a>
-                <button type="submit" class="nuxr-btn {if $r.op eq 'withdraw' || $r.op eq 'debit' || $r.kind eq 'reverse'}nuxr-btn-danger-solid{else}nuxr-btn-primary{/if}"{if $r.typed} data-nuxr-match-submit disabled{/if}>
-                    <i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Confirm')}</button></div>
+                {if empty($r.blocked)}<button type="submit" class="nuxr-btn {if $r.op eq 'withdraw' || $r.op eq 'debit' || $r.kind eq 'reverse'}nuxr-btn-danger-solid{else}nuxr-btn-primary{/if}"{if $r.typed} data-nuxr-match-submit disabled{/if}>
+                    <i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Confirm')}</button>{/if}</div>
         </form>
     </div>
 </section>

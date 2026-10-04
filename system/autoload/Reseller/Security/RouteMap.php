@@ -181,6 +181,16 @@ final class RouteMap
             'send' => ['GET' => C::WALLET_TRANSFER],
             'send-review' => ['POST' => C::WALLET_TRANSFER],
             'send-post' => ['POST' => C::WALLET_TRANSFER],
+            // administrative accounting corrections, Admin / SuperAdmin only (OD-2)
+            'debt-limit' => ['GET' => C::WALLET_DEBT_LIMIT],
+            'debt-limit-review' => ['POST' => C::WALLET_DEBT_LIMIT],
+            'debt-limit-post' => ['POST' => C::WALLET_DEBT_LIMIT],
+            'adjust' => ['GET' => C::WALLET_ADJUST],
+            'adjust-review' => ['POST' => C::WALLET_ADJUST],
+            'adjust-post' => ['POST' => C::WALLET_ADJUST],
+            'reverse' => ['GET' => C::WALLET_REVERSE],
+            'reverse-review' => ['POST' => C::WALLET_REVERSE],
+            'reverse-post' => ['POST' => C::WALLET_REVERSE],
         ],
         'reseller' => [
             '' => 'tree', '*' => 'tree',

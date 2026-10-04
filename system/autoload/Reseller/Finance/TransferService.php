@@ -115,6 +115,59 @@ final class TransferService
     }
 
     /**
+     * WP6B (owner decision OD-2): read-only review of a transfer reversal for the web confirmation. It never locks or
+     * writes and is never authority: reverse() re-checks everything atomically. It reports whether the original is
+     * reversible now (NOT_REVERSIBLE / ALREADY_REVERSED otherwise), the compensating operation (the same mapping
+     * reverse() uses) and the informational effect on each wallet ("hint" = the likely refusal with today's figures).
+     *
+     * @return array<string,mixed>
+     */
+    public static function reversalPreview(ActorContext $a, mixed $transferId): array
+    {
+        ResellerTreeService::authorize($a, C::WALLET_REVERSE);
+        $id = FinanceInput::id($transferId);
+        $pdo = FinanceTx::pdo();
+        $o = Tx::row($pdo, 'SELECT * FROM tbl_manager_transfers WHERE id = ?', [$id]) ?? throw new DomainError('NOT_FOUND');
+        $refusal = null;
+        if ($o['reverses_transfer_id'] !== null) {
+            $refusal = 'NOT_REVERSIBLE';
+        } elseif ($o['status'] === 'REVERSED' || Tx::row($pdo, 'SELECT id FROM tbl_manager_transfers WHERE reverses_transfer_id = ?', [$id]) !== null) {
+            $refusal = 'ALREADY_REVERSED';
+        } elseif ($o['status'] !== 'COMPLETED') {
+            $refusal = 'NOT_REVERSIBLE';
+        }
+        $amount = Money::fromDb($o['amount']);
+        $out = [
+            'transfer_id' => $id, 'reference' => (string) $o['reference'], 'operation_type' => (string) $o['operation_type'],
+            'amount' => $amount->format(), 'status' => (string) $o['status'], 'reason' => (string) $o['reason'],
+            'created_at' => substr((string) $o['created_at'], 0, 19), 'refusal' => $refusal, 'compensating_type' => null,
+            'debit' => null, 'credit' => null, 'hint' => null,
+        ];
+        try {
+            [$op, $from, $to] = self::compensation((string) $o['operation_type'], $o['from_manager_id'] !== null ? (int) $o['from_manager_id'] : null,
+                $o['to_manager_id'] !== null ? (int) $o['to_manager_id'] : null);
+        } catch (DomainError) {
+            $out['refusal'] ??= 'NOT_REVERSIBLE';
+            return $out;
+        }
+        $out['compensating_type'] = $op;
+        if ($from !== null) {
+            $w = WalletService::view($a, $from);
+            $after = $w->available()->minus($amount);
+            $out['debit'] = ['manager_id' => $from, 'exists' => $w->exists, 'available' => [$w->available()->format(), $after->format()],
+                'balance' => [$w->balance->format(), $w->balance->minus($amount)->format()]];
+            $out['hint'] = !$w->exists ? 'WALLET_NOT_FOUND' : ($after->isNegative() ? 'INSUFFICIENT_AVAILABLE_CREDIT' : null);
+        }
+        if ($to !== null) {
+            $w = WalletService::view($a, $to);
+            $out['credit'] = ['manager_id' => $to, 'exists' => $w->exists, 'balance' => [$w->balance->format(), $w->balance->plus($amount)->format()],
+                'available' => [$w->available()->format(), $w->available()->plus($amount)->format()]];
+            $out['hint'] ??= !$w->exists ? 'WALLET_NOT_FOUND' : null;
+        }
+        return $out;
+    }
+
+    /**
      * Administrative compensating reversal of a completed funding / withdrawal / adjustment /
      * parent-child transfer (owner decision P4). The new reference is checked first (a lost-response
      * replay returns the existing reversal); only a new reference inspects the original, which may be
@@ -157,14 +210,7 @@ final class TransferService
             $origType = (string) $o['operation_type'];
             $origFrom = $o['from_manager_id'] !== null ? (int) $o['from_manager_id'] : null;
             $origTo = $o['to_manager_id'] !== null ? (int) $o['to_manager_id'] : null;
-            [$op, $from, $to] = match ($origType) {
-                'PROVIDER_FUNDING' => ['PROVIDER_WITHDRAWAL', $origTo, null],
-                'PROVIDER_WITHDRAWAL' => ['PROVIDER_FUNDING', null, $origFrom],
-                'ADJUSTMENT_CREDIT' => ['ADJUSTMENT_DEBIT', $origTo, null],
-                'ADJUSTMENT_DEBIT' => ['ADJUSTMENT_CREDIT', null, $origFrom],
-                'PARENT_CHILD_TRANSFER' => ['PARENT_CHILD_TRANSFER', $origTo, $origFrom],
-                default => throw new DomainError('NOT_REVERSIBLE'),
-            };
+            [$op, $from, $to] = self::compensation($origType, $origFrom, $origTo);
             $amount = Money::fromDb($o['amount']);
             $parties = array_values(array_filter([$from, $to], static fn($v) => $v !== null));
             $owners = [];
@@ -289,6 +335,24 @@ final class TransferService
     }
 
     /** @param array<string,mixed> $req */
+    /**
+     * The compensating operation of an original transfer: [operation type, debited manager, credited manager]
+     * (owner decision P4). Shared by reverse() and reversalPreview().
+     *
+     * @return array{0:string,1:?int,2:?int}
+     */
+    private static function compensation(string $origType, ?int $origFrom, ?int $origTo): array
+    {
+        return match ($origType) {
+            'PROVIDER_FUNDING' => ['PROVIDER_WITHDRAWAL', $origTo, null],
+            'PROVIDER_WITHDRAWAL' => ['PROVIDER_FUNDING', null, $origFrom],
+            'ADJUSTMENT_CREDIT' => ['ADJUSTMENT_DEBIT', $origTo, null],
+            'ADJUSTMENT_DEBIT' => ['ADJUSTMENT_CREDIT', null, $origFrom],
+            'PARENT_CHILD_TRANSFER' => ['PARENT_CHILD_TRANSFER', $origTo, $origFrom],
+            default => throw new DomainError('NOT_REVERSIBLE'),
+        };
+    }
+
     private static function insertTransfer(\PDO $pdo, array $req): int
     {
         $now = Tx::utcNow();

@@ -29,6 +29,16 @@
         <a class="nuxr-btn" href="{Text::url('finance/ledger/', $w.id)}"><i class="fa fa-list" aria-hidden="true"></i>{Lang::T('Ledger')}</a>
         <a class="nuxr-btn" href="{Text::url('finance/transfers&manager=', $w.id)}"><i class="fa fa-exchange" aria-hidden="true"></i>{Lang::T('Transfers')}</a>
     </div>
+    {if in_array('debt_limit', $nuxr_page.actions) || in_array('adjust', $nuxr_page.actions)}
+        <div class="nuxr-card-body nuxr-actions nuxr-admin-zone" style="border-top:1px solid var(--nx-border)" aria-label="{Lang::T('Accounting corrections')}">
+            <span class="nuxr-muted"><i class="fa fa-balance-scale" aria-hidden="true"></i> {Lang::T('Accounting corrections')}</span>
+            {if in_array('debt_limit', $nuxr_page.actions)}<a class="nuxr-btn" href="{Text::url('finance/debt-limit/', $w.id)}">{Lang::T('Debt line')}</a>{/if}
+            {if in_array('adjust', $nuxr_page.actions)}
+                <a class="nuxr-btn" href="{Text::url('finance/adjust/', $w.id, '&op=credit')}">{Lang::T('Credit adjustment')}</a>
+                <a class="nuxr-btn" href="{Text::url('finance/adjust/', $w.id, '&op=debit')}">{Lang::T('Debit adjustment')}</a>
+            {/if}
+        </div>
+    {/if}
 </section>
 <section class="nuxr-card" aria-labelledby="nuxr-recent">
     <div class="nuxr-card-head"><h2 id="nuxr-recent">{Lang::T('Latest movements')}</h2><a href="{Text::url('finance/ledger/', $w.id)}">{Lang::T('All')}</a></div>

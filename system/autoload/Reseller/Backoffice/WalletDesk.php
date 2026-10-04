@@ -9,6 +9,7 @@ use Reseller\Domain\DomainError;
 use Reseller\Finance\FinanceInput;
 use Reseller\Finance\LedgerReadModel;
 use Reseller\Finance\TransferService;
+use Reseller\Finance\WalletService;
 use Reseller\Finance\WalletPreview;
 use Reseller\Security\ActorContext;
 use Reseller\Security\Capability as C;
@@ -219,6 +220,136 @@ final class WalletDesk
             throw new DomainError('REVIEW_EXPIRED');
         }
         return TransferService::transferToChild($a, $fields['from'], $fields['to'], $fields['amount'], $fields['reason'], $fields['reference'])->toArray();
+    }
+
+    // ------------------------------------------------------------------ administrative accounting corrections (OD-2)
+
+    /** @return array<string,mixed> debt line form (wallet.debt_limit G) */
+    public static function debtLimitForm(ActorContext $a, mixed $managerId): array
+    {
+        self::requireGlobal($a, C::WALLET_DEBT_LIMIT);
+        return ['wallet' => LedgerReadModel::wallet($a, $managerId)];
+    }
+
+    /** @param array<string,mixed> $in manager_id, limit, reason @return array<string,mixed> */
+    public static function reviewDebtLimit(ActorContext $a, string $key, array $in): array
+    {
+        self::requireGlobal($a, C::WALLET_DEBT_LIMIT);
+        $wallet = LedgerReadModel::wallet($a, $in['manager_id'] ?? null);
+        $preview = WalletPreview::debtLimit($a, $wallet['id'], self::amount($in['limit'] ?? null));
+        $fields = ['op' => 'debt_limit', 'target' => $wallet['id'], 'amount' => $preview['amount'], 'reason' => FinanceInput::reason($in['reason'] ?? null),
+            'decrease' => $preview['decrease'] ? '1' : '0'];
+        return ['kind' => 'debt_limit', 'op' => 'debt_limit', 'post_route' => 'finance/debt-limit-post', 'wallet' => $wallet, 'preview' => $preview,
+            'fields' => $fields, 'token' => ConfirmToken::sign($key, $fields), 'typed' => $preview['decrease'] ? $wallet['username'] : null,
+            'blocked' => $preview['unchanged'] ? 'No change: the debt line already has this value.' : null];
+    }
+
+    /** @param array<string,mixed> $in @return array<string,mixed> the resulting wallet view */
+    public static function executeDebtLimit(ActorContext $a, string $key, array $in): array
+    {
+        $fields = self::posted($in, ['op', 'target', 'amount', 'reason', 'decrease']);
+        ConfirmToken::verify($key, $fields, $in['token'] ?? null);
+        if ($fields['op'] !== 'debt_limit') {
+            throw new DomainError('REVIEW_EXPIRED');
+        }
+        if ($fields['decrease'] === '1') {
+            self::typed($in['confirm'] ?? null, LedgerReadModel::wallet($a, $fields['target'])['username']);
+        }
+        return WalletService::setDebtLimit($a, $fields['target'], $fields['amount'], $fields['reason'])->toArray();
+    }
+
+    /** @return array<string,mixed> credit / debit adjustment form (wallet.adjust G) */
+    public static function adjustForm(ActorContext $a, mixed $managerId, mixed $op): array
+    {
+        self::requireGlobal($a, C::WALLET_ADJUST);
+        return ['op' => self::adjustOp($op), 'wallet' => LedgerReadModel::wallet($a, $managerId)];
+    }
+
+    /** @param array<string,mixed> $in manager_id, op (credit|debit), amount, reason, external_reference @return array<string,mixed> */
+    public static function reviewAdjust(ActorContext $a, string $key, array $in): array
+    {
+        self::requireGlobal($a, C::WALLET_ADJUST);
+        $op = self::adjustOp($in['op'] ?? null);
+        $wallet = LedgerReadModel::wallet($a, $in['manager_id'] ?? null);
+        $preview = WalletPreview::adjust($a, $wallet['id'], $op === 'credit', self::amount($in['amount'] ?? null));
+        $fields = [
+            'op' => $op, 'target' => $wallet['id'], 'amount' => $preview['amount'], 'reason' => FinanceInput::reason($in['reason'] ?? null),
+            'external' => FinanceInput::externalReference(self::blankToNull($in['external_reference'] ?? null)),
+            'reference' => ConfirmToken::reference($op === 'credit' ? 'ADC' : 'ADD'),
+        ];
+        return ['kind' => 'adjust', 'op' => $op, 'post_route' => 'finance/adjust-post', 'wallet' => $wallet, 'preview' => $preview, 'fields' => $fields,
+            'token' => ConfirmToken::sign($key, $fields), 'typed' => $op === 'debit' ? $wallet['username'] : null,
+            'blocked' => !$preview['exists'] ? 'This reseller has no wallet. Adjustments never open a wallet; use provider funding for the first credit.' : null];
+    }
+
+    /** @param array<string,mixed> $in @return array<string,mixed> the TransferService result */
+    public static function executeAdjust(ActorContext $a, string $key, array $in): array
+    {
+        $fields = self::posted($in, ['op', 'target', 'amount', 'reason', 'external', 'reference']);
+        ConfirmToken::verify($key, $fields, $in['token'] ?? null);
+        $op = self::adjustOp($fields['op']);
+        if ($op === 'debit') {
+            self::typed($in['confirm'] ?? null, LedgerReadModel::wallet($a, $fields['target'])['username']);
+        }
+        $r = $op === 'credit'
+            ? TransferService::adjustCredit($a, $fields['target'], $fields['amount'], $fields['reason'], $fields['reference'], self::blankToNull($fields['external']))
+            : TransferService::adjustDebit($a, $fields['target'], $fields['amount'], $fields['reason'], $fields['reference'], self::blankToNull($fields['external']));
+        return $r->toArray();
+    }
+
+    /** @return array<string,mixed> reversal form of one existing transfer (wallet.reverse G) */
+    public static function reverseForm(ActorContext $a, mixed $transferId): array
+    {
+        self::requireGlobal($a, C::WALLET_REVERSE);
+        return ['preview' => self::reversal($a, $transferId)];
+    }
+
+    /** @param array<string,mixed> $in transfer_id, reason @return array<string,mixed> */
+    public static function reviewReverse(ActorContext $a, string $key, array $in): array
+    {
+        self::requireGlobal($a, C::WALLET_REVERSE);
+        $preview = self::reversal($a, $in['transfer_id'] ?? null);
+        if ($preview['refusal'] !== null) {
+            throw new DomainError($preview['refusal']);
+        }
+        $fields = ['op' => 'reverse', 'target' => $preview['transfer_id'], 'reason' => FinanceInput::reason($in['reason'] ?? null), 'reference' => ConfirmToken::reference('REV')];
+        return ['kind' => 'reverse', 'op' => 'reverse', 'post_route' => 'finance/reverse-post', 'preview' => $preview, 'fields' => $fields,
+            'token' => ConfirmToken::sign($key, $fields), 'typed' => $preview['reference'], 'blocked' => null];
+    }
+
+    /** @param array<string,mixed> $in @return array<string,mixed> the compensating TransferService result */
+    public static function executeReverse(ActorContext $a, string $key, array $in): array
+    {
+        $fields = self::posted($in, ['op', 'target', 'reason', 'reference']);
+        ConfirmToken::verify($key, $fields, $in['token'] ?? null);
+        if ($fields['op'] !== 'reverse') {
+            throw new DomainError('REVIEW_EXPIRED');
+        }
+        self::typed($in['confirm'] ?? null, self::reversal($a, $fields['target'])['reference']);
+        return TransferService::reverse($a, $fields['target'], $fields['reason'], $fields['reference'])->toArray();
+    }
+
+    /** The accepted reversal preview plus the parties' display identities. @return array<string,mixed> */
+    private static function reversal(ActorContext $a, mixed $transferId): array
+    {
+        $p = TransferService::reversalPreview($a, $transferId);
+        $t = LedgerReadModel::transfer($a, $p['transfer_id']);
+        $p['from'] = $t['from'];
+        $p['to'] = $t['to'];
+        foreach (['debit', 'credit'] as $side) {
+            if ($p[$side] !== null) {
+                $p[$side]['wallet'] = LedgerReadModel::wallet($a, $p[$side]['manager_id']);
+            }
+        }
+        return $p;
+    }
+
+    private static function adjustOp(mixed $op): string
+    {
+        if (!in_array($op, ['credit', 'debit'], true)) {
+            throw new DomainError('NOT_FOUND');
+        }
+        return $op;
     }
 
     /**
