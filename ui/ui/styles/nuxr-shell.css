@@ -864,6 +864,8 @@ body.nuxr-shell .content {
     color: var(--nx-muted);
     font-size: 14px;
 }
+/* WP6B: a link inside the page sub-line is distinguishable without colour (WCAG link-in-text-block) */
+.nuxr-page-head .nuxr-sub a { text-decoration: underline; }
 
 .nuxr-card {
     margin-bottom: 16px;

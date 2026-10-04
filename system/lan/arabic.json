@@ -1412,5 +1412,13 @@
   "Has_a_wallet": "لديه محفظة",
   "No_available_credit": "لا يوجد رصيد متاح",
   "No_change__the_debt_line_already_has_this_value_": "لا تغيير: حد الدين بهذه القيمة بالفعل.",
-  "This_reseller_has_no_wallet__Adjustments_never_open_a_wallet__use_provider_funding_for_the_first_credit_": "ليس لدى هذا الموزّع محفظة. التسويات لا تفتح محفظة أبداً؛ استخدم التمويل من المزوّد لأول رصيد."
+  "This_reseller_has_no_wallet__Adjustments_never_open_a_wallet__use_provider_funding_for_the_first_credit_": "ليس لدى هذا الموزّع محفظة. التسويات لا تفتح محفظة أبداً؛ استخدم التمويل من المزوّد لأول رصيد.",
+  "Balance_after": "الرصيد بعد",
+  "Effective_wholesale__reseller_cost_": "سعر الجملة الفعلي (تكلفة الموزّع)",
+  "Entry": "القيد",
+  "Operator": "المنفّذ",
+  "Reasons": "الأسباب",
+  "Retail_source": "مصدر سعر البيع",
+  "Wallet_exists": "المحفظة موجودة",
+  "Wholesale_source": "مصدر سعر الجملة"
 }

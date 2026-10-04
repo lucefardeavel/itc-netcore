@@ -139,7 +139,7 @@ final class ActivationOperatorService
     }
 
     /**
-     * Stale activations (not terminal, untouched for STALE_SECONDS), one bounded page, Admin / SuperAdmin only, each
+     * Stale activations (not terminal and not already "needs attention", untouched for STALE_SECONDS), one bounded page, Admin / SuperAdmin only, each
      * with the operations it may be offered.
      *
      * @return array{rows:list<array<string,mixed>>,total:int,page:int,pages:int}
@@ -149,11 +149,13 @@ final class ActivationOperatorService
         ReconciliationService::staffActor($a);
         $pdo = FinanceTx::pdo();
         $cutoff = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->modify('-' . ReconciliationService::STALE_SECONDS . ' seconds')->format('Y-m-d H:i:s.u');
-        $total = ActivationStore::staleCount($pdo, $cutoff);
+        // the "needs attention" states are listed there already (ActivationReadService group), never twice
+        $exclude = [...ActivationState::TERMINAL, ...ActivationReadService::GROUPS['attention']];
+        $total = ActivationStore::staleCount($pdo, $cutoff, $exclude);
         $pages = max(1, intdiv($total + self::PAGE_SIZE - 1, self::PAGE_SIZE));
         $page = min(max(1, $page), $pages);
         $rows = [];
-        foreach (ActivationStore::stalePage($pdo, $cutoff, self::PAGE_SIZE, ($page - 1) * self::PAGE_SIZE) as $r) {
+        foreach (ActivationStore::stalePage($pdo, $cutoff, self::PAGE_SIZE, ($page - 1) * self::PAGE_SIZE, $exclude) as $r) {
             $rows[] = $r + ['actions' => self::actions($a, (string) $r['status'], self::age((string) $r['updated_at']))];
         }
         return ['rows' => $rows, 'total' => $total, 'page' => $page, 'pages' => $pages];

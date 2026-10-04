@@ -36,6 +36,8 @@ final class PricingDesk
             $m['rows'][$i]['viewer_margin'] = self::viewerMargin($a, $r);
         }
         $m['can_base'] = PermissionService::scopeOf($a, C::PRICING_BASE_COST) === 'G';
+        // a global viewer earns no margin of its own: no "Your margin" column
+        $m['show_margin'] = PermissionService::scopeOf($a, C::PRICING_READ) !== 'G';
         return $m;
     }
 

@@ -132,6 +132,19 @@ PHP);
         $this->assertSame('COMPLETED', $this->stateOf($ref));
     }
 
+    public function testAnAttentionItemIsNeverListedTwice(): void
+    {
+        $ref = $this->stuck('cA0');
+        static::$db->pdo->prepare("UPDATE tbl_reseller_activations SET status = 'ROLLBACK_PENDING', error_code = 'PRIOR_SECRET_UNRESTORABLE' WHERE reference = ?")->execute([$ref]);
+        $this->age($ref, 900);
+        $html = $this->staff('ad')->get('operations/activations')->body;
+        $section = static fn(string $id): string => (string) substr($html, (int) strpos($html, 'id="' . $id . '"'), (int) strpos($html, '</section>', (int) strpos($html, 'id="' . $id . '"')) - (int) strpos($html, 'id="' . $id . '"'));
+        $this->assertStringContainsString($ref, $section('nuxr-att-t'), 'needs attention');
+        $this->assertStringNotContainsString($ref, $section('nuxr-stale-t'), 'not repeated as stale');
+        // operator review (CLI / informational): the list offers no action, only the activation page
+        $this->assertDoesNotMatchRegularExpression('/' . $ref . '.*?Open to act/s', $section('nuxr-att-t'));
+    }
+
     public function testInformationalItemsCarryNoActionButtons(): void
     {
         $admin = $this->staff('ad');

@@ -72,6 +72,8 @@ $(document).ready(function () {
 //auto load plans data - recharge user
 $(function () {
 	$('input[type=radio]').change(function () {
+		// WP6B: only the legacy recharge form (it has #server); other forms' radios never post here
+		if (!$('#server').length) return;
 		if ($('#Hot').is(':checked')) {
 			$.ajax({
 				type: "POST",

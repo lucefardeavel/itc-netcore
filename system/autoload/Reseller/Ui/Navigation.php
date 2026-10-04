@@ -52,7 +52,7 @@ final class Navigation
         $groups[] = self::group('finance', 'Finance', 'fa-credit-card', $a, $current, [
             ['finance/overview', 'Wallet overview', 'fa-credit-card', true, ['finance/overview', 'finance', 'finance/wallet', 'finance/funding', 'finance/send', 'finance/debt-limit', 'finance/adjust']],
             ['finance/wallets', 'Wallets', 'fa-list', $admin || self::hasChildren($a)],
-            ['finance/ledger', 'Ledger', 'fa-book', true, ['finance/ledger', 'finance/entry']],
+            ['finance/ledger', 'Ledger', 'fa-book', !$admin, ['finance/ledger', 'finance/entry']], // a global viewer opens a ledger from a wallet
             ['finance/transfers', 'Transfers', 'fa-exchange', true, ['finance/transfers', 'finance/transfer', 'finance/reverse']],
         ], null, null);
         $groups[] = self::group('resellers', 'Resellers', 'fa-sitemap', $a, $current, [
@@ -138,7 +138,7 @@ final class Navigation
         $home = self::item('dashboard', 'Home', 'fa-home', $a, $current, ['dashboard', '']);
         $customers = self::item('customers/list', 'Customers', 'fa-users', $a, $current, ['customers/list', 'customers/view', 'customers/edit', 'customers/add', 'customers']);
         $activations = self::item('activation/list', 'Activations', 'fa-bolt', $a, $current, ['activation/list', 'activation/view', 'activation', 'activation/create']);
-        $wallet = $role === 'Agent' ? self::item('finance/overview', 'Wallet', 'fa-credit-card', $a, $current, ['finance/overview', 'finance', 'finance/wallet', 'finance/send', 'finance/ledger', 'finance/entry', 'finance/transfers', 'finance/transfer']) : null;
+        $wallet = $role === 'Agent' ? self::item('finance/overview', 'Wallet', 'fa-credit-card', $a, $current, ['finance/overview', 'finance', 'finance/wallet', 'finance/send', 'finance/send-review', 'finance/send-post', 'finance/ledger', 'finance/entry', 'finance/transfers', 'finance/transfer']) : null;
         $quick = array_values(array_filter([
             self::item('customers/add', 'Add subscriber', 'fa-user-plus', $a, $current),
             ActivationService::eligible($a) ? self::item('activation/create', 'Activate / Renew', 'fa-bolt', $a, $current) : null,

@@ -278,17 +278,22 @@ final class ActivationStore
         return $out;
     }
 
-    /** WP6B: stale (not terminal, untouched since $cutoffUtc) activations, one bounded display page (oldest first). */
-    public static function stalePage(\PDO $pdo, string $cutoffUtc, int $limit, int $offset): array
+    /**
+     * WP6B: stale activations (status not in $exclude, untouched since $cutoffUtc), one bounded display page (oldest first).
+     *
+     * @param list<string> $exclude
+     */
+    public static function stalePage(\PDO $pdo, string $cutoffUtc, int $limit, int $offset, array $exclude = ActivationState::TERMINAL): array
     {
-        return Tx::rows($pdo, self::DISPLAY . ' WHERE a.status NOT IN (' . implode(', ', array_fill(0, count(ActivationState::TERMINAL), '?')) . ') AND a.updated_at <= ? '
-            . 'ORDER BY a.updated_at LIMIT ' . max(1, $limit) . ' OFFSET ' . max(0, $offset), [...ActivationState::TERMINAL, $cutoffUtc]);
+        return Tx::rows($pdo, self::DISPLAY . ' WHERE a.status NOT IN (' . implode(', ', array_fill(0, count($exclude), '?')) . ') AND a.updated_at <= ? '
+            . 'ORDER BY a.updated_at LIMIT ' . max(1, $limit) . ' OFFSET ' . max(0, $offset), [...$exclude, $cutoffUtc]);
     }
 
-    public static function staleCount(\PDO $pdo, string $cutoffUtc): int
+    /** @param list<string> $exclude */
+    public static function staleCount(\PDO $pdo, string $cutoffUtc, array $exclude = ActivationState::TERMINAL): int
     {
-        return (int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_reseller_activations a WHERE a.status NOT IN (' . implode(', ', array_fill(0, count(ActivationState::TERMINAL), '?'))
-            . ') AND a.updated_at <= ?', [...ActivationState::TERMINAL, $cutoffUtc])['n'] ?? 0);
+        return (int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_reseller_activations a WHERE a.status NOT IN (' . implode(', ', array_fill(0, count($exclude), '?'))
+            . ') AND a.updated_at <= ?', [...$exclude, $cutoffUtc])['n'] ?? 0);
     }
 
     /** WP6A: one display row by id (same columns as displayPage), or null. */

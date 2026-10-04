@@ -70,7 +70,7 @@ final class Wp6bTemplateGuardTest extends TestCase
         $out = [];
         foreach ($files as $rel) {
             $src = (string) file_get_contents($root . '/' . $rel);
-            preg_match_all("/Lang::T\(\s*'((?:[^'\\\\]|\\\\.)*)'\s*\)/", $src, $m);
+            preg_match_all("/(?:Lang::T|\\\$t)\(\s*'((?:[^'\\\\]|\\\\.)*)'\s*\)/", $src, $m);
             foreach ($m[1] as $s) {
                 $out[stripslashes($s)] = $rel;
             }

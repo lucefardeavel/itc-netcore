@@ -101,7 +101,7 @@ final class WalletDesk
     /** @return array<string,mixed> */
     public static function ledger(ActorContext $a, mixed $managerId, array $filters, int $page): array
     {
-        $l = LedgerReadModel::ledger($a, $managerId, $filters, $page);
+        $l = LedgerReadModel::ledger($a, self::ledgerOwner($a, $managerId), $filters, $page);
         $l['rows'] = self::withActivations($a, $l['rows']);
         return $l;
     }
@@ -440,6 +440,12 @@ final class WalletDesk
         return $op;
     }
 
+    /** A ledger without a wallet id is the actor's own (Agent navigation "Ledger"); a global viewer picks a wallet. */
+    private static function ledgerOwner(ActorContext $a, mixed $managerId): mixed
+    {
+        return ($managerId === null || $managerId === '') && PermissionService::scopeOf($a, C::LEDGER_READ) !== 'G' ? (int) $a->userId : $managerId;
+    }
+
     private static function requireGlobal(ActorContext $a, string $capability): void
     {
         if (PermissionService::scopeOf($a, $capability) !== 'G') {
@@ -490,6 +496,7 @@ final class WalletDesk
                     [$t('Reserved'), static fn($r) => $r['reserved']], [$t('Available credit'), static fn($r) => $r['available']],
                 ], static fn(callable $sink): int => LedgerReadModel::exportWallets($a, $f, $sink), 'wallets.csv');
             case 'ledger':
+                $managerId = self::ledgerOwner($a, $managerId);
                 $owner = LedgerReadModel::ledger($a, $managerId, [], 1)['owner'];
                 return ExportStream::csv($a, 'ledger', (int) $owner['id'], $f, [
                     [$t('Time (UTC)'), static fn($r) => $r['created_at']], [$t('Entry'), static fn($r) => $r['id']],

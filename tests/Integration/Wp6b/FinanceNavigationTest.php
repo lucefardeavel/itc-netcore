@@ -38,13 +38,14 @@ final class FinanceNavigationTest extends Wp2HttpTestCase
 
     public function testDestinationsFollowTheRole(): void
     {
-        $finance = ['finance/overview', 'finance/ledger', 'finance/transfers', 'finance/sales', 'finance/commissions', 'finance/performance', 'reseller/tree', 'pricing/plans'];
+        $finance = ['finance/overview', 'finance/transfers', 'finance/sales', 'finance/commissions', 'finance/performance', 'reseller/tree', 'pricing/plans'];
         $admin = self::routes($this->staff('ad')->get('dashboard')->body);
         foreach (array_merge($finance, ['finance/wallets', 'finance/settlement', 'operations/overview']) as $r) {
             $this->assertContains($r, $admin, "Admin: {$r}");
         }
+        $this->assertNotContains('finance/ledger', $admin, 'a global viewer opens a ledger from a wallet');
         $agent = self::routes($this->staff('A')->get('dashboard')->body);
-        foreach (array_merge($finance, ['finance/wallets', 'finance/send']) as $r) {
+        foreach (array_merge($finance, ['finance/ledger', 'finance/wallets', 'finance/send']) as $r) {
             $this->assertContains($r, $agent, "Agent with a child: {$r}");
         }
         foreach (['finance/settlement', 'operations/overview', 'finance/funding'] as $r) {
@@ -60,6 +61,10 @@ final class FinanceNavigationTest extends Wp2HttpTestCase
                 $this->assertSame([], array_values(array_filter($routes, static fn(string $r): bool => str_starts_with($r, $prefix))), "{$u}: no {$prefix} destination");
             }
         }
+        // the Agent's "Ledger" destination is its own ledger (no wallet id)
+        $ledger = $this->staff('A')->get('finance/ledger');
+        $this->assertSame(200, $ledger->status, $ledger->excerpt());
+        $this->assertStringContainsString('_route=finance/ledger/' . static::$seed->staff['A'], $ledger->body);
         // the Reseller Tree moved from Settings to Resellers
         $html = $this->staff('ad')->get('dashboard')->body;
         preg_match('#<summary><i class="fa fa-cog[^>]*></i><span>Settings</span>.*?</details>#s', $html, $settings);

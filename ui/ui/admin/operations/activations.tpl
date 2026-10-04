@@ -13,7 +13,8 @@
             {elseif $r.error_code eq 'REVERSAL_FINANCIAL_REFUSED'}<span class="nuxr-mcard-sub">{Lang::T('The reseller wallet may need funding before the reversal can be resumed.')}</span>{/if}
         </a>
         <div class="nuxr-actions">
-            {if $r.actions}<a class="nuxr-btn nuxr-btn-primary" href="{Text::url('activation/view/', $r.reference)}">{Lang::T('Open to act')}{foreach $r.actions as $op} · {if $op eq 'reconcile'}{Lang::T('Reconcile')}{elseif $op eq 'rollback'}{Lang::T('Roll back')}{elseif $op eq 'reverse'}{Lang::T('Reverse')}{elseif $op eq 'cancel'}{Lang::T('Cancel')}{else}{Lang::T('Resume')}{/if}{/foreach}</a>
+            {if $r.error_code eq 'PRIOR_SECRET_UNRESTORABLE' || $r.error_code eq 'PRIOR_STATE_NOT_CAPTURED'}<a class="nuxr-btn" href="{Text::url('activation/view/', $r.reference)}">{Lang::T('Open')}</a>
+            {elseif $r.actions}<a class="nuxr-btn nuxr-btn-primary" href="{Text::url('activation/view/', $r.reference)}">{Lang::T('Open to act')}{foreach $r.actions as $op} · {if $op eq 'reconcile'}{Lang::T('Reconcile')}{elseif $op eq 'rollback'}{Lang::T('Roll back')}{elseif $op eq 'reverse'}{Lang::T('Reverse')}{elseif $op eq 'cancel'}{Lang::T('Cancel')}{else}{Lang::T('Resume')}{/if}{/foreach}</a>
             {else}<span class="nuxr-muted">{Lang::T('No action available here')}</span>{/if}
         </div>
     </div></li>
