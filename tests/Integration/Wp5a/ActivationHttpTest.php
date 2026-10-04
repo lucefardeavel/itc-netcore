@@ -153,7 +153,9 @@ PHP);
         $this->assertSame(200, $mine->status);
         $this->assertContains('wp5a_http', self::options($mine), 'the enrolled Agent sees its saleable plan');
         $this->assertNotContains('wp5a_unpriced', self::options($mine), 'never a plan it cannot sell');
-        $this->assertDoesNotMatchRegularExpression('/wholesale|commission|settlement|base cost/i', strip_tags($mine->body), 'no upstream economics');
+        // WP6B (OD-3, accepted-test change): the shell navigation now lists the Agent's own finance reports; the page
+        // content itself must still carry no upstream economics
+        $this->assertDoesNotMatchRegularExpression('/wholesale|commission|settlement|base cost/i', strip_tags((string) preg_replace('#<(script|nav|aside|dialog)\b.*?</\1>#s', '', $mine->body)), 'no upstream economics');
 
         $this->assertSame([], self::options($sales->get('activation/create')), 'Sales without a customer: no plans');
         $this->assertSame(['wp5a_http'], array_values(array_intersect(self::options($sales->get('activation/create', ['customer' => $customers['cA1']])), ['wp5a_http', 'wp5a_unpriced'])),

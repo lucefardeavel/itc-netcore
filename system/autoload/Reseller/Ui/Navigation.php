@@ -154,7 +154,8 @@ final class Navigation
     /** WP6B: the Agent has at least one Active direct child reseller (quick "Send" / Wallets destination). */
     private static function hasChildren(ActorContext $a): bool
     {
-        return ResellerReadService::hasActiveChildren($a);
+        // wallet.read first: schema-dependent, so nothing is queried while the reseller schema is not ready
+        return PermissionService::can($a, Capability::WALLET_READ) && ResellerReadService::hasActiveChildren($a);
     }
 
     /** True when the actor may open $route by GET (the accepted RouteMap rule; staff navigation only). */
