@@ -15,6 +15,8 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  *   reconcile    POST  Admin / SuperAdmin: read RADIUS back and settle or release
  *   rollback     POST  Admin / SuperAdmin: restore the previous RADIUS state and release
  *   reverse      POST  Admin / SuperAdmin (WP5B, OD-11): reverse a COMPLETED activation (reason required)
+ *   cancel       POST  Admin / SuperAdmin (WP6B, OD-7): cancel a stale FUNDS_RESERVED / RETRY_PENDING activation
+ *   resume       POST  Admin / SuperAdmin (WP6B, OD-7): resume a stale FUNDS_RESERVED / RETRY_PENDING / VERIFIED one
  */
 
 _admin();
@@ -135,6 +137,20 @@ switch ($action) {
             $nuxrFail($e, $back);
         }
         r2(getUrl('activation/view/' . $row['reference']), 's', Lang::T('Activation') . ' ' . $row['reference'] . ': ' . $row['status']);
+        break;
+
+    case 'cancel':
+    case 'resume':
+        // WP6B (OD-7): the authorized operator wrapper over the accepted primitives (stale only; audited)
+        $reference = (string) ($routes['2'] ?? '');
+        try {
+            $row = $action === 'cancel'
+                ? \Reseller\Activation\ActivationOperatorService::cancel($nuxrActor, $reference)
+                : \Reseller\Activation\ActivationOperatorService::resume($nuxrActor, $reference);
+        } catch (\Reseller\Domain\DomainError $e) {
+            $nuxrFail($e, 'activation/view/' . (preg_match('/^ACT-[0-9A-F]{16}$/D', $reference) ? $reference : ''));
+        }
+        r2(getUrl('activation/view/' . $row['reference']), 'i', Lang::T('Activation') . ' ' . $row['reference'] . ': ' . Lang::T(\Reseller\Ui\Format::stateLabel((string) $row['status'])));
         break;
 
     case 'reconcile':

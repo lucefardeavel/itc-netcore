@@ -73,6 +73,13 @@ PHP);
         if (str_contains($html, 'id="nuxr-reverse-dialog"') && str_contains($html, 'activation/reverse/' . $ref)) {
             $out[] = Ops::REVERSE;
         }
+        if (str_contains($html, 'id="nuxr-cancel-dialog"') && str_contains($html, 'activation/cancel/' . $ref)) {
+            $out[] = Ops::CANCEL;
+        }
+        if (str_contains($html, 'activation/resume/' . $ref)) {
+            $out[] = Ops::RESUME;
+        }
+        sort($out);
         return $out;
     }
 
@@ -94,15 +101,25 @@ PHP);
         $this->assertSame(S::ALL, array_keys($expected), 'all 17 states covered');
         $admin = $this->staff('ad');
         $agent = $this->staff('A');
+        // once stale (>= 300 s untouched): in-flight -> reconcile; FUNDS_RESERVED / RETRY_PENDING -> cancel, resume;
+        // VERIFIED -> + resume (settle) (WP6B OD-7, ActivationOperatorService)
+        $stale = $expected;
+        foreach (Ops::IN_FLIGHT as $st) {
+            $stale[$st] = [Ops::RECONCILE];
+        }
+        $stale[S::FUNDS_RESERVED] = [Ops::CANCEL, Ops::RESUME];
+        $stale[S::RETRY_PENDING] = [Ops::CANCEL, Ops::RESUME];
+        $stale[S::VERIFIED] = [Ops::ROLLBACK, Ops::RESUME];
         foreach ($expected as $state => $ops) {
+            sort($ops);
             $set($state, 30);
             $html = $admin->get('activation/view/' . $ref)->body;
             $this->assertSame($ops, self::rendered($html, $ref), "{$state} (fresh): rendered operator actions");
             $this->assertSame([], self::rendered($agent->get('activation/view/' . $ref)->body, $ref), "{$state}: an Agent gets no operator action");
-            if (in_array($state, Ops::IN_FLIGHT, true)) {
-                $set($state, 400);
-                $this->assertSame([Ops::RECONCILE], self::rendered($admin->get('activation/view/' . $ref)->body, $ref), "{$state} (stale): reconcile only");
-            }
+            $set($state, 400);
+            $want = $stale[$state];
+            sort($want);
+            $this->assertSame($want, self::rendered($admin->get('activation/view/' . $ref)->body, $ref), "{$state} (stale): rendered operator actions");
         }
         // the regression itself: Reconcile is never offered for VERIFIED / ROLLBACK_PENDING, because the backend
         // always refuses it there and writes nothing
@@ -153,5 +170,22 @@ PHP);
         ksort($table);
         ksort($derived);
         $this->assertSame($derived, $table, 'ActivationOperatorService::STATE_OPERATIONS equals the accepted primitives');
+        // stale-only operations: cancel() preconditions and the states execute() advances
+        preg_match('/if \(!in_array\(\$act\[\'status\'\], \[([^\]]+)\], true\)\)/', $body($rec, 'cancel'), $m);
+        $cancel = $states($m[1]);
+        $act = (string) file_get_contents($root . 'ActivationService.php');
+        preg_match_all('/case ActivationState::([A-Z_]+):/', $body($act, 'execute'), $m);
+        $resume = array_map(static fn(string $n): string => constant(S::class . '::' . $n), $m[1]);
+        $staleDerived = [];
+        foreach (S::ALL as $state) {
+            $ops = array_values(array_filter([in_array($state, $cancel, true) ? Ops::CANCEL : null, in_array($state, $resume, true) ? Ops::RESUME : null]));
+            if ($ops !== []) {
+                $staleDerived[$state] = $ops;
+            }
+        }
+        $staleTable = Ops::STALE_OPERATIONS;
+        ksort($staleTable);
+        ksort($staleDerived);
+        $this->assertSame($staleDerived, $staleTable, 'STALE_OPERATIONS equals ReconciliationService::cancel / ActivationService::execute');
     }
 }

@@ -278,6 +278,19 @@ final class ActivationStore
         return $out;
     }
 
+    /** WP6B: stale (not terminal, untouched since $cutoffUtc) activations, one bounded display page (oldest first). */
+    public static function stalePage(\PDO $pdo, string $cutoffUtc, int $limit, int $offset): array
+    {
+        return Tx::rows($pdo, self::DISPLAY . ' WHERE a.status NOT IN (' . implode(', ', array_fill(0, count(ActivationState::TERMINAL), '?')) . ') AND a.updated_at <= ? '
+            . 'ORDER BY a.updated_at LIMIT ' . max(1, $limit) . ' OFFSET ' . max(0, $offset), [...ActivationState::TERMINAL, $cutoffUtc]);
+    }
+
+    public static function staleCount(\PDO $pdo, string $cutoffUtc): int
+    {
+        return (int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_reseller_activations a WHERE a.status NOT IN (' . implode(', ', array_fill(0, count(ActivationState::TERMINAL), '?'))
+            . ') AND a.updated_at <= ?', [...ActivationState::TERMINAL, $cutoffUtc])['n'] ?? 0);
+    }
+
     /** WP6A: one display row by id (same columns as displayPage), or null. */
     public static function displayById(\PDO $pdo, int $id): ?array
     {

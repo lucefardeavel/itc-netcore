@@ -92,6 +92,15 @@
                         <button class="nuxr-btn nuxr-btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i>{Lang::T('Reconcile')}</button>
                     </form>
                 {/if}
+                {if in_array('resume', $nuxr_actions)}
+                    <form method="post" action="{Text::url('activation/resume/', $a.reference)}">
+                        <input type="hidden" name="csrf_token" value="{$csrf_token}">
+                        <button class="nuxr-btn nuxr-btn-primary" type="submit"><i class="fa fa-play" aria-hidden="true"></i>{if $st eq 'VERIFIED'}{Lang::T('Settle (resume)')}{else}{Lang::T('Resume')}{/if}</button>
+                    </form>
+                {/if}
+                {if in_array('cancel', $nuxr_actions)}
+                    <button type="button" class="nuxr-btn nuxr-btn-danger" data-nuxr-open="nuxr-cancel-dialog"><i class="fa fa-times" aria-hidden="true"></i>{Lang::T('Cancel activation')}</button>
+                {/if}
                 {if in_array('rollback', $nuxr_actions)}
                     <button type="button" class="nuxr-btn nuxr-btn-danger" data-nuxr-open="nuxr-rollback-dialog"><i class="fa fa-undo" aria-hidden="true"></i>{if $st eq 'ROLLBACK_PENDING'}{Lang::T('Retry roll back')}{else}{Lang::T('Roll back')}{/if}</button>
                 {/if}
@@ -129,6 +138,19 @@
 </div>
 
 {include file="admin/nuxr/settlement-card.tpl" s=$nuxr_settlement}
+{if in_array('cancel', $nuxr_actions)}
+    <dialog id="nuxr-cancel-dialog" class="nuxr-sheet" aria-labelledby="nuxr-cancel-t">
+        <div class="nuxr-sheet-head"><h2 id="nuxr-cancel-t">{Lang::T('Cancel activation')}</h2>
+            <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="{Lang::T('Close')}"><i class="fa fa-times" aria-hidden="true"></i></button></div>
+        <form method="post" action="{Text::url('activation/cancel/', $a.reference)}">
+            <input type="hidden" name="csrf_token" value="{$csrf_token}">
+            <div class="nuxr-dialog-body"><div class="nuxr-alert is-danger"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                <div>{Lang::T('This activation has not been applied to the network. Cancel it and release the reserved credit? This cannot be undone.')}</div></div></div>
+            <div class="nuxr-dialog-foot"><button type="button" class="nuxr-btn" data-nuxr-close autofocus>{Lang::T('Keep it')}</button>
+                <button type="submit" class="nuxr-btn nuxr-btn-danger-solid">{Lang::T('Cancel activation')}</button></div>
+        </form>
+    </dialog>
+{/if}
 {if in_array('rollback', $nuxr_actions)}
     <dialog id="nuxr-rollback-dialog" class="nuxr-sheet" aria-labelledby="nuxr-rollback-t">
         <div class="nuxr-sheet-head"><h2 id="nuxr-rollback-t">{Lang::T('Roll back')}</h2>

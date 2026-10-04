@@ -26,7 +26,7 @@ final class SourceGuardTest extends TestCase
         'system/autoload/Reseller/Domain/ServiceGate.php' => 'f0d6f3d96283725b134433122aaf8442eb8db983148b0a45379d8a6cb4f0ed82',
         // WP5A (owner decision A7): the activation routes; WP6A (owner decision OD-C): + read-only activation/list;
         // WP6B (owner decision OD-1): the WP6B web surface and the explicit reseller API allow-list
-        'system/autoload/Reseller/Security/RouteMap.php' => 'e562bf757cda10245ea93fd3f90c14ceeb685cf5f853b064808b873a0c797eb1',
+        'system/autoload/Reseller/Security/RouteMap.php' => 'd319647c7d87ec001471d42b066d464616206a9f63ea3927fa119d3db3710bcf',
         'system/autoload/Reseller/Domain/Tx.php' => '223cfb618ee7372c615bb93f37c86db4da739d47e2da03692f976bf3b2cbccc6',
         'system/autoload/Balance.php' => '9652370fcc1d7ca370ff9061c4631fa34531f2049a5da9c0b9b8601ab00c57ae',
         // WP4 (owner decision Q5): the device calls in rechargeUser run after the recharge row is saved

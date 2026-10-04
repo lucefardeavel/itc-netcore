@@ -162,6 +162,10 @@ final class RouteMap
             'rollback' => ['POST' => C::ACTIVATION_CREATE],
             // WP5B (OD-11): reversal of a COMPLETED activation; Admin / SuperAdmin only (activation.reverse G)
             'reverse' => ['POST' => C::ACTIVATION_REVERSE],
+            // WP6B (OD-7): cancel / resume of stale activations; Admin / SuperAdmin only inside
+            // Reseller\Activation\ActivationOperatorService (activation.create G)
+            'cancel' => ['POST' => C::ACTIVATION_CREATE],
+            'resume' => ['POST' => C::ACTIVATION_CREATE],
         ],
         // WP6B (owner decision OD-1): the finance web surface through Reseller\Backoffice; web only (never API_ALLOWED);
         // reads are scoped again by the Finance read models (wallet.read / ledger.read: G Admin, T Agent)
@@ -209,6 +213,15 @@ final class RouteMap
             'wholesale-post' => ['POST' => C::PRICING_CHILD_WHOLESALE],
             'retail-post' => ['POST' => C::PRICING_OWN_RETAIL],
             'availability-post' => ['POST' => C::PRICING_CHILD_AVAILABILITY],
+        ],
+        // WP6B (owner decisions OD-7 / OD-8): Operations Center, Admin / SuperAdmin (system.admin), read only, web only
+        'operations' => [
+            '' => 'overview', '*' => 'overview',
+            'overview' => ['GET' => C::SYSTEM_ADMIN],
+            'activations' => ['GET' => C::SYSTEM_ADMIN],
+            'drift' => ['GET' => C::SYSTEM_ADMIN],
+            'held' => ['GET' => C::SYSTEM_ADMIN],
+            'renewals' => ['GET' => C::SYSTEM_ADMIN],
         ],
         'reseller' => [
             '' => 'tree', '*' => 'tree',
