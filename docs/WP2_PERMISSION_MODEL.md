@@ -627,3 +627,10 @@ _257 route entries; default actions: '' and unknown actions resolve to each cont
   web only, not API-allowed). No other route, capability or scope changed. The staff navigation
   (`Reseller\Ui\Navigation`) lists a destination only when this RouteMap rule and `PermissionService::can` allow it;
   hidden navigation is never authorization. Details: `docs/WP6A_UX_MODEL.md`.
+
+## WP6B amendment (owner decisions OD-1, OD-5, OD-7, OD-8)
+
+- RouteMap (pinned, re-pinned): new web-only controllers `finance`, `pricing`, `operations`, plus `reseller/detail` and
+  `activation/cancel` / `activation/resume` (rules in `docs/WP6B_FINANCE_UX_MODEL.md` §2). None is API-allowed;
+  `API_ALLOWED['reseller']` is now the explicit pre-existing list instead of `'*'`. No capability, scope or role change
+  (the Report role gets nothing new, OD-5). The Operations Center is `system.admin` (OD-8).

@@ -3,7 +3,7 @@
 {* WP6B: one transfer (operation record) with its ledger legs inside the actor's scope and its reversal links. *}
 {assign var=t value=$nuxr_transfer}
 <section class="nuxr-card" aria-labelledby="nuxr-trf-t">
-    <div class="nuxr-card-head"><h2 id="nuxr-trf-t">{Lang::T(NuxrUi::transferType($t.operation_type))}</h2>
+    <div class="nuxr-card-head"><h2 id="nuxr-trf-t">{Lang::T(NuxrUi::transferType($t.operation_type))|escape}</h2>
         {if $t.status eq 'REVERSED'}{call name=nuxr_badge tone='neutral' label=Lang::T('Reversed') icon='fa-history'}{elseif $t.reverses_transfer_id}{call name=nuxr_badge tone='info' label=Lang::T('Reversal') icon='fa-undo'}{else}{call name=nuxr_badge tone='success' label=Lang::T('Completed')}{/if}</div>
     <div class="nuxr-card-body">
         <dl class="nuxr-kv">

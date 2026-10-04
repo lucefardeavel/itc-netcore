@@ -4,6 +4,7 @@ namespace Reseller\Backoffice;
 // Runtime class: loaded only through init.php (NUXR_RUNTIME); never executable on its own.
 if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
 
+use Reseller\Activation\ActivationOperatorService;
 use Reseller\Activation\ActivationReadService;
 use Reseller\Domain\DomainError;
 use Reseller\Finance\FinanceInput;
@@ -45,6 +46,34 @@ final class WalletDesk
             return ['mode' => 'own'] + $own;
         }
         return ['mode' => 'all', 'list' => LedgerReadModel::wallets($a, [], 1)];
+    }
+
+    /**
+     * WP6B dashboard finance tiles (OD-3): null without wallet.read (Sales / Report / unenrolled Agent: no tile, never
+     * guessed). Agent: its own available credit (+ whether "Send" applies). Admin / SuperAdmin: wallets with no
+     * available credit, wallets using the debt line, credit reserved for activations in progress and stale activations.
+     *
+     * @return array<string,mixed>|null
+     */
+    public static function dashboard(ActorContext $a): ?array
+    {
+        if (!PermissionService::can($a, C::WALLET_READ)) {
+            return null;
+        }
+        try {
+            if (PermissionService::scopeOf($a, C::WALLET_READ) !== 'G') {
+                $own = LedgerReadModel::wallet($a, (int) $a->userId);
+                $children = LedgerReadModel::wallets($a, ['parent' => (int) $a->userId], 1)['total'];
+                return ['mode' => 'own', 'wallet' => $own, 'ledger' => PermissionService::can($a, C::LEDGER_READ),
+                    'can_send' => PermissionService::scopeOf($a, C::WALLET_TRANSFER) === 'C' && $children > 0 && empty($own['frozen'])];
+            }
+            $all = LedgerReadModel::wallets($a, [], 1);
+            return ['mode' => 'all', 'exhausted' => LedgerReadModel::wallets($a, ['wallet' => 'exhausted'], 1)['total'],
+                'negative' => $all['counts']['negative'], 'reserved_total' => $all['reserved_total'],
+                'stale' => PermissionService::scopeOf($a, C::SYSTEM_ADMIN) === 'G' ? ActivationOperatorService::stalePage($a, 1)['total'] : null];
+        } catch (DomainError) {
+            return null; // e.g. schema not ready: the tile is omitted, never guessed
+        }
     }
 
     /** @return array<string,mixed> */

@@ -13,13 +13,13 @@
         <label class="sr-only" for="nuxr-w-status">{Lang::T('Account status')}</label>
         <select id="nuxr-w-status" name="status" class="form-control nuxr-input" style="width:auto">
             <option value="">{Lang::T('Any status')}</option>
-            {foreach ['Active', 'Inactive'] as $s}<option value="{$s|escape}" {if ($nuxr_filters.status|default:'') eq $s}selected{/if}>{Lang::T($s)}</option>{/foreach}
+            {foreach ['Active', 'Inactive'] as $s}<option value="{$s|escape}" {if ($nuxr_filters.status|default:'') eq $s}selected{/if}>{Lang::T($s)|escape}</option>{/foreach}
         </select>
         <label class="sr-only" for="nuxr-w-wallet">{Lang::T('Wallet')}</label>
         <select id="nuxr-w-wallet" name="wallet" class="form-control nuxr-input" style="width:auto">
             <option value="">{Lang::T('Any wallet state')}</option>
             {foreach ['with' => 'Has a wallet', 'none' => 'No wallet yet', 'negative' => 'Using the debt line', 'exhausted' => 'No available credit'] as $k => $label}
-                <option value="{$k|escape}" {if ($nuxr_filters.wallet|default:'') eq $k}selected{/if}>{Lang::T($label)}</option>{/foreach}
+                <option value="{$k|escape}" {if ($nuxr_filters.wallet|default:'') eq $k}selected{/if}>{Lang::T($label)|escape}</option>{/foreach}
         </select>
         <button class="nuxr-btn nuxr-btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i>{Lang::T('Search')}</button>
     </div>

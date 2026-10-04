@@ -281,3 +281,11 @@ See `docs/WP3B_PRICING_MODEL.md`.
   storable, every recipient keeps available credit ≥ 0 after its clawback). STAFF actor with the reason. The reservation stays
   COMMITTED; provider settlement is reversed in the activation record only.
 - Its only caller is `Reseller\Activation\ActivationReversalService` (source guard).
+
+## WP6B amendment (owner decisions OD-1, OD-2, OD-6)
+
+- The finance services gain web callers only through `Reseller\Backoffice` (amended `SourceGuardTest`: callers =
+  `Finance/`, `Activation/`, `Backoffice/`; controllers / templates never). New SELECT-only read models
+  `Finance/LedgerReadModel` and the informational `Finance/WalletPreview`; `TransferService` gains the read-only
+  `reversalPreview()` (the compensation logic is extracted into a private helper shared with `reverse()`, behaviour
+  unchanged). No new money rule, wallet-creation path or schema change. Details: `docs/WP6B_FINANCE_UX_MODEL.md`.

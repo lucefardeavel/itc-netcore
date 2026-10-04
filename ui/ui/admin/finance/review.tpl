@@ -15,11 +15,11 @@
     <div class="nuxr-card-body">
         {if $p.hint|default:null}<div class="nuxr-alert is-warning" role="status"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
             <div>{Lang::T('With the current figures the system is likely to refuse this')}: {Lang::T(NuxrUi::errorText($p.hint))|escape}</div></div>{/if}
-        {if !empty($r.blocked)}<div="nuxr-alert is-info" role="status"><i class="fa fa-info-circle" aria-hidden="true"></i><div>{Lang::T($r.blocked)|escape}</div></div>{/if}
+        {if !empty($r.blocked)}<div class="nuxr-alert is-info" role="status"><i class="fa fa-info-circle" aria-hidden="true"></i><div>{Lang::T($r.blocked)|escape}</div></div>{/if}
         {if $r.kind eq 'reverse'}
             {assign var=x value=$p}
-            <p>{Lang::T('Original transfer')}: <bdi dir="ltr" class="nuxr-mono">{$x.reference|escape}</bdi> · {Lang::T(NuxrUi::transferType($x.operation_type))} · <bdi dir="ltr">{NuxrUi::money($x.amount)|escape}</bdi></p>
-            <p>{Lang::T('Compensating operation')}: <strong>{Lang::T(NuxrUi::transferType($x.compensating_type))}</strong></p>
+            <p>{Lang::T('Original transfer')}: <bdi dir="ltr" class="nuxr-mono">{$x.reference|escape}</bdi> · {Lang::T(NuxrUi::transferType($x.operation_type))|escape} · <bdi dir="ltr">{NuxrUi::money($x.amount)|escape}</bdi></p>
+            <p>{Lang::T('Compensating operation')}: <strong>{Lang::T(NuxrUi::transferType($x.compensating_type))|escape}</strong></p>
             <dl class="nuxr-kv">
                 {if $x.debit}<div><dt>{Lang::T('Debited')} · {$x.debit.wallet.fullname|escape}</dt><dd>{Lang::T('Available credit')} <bdi dir="ltr">{NuxrUi::money($x.debit.available[0])|escape} → {NuxrUi::money($x.debit.available[1])|escape}</bdi></dd></div>{/if}
                 {if $x.credit}<div><dt>{Lang::T('Credited')} · {$x.credit.wallet.fullname|escape}</dt><dd>{Lang::T('Balance')} <bdi dir="ltr">{NuxrUi::money($x.credit.balance[0])|escape} → {NuxrUi::money($x.credit.balance[1])|escape}</bdi></dd></div>{/if}

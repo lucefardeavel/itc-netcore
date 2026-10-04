@@ -18,7 +18,7 @@
         <label class="sr-only" for="nuxr-l-type">{Lang::T('Type')}</label>
         <select id="nuxr-l-type" name="type" class="form-control nuxr-input" style="width:auto">
             <option value="">{Lang::T('Any type')}</option>
-            {foreach NuxrUi::LEDGER_TYPE as $k => $label}<option value="{$k|escape}" {if ($nuxr_filters.type|default:'') eq $k}selected{/if}>{Lang::T($label)}</option>{/foreach}
+            {foreach NuxrUi::LEDGER_TYPE as $k => $label}<option value="{$k|escape}" {if ($nuxr_filters.type|default:'') eq $k}selected{/if}>{Lang::T($label)|escape}</option>{/foreach}
         </select>
         <label class="sr-only" for="nuxr-l-dir">{Lang::T('Direction')}</label>
         <select id="nuxr-l-dir" name="direction" class="form-control nuxr-input" style="width:auto">

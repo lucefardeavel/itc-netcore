@@ -17,7 +17,7 @@
         <label class="sr-only" for="nuxr-t-type">{Lang::T('Type')}</label>
         <select id="nuxr-t-type" name="type" class="form-control nuxr-input" style="width:auto">
             <option value="">{Lang::T('Any type')}</option>
-            {foreach NuxrUi::TRANSFER_TYPE as $k => $label}<option value="{$k|escape}" {if ($nuxr_filters.type|default:'') eq $k}selected{/if}>{Lang::T($label)}</option>{/foreach}
+            {foreach NuxrUi::TRANSFER_TYPE as $k => $label}<option value="{$k|escape}" {if ($nuxr_filters.type|default:'') eq $k}selected{/if}>{Lang::T($label)|escape}</option>{/foreach}
         </select>
         <label class="sr-only" for="nuxr-t-ref">{Lang::T('Reference')}</label>
         <input id="nuxr-t-ref" class="form-control nuxr-input ltr" dir="ltr" name="reference" value="{$nuxr_filters.reference|default:''|escape}" maxlength="64" placeholder="{Lang::T('Exact reference')}" style="width:auto">

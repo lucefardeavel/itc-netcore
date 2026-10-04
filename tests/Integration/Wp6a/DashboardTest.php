@@ -8,7 +8,7 @@ use Reseller\Tests\Support\Wp2HttpTestCase;
 
 /**
  * WP6A dashboard foundation (OD-L): every count is the actor's authoritative scope (customer.read DataScope); 7-day
- * expiring threshold; no finance tiles (WP6B); the landing page loads no chart bundle (OD-H); the legacy global
+ * expiring threshold; finance tiles only for wallet.read holders (WP6B OD-3); the landing page loads no chart bundle (OD-H); the legacy global
  * widgets stay a global-scope tab only (WP2 OD-4 unchanged); Report gets an honest empty state.
  */
 final class DashboardTest extends Wp2HttpTestCase
@@ -48,7 +48,11 @@ final class DashboardTest extends Wp2HttpTestCase
             $this->assertSame($this->scopedCount($actor), $stats['All subscribers'] ?? -1, "{$actor}: all subscribers");
             $this->assertArrayHasKey('Expiring within 7 days', $stats);
             $this->assertArrayHasKey('Needs attention', $stats, "{$actor}: activation tiles (activation.read)");
-            $this->assertDoesNotMatchRegularExpression('/wallet|ledger|commission|balance/i', strip_tags((string) preg_replace('#<(script|nav|aside|dialog)\b.*?</\1>#s', '', $html)), "{$actor}: no finance tiles");
+            // WP6B (OD-3, accepted-test change): finance words appear only inside the finance tiles (wallet.read holders);
+            // Sales gets none
+            $rest = (string) preg_replace('#<h2 class="nuxr-section-title">Wallet</h2>.*?(?=<div class="nuxr-grid)#s', '', $html);
+            $this->assertSame($actor !== 'A1', $rest !== $html, "{$actor}: finance tiles only with wallet.read");
+            $this->assertDoesNotMatchRegularExpression('/wallet|ledger|commission|balance/i', strip_tags((string) preg_replace('#<(script|nav|aside|dialog)\b.*?</\1>#s', '', $rest)), "{$actor}: no finance words outside the finance tiles");
             $this->assertStringNotContainsStringIgnoringCase('chart.min.js', $html, "{$actor}: no chart bundle on the landing page");
         }
         $this->assertSame(1, self::stats($this->staff('A')->get('dashboard')->body)['Expiring within 7 days'], 'A: cB (subtree) expires in 3 days');

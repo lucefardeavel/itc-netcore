@@ -6,7 +6,7 @@
 {assign var=r value=$nuxr_report}
 <nav class="nuxr-filters" aria-label="{Lang::T('Finance reports')}">
     {foreach ['sales' => 'Activation sales', 'commissions' => 'Commissions', 'settlement' => 'Provider settlement', 'performance' => 'Reseller performance'] as $k => $label}
-        {if in_array($k, $nuxr_reports)}<a class="nuxr-chip{if $nuxr_kind eq $k} is-active{/if}" href="{Text::url('finance/', $k)}"{if $nuxr_kind eq $k} aria-current="page"{/if}>{Lang::T($label)}</a>{/if}
+        {if in_array($k, $nuxr_reports)}<a class="nuxr-chip{if $nuxr_kind eq $k} is-active{/if}" href="{Text::url('finance/', $k)}"{if $nuxr_kind eq $k} aria-current="page"{/if}>{Lang::T($label)|escape}</a>{/if}
     {/foreach}
 </nav>
 <form class="nuxr-card nuxr-card-body nuxr-form" method="get" action="{$app_url}/">

@@ -154,3 +154,12 @@ The legacy widget grid moves to `dashboard&widgets=1` (global scope only). No wa
 ## 11. Residuals
 
 See `owner-review/WP6A/REPORT.md` §I.
+
+## WP6B amendment (owner decisions OD-3, slice-0 correction)
+
+- WP6A defect corrected: the activation page offered Reconcile for VERIFIED / ROLLBACK_PENDING, which the backend
+  always refuses; the actions now come from `ActivationOperatorService` (17-state regression test).
+- Navigation: Finance / Resellers / Pricing / Operations groups, Reseller Tree moved from Settings, legacy reports
+  relabelled; Agent phone primary Home / Customers / New / Wallet / More; dashboard finance tiles. The reseller tree is
+  rewritten as a phone drill-down (no horizontal overflow). Accepted tests `ShellNavigationTest` / `DashboardTest` updated.
+  Details: `docs/WP6B_FINANCE_UX_MODEL.md`.

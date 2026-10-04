@@ -33,6 +33,33 @@
             <a class="nuxr-stat" href="{Text::url('activation/list')}&group=failed"><span class="nuxr-stat-value"><bdi dir="ltr">{$h.activations.failed}</bdi></span><span class="nuxr-stat-label"><i class="fa fa-times" aria-hidden="true"></i>{Lang::T('Failed, last 7 days')}</span></a>
         </div>
     {/if}
+    {* WP6B (OD-3): finance tiles (WalletDesk::dashboard; server strings from the finance read model) *}
+    {if $nuxr_finance}
+        {assign var=fin value=$nuxr_finance}
+        <h2 class="nuxr-section-title">{Lang::T('Wallet')}</h2>
+        {if $fin.mode eq 'own'}
+            <section class="nuxr-card nuxr-finance-tile" aria-labelledby="nuxr-home-wallet">
+                <div class="nuxr-card-head"><h3 id="nuxr-home-wallet">{Lang::T('Available credit')}</h3>
+                    {if $fin.wallet.frozen}{call name=nuxr_badge tone='warning' label=Lang::T('Money operations paused') icon='fa-pause'}{/if}</div>
+                <div class="nuxr-card-body">
+                    {if $fin.wallet.exists}<p class="nuxr-stat-value" style="margin:0"><bdi dir="ltr">{NuxrUi::money($fin.wallet.available)|escape}</bdi></p>
+                    {else}<p class="nuxr-muted" style="margin:0">{Lang::T('No wallet yet')}</p>{/if}
+                </div>
+                <div class="nuxr-card-body nuxr-actions" style="border-top:1px solid var(--nx-border)">
+                    {if $fin.can_send}<a class="nuxr-btn nuxr-btn-primary" href="{Text::url('finance/send')}"><i class="fa fa-exchange" aria-hidden="true"></i>{Lang::T('Send')}</a>{/if}
+                    {if $fin.ledger}<a class="nuxr-btn" href="{Text::url('finance/ledger/', $fin.wallet.id)}"><i class="fa fa-book" aria-hidden="true"></i>{Lang::T('Ledger')}</a>{/if}
+                    <a class="nuxr-btn" href="{Text::url('finance/overview')}"><i class="fa fa-credit-card" aria-hidden="true"></i>{Lang::T('Wallet')}</a>
+                </div>
+            </section>
+        {else}
+            <div class="nuxr-stats">
+                <a class="nuxr-stat{if $fin.exhausted} is-warning{/if}" href="{Text::url('finance/wallets&wallet=exhausted')}"><span class="nuxr-stat-value"><bdi dir="ltr">{$fin.exhausted|escape}</bdi></span><span class="nuxr-stat-label"><i class="fa fa-ban" aria-hidden="true"></i>{Lang::T('Wallets with no available credit')}</span></a>
+                <a class="nuxr-stat" href="{Text::url('finance/wallets&wallet=negative')}"><span class="nuxr-stat-value"><bdi dir="ltr">{$fin.negative|escape}</bdi></span><span class="nuxr-stat-label"><i class="fa fa-minus-circle" aria-hidden="true"></i>{Lang::T('Using the debt line')}</span></a>
+                <a class="nuxr-stat" href="{Text::url('finance/overview')}"><span class="nuxr-stat-value"><bdi dir="ltr">{NuxrUi::money($fin.reserved_total)|escape}</bdi></span><span class="nuxr-stat-label"><i class="fa fa-lock" aria-hidden="true"></i>{Lang::T('Reserved for activations in progress')}</span></a>
+                {if $fin.stale !== null}<a class="nuxr-stat{if $fin.stale} is-warning{/if}" href="{Text::url('operations/activations')}"><span class="nuxr-stat-value"><bdi dir="ltr">{$fin.stale|escape}</bdi></span><span class="nuxr-stat-label"><i class="fa fa-stethoscope" aria-hidden="true"></i>{Lang::T('Operations: stale activations')}</span></a>{/if}
+            </div>
+        {/if}
+    {/if}
     {if $h.customers || $h.activations}
         <div class="nuxr-grid nuxr-grid-2">
             {if $h.activations}

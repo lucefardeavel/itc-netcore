@@ -20,6 +20,20 @@ use Reseller\Security\PermissionService;
 final class ResellerReadService
 {
     /**
+     * WP6B navigation (OD-3): the Agent itself has at least one Active direct child reseller (its own subtree only;
+     * a boolean, no identity). Memoized per request.
+     */
+    public static function hasActiveChildren(ActorContext $a): bool
+    {
+        static $memo = [];
+        if (!$a->isStaff() || (string) $a->role !== 'Agent') {
+            return false;
+        }
+        return $memo[(int) $a->userId] ??= \ORM::for_table('tbl_manager_tree')->table_alias('t')->join('tbl_users', ['u.id', '=', 't.descendant_id'], 'u')
+            ->where('t.ancestor_id', (int) $a->userId)->where('t.depth', 1)->where('u.status', 'Active')->count() > 0;
+    }
+
+    /**
      * The visible forest in depth-first order, with the place / move data for Admin / SuperAdmin.
      *
      * @return array{nodes:list<array<string,mixed>>,children:array<int,list<int>>,roots:list<int>,unenrolled:list<array<string,mixed>>,agents:list<array<string,mixed>>,findings:list<array<string,mixed>>}

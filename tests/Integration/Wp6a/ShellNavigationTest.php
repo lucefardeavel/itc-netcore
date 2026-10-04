@@ -60,17 +60,21 @@ final class ShellNavigationTest extends Wp2HttpTestCase
     {
         $expected = [
             'ad' => ['Home', 'Customers', 'New', 'Activations', 'More'],
-            'A' => ['Home', 'Customers', 'New', 'Activations', 'More'],
+            // WP6B (OD-3, accepted-test change): an Agent with wallet.read gets Wallet instead of Activations
+            'A' => ['Home', 'Customers', 'New', 'Wallet', 'More'],
             'A1' => ['Home', 'Customers', 'New', 'Activations', 'More'],
             'rp' => ['Home', 'More'],
         ];
         foreach ($expected as $u => $labels) {
             $html = $this->staff($u)->get('dashboard')->body;
-            $this->assertSame($labels, self::primary($html), "{$u}: primary destinations (no Wallet before WP6B)");
-            $this->assertStringNotContainsStringIgnoringCase('wallet', $html, "{$u}: no wallet destination");
+            $this->assertSame($labels, self::primary($html), "{$u}: primary destinations");
+            if (in_array($u, ['A1', 'rp'], true)) {
+                $this->assertStringNotContainsStringIgnoringCase('wallet', $html, "{$u}: no wallet destination (no wallet.read)");
+            }
         }
         // an unenrolled Agent may not activate: no activation quick action, but it may still add customers
         $e = $this->staff('E')->get('dashboard')->body;
+        $this->assertNotContains('Wallet', self::primary($e), 'an unenrolled Agent keeps the WP6A primary navigation');
         $this->assertStringNotContainsString('_route=activation/create', $e);
         // Agent / Sales: no legacy service-granting or admin destinations
         foreach (['A', 'A1'] as $u) {

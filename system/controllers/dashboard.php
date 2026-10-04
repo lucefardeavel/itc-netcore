@@ -59,6 +59,8 @@ $ui->assign('nuxr_charts', $nuxrWidgetsView);
 if (!$nuxrWidgetsView) {
     $nuxrActor = \Reseller\Security\ActorContext::current();
     $ui->assign('nuxr_home', \Reseller\Ui\Dashboard::foundation($nuxrActor));
+    // WP6B (OD-3): finance tiles through the Backoffice gateway (null without wallet.read)
+    $ui->assign('nuxr_finance', \Reseller\Backoffice\WalletDesk::dashboard($nuxrActor));
     $ui->assign('_title', Lang::T('Dashboard'));
     run_hook('view_dashboard'); #HOOK
     $ui->display('admin/dashboard.tpl');

@@ -5,7 +5,9 @@ namespace Reseller\Ui;
 if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
 
 use Reseller\Activation\ActivationService;
+use Reseller\Domain\ResellerReadService;
 use Reseller\Security\ActorContext;
+use Reseller\Security\Capability;
 use Reseller\Security\PermissionService;
 use Reseller\Security\RouteGuard;
 
@@ -16,7 +18,12 @@ use Reseller\Security\RouteGuard;
  * legacy feature / role condition of the former menu still holds. Hidden navigation is never authorization; every
  * route stays authorized server-side.
  *
- * No placeholder destinations (owner: prefer hiding until the WP exists). No reseller voucher, wallet or finance item.
+ * No placeholder destinations (owner: prefer hiding until the WP exists). No reseller voucher item.
+ *
+ * WP6B (owner decision OD-3): Finance / Resellers / Pricing / Operations groups (each item only where its RouteMap
+ * rule allows the actor); the Reseller Tree moves from Settings to Resellers; legacy reports are labelled
+ * "Transactions (legacy)". Agent phone primary navigation: Home / Customers / + / Wallet / More (Wallet = its own
+ * finance overview; an Agent without wallet.read keeps the WP6A navigation). Sales / Admin / Report primary unchanged.
  */
 final class Navigation
 {
@@ -42,6 +49,21 @@ final class Navigation
             ['customers/add', 'Add subscriber', 'fa-user-plus', true, ['customers/add']],
             ['plan/list', 'Active Customers', 'fa-signal', true],
         ], 'CUSTOMERS', 'AFTER_CUSTOMERS');
+        $groups[] = self::group('finance', 'Finance', 'fa-credit-card', $a, $current, [
+            ['finance/overview', 'Wallet overview', 'fa-credit-card', true, ['finance/overview', 'finance', 'finance/wallet', 'finance/funding', 'finance/send', 'finance/debt-limit', 'finance/adjust']],
+            ['finance/wallets', 'Wallets', 'fa-list', $admin || self::hasChildren($a)],
+            ['finance/ledger', 'Ledger', 'fa-book', true, ['finance/ledger', 'finance/entry']],
+            ['finance/transfers', 'Transfers', 'fa-exchange', true, ['finance/transfers', 'finance/transfer', 'finance/reverse']],
+        ], null, null);
+        $groups[] = self::group('resellers', 'Resellers', 'fa-sitemap', $a, $current, [
+            ['reseller/tree', 'Reseller Tree', 'fa-sitemap', true, ['reseller/tree', 'reseller', 'reseller/detail']],
+        ], null, null);
+        $groups[] = self::group('pricing', 'Pricing', 'fa-tags', $a, $current, [
+            ['pricing/plans', 'Plans and prices', 'fa-tags', true, ['pricing/plans', 'pricing', 'pricing/plan', 'pricing/catalog']],
+        ], null, null);
+        $groups[] = self::group('operations', 'Operations', 'fa-stethoscope', $a, $current, [
+            ['operations/overview', 'Operations Center', 'fa-stethoscope', $admin, ['operations/overview', 'operations', 'operations/activations', 'operations/drift', 'operations/held', 'operations/renewals']],
+        ], null, null);
         if ($role !== 'Report') {
             $groups[] = self::group('services', 'Services', 'fa-ticket', $a, $current, [
                 ['plan/refill', 'Refill Customer', 'fa-credit-card', $voucher],
@@ -64,8 +86,12 @@ final class Navigation
             ['maps/odp', 'ODPs', 'fa-sitemap', true],
         ], 'MAPS', null);
         $groups[] = self::group('reports', 'Reports', 'fa-bar-chart', $a, $current, [
-            ['reports', 'Daily Reports', 'fa-calendar', true],
-            ['reports/activation', 'Activation History', 'fa-history', true],
+            ['finance/sales', 'Sales', 'fa-line-chart', true],
+            ['finance/commissions', 'Commissions', 'fa-percent', true],
+            ['finance/settlement', 'Provider settlement', 'fa-balance-scale', $admin],
+            ['finance/performance', 'Reseller performance', 'fa-trophy', true],
+            ['reports', 'Transactions (legacy)', 'fa-calendar', true],
+            ['reports/activation', 'Activation History (legacy)', 'fa-history', true],
         ], 'REPORTS', 'AFTER_REPORTS');
         $groups[] = self::group('message', 'Send Message', 'fa-comments', $a, $current, [
             ['message/send', 'Single Customer', 'fa-comment', true],
@@ -93,7 +119,6 @@ final class Navigation
             ['settings/notifications', 'User Notification', 'fa-bell', $admin],
             ['settings/devices', 'Devices', 'fa-mobile', $admin],
             ['settings/users', 'Administrator Users', 'fa-user-secret', in_array($role, ['SuperAdmin', 'Admin', 'Agent'], true)],
-            ['reseller/tree', 'Reseller Tree', 'fa-sitemap', true],
             ['settings/dbstatus', 'Backup/Restore', 'fa-hdd-o', $admin],
             ['paymentgateway', 'Payment Gateway', 'fa-credit-card', $admin],
             ['pluginmanager', 'Plugin Manager', 'fa-puzzle-piece', $admin],
@@ -113,13 +138,23 @@ final class Navigation
         $home = self::item('dashboard', 'Home', 'fa-home', $a, $current, ['dashboard', '']);
         $customers = self::item('customers/list', 'Customers', 'fa-users', $a, $current, ['customers/list', 'customers/view', 'customers/edit', 'customers/add', 'customers']);
         $activations = self::item('activation/list', 'Activations', 'fa-bolt', $a, $current, ['activation/list', 'activation/view', 'activation', 'activation/create']);
+        $wallet = $role === 'Agent' ? self::item('finance/overview', 'Wallet', 'fa-credit-card', $a, $current, ['finance/overview', 'finance', 'finance/wallet', 'finance/send', 'finance/ledger', 'finance/entry', 'finance/transfers', 'finance/transfer']) : null;
         $quick = array_values(array_filter([
             self::item('customers/add', 'Add subscriber', 'fa-user-plus', $a, $current),
             ActivationService::eligible($a) ? self::item('activation/create', 'Activate / Renew', 'fa-bolt', $a, $current) : null,
+            // WP6B (OD-3): money quick actions only where the accepted capability allows them
+            $role === 'Agent' && PermissionService::scopeOf($a, Capability::WALLET_TRANSFER) === 'C' && self::hasChildren($a) ? self::item('finance/send', 'Send to child reseller', 'fa-exchange', $a, $current) : null,
+            $admin && PermissionService::scopeOf($a, Capability::WALLET_FUND_WITHDRAW) === 'G' ? self::item('finance/wallets', 'Fund reseller', 'fa-plus-circle', $a, $current) : null,
         ]));
         $primary = array_values(array_filter([$home, $customers, $quick !== [] ? ['id' => 'quick', 'label' => 'New', 'icon' => 'fa-plus', 'sheet' => 'quick'] : null,
-            $activations, ['id' => 'more', 'label' => 'More', 'icon' => 'fa-bars', 'sheet' => 'more']]));
+            $wallet ?? $activations, ['id' => 'more', 'label' => 'More', 'icon' => 'fa-bars', 'sheet' => 'more']]));
         return ['primary' => $primary, 'quick' => $quick, 'groups' => $groups, 'plugins' => array_map('strval', $plugins)];
+    }
+
+    /** WP6B: the Agent has at least one Active direct child reseller (quick "Send" / Wallets destination). */
+    private static function hasChildren(ActorContext $a): bool
+    {
+        return ResellerReadService::hasActiveChildren($a);
     }
 
     /** True when the actor may open $route by GET (the accepted RouteMap rule; staff navigation only). */

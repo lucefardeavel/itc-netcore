@@ -268,3 +268,11 @@ Error handling around it:
 - **Snapshot and configuration immutability** is application-level. WP9 must red-team the tamper surfaces, and WP10 must provide least-privilege database accounts.
 - **Refund / reversal** of a settled activation (debit plus commissions) belongs to WP5A/WP5B.
 - **Ledger visibility after a move:** old ancestors keep historical commission rows whose counterparty may now be outside their scope. This is accepted as historical truth.
+
+## WP6B amendment (owner decisions OD-4, OD-9)
+
+- Bounded pricing reads for the pricing pages: `PricingService::catalogForManager` / `matrixForPlan` / `baseCosts` /
+  `relation` (25 plans / 50 managers per page, one tree lock per page, rows projected through `PricingReadModel`).
+  `PricingSourceGuardTest` admits the exact `pricing` / finance-report routes and the read-only display files
+  (`LedgerReadModel`, `SettlementReadModel`, `Ui/Format`); `Finance/SettlementReadModel` (SELECT-only) joins the
+  activation-table allow-list. No pricing rule changed.

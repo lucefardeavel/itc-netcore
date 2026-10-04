@@ -248,3 +248,12 @@ In-flight states are reconciled only when stale (default 300 s), so a running re
   behaviour is unchanged. New public helpers `payerOf()` and `expiredDay()`
   wrap the existing private logic. No state, edge, transaction or schema change. Details: `docs/WP6A_UX_MODEL.md` §2–§3.
 - Route (OD-C): `activation/list` `GET` → `activation.read` (web only).
+
+## WP6B amendment (owner decision OD-7, slice-0 correction)
+
+- `ActivationOperatorService`: the operator actions a page may offer, from one table mirroring the accepted primitives'
+  state preconditions (drift-guarded); web cancel (`ReconciliationService::cancel`) and resume
+  (`ActivationService::execute`) for Admin / SuperAdmin of stale (>= 300 s) FUNDS_RESERVED / RETRY_PENDING / VERIFIED
+  activations only; HELD / CLAIMED / PRIOR_SECRET resolutions stay CLI / informational. New read-only
+  `ActivationStore::stalePage / staleCount`; `ActivationReadService::references()` and the `settlement` block of `view()`
+  are additive reads. No state, edge or primitive changed.
