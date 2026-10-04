@@ -16,6 +16,12 @@
 
 <form class="nuxr-card nuxr-card-body nuxr-form" method="get" action="{$app_url}/" role="search">
     <input type="hidden" name="_route" value="customers/list">
+    {if $nuxr_owner}<input type="hidden" name="owner" value="{$nuxr_owner|escape}">{/if}
+    {if $nuxr_sales}<input type="hidden" name="sales" value="{$nuxr_sales|escape}">{/if}
+    {if $nuxr_owner || $nuxr_sales}
+        <p class="nuxr-chip is-active" style="margin:0 0 10px"><i class="fa fa-filter" aria-hidden="true"></i>{if $nuxr_sales}{Lang::T('Customers assigned to one Sales account')}{else}{Lang::T('Customers of one reseller')}{/if}
+            · <a href="{Text::url('customers/list')}">{Lang::T('Clear')}</a></p>
+    {/if}
     <div class="nuxr-filters" style="margin-bottom:0">
         <label class="sr-only" for="nuxr-list-search">{Lang::T('Search subscribers')}</label>
         <input id="nuxr-list-search" class="form-control nuxr-input" style="flex:1 1 260px" type="search" name="search" value="{$search|escape}" maxlength="64"

@@ -7,7 +7,8 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  *
  * Every action is authorized centrally (RouteGuard / RouteMap) and again inside the domain services
  * (capability + scope + actor revalidation inside the transaction). All mutations are POST + CSRF and
- * audited. No finance.
+ * audited. No finance on the tree (API-reachable); WP6B adds the web-only reseller detail through
+ * Reseller\\Backoffice\\ResellerDesk.
  */
 
 _admin();
@@ -82,67 +83,41 @@ switch ($action) {
         $nuxrRun(static fn() => \Reseller\Domain\CustomerService::assignLegacyOwner($nuxrActor, is_array($ids) ? $ids : [], $managerId, $salesId), 'customers/list', 'Owner assigned');
         break;
 
+    case 'detail':
+        try {
+            $node = \Reseller\Backoffice\ResellerDesk::detail($nuxrActor, $routes['2'] ?? '');
+        } catch (\Reseller\Domain\DomainError $e) {
+            $nuxrBack('reseller/tree', 'e', Lang::T($e->getMessage()));
+        }
+        $ui->assign('_title', $node['fullname']);
+        $ui->assign('nuxr_node', $node);
+        $ui->assign('nuxr_agents', $node['can_move'] ? \Reseller\Domain\CustomerService::ownerOptions() : []);
+        $ui->display('admin/reseller/detail.tpl');
+        break;
+
     case 'tree':
     default:
-        \Reseller\Domain\ResellerTreeService::requireReady();
-        $pdo = ORM::get_db();
-        $scope = \Reseller\Security\PermissionService::scopeOf($nuxrActor, $C::RESELLER_TREE_READ);
-        if ($scope === 'G') {
-            $members = \Reseller\Domain\Tx::rows($pdo, 'SELECT u.id, u.username, u.fullname, u.user_type, u.status, u.root FROM tbl_users u JOIN tbl_manager_tree t ON t.ancestor_id = u.id AND t.descendant_id = u.id ORDER BY u.id');
-        } else {
-            $members = \Reseller\Domain\Tx::rows($pdo, 'SELECT u.id, u.username, u.fullname, u.user_type, u.status, u.root FROM tbl_users u JOIN tbl_manager_tree t ON t.descendant_id = u.id WHERE t.ancestor_id = ? ORDER BY u.id', [(int) $nuxrActor->userId]);
+        // WP6B: read model in Reseller\Domain (scope reseller.tree_read); this page is API-reachable, so it carries no money
+        try {
+            $tree = \Reseller\Domain\ResellerReadService::tree($nuxrActor);
+        } catch (\Reseller\Domain\DomainError $e) {
+            $nuxrBack('dashboard', 'e', Lang::T($e->getMessage()));
         }
-        $ids = array_map(static fn($m) => (int) $m['id'], $members);
-        $parent = [];
-        $depth = [];
-        if ($ids !== []) {
-            $ph = implode(',', array_fill(0, count($ids), '?'));
-            foreach (\Reseller\Domain\Tx::rows($pdo, "SELECT ancestor_id, descendant_id FROM tbl_manager_tree WHERE depth = 1 AND descendant_id IN ($ph)", $ids) as $r) {
-                $parent[(int) $r['descendant_id']] = (int) $r['ancestor_id'];
-            }
-            foreach (\Reseller\Domain\Tx::rows($pdo, "SELECT descendant_id, MAX(depth) AS d FROM tbl_manager_tree WHERE descendant_id IN ($ph) GROUP BY descendant_id", $ids) as $r) {
-                $depth[(int) $r['descendant_id']] = (int) $r['d'];
-            }
-        }
-        $counts = [];
-        if ($ids !== []) {
-            foreach (\Reseller\Domain\Tx::rows($pdo, "SELECT manager_id, COUNT(*) AS n FROM tbl_customers WHERE manager_id IN ($ph) GROUP BY manager_id", $ids) as $r) {
-                $counts[(int) $r['manager_id']] = (int) $r['n'];
-            }
-        }
-        // depth-first order for display
-        $children = [];
-        foreach ($members as $m) {
-            $children[$parent[(int) $m['id']] ?? 0][] = $m;
-        }
-        $ordered = [];
-        $walk = function (int $pid) use (&$walk, &$ordered, $children, $depth, $counts, $nuxrActor, $C) {
-            foreach ($children[$pid] ?? [] as $m) {
-                $id = (int) $m['id'];
-                $m['level'] = $depth[$id] ?? 0;
-                $m['customers'] = $counts[$id] ?? 0;
-                $m['can_status'] = $id !== (int) $nuxrActor->userId && \Reseller\Domain\StaffService::canTarget($nuxrActor, $m, $C::STAFF_DISABLE);
-                $ordered[] = $m;
-                $walk($id);
-            }
-        };
-        // roots of the visible forest: members whose parent is not visible
-        $visible = array_flip($ids);
-        foreach ($members as $m) {
-            $pid = $parent[(int) $m['id']] ?? 0;
-            if ($pid !== 0 && !isset($visible[$pid])) {
-                $children[0][] = $m;
-            }
-        }
-        $walk(0);
-        $ui->assign('nuxr_tree', $ordered);
+        $focus = \Reseller\Security\DataScope::validId(_get('node')) ? (int) _get('node') : 0;
+        $ui->assign('nuxr_tree', $tree['nodes']);
+        $ui->assign('nuxr_children', $tree['children']);
+        $byId = array_column($tree['nodes'], null, 'id');
+        $ui->assign('nuxr_total', count($tree['nodes']));
+        // phone drill-down: the cards of one level (the roots, or the children of the focused account)
+        $ui->assign('nuxr_level', array_values(array_filter(array_map(static fn(int $id) => $byId[$id] ?? null, $tree['children'][$focus] ?? []))));
+        $ui->assign('nuxr_focus', $focus);
+        $ui->assign('nuxr_path', $focus > 0 ? \Reseller\Domain\ResellerReadService::path($tree, $focus) : []);
         $ui->assign('nuxr_can_place', \Reseller\Security\PermissionService::can($nuxrActor, $C::RESELLER_PLACE));
         $ui->assign('nuxr_can_move', \Reseller\Security\PermissionService::can($nuxrActor, $C::RESELLER_MOVE));
-        if (\Reseller\Security\PermissionService::can($nuxrActor, $C::RESELLER_PLACE)) {
-            $ui->assign('nuxr_unenrolled', \Reseller\Domain\Tx::rows($pdo, "SELECT u.id, u.username, u.fullname, u.user_type, u.status, u.root FROM tbl_users u WHERE u.user_type IN ('Agent','Sales') AND NOT EXISTS (SELECT 1 FROM tbl_manager_tree t WHERE t.descendant_id = u.id) ORDER BY u.id"));
-            $ui->assign('nuxr_agents', \Reseller\Domain\CustomerService::ownerOptions());
-        }
-        $ui->assign('nuxr_verify', $scope === 'G' ? \Reseller\Domain\ResellerTreeService::verify($pdo) : []);
+        $ui->assign('nuxr_can_create', \Reseller\Security\PermissionService::can($nuxrActor, $C::STAFF_CREATE));
+        $ui->assign('nuxr_unenrolled', $tree['unenrolled']);
+        $ui->assign('nuxr_agents', $tree['agents']);
+        $ui->assign('nuxr_verify', $tree['findings']);
         $ui->display('admin/reseller/tree.tpl');
         break;
 }

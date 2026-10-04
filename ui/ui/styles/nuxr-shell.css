@@ -1758,3 +1758,24 @@ a.nuxr-stat:hover, a.nuxr-stat:focus {
         flex: 2;
     }
 }
+
+/* ---------- WP6B finance / reseller workspace ---------- */
+.nuxr-amount { white-space: nowrap; }
+.nuxr-amount.is-credit { color: var(--nx-success); }
+.nuxr-amount.is-debit { color: var(--nx-text); }
+.nuxr-dir-word { font-size: 12px; color: var(--nx-muted); margin-inline-end: 4px; }
+.nuxr-op { border-inline-start: 4px solid var(--nx-border); }
+.nuxr-op.is-fund { border-inline-start-color: var(--nx-success); }
+.nuxr-op.is-withdraw, .nuxr-op.is-debit, .nuxr-op.is-reverse { border-inline-start-color: var(--nx-danger); }
+.nuxr-op.is-send { border-inline-start-color: var(--nx-primary); }
+.nuxr-op.is-admin, .nuxr-op.is-debt_limit, .nuxr-op.is-credit { border-inline-start-color: var(--nx-warning); }
+.nuxr-admin-zone { background: var(--nx-surface-2); }
+.nuxr-transfer-line { font-size: 16px; line-height: 1.7; }
+.nuxr-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px 16px; border-bottom: 1px solid var(--nx-border); }
+.nuxr-crumbs a, .nuxr-crumbs span { min-height: var(--nx-touch); display: inline-flex; align-items: center; }
+.nuxr-drill .nuxr-mcard { gap: 10px; }
+.nuxr-drill .nuxr-mcard-main { color: inherit; text-decoration: none; min-width: 0; }
+.nuxr-drill-btn { flex: 0 0 auto; min-width: var(--nx-touch); min-height: var(--nx-touch); }
+.nuxr-mcard-form { flex-wrap: wrap; }
+.nuxr-mcard-form form { flex: 1 1 100%; }
+.nuxr-tree-indent { display: inline-block; }

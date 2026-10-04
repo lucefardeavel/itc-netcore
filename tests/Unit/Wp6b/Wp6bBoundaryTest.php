@@ -92,7 +92,7 @@ final class Wp6bBoundaryTest extends TestCase
 
     public function testControllersStayThin(): void
     {
-        foreach (['finance', 'pricing', 'operations', 'activation'] as $name) {
+        foreach (['finance', 'pricing', 'operations', 'activation', 'reseller'] as $name) {
             $file = self::root() . '/system/controllers/' . $name . '.php';
             if (!is_file($file)) {
                 continue;

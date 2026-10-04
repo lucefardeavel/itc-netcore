@@ -941,7 +941,12 @@ switch ($action) {
         if (!in_array($nuxrService, ['', 'active', 'expiring', 'expired', 'none'], true)) {
             $nuxrService = '';
         }
-        $append_url = "&order=" . urlencode($order) . "&filter=" . urlencode($filter) . "&orderby=" . urlencode($orderby) . "&service=" . urlencode($nuxrService);
+        // WP6B: reseller workspace links (customers of one owner / assigned to one Sales); applied after the scope
+        // predicate below, so they only narrow what the actor may already see
+        $nuxrOwner = \Reseller\Security\DataScope::validId(_req('owner', '')) ? (int) _req('owner') : null;
+        $nuxrSales = \Reseller\Security\DataScope::validId(_req('sales', '')) ? (int) _req('sales') : null;
+        $append_url = "&order=" . urlencode($order) . "&filter=" . urlencode($filter) . "&orderby=" . urlencode($orderby) . "&service=" . urlencode($nuxrService)
+            . ($nuxrOwner !== null ? '&owner=' . $nuxrOwner : '') . ($nuxrSales !== null ? '&sales=' . $nuxrSales : '');
 
         // WP2 / WP6A: the scope predicate first, then the parenthesized search group (it can never widen the scope)
         $query = ORM::for_table('tbl_customers');
@@ -953,6 +958,12 @@ switch ($action) {
         }
         if ($filter !== 'All') {
             $query->where('tbl_customers.status', $filter);
+        }
+        if ($nuxrOwner !== null) {
+            $query->where('tbl_customers.manager_id', $nuxrOwner);
+        }
+        if ($nuxrSales !== null) {
+            $query->where('tbl_customers.assigned_sales_id', $nuxrSales);
         }
         $nuxrToday = date('Y-m-d');
         $nuxrSoon = date('Y-m-d', strtotime('+7 days'));
@@ -1030,6 +1041,8 @@ switch ($action) {
         $ui->assign('nuxr_plans', \Reseller\Ui\Subscriber::plans(array_map(static fn($c) => (int) $c['id'], is_array($d) ? $d : ($d instanceof \Traversable ? iterator_to_array($d) : []))));
         $ui->assign('nuxr_total', $nuxrTotal);
         $ui->assign('nuxr_service', $nuxrService);
+        $ui->assign('nuxr_owner', $nuxrOwner);
+        $ui->assign('nuxr_sales', $nuxrSales);
         $ui->assign('nuxr_can_activate', \Reseller\Activation\ActivationService::eligible($nuxrActor));
         $ui->assign('nuxr_global', \Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ) === 'G');
         $ui->assign('filter', $filter);

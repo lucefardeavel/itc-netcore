@@ -195,6 +195,8 @@ final class RouteMap
         'reseller' => [
             '' => 'tree', '*' => 'tree',
             'tree' => ['GET' => C::RESELLER_TREE_READ],
+            // WP6B: reseller detail (web only; never in API_ALLOWED)
+            'detail' => ['GET' => C::RESELLER_TREE_READ],
             'place-post' => ['POST' => C::RESELLER_PLACE],
             'move-post' => ['POST' => C::RESELLER_MOVE],
             'status-post' => ['POST' => C::STAFF_DISABLE],

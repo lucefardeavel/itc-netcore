@@ -53,7 +53,7 @@ PHP);
                 }
             }
         }
-        $web = array_values(array_unique(array_merge($web, ['finance', 'finance/fund', 'activation/cancel', 'activation/resume'])));
+        $web = array_values(array_unique(array_merge($web, ['finance', 'finance/fund', 'activation/cancel', 'activation/resume', 'reseller/detail'])));
         $forged = ['manager_id' => $this->sid('B'), 'from' => $this->sid('A'), 'to' => $this->sid('B'), 'amount' => '1000', 'reason' => 'forged', 'reference' => 'FORGED-0001'];
         $before = $this->snapshot([]);
         foreach (['sa', 'ad', 'A'] as $u) {
