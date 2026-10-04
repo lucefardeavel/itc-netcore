@@ -61,9 +61,19 @@ switch ($action) {
         $planId = _get('plan');
         $preview = null;
         $plans = [];
+        $customer = null;
+        // WP6A: customer picker (scoped search; only customers this actor may activate) instead of a typed id
+        $nuxrTerm = \Reseller\Domain\CustomerSearch::term(_get('q'));
+        if (!\Reseller\Security\DataScope::validId($customerId) && $nuxrTerm !== null) {
+            $ui->assign('nuxr_picked', \Reseller\Ui\Subscriber::activatable($nuxrActor, $nuxrTerm));
+        }
+        $ui->assign('nuxr_q', $nuxrTerm ?? '');
         try {
             // only the plans this actor can sell in this context (Sales: for the selected customer's owner)
             $plans = \Reseller\Activation\ActivationService::catalog($nuxrActor, \Reseller\Security\DataScope::validId($customerId) ? $customerId : null);
+            if (\Reseller\Security\DataScope::validId($customerId)) {
+                $customer = \Reseller\Security\DataScope::findCustomer($nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ, $customerId);
+            }
             if (\Reseller\Security\DataScope::validId($customerId) && \Reseller\Security\DataScope::validId($planId)) {
                 $preview = \Reseller\Activation\ActivationPreviewService::quote($nuxrActor, $customerId, $planId, $nuxrPreviewKey);
             }
@@ -73,6 +83,9 @@ switch ($action) {
             }
             $ui->assign('nuxr_error', Lang::T($e->getMessage()));
         }
+        $ui->assign('_title', Lang::T('Activate / Renew'));
+        $ui->assign('nuxr_customer', $customer ? ['id' => (int) $customer['id'], 'username' => (string) $customer['username'], 'fullname' => (string) $customer['fullname']] : null);
+        $ui->assign('nuxr_plan_cards', \Reseller\Ui\Subscriber::planCards($plans));
         $ui->assign('nuxr_plans', $plans);
         $ui->assign('nuxr_customer_id', \Reseller\Security\DataScope::validId($customerId) ? (int) $customerId : '');
         $ui->assign('nuxr_plan_id', \Reseller\Security\DataScope::validId($planId) ? (int) $planId : '');
@@ -103,8 +116,10 @@ switch ($action) {
         } catch (\Reseller\Domain\DomainError $e) {
             $nuxrFail($e, \Reseller\Security\PermissionService::can($nuxrActor, \Reseller\Security\Capability::ACTIVATION_CREATE) ? 'activation/create' : 'dashboard');
         }
+        $ui->assign('_title', Lang::T('Activation') . ' ' . $view['activation']['reference']);
         $ui->assign('nuxr_activation', $view['activation']);
         $ui->assign('nuxr_events', $view['events']);
+        $ui->assign('nuxr_progress', \Reseller\Ui\Format::progress($view['events'], (string) $view['activation']['status']));
         $ui->assign('nuxr_can_reconcile', \Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::ACTIVATION_CREATE) === 'G');
         $ui->assign('nuxr_can_reverse', \Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::ACTIVATION_REVERSE) === 'G');
         $ui->display('admin/activation/view.tpl');

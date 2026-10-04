@@ -1677,3 +1677,61 @@ a.nuxr-stat:hover, a.nuxr-stat:focus {
     color: var(--nx-primary);
     font-size: 13px;
 }
+
+/* ---------- activation: plan cards ---------- */
+.nuxr-plans {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+}
+
+.nuxr-plan {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 64px;
+    margin: 0;
+    padding: 12px 14px;
+    padding-inline-start: 40px;
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-sm);
+    background: var(--nx-surface);
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.nuxr-plan input {
+    position: absolute;
+    inset-inline-start: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+.nuxr-plan:has(input:checked), .nuxr-plan.is-selected {
+    border-color: var(--nx-primary);
+    background: var(--nx-primary-soft);
+}
+
+.nuxr-plan:focus-within {
+    outline: 2px solid var(--nx-focus);
+    outline-offset: 2px;
+}
+
+.nuxr-plan-name {
+    font-weight: 700;
+}
+
+@media (max-width: 767px) {
+    /* five labels do not fit a phone: keep the bars, show the current / stopped step's label only (all stay readable by AT) */
+    .nuxr-stepper > li:not(.is-current):not(.is-failed) {
+        font-size: 0;
+    }
+
+    .nuxr-stepper > li.is-current, .nuxr-stepper > li.is-failed {
+        flex: 2;
+    }
+}

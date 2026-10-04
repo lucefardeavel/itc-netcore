@@ -23,7 +23,7 @@ final class Format
 
     /** Plain-language label (English source key, translated by Lang::T) of each activation state. */
     public const STATE_LABEL = [
-        'CREATED' => 'Request created', 'VALIDATED' => 'Request created', 'FUNDS_RESERVED' => 'Credit reserved', 'PROVISIONING' => 'Applying to the network',
+        'CREATED' => 'Request created', 'VALIDATED' => 'Validated', 'FUNDS_RESERVED' => 'Credit reserved', 'PROVISIONING' => 'Applying to the network',
         'PROVISIONED' => 'Applied to the network', 'VERIFYING' => 'Verifying', 'VERIFIED' => 'Verified', 'FINANCIAL_COMMITTING' => 'Settling',
         'RETRY_PENDING' => 'Retrying', 'COMPLETED' => 'Completed', 'FAILED' => 'Failed', 'CANCELLED' => 'Cancelled', 'ROLLED_BACK' => 'Rolled back',
         'RECONCILIATION_REQUIRED' => 'Checking - reconciliation required', 'ROLLBACK_PENDING' => 'Rollback pending', 'REVERSAL_PENDING' => 'Reversal pending',
@@ -115,5 +115,46 @@ final class Format
         $h = intdiv($seconds % 86400, 3600);
         $m = intdiv($seconds % 3600, 60);
         return ($d > 0 ? $d . 'd ' : '') . $h . 'h ' . str_pad((string) $m, 2, '0', STR_PAD_LEFT) . 'm';
+    }
+
+    /** The safe, translatable message of a domain reason code, or null (raw provisioning text is never shown). */
+    public static function errorText(?string $code): ?string
+    {
+        return \Reseller\Domain\DomainError::MESSAGES[(string) $code] ?? null;
+    }
+
+    /**
+     * Activation progress from the PERSISTED event timeline (never simulated): Request created, Credit reserved,
+     * Provisioning, Verifying, Completed; each step done / current / failed / todo.
+     *
+     * @param list<array<string,mixed>> $events
+     * @return list<array{label:string,state:string}>
+     */
+    public static function progress(array $events, string $status): array
+    {
+        $reached = array_flip(array_map(static fn(array $e): string => (string) $e['to_state'], $events));
+        $steps = [
+            ['Request created', ['CREATED', 'VALIDATED']],
+            ['Credit reserved', ['FUNDS_RESERVED']],
+            ['Provisioning', ['PROVISIONING', 'PROVISIONED', 'RETRY_PENDING']],
+            ['Verifying', ['VERIFYING', 'VERIFIED']],
+            ['Completed', ['FINANCIAL_COMMITTING', 'COMPLETED']],
+        ];
+        $last = -1;
+        foreach ($steps as $i => [, $states]) {
+            foreach ($states as $st) {
+                if (isset($reached[$st])) {
+                    $last = $i;
+                }
+            }
+        }
+        $done = $status === 'COMPLETED' || isset($reached['COMPLETED']);
+        $stopped = in_array($status, ['FAILED', 'CANCELLED', 'RECONCILIATION_REQUIRED', 'ROLLBACK_PENDING', 'ROLLED_BACK'], true);
+        $out = [];
+        foreach ($steps as $i => [$label]) {
+            $state = $done || $i < $last ? 'done' : ($i === $last ? ($stopped ? 'failed' : 'current') : 'todo');
+            $out[] = ['label' => $label, 'state' => $state];
+        }
+        return $out;
     }
 }

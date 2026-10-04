@@ -109,4 +109,53 @@ final class Subscriber
         }
         return $out;
     }
+
+    /**
+     * Activation customer picker: reseller-owned customers matching the term within customer.read scope that the
+     * actor may activate (ActivationService::payerOf: Agent own customers, Sales assigned, Admin any), at most 20.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public static function activatable(\Reseller\Security\ActorContext $a, string $term): array
+    {
+        [$pred, $params] = CustomerSearch::predicate($term, 'tbl_customers', false, self::sessionUsernames($term));
+        $rows = \Reseller\Security\DataScope::scopeCustomers(\ORM::for_table('tbl_customers'), $a, \Reseller\Security\Capability::CUSTOMER_READ)
+            ->where_raw($pred, $params)->where_not_null('tbl_customers.manager_id')
+            ->order_by_asc('tbl_customers.username')->limit(40)->find_array();
+        $out = [];
+        foreach ($rows as $r) {
+            try {
+                \Reseller\Activation\ActivationService::payerOf($a, $r);
+            } catch (\Reseller\Domain\DomainError) {
+                continue;
+            }
+            $out[] = ['id' => (int) $r['id'], 'username' => (string) $r['username'], 'fullname' => (string) $r['fullname'], 'status' => (string) $r['status'],
+                'phonenumber' => (string) $r['phonenumber'], 'pppoe_ip' => (string) $r['pppoe_ip']];
+            if (count($out) >= 20) {
+                break;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Display data of the actor's activation catalog (no price: the effective prices come only from the server quote).
+     *
+     * @param list<array{id:int,name_plan:string,type:string}> $catalog
+     * @return list<array<string,mixed>>
+     */
+    public static function planCards(array $catalog): array
+    {
+        $ids = array_map(static fn(array $p): int => (int) $p['id'], $catalog);
+        if ($ids === []) {
+            return [];
+        }
+        $extra = [];
+        foreach (\ORM::for_table('tbl_plans')->select_many('tbl_plans.id', 'tbl_plans.validity', 'tbl_plans.validity_unit')->select('tbl_bandwidth.name_bw', 'name_bw')
+            ->left_outer_join('tbl_bandwidth', ['tbl_bandwidth.id', '=', 'tbl_plans.id_bw'])->where_in('tbl_plans.id', $ids)->find_array() as $r) {
+            $extra[(int) $r['id']] = $r;
+        }
+        return array_map(static fn(array $p): array => $p + ['validity' => (string) ($extra[$p['id']]['validity'] ?? ''), 'validity_unit' => (string) ($extra[$p['id']]['validity_unit'] ?? ''),
+            'speed' => (string) ($extra[$p['id']]['name_bw'] ?? '')], $catalog);
+    }
 }
