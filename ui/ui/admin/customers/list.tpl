@@ -1,335 +1,178 @@
 {include file="sections/header.tpl"}
-<style>
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        display: inline-block;
-        padding: 5px 10px;
-        margin-right: 5px;
-        border: 1px solid #ccc;
-        background-color: #fff;
-        color: #333;
-        cursor: pointer;
-    }
-</style>
-
-<div class="row">
-    <div class="col-sm-12">
-        <div class="panel panel-hovered mb20 panel-primary">
-            <div class="panel-heading">
-                {if in_array($_admin['user_type'],['SuperAdmin','Admin'])}
-                <div class="btn-group pull-right">
-                    <a data-method="post" class="btn btn-primary btn-xs" title="save"
-                        href="{Text::url('customers/csv&token=', $csrf_token)}"
-                        onclick="return ask(this, '{Lang::T("This will export to CSV")}?')"><span
-                            class="glyphicon glyphicon-download" aria-hidden="true"></span> CSV</a>
-                </div>
-                {/if}
-                {Lang::T('Manage Contact')}
-            </div>
-            <div class="panel-body">
-                <form id="site-search" method="post" action="{Text::url('customers')}">
-                    <input type="hidden" name="csrf_token" value="{$csrf_token}">
-                    <div class="md-whiteframe-z1 mb20 text-center" style="padding: 15px">
-                        <div class="col-lg-4">
-                            <div class="input-group">
-                                <span class="input-group-addon">{Lang::T('Order ')}&nbsp;&nbsp;</span>
-                                <div class="row row-no-gutters">
-                                    <div class="col-xs-8">
-                                        <select class="form-control" id="order" name="order">
-                                            <option value="username" {if $order eq 'username' }selected{/if}>
-                                                {Lang::T('Username')}</option>
-                                            <option value="fullname" {if $order eq 'fullname' }selected{/if}>
-                                                {Lang::T('First Name')}</option>
-                                            <option value="lastname" {if $order eq 'lastname' }selected{/if}>
-                                                {Lang::T('Last Name')}</option>
-                                            <option value="created_at" {if $order eq 'created_at' }selected{/if}>
-                                                {Lang::T('Created Date')}</option>
-                                            <option value="balance" {if $order eq 'balance' }selected{/if}>
-                                                {Lang::T('Balance')}</option>
-                                            <option value="status" {if $order eq 'status' }selected{/if}>
-                                                {Lang::T('Status')}</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-xs-4">
-                                        <select class="form-control" id="orderby" name="orderby">
-                                            <option value="asc" {if $orderby eq 'asc' }selected{/if}>
-                                                {Lang::T('Ascending')}</option>
-                                            <option value="desc" {if $orderby eq 'desc' }selected{/if}>
-                                                {Lang::T('Descending')}</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-3">
-                            <div class="input-group">
-                                <span class="input-group-addon">{Lang::T('Status')}</span>
-                                <select class="form-control" id="filter" name="filter">
-                                    {foreach $statuses as $status}
-                                    <option value="{$status}" {if $filter eq $status }selected{/if}>{Lang::T($status)}
-                                    </option>
-                                    {/foreach}
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            <div class="input-group">
-                                <input type="text" name="search" class="form-control"
-                                    placeholder="{Lang::T('Search')}..." value="{$search}">
-                                <div class="input-group-btn">
-                                    <button class="btn btn-primary" type="submit"><span class="fa fa-search"></span>
-                                        {Lang::T('Search')}</button>
-                                    <button class="btn btn-info" type="submit" name="export" value="csv">
-                                        <span class="glyphicon glyphicon-download" aria-hidden="true"></span> CSV
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-1">
-                            <a href="{Text::url('customers/add')}" class="btn btn-success text-black btn-block"
-                                title="{Lang::T('Add')}">
-                                <i class="ion ion-android-add"></i><i class="glyphicon glyphicon-user"></i>
-                            </a>
-                        </div>
-                    </div>
-                </form>
-                <br>&nbsp;
-                <div class="table-responsive table_mobile">
-                    <table id="customerTable" class="table table-bordered table-striped table-condensed">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" id="select-all"></th>
-                                <th>{Lang::T('Username')}</th>
-                                <th>Photo</th>
-                                <th>{Lang::T('Account Type')}</th>
-                                <th>{Lang::T('Full Name')}</th>
-                                <th>{Lang::T('Balance')}</th>
-                                <th>{Lang::T('Contact')}</th>
-                                <th>{Lang::T('Package')}</th>
-                                <th>{Lang::T('Service Type')}</th>
-                                <th>PPPOE</th>
-                                <th>{Lang::T('Status')}</th>
-                                <th>{Lang::T('Created On')}</th>
-                                <th>{Lang::T('Manage')}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {foreach $d as $ds}
-                            <tr {if $ds['status'] !='Active' }class="danger" {/if}>
-                                <td><input type="checkbox" name="customer_ids[]" value="{$ds['id']}"></td>
-                                <td onclick="window.location.href = '{Text::url('customers/view/', $ds['id'])}'"
-                                    style="cursor:pointer;">{$ds['username']}</td>
-                                <td>
-                                    <a href="{$app_url}/{$UPLOAD_PATH}{$ds['photo']}" target="photo">
-                                        <img src="{$app_url}/{$UPLOAD_PATH}{$ds['photo']}.thumb.jpg" width="32" alt="">
-                                    </a>
-                                </td>
-                                <td>{$ds['account_type']}</td>
-                                <td onclick="window.location.href = '{Text::url('customers/view/', $ds['id'])}'"
-                                    style="cursor: pointer;">{$ds['fullname']}</td>
-                                <td>{Lang::moneyFormat($ds['balance'])}</td>
-                                <td align="center">
-                                    {if $ds['phonenumber']}
-                                    <a href="tel:{$ds['phonenumber']}" class="btn btn-default btn-xs"
-                                        title="{$ds['phonenumber']}"><i class="glyphicon glyphicon-earphone"></i></a>
-                                    {/if}
-                                    {if $ds['email']}
-                                    <a href="mailto:{$ds['email']}" class="btn btn-default btn-xs"
-                                        title="{$ds['email']}"><i class="glyphicon glyphicon-envelope"></i></a>
-                                    {/if}
-                                    {if $ds['coordinates']}
-                                    <a href="https://www.google.com/maps/dir//{$ds['coordinates']}/" target="_blank"
-                                        class="btn btn-default btn-xs" title="{$ds['coordinates']}"><i
-                                            class="glyphicon glyphicon-map-marker"></i></a>
-                                    {/if}
-                                </td>
-                                <td align="center" api-get-text="{Text::url('autoload/plan_is_active/')}{$ds['id']}">
-                                    <span class="label label-default">&bull;</span>
-                                </td>
-                                <td>{$ds['service_type']}</td>
-                                <td>
-                                    {$ds['pppoe_username']}
-                                    {if !empty($ds['pppoe_username']) && !empty($ds['pppoe_ip'])}:{/if}
-                                    {$ds['pppoe_ip']}
-                                </td>
-                                <td>{Lang::T($ds['status'])}</td>
-                                <td>{Lang::dateTimeFormat($ds['created_at'])}</td>
-                                <td align="center">
-                                    <a href="{Text::url('customers/view/')}{$ds['id']}" id="{$ds['id']}"
-                                        style="margin: 0px; color:black"
-                                        class="btn btn-success btn-xs">&nbsp;&nbsp;{Lang::T('View')}&nbsp;&nbsp;</a>
-                                    <a href="{Text::url('customers/edit/', $ds['id'], '&token=', $csrf_token)}"
-                                        id="{$ds['id']}" style="margin: 0px; color:black"
-                                        class="btn btn-info btn-xs">&nbsp;&nbsp;{Lang::T('Edit')}&nbsp;&nbsp;</a>
-                                    <a data-method="post" href="{Text::url('customers/sync/', $ds['id'], '&token=', $csrf_token)}"
-                                        id="{$ds['id']}" style="margin: 5px; color:black"
-                                        class="btn btn-success btn-xs">&nbsp;&nbsp;{Lang::T('Sync')}&nbsp;&nbsp;</a>
-                                    <a href="{Text::url('plan/recharge/', $ds['id'], '&token=', $csrf_token)}"
-                                        id="{$ds['id']}" style="margin: 0px;"
-                                        class="btn btn-primary btn-xs">{Lang::T('Recharge')}</a>
-                                </td>
-                            </tr>
-                            {/foreach}
-                        </tbody>
-                    </table>
-                    <div class="row" style="padding: 5px">
-                        <div class="col-lg-3 col-lg-offset-9">
-                            <div class="btn-group btn-group-justified" role="group">
-                                <!-- <div class="btn-group" role="group">
-                                    {if in_array($_admin['user_type'],['SuperAdmin','Admin'])}
-                                    <button id="deleteSelectedTokens" class="btn btn-danger">{Lang::T('Delete
-                                        Selected')}</button>
-                                    {/if}
-                                </div> -->
-                                <div class="btn-group" role="group">
-                                    <button id="sendMessageToSelected" class="btn btn-success">{Lang::T('Send
-                                        Message')}</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {include file="pagination.tpl"}
-            </div>
-        </div>
+{include file="admin/nuxr/macros.tpl"}
+{* WP6A subscriber list: server-side scoped search and filters, server pagination (30), one dataset rendered as a dense
+   table (>= 768px) and as cards (phone). Actions follow the accepted capabilities; nothing here authorizes. *}
+<div class="nuxr-page-head">
+    <span class="nuxr-sub" role="status">{if $search}{Lang::T('Results')}: {/if}<strong>{$nuxr_total}</strong> {Lang::T('subscribers')}</span>
+    <div class="nuxr-actions">
+        {if $_can['customer.create']}
+            <a class="nuxr-btn nuxr-btn-primary" href="{Text::url('customers/add')}"><i class="fa fa-user-plus" aria-hidden="true"></i>{Lang::T('Add subscriber')}</a>
+        {/if}
+        {if $_can['customer.export']}
+            <a class="nuxr-btn nuxr-hide-phone" data-method="post" href="{Text::url('customers/csv&token=', $csrf_token)}"><i class="fa fa-download" aria-hidden="true"></i>CSV</a>
+        {/if}
     </div>
 </div>
-<!-- Modal for Sending Messages -->
-<div id="sendMessageModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="sendMessageModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="sendMessageModalLabel">{Lang::T('Send Message')}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <select id="messageType" class="form-control">
-                    <option value="all">{Lang::T('All')}</option>
-                    <option value="email">{Lang::T('Email')}</option>
-                    <option value="inbox">{Lang::T('Inbox')}</option>
-                    <option value="sms">{Lang::T('SMS')}</option>
-                    <option value="wa">{Lang::T('WhatsApp')}</option>
+
+<form class="nuxr-card nuxr-card-body nuxr-form" method="get" action="{$app_url}/" role="search">
+    <input type="hidden" name="_route" value="customers/list">
+    <div class="nuxr-filters" style="margin-bottom:0">
+        <label class="sr-only" for="nuxr-list-search">{Lang::T('Search subscribers')}</label>
+        <input id="nuxr-list-search" class="form-control nuxr-input" style="flex:1 1 260px" type="search" name="search" value="{$search|escape}" maxlength="64"
+            placeholder="{Lang::T('Name, username, phone, PPPoE, IP or #ID')}">
+        <details class="nuxr-filter-more" {if $filter neq 'Active' || $nuxr_service || $order neq 'username'}open{/if}>
+            <summary class="nuxr-btn"><i class="fa fa-sliders" aria-hidden="true"></i>{Lang::T('Filters')}</summary>
+            <div class="nuxr-filters" style="margin:10px 0 0">
+                <label class="sr-only" for="nuxr-f-status">{Lang::T('Account status')}</label>
+                <select id="nuxr-f-status" name="filter" class="form-control nuxr-input" style="width:auto">
+                    <option value="All" {if $filter eq 'All'}selected{/if}>{Lang::T('All accounts')}</option>
+                    {foreach $statuses as $s}<option value="{$s|escape}" {if $filter eq $s}selected{/if}>{Lang::T($s)}</option>{/foreach}
                 </select>
-                <br>
-                <textarea id="messageContent" class="form-control" rows="4"
-                    placeholder="{Lang::T('Enter your message here...')}"></textarea>
+                <label class="sr-only" for="nuxr-f-service">{Lang::T('Service')}</label>
+                <select id="nuxr-f-service" name="service" class="form-control nuxr-input" style="width:auto">
+                    <option value="" {if !$nuxr_service}selected{/if}>{Lang::T('Any service state')}</option>
+                    <option value="active" {if $nuxr_service eq 'active'}selected{/if}>{Lang::T('Active service')}</option>
+                    <option value="expiring" {if $nuxr_service eq 'expiring'}selected{/if}>{Lang::T('Expiring within 7 days')}</option>
+                    <option value="expired" {if $nuxr_service eq 'expired'}selected{/if}>{Lang::T('Expired')}</option>
+                    <option value="none" {if $nuxr_service eq 'none'}selected{/if}>{Lang::T('No service')}</option>
+                </select>
+                <label class="sr-only" for="nuxr-f-order">{Lang::T('Sort by')}</label>
+                <select id="nuxr-f-order" name="order" class="form-control nuxr-input" style="width:auto">
+                    <option value="username" {if $order eq 'username'}selected{/if}>{Lang::T('Username')}</option>
+                    <option value="fullname" {if $order eq 'fullname'}selected{/if}>{Lang::T('Full Name')}</option>
+                    <option value="created_at" {if $order eq 'created_at'}selected{/if}>{Lang::T('Created Date')}</option>
+                    <option value="status" {if $order eq 'status'}selected{/if}>{Lang::T('Status')}</option>
+                </select>
+                <select name="orderby" class="form-control nuxr-input" style="width:auto" aria-label="{Lang::T('Sort direction')}">
+                    <option value="asc" {if $orderby eq 'asc'}selected{/if}>{Lang::T('Ascending')}</option>
+                    <option value="desc" {if $orderby eq 'desc'}selected{/if}>{Lang::T('Descending')}</option>
+                </select>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">{Lang::T('Close')}</button>
-                <button type="button" id="sendMessageButton" class="btn btn-primary">{Lang::T('Send Message')}</button>
-            </div>
-        </div>
+        </details>
+        <button class="nuxr-btn nuxr-btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i>{Lang::T('Search')}</button>
     </div>
+</form>
+
+<div class="nuxr-card">
+    {if $d}
+        <div class="nuxr-table-wrap">
+            <table class="nuxr-table">
+                <thead>
+                    <tr>
+                        {if $_can['message.send_selected']}<th style="width:36px"><input type="checkbox" id="nuxr-select-all" aria-label="{Lang::T('Select all on this page')}"></th>{/if}
+                        <th>{Lang::T('Subscriber')}</th>
+                        <th>{Lang::T('Username')}</th>
+                        <th>{Lang::T('Phone')}</th>
+                        <th>{Lang::T('Service')}</th>
+                        <th>{Lang::T('Expires')}</th>
+                        <th>{Lang::T('Account')}</th>
+                        <th><span class="sr-only">{Lang::T('Actions')}</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {foreach $d as $ds}
+                        {assign var=p value=$nuxr_plans[$ds['id']]|default:null}
+                        <tr>
+                            {if $_can['message.send_selected']}<td><input type="checkbox" name="customer_ids[]" value="{$ds['id']}" aria-label="{Lang::T('Select')} {$ds['username']|escape}"></td>{/if}
+                            <td><a href="{Text::url('customers/view/', $ds['id'])}">{$ds['fullname']|escape}</a></td>
+                            <td><bdi dir="ltr" class="nuxr-mono">{$ds['username']|escape}</bdi>{if $ds['pppoe_username']}<br><bdi dir="ltr" class="nuxr-muted nuxr-mono" title="PPPoE">{$ds['pppoe_username']|escape}</bdi>{/if}{if $ds['pppoe_ip']}<br><bdi dir="ltr" class="nuxr-muted nuxr-mono">{$ds['pppoe_ip']|escape}</bdi>{/if}</td>
+                            <td>{if $ds['phonenumber']}<a href="tel:{$ds['phonenumber']|escape}"><bdi dir="ltr">{$ds['phonenumber']|escape}</bdi></a>{/if}</td>
+                            <td>{if $p}{$p.plan|escape}<br><span class="nuxr-muted">{$ds['service_type']|escape}</span>{else}<span class="nuxr-muted">{$ds['service_type']|escape}</span>{/if}</td>
+                            <td>{call name=nuxr_plan_state p=$p}{if $p}<br><bdi dir="ltr" class="nuxr-muted">{$p.expiration|escape}</bdi>{/if}</td>
+                            <td>{call name=nuxr_customer_status status=$ds['status']}</td>
+                            <td class="is-num"><a class="nuxr-btn" href="{Text::url('customers/view/', $ds['id'])}">{Lang::T('Open')}</a></td>
+                        </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+        </div>
+        <ul class="nuxr-mlist">
+            {foreach $d as $ds}
+                {assign var=p value=$nuxr_plans[$ds['id']]|default:null}
+                <li>
+                    <a class="nuxr-mcard" href="{Text::url('customers/view/', $ds['id'])}">
+                        {call name=nuxr_initial who=$ds['fullname']}
+                        <span class="nuxr-mcard-main">
+                            <span class="nuxr-mcard-title">{$ds['fullname']|escape}</span>
+                            <span class="nuxr-mcard-sub"><bdi dir="ltr">{$ds['username']|escape}</bdi>{if $p} · {$p.plan|escape}{/if}</span>
+                            {if $ds['status'] neq 'Active'}<span class="nuxr-mcard-sub">{call name=nuxr_customer_status status=$ds['status']}</span>{/if}
+                        </span>
+                        <span class="nuxr-mcard-end">{call name=nuxr_plan_state p=$p}{if $p}<bdi dir="ltr">{$p.expiration|escape}</bdi>{/if}</span>
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+        {if $_can['message.send_selected']}
+            <div class="nuxr-card-body nuxr-hide-phone" style="border-top:1px solid var(--nx-border)">
+                <button type="button" class="nuxr-btn" id="nuxr-message-selected"><i class="fa fa-comment" aria-hidden="true"></i>{Lang::T('Message selected')}</button>
+            </div>
+        {/if}
+        {include file="admin/nuxr/pager.tpl"}
+    {else}
+        <div class="nuxr-empty">
+            <i class="fa fa-users" aria-hidden="true"></i>
+            <strong>{if $search}{Lang::T('No subscribers match this search.')}{else}{Lang::T('No subscribers here yet.')}{/if}</strong>
+            <span>{if $search}{Lang::T('Try the username, phone, PPPoE username, IP or #ID, or show all accounts.')}{elseif $_can['customer.create']}{Lang::T('Add the first subscriber to get started.')}{/if}</span>
+            {if $search || $filter neq 'Active' || $nuxr_service}<a class="nuxr-btn" href="{Text::url('customers/list')}&filter=All">{Lang::T('Show all accounts')}</a>{/if}
+        </div>
+    {/if}
 </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    // Select or deselect all checkboxes
-    document.getElementById('select-all').addEventListener('change', function () {
-        var checkboxes = document.querySelectorAll('input[name="customer_ids[]"]');
-        for (var checkbox of checkboxes) {
-            checkbox.checked = this.checked;
-        }
-    });
 
-    $(document).ready(function () {
-        let selectedCustomerIds = [];
-
-        // Collect selected customer IDs when the button is clicked
-        $('#sendMessageToSelected').on('click', function () {
-            selectedCustomerIds = $('input[name="customer_ids[]"]:checked').map(function () {
-                return $(this).val();
-            }).get();
-
-            if (selectedCustomerIds.length === 0) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: "{Lang::T('Please select at least one customer to send a message.')}",
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-
-            // Open the modal
-            $('#sendMessageModal').modal('show');
-        });
-
-        // Handle sending the message
-        $('#sendMessageButton').on('click', function () {
-            const message = $('#messageContent').val().trim();
-            const messageType = $('#messageType').val();
-
-            if (!message) {
-                Swal.fire({
-                    title: 'Error!',
-                    text: "{Lang::T('Please enter a message to send.')}",
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-
-            // Disable the button and show loading text
-            $(this).prop('disabled', true).text('{Lang::T('Sending...')}');
-
-            $.ajax({
-                url: '?_route=message/send_bulk_selected',
-                method: 'POST',
-                data: {
-                    customer_ids: selectedCustomerIds,
-                    message_type: messageType,
-                    message: message
-                },
-                dataType: 'json',
-                success: function (response) {
-                    // Handle success response
-                    if (response.status === 'success') {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: "{Lang::T('Message sent successfully.')}",
-                            icon: 'success',
-                            confirmButtonText: 'OK'
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: "{Lang::T('Error sending message: ')}" + response.message,
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                    }
-                    $('#sendMessageModal').modal('hide');
-                    $('#messageContent').val(''); // Clear the message content
-                },
-                error: function () {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: "{Lang::T('Failed to send the message. Please try again.')}",
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                },
-                complete: function () {
-                    // Re-enable the button and reset text
-                    $('#sendMessageButton').prop('disabled', false).text('{Lang::T('Send Message')}');
-                }
+{if $_can['message.send_selected']}
+    <dialog id="nuxr-message-dialog" class="nuxr-sheet" aria-labelledby="nuxr-message-title">
+        <div class="nuxr-sheet-head"><h2 id="nuxr-message-title">{Lang::T('Send Message')}</h2>
+            <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="{Lang::T('Close')}"><i class="fa fa-times" aria-hidden="true"></i></button></div>
+        <div class="nuxr-dialog-body nuxr-form">
+            <p id="nuxr-message-count" class="nuxr-muted"></p>
+            <label for="nuxr-message-type">{Lang::T('Channel')}</label>
+            <select id="nuxr-message-type" class="form-control nuxr-input">
+                <option value="all">{Lang::T('All')}</option>
+                <option value="email">{Lang::T('Email')}</option>
+                <option value="inbox">{Lang::T('Inbox')}</option>
+                <option value="sms">{Lang::T('SMS')}</option>
+                <option value="wa">{Lang::T('WhatsApp')}</option>
+            </select>
+            <label for="nuxr-message-text" style="margin-top:10px">{Lang::T('Message')}</label>
+            <textarea id="nuxr-message-text" class="form-control" rows="4" maxlength="1000"></textarea>
+            <p id="nuxr-message-result" role="status" class="nuxr-muted"></p>
+        </div>
+        <div class="nuxr-dialog-foot">
+            <button type="button" class="nuxr-btn" data-nuxr-close>{Lang::T('Cancel')}</button>
+            <button type="button" class="nuxr-btn nuxr-btn-primary" id="nuxr-message-send">{Lang::T('Send Message')}</button>
+        </div>
+    </dialog>
+    <script>
+        (function () {
+            var all = document.getElementById('nuxr-select-all');
+            var boxes = function () { return Array.prototype.slice.call(document.querySelectorAll('input[name="customer_ids[]"]')); };
+            if (all) { all.addEventListener('change', function () { boxes().forEach(function (b) { b.checked = all.checked; }); }); }
+            var dlg = document.getElementById('nuxr-message-dialog');
+            var open = document.getElementById('nuxr-message-selected');
+            var result = document.getElementById('nuxr-message-result');
+            if (!open || !dlg) { return; }
+            open.addEventListener('click', function () {
+                var ids = boxes().filter(function (b) { return b.checked; }).map(function (b) { return b.value; });
+                if (!ids.length) { Swal.fire({ icon: 'info', title: '{Lang::T('Select at least one subscriber first.')|escape:'javascript'}' }); return; }
+                document.getElementById('nuxr-message-count').textContent = ids.length + ' {Lang::T('selected')|escape:'javascript'}';
+                result.textContent = '';
+                dlg.showModal();
             });
-        });
-    });
-
-    $(document).ready(function () {
-        $('#sendMessageModal').on('show.bs.modal', function () {
-            $(this).attr('inert', 'true');
-        });
-        $('#sendMessageModal').on('shown.bs.modal', function () {
-            $('#messageContent').focus();
-            $(this).removeAttr('inert');
-        });
-        $('#sendMessageModal').on('hidden.bs.modal', function () {
-            // $('#button').focus();
-        });
-    });
-</script>
-{include file = "sections/footer.tpl" }
+            document.getElementById('nuxr-message-send').addEventListener('click', function () {
+                var btn = this, text = document.getElementById('nuxr-message-text').value.trim();
+                var ids = boxes().filter(function (b) { return b.checked; }).map(function (b) { return b.value; });
+                if (!text) { result.textContent = '{Lang::T('Please enter a message to send.')|escape:'javascript'}'; return; }
+                var body = new URLSearchParams();
+                ids.forEach(function (id) { body.append('customer_ids[]', id); });
+                body.append('message_type', document.getElementById('nuxr-message-type').value);
+                body.append('message', text);
+                btn.disabled = true; btn.classList.add('is-pending');
+                fetch('{Text::url('message/send_bulk_selected')}', { method: 'POST', credentials: 'same-origin', body: body })
+                    .then(function (r) { return r.json(); })
+                    .then(function (j) { result.textContent = j && j.status === 'success' ? '{Lang::T('Message sent successfully.')|escape:'javascript'}' : ((j && j.message) || '{Lang::T('Failed to send the message.')|escape:'javascript'}'); })
+                    .catch(function () { result.textContent = '{Lang::T('Failed to send the message.')|escape:'javascript'}'; })
+                    .then(function () { btn.disabled = false; btn.classList.remove('is-pending'); });
+            });
+        })();
+    </script>
+{/if}
+{include file="sections/footer.tpl"}

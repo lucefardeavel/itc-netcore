@@ -59,6 +59,16 @@ final class Format
         return $code !== '' ? $code . ' ' . $text : $text;
     }
 
+    public static function icon(?string $tone): string
+    {
+        return self::TONE_ICON[(string) $tone] ?? 'fa-circle';
+    }
+
+    public static function isNegative(mixed $amount): bool
+    {
+        return is_string($amount) && str_starts_with($amount, '-');
+    }
+
     public static function tone(?string $state): string
     {
         return self::STATE_TONE[(string) $state] ?? 'neutral';

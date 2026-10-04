@@ -48,7 +48,7 @@
     <div class="wrapper">
         <header class="nuxr-topbar" role="banner">
             <a href="{Text::url('dashboard')}" class="nuxr-brand" aria-label="{Lang::T('Home')}">
-                <span class="nuxr-brand-mark" aria-hidden="true">{$_c['CompanyName']|escape|truncate:1:'':true}</span>
+                <span class="nuxr-brand-mark" aria-hidden="true">{$_c['CompanyName']|truncate:1:'':true|escape}</span>
                 <span class="nuxr-brand-name">{$_c['CompanyName']|escape}</span>
             </a>
             <span class="nuxr-topbar-title" aria-hidden="true">{$_title|escape}</span>
@@ -69,7 +69,7 @@
             {/if}
             <details class="nuxr-menu nuxr-user">
                 <summary class="nuxr-icon-btn" aria-label="{Lang::T('Account menu')}">
-                    <span class="nuxr-avatar nuxr-avatar-initial" aria-hidden="true">{$_admin['fullname']|escape|truncate:1:'':true}</span>
+                    <span class="nuxr-avatar nuxr-avatar-initial" aria-hidden="true">{$_admin['fullname']|truncate:1:'':true|escape}</span>
                     <span class="nuxr-user-name">{$_admin['fullname']|escape}</span>
                 </summary>
                 <div class="nuxr-menu-panel">

@@ -888,20 +888,40 @@ switch ($action) {
             'status' => 7
         ];
 
-        $append_url = "&order=" . urlencode($order) . "&filter=" . urlencode($filter) . "&orderby=" . urlencode($orderby);
-
-        if ($search != '') {
-            $like = '%' . $search . '%';
-            // WP2: the OR group is parenthesized so that the scope predicate cannot be bypassed
-            $query = ORM::for_table('tbl_customers')
-                ->whereRaw("(username LIKE ? OR fullname LIKE ? OR address LIKE ? " .
-                    "OR phonenumber LIKE ? OR email LIKE ?) AND status = ?",
-                    [$like, $like, $like, $like, $like, $filter]);
-        } else {
-            $query = ORM::for_table('tbl_customers');
-            $query->where("status", $filter);
+        // WP6A: status filter gains "All"; service-state filter (active / expiring within 7 days / expired / none)
+        $nuxrStatuses = ORM::for_table('tbl_customers')->getEnum("status");
+        if ($filter !== 'All' && !in_array($filter, $nuxrStatuses, true)) {
+            $filter = 'Active';
         }
+        $nuxrService = _req('service', '');
+        if (!in_array($nuxrService, ['', 'active', 'expiring', 'expired', 'none'], true)) {
+            $nuxrService = '';
+        }
+        $append_url = "&order=" . urlencode($order) . "&filter=" . urlencode($filter) . "&orderby=" . urlencode($orderby) . "&service=" . urlencode($nuxrService);
+
+        // WP2 / WP6A: the scope predicate first, then the parenthesized search group (it can never widen the scope)
+        $query = ORM::for_table('tbl_customers');
         \Reseller\Security\DataScope::scopeCustomers($query, $nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ);
+        $nuxrTerm = \Reseller\Domain\CustomerSearch::term($search);
+        if ($nuxrTerm !== null) {
+            [$nuxrPred, $nuxrParams] = \Reseller\Domain\CustomerSearch::predicate($nuxrTerm, 'tbl_customers', true, \Reseller\Ui\Subscriber::sessionUsernames($nuxrTerm));
+            $query->where_raw($nuxrPred, $nuxrParams);
+        }
+        if ($filter !== 'All') {
+            $query->where('tbl_customers.status', $filter);
+        }
+        $nuxrToday = date('Y-m-d');
+        $nuxrSoon = date('Y-m-d', strtotime('+7 days'));
+        $nuxrOn = "EXISTS (SELECT 1 FROM tbl_user_recharges sr WHERE sr.customer_id = tbl_customers.id AND sr.status = 'on' AND sr.expiration >= ?)";
+        if ($nuxrService === 'active') {
+            $query->where_raw($nuxrOn, [$nuxrToday]);
+        } elseif ($nuxrService === 'expiring') {
+            $query->where_raw("EXISTS (SELECT 1 FROM tbl_user_recharges sr WHERE sr.customer_id = tbl_customers.id AND sr.status = 'on' AND sr.expiration BETWEEN ? AND ?)", [$nuxrToday, $nuxrSoon]);
+        } elseif ($nuxrService === 'expired') {
+            $query->where_raw("NOT {$nuxrOn} AND EXISTS (SELECT 1 FROM tbl_user_recharges sr WHERE sr.customer_id = tbl_customers.id)", [$nuxrToday]);
+        } elseif ($nuxrService === 'none') {
+            $query->where_raw('NOT EXISTS (SELECT 1 FROM tbl_user_recharges sr WHERE sr.customer_id = tbl_customers.id)');
+        }
         if ($order == 'lastname') {
             $query->order_by_expr("SUBSTR(fullname, INSTR(fullname, ' ')) $orderby");
         } else {
@@ -958,9 +978,16 @@ switch ($action) {
             fclose($fp);
             die();
         }
+        $nuxrTotal = (clone $query)->count();
         $d = Paginator::findMany($query, ['search' => $search], 30, $append_url);
         $ui->assign('d', $d);
-        $ui->assign('statuses', ORM::for_table('tbl_customers')->getEnum("status"));
+        $ui->assign('statuses', $nuxrStatuses);
+        // WP6A: one query for the page's service summaries (replaces the per-row sequential AJAX); action flags
+        $ui->assign('nuxr_plans', \Reseller\Ui\Subscriber::plans(array_map(static fn($c) => (int) $c['id'], is_array($d) ? $d : ($d instanceof \Traversable ? iterator_to_array($d) : []))));
+        $ui->assign('nuxr_total', $nuxrTotal);
+        $ui->assign('nuxr_service', $nuxrService);
+        $ui->assign('nuxr_can_activate', \Reseller\Activation\ActivationService::eligible($nuxrActor));
+        $ui->assign('nuxr_global', \Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ) === 'G');
         $ui->assign('filter', $filter);
         $ui->assign('search', $search);
         $ui->assign('order', $order);

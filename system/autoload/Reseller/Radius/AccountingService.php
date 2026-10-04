@@ -15,7 +15,7 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  */
 final class AccountingService
 {
-    private const COLUMNS = 'radacctid, acctsessionid, acctuniqueid, username, nasipaddress, framedipaddress, acctstarttime, acctupdatetime, acctstoptime, acctsessiontime, acctinputoctets, acctoutputoctets';
+    private const COLUMNS = 'radacctid, acctsessionid, acctuniqueid, username, nasipaddress, framedipaddress, acctstarttime, acctupdatetime, acctstoptime, acctsessiontime, acctinputoctets, acctoutputoctets, callingstationid';
 
     public function __construct(private readonly \PDO $pdo)
     {
@@ -38,6 +38,37 @@ final class AccountingService
     {
         $limit = max(1, min(500, $limit));
         return $this->rows('SELECT ' . self::COLUMNS . " FROM radacct WHERE username = ? ORDER BY radacctid DESC LIMIT {$limit}", [$username]);
+    }
+
+    /**
+     * WP6A subscriber search (read only): usernames of OPEN sessions whose framed IP starts with $prefix (bounded).
+     * The caller still restricts the matching subscribers by DataScope.
+     *
+     * @return list<string>
+     */
+    public function openSessionUsernamesByIp(string $prefix, int $limit = 50): array
+    {
+        if (!preg_match('/^\d{1,3}(\.\d{1,3}){0,3}\.?$/D', $prefix)) {
+            return [];
+        }
+        $limit = max(1, min(200, $limit));
+        return array_map(static fn(array $r): string => (string) $r['username'],
+            $this->rows("SELECT DISTINCT username FROM radacct WHERE acctstoptime IS NULL AND framedipaddress LIKE ? LIMIT {$limit}", [$prefix . '%']));
+    }
+
+    /**
+     * WP6A Subscriber 360 (read only): the newest session of any of the subscriber's RADIUS usernames, or null.
+     *
+     * @param list<string> $usernames
+     */
+    public function lastSession(array $usernames): ?array
+    {
+        $usernames = array_values(array_unique(array_filter($usernames, static fn($u): bool => is_string($u) && $u !== '')));
+        if ($usernames === []) {
+            return null;
+        }
+        $in = implode(', ', array_fill(0, count($usernames), '?'));
+        return $this->rows('SELECT ' . self::COLUMNS . " FROM radacct WHERE username IN ({$in}) ORDER BY radacctid DESC LIMIT 1", $usernames)[0] ?? null;
     }
 
     public function sessionCount(string $username): int
