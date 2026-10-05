@@ -8,7 +8,7 @@ prove a secure context FAILS (never skipped). Requires the Python Playwright pac
 only; nothing here is a production dependency.
 
 Usage:
-  python3 dev/pwa-lab/pwa_suite.py [--out DIR] [--only T01,T05,...] [--state /srv/phpnuxbill/pwalab]
+  python3 dev/pwa-lab/pwa_suite.py [--out DIR] [--only T01,T05,...] [--state /srv/phpnuxbill/pwalab] [--axe axe.min.js]
 """
 import argparse
 import json
@@ -25,6 +25,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument('--out', default='/tmp/pwalab-out')
 ap.add_argument('--only', default='')
 ap.add_argument('--state', default=os.environ.get('PWALAB_STATE', '/srv/phpnuxbill/pwalab'))
+ap.add_argument('--axe', default=os.environ.get('PWALAB_AXE', ''), help='path to axe-core (axe.min.js) for T20')
 ARGS = ap.parse_args()
 os.makedirs(ARGS.out, exist_ok=True)
 LAB = json.load(open(os.path.join(ARGS.state, 'pwalab-ready.json')))
@@ -743,6 +744,226 @@ def t16(browser):
     finally:
         ctx.close()
         lab_sw()
+
+
+
+# ---------------------------------------------------------------- T17-T18 parity with and without the worker
+PAGE_FACTS = """() => ({ title: document.title, h1: (document.querySelector('h1') || {}).textContent ? document.querySelector('h1').textContent.trim() : '',
+    forms: Array.from(document.forms).map(f => (f.getAttribute('method') || 'get').toLowerCase() + ' ' + (f.getAttribute('action') || '').replace(/^https?:\\/\\/[^/]+/, '').replace(/token=[0-9a-f]+/g, 'token=<session>')),
+    token: typeof window.nuxrCsrfToken === 'string' && /^[0-9a-f]{64}$/.test(window.nuxrCsrfToken) ? true : typeof window.nuxrCsrfToken + ':' + String(window.nuxrCsrfToken).slice(0, 6), dir: document.documentElement.dir,
+    alerts: Array.from(document.querySelectorAll('.nuxr-alert, .alert')).map(a => a.textContent.trim().slice(0, 80)) })"""
+
+
+def visit(pg, base, route):
+    res = pg.goto(base + '?_route=' + route, wait_until='networkidle')
+    return {'status': res.status if res else None, 'route': route_of(pg), **pg.evaluate(PAGE_FACTS)}
+
+
+def two_contexts(browser, base, user, vp=DESK, lang='english'):
+    """the same staff member in a context with the worker active and in one with service workers blocked"""
+    on = new_ctx(browser, base, vp=vp, lang=lang)
+    pg_on = staff_login(on, base, user)
+    sw_ready(pg_on)
+    off = new_ctx(browser, base, vp=vp, lang=lang, service_workers='block')
+    pg_off = staff_login(off, base, user)
+    expect(pg_off.evaluate('() => !navigator.serviceWorker.controller'), 'blocked context is controlled')
+    return on, pg_on, off, pg_off
+
+
+@check('T17', 'Deep-link authorization parity: identical status / final route / denial with and without the worker')
+def t17(browser):
+    cust = LAB['customers']
+    routes = {
+        'A': ['customers/view/%d' % cust['mohammed'], 'customers/view/%d' % cust['fatima'], 'customers/view/%d' % cust['karrar'], 'customers/view/%d' % cust['legacy'],
+              'customers/view/999999', 'activation/view/' + LAB['refs']['mohammed'], 'activation/view/ACT-DOESNOTEXIST', 'settings/users', 'settings/app',
+              'finance/ledger/%d' % LAB['staff_ids']['B'], 'pricing/plans', 'routers/list', 'reports/activation', 'pwa/start', 'pwa/anything'],
+        'A1': ['customers/view/%d' % cust['mohammed'], 'customers/view/%d' % cust['fatima'], 'finance/wallets', 'settings/users', 'activation/create'],
+        'rp': ['customers/list', 'customers/edit/%d' % cust['mohammed'], 'finance/funding/%d&op=fund' % LAB['staff_ids']['A'], 'settings/users'],
+    }
+    rows = []
+    for user, rs in routes.items():
+        on, pg_on, off, pg_off = two_contexts(browser, ROOT, user)
+        for r in rs:
+            a, b = visit(pg_on, ROOT, r), visit(pg_off, ROOT, r)
+            expect(a == b, f'{user} {r}: with worker {a} != without {b}')
+            rows.append(f"{user} {r} -> {a['status']} {a['route']}")
+        on.close()
+        off.close()
+    denied = [x for x in rows if ' 403 ' in x or ' 404 ' in x]
+    return f'{len(rows)} deep links identical (status, final route, title, h1, forms, alerts); {len(denied)} denials among them'
+
+
+@check('T18', "Core online parity: worker active vs service_workers='block' (pages, forms, CSRF token, a reviewed POST)")
+def t18(browser):
+    notes = []
+    for base in (ROOT, SUB):
+        on, pg_on, off, pg_off = two_contexts(browser, base, 'ad')
+        for r in ['dashboard', 'customers/list', 'customers/view/%d' % LAB['customers']['mohammed'], 'activation/create', 'finance/wallets', 'finance/ledger',
+                  'pricing/plans', 'settings/users', 'plan/list', 'reports/activation']:
+            a, b = visit(pg_on, base, r), visit(pg_off, base, r)
+            expect(a == b, f'{base} {r}: {a} != {b}')
+            expect(a['status'] == 200 and a['token'], f'{base} {r}: {a["status"]} token {a["token"]}')
+        # the same POST navigation (funding review: no write) through the worker and without it
+        out = []
+        for pg in (pg_on, pg_off):
+            pg.goto(base + '?_route=finance/funding/%d&op=fund' % LAB['staff_ids']['A'], wait_until='networkidle')
+            pg.fill('#nuxr-amount', '12.50')
+            pg.fill('#nuxr-reason', 'lab parity check')
+            with pg.expect_navigation():
+                pg.locator('form[action*="funding-review"] button[type=submit]').click()
+            pg.wait_for_load_state('networkidle')
+            f = pg.evaluate(PAGE_FACTS)
+            f['review'] = pg.locator('form[data-nuxr-critical]').count()
+            f['amount'] = '12.50' in pg.content()
+            out.append(f)
+        expect(out[0] == out[1] and out[0]['review'] == 1 and out[0]['amount'], f'{base} review: {out}')
+        errors = []
+        for pg in (pg_on, pg_off):
+            pg.on('pageerror', lambda e: errors.append(str(e)))
+            pg.goto(base + '?_route=dashboard', wait_until='networkidle')
+        expect(not errors, f'page errors {errors}')
+        notes.append(f'{base}: 10 pages + funding review POST identical; worker-controlled vs blocked')
+        on.close()
+        off.close()
+    return '; '.join(notes)
+
+
+# ---------------------------------------------------------------- T19 Arabic RTL surfaces, T20 axe
+def shot(pg, name):
+    pg.screenshot(path=os.path.join(ARGS.out, name))
+
+
+@check('T19', 'Arabic RTL: status chip (offline / reconnecting / slow), banner, not-sent notice, install sheet, update bar, offline documents')
+def t19(browser):
+    ar = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'system', 'lan', 'arabic.json'), encoding='utf-8'))
+    notes = []
+    ctx = new_ctx(browser, ROOT, vp=PHONE, lang='arabic')
+    pg = staff_login(ctx, ROOT, 'A')
+    sw_ready(pg)
+    expect(pg.evaluate('() => document.documentElement.dir') == 'rtl', 'not RTL')
+    try:
+        go_offline(ctx, pg)
+        expect(pg.locator('.nuxr-net-chip').inner_text().strip() == ar['Offline'], 'offline chip not Arabic')
+        expect(pg.locator('.nuxr-net-banner').inner_text().strip() == ar['You_are_offline__Changes_cannot_be_sent__and_the_information_on_screen_may_not_be_current_'], 'banner')
+        shot(pg, 'T19-ar-offline-phone.png')
+        pg.evaluate("() => { fetch(location.href, { method: 'POST', body: 'x=1' }).catch(() => {}); }")
+        pg.wait_for_function("(t) => { const n = document.querySelector('.nuxr-net-toast'); return n && !n.hidden && n.textContent === t; }",
+                             arg=ar['Not_sent__you_are_offline__Nothing_was_sent_to_the_server__try_again_when_the_connection_is_back_'], timeout=5000)
+        shot(pg, 'T19-ar-not-sent-phone.png')
+        ctx.set_offline(False)
+        pg.wait_for_function("() => document.body.getAttribute('data-nuxr-net') === 'reconnecting'", timeout=20000)
+        expect(pg.locator('.nuxr-net-chip').inner_text().strip() == ar['Reconnecting___'], 'reconnecting chip not Arabic')
+        shot(pg, 'T19-ar-reconnecting-phone.png')
+        pg.wait_for_function("() => document.body.getAttribute('data-nuxr-net') === 'online'", timeout=20000)
+        notes.append('offline / not-sent / reconnecting in Arabic')
+        cdp = ctx.new_cdp_session(pg)
+        cdp.send('Network.enable')
+        cdp.send('Network.emulateNetworkConditions', {'offline': False, 'latency': 3000, 'downloadThroughput': -1, 'uploadThroughput': -1})
+        pg.evaluate("() => window.dispatchEvent(new Event('online'))")
+        pg.wait_for_function("() => document.body.getAttribute('data-nuxr-net') === 'slow'", timeout=30000)
+        expect(pg.locator('.nuxr-net-chip').inner_text().strip() == ar['Slow_connection'], 'slow chip not Arabic')
+        shot(pg, 'T19-ar-slow-phone.png')
+        cdp.send('Network.emulateNetworkConditions', {'offline': False, 'latency': 0, 'downloadThroughput': -1, 'uploadThroughput': -1})
+        notes.append('slow in Arabic')
+        pg.goto(ROOT + '?_route=dashboard', wait_until='networkidle')
+        pg.click('details.nuxr-menu.nuxr-user > summary')
+        item = pg.locator('.nuxr-menu-panel [data-nuxr-install]')
+        expect(ar['Install_app'] in item.inner_text(), 'install item not Arabic')
+        item.click()
+        pg.wait_for_timeout(300)
+        sheet = pg.locator('#nuxr-install-sheet')
+        expect(ar['Install_the_app'] in sheet.inner_text() and ar['Open_your_browser_menu_and_choose_Install_app_or_Add_to_Home_screen_'] in sheet.inner_text(), 'install sheet')
+        shot(pg, 'T19-ar-install-sheet-phone.png')
+        pg.keyboard.press('Escape')
+        pg.goto(ROOT + '?_route=dashboard', wait_until='networkidle')  # closes the account menu
+        notes.append('install item + sheet in Arabic')
+        lab_sw(NEXT)
+        pg.evaluate(UPDATE_NOW)
+        text = bar_mode(pg, 'available')
+        expect(ar['A_new_version_of_the_app_is_available_'] in text and ar['Update'] in text, 'update bar not Arabic: ' + text)
+        shot(pg, 'T19-ar-update-phone.png')
+        pg.evaluate("() => { document.getElementById('nuxr-more-sheet').show(); window.scrollTo(0, 0); }")
+        pg.locator('.nuxr-update-bar [data-nuxr-update]').click()
+        text = bar_mode(pg, 'deferred', timeout=5000)
+        expect(ar['Finish_or_leave_the_current_task_first__then_update_'] in text, 'deferred not Arabic')
+        notes.append('update bar + deferred in Arabic')
+    finally:
+        lab_sw()
+        ctx.close()
+    # the static offline documents (bilingual; each block carries its own dir)
+    ctx = new_ctx(browser, ROOT, vp=PHONE, lang='arabic')
+    pg = staff_login(ctx, ROOT, 'A')
+    sw_ready(pg)
+    ctx.set_offline(True)
+    pg.goto(ROOT + '?_route=customers/list', wait_until='load')
+    expect(pg.locator('[dir=rtl][lang=ar]').count() >= 1 and pg.locator('[dir=ltr][lang=en]').count() >= 1, 'offline document blocks lack lang / dir')
+    shot(pg, 'T19-offline-doc-phone.png')
+    ctx.set_offline(False)
+    pg.goto(ROOT + 'nuxr-offline.html?reason=unconfirmed', wait_until='load')
+    expect(pg.locator('text=may or may not have reached the server').count() >= 1, 'unconfirmed block not shown')
+    shot(pg, 'T19-offline-unconfirmed-phone.png')
+    ctx.close()
+    notes.append('offline documents: Arabic + English blocks with lang / dir')
+    return '; '.join(notes)
+
+
+AXE_RUN = """async () => { const r = await axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] }, resultTypes: ['violations'] });
+  return r.violations.filter(v => v.impact === 'serious' || v.impact === 'critical').map(v => v.id + ' x' + v.nodes.length + ' ' + v.nodes.slice(0, 2).map(n => n.target.join(' ')).join(' | ')); }"""
+TARGETS = """() => Array.from(document.querySelectorAll('.nuxr-update-bar button, #nuxr-install-sheet button, [data-nuxr-install]'))
+  .filter(b => b.offsetParent !== null).map(b => { const r = b.getBoundingClientRect(); return [b.className || b.tagName, Math.round(r.width), Math.round(r.height)]; })
+  .filter(x => x[1] < 44 || x[2] < 44)"""
+
+
+@check('T20', 'axe-core wcag2a/aa serious + critical = 0 on the WP7 surfaces (phone Arabic + desktop English); 44 px targets; no overflow')
+def t20(browser):
+    expect(ARGS.axe and os.path.exists(ARGS.axe), 'axe-core not provided (--axe / PWALAB_AXE)')
+    results = []
+
+    def audit(pg, label):
+        pg.add_script_tag(path=ARGS.axe)
+        v = pg.evaluate(AXE_RUN)
+        small = pg.evaluate(TARGETS) if label.startswith('phone') else []  # 44 px touch targets: phone (WP6A: desktop controls are 40 px)
+        over = pg.evaluate('() => document.documentElement.scrollWidth > window.innerWidth + 1')
+        results.append((label, v, small, over))
+
+    try:
+        for vp, lang, tag in ((PHONE, 'arabic', 'phone-ar'), (DESK, 'english', 'desk-en')):
+            ctx = new_ctx(browser, ROOT, vp=vp, lang=lang)
+            pg = staff_login(ctx, ROOT, 'A')
+            sw_ready(pg)
+            go_offline(ctx, pg)
+            pg.evaluate("() => { fetch(location.href, { method: 'POST' }).catch(() => {}); }")
+            pg.wait_for_timeout(400)
+            audit(pg, tag + ' offline chip + banner + not-sent')
+            if tag == 'desk-en':
+                shot(pg, 'T20-desk-offline-not-sent.png')
+            ctx.set_offline(False)
+            pg.wait_for_function("() => document.body.getAttribute('data-nuxr-net') === 'online'", timeout=30000)
+            pg.goto(ROOT + '?_route=dashboard', wait_until='networkidle')
+            pg.click('details.nuxr-menu.nuxr-user > summary')
+            pg.locator('.nuxr-menu-panel [data-nuxr-install]').click()
+            pg.wait_for_timeout(300)
+            audit(pg, tag + ' install sheet')
+            pg.keyboard.press('Escape')
+            lab_sw(NEXT)
+            pg.evaluate(UPDATE_NOW)
+            bar_mode(pg, 'available')
+            audit(pg, tag + ' update bar')
+            if tag == 'desk-en':
+                shot(pg, 'T20-desk-update-available.png')
+            lab_sw()
+            ctx.close()
+            for doc in ('nuxr-offline.html', 'nuxr-offline.html?reason=unconfirmed'):
+                ctx = new_ctx(browser, ROOT, vp=vp, lang=lang)
+                pg = ctx.new_page()
+                pg.goto(ROOT + doc, wait_until='load')
+                audit(pg, tag + ' ' + doc)
+                ctx.close()
+    finally:
+        lab_sw()
+    bad = [r for r in results if r[1] or r[2] or r[3]]
+    expect(not bad, 'violations: ' + json.dumps(bad, ensure_ascii=False)[:600])
+    return f'{len(results)} audits (phone Arabic + desktop English): axe serious/critical 0, no target < 44 px, no horizontal overflow'
 
 
 def main():

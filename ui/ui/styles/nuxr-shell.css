@@ -2623,7 +2623,8 @@ body.nuxr-shell .select2-container .select2-selection__placeholder { color: var(
 }
 
 .nuxr-update-bar .nuxr-update-text {
-    flex: 1 1 220px;
+    flex: 1 1 140px;
+    min-width: 0;
 }
 
 .nuxr-update-bar[data-mode="deferred"] {

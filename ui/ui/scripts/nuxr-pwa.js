@@ -22,6 +22,7 @@
     var reg = null;
     if (secure && swUrl) {
         navigator.serviceWorker.register(swUrl, { updateViaCache: 'none' }).then(function (r) {
+            if (!r) { return; } // an environment where workers are blocked may resolve without a registration
             reg = r;
             document.dispatchEvent(new CustomEvent('nuxr-pwa-registered', { detail: r }));
         }).catch(function () { /* no worker: the application keeps working as a normal web page */ });
@@ -345,6 +346,7 @@
             hadController = true;
         });
         document.addEventListener('nuxr-pwa-registered', function () {
+            if (!reg) { return; }
             offerUpdate();
             reg.addEventListener('updatefound', function () {
                 var w = reg.installing;

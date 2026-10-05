@@ -7,6 +7,7 @@ The WP7 owner decision OD-W7-4 places the PWA browser / security QA harness here
 | `PwaLabTest.php` | Seeds a disposable database (staff of every role, Agent-owned customers, pricing, funding, one activation). It serves the disposable application copy twice with `php -S`: a root installation and a `/billing/` subdirectory installation, with a production-like `APP_URL` (`dirname(SCRIPT_NAME)`). |
 | `lab.sh` | `up` / `sync` / `down` for the lab container in the isolated `nuxbill-reseller-test` compose project. Ports are published on **127.0.0.1 only**: 18099 (root) and 18098 (subdirectory). |
 | `pwa_suite.py` | Python Playwright checks. Every check first asserts `window.isSecureContext === true`; without a proven secure context a check fails, it is never skipped. |
+| `make_icons.py` | Deterministic generator of the interim icons (OD-W7-1): the first initial on `#3442c9`, rendered with Pillow and DejaVu Sans Bold. No AI and no upscaling. |
 
 ## Why `localhost`
 - Service workers, install and the offline document only work in a secure context. `http://localhost:<port>` is a potentially trustworthy origin.
@@ -18,11 +19,13 @@ The WP7 owner decision OD-W7-4 places the PWA browser / security QA harness here
 export WP1_DB_ROOT_PASSWORD=...   # same throwaway values as the running test databases
 export NUXR_RADIUS_SECRET=...
 dev/pwa-lab/lab.sh up
-python3 dev/pwa-lab/pwa_suite.py --out /tmp/pwalab-out
+python3 dev/pwa-lab/pwa_suite.py --out /tmp/pwalab-out --axe /path/to/axe.min.js   # axe-core for T20
 dev/pwa-lab/lab.sh down
 ```
 
 ## Requirements and boundaries
 - **QA host:** Python 3 with `playwright` and its Chromium.
+- **axe-core:** a local copy of `axe.min.js` (4.10.x) for T20. It is not vendored in the repository.
+- **Update checks:** T14–T16, T19 and T20 publish a byte-different worker by rewriting `VERSION` in the **lab copy** of `nuxr-sw.js` (`docker exec` into the lab container only). They always restore it from the repository afterwards.
 - **Excluded:** no Node, no frontend build system, nothing installed into the application.
 - **Allowed scope:** only the `nuxbill-reseller-test` compose project and the `nuxbill-reseller-test-pwalab` container are used. Never production, never any other container.

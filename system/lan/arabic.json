@@ -1541,5 +1541,16 @@
   "Welcome_Message": "رسالة الترحيب",
   "WhatsApp_Server_URL": "رابط خادم WhatsApp",
   "Widget": "أداة",
-  "Please_confirm": "يرجى التأكيد"
+  "Please_confirm": "يرجى التأكيد",
+  "A_new_version_of_the_app_is_available_": "يتوفر إصدار جديد من التطبيق.",
+  "Finish_or_leave_the_current_task_first__then_update_": "أكمل المهمة الحالية أو اخرج منها أولاً، ثم حدّث.",
+  "Install_app": "تثبيت التطبيق",
+  "Install_the_app": "تثبيت التطبيق",
+  "Not_sent__you_are_offline__Nothing_was_sent_to_the_server__try_again_when_the_connection_is_back_": "لم يُرسَل: أنت غير متصل. لم يُرسَل أي شيء إلى الخادم؛ أعد المحاولة عند عودة الاتصال.",
+  "Open_your_browser_menu_and_choose_Install_app_or_Add_to_Home_screen_": "افتح قائمة المتصفح واختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».",
+  "Reconnecting___": "جارٍ إعادة الاتصال...",
+  "Slow_connection": "اتصال بطيء",
+  "The_app_was_updated_in_another_tab__Reload_this_page_when_convenient_": "تم تحديث التطبيق في علامة تبويب أخرى. أعد تحميل هذه الصفحة عندما يناسبك.",
+  "The_installed_app_opens_the_same_pages__sign_in__permissions_and_every_operation_stay_exactly_the_same__and_the_browser_keeps_working_as_before_": "يفتح التطبيق المثبّت الصفحات نفسها: تسجيل الدخول والصلاحيات وكل العمليات تبقى كما هي تماماً، ويستمر المتصفح بالعمل كما كان.",
+  "You_are_offline__Changes_cannot_be_sent__and_the_information_on_screen_may_not_be_current_": "أنت غير متصل. لا يمكن إرسال التغييرات، وقد لا تكون المعلومات المعروضة محدّثة."
 }

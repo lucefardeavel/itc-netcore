@@ -190,6 +190,26 @@ final class Wp7GuardTest extends TestCase
         $this->assertStringContainsString('class="nuxr-form" style="margin-top:12px" data-nuxr-critical>', self::read('ui/ui/admin/finance/review.tpl'));
     }
 
+    public function testEveryWp7StringHasAnArabicEntry(): void
+    {
+        $catalog = json_decode(self::read('system/lan/arabic.json'), true, 512, JSON_THROW_ON_ERROR);
+        preg_match_all("/Lang::T\\((['\"])(.*?)\\1\\)/", self::read('ui/ui/admin/nuxr/pwa-config.tpl'), $m);
+        $strings = array_merge($m[2], ['Install app']);
+        $this->assertGreaterThanOrEqual(14, count($strings));
+        $missing = [];
+        foreach ($strings as $s) {
+            $s = (string) preg_replace('/\\s+/', ' ', $s);
+            $key = (string) preg_replace('/[^A-Za-z0-9]/', '_', $s);
+            if (!isset($catalog[$s]) && !isset($catalog[$key])) {
+                $missing[] = $s;
+            }
+        }
+        $this->assertSame([], $missing, 'WP7 strings without an Arabic entry');
+        foreach (['ui/ui/admin/header.tpl', 'ui/ui/admin/footer.tpl'] as $tpl) {
+            $this->assertStringContainsString("{Lang::T('Install app')}", self::read($tpl));
+        }
+    }
+
     public function testPruneStaysInsideTheInstallationNamespace(): void
     {
         $sw = self::read('nuxr-sw.js');
