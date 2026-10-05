@@ -163,3 +163,24 @@ See `owner-review/WP6A/REPORT.md` §I.
   relabelled; Agent phone primary Home / Customers / New / Wallet / More; dashboard finance tiles. The reseller tree is
   rewritten as a phone drill-down (no horizontal overflow). Accepted tests `ShellNavigationTest` / `DashboardTest` updated.
   Details: `docs/WP6B_FINANCE_UX_MODEL.md`.
+
+## WP6C amendment (owner decisions OD-1 / OD-2 / OD-3, amendments A–H)
+
+- **Tables.** The table / card switch now follows the component width (`.nuxr-adaptive` container queries; `.is-lg` / `.is-xl` tiers), not the viewport. This fixes the 768 px band, where the rail narrowed the content below the table's width.
+- **RTL.** `nuxr-rtl-legacy.css` floats Bootstrap columns only from their own breakpoint; it used to float them at every width, which caused the RTL 360 px overflow.
+- **Safe areas and bottom navigation.**
+  - `viewport-fit=cover` is set, and the `--nx-safe-*` tokens are applied to the top bar, rail, sidebar, bottom navigation, sheets and sticky rows.
+  - The bottom navigation has an exact height (bar + inset).
+  - While a text field has focus, the bottom navigation hides and sticky rows drop to the edge (CSS `:has(:focus)`, no device detection).
+- **Shell additions.**
+  - Up (`Navigation::UP`, first allowed parent);
+  - 403 / 404 rendered inside the shell (`Navigation::deniedShell`, `admin/nuxr/state-page.tpl`);
+  - the shared action row (`admin/nuxr/actionbar.tpl`);
+  - the confirmation sheet for `data-nuxr-ask` (replaces `window.confirm` on converted forms);
+  - the touch / keyboard secret reveal (`admin/nuxr/secret.tpl`);
+  - the password peek toggle;
+  - the stacked legacy list layer (`.nuxr-stack`).
+- **Pricing (WP6B pages).** One row-level Edit opens an editing surface: full screen on a phone, a side panel on desktop. It replaces the inline `<details>` form wall.
+- **Customer portal.** Out of scope (OD-3).
+
+Details: `docs/WP6C_ADAPTIVE_UX_MODEL.md`.

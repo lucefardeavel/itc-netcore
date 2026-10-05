@@ -54,6 +54,31 @@
         if (d && d._nuxrTrigger && d._nuxrTrigger.focus) { d._nuxrTrigger.focus(); }
     }, true);
 
+    /* WP6C: a submit carrying data-nuxr-ask is confirmed in the shell's sheet (not window.confirm); Confirm submits the
+       same form with the same button (its name / value), so the pending / double-submit guard below still applies */
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('[data-nuxr-ask]') : null;
+        var sheet = document.getElementById('nuxr-ask-sheet');
+        if (!btn || !sheet || btn._nuxrConfirmed) { return; }
+        e.preventDefault();
+        q('#nuxr-ask-text', sheet).textContent = btn.getAttribute('data-nuxr-ask');
+        sheet._nuxrAsk = btn;
+        openDialog(sheet, btn);
+        var ok = q('[data-nuxr-ask-ok]', sheet);
+        if (ok) { ok.focus(); }
+    });
+    document.addEventListener('click', function (e) {
+        var ok = e.target.closest ? e.target.closest('[data-nuxr-ask-ok]') : null;
+        if (!ok) { return; }
+        var sheet = ok.closest('dialog');
+        var btn = sheet && sheet._nuxrAsk;
+        closeDialog(sheet);
+        if (!btn) { return; }
+        btn._nuxrConfirmed = true;
+        if (btn.form && typeof btn.form.requestSubmit === 'function') { btn.form.requestSubmit(btn); } else { btn.click(); }
+        btn._nuxrConfirmed = false;
+    });
+
     /* close <details> menus on outside click / Escape */
     document.addEventListener('click', function (e) {
         qa('details.nuxr-menu[open]').forEach(function (m) { if (!m.contains(e.target)) { m.removeAttribute('open'); } });

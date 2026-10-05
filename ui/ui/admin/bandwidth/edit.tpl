@@ -87,7 +87,7 @@
         {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
         <div class="nuxr-step-nav nuxr-actionbar-form">
             <a class="nuxr-btn" href="{Text::url('bandwidth/list')}">{Lang::T('Cancel')}</a>
-            <button class="nuxr-btn nuxr-btn-primary" onclick="return ask(this, '{Lang::T("Continue the Bandwidth change process?")}')" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Change')}</button>
+            <button class="nuxr-btn nuxr-btn-primary" data-nuxr-ask="{Lang::T("Continue the Bandwidth change process?")|escape}" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Change')}</button>
         </div>
 				</form>
 			</div>

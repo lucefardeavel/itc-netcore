@@ -9,7 +9,7 @@
     <title>{$error_title|escape}</title>
     <link rel="shortcut icon" href="{$app_url}/ui/ui/images/logo.png" type="image/x-icon" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/fonts/font-awesome/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp6c.1">
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp6c.2">
 </head>
 
 <body class="nuxr-shell nuxr-standalone">
