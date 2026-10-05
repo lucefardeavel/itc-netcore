@@ -72,6 +72,8 @@ try {
         'withdraw' => TransferService::withdraw($staff($op['actor']), $op['manager'], $op['amount'], 'concurrency withdrawal', $op['reference']),
         'transfer' => TransferService::transferToChild($staff($op['actor']), $op['from'], $op['to'], $op['amount'], 'concurrency transfer', $op['reference']),
         'debt_limit' => WalletService::setDebtLimit($staff($op['actor']), $op['manager'], $op['limit'], 'concurrency debt limit'),
+        // WP6B fix round 2: the reviewed (compare-and-set) debt-limit writer
+        'debt_limit_if_current' => WalletService::setDebtLimitIfCurrent($staff($op['actor']), $op['manager'], $op['limit'], $op['expected'], 'reviewed debt limit'),
         'reverse' => TransferService::reverse($staff($op['actor']), $op['transfer'], 'concurrency reversal', $op['reference']),
         'reserve' => ReservationService::reserve((int) $op['activation'], (int) $op['manager'], Money::parsePositive($op['amount'])),
         'commit' => ReservationService::commit((int) $op['reservation'], FinanceActor::system('wp3a-concurrency')),

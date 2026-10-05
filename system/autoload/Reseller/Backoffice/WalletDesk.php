@@ -279,7 +279,8 @@ final class WalletDesk
      * browser or the signed review: the authoritative current limit is re-read, and when it differs from the limit the
      * review was classified against, the stale review is refused (REVIEW_EXPIRED) and nothing is written, so an old
      * confirmation can never silently become a different risk direction. A decrease against the current limit needs
-     * the typed username. WalletService::setDebtLimit stays the only writer (it re-validates everything).
+     * the typed username. The write is WalletService::setDebtLimitIfCurrent (fix round 2): the same single writer, which
+     * compares the reviewed current limit with the locked one (FOR UPDATE) before writing; a mismatch -> REVIEW_EXPIRED.
      *
      * @param array<string,mixed> $in @return array<string,mixed> the resulting wallet view
      */
@@ -297,7 +298,13 @@ final class WalletDesk
         if ($now['decrease']) {
             self::typed($in['confirm'] ?? null, LedgerReadModel::wallet($a, $fields['target'])['username']);
         }
-        return WalletService::setDebtLimit($a, $fields['target'], $fields['amount'], $fields['reason'])->toArray();
+        // fix round 2: the authoritative condition is evaluated by the writer itself, under the wallet row lock: a limit
+        // that changed after the pre-read above refuses there (nothing written) and is reported as a stale review
+        try {
+            return WalletService::setDebtLimitIfCurrent($a, $fields['target'], $fields['amount'], $fields['current'], $fields['reason'])->toArray();
+        } catch (DomainError $e) {
+            throw $e->reason === 'DEBT_LIMIT_CHANGED' ? new DomainError('REVIEW_EXPIRED') : $e;
+        }
     }
 
     /** @return array<string,mixed> credit / debit adjustment form (wallet.adjust G) */

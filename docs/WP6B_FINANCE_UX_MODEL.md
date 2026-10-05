@@ -54,6 +54,7 @@ Unknown reseller actions still alias to `tree` (accepted behaviour); the tree ca
    Fix round 1, the debt line: its risk direction depends on mutable state, so the review binds the current limit it was classified against.
    - Execute re-reads the limit. A changed limit refuses the stale review (`REVIEW_EXPIRED`, nothing written).
    - The typed confirmation follows the server-derived direction against the current limit, never a browser or signed flag.
+   - Fix round 2: the write itself is `WalletService::setDebtLimitIfCurrent`. The writer compares the reviewed current limit with the limit of the row it has locked `FOR UPDATE`, inside its tree-locked transaction, before writing anything. A limit that changes between the pre-read and the writer's lock is therefore refused too (`REVIEW_EXPIRED`, nothing written).
    - The other operations carry an explicit, signed operation chosen by the user.
 
 Administrative corrections (Admin / SuperAdmin only, an "Accounting corrections" zone, never "edit balance"): debt line

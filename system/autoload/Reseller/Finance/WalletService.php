@@ -61,15 +61,41 @@ final class WalletService
      */
     public static function setDebtLimit(ActorContext $a, mixed $managerId, mixed $newLimit, mixed $reason): WalletView
     {
+        return self::writeDebtLimit($a, $managerId, $newLimit, false, null, $reason);
+    }
+
+    /**
+     * WP6B fix round 2 (owner-authorized, additive): the reviewed, compare-and-set debt-limit write. Exactly
+     * setDebtLimit() (same capability, scope, tree lock, transaction, rules, audit; no ledger entry), plus one
+     * condition evaluated under the locks: once the wallet row is locked FOR UPDATE, its current debt limit (0.00 for
+     * an absent wallet) must equal $expectedCurrent - the value the caller's review was classified against. Otherwise
+     * it refuses with DEBT_LIMIT_CHANGED before any wallet creation, validation, update or audit (nothing written).
+     */
+    public static function setDebtLimitIfCurrent(ActorContext $a, mixed $managerId, mixed $newLimit, mixed $expectedCurrent, mixed $reason): WalletView
+    {
+        return self::writeDebtLimit($a, $managerId, $newLimit, true, $expectedCurrent, $reason);
+    }
+
+    /**
+     * The single locked debt-limit writer. $conditional = false is the unconditional setDebtLimit() behaviour; when
+     * true, $expectedCurrent is mandatory and validated like any amount (a missing / malformed value is refused).
+     */
+    private static function writeDebtLimit(ActorContext $a, mixed $managerId, mixed $newLimit, bool $conditional, mixed $expectedCurrent, mixed $reason): WalletView
+    {
         ResellerTreeService::authorize($a, C::WALLET_DEBT_LIMIT);
         $id = FinanceInput::id($managerId);
         $limit = Money::parseNonNegative($newLimit);
         $limit->toStorage();
+        $expected = $conditional ? Money::parseNonNegative($expectedCurrent) : null;
         $reason = FinanceInput::reason($reason);
-        return FinanceTx::run(static function (\PDO $pdo) use ($a, $id, $limit, $reason): WalletView {
+        return FinanceTx::run(static function (\PDO $pdo) use ($a, $id, $limit, $expected, $reason): WalletView {
             ResellerTreeService::revalidateActor($pdo, $a);
             $owner = WalletOwner::assertValid($pdo, $id);
             $w = LockedWallet::lock($pdo, $id);
+            // reviewed write: compare the LOCKED current limit with the reviewed one before anything else happens
+            if ($expected !== null && !($w === null ? Money::zero() : $w->debtLimit)->equals($expected)) {
+                throw new DomainError('DEBT_LIMIT_CHANGED');
+            }
             if ($w === null) {
                 if ($limit->isZero()) {
                     return new WalletView($id, false, Money::zero(), Money::zero(), Money::zero(), null);

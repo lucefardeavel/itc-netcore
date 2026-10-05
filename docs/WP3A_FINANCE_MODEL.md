@@ -289,3 +289,16 @@ See `docs/WP3B_PRICING_MODEL.md`.
   `Finance/LedgerReadModel` and the informational `Finance/WalletPreview`; `TransferService` gains the read-only
   `reversalPreview()` (the compensation logic is extracted into a private helper shared with `reverse()`, behaviour
   unchanged). No new money rule, wallet-creation path or schema change. Details: `docs/WP6B_FINANCE_UX_MODEL.md`.
+
+## WP6B fix round 2 amendment (owner-authorized, `WalletService` debt-limit concurrency contract)
+
+- New additive API: `WalletService::setDebtLimitIfCurrent(ActorContext $a, mixed $managerId, mixed $newLimit, mixed $expectedCurrent, mixed $reason): WalletView`. It is the reviewed, compare-and-set debt-limit write.
+- `setDebtLimit()` and `setDebtLimitIfCurrent()` share one private locked writer (`writeDebtLimit`), so there is still one debt-limit `UPDATE` and `WalletService` remains the only debt-limit writer.
+- Inside the tree-locked transaction the writer:
+  1. revalidates the actor and the owner;
+  2. locks the wallet row `FOR UPDATE`;
+  3. for the conditional variant only, compares the **locked** current limit (`0.00` for an absent wallet) with `$expectedCurrent`. A difference refuses with `DEBT_LIMIT_CHANGED` before any wallet creation, exposure check, update or audit, so nothing is written.
+  4. Then the accepted rules apply unchanged: an absent wallet opens only for a positive limit, the exposure floor (`DEBT_LIMIT_EXPOSURE`) holds, no change is a no-op, a change is audited as `finance.debt_limit`, and nothing is posted to the ledger.
+- `setDebtLimit()` (unconditional) keeps its accepted behaviour for every existing caller.
+- The WP6B reviewed web execute uses the conditional variant and reports `DEBT_LIMIT_CHANGED` as `REVIEW_EXPIRED`.
+

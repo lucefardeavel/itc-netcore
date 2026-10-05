@@ -112,6 +112,8 @@ final class DomainError extends \RuntimeException
         'EXPORT_TOO_LARGE' => 'The export would exceed 20,000 rows; narrow the filters and try again.',
         'REVIEW_EXPIRED' => 'This confirmation is no longer valid; nothing was changed. Review the operation again.',
         'CONFIRMATION_MISMATCH' => 'The typed confirmation does not match; nothing was changed.',
+        // WP6B fix round 2: WalletService::setDebtLimitIfCurrent found a different locked current limit
+        'DEBT_LIMIT_CHANGED' => 'The debt limit changed after it was reviewed; nothing was changed.',
     ];
 
     public function __construct(public readonly string $reason, ?string $detail = null)
