@@ -51,6 +51,11 @@ Unknown reseller actions still alias to `tree` (accepted behaviour); the tree ca
    (`CONFIRMATION_MISMATCH`). The accepted service then validates, authorizes and posts; a double submit replays the
    same idempotent operation ("Already recorded").
 
+   Fix round 1, the debt line: its risk direction depends on mutable state, so the review binds the current limit it was classified against.
+   - Execute re-reads the limit. A changed limit refuses the stale review (`REVIEW_EXPIRED`, nothing written).
+   - The typed confirmation follows the server-derived direction against the current limit, never a browser or signed flag.
+   - The other operations carry an explicit, signed operation chosen by the user.
+
 Administrative corrections (Admin / SuperAdmin only, an "Accounting corrections" zone, never "edit balance"): debt line
 (current limit, balance, reserved, available, projected available), Credit / Debit Adjustment (never opens a wallet),
 and reversal of an existing reversible transfer only (`TransferService::reversalPreview`, the compensation it would post).
@@ -72,6 +77,12 @@ and reversal of an existing reversible transfer only (`TransferService::reversal
 Same capability, scope and query as the screen; streamed CSV (UTF-8 BOM, `;`, formula-safe cells); at most 20,000 rows
 (`EXPORT_TOO_LARGE`) and a date range of at most 366 days for time series (`EXPORT_RANGE_REQUIRED`); one audit row
 `export.finance` with metadata only (type, filters, row count — never the rows).
+
+Fix round 1: one explicit primitive, `Reseller\Finance\ExportCap`.
+- The authoritative scoped total is known before the first CSV byte. Above 20,000 rows the export is refused (zero bytes, no export audit); exactly 20,000 is allowed. Exports are never truncated.
+- The SQL cursors (wallets, ledger, transfers, sales / commissions, settlement, performance) count and stream inside one read-only REPEATABLE READ snapshot (`ExportCap::snapshot`), so the streamed set is exactly the counted set.
+- The pricing catalog is pre-refused on the total of its first bounded, tree-locked page and streams exactly that many pages (25 rows each, one tree lock per page). 25 divides the cap, so the stream cannot exceed it.
+- `ExportCapGuardTest` keeps every producer on this contract.
 
 ## 6. Bounded pricing reads (OD-9)
 

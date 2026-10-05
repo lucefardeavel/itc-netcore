@@ -1,0 +1,467 @@
+WP6B fix round 1 — focused PHPUnit testdox on the fix tree (= 22e534b2b03a2010de007c4b67f1c33eb9fbc06e; HEAD 0c6f1768 + the uncommitted fix, committed unchanged afterwards)
+Isolated nuxbill-reseller-test project (PHP 8.2.34, MariaDB 10.11, MySQL 8.0, FreeRADIUS 3.2.8 test containers), 2026-10-05T03:36Z – 03:51Z
+Result: suites wp6b-unit,wp6b-integration,wp3a-unit,wp3b-unit OK (143 tests, 39724 assertions) on MariaDB and MySQL; AppSurfaceTest|RouteMapTest OK (9 tests, 1815 assertions) on both; 0 failed
+
+================ mariadb: wp6b-unit, wp6b-integration, wp3a-unit, wp3b-unit ================
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............................................................  63 / 143 ( 44%)
+............................................................... 126 / 143 ( 88%)
+.................                                               143 / 143 (100%)
+
+Time: 05:48.413, Memory: 26.00 MB
+
+Activation Action Matrix (Reseller\Tests\Integration\Wp6b\ActivationActionMatrix)
+ ✔ Every state renders exactly the accepted operations
+ ✔ The operation table mirrors the accepted primitives
+
+Export Cap (Reseller\Tests\Integration\Wp6b\ExportCap)
+ ✔ Performance export is complete at the cap and refused above it
+ ✔ Pricing catalog export is complete at the cap and refused above it
+
+Export Cap Guard (Reseller\Tests\Unit\Wp6b\ExportCapGuard)
+ ✔ Every finance export cursor counts and streams in one capped snapshot
+ ✔ Every csv producer is a capped cursor or the pre refused catalog
+
+Finance Actor (Reseller\Tests\Unit\Wp3a\FinanceActor)
+ ✔ Staff stays staff on every channel
+ ✔ Customer stays customer on every channel
+ ✔ System and cron are explicit
+ ✔ Wrong principals are refused
+ ✔ There is no api or inferred factory
+
+Finance Capability (Reseller\Tests\Unit\Wp3a\FinanceCapability)
+ ✔ Finance capabilities are defined and classified
+ ✔ Exact role matrix
+ ✔ Pricing and activation stay reserved
+ ✔ Frozen non enrolled inconsistent and inactive
+ ✔ Schema not ready fails closed for every role
+ ✔ Non staff principals hold no finance capability
+ ✔ Flags reflect the matrix
+
+Finance Correction (Reseller\Tests\Integration\Wp6b\FinanceCorrection)
+ ✔ Debt line review typed decrease and exposure floor
+ ✔ Adjustments are explicit and never open a wallet
+ ✔ Only an existing reversible transfer can be reversed
+ ✔ Corrections are admin only
+ ✔ A stale debt line review never changes its risk direction
+
+Finance Mutation (Reseller\Tests\Integration\Wp6b\FinanceMutation)
+ ✔ Provider funding review execute and replay
+ ✔ A tampered review is refused before any service call
+ ✔ Withdrawal needs the typed username
+ ✔ Agent sends only from its own wallet to a direct child
+ ✔ Roles without the capability are denied
+
+Finance Navigation (Reseller\Tests\Integration\Wp6b\FinanceNavigation)
+ ✔ Destinations follow the role
+ ✔ Primary navigation and quick actions
+ ✔ Dashboard finance tiles are role specific
+
+Finance Read (Reseller\Tests\Integration\Wp6b\FinanceRead)
+ ✔ Scopes follow the accepted capabilities
+ ✔ Identities above the viewer are role labels and in scope reasons stay
+ ✔ Exports equal the screen and are audited without contents
+ ✔ Read pages write nothing
+
+Legacy Retail Price (Reseller\Tests\Unit\Wp3b\LegacyRetailPrice)
+ ✔ Accepted
+ ✔ Refused without normalisation
+
+Money (Reseller\Tests\Unit\Wp3a\Money)
+ ✔ Exact smallest unit and canonical forms
+ ✔ Largest decimal 1802 value is exact
+ ✔ Intermediate beyond one column is valid
+ ✔ Checked int 64 never overflows
+ ✔ No floating point drift
+ ✔ Malformed inputs are rejected with data set "NaN"
+ ✔ Malformed inputs are rejected with data set "nan"
+ ✔ Malformed inputs are rejected with data set "INF"
+ ✔ Malformed inputs are rejected with data set "Infinity"
+ ✔ Malformed inputs are rejected with data set "-INF"
+ ✔ Malformed inputs are rejected with data set "exponent"
+ ✔ Malformed inputs are rejected with data set "exponent2"
+ ✔ Malformed inputs are rejected with data set "plus sign"
+ ✔ Malformed inputs are rejected with data set "leading space"
+ ✔ Malformed inputs are rejected with data set "trailing space"
+ ✔ Malformed inputs are rejected with data set "trailing newline"
+ ✔ Malformed inputs are rejected with data set "dot only"
+ ✔ Malformed inputs are rejected with data set "trailing dot"
+ ✔ Malformed inputs are rejected with data set "leading dot"
+ ✔ Malformed inputs are rejected with data set "leading zero"
+ ✔ Malformed inputs are rejected with data set "leading zero int"
+ ✔ Malformed inputs are rejected with data set "thousands"
+ ✔ Malformed inputs are rejected with data set "comma decimal"
+ ✔ Malformed inputs are rejected with data set "three decimals"
+ ✔ Malformed inputs are rejected with data set "three decimals zero"
+ ✔ Malformed inputs are rejected with data set "17 int digits"
+ ✔ Malformed inputs are rejected with data set "17 digits max"
+ ✔ Malformed inputs are rejected with data set "arabic digits"
+ ✔ Malformed inputs are rejected with data set "fullwidth"
+ ✔ Malformed inputs are rejected with data set "hex"
+ ✔ Malformed inputs are rejected with data set "empty"
+ ✔ Malformed inputs are rejected with data set "negative"
+ ✔ Malformed inputs are rejected with data set "negative zero"
+ ✔ Malformed inputs are rejected with data set "underscore"
+ ✔ Malformed inputs are rejected with data set "float"
+ ✔ Malformed inputs are rejected with data set "int"
+ ✔ Malformed inputs are rejected with data set "null"
+ ✔ Malformed inputs are rejected with data set "bool"
+ ✔ Malformed inputs are rejected with data set "array"
+ ✔ Malformed inputs are rejected with data set "nul byte"
+ ✔ Malformed inputs are rejected with data set "tab"
+ ✔ Column values are strict
+ ✔ Comparisons and json
+
+Operations Center (Reseller\Tests\Integration\Wp6b\OperationsCenter)
+ ✔ Only admins reach the operations center
+ ✔ Cancel is refused while fresh and cancels once stale
+ ✔ Resume of a stale activation completes it
+ ✔ An attention item is never listed twice
+ ✔ Informational items carry no action buttons
+
+Pricing Capability (Reseller\Tests\Unit\Wp3b\PricingCapability)
+ ✔ Classification
+ ✔ Exact role matrix
+ ✔ Frozen inconsistent non enrolled and not ready
+ ✔ Non staff hold nothing
+
+Pricing Read Model (Reseller\Tests\Unit\Wp3b\PricingReadModel)
+ ✔ Admin sees everything
+ ✔ Agent sees only its part of the chain
+
+Pricing Snapshot (Reseller\Tests\Unit\Wp3b\PricingSnapshot)
+ ✔ Canonical bytes and completeness
+ ✔ Decode refuses tampering and partial rows
+ ✔ Invariants are enforced on seal
+ ✔ Plan snapshot excludes scripts
+
+Pricing Source Guard (Reseller\Tests\Unit\Wp3b\PricingSourceGuard)
+ ✔ Pricing tables have only the approved writer
+ ✔ Activation snapshots are write once
+ ✔ One settlement authority
+ ✔ Pricing code writes no money
+ ✔ No entrypoint or route
+ ✔ Plan delete is guarded before any side effect
+ ✔ Plan reference writers hold the tree lock
+
+Pricing Ux (Reseller\Tests\Integration\Wp6b\PricingUx)
+ ✔ Agents see only their projection and admin sees everything
+ ✔ The accepted setters stay authoritative
+ ✔ Admin base cost resale and retail warnings
+
+Reseller Workspace (Reseller\Tests\Integration\Wp6b\ResellerWorkspace)
+ ✔ Tree scope drill down and no money
+ ✔ Detail is scoped and masks accounts above the viewer
+ ✔ Subscriber filters only narrow the scope
+
+Settlement Failure (Reseller\Tests\Unit\Wp3b\SettlementFailure)
+ ✔ Classification
+ ✔ Messages are sanitized
+
+Settlement Math (Reseller\Tests\Unit\Wp3b\SettlementMath)
+ ✔ Exact settlement with data set "one level, override"
+ ✔ Exact settlement with data set "no override (base)"
+ ✔ Exact settlement with data set "two levels 10->12->15"
+ ✔ Exact settlement with data set "spec 10->12->15->17"
+ ✔ Exact settlement with data set "inherited middle earns the gap"
+ ✔ Exact settlement with data set "equal adjacent explicit"
+ ✔ Exact settlement with data set "all inherit base"
+ ✔ Exact settlement with data set "base 0, owner example 0->5->8"
+ ✔ Exact settlement with data set "base 0, top inherits 0"
+ ✔ Exact settlement with data set "cents"
+ ✔ Exact settlement with data set "deep chain"
+ ✔ Exact settlement with data set "maximum"
+ ✔ Zero leaf wholesale is never sealed
+ ✔ No float drift across many cents
+
+Settlement Report (Reseller\Tests\Integration\Wp6b\SettlementReport)
+ ✔ The settlement card follows the role projection
+ ✔ Reports and exports follow the same scopes
+
+Source Guard (Reseller\Tests\Unit\Wp3a\SourceGuard)
+ ✔ Scan covers the runtime
+ ✔ Ledger has no update or delete path and one writer
+ ✔ Wallet writers
+ ✔ Reservation and transfer writers
+ ✔ No orm access to finance tables
+ ✔ Finance code is separated from legacy money and input
+ ✔ No entrypoint reaches the finance services
+ ✔ Fault hook is never assigned at runtime
+ ✔ No generic ledger writer
+ ✔ Accepted files are byte identical
+
+Wp6b Boundary (Reseller\Tests\Unit\Wp6b\Wp6bBoundary)
+ ✔ Nothing wp 6b adds is api reachable
+ ✔ Backoffice is a gateway only
+ ✔ Controllers stay thin
+ ✔ Pricing pages take one tree lock per page
+ ✔ Finance read models are read only
+
+Wp6b Template Guard (Reseller\Tests\Unit\Wp6b\Wp6bTemplateGuard)
+ ✔ Every variable is escaped
+ ✔ Every wp 6b string has an arabic entry
+
+OK (143 tests, 39724 assertions)
+2026-10-05T03:42:48Z
+
+================ mariadb: AppSurfaceTest | RouteMapTest ================
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.........                                                           9 / 9 (100%)
+
+Time: 00:32.797, Memory: 26.00 MB
+
+App Surface (Reseller\Tests\Integration\Wp3a\AppSurface)
+ ✔ Finance services run in the application context
+ ✔ No finance routes or api
+
+Route Map (Reseller\Tests\Unit\Wp2\RouteMap)
+ ✔ Every controller is mapped
+ ✔ Every action label is mapped and no stale entries
+ ✔ Every rule is known and every alias resolves
+ ✔ Variants and api allowlist refer to mapped entries
+ ✔ Fall through entries are not wider than their targets
+ ✔ Pages write and reset are a code surface
+ ✔ Resolution of keys variants and methods
+
+OK (9 tests, 1815 assertions)
+2026-10-05T03:43:24Z
+
+================ mysql: wp6b-unit, wp6b-integration, wp3a-unit, wp3b-unit ================
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............................................................  63 / 143 ( 44%)
+............................................................... 126 / 143 ( 88%)
+.................                                               143 / 143 (100%)
+
+Time: 07:03.034, Memory: 26.00 MB
+
+Activation Action Matrix (Reseller\Tests\Integration\Wp6b\ActivationActionMatrix)
+ ✔ Every state renders exactly the accepted operations
+ ✔ The operation table mirrors the accepted primitives
+
+Export Cap (Reseller\Tests\Integration\Wp6b\ExportCap)
+ ✔ Performance export is complete at the cap and refused above it
+ ✔ Pricing catalog export is complete at the cap and refused above it
+
+Export Cap Guard (Reseller\Tests\Unit\Wp6b\ExportCapGuard)
+ ✔ Every finance export cursor counts and streams in one capped snapshot
+ ✔ Every csv producer is a capped cursor or the pre refused catalog
+
+Finance Actor (Reseller\Tests\Unit\Wp3a\FinanceActor)
+ ✔ Staff stays staff on every channel
+ ✔ Customer stays customer on every channel
+ ✔ System and cron are explicit
+ ✔ Wrong principals are refused
+ ✔ There is no api or inferred factory
+
+Finance Capability (Reseller\Tests\Unit\Wp3a\FinanceCapability)
+ ✔ Finance capabilities are defined and classified
+ ✔ Exact role matrix
+ ✔ Pricing and activation stay reserved
+ ✔ Frozen non enrolled inconsistent and inactive
+ ✔ Schema not ready fails closed for every role
+ ✔ Non staff principals hold no finance capability
+ ✔ Flags reflect the matrix
+
+Finance Correction (Reseller\Tests\Integration\Wp6b\FinanceCorrection)
+ ✔ Debt line review typed decrease and exposure floor
+ ✔ Adjustments are explicit and never open a wallet
+ ✔ Only an existing reversible transfer can be reversed
+ ✔ Corrections are admin only
+ ✔ A stale debt line review never changes its risk direction
+
+Finance Mutation (Reseller\Tests\Integration\Wp6b\FinanceMutation)
+ ✔ Provider funding review execute and replay
+ ✔ A tampered review is refused before any service call
+ ✔ Withdrawal needs the typed username
+ ✔ Agent sends only from its own wallet to a direct child
+ ✔ Roles without the capability are denied
+
+Finance Navigation (Reseller\Tests\Integration\Wp6b\FinanceNavigation)
+ ✔ Destinations follow the role
+ ✔ Primary navigation and quick actions
+ ✔ Dashboard finance tiles are role specific
+
+Finance Read (Reseller\Tests\Integration\Wp6b\FinanceRead)
+ ✔ Scopes follow the accepted capabilities
+ ✔ Identities above the viewer are role labels and in scope reasons stay
+ ✔ Exports equal the screen and are audited without contents
+ ✔ Read pages write nothing
+
+Legacy Retail Price (Reseller\Tests\Unit\Wp3b\LegacyRetailPrice)
+ ✔ Accepted
+ ✔ Refused without normalisation
+
+Money (Reseller\Tests\Unit\Wp3a\Money)
+ ✔ Exact smallest unit and canonical forms
+ ✔ Largest decimal 1802 value is exact
+ ✔ Intermediate beyond one column is valid
+ ✔ Checked int 64 never overflows
+ ✔ No floating point drift
+ ✔ Malformed inputs are rejected with data set "NaN"
+ ✔ Malformed inputs are rejected with data set "nan"
+ ✔ Malformed inputs are rejected with data set "INF"
+ ✔ Malformed inputs are rejected with data set "Infinity"
+ ✔ Malformed inputs are rejected with data set "-INF"
+ ✔ Malformed inputs are rejected with data set "exponent"
+ ✔ Malformed inputs are rejected with data set "exponent2"
+ ✔ Malformed inputs are rejected with data set "plus sign"
+ ✔ Malformed inputs are rejected with data set "leading space"
+ ✔ Malformed inputs are rejected with data set "trailing space"
+ ✔ Malformed inputs are rejected with data set "trailing newline"
+ ✔ Malformed inputs are rejected with data set "dot only"
+ ✔ Malformed inputs are rejected with data set "trailing dot"
+ ✔ Malformed inputs are rejected with data set "leading dot"
+ ✔ Malformed inputs are rejected with data set "leading zero"
+ ✔ Malformed inputs are rejected with data set "leading zero int"
+ ✔ Malformed inputs are rejected with data set "thousands"
+ ✔ Malformed inputs are rejected with data set "comma decimal"
+ ✔ Malformed inputs are rejected with data set "three decimals"
+ ✔ Malformed inputs are rejected with data set "three decimals zero"
+ ✔ Malformed inputs are rejected with data set "17 int digits"
+ ✔ Malformed inputs are rejected with data set "17 digits max"
+ ✔ Malformed inputs are rejected with data set "arabic digits"
+ ✔ Malformed inputs are rejected with data set "fullwidth"
+ ✔ Malformed inputs are rejected with data set "hex"
+ ✔ Malformed inputs are rejected with data set "empty"
+ ✔ Malformed inputs are rejected with data set "negative"
+ ✔ Malformed inputs are rejected with data set "negative zero"
+ ✔ Malformed inputs are rejected with data set "underscore"
+ ✔ Malformed inputs are rejected with data set "float"
+ ✔ Malformed inputs are rejected with data set "int"
+ ✔ Malformed inputs are rejected with data set "null"
+ ✔ Malformed inputs are rejected with data set "bool"
+ ✔ Malformed inputs are rejected with data set "array"
+ ✔ Malformed inputs are rejected with data set "nul byte"
+ ✔ Malformed inputs are rejected with data set "tab"
+ ✔ Column values are strict
+ ✔ Comparisons and json
+
+Operations Center (Reseller\Tests\Integration\Wp6b\OperationsCenter)
+ ✔ Only admins reach the operations center
+ ✔ Cancel is refused while fresh and cancels once stale
+ ✔ Resume of a stale activation completes it
+ ✔ An attention item is never listed twice
+ ✔ Informational items carry no action buttons
+
+Pricing Capability (Reseller\Tests\Unit\Wp3b\PricingCapability)
+ ✔ Classification
+ ✔ Exact role matrix
+ ✔ Frozen inconsistent non enrolled and not ready
+ ✔ Non staff hold nothing
+
+Pricing Read Model (Reseller\Tests\Unit\Wp3b\PricingReadModel)
+ ✔ Admin sees everything
+ ✔ Agent sees only its part of the chain
+
+Pricing Snapshot (Reseller\Tests\Unit\Wp3b\PricingSnapshot)
+ ✔ Canonical bytes and completeness
+ ✔ Decode refuses tampering and partial rows
+ ✔ Invariants are enforced on seal
+ ✔ Plan snapshot excludes scripts
+
+Pricing Source Guard (Reseller\Tests\Unit\Wp3b\PricingSourceGuard)
+ ✔ Pricing tables have only the approved writer
+ ✔ Activation snapshots are write once
+ ✔ One settlement authority
+ ✔ Pricing code writes no money
+ ✔ No entrypoint or route
+ ✔ Plan delete is guarded before any side effect
+ ✔ Plan reference writers hold the tree lock
+
+Pricing Ux (Reseller\Tests\Integration\Wp6b\PricingUx)
+ ✔ Agents see only their projection and admin sees everything
+ ✔ The accepted setters stay authoritative
+ ✔ Admin base cost resale and retail warnings
+
+Reseller Workspace (Reseller\Tests\Integration\Wp6b\ResellerWorkspace)
+ ✔ Tree scope drill down and no money
+ ✔ Detail is scoped and masks accounts above the viewer
+ ✔ Subscriber filters only narrow the scope
+
+Settlement Failure (Reseller\Tests\Unit\Wp3b\SettlementFailure)
+ ✔ Classification
+ ✔ Messages are sanitized
+
+Settlement Math (Reseller\Tests\Unit\Wp3b\SettlementMath)
+ ✔ Exact settlement with data set "one level, override"
+ ✔ Exact settlement with data set "no override (base)"
+ ✔ Exact settlement with data set "two levels 10->12->15"
+ ✔ Exact settlement with data set "spec 10->12->15->17"
+ ✔ Exact settlement with data set "inherited middle earns the gap"
+ ✔ Exact settlement with data set "equal adjacent explicit"
+ ✔ Exact settlement with data set "all inherit base"
+ ✔ Exact settlement with data set "base 0, owner example 0->5->8"
+ ✔ Exact settlement with data set "base 0, top inherits 0"
+ ✔ Exact settlement with data set "cents"
+ ✔ Exact settlement with data set "deep chain"
+ ✔ Exact settlement with data set "maximum"
+ ✔ Zero leaf wholesale is never sealed
+ ✔ No float drift across many cents
+
+Settlement Report (Reseller\Tests\Integration\Wp6b\SettlementReport)
+ ✔ The settlement card follows the role projection
+ ✔ Reports and exports follow the same scopes
+
+Source Guard (Reseller\Tests\Unit\Wp3a\SourceGuard)
+ ✔ Scan covers the runtime
+ ✔ Ledger has no update or delete path and one writer
+ ✔ Wallet writers
+ ✔ Reservation and transfer writers
+ ✔ No orm access to finance tables
+ ✔ Finance code is separated from legacy money and input
+ ✔ No entrypoint reaches the finance services
+ ✔ Fault hook is never assigned at runtime
+ ✔ No generic ledger writer
+ ✔ Accepted files are byte identical
+
+Wp6b Boundary (Reseller\Tests\Unit\Wp6b\Wp6bBoundary)
+ ✔ Nothing wp 6b adds is api reachable
+ ✔ Backoffice is a gateway only
+ ✔ Controllers stay thin
+ ✔ Pricing pages take one tree lock per page
+ ✔ Finance read models are read only
+
+Wp6b Template Guard (Reseller\Tests\Unit\Wp6b\Wp6bTemplateGuard)
+ ✔ Every variable is escaped
+ ✔ Every wp 6b string has an arabic entry
+
+OK (143 tests, 39724 assertions)
+2026-10-05T03:50:30Z
+
+================ mysql: AppSurfaceTest | RouteMapTest ================
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.........                                                           9 / 9 (100%)
+
+Time: 00:50.511, Memory: 26.00 MB
+
+App Surface (Reseller\Tests\Integration\Wp3a\AppSurface)
+ ✔ Finance services run in the application context
+ ✔ No finance routes or api
+
+Route Map (Reseller\Tests\Unit\Wp2\RouteMap)
+ ✔ Every controller is mapped
+ ✔ Every action label is mapped and no stale entries
+ ✔ Every rule is known and every alias resolves
+ ✔ Variants and api allowlist refer to mapped entries
+ ✔ Fall through entries are not wider than their targets
+ ✔ Pages write and reset are a code surface
+ ✔ Resolution of keys variants and methods
+
+OK (9 tests, 1815 assertions)
+2026-10-05T03:51:25Z

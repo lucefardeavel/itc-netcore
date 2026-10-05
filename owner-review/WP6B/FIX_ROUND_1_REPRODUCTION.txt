@@ -1,0 +1,86 @@
+WP6B owner fix round 1 — pre-fix reproductions on the reviewed runtime f7496710b44d5c5d387765cb13194156c6bf77d5
+(repository at evidence HEAD 0c6f1768 = f7496710 runtime + docs; only the new regression tests added; for the debt-limit and guard runs the fix-round runtime changes were stashed). MariaDB 10.11, isolated nuxbill-reseller-test project.
+
+=== FIX 1 / FIX 2: tests/Integration/Wp6b/ExportCapTest (first version; 20,001 rows) ===
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FE                                                                  2 / 2 (100%)
+
+Time: 02:07.401, Memory: 24.00 MB
+
+There was 1 error:
+
+1) Reseller\Tests\Integration\Wp6b\ExportCapTest::testPricingCatalogExportIsCompleteAtTheCapAndRefusedAboveIt
+RuntimeException: HTTP request failed: Operation timed out after 60000 milliseconds with 331360 bytes received
+
+/repo/tests/Support/HttpClient.php:147
+/repo/tests/Support/HttpClient.php:23
+/repo/tests/Integration/Wp6b/ExportCapTest.php:123
+
+--
+
+There was 1 failure:
+
+1) Reseller\Tests\Integration\Wp6b\ExportCapTest::testPerformanceExportIsCompleteAtTheCapAndRefusedAboveIt
+performance 20,001: refused with a redirect, 200  ﻿Reseller;"Full Name";Activations;"Wholesale debited";"Commissions received";"Reversal entries" A;"Staff A";0;0.00;0.00;0 B;"Staff B";0;0.00;0.00;0 C;"Staff C";0;0.00;0.00;0 capag10;"Cap Agent 4";0;0.00;0.00;0 capag100;"Cap Agent 94";0;0.00;0.00;0 capag1000;"Cap Agent 994";0;0.00;0.00;0 capag10000;"Cap Agent 9994";0;0.00;0.00;0 capag10001;"Cap Ag
+Failed asserting that 200 is identical to 302.
+
+/repo/tests/Integration/Wp6b/ExportCapTest.php:81
+/repo/tests/Integration/Wp6b/ExportCapTest.php:109
+
+ERRORS!
+Tests: 2, Assertions: 9, Errors: 1, Failures: 1.
+
+
+Reading: performance 20,001 Agents -> HTTP 200 text/csv with the first 20,000 rows (silent truncation).
+         pricing catalog 20,001 plans -> no preflight: CSV streaming had started (331,360 bytes received) when the 60 s test client timed out.
+
+=== FIX 3: FinanceCorrectionTest::testAStaleDebtLineReviewNeverChangesItsRiskDirection ===
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F                                                                   1 / 1 (100%)
+
+Time: 00:07.015, Memory: 24.00 MB
+
+There was 1 failure:
+
+1) Reseller\Tests\Integration\Wp6b\FinanceCorrectionTest::testAStaleDebtLineReviewNeverChangesItsRiskDirection
+stale review #0: the limit is not changed to 100
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'200.00'
++'100.00'
+
+/repo/tests/Integration/Wp6b/FinanceCorrectionTest.php:196
+
+FAILURES!
+Tests: 1, Assertions: 5, Failures: 1.
+
+
+Reading: limit 50, reviewed 100 (increase, no typed confirmation), limit changed to 200 by the accepted service, old review submitted -> limit set to 100.00 (a decrease) without the typed confirmation.
+
+=== Guard: tests/Unit/Wp6b/ExportCapGuardTest (+ the FIX 3 test before its assertion reorder) — failure headlines ===
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+There were 3 failures:
+1) Reseller\Tests\Unit\Wp6b\ExportCapGuardTest::testEveryFinanceExportCursorCountsAndStreamsInOneCappedSnapshot
+Failed asserting that two arrays are identical.
+-    4 => 'SettlementReadModel::exportPerformance',
+-    5 => 'SettlementReadModel::exportSettlement',
++    4 => 'SettlementReadModel::exportSettlement',
+2) Reseller\Tests\Unit\Wp6b\ExportCapGuardTest::testEveryCsvProducerIsACappedCursorOrThePreRefusedCatalog
+ * sealed snapshots, role-projected) and streams the same scoped queries as CSV. No SQL, no money arithmetic.\n
+3) Reseller\Tests\Integration\Wp6b\FinanceCorrectionTest::testAStaleDebtLineReviewNeverChangesItsRiskDirection
+stale review #0: refused, a fresh review is required
+FAILURES!
+Tests: 3, Assertions: 12, Failures: 3.
+
+Reading: the guard finds no ExportCap snapshot in the Finance cursors (no exportPerformance cursor), and the performance producer is not a capped Finance cursor.

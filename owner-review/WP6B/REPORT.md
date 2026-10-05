@@ -1,10 +1,13 @@
 # WP6B — Finance, Reseller, Pricing, Reports and Operations UX — Owner review report
 
-**Status: IMPLEMENTED_NOT_ACCEPTED.** The candidate is complete and validated, waiting for the owner's code review. Final state: `WP6B_CANDIDATE_READY_WAITING_OWNER_REVIEW`.
+**Status: IMPLEMENTED_NOT_ACCEPTED.** Fix round 1 is applied ("WP6B OWNER CODE REVIEW — FIX_REQUIRED": three narrow fixes, §C1) and is waiting for the owner's review. Final state: `WP6B_FIX_ROUND_1_READY_WAITING_OWNER_REVIEW`.
 
 - Plan: `WP6B_PLAN.md` revision 2, recorded in commit `5d3b6040`. It was accepted by "WP6B OWNER REVIEW — FINAL PLAN ACCEPTED / IMPLEMENTATION GO" (OD-1 … OD-9).
 - Model: `docs/WP6B_FINANCE_UX_MODEL.md`.
-- Test evidence: `owner-review/WP6B/TESTDOX.txt` (final run).
+- Test evidence:
+  - `owner-review/WP6B/TESTDOX.txt` (final full run, `f7496710`);
+  - `owner-review/WP6B/FIX_ROUND_1_TESTDOX.txt` (fix round 1, focused, both engines);
+  - `owner-review/WP6B/FIX_ROUND_1_REPRODUCTION.txt` (pre-fix reproductions on `f7496710`).
 - Visual evidence: `owner-review/WP6B/VISUAL_QA.md` and `owner-review/WP6B/visual/`.
 
 ## A. Ancestry / branch / heads
@@ -14,8 +17,9 @@
 | Accepted prior head (base) | `feat/reseller-system-v1` = `81d492432ca6ae6e5f8ff67793542540001287df` (WP6A acceptance recorded) |
 | Branch | `wp6b/finance-reseller-reports-ux` from `81d49243` (linear; no squash, amend or rebase) |
 | First full-validation candidate | `a78ef1c380394f3ae406f10852c478d6f40b1b25` (run 1: 3 failing tests per engine, §F) |
-| **Implementation HEAD (validated)** | `f7496710b44d5c5d387765cb13194156c6bf77d5` |
-| Evidence HEAD | the evidence commit `docs(wp6b): candidate report, testdox, visual QA` (its SHA is in the final response) |
+| Reviewed implementation (owner code review) | `f7496710b44d5c5d387765cb13194156c6bf77d5`, evidence `0c6f1768` — FIX_REQUIRED (three fixes, §C1) |
+| **Implementation HEAD (fix round 1)** | `22e534b2b03a2010de007c4b67f1c33eb9fbc06e` |
+| Evidence HEAD | the evidence commit `docs(wp6b): fix round 1 — reproduction, report, focused testdox` (its SHA is in the final response) |
 | Worktree | clean, apart from the ignored `tests/vendor/` |
 | `main` / `feat` | untouched: `main` = `500d3a2d`, `feat/reseller-system-v1` = `81d49243` |
 
@@ -36,7 +40,75 @@ All commits are authored by `ALI HENDI <ali.hahuba3@gmail.com>` and carry the `C
 | `5c54244c` | **Slice 7 (OD-7 / OD-8).** Web cancel / resume (Admin, stale only) and the Operations Center (`system.admin`). |
 | `7ce54680` | **Slice 8 (OD-3).**<br>• Navigation groups; Agent phone primary Wallet.<br>• Quick actions; dashboard finance tiles.<br>• 297 Arabic strings; `Wp6bTemplateGuardTest`.<br>• Docs and amendment notes. |
 | `a78ef1c3` | Pre-validation visual-smoke fixes (`VISUAL_QA.md` §"Found and fixed") |
+| `22e534b2` | **Fix round 1 (owner code review of `f7496710`):** export caps never truncate (performance, pricing catalog, shared `ExportCap`); a stale debt-line review fails closed (§C1) |
 | `f7496710` | Candidate-validation fixes:<br>• schema-not-ready navigation;<br>• WP5A economics assertion excludes the shell navigation (§F, §E). |
+
+## C1. Fix round 1 (owner code review of `f7496710`, evidence `0c6f1768`: FIX_REQUIRED, three narrow fixes)
+
+No redesign. No schema, capability, finance / pricing / hierarchy semantics or activation transition changed. RouteMap is unchanged (the pin is still `d319647c…`), and no template layout changed. Commits are additive only.
+
+| Fix | Defect on `f7496710` (reproduced, `FIX_ROUND_1_REPRODUCTION.txt`) | Change |
+|---|---|---|
+| **1. Performance CSV truncation** | `SettlementDesk::export('performance')` paged the screen read and stopped at `EXPORT_MAX_ROWS`. With 20,001 Agents in scope it answered **HTTP 200 text/csv with the first 20,000 rows**. | New authoritative cursor `SettlementReadModel::exportPerformance`: the same scope / query / metrics as the screen (shared private `performanceRows`), in the screen order. The scoped count is read **before any output**: above 20,000 → `EXPORT_TOO_LARGE`, zero CSV bytes, no export audit. Exactly 20,000 → complete. No truncation guard exists any more. The gateway only delegates. |
+| **2. Pricing catalog export without a cap** | `PricingDesk::exportCatalog` walked every page with no preflight. With 20,001 resellable plans it was **still streaming CSV** (331 KB) when the test client timed out at 60 s. | Preflight with `ExportCap::assertWithin($first['total'])`. The total comes from the first bounded page, i.e. the same tree-locked `PricingReadModel` read as the screen. Above the cap → refused before any byte. Then **exactly the preflight's pages**, one tree lock per page (never an unbounded lock). `PAGE_PLANS` (25) divides the cap, so the stream can never exceed 20,000 rows. |
+| **3. Debt-limit review staleness** | The review signed a `decrease` flag. Reproduction: limit 50 → review 100 (an increase, no typed confirmation) → limit changed to 200 by the accepted service → the old review was submitted → **the limit became 100.00 (a decrease) with no typed confirmation**. | The review binds the authoritative **current limit** it was classified against (`current`; no `decrease` field any more). Execute re-reads the limit through the accepted read path (`WalletPreview::debtLimit` → `WalletService::view`). If it differs from the bound value → `REVIEW_EXPIRED`: nothing written, a fresh review required. The typed confirmation is required whenever the new value is a decrease **against the current limit** (server-derived, never from the browser or the signed review). `WalletService::setDebtLimit` remains the only writer. |
+
+**Shared primitive.** `Reseller\Finance\ExportCap` (new; it holds no scope or query):
+- `MAX_ROWS` = 20,000 and `MAX_DAYS` = 366. `LedgerReadModel::EXPORT_MAX_*` now alias them.
+- `assertWithin(total)`: refused above the cap; exactly the cap passes.
+- `snapshot($pdo, count, stream)`: count and stream inside **one read-only REPEATABLE READ snapshot**, so the streamed set is exactly the counted set. Consistent reads take no locks, and it refuses to run inside another transaction.
+
+All five existing SQL cursors move onto it (`exportWallets`, `exportLedger`, `exportTransfers`, `exportLegs`, `exportSettlement`). Each already counted before output. The audit finding was that their stream loops still stopped at `$n < EXPORT_MAX_ROWS`, so a row committed between the count and the stream could have pushed the export to the cap and cut it off silently. That cut-off is now impossible, and the loops have no cap condition.
+
+**Export audit (every `ExportStream::csv()` producer, enforced by `Unit/Wp6b/ExportCapGuardTest`):**
+
+| Export | Producer | Cap |
+|---|---|---|
+| wallets | `LedgerReadModel::exportWallets` | count + stream in one `ExportCap` snapshot; refused above 20,000 |
+| ledger | `LedgerReadModel::exportLedger` (date range ≤ 366 days) | same |
+| transfers | `LedgerReadModel::exportTransfers` (date range ≤ 366 days) | same |
+| sales / commissions | `SettlementReadModel::exportLegs` (date range ≤ 366 days) | same |
+| provider settlement | `SettlementReadModel::exportSettlement` (Admin, date range ≤ 366 days) | same |
+| performance | `SettlementReadModel::exportPerformance` (date range ≤ 366 days) | same (**fix 1**) |
+| pricing catalog | `PricingDesk::exportCatalog` (bounded tree-locked pages) | `assertWithin` before output; at most the preflight's pages × 25 ≤ 20,000 (**fix 2**) |
+
+**Other review flows checked for a state-derived risk direction (fix 3 scope):**
+- Provider funding / withdrawal: the operation is the user's explicit, signed choice; withdrawal is always typed.
+- Transfer to child and credit / debit adjustment: explicit signed operation; debit is always typed.
+- Transfer reversal: always typed.
+
+Only the debt line derived its risk direction from mutable state, so nothing else changed.
+
+**New / changed tests:**
+- `Integration/Wp6b/ExportCapTest`, real data at the boundary:
+  - performance and wallets with exactly 20,000 Agents in scope (complete CSV, 20,000 rows) and 20,001 (302, no `text/csv`, no BOM, no attachment, no export audit row);
+  - the pricing catalog: 60 plans over 3 pages (all rows, once); 20,001 plans refused before output; exactly 20,000 plans complete.
+
+    The 20,000 catalog run goes through the application context: at about 10 ms per evaluated plan it takes minutes, longer than the HTTP test client's 60 s.
+- `Unit/Wp6b/ExportCapGuardTest`: every Finance export cursor uses `ExportCap::snapshot` with no cap cut-off; every producer is such a cursor or the pre-refused catalog; `PAGE_PLANS` divides the cap.
+- `Integration/Wp6b/FinanceCorrectionTest::testAStaleDebtLineReviewNeverChangesItsRiskDirection`, the owner's reproduction:
+  - the stale review (also with a typed confirmation or a forged `decrease`) → `REVIEW_EXPIRED`, the limit stays 200, and nothing is written (no wallet / ledger / transfer / audit change);
+  - a tampered `current` is refused by the token;
+  - a fresh review is a decrease with the typed username, then applied;
+  - a normal increase needs no typed confirmation and is applied;
+  - no ledger or transfer row.
+
+**Files changed in fix round 1** (`git diff --stat 0c6f1768..22e534b2`: 11 files, +498 / −97):
+- new: `system/autoload/Reseller/Finance/ExportCap.php`, `tests/Integration/Wp6b/ExportCapTest.php`, `tests/Unit/Wp6b/ExportCapGuardTest.php`;
+- modified: `system/autoload/Reseller/Backoffice/{ExportStream, PricingDesk, SettlementDesk, WalletDesk}.php`, `system/autoload/Reseller/Finance/{LedgerReadModel, SettlementReadModel}.php`, `system/controllers/finance.php` (the debt-line execute fields: `current` instead of `decrease`), `tests/Integration/Wp6b/FinanceCorrectionTest.php`;
+- not changed: RouteMap (pin `d319647c…`), capabilities, schema / migrations, the pinned services (incl. `WalletService`, `TransferService`, `PricingService`, `PricingReadModel`), templates and CSS.
+
+**Focused validation (owner cadence: no third full run)** on the fix tree (= `22e534b2`). Dev host, isolated `nuxbill-reseller-test` project, 2026-10-05T03:36Z – 03:51Z (`FIX_ROUND_1_TESTDOX.txt`):
+
+| Run | MariaDB 10.11 | MySQL 8.0 |
+|---|---|---|
+| `--testsuite wp6b-unit,wp6b-integration,wp3a-unit,wp3b-unit` (the WP6B boundary / template / export guards, `ExportCapTest`, `SettlementReportTest`, `FinanceReadTest`, `FinanceMutationTest`, `FinanceCorrectionTest`, `PricingUxTest`, `OperationsCenterTest`, …; WP3A `SourceGuardTest`, WP3B `PricingSourceGuardTest` and finance unit tests) | **OK (143 tests, 39 724 assertions)** | **OK (143 tests, 39 724 assertions)** |
+| `--filter 'AppSurfaceTest\|RouteMapTest'` (finance API isolation, RouteMap) | **OK (9 tests, 1 815 assertions)** | **OK (9 tests, 1 815 assertions)** |
+
+- PHP 8.2 lint: all changed PHP files are clean.
+- The secret sweep of `0c6f1768..22e534b2` is clean.
+- The route matrix was not re-run: RouteMap is unchanged.
+- Visual QA was not repeated: no template, layout or CSS change. The debt-line review form carries the same hidden-field mechanism (`current` instead of `decrease`).
 
 ## C. Files changed
 
@@ -207,6 +279,8 @@ Against the WP6A accepted matrix (**1477** requests / 1185 denials / 292 allowed
 | R-8 | Cancel / resume are offered only after 300 s without progress (`STALE_SECONDS`), by design, so an operator never races a running request. |
 | R-9 | `finance/settlement` is route-allowed for an Agent (`ledger.read`) and refused by the read model (redirect), not by the RouteGuard. |
 | R-10 | Legacy jQuery / Bootstrap / AdminLTE stay (no framework change); legacy templates outside WP6A / WP6B still print unescaped variables. |
+| R-12 | Fix round 1: a pricing catalog export at the 20,000 cap takes minutes (one pricing evaluation per plan, about 10 ms; measured in `ExportCapTest`). A web server execution time limit shorter than that could end the stream early. The catalog's real size is the number of resellable plans; recorded, not changed this round. |
+| R-13 | Fix round 1: the debt-line execute re-reads the limit and then calls the accepted `WalletService::setDebtLimit` (the pinned writer, which takes no "expected current" argument). A concurrent change in the instant between the re-read and the writer's own transaction is not detected by the review layer. `setDebtLimit` still re-validates the exposure floor and every rule. |
 | R-11 | Known harness flakes are unchanged: the AppServer port-reuse flake and the CliOnlyTest healthcheck race. Neither occurred in the final run. |
 
 **Deviations from the plan text:**
@@ -233,7 +307,9 @@ Only `wp6b/finance-reseller-reports-ux` is pushed (normal, non-force). `feat/res
 `owner-review/WP6B/`:
 - `PLAN.md` (the accepted plan, first commit)
 - `REPORT.md`
-- `TESTDOX.txt`
+- `TESTDOX.txt` (final full run, `f7496710`)
+- `FIX_ROUND_1_REPRODUCTION.txt`
+- `FIX_ROUND_1_TESTDOX.txt`
 - `VISUAL_QA.md`
 - `visual/`: 29 PNG, `visualqa.json`, `visualqa.py`
 
@@ -241,4 +317,4 @@ Only `wp6b/finance-reseller-reports-ux` is pushed (normal, non-force). `feat/res
 
 ## M. Final state
 
-`WP6B_CANDIDATE_READY_WAITING_OWNER_REVIEW`
+`WP6B_FIX_ROUND_1_READY_WAITING_OWNER_REVIEW`
