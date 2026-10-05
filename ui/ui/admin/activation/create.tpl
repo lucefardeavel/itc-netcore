@@ -119,7 +119,7 @@
                     <div><strong>{Lang::T('Credit sufficient: no')}</strong>{Lang::T('The reseller\'s available credit does not cover this activation. Nothing can be activated until credit is added.')}</div></div>
             {/if}
         </div>
-        <form method="post" action="{Text::url('activation/create-post')}" class="nuxr-step-nav" id="nuxr-confirm-form">
+        <form method="post" action="{Text::url('activation/create-post')}" class="nuxr-step-nav" id="nuxr-confirm-form" data-nuxr-critical>
             <input type="hidden" name="csrf_token" value="{$csrf_token}">
             <input type="hidden" name="customer_id" value="{$nuxr_customer_id}">
             <input type="hidden" name="plan_id" value="{$nuxr_plan_id}">

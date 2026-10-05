@@ -14,6 +14,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 import traceback
@@ -561,7 +562,7 @@ def t14i(browser):
         notes.append('hidden in emulated standalone mode')
     else:
         # this Chromium ignores display-mode emulation (prefers-color-scheme emulation works): verify the live CSSOM rule
-        rule = pg.evaluate("""() => { for (const sh of document.styleSheets) { let rules; try { rules = sh.cssRules; } catch (e) { continue; }
+        rule = pg.evaluate(r"""() => { for (const sh of document.styleSheets) { let rules; try { rules = sh.cssRules; } catch (e) { continue; }
             for (const r of rules) { if (r.media && /display-mode:\s*standalone/.test(r.conditionText || r.media.mediaText)) {
                 for (const i of r.cssRules) { if (i.selectorText === '[data-nuxr-install]' && i.style.getPropertyValue('display') === 'none'
                     && i.style.getPropertyPriority('display') === 'important') { return true; } } } } } return false; }""")
@@ -569,6 +570,179 @@ def t14i(browser):
         notes.append('display-mode emulation unsupported by this Chromium; standalone CSS rule verified in the live CSSOM')
     ctx.close()
     return '; '.join(notes)
+
+
+
+# ---------------------------------------------------------------- T14-T16 controlled update (amendment K)
+LAB_CONTAINER = 'nuxbill-reseller-test-pwalab'
+NEXT = 'wp7.1-labnext'
+
+
+def lab_sw(version=None):
+    """publish a byte-different worker in the lab copy (a new VERSION), or restore the repository worker"""
+    d = LAB['dir']
+    cmd = (f"sed -i \"s/^var VERSION = '[^']*';/var VERSION = '{version}';/\" {d}/nuxr-sw.js" if version
+           else f'cp /repo/nuxr-sw.js {d}/nuxr-sw.js')
+    subprocess.run(['docker', 'exec', LAB_CONTAINER, 'sh', '-c', cmd], check=True)
+
+
+UPDATE_NOW = "() => navigator.serviceWorker.getRegistration().then(r => r.update()).then(() => true, () => true)"
+WAITING = "() => navigator.serviceWorker.getRegistration().then(r => !!(r && r.waiting && r.waiting.state === 'installed'))"
+BAR = "() => { const b = document.querySelector('.nuxr-update-bar'); return b && !b.hidden ? b.getAttribute('data-mode') + '|' + b.textContent.trim() : ''; }"
+
+
+def bar_mode(pg, mode, timeout=15000):
+    pg.wait_for_function("(m) => { const b = document.querySelector('.nuxr-update-bar'); return b && !b.hidden && b.getAttribute('data-mode') === m; }",
+                         arg=mode, timeout=timeout)
+    return pg.evaluate(BAR)
+
+
+def watch(pg):
+    """mark the document (a reload clears it) and count controllerchange events"""
+    pg.evaluate("() => { window.__nuxrMark = 1; window.__cc = 0; navigator.serviceWorker.addEventListener('controllerchange', () => window.__cc++); }")
+
+
+@check('T14', 'Update waiting: a new worker installs and WAITS; the user is offered Update; nothing activates or reloads by itself')
+def t14(browser):
+    notes = []
+    try:
+        for base in (ROOT, SUB):
+            ctx = new_ctx(browser, base, vp=DESK)
+            pg = staff_login(ctx, base, 'ad')
+            sw_ready(pg)
+            expect(pg.evaluate(BAR) == '', 'update offered on the first installation')
+            ctrl = pg.evaluate('() => navigator.serviceWorker.controller.scriptURL')
+            watch(pg)
+            lab_sw(NEXT)
+            pg.evaluate(UPDATE_NOW)
+            text = bar_mode(pg, 'available')
+            expect('A new version of the app is available.' in text, 'update text: ' + text)
+            expect(pg.evaluate(WAITING), 'new worker not waiting')
+            pg.wait_for_timeout(4000)
+            expect(pg.evaluate(WAITING), 'the new worker activated by itself')
+            expect(pg.evaluate('() => window.__nuxrMark === 1 && window.__cc === 0'), 'page reloaded or controller changed without the user')
+            expect(pg.evaluate('() => navigator.serviceWorker.controller.scriptURL') == ctrl, 'controller changed')
+            keys = pg.evaluate('() => caches.keys()')
+            expect(any(k.endswith(':wp7.1') for k in keys), f'the active version cache was pruned early: {keys}')
+            if base == ROOT:
+                pg.screenshot(path=os.path.join(ARGS.out, 'T14-update-available.png'))
+            # the offer survives navigation (registration.waiting on the next page)
+            pg.goto(base + '?_route=customers/list', wait_until='networkidle')
+            bar_mode(pg, 'available')
+            notes.append(f'{base}: waiting, offered, no self-activation for 4 s, offered again on the next page')
+            ctx.close()
+            lab_sw()
+    finally:
+        lab_sw()
+    return '; '.join(notes)
+
+
+@check('T15', 'Update deferred in critical flows: activation confirm, finance review, dirty POST form, open dialog, pending submit')
+def t15(browser):
+    notes = []
+    ctx = new_ctx(browser, ROOT, vp=DESK)
+    pg = staff_login(ctx, ROOT, 'ad')
+    sw_ready(pg)
+    try:
+        lab_sw(NEXT)
+        pg.evaluate(UPDATE_NOW)
+        bar_mode(pg, 'available')
+
+        def press_and_expect_deferred(label, shot=None):
+            watch(pg)
+            pg.locator('.nuxr-update-bar [data-nuxr-update]').click()
+            text = bar_mode(pg, 'deferred', timeout=5000)
+            expect('Finish or leave the current task first' in text, label + ': deferred text ' + text)
+            pg.wait_for_timeout(1500)
+            expect(pg.evaluate(WAITING), label + ': the worker activated')
+            expect(pg.evaluate('() => window.__nuxrMark === 1 && window.__cc === 0'), label + ': reloaded / controller changed')
+            if shot:
+                pg.screenshot(path=os.path.join(ARGS.out, shot))
+            notes.append(label + ': deferred')
+
+        # 1. activation confirmation (#nuxr-confirm-form data-nuxr-critical)
+        cust = LAB['customers']['mohammed']
+        found = False
+        for plan in LAB['plans']:
+            pg.goto(ROOT + f'?_route=activation/create&customer={cust}&plan={plan}', wait_until='networkidle')
+            if pg.locator('#nuxr-confirm-form[data-nuxr-critical]').count():
+                found = True
+                break
+        expect(found, 'activation confirmation not reached')
+        bar_mode(pg, 'available')
+        press_and_expect_deferred('activation confirm', 'T15-update-deferred-activation.png')
+        # 2. finance review (review.tpl form data-nuxr-critical)
+        pg.goto(ROOT + '?_route=finance/funding/%d&op=fund' % LAB['staff_ids']['A'], wait_until='networkidle')
+        pg.fill('#nuxr-amount', '10')
+        pg.fill('#nuxr-reason', 'lab update deferral check')
+        with pg.expect_navigation():
+            pg.locator('form[action*="funding-review"] button[type=submit]').click()
+        pg.wait_for_load_state('networkidle')
+        expect(pg.locator('form[data-nuxr-critical]').count() == 1, 'finance review not reached')
+        bar_mode(pg, 'available')
+        press_and_expect_deferred('finance review')
+        # 3. a POST form the user changed (dirty tracking)
+        pg.goto(ROOT + '?_route=customers/edit/%d' % cust, wait_until='networkidle')
+        bar_mode(pg, 'available')
+        field = pg.locator('form[method=post] input[type=text]:visible').first
+        field.click()
+        pg.keyboard.type(' x')
+        press_and_expect_deferred('dirty POST form')
+        # 4. an open dialog; 5. a pending submit (markers set directly: same rule, presentation state only)
+        pg.goto(ROOT + '?_route=dashboard', wait_until='networkidle')
+        bar_mode(pg, 'available')
+        pg.evaluate("() => document.getElementById('nuxr-more-sheet').show()")
+        press_and_expect_deferred('dialog[open]')
+        pg.evaluate("() => document.getElementById('nuxr-more-sheet').close()")
+        pg.evaluate("() => { const f = document.createElement('form'); f.method = 'post'; f.setAttribute('data-nuxr-submitted', '1'); document.body.appendChild(f); }")
+        press_and_expect_deferred('form[data-nuxr-submitted]')
+        # an unchanged GET page without markers is not critical: the offer is there again
+        pg.goto(ROOT + '?_route=customers/list', wait_until='networkidle')
+        expect(bar_mode(pg, 'available').startswith('available'), 'not offered again after the flow')
+        notes.append('offered again on a non-critical page')
+    finally:
+        ctx.close()
+        lab_sw()
+    return '; '.join(notes)
+
+
+@check('T16', 'Explicit safe update: SKIP_WAITING -> controllerchange -> exactly one reload of this tab; other tabs only notified')
+def t16(browser):
+    ctx = new_ctx(browser, ROOT, vp=DESK)
+    pg = staff_login(ctx, ROOT, 'ad')
+    sw_ready(pg)
+    other = ctx.new_page()
+    other.goto(ROOT + '?_route=customers/list', wait_until='networkidle')
+    sw_ready(other)
+    try:
+        lab_sw(NEXT)
+        pg.evaluate(UPDATE_NOW)
+        bar_mode(pg, 'available')
+        bar_mode(other, 'available')
+        watch(pg)
+        watch(other)
+        navs = []
+        pg.on('framenavigated', lambda f: navs.append(f.url) if f == pg.main_frame else None)
+        other_navs = []
+        other.on('framenavigated', lambda f: other_navs.append(f.url) if f == other.main_frame else None)
+        with pg.expect_navigation(timeout=20000):
+            pg.locator('.nuxr-update-bar [data-nuxr-update]').click()
+        pg.wait_for_load_state('networkidle')
+        pg.wait_for_timeout(3000)
+        expect(len(navs) == 1, f'this tab navigated {len(navs)} times (expected exactly one reload)')
+        expect(pg.evaluate('() => window.__nuxrMark === undefined'), 'this tab was not reloaded')
+        keys = pg.evaluate('() => caches.keys()')
+        expect(keys and all(k.endswith(':' + NEXT) for k in keys), f'old version cache not pruned on activation: {keys}')
+        expect(pg.evaluate(BAR) == '', 'still offered after the update')
+        text = bar_mode(other, 'updated')
+        expect('Reload this page when convenient' in text, 'other tab text: ' + text)
+        expect(other.evaluate('() => window.__nuxrMark === 1') and not other_navs, 'the other tab was reloaded')
+        expect(other.locator('.nuxr-update-bar [data-nuxr-update]').is_hidden(), 'other tab still offers Update')
+        other.screenshot(path=os.path.join(ARGS.out, 'T16-other-tab-updated.png'))
+        return f'one reload ({navs[0][-40:]}); caches now {keys}; other tab not reloaded, shows: {text[8:90]}'
+    finally:
+        ctx.close()
+        lab_sw()
 
 
 def main():

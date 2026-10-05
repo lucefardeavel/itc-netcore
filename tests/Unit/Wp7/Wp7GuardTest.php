@@ -171,6 +171,25 @@ final class Wp7GuardTest extends TestCase
         $this->assertMatchesRegularExpression('/@media \(display-mode: standalone\) \{\s*\[data-nuxr-install\] \{\s*display: none !important;/', self::read('ui/ui/styles/nuxr-shell.css'));
     }
 
+    public function testUpdateIsUserChosenDeferredInCriticalFlowsAndReloadsOnlyThisTabOnce(): void
+    {
+        $js = self::read('ui/ui/scripts/nuxr-pwa.js');
+        $this->assertStringNotContainsString('skipWaiting', $js, 'the client never activates a worker by itself');
+        $this->assertSame(1, substr_count($js, "postMessage({ type: 'SKIP_WAITING' })"), 'one SKIP_WAITING site');
+        $apply = substr($js, (int) strpos($js, 'function applyUpdate() {'), 400);
+        $this->assertMatchesRegularExpression("/if \(critical\(\)\) \{ showUpdateBar\('deferred'\); return; \}.*\n\s*updating = true;\n\s*w\.postMessage\(\{ type: 'SKIP_WAITING' \}\);/", $apply,
+            'SKIP_WAITING only after the critical-flow check, from the Update click');
+        $this->assertStringContainsString("addEventListener('click', applyUpdate);", $js);
+        $this->assertSame(1, substr_count($js, 'applyUpdate()'), 'applyUpdate() is never called directly');
+        // exactly one reload, only in the tab that pressed Update, only once; other tabs are only told
+        $this->assertSame(1, substr_count($js, 'location.reload('));
+        $this->assertMatchesRegularExpression("/if \(updating\) \{\s*if \(!reloaded\) \{ reloaded = true; location\.reload\(\); \}\s*\} else if \(hadController\) \{\s*showUpdateBar\('updated'\);/", $js);
+        $this->assertStringContainsString("q('form[data-nuxr-submitted], [data-nuxr-poll], dialog[open], [data-nuxr-critical]')", $js, 'critical-flow markers (plan section 9)');
+        $this->assertStringContainsString('reg && reg.waiting && navigator.serviceWorker.controller ? reg.waiting : null', $js, 'nothing offered on the first installation');
+        $this->assertStringContainsString('id="nuxr-confirm-form" data-nuxr-critical>', self::read('ui/ui/admin/activation/create.tpl'));
+        $this->assertStringContainsString('class="nuxr-form" style="margin-top:12px" data-nuxr-critical>', self::read('ui/ui/admin/finance/review.tpl'));
+    }
+
     public function testPruneStaysInsideTheInstallationNamespace(): void
     {
         $sw = self::read('nuxr-sw.js');

@@ -12,6 +12,10 @@
             installTitle: '{Lang::T('Install the app')|escape:'javascript'}',
             installText: '{Lang::T('Open your browser menu and choose Install app or Add to Home screen.')|escape:'javascript'}',
             installNote: '{Lang::T('The installed app opens the same pages: sign-in, permissions and every operation stay exactly the same, and the browser keeps working as before.')|escape:'javascript'}',
+            updateAvailable: '{Lang::T('A new version of the app is available.')|escape:'javascript'}',
+            update: '{Lang::T('Update')|escape:'javascript'}',
+            updateDeferred: '{Lang::T('Finish or leave the current task first, then update.')|escape:'javascript'}',
+            updated: '{Lang::T('The app was updated in another tab. Reload this page when convenient.')|escape:'javascript'}',
             close: '{Lang::T('Close')|escape:'javascript'}'
         }
     };

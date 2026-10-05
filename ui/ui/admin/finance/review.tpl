@@ -53,7 +53,7 @@
             {if $r.fields.reference|default:''}<div><dt>{Lang::T('Operation reference')}</dt><dd><bdi dir="ltr" class="nuxr-mono">{$r.fields.reference|escape}</bdi></dd></div>{/if}
         </dl>
         <p class="nuxr-muted"><i class="fa fa-info-circle" aria-hidden="true"></i> {Lang::T('These figures are informational. The server re-checks the credit and every rule when you confirm.')}</p>
-        <form method="post" action="{Text::url($r.post_route|default:'')}" class="nuxr-form" style="margin-top:12px">
+        <form method="post" action="{Text::url($r.post_route|default:'')}" class="nuxr-form" style="margin-top:12px" data-nuxr-critical>
             <input type="hidden" name="csrf_token" value="{$csrf_token}">
             {foreach $r.fields as $k => $v}<input type="hidden" name="{$k|escape}" value="{$v|escape}">{/foreach}
             <input type="hidden" name="token" value="{$r.token|escape}">

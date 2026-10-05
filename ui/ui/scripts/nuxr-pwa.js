@@ -278,6 +278,82 @@
         b.addEventListener('click', install);
     });
 
+    /* ---------- controlled update (amendment K / plan section 9) ----------
+       A new worker WAITS. The user is offered "Update"; while the page is in a critical flow the update is deferred.
+       When safe: SKIP_WAITING to the waiting worker, wait for controllerchange, reload this tab ONCE. Other tabs are
+       never reloaded: they only show "updated - reload when convenient". The first installation (no controller yet)
+       offers nothing. */
+    var hadController = secure && !!navigator.serviceWorker.controller;
+    var updating = false;
+    var reloaded = false;
+    var updateBar = null;
+    var dirty = [];
+
+    // POST forms the user has changed since the page loaded (trusted user input only)
+    function markDirty(e) {
+        var f = e.isTrusted && e.target && e.target.form;
+        if (f && String(f.getAttribute('method') || '').toLowerCase() === 'post' && dirty.indexOf(f) < 0) { dirty.push(f); }
+    }
+    document.addEventListener('input', markDirty, true);
+    document.addEventListener('change', markDirty, true);
+
+    function critical() {
+        if (q('form[data-nuxr-submitted], [data-nuxr-poll], dialog[open], [data-nuxr-critical]')) { return true; }
+        return dirty.some(function (f) { return f.isConnected; });
+    }
+
+    function showUpdateBar(mode) {
+        if (!updateBar) {
+            updateBar = document.createElement('div');
+            updateBar.className = 'nuxr-update-bar';
+            updateBar.setAttribute('role', 'status');
+            updateBar.innerHTML = '<span class="nuxr-update-text"></span>' +
+                '<button type="button" class="nuxr-btn nuxr-btn-primary" data-nuxr-update></button>' +
+                '<button type="button" class="nuxr-icon-btn" data-nuxr-update-close><i class="fa fa-times" aria-hidden="true"></i></button>';
+            q('[data-nuxr-update]', updateBar).textContent = S.update || 'Update';
+            q('[data-nuxr-update-close]', updateBar).setAttribute('aria-label', S.close || 'Close');
+            q('[data-nuxr-update]', updateBar).addEventListener('click', applyUpdate);
+            q('[data-nuxr-update-close]', updateBar).addEventListener('click', function () { updateBar.hidden = true; });
+            var main = q('#nuxr-main') || q('main') || document.body;
+            main.insertBefore(updateBar, main.firstChild);
+        }
+        updateBar.hidden = false;
+        updateBar.setAttribute('data-mode', mode);
+        q('.nuxr-update-text', updateBar).textContent = mode === 'updated' ? (S.updated || '') : mode === 'deferred' ? (S.updateDeferred || '') : (S.updateAvailable || '');
+        q('[data-nuxr-update]', updateBar).hidden = mode === 'updated';
+    }
+
+    function waitingWorker() { return reg && reg.waiting && navigator.serviceWorker.controller ? reg.waiting : null; }
+
+    function offerUpdate() { if (waitingWorker()) { showUpdateBar('available'); } }
+
+    function applyUpdate() {
+        var w = waitingWorker();
+        if (!w) { return; }
+        if (critical()) { showUpdateBar('deferred'); return; } // nothing is activated; offered again when pressed later
+        updating = true;
+        w.postMessage({ type: 'SKIP_WAITING' });
+    }
+
+    if (secure) {
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (updating) {
+                if (!reloaded) { reloaded = true; location.reload(); }
+            } else if (hadController) {
+                showUpdateBar('updated'); // another tab updated the app: never reloaded here
+            }
+            hadController = true;
+        });
+        document.addEventListener('nuxr-pwa-registered', function () {
+            offerUpdate();
+            reg.addEventListener('updatefound', function () {
+                var w = reg.installing;
+                if (!w) { return; }
+                w.addEventListener('statechange', function () { if (w.state === 'installed') { offerUpdate(); } });
+            });
+        });
+    }
+
     /* ---------- cross-user hygiene (amendment B / plan section 11) ----------
        Nothing user-specific is ever stored by the PWA. Defence in depth: the worker prunes its own namespace on the
        logout navigation; here the staff login page clears this client's transient nuxr-* session keys and every page
