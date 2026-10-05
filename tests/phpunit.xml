@@ -22,6 +22,7 @@
             <exclude>Unit/Wp5b</exclude>
             <exclude>Unit/Wp6a</exclude>
             <exclude>Unit/Wp6b</exclude>
+            <exclude>Unit/Wp6c</exclude>
         </testsuite>
         <testsuite name="integration">
             <directory>Integration</directory>
@@ -33,6 +34,7 @@
             <exclude>Integration/Wp5b</exclude>
             <exclude>Integration/Wp6a</exclude>
             <exclude>Integration/Wp6b</exclude>
+            <exclude>Integration/Wp6c</exclude>
         </testsuite>
         <testsuite name="regression">
             <directory>Regression</directory>

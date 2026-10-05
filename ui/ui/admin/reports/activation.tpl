@@ -1,4 +1,7 @@
 {include file="sections/header.tpl"}
+{* WP6C fix round 1: links only where the route rule allows and (customers) the specific target is in scope *}
+{assign var=nuxr_link_invoice value=NuxrUi::allowed('plan/view')}
+{assign var=nuxr_link_customer value=NuxrUi::allowed('customers/viewu')}
 <!-- pool -->
 <div class="row">
     <div class="col-sm-12">
@@ -46,8 +49,8 @@
                         <tbody>
                             {foreach $activation as $ds}
                                 <tr>
-                                    <td><a href="{Text::url('plan/view/')}{$ds['id']|escape:'url'}">{$ds['invoice']|escape}</a></td>
-                                    <td><a href="{Text::url('customers/viewu/')}{$ds['username']|escape:'url'}">{$ds['username']|escape}</a></td>
+                                    <td>{if $nuxr_link_invoice}<a href="{Text::url('plan/view/')}{$ds['id']|escape:'url'}">{$ds['invoice']|escape}</a>{else}{$ds['invoice']|escape}{/if}</td>
+                                    <td>{if $nuxr_link_customer && $nuxr_customer_view[$ds['username']]|default:false}<a href="{Text::url('customers/viewu/')}{$ds['username']|escape:'url'}">{$ds['username']|escape}</a>{else}{$ds['username']|escape}{/if}</td>
                                     <td>{$ds['plan_name']}</td>
                                     <td>{Lang::moneyFormat($ds['price'])}</td>
                                     <td>{$ds['type']}</td>
@@ -64,11 +67,11 @@
                 <ul class="nuxr-mlist">
                     {foreach $activation as $ds}
                         <li><div class="nuxr-mcard is-wrap">
-                            <a class="nuxr-mcard-main" href="{Text::url('plan/view/')}{$ds['id']|escape:'url'}">
+                            <{if $nuxr_link_invoice}a href="{Text::url('plan/view/')}{$ds['id']|escape:'url'}"{else}div{/if} class="nuxr-mcard-main">
                                 <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">{$ds['invoice']|escape}</bdi></span>
                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">{$ds['username']|escape}</bdi> · {$ds['plan_name']|escape} · <bdi dir="ltr">{Lang::moneyFormat($ds['price'])|escape}</bdi></span>
                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">{Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])|escape}</bdi> → <bdi dir="ltr">{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])|escape}</bdi> · {$ds['method']|escape}</span>
-                            </a>
+                            </{if $nuxr_link_invoice}a{else}div{/if}>
                         </div></li>
                     {foreachelse}
                         <li><div class="nuxr-empty"><strong>{Lang::T('No records.')}</strong></div></li>

@@ -2,7 +2,7 @@
 {include file="admin/nuxr/macros.tpl"}
 {* WP6C (owner amendment A): actions follow the central route permission (RouteMap via NuxrUi::allowed), never role names *}
 {assign var=nuxr_can value=['add' => NuxrUi::allowed('plan/add-voucher'), 'print' => NuxrUi::allowed('plan/print-voucher'), 'remove' => NuxrUi::allowed('plan/remove-voucher', 'POST'),
-    'delete' => NuxrUi::allowed('plan/voucher-delete', 'POST'), 'staff' => NuxrUi::allowed('settings/users-view')]}
+    'delete' => NuxrUi::allowed('plan/voucher-delete', 'POST'), 'customer' => NuxrUi::allowed('customers/viewu')]}
 <!-- voucher -->
 <div class="row" style="padding: 5px">
     <div class="col-lg-3 col-lg-offset-9">
@@ -103,14 +103,14 @@
                                 {else} <label class="btn-tag btn-tag-danger">Used</label>
                                 {/if}</td>
                             <td>{if $ds['user'] eq '0'} -
-                                {else}<a href="{Text::url('')}customers/viewu/{$ds['user']}">{$ds['user']}</a>
+                                {elseif $nuxr_can.customer && $nuxr_customer_view[$ds['user']]|default:false}<a href="{Text::url('customers/viewu/')}{$ds['user']|escape:'url'}">{$ds['user']|escape}</a>
+                                {else}{$ds['user']|escape}{* WP6C fix round 1: a customer outside the actor's scope is plain text *}
                                 {/if}</td>
                             <td>{if $ds['created_at']}{Lang::dateTimeFormat($ds['created_at'])}{/if}</td>
                             <td>{if $ds['used_date']}{Lang::dateTimeFormat($ds['used_date'])}{/if}</td>
-                            <td>{if $ds['generated_by'] && $nuxr_can.staff}
-                                    <a
-                                        href="{Text::url('')}settings/users-view/{$ds['generated_by']}">{$admins[$ds['generated_by']]}</a>
-                                {elseif $ds['generated_by']}{$admins[$ds['generated_by']]}
+                            <td>{* WP6C fix round 1: the generator identity is plain text - the route rule does not prove that this
+                                   specific account is viewable (e.g. Admin may not view another Admin / SuperAdmin) *}
+                                {if $ds['generated_by']}{$admins[$ds['generated_by']]|escape}
                                 {else} -
                                 {/if}
                             </td>

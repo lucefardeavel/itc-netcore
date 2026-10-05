@@ -584,6 +584,17 @@ switch ($action) {
             $query->where_like('tbl_voucher.code', '%' . $search . '%');
         }
         $d = Paginator::findMany($query, ["search" => $search], 10, $append_url);
+        // WP6C (fix round 1, owner amendment A): a voucher's customer is linked only when the accepted customer scope
+        // (DataScope, the same lookup customers/viewu uses) finds that customer for the actor; otherwise plain text.
+        // The generator identity is always plain text (staff visibility is not proven by the voucher scope).
+        $nuxrCustomerView = [];
+        foreach ($d as $k) {
+            $u = (string) $k['user'];
+            if ($u !== '' && $u !== '0' && !isset($nuxrCustomerView[$u])) {
+                $nuxrCustomerView[$u] = \Reseller\Security\DataScope::findCustomerByUsername($nuxrActor, $nuxrC::CUSTOMER_READ, $u) !== null;
+            }
+        }
+        $ui->assign('nuxr_customer_view', $nuxrCustomerView);
         // extract admin
         $admins = [];
         foreach ($d as $k) {

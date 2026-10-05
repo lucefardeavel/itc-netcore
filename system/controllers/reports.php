@@ -269,6 +269,17 @@ switch ($action) {
             $d = Paginator::findMany($query);
         }
 
+        // WP6C (fix round 1, owner amendment A): the customer column links only to a customer the accepted scope finds
+        // for this viewer (DataScope, as customers/viewu); a voucher-only or out-of-scope username is plain text
+        $nuxrViewer = \Reseller\Security\ActorContext::current();
+        $nuxrCustomerView = [];
+        foreach ($d as $k) {
+            $u = (string) $k['username'];
+            if ($u !== '' && !isset($nuxrCustomerView[$u])) {
+                $nuxrCustomerView[$u] = \Reseller\Security\DataScope::findCustomerByUsername($nuxrViewer, \Reseller\Security\Capability::CUSTOMER_READ, $u) !== null;
+            }
+        }
+        $ui->assign('nuxr_customer_view', $nuxrCustomerView);
         $ui->assign('activation', $d);
         $ui->assign('q', $q);
         $ui->display('admin/reports/activation.tpl');

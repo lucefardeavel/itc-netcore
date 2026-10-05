@@ -11,7 +11,8 @@ use Reseller\Tests\Support\Wp2HttpTestCase;
  * (GET links and data-method="post" actions) is one the role may actually use under the accepted RouteMap rule
  * (Navigation::allowed, evaluated in the application context, so destructive links are never requested). The audit
  * found Active Customers "Edit" / "Recharge", plan / router links and Vouchers "+" rendered to Agent / Sales -> 403.
- * Backend authorization is unchanged and stays authoritative (the same rule).
+ * Backend authorization is unchanged and stays authoritative (the same rule). Fix round 1: route-level parity is not
+ * the only oracle any more - rendered object links on the converted pages are followed over HTTP (read-only GETs).
  */
 final class ActionParityTest extends Wp2HttpTestCase
 {
@@ -85,6 +86,54 @@ PHP);
             }
         }
         $this->assertSame([], $denied, 'actions rendered to a role that may not use them');
+    }
+
+    /**
+     * Route-level parity (above) is not proof for a link to a specific object. On the converted daily-use / staff pages
+     * every rendered internal GET link to an object (view / edit / detail pages) is actually opened with the role's
+     * session and must not end in a denial: no 403 / 404, no state page, no "Account Not Found", no legacy permission
+     * alert. Read-only GETs only; POST actions are never executed (their object rules are covered by TargetParityTest).
+     */
+    public function testRenderedObjectLinksOpenForTheTarget(): void
+    {
+        $pages = ['settings/users', 'plan/voucher', 'plan/list', 'customers/list', 'activation/list', 'reports/activation', 'reports', 'logs/list'];
+        $target = '#^(settings/users-(view|edit)|customers/(view|viewu|edit)|plan/(view|edit|voucher-view)|activation/view|reseller/detail|finance/(wallet|transfer|entry|ledger)|services/(edit|pppoe-edit|vpn-edit)|routers/edit|bandwidth/edit|pool/edit)/[^/]+#';
+        $bad = [];
+        $opened = 0;
+        foreach (['A', 'A1', 'rp', 'ad'] as $u) {
+            $c = $this->staff($u);
+            $seen = [];
+            foreach ($pages as $page) {
+                $r = $c->get($page);
+                if ($r->status !== 200 || str_contains($r->body, 'nuxr-state-page')) {
+                    continue; // a page the role cannot open renders no object links
+                }
+                $start = strpos($r->body, 'id="nuxr-main"');
+                $main = $start === false ? $r->body : substr($r->body, $start, (int) strpos($r->body, '<footer', $start) - $start);
+                preg_match_all('/<a\b([^>]*)>/', $main, $m);
+                foreach ($m[1] as $attrs) {
+                    if (str_contains($attrs, 'data-method="post"') || !preg_match('/href="[^"]*\?_route=([^"#]+)"/', $attrs, $h)) {
+                        continue;
+                    }
+                    $route = html_entity_decode($h[1]);
+                    if (preg_match($target, explode('&', $route)[0]) && !isset($seen[$route]) && count($seen) < 60) {
+                        $seen[$route] = $page;
+                    }
+                }
+            }
+            foreach ($seen as $route => $page) {
+                $res = $c->get($route);
+                $opened++;
+                $denied = $res->status !== 200 || str_contains($res->body, 'nuxr-state-page') || str_contains($res->body, 'Account Not Found')
+                    || str_contains($res->body, 'You do not have permission to access this page');
+                if ($denied) {
+                    $bad[] = "{$u} on {$page}: {$route} -> {$res->status}";
+                    $c->get('dashboard'); // a legacy denial leaves a flash message for the next page: consume it
+                }
+            }
+        }
+        $this->assertGreaterThan(20, $opened, 'object links were actually followed');
+        $this->assertSame([], $bad, 'a rendered object link leads to a denial');
     }
 
     public function testActiveCustomersAndVouchersOfferOnlyPermittedActions(): void

@@ -531,6 +531,27 @@ switch ($action) {
                 $admins[$adm['id']] = $adm['fullname'];
             }
         }
+        // WP6C (fix round 1, owner amendment A): per-row presentation from the accepted target policies, so a row only
+        // offers what the authoritative writers would accept for that target (route rules alone are not enough):
+        // view = nuxr_staff_visible (users-view), edit = self or StaffService::canTarget(STAFF_UPDATE_PROFILE)
+        // (users-edit), delete = StaffService::canTarget(STAFF_DELETE) and not an Agent (StaffService::delete V1 rule).
+        // A parent identity links only when that account is visible to the actor. Presentation metadata only.
+        $nuxrRows = [];
+        foreach ($d as $k) {
+            $row = is_array($k) ? $k : $k->as_array();
+            $self = (int) $row['id'] === (int) $nuxrActor->userId;
+            $nuxrRows[(int) $row['id']] = [
+                'view' => nuxr_staff_visible($nuxrActor, $row),
+                'edit' => $self || \Reseller\Domain\StaffService::canTarget($nuxrActor, $row, $nuxrC::STAFF_UPDATE_PROFILE),
+                'delete' => !$self && $row['user_type'] !== 'Agent' && \Reseller\Domain\StaffService::canTarget($nuxrActor, $row, $nuxrC::STAFF_DELETE),
+            ];
+        }
+        $nuxrParentView = [];
+        foreach ($adms ?? [] as $adm) {
+            $nuxrParentView[(int) $adm['id']] = nuxr_staff_visible($nuxrActor, $adm);
+        }
+        $ui->assign('nuxr_rows', $nuxrRows);
+        $ui->assign('nuxr_parent_view', $nuxrParentView);
         $ui->assign('admins', $admins);
         $ui->assign('d', $d);
         $ui->assign('search', $search);
