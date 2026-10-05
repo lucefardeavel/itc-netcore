@@ -1,0 +1,47 @@
+# WP6C fix round 1 — static checks on 44505d59cedeaa3cccd492f623bb0473a96625d4 (2026-10-05T13:09:35Z)
+
+## Development-pack manifest
+42 / 42 OK
+
+## Migration / install diff since 1148559d (empty = unchanged)
+(end of diff)
+
+## Boundary diff since 1148559d (Finance / Activation / Security / Domain / Backoffice / api.php / Package / Balance; empty = unchanged)
+(end of diff)
+
+## Secret sweep (added lines, fix round 1 9cb22105..HEAD and whole WP6C 1148559d..HEAD)
+9cb22105..HEAD: 0 matches
+1148559d..HEAD: 0 matches
+
+## PHPNuxBill test containers running
+0
+
+## AVAIA guard (state fields only) against the snapshot taken before the final validation
+VIOLATION restarted avaia-v3-prod-web: started 2026-10-05T09:53:11.497165551Z -> 2026-10-05T11:33:54.713912077Z
+guard exit=1
+
+## AVAIA current state (name|status|health|restarts|started)
+ai-news-voice-bot|running|healthy|0|2026-10-01T05:42:19.137196889Z
+avaia-media-publish-worker-prod|running|none|7|2026-10-03T22:19:28.96069682Z
+avaia-media-publish-worker|running|none|0|2026-10-01T05:42:19.051791728Z
+avaia-telegram-publish-reconcile|running|none|0|2026-10-01T05:42:19.105312024Z
+avaia-telegram-publish-worker|running|none|1|2026-10-03T16:42:55.467800439Z
+avaia-v3-minio-init|exited|none|0|2026-09-20T13:12:38.151121476Z
+avaia-v3-minio|running|healthy|0|2026-10-01T05:42:18.764304858Z
+avaia-v3-postgres-dr|running|healthy|0|2026-10-01T05:42:19.117389491Z
+avaia-v3-postgres|running|healthy|0|2026-10-01T05:42:19.095969813Z
+avaia-v3-prod-api|running|healthy|0|2026-10-05T09:50:56.151576696Z
+avaia-v3-prod-motion-card-worker-1|running|healthy|0|2026-10-05T06:39:11.925952075Z
+avaia-v3-prod-motion-card-worker-2|running|healthy|0|2026-10-05T06:42:12.13221028Z
+avaia-v3-prod-postgres|running|healthy|0|2026-10-01T05:42:19.021195388Z
+avaia-v3-prod-publish-worker|running|healthy|0|2026-10-03T09:31:09.975042302Z
+avaia-v3-prod-render-reconciler|running|healthy|0|2026-10-05T09:50:57.213703247Z
+avaia-v3-prod-static-card-worker-1|running|healthy|0|2026-10-04T06:54:34.469916818Z
+avaia-v3-prod-static-card-worker-2|running|healthy|0|2026-10-04T06:54:35.169324964Z
+avaia-v3-prod-web-tls|running|none|0|2026-10-01T06:42:25.847198369Z
+avaia-v3-prod-web|running|healthy|0|2026-10-05T11:33:54.713912077Z
+avaia-video-render-worker-2|running|none|1|2026-10-03T16:42:21.305373218Z
+avaia-video-render-worker|running|none|1|2026-10-03T16:42:21.441409446Z
+gracious_chaplygin|exited|unhealthy|0|2026-10-02T08:29:13.483154689Z
+hopeful_lederberg|exited|unhealthy|0|2026-10-02T08:29:26.542737993Z
+telegram-bot-api|running|healthy|0|2026-10-01T05:42:19.07324609Z

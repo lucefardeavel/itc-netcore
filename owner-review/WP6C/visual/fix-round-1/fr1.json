@@ -1,0 +1,197 @@
+[
+ {
+  "name": "fr1-01-admin-staff-desktop",
+  "role": "ad",
+  "width": 1440,
+  "lang": "english",
+  "route": "settings/users",
+  "view": [
+   "3",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8",
+   "9",
+   "10",
+   "11",
+   "12"
+  ],
+  "edit": [
+   "3",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8",
+   "9",
+   "10",
+   "11",
+   "12"
+  ],
+  "del": [
+   "4"
+  ],
+  "objectLinksVisible": 20,
+  "objectLinksDenied": [],
+  "overflow": false,
+  "axe": [],
+  "jsErrors": []
+ },
+ {
+  "name": "fr1-02-admin-staff-phone-ar",
+  "role": "ad",
+  "width": 390,
+  "lang": "arabic",
+  "route": "settings/users",
+  "view": [
+   "3",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8",
+   "9",
+   "10",
+   "11",
+   "12"
+  ],
+  "edit": [
+   "3",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8",
+   "9",
+   "10",
+   "11",
+   "12"
+  ],
+  "del": [
+   "4"
+  ],
+  "objectLinksVisible": 20,
+  "objectLinksDenied": [],
+  "overflow": false,
+  "axe": [],
+  "jsErrors": []
+ },
+ {
+  "name": "fr1-03-sales-staff-phone-ar",
+  "role": "A1",
+  "width": 390,
+  "lang": "arabic",
+  "route": "settings/users",
+  "view": [
+   "8"
+  ],
+  "edit": [
+   "8"
+  ],
+  "del": [],
+  "objectLinksVisible": 2,
+  "objectLinksDenied": [],
+  "overflow": false,
+  "axe": [],
+  "jsErrors": []
+ },
+ {
+  "name": "fr1-04-agent-staff-phone",
+  "role": "A",
+  "width": 390,
+  "lang": "english",
+  "route": "settings/users",
+  "view": [
+   "5",
+   "6",
+   "8",
+   "9"
+  ],
+  "edit": [
+   "5",
+   "6",
+   "8",
+   "9"
+  ],
+  "del": [],
+  "objectLinksVisible": 8,
+  "objectLinksDenied": [],
+  "overflow": false,
+  "axe": [],
+  "jsErrors": []
+ },
+ {
+  "name": "fr1-05-admin-vouchers-desktop",
+  "role": "ad",
+  "width": 1440,
+  "lang": "english",
+  "route": "plan/voucher",
+  "saVoucher": true,
+  "generatorLinks": 0,
+  "objectLinksVisible": 0,
+  "objectLinksDenied": [],
+  "overflow": false,
+  "axe": [],
+  "jsErrors": [],
+  "note": "re-checked after labelling the legacy selection checkboxes (first pass: axe label x7)"
+ },
+ {
+  "name": "fr1-06-admin-vouchers-phone-ar",
+  "role": "ad",
+  "width": 390,
+  "lang": "arabic",
+  "route": "plan/voucher",
+  "saVoucher": true,
+  "generatorLinks": 0,
+  "objectLinksVisible": 0,
+  "objectLinksDenied": [],
+  "overflow": false,
+  "axe": [],
+  "jsErrors": []
+ },
+ {
+  "name": "fr1-07-agent-vouchers-phone",
+  "role": "A",
+  "width": 390,
+  "lang": "english",
+  "route": "plan/voucher",
+  "saVoucher": false,
+  "generatorLinks": 0,
+  "objectLinksVisible": 0,
+  "objectLinksDenied": [],
+  "overflow": false,
+  "axe": [],
+  "jsErrors": []
+ },
+ {
+  "name": "fr1-08-admin-activation-report",
+  "role": "ad",
+  "width": 1440,
+  "lang": "english",
+  "route": "reports/activation",
+  "objectLinksVisible": 17,
+  "objectLinksDenied": [],
+  "overflow": false,
+  "axe": [],
+  "jsErrors": []
+ },
+ {
+  "name": "fr1-09-J17-agent-403-ar",
+  "role": "A",
+  "width": 390,
+  "lang": "arabic",
+  "route": "plan/edit/1",
+  "state": true,
+  "nav": true,
+  "recovery": [
+   "العملاء النشطون",
+   "الرئيسية"
+  ],
+  "objectLinksVisible": 0,
+  "objectLinksDenied": [],
+  "overflow": false,
+  "axe": [],
+  "jsErrors": []
+ }
+]

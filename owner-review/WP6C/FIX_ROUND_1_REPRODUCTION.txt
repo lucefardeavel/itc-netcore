@@ -1,0 +1,137 @@
+WP6C fix round 1 — pre-fix reproduction (owner review "FIX_REQUIRED ROUND 1")
+
+Method: the fix-round-1 tests (TargetParityTest, ActionParityTest::testRenderedObjectLinksOpenForTheTarget) were run against the
+UNFIXED runtime of cd7b43c0 (the runtime files of the fix were stashed; tests/phpunit.xml already de-duplicated), on both engines,
+before the fix was applied. Expected: 5 of 6 fail (the Report-delete positive case passes on both versions).
+
+Reproduced defects (both engines):
+  1. Admin staff list renders Delete for a Sales account (StaffService::canTarget(STAFF_DELETE): Admin deletes Report accounts only).
+  2. Sales staff list links its parent Agent (settings/users-view/<A>): the backend answers 302 "Account Not Found" (STAFF_READ = S).
+  3. Voucher list links the generator of a SuperAdmin-generated voucher for Admin (users-view refuses Admin -> SuperAdmin).
+  4. Voucher list (Agent A) links a customer outside A's customer scope (subtree voucher redeemed by C's customer).
+  5. HTTP crawl: rendered object links that end in a denial:
+       A1 on settings/users: settings/users-view/<A> -> 302
+       ad on reports/activation: customers/viewu/VOUCHERONLY -> 302 (a voucher-only username without a customer record)
+
+======== engine: mariadb (runtime cd7b43c0, fix-round-1 tests) ========
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FF.FFF                                                              6 / 6 (100%)
+
+Time: 00:22.628, Memory: 24.00 MB
+
+Action Parity (Reseller\Tests\Integration\Wp6c\ActionParity)
+ ✘ Rendered object links open for the target
+   │
+   │ a rendered object link leads to a denial
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'A1 on settings/users: settings/users-view/5 -> 302',
+   │ +    1 => 'ad on reports/activation: customers/viewu/VOUCHERONLY -> 302',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp6c/ActionParityTest.php:136
+   │
+
+Target Parity (Reseller\Tests\Integration\Wp6c\TargetParity)
+ ✘ Admin is not offered delete for a sales account
+   │
+   │ Admin may permanently delete Report accounts only
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp6c/TargetParityTest.php:47
+   │
+ ✔ Admin keeps delete for a report account and usable links
+ ✘ Sales gets no link to its parent agent
+   │
+   │ the parent Agent is not a target Sales may read
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp6c/TargetParityTest.php:79
+   │
+ ✘ Voucher generator links only to viewable staff
+   │
+   │ generator Admin may not view: plain text
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp6c/TargetParityTest.php:95
+   │
+ ✘ Voucher customer links only to customers in scope
+   │
+   │ out-of-scope customer is plain text
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp6c/TargetParityTest.php:105
+   │
+
+FAILURES!
+Tests: 6, Assertions: 84, Failures: 5.
+
+======== engine: mysql (runtime cd7b43c0, fix-round-1 tests) ========
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FF.FFF                                                              6 / 6 (100%)
+
+Time: 00:39.893, Memory: 24.00 MB
+
+Action Parity (Reseller\Tests\Integration\Wp6c\ActionParity)
+ ✘ Rendered object links open for the target
+   │
+   │ a rendered object link leads to a denial
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'A1 on settings/users: settings/users-view/5 -> 302',
+   │ +    1 => 'ad on reports/activation: customers/viewu/VOUCHERONLY -> 302',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp6c/ActionParityTest.php:136
+   │
+
+Target Parity (Reseller\Tests\Integration\Wp6c\TargetParity)
+ ✘ Admin is not offered delete for a sales account
+   │
+   │ Admin may permanently delete Report accounts only
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp6c/TargetParityTest.php:47
+   │
+ ✔ Admin keeps delete for a report account and usable links
+ ✘ Sales gets no link to its parent agent
+   │
+   │ the parent Agent is not a target Sales may read
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp6c/TargetParityTest.php:79
+   │
+ ✘ Voucher generator links only to viewable staff
+   │
+   │ generator Admin may not view: plain text
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp6c/TargetParityTest.php:95
+   │
+ ✘ Voucher customer links only to customers in scope
+   │
+   │ out-of-scope customer is plain text
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp6c/TargetParityTest.php:105
+   │
+
+FAILURES!
+Tests: 6, Assertions: 84, Failures: 5.
+

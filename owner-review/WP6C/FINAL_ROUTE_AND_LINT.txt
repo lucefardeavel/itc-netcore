@@ -1,0 +1,19 @@
+# WP6C final complete validation on 44505d59: PHP 8.2 lint + RouteMatrixTest (WP2_EVIDENCE=1) both engines; rows byte-identical to the WP6B baseline
+== PHP 8.2 lint (php82 harness image) ==
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+PHP82 lint: 482 pass, 0 fail
+== route matrix: mariadb ==
+Time: 02:36.595, Memory: 24.00 MB
+
+OK (3 tests, 3638 assertions)
+ROUTE MATRIX (1727 requests, 1354 denials)
+== route matrix: mysql ==
+Time: 03:45.499, Memory: 24.00 MB
+
+OK (3 tests, 3638 assertions)
+ROUTE MATRIX (1727 requests, 1354 denials)
+
+real	7m43.412s
+user	0m3.827s
+sys	0m7.438s
+exit=0
