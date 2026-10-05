@@ -1,0 +1,582 @@
+WP6B fix round 2 — focused PHPUnit testdox on the fix tree (= bd3f6cf24d30564a967f433aa90db29ad089bb11; HEAD d89e73bc + the uncommitted fix, committed unchanged afterwards)
+Isolated nuxbill-reseller-test project (PHP 8.2.34, MariaDB 10.11, MySQL 8.0, FreeRADIUS 3.2.8 test containers), 2026-10-05T04:05Z – 04:32Z
+Command: tests/vendor/bin/phpunit -c tests/phpunit.xml --testsuite wp6b-unit,wp6b-integration,wp3a-unit,wp3a-integration --testdox
+Result: MariaDB OK (211 tests, 41819 assertions); MySQL OK (211 tests, 41819 assertions); 0 failed
+
+================ mariadb ================
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............................................................  63 / 211 ( 29%)
+............................................................... 126 / 211 ( 59%)
+............................................................... 189 / 211 ( 89%)
+......................                                          211 / 211 (100%)
+
+Time: 08:48.260, Memory: 26.00 MB
+
+Activation Action Matrix (Reseller\Tests\Integration\Wp6b\ActivationActionMatrix)
+ ✔ Every state renders exactly the accepted operations
+ ✔ The operation table mirrors the accepted primitives
+
+Adjustment (Reseller\Tests\Integration\Wp3a\Adjustment)
+ ✔ Adjustments never create a wallet
+ ✔ Credit and debit adjustment ledger shape
+ ✔ Debit adjustment obeys the available floor
+ ✔ Adjustment permissions and frozen owner
+
+App Surface (Reseller\Tests\Integration\Wp3a\AppSurface)
+ ✔ Finance services run in the application context
+ ✔ No finance routes or api
+
+Concurrency (Reseller\Tests\Integration\Wp3a\Concurrency)
+ ✔ Double spend of the last credit
+ ✔ Two transfers from one parent cannot overspend
+ ✔ Reservation versus transfer
+ ✔ Reservation versus withdrawal
+ ✔ Reservation versus debt limit reduction
+ ✔ Concurrent operations on the same wallets
+ ✔ Commit versus duplicate commit
+ ✔ Commit versus release
+ ✔ Two requests for the same activation
+ ✔ Same funding reference twice
+ ✔ Double reversal
+ ✔ Subtree move versus transfer
+ ✔ Stampede cannot overspend
+
+Debt Limit Reviewed Writer (Reseller\Tests\Integration\Wp6b\DebtLimitReviewedWriter)
+ ✔ The writer refuses a stale expected current and writes nothing
+ ✔ Matching expectation applies the accepted rules unchanged
+ ✔ The expectation is compared under the writers own locks
+ ✔ The web reviewed execute uses the conditional writer
+
+Export Cap (Reseller\Tests\Integration\Wp6b\ExportCap)
+ ✔ Performance export is complete at the cap and refused above it
+ ✔ Pricing catalog export is complete at the cap and refused above it
+
+Export Cap Guard (Reseller\Tests\Unit\Wp6b\ExportCapGuard)
+ ✔ Every finance export cursor counts and streams in one capped snapshot
+ ✔ Every csv producer is a capped cursor or the pre refused catalog
+
+Failure Injection (Reseller\Tests\Integration\Wp3a\FailureInjection)
+ ✔ Failure at every step rolls back completely with data set "fund.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "fund.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "fund.after_audit"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_audit"
+ ✔ Failure at every step rolls back completely with data set "adjust.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "adjust.after_audit"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_wallet_locks"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_first_leg"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_second_leg"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_audit"
+ ✔ Failure at every step rolls back completely with data set "debt_limit.after_update"
+ ✔ Failure at every step rolls back completely with data set "debt_limit.after_audit"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_reversal_row"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_first_leg"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_status_update"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_audit"
+ ✔ Failure at every step rolls back completely with data set "reserve.after_insert"
+ ✔ Failure at every step rolls back completely with data set "commit.after_ledger_before_status"
+ ✔ Failure at every step rolls back completely with data set "commit.after_status"
+ ✔ Failure at every step rolls back completely with data set "release.after_status"
+
+Finance Actor (Reseller\Tests\Unit\Wp3a\FinanceActor)
+ ✔ Staff stays staff on every channel
+ ✔ Customer stays customer on every channel
+ ✔ System and cron are explicit
+ ✔ Wrong principals are refused
+ ✔ There is no api or inferred factory
+
+Finance Capability (Reseller\Tests\Unit\Wp3a\FinanceCapability)
+ ✔ Finance capabilities are defined and classified
+ ✔ Exact role matrix
+ ✔ Pricing and activation stay reserved
+ ✔ Frozen non enrolled inconsistent and inactive
+ ✔ Schema not ready fails closed for every role
+ ✔ Non staff principals hold no finance capability
+ ✔ Flags reflect the matrix
+
+Finance Correction (Reseller\Tests\Integration\Wp6b\FinanceCorrection)
+ ✔ Debt line review typed decrease and exposure floor
+ ✔ Adjustments are explicit and never open a wallet
+ ✔ Only an existing reversible transfer can be reversed
+ ✔ Corrections are admin only
+ ✔ A stale debt line review never changes its risk direction
+
+Finance Mutation (Reseller\Tests\Integration\Wp6b\FinanceMutation)
+ ✔ Provider funding review execute and replay
+ ✔ A tampered review is refused before any service call
+ ✔ Withdrawal needs the typed username
+ ✔ Agent sends only from its own wallet to a direct child
+ ✔ Roles without the capability are denied
+
+Finance Navigation (Reseller\Tests\Integration\Wp6b\FinanceNavigation)
+ ✔ Destinations follow the role
+ ✔ Primary navigation and quick actions
+ ✔ Dashboard finance tiles are role specific
+
+Finance Read (Reseller\Tests\Integration\Wp6b\FinanceRead)
+ ✔ Scopes follow the accepted capabilities
+ ✔ Identities above the viewer are role labels and in scope reasons stay
+ ✔ Exports equal the screen and are audited without contents
+ ✔ Read pages write nothing
+
+Finance Schema Readiness (Reseller\Tests\Integration\Wp3a\FinanceSchemaReadiness)
+ ✔ Required table list is exact
+ ✔ Missing finance table fails closed and recovers with data set "tbl_reseller_activations"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallets"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_transfers"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_ledger"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallet_reservations"
+
+Finance Tx (Reseller\Tests\Integration\Wp3a\FinanceTx)
+ ✔ Deadlock is retried with a clean envelope
+ ✔ Retries are bounded
+ ✔ Lock wait timeout and other errors are not retried
+ ✔ Strict mode envelope on success and failure
+ ✔ Tree lock name is the accepted wp 2 lock
+
+Funding (Reseller\Tests\Integration\Wp3a\Funding)
+ ✔ Provider funding is one operation one credit and one audit
+ ✔ Withdrawal boundary counts active reservations
+ ✔ Withdrawal can draw into the debt line
+ ✔ Insufficient credit on absent wallet writes nothing
+ ✔ Idempotency replay and conflict per field
+ ✔ Funding targets and permissions
+ ✔ Refused reference is reusable
+
+Ledger (Reseller\Tests\Integration\Wp3a\Ledger)
+ ✔ Continuity across every operation type
+ ✔ Entry keys are derived and unique
+ ✔ No generic or mutating ledger api
+ ✔ Forged wallet state cannot be posted
+ ✔ Ledger read scope
+ ✔ Corrections only by compensation
+
+Money (Reseller\Tests\Unit\Wp3a\Money)
+ ✔ Exact smallest unit and canonical forms
+ ✔ Largest decimal 1802 value is exact
+ ✔ Intermediate beyond one column is valid
+ ✔ Checked int 64 never overflows
+ ✔ No floating point drift
+ ✔ Malformed inputs are rejected with data set "NaN"
+ ✔ Malformed inputs are rejected with data set "nan"
+ ✔ Malformed inputs are rejected with data set "INF"
+ ✔ Malformed inputs are rejected with data set "Infinity"
+ ✔ Malformed inputs are rejected with data set "-INF"
+ ✔ Malformed inputs are rejected with data set "exponent"
+ ✔ Malformed inputs are rejected with data set "exponent2"
+ ✔ Malformed inputs are rejected with data set "plus sign"
+ ✔ Malformed inputs are rejected with data set "leading space"
+ ✔ Malformed inputs are rejected with data set "trailing space"
+ ✔ Malformed inputs are rejected with data set "trailing newline"
+ ✔ Malformed inputs are rejected with data set "dot only"
+ ✔ Malformed inputs are rejected with data set "trailing dot"
+ ✔ Malformed inputs are rejected with data set "leading dot"
+ ✔ Malformed inputs are rejected with data set "leading zero"
+ ✔ Malformed inputs are rejected with data set "leading zero int"
+ ✔ Malformed inputs are rejected with data set "thousands"
+ ✔ Malformed inputs are rejected with data set "comma decimal"
+ ✔ Malformed inputs are rejected with data set "three decimals"
+ ✔ Malformed inputs are rejected with data set "three decimals zero"
+ ✔ Malformed inputs are rejected with data set "17 int digits"
+ ✔ Malformed inputs are rejected with data set "17 digits max"
+ ✔ Malformed inputs are rejected with data set "arabic digits"
+ ✔ Malformed inputs are rejected with data set "fullwidth"
+ ✔ Malformed inputs are rejected with data set "hex"
+ ✔ Malformed inputs are rejected with data set "empty"
+ ✔ Malformed inputs are rejected with data set "negative"
+ ✔ Malformed inputs are rejected with data set "negative zero"
+ ✔ Malformed inputs are rejected with data set "underscore"
+ ✔ Malformed inputs are rejected with data set "float"
+ ✔ Malformed inputs are rejected with data set "int"
+ ✔ Malformed inputs are rejected with data set "null"
+ ✔ Malformed inputs are rejected with data set "bool"
+ ✔ Malformed inputs are rejected with data set "array"
+ ✔ Malformed inputs are rejected with data set "nul byte"
+ ✔ Malformed inputs are rejected with data set "tab"
+ ✔ Column values are strict
+ ✔ Comparisons and json
+
+Money Boundary (Reseller\Tests\Integration\Wp3a\MoneyBoundary)
+ ✔ Max balance plus max debt and reservation sum beyond one column
+ ✔ Credit beyond storage is rejected before sql
+ ✔ Reversal credit overflow is atomic
+
+Operations Center (Reseller\Tests\Integration\Wp6b\OperationsCenter)
+ ✔ Only admins reach the operations center
+ ✔ Cancel is refused while fresh and cancels once stale
+ ✔ Resume of a stale activation completes it
+ ✔ An attention item is never listed twice
+ ✔ Informational items carry no action buttons
+
+Pricing Ux (Reseller\Tests\Integration\Wp6b\PricingUx)
+ ✔ Agents see only their projection and admin sees everything
+ ✔ The accepted setters stay authoritative
+ ✔ Admin base cost resale and retail warnings
+
+Reseller Workspace (Reseller\Tests\Integration\Wp6b\ResellerWorkspace)
+ ✔ Tree scope drill down and no money
+ ✔ Detail is scoped and masks accounts above the viewer
+ ✔ Subscriber filters only narrow the scope
+
+Reservation (Reseller\Tests\Integration\Wp3a\Reservation)
+ ✔ Reserve counts against available without ledger
+ ✔ Reserve history states
+ ✔ Reserve validates the activation and owner
+ ✔ In tx variant requires the tree lock
+ ✔ Commit exactly once without rewriting the actor
+ ✔ Customer actor is preserved and may differ from the target
+ ✔ Release idempotency and conflicts
+ ✔ Commit and release allowed for a frozen owner
+ ✔ No blind expiry
+
+Reversal (Reseller\Tests\Integration\Wp3a\Reversal)
+ ✔ Funding reversal
+ ✔ Withdrawal and adjustment reversals
+ ✔ Transfer reversal after subtree move
+ ✔ Reversal idempotency ordering
+ ✔ Reversal blocked when the debit side cannot afford it
+ ✔ Reversal on frozen historical counterparty
+ ✔ Reversal never creates a wallet
+
+Settlement Report (Reseller\Tests\Integration\Wp6b\SettlementReport)
+ ✔ The settlement card follows the role projection
+ ✔ Reports and exports follow the same scopes
+
+Source Guard (Reseller\Tests\Unit\Wp3a\SourceGuard)
+ ✔ Scan covers the runtime
+ ✔ Ledger has no update or delete path and one writer
+ ✔ Wallet writers
+ ✔ Reservation and transfer writers
+ ✔ No orm access to finance tables
+ ✔ Finance code is separated from legacy money and input
+ ✔ No entrypoint reaches the finance services
+ ✔ Fault hook is never assigned at runtime
+ ✔ No generic ledger writer
+ ✔ Accepted files are byte identical
+
+Transfer (Reseller\Tests\Integration\Wp3a\Transfer)
+ ✔ Direct child transfer is balanced and audited
+ ✔ Structural refusals
+ ✔ Inactive or frozen source or target is refused
+ ✔ Available credit boundary includes reservations and debt line
+ ✔ Admin transfer uses the same rule and records the operator
+ ✔ Idempotent transfer replay and conflict
+ ✔ Destination storage overflow is atomic
+
+Wallet (Reseller\Tests\Integration\Wp3a\Wallet)
+ ✔ Absent wallet is synthesized without any write
+ ✔ First funding creates the wallet with initial zero state
+ ✔ Debt limit zero on absent wallet is a no op
+ ✔ Positive debt limit creates the wallet without ledger entry
+ ✔ Debt limit increase and decrease against exact exposure
+ ✔ Debt limit input and target rules
+ ✔ Read scope
+
+Wp6b Boundary (Reseller\Tests\Unit\Wp6b\Wp6bBoundary)
+ ✔ Nothing wp 6b adds is api reachable
+ ✔ Backoffice is a gateway only
+ ✔ Controllers stay thin
+ ✔ Pricing pages take one tree lock per page
+ ✔ Finance read models are read only
+
+Wp6b Template Guard (Reseller\Tests\Unit\Wp6b\Wp6bTemplateGuard)
+ ✔ Every variable is escaped
+ ✔ Every wp 6b string has an arabic entry
+
+OK (211 tests, 41819 assertions)
+2026-10-05T04:14:40Z
+
+================ mysql ================
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............................................................  63 / 211 ( 29%)
+............................................................... 126 / 211 ( 59%)
+............................................................... 189 / 211 ( 89%)
+......................                                          211 / 211 (100%)
+
+Time: 17:10.474, Memory: 26.00 MB
+
+Activation Action Matrix (Reseller\Tests\Integration\Wp6b\ActivationActionMatrix)
+ ✔ Every state renders exactly the accepted operations
+ ✔ The operation table mirrors the accepted primitives
+
+Adjustment (Reseller\Tests\Integration\Wp3a\Adjustment)
+ ✔ Adjustments never create a wallet
+ ✔ Credit and debit adjustment ledger shape
+ ✔ Debit adjustment obeys the available floor
+ ✔ Adjustment permissions and frozen owner
+
+App Surface (Reseller\Tests\Integration\Wp3a\AppSurface)
+ ✔ Finance services run in the application context
+ ✔ No finance routes or api
+
+Concurrency (Reseller\Tests\Integration\Wp3a\Concurrency)
+ ✔ Double spend of the last credit
+ ✔ Two transfers from one parent cannot overspend
+ ✔ Reservation versus transfer
+ ✔ Reservation versus withdrawal
+ ✔ Reservation versus debt limit reduction
+ ✔ Concurrent operations on the same wallets
+ ✔ Commit versus duplicate commit
+ ✔ Commit versus release
+ ✔ Two requests for the same activation
+ ✔ Same funding reference twice
+ ✔ Double reversal
+ ✔ Subtree move versus transfer
+ ✔ Stampede cannot overspend
+
+Debt Limit Reviewed Writer (Reseller\Tests\Integration\Wp6b\DebtLimitReviewedWriter)
+ ✔ The writer refuses a stale expected current and writes nothing
+ ✔ Matching expectation applies the accepted rules unchanged
+ ✔ The expectation is compared under the writers own locks
+ ✔ The web reviewed execute uses the conditional writer
+
+Export Cap (Reseller\Tests\Integration\Wp6b\ExportCap)
+ ✔ Performance export is complete at the cap and refused above it
+ ✔ Pricing catalog export is complete at the cap and refused above it
+
+Export Cap Guard (Reseller\Tests\Unit\Wp6b\ExportCapGuard)
+ ✔ Every finance export cursor counts and streams in one capped snapshot
+ ✔ Every csv producer is a capped cursor or the pre refused catalog
+
+Failure Injection (Reseller\Tests\Integration\Wp3a\FailureInjection)
+ ✔ Failure at every step rolls back completely with data set "fund.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "fund.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "fund.after_audit"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_audit"
+ ✔ Failure at every step rolls back completely with data set "adjust.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "adjust.after_audit"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_wallet_locks"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_first_leg"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_second_leg"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_audit"
+ ✔ Failure at every step rolls back completely with data set "debt_limit.after_update"
+ ✔ Failure at every step rolls back completely with data set "debt_limit.after_audit"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_reversal_row"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_first_leg"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_status_update"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_audit"
+ ✔ Failure at every step rolls back completely with data set "reserve.after_insert"
+ ✔ Failure at every step rolls back completely with data set "commit.after_ledger_before_status"
+ ✔ Failure at every step rolls back completely with data set "commit.after_status"
+ ✔ Failure at every step rolls back completely with data set "release.after_status"
+
+Finance Actor (Reseller\Tests\Unit\Wp3a\FinanceActor)
+ ✔ Staff stays staff on every channel
+ ✔ Customer stays customer on every channel
+ ✔ System and cron are explicit
+ ✔ Wrong principals are refused
+ ✔ There is no api or inferred factory
+
+Finance Capability (Reseller\Tests\Unit\Wp3a\FinanceCapability)
+ ✔ Finance capabilities are defined and classified
+ ✔ Exact role matrix
+ ✔ Pricing and activation stay reserved
+ ✔ Frozen non enrolled inconsistent and inactive
+ ✔ Schema not ready fails closed for every role
+ ✔ Non staff principals hold no finance capability
+ ✔ Flags reflect the matrix
+
+Finance Correction (Reseller\Tests\Integration\Wp6b\FinanceCorrection)
+ ✔ Debt line review typed decrease and exposure floor
+ ✔ Adjustments are explicit and never open a wallet
+ ✔ Only an existing reversible transfer can be reversed
+ ✔ Corrections are admin only
+ ✔ A stale debt line review never changes its risk direction
+
+Finance Mutation (Reseller\Tests\Integration\Wp6b\FinanceMutation)
+ ✔ Provider funding review execute and replay
+ ✔ A tampered review is refused before any service call
+ ✔ Withdrawal needs the typed username
+ ✔ Agent sends only from its own wallet to a direct child
+ ✔ Roles without the capability are denied
+
+Finance Navigation (Reseller\Tests\Integration\Wp6b\FinanceNavigation)
+ ✔ Destinations follow the role
+ ✔ Primary navigation and quick actions
+ ✔ Dashboard finance tiles are role specific
+
+Finance Read (Reseller\Tests\Integration\Wp6b\FinanceRead)
+ ✔ Scopes follow the accepted capabilities
+ ✔ Identities above the viewer are role labels and in scope reasons stay
+ ✔ Exports equal the screen and are audited without contents
+ ✔ Read pages write nothing
+
+Finance Schema Readiness (Reseller\Tests\Integration\Wp3a\FinanceSchemaReadiness)
+ ✔ Required table list is exact
+ ✔ Missing finance table fails closed and recovers with data set "tbl_reseller_activations"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallets"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_transfers"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_ledger"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallet_reservations"
+
+Finance Tx (Reseller\Tests\Integration\Wp3a\FinanceTx)
+ ✔ Deadlock is retried with a clean envelope
+ ✔ Retries are bounded
+ ✔ Lock wait timeout and other errors are not retried
+ ✔ Strict mode envelope on success and failure
+ ✔ Tree lock name is the accepted wp 2 lock
+
+Funding (Reseller\Tests\Integration\Wp3a\Funding)
+ ✔ Provider funding is one operation one credit and one audit
+ ✔ Withdrawal boundary counts active reservations
+ ✔ Withdrawal can draw into the debt line
+ ✔ Insufficient credit on absent wallet writes nothing
+ ✔ Idempotency replay and conflict per field
+ ✔ Funding targets and permissions
+ ✔ Refused reference is reusable
+
+Ledger (Reseller\Tests\Integration\Wp3a\Ledger)
+ ✔ Continuity across every operation type
+ ✔ Entry keys are derived and unique
+ ✔ No generic or mutating ledger api
+ ✔ Forged wallet state cannot be posted
+ ✔ Ledger read scope
+ ✔ Corrections only by compensation
+
+Money (Reseller\Tests\Unit\Wp3a\Money)
+ ✔ Exact smallest unit and canonical forms
+ ✔ Largest decimal 1802 value is exact
+ ✔ Intermediate beyond one column is valid
+ ✔ Checked int 64 never overflows
+ ✔ No floating point drift
+ ✔ Malformed inputs are rejected with data set "NaN"
+ ✔ Malformed inputs are rejected with data set "nan"
+ ✔ Malformed inputs are rejected with data set "INF"
+ ✔ Malformed inputs are rejected with data set "Infinity"
+ ✔ Malformed inputs are rejected with data set "-INF"
+ ✔ Malformed inputs are rejected with data set "exponent"
+ ✔ Malformed inputs are rejected with data set "exponent2"
+ ✔ Malformed inputs are rejected with data set "plus sign"
+ ✔ Malformed inputs are rejected with data set "leading space"
+ ✔ Malformed inputs are rejected with data set "trailing space"
+ ✔ Malformed inputs are rejected with data set "trailing newline"
+ ✔ Malformed inputs are rejected with data set "dot only"
+ ✔ Malformed inputs are rejected with data set "trailing dot"
+ ✔ Malformed inputs are rejected with data set "leading dot"
+ ✔ Malformed inputs are rejected with data set "leading zero"
+ ✔ Malformed inputs are rejected with data set "leading zero int"
+ ✔ Malformed inputs are rejected with data set "thousands"
+ ✔ Malformed inputs are rejected with data set "comma decimal"
+ ✔ Malformed inputs are rejected with data set "three decimals"
+ ✔ Malformed inputs are rejected with data set "three decimals zero"
+ ✔ Malformed inputs are rejected with data set "17 int digits"
+ ✔ Malformed inputs are rejected with data set "17 digits max"
+ ✔ Malformed inputs are rejected with data set "arabic digits"
+ ✔ Malformed inputs are rejected with data set "fullwidth"
+ ✔ Malformed inputs are rejected with data set "hex"
+ ✔ Malformed inputs are rejected with data set "empty"
+ ✔ Malformed inputs are rejected with data set "negative"
+ ✔ Malformed inputs are rejected with data set "negative zero"
+ ✔ Malformed inputs are rejected with data set "underscore"
+ ✔ Malformed inputs are rejected with data set "float"
+ ✔ Malformed inputs are rejected with data set "int"
+ ✔ Malformed inputs are rejected with data set "null"
+ ✔ Malformed inputs are rejected with data set "bool"
+ ✔ Malformed inputs are rejected with data set "array"
+ ✔ Malformed inputs are rejected with data set "nul byte"
+ ✔ Malformed inputs are rejected with data set "tab"
+ ✔ Column values are strict
+ ✔ Comparisons and json
+
+Money Boundary (Reseller\Tests\Integration\Wp3a\MoneyBoundary)
+ ✔ Max balance plus max debt and reservation sum beyond one column
+ ✔ Credit beyond storage is rejected before sql
+ ✔ Reversal credit overflow is atomic
+
+Operations Center (Reseller\Tests\Integration\Wp6b\OperationsCenter)
+ ✔ Only admins reach the operations center
+ ✔ Cancel is refused while fresh and cancels once stale
+ ✔ Resume of a stale activation completes it
+ ✔ An attention item is never listed twice
+ ✔ Informational items carry no action buttons
+
+Pricing Ux (Reseller\Tests\Integration\Wp6b\PricingUx)
+ ✔ Agents see only their projection and admin sees everything
+ ✔ The accepted setters stay authoritative
+ ✔ Admin base cost resale and retail warnings
+
+Reseller Workspace (Reseller\Tests\Integration\Wp6b\ResellerWorkspace)
+ ✔ Tree scope drill down and no money
+ ✔ Detail is scoped and masks accounts above the viewer
+ ✔ Subscriber filters only narrow the scope
+
+Reservation (Reseller\Tests\Integration\Wp3a\Reservation)
+ ✔ Reserve counts against available without ledger
+ ✔ Reserve history states
+ ✔ Reserve validates the activation and owner
+ ✔ In tx variant requires the tree lock
+ ✔ Commit exactly once without rewriting the actor
+ ✔ Customer actor is preserved and may differ from the target
+ ✔ Release idempotency and conflicts
+ ✔ Commit and release allowed for a frozen owner
+ ✔ No blind expiry
+
+Reversal (Reseller\Tests\Integration\Wp3a\Reversal)
+ ✔ Funding reversal
+ ✔ Withdrawal and adjustment reversals
+ ✔ Transfer reversal after subtree move
+ ✔ Reversal idempotency ordering
+ ✔ Reversal blocked when the debit side cannot afford it
+ ✔ Reversal on frozen historical counterparty
+ ✔ Reversal never creates a wallet
+
+Settlement Report (Reseller\Tests\Integration\Wp6b\SettlementReport)
+ ✔ The settlement card follows the role projection
+ ✔ Reports and exports follow the same scopes
+
+Source Guard (Reseller\Tests\Unit\Wp3a\SourceGuard)
+ ✔ Scan covers the runtime
+ ✔ Ledger has no update or delete path and one writer
+ ✔ Wallet writers
+ ✔ Reservation and transfer writers
+ ✔ No orm access to finance tables
+ ✔ Finance code is separated from legacy money and input
+ ✔ No entrypoint reaches the finance services
+ ✔ Fault hook is never assigned at runtime
+ ✔ No generic ledger writer
+ ✔ Accepted files are byte identical
+
+Transfer (Reseller\Tests\Integration\Wp3a\Transfer)
+ ✔ Direct child transfer is balanced and audited
+ ✔ Structural refusals
+ ✔ Inactive or frozen source or target is refused
+ ✔ Available credit boundary includes reservations and debt line
+ ✔ Admin transfer uses the same rule and records the operator
+ ✔ Idempotent transfer replay and conflict
+ ✔ Destination storage overflow is atomic
+
+Wallet (Reseller\Tests\Integration\Wp3a\Wallet)
+ ✔ Absent wallet is synthesized without any write
+ ✔ First funding creates the wallet with initial zero state
+ ✔ Debt limit zero on absent wallet is a no op
+ ✔ Positive debt limit creates the wallet without ledger entry
+ ✔ Debt limit increase and decrease against exact exposure
+ ✔ Debt limit input and target rules
+ ✔ Read scope
+
+Wp6b Boundary (Reseller\Tests\Unit\Wp6b\Wp6bBoundary)
+ ✔ Nothing wp 6b adds is api reachable
+ ✔ Backoffice is a gateway only
+ ✔ Controllers stay thin
+ ✔ Pricing pages take one tree lock per page
+ ✔ Finance read models are read only
+
+Wp6b Template Guard (Reseller\Tests\Unit\Wp6b\Wp6bTemplateGuard)
+ ✔ Every variable is escaped
+ ✔ Every wp 6b string has an arabic entry
+
+OK (211 tests, 41819 assertions)
+2026-10-05T04:31:55Z

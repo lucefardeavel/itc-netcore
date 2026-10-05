@@ -1,13 +1,17 @@
 # WP6B — Finance, Reseller, Pricing, Reports and Operations UX — Owner review report
 
-**Status: IMPLEMENTED_NOT_ACCEPTED.** Fix round 1 is applied ("WP6B OWNER CODE REVIEW — FIX_REQUIRED": three narrow fixes, §C1) and is waiting for the owner's review. Final state: `WP6B_FIX_ROUND_1_READY_WAITING_OWNER_REVIEW`.
+**Status: IMPLEMENTED_NOT_ACCEPTED.**
+- Fix round 1 is applied (three narrow fixes, §C1). The owner accepted FIX 1 and FIX 2.
+- Fix round 2 is applied: the remaining FIX 3 blocker, closed at the authoritative writer (§C2). It is waiting for the owner's review.
+- Final state: `WP6B_FIX_ROUND_2_READY_WAITING_OWNER_REVIEW`.
 
 - Plan: `WP6B_PLAN.md` revision 2, recorded in commit `5d3b6040`. It was accepted by "WP6B OWNER REVIEW — FINAL PLAN ACCEPTED / IMPLEMENTATION GO" (OD-1 … OD-9).
 - Model: `docs/WP6B_FINANCE_UX_MODEL.md`.
 - Test evidence:
   - `owner-review/WP6B/TESTDOX.txt` (final full run, `f7496710`);
   - `owner-review/WP6B/FIX_ROUND_1_TESTDOX.txt` (fix round 1, focused, both engines);
-  - `owner-review/WP6B/FIX_ROUND_1_REPRODUCTION.txt` (pre-fix reproductions on `f7496710`).
+  - `owner-review/WP6B/FIX_ROUND_1_REPRODUCTION.txt` (pre-fix reproductions on `f7496710`);
+  - `owner-review/WP6B/FIX_ROUND_2_TESTDOX.txt` (fix round 2, focused, both engines; it includes the interleaving reproduction and its control).
 - Visual evidence: `owner-review/WP6B/VISUAL_QA.md` and `owner-review/WP6B/visual/`.
 
 ## A. Ancestry / branch / heads
@@ -18,8 +22,9 @@
 | Branch | `wp6b/finance-reseller-reports-ux` from `81d49243` (linear; no squash, amend or rebase) |
 | First full-validation candidate | `a78ef1c380394f3ae406f10852c478d6f40b1b25` (run 1: 3 failing tests per engine, §F) |
 | Reviewed implementation (owner code review) | `f7496710b44d5c5d387765cb13194156c6bf77d5`, evidence `0c6f1768` — FIX_REQUIRED (three fixes, §C1) |
-| **Implementation HEAD (fix round 1)** | `22e534b2b03a2010de007c4b67f1c33eb9fbc06e` |
-| Evidence HEAD | the evidence commit `docs(wp6b): fix round 1 — reproduction, report, focused testdox` (its SHA is in the final response) |
+| Fix round 1 (reviewed) | `22e534b2b03a2010de007c4b67f1c33eb9fbc06e`, evidence `d89e73bc`: FIX 1 / FIX 2 ACCEPTED; FIX 3 one blocker (§C2) |
+| **Implementation HEAD (fix round 2)** | `bd3f6cf24d30564a967f433aa90db29ad089bb11` |
+| Evidence HEAD | the evidence commit `docs(wp6b): fix round 2 — report, focused testdox` (its SHA is in the final response) |
 | Worktree | clean, apart from the ignored `tests/vendor/` |
 | `main` / `feat` | untouched: `main` = `500d3a2d`, `feat/reseller-system-v1` = `81d49243` |
 
@@ -40,6 +45,7 @@ All commits are authored by `ALI HENDI <ali.hahuba3@gmail.com>` and carry the `C
 | `5c54244c` | **Slice 7 (OD-7 / OD-8).** Web cancel / resume (Admin, stale only) and the Operations Center (`system.admin`). |
 | `7ce54680` | **Slice 8 (OD-3).**<br>• Navigation groups; Agent phone primary Wallet.<br>• Quick actions; dashboard finance tiles.<br>• 297 Arabic strings; `Wp6bTemplateGuardTest`.<br>• Docs and amendment notes. |
 | `a78ef1c3` | Pre-validation visual-smoke fixes (`VISUAL_QA.md` §"Found and fixed") |
+| `bd3f6cf2` | **Fix round 2:** the reviewed debt-limit write compares the reviewed current limit under the writer's own `FOR UPDATE` lock (`WalletService::setDebtLimitIfCurrent`, §C2) |
 | `22e534b2` | **Fix round 1 (owner code review of `f7496710`):** export caps never truncate (performance, pricing catalog, shared `ExportCap`); a stale debt-line review fails closed (§C1) |
 | `f7496710` | Candidate-validation fixes:<br>• schema-not-ready navigation;<br>• WP5A economics assertion excludes the shell navigation (§F, §E). |
 
@@ -110,6 +116,69 @@ Only the debt line derived its risk direction from mutable state, so nothing els
 - The route matrix was not re-run: RouteMap is unchanged.
 - Visual QA was not repeated: no template, layout or CSS change. The debt-line review form carries the same hidden-field mechanism (`current` instead of `decrease`).
 
+## C2. Fix round 2 (owner code review of `22e534b2`, evidence `d89e73bc`: FIX 1 / FIX 2 ACCEPTED; FIX 3 one blocker)
+
+**Blocker.** The fix-round-1 execute re-read the debt limit and only then called `WalletService::setDebtLimit()`, which takes its own locks. A change committed between that re-read and the writer's `FOR UPDATE` lock could still turn a reviewed increase into an unconfirmed decrease.
+
+**Fix (owner-authorized, narrow change of `system/autoload/Reseller/Finance/WalletService.php`):**
+
+| Item | Detail |
+|---|---|
+| New additive API | `WalletService::setDebtLimitIfCurrent(ActorContext $a, mixed $managerId, mixed $newLimit, mixed $expectedCurrent, mixed $reason): WalletView` |
+| Single writer | `setDebtLimit()` and `setDebtLimitIfCurrent()` both delegate to one private locked writer, `writeDebtLimit()`. It holds the former `setDebtLimit` body unchanged, plus one condition. There is still exactly one debt-limit `UPDATE`. |
+| Where the comparison runs | Inside `FinanceTx::run(…, true)`, i.e. the tree lock plus one transaction:<br>1. `revalidateActor`;<br>2. `WalletOwner::assertValid`;<br>3. `LockedWallet::lock($pdo, $id)` (`FOR UPDATE`);<br>4. **the comparison**: the locked current limit (`0.00` for an absent wallet) must equal `$expectedCurrent`, else `DEBT_LIMIT_CHANGED`;<br>5. only then the accepted steps: wallet creation for a positive limit, reserved exposure, no-op, `DEBT_LIMIT_EXPOSURE`, the guarded `UPDATE`, the `finance.debt_limit` audit. |
+| Refusal | `DEBT_LIMIT_CHANGED` (new `DomainError` reason, a concurrency result, not a business rule) is thrown before any write. The transaction rolls back: no wallet change or creation, no ledger entry, no transfer, no audit event. |
+| Expectation mandatory | The conditional variant validates `$expectedCurrent` like any amount; a missing / malformed value is `INVALID_AMOUNT`. The conditional API can never act unconditionally. |
+| Unconditional callers | `setDebtLimit()` behaviour is unchanged for every existing caller: WP3A services, tests and workers. Its pinned WP3A tests (`WalletTest`, `ConcurrencyTest`, `FailureInjectionTest`, …) are green, and the control run below shows it unchanged. |
+| Web path | `WalletDesk::executeDebtLimit` keeps the fix-round-1 pre-read, which now serves only presentation and the typed confirmation. It writes through `setDebtLimitIfCurrent(…, $fields['current'], …)` and reports `DEBT_LIMIT_CHANGED` as `REVIEW_EXPIRED`, a stale review that needs a fresh review. No Backoffice code calls the unconditional writer any more. |
+
+**Proof the comparison occurs under the locked transaction** (`Integration/Wp6b/DebtLimitReviewedWriterTest::testTheExpectationIsComparedUnderTheWritersOwnLocks`, deterministic):
+1. The limit is 50.
+2. Another accepted `setDebtLimit(200)` runs in a worker and pauses at the existing fault point `debt_limit.after_update`, holding the tree lock and the locked, updated wallet row, uncommitted.
+3. The committed limit is asserted to be still **50**, which is what any pre-read would see.
+4. The reviewed writer (expected 50, new 100) starts in a second worker and is verified to be blocked on the locks.
+5. The first worker is released and commits 200. The reviewed writer then acquires the locks, sees 200 and refuses with `DEBT_LIMIT_CHANGED`. The limit stays 200, with no audit row for it and no ledger row.
+
+**Control (the pre-fix gap, reproduced):** the same interleaving with the unconditional `setDebtLimit` (what the `22e534b2` web path called after its pre-read) writes **100**. That is the reviewed increase silently applied as a decrease.
+
+**Other new regression cases:**
+- On the writer, no Backoffice involved: 50 → 200 by another accepted operation, then `setDebtLimitIfCurrent(100, expected 50)` → refused, the limit stays 200, and nothing is written anywhere (database checksums; no audit, ledger or transfer).
+- An absent wallet with a different expectation → refused, no wallet created. Expected `0.00` → the accepted rules open it.
+- Matching expectations:
+  - an increase is applied and audited;
+  - the exposure floor (`DEBT_LIMIT_EXPOSURE`) is identical for both variants;
+  - a confirmed decrease to the exact floor is applied;
+  - a no-op writes nothing;
+  - capability (`FORBIDDEN` for an Agent) and mandatory expectation (`INVALID_AMOUNT` for null / empty / malformed / negative / non-string).
+- A source contract: the web execute uses the conditional writer and maps its refusal to `REVIEW_EXPIRED`. There is a single debt-limit `UPDATE`, and in `writeDebtLimit` the comparison follows the `FOR UPDATE` lock and precedes wallet creation, the exposure rule, the `UPDATE` and the audit.
+- The web flows in `FinanceCorrectionTest` (the stale review, the confirmed decrease, the normal increase, the exposure floor) are unchanged and green.
+
+**R-13 is CLOSED** (not carried forward).
+
+**Files changed in fix round 2:**
+- `system/autoload/Reseller/Finance/WalletService.php` (owner-authorized; additive API + shared private writer)
+- `system/autoload/Reseller/Domain/DomainError.php` (+ `DEBT_LIMIT_CHANGED`)
+- `system/autoload/Reseller/Backoffice/WalletDesk.php` (execute uses the conditional writer)
+- `tests/Support/finance_worker.php` (+ `debt_limit_if_current` worker operation)
+- `tests/Integration/Wp6b/DebtLimitReviewedWriterTest.php` (new)
+- `docs/WP3A_FINANCE_MODEL.md` (WP6B fix round 2 amendment)
+- `docs/WP6B_FINANCE_UX_MODEL.md`
+
+Not changed: schema / migrations, capabilities, RouteMap, `LockedWallet`, `FinanceTx`, the tree lock, the exposure rule, audit semantics, the export work.
+
+**Focused validation (owner cadence: no full suite, no visual QA, no route matrix; RouteMap unchanged)**
+- Tree: the fix tree (= `bd3f6cf2`).
+- Command: `--testsuite wp6b-unit,wp6b-integration,wp3a-unit,wp3a-integration --testdox`.
+- It includes `DebtLimitReviewedWriterTest`, `FinanceCorrectionTest`, WP3A `WalletTest` / `ConcurrencyTest` / `FailureInjectionTest` / `AppSurfaceTest` / `SourceGuardTest`, `Wp6bBoundaryTest` and the export tests.
+- Dev host, isolated `nuxbill-reseller-test` project, 2026-10-05T04:05Z – 04:32Z (`FIX_ROUND_2_TESTDOX.txt`).
+
+| Engine | Result |
+|---|---|
+| MariaDB 10.11 | **OK (211 tests, 41 819 assertions)**, 0 failed |
+| MySQL 8.0 | **OK (211 tests, 41 819 assertions)**, 0 failed |
+
+PHP 8.2 lint on the changed PHP files is clean, and the secret sweep of `d89e73bc..bd3f6cf2` is clean.
+
 ## C. Files changed
 
 `git diff --stat 81d49243..f7496710`: **89 files, +7 931 / −208** (59 added, 30 modified).
@@ -150,7 +219,7 @@ Only the debt line derived its risk direction from mutable state, so nothing els
 **Pinned / untouched since `81d49243`** (verified, empty diff):
 - `Package.php`, `Balance.php`, `Domain/Tx.php`, `Domain/ServiceGate.php`, `Radius/RadiusPolicyBuilder.php`;
 - the migration runner (`system/reseller/Migration/*`), R0001–R0007, `install/*`;
-- `Finance/{LedgerService, WalletService, ReservationService, LockedWallet, Money, FinanceTx, FinanceInput, PricingReadModel, PricingSnapshot, WalletOwner}`;
+- `Finance/{LedgerService, ReservationService, LockedWallet, Money, FinanceTx, FinanceInput, PricingReadModel, PricingSnapshot, WalletOwner}`; `Finance/WalletService` was untouched until fix round 2, which made the owner-authorized additive change in §C2;
 - `Activation/{ActivationService, ReconciliationService, ActivationReversalService, DriftReport}`;
 - `Domain/{LegacyCustomerBalanceService, VoucherRedemptionService, LegacyReprovisionService, AutoRenewPolicy, ResellerTreeService, StaffService, CustomerService}`;
 - `Security/{Capability, RoleCapabilityMap, PermissionService, DataScope}` (**no capability change**).
@@ -280,7 +349,7 @@ Against the WP6A accepted matrix (**1477** requests / 1185 denials / 292 allowed
 | R-9 | `finance/settlement` is route-allowed for an Agent (`ledger.read`) and refused by the read model (redirect), not by the RouteGuard. |
 | R-10 | Legacy jQuery / Bootstrap / AdminLTE stay (no framework change); legacy templates outside WP6A / WP6B still print unescaped variables. |
 | R-12 | Fix round 1: a pricing catalog export at the 20,000 cap takes minutes (one pricing evaluation per plan, about 10 ms; measured in `ExportCapTest`). A web server execution time limit shorter than that could end the stream early. The catalog's real size is the number of resellable plans; recorded, not changed this round. |
-| R-13 | Fix round 1: the debt-line execute re-reads the limit and then calls the accepted `WalletService::setDebtLimit` (the pinned writer, which takes no "expected current" argument). A concurrent change in the instant between the re-read and the writer's own transaction is not detected by the review layer. `setDebtLimit` still re-validates the exposure floor and every rule. |
+| R-13 | **CLOSED in fix round 2** (§C2). The reviewed debt-limit write compares the reviewed current limit with the locked row inside `WalletService` (`setDebtLimitIfCurrent`). A concurrent change before the writer's lock is refused with nothing written. Not carried forward. |
 | R-11 | Known harness flakes are unchanged: the AppServer port-reuse flake and the CliOnlyTest healthcheck race. Neither occurred in the final run. |
 
 **Deviations from the plan text:**
@@ -310,6 +379,7 @@ Only `wp6b/finance-reseller-reports-ux` is pushed (normal, non-force). `feat/res
 - `TESTDOX.txt` (final full run, `f7496710`)
 - `FIX_ROUND_1_REPRODUCTION.txt`
 - `FIX_ROUND_1_TESTDOX.txt`
+- `FIX_ROUND_2_TESTDOX.txt`
 - `VISUAL_QA.md`
 - `visual/`: 29 PNG, `visualqa.json`, `visualqa.py`
 
@@ -317,4 +387,4 @@ Only `wp6b/finance-reseller-reports-ux` is pushed (normal, non-force). `feat/res
 
 ## M. Final state
 
-`WP6B_FIX_ROUND_1_READY_WAITING_OWNER_REVIEW`
+`WP6B_FIX_ROUND_2_READY_WAITING_OWNER_REVIEW`
