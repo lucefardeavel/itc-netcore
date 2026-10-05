@@ -96,3 +96,8 @@ The same routes, controllers, authority and markup serve every size. The mode is
 - Radio groups in legacy plan forms are named per option; there is no fieldset / legend group name.
 - `settings/devices` (host device files) and the page editors' third-party toolbars are outside the Adaptive Layer.
 - Arabic copy is a drafted translation for owner language review. Visual QA uses emulated devices.
+
+## WP7 amendment
+
+- The adaptive shell gains the WP7 status chip, banner, notice and update bar (flow layout, safe-area aware, above the bottom navigation) and the install item. Still no device detection and no `matchMedia` in JS: the installed app is recognised only by CSS `@media (display-mode: standalone)`, which hides the install item.
+- `data-nuxr-critical` is added to the finance review form (WP6B page). Details: `docs/WP7_PWA_MODEL.md`.

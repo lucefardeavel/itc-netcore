@@ -184,3 +184,11 @@ See `owner-review/WP6A/REPORT.md` §I.
 - **Customer portal.** Out of scope (OD-3).
 
 Details: `docs/WP6C_ADAPTIVE_UX_MODEL.md`.
+
+## WP7 amendment (owner decisions OD-W7-1..4, amendments A–O)
+
+- **Assets.** Adds the local `ui/ui/scripts/nuxr-pwa.js` (staff pages only), the static `nuxr-sw.js` / `nuxr-offline.html` at the application root and the interim icons under `ui/ui/images/pwa/`. No new external asset; the WP6A asset policy is unchanged.
+- **Shell.** The top bar gets a connectivity chip (shown only when not online), an offline banner and a "Not sent" notice; the account menu and the More sheet get "Install app"; an update bar is offered when a new version waits. The WP6A pending-submit guard (`data-nuxr-submitted`) and the activation poll (`data-nuxr-poll`) are read as critical-flow markers; `data-nuxr-critical` is added to the activation confirmation.
+- **CSRF shim.** A narrow gate hook can only stop a script-driven non-GET request while offline / reconnecting; token injection is byte-for-byte unchanged.
+
+Details: `docs/WP7_PWA_MODEL.md`.
