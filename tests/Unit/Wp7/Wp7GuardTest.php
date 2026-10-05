@@ -122,4 +122,35 @@ final class Wp7GuardTest extends TestCase
             $this->assertStringNotContainsString('use-credentials', $src);
         }
     }
+
+    public function testTheCsrfShimHookCanOnlyStopARequest(): void
+    {
+        $shim = self::read('ui/ui/nuxr-csrf.tpl');
+        $this->assertStringContainsString("return typeof window.nuxrMutationGate !== 'function' || window.nuxrMutationGate(kind, method, url) !== false;", $shim,
+            'absent gate = unchanged behaviour (customer portal)');
+        preg_match_all('/allowed\(\'([A-Za-z.-]+)\'/', $shim, $m);
+        $this->assertSame(['form.submit', 'xhr', 'fetch', 'nuxrPost', 'data-method'], $m[1], 'every script-driven send path consults the gate');
+        // the token is only ever read, never generated or altered by the shim
+        $this->assertSame(1, preg_match_all('/\btoken = /', $shim), 'one token assignment (from the server-rendered value)');
+        $this->assertStringContainsString('var token = window.nuxrCsrfToken;', $shim);
+        $code = (string) preg_replace('/\{\*.*?\*\}/s', '', $shim);
+        foreach (['/setTimeout\([^)]*nativeSubmit/', '/localStorage|sessionStorage|indexedDB/', '/retry|queue|replay/i'] as $re) {
+            $this->assertDoesNotMatchRegularExpression($re, $code, "nuxr-csrf.tpl: {$re}");
+        }
+    }
+
+    public function testTheGateBlocksOnlyConfirmedOfflineOrReconnectingNonGetRequests(): void
+    {
+        $js = self::read('ui/ui/scripts/nuxr-pwa.js');
+        $this->assertMatchesRegularExpression("/if \(m === 'GET' \|\| m === 'HEAD' \|\| !sameOrigin\(url\)\) \{ return true; \}/", $js);
+        $this->assertMatchesRegularExpression("/if \(state !== 'offline' && state !== 'reconnecting'\) \{ return true; \}/", $js, 'SLOW submits normally');
+        $this->assertStringContainsString("fetch(cfg.ping, { credentials: 'omit', cache: 'no-store', redirect: 'error'", $js, 'heartbeat without cookies');
+        $this->assertMatchesRegularExpression("/j\.app === 'nuxr' && j\.ok === true && Object\.keys\(j\)\.length === 2/", $js, 'exact marker (captive portals fail)');
+        $this->assertStringContainsString("document.addEventListener('submit', function (e) {", $js);
+        $this->assertStringContainsString('window.XMLHttpRequest = GatedXHR;', $js, 'XHR gated per instance (Pace replaces the constructor)');
+        $this->assertStringContainsString("jqXHR.abort('offline');", $js);
+        foreach (['/localStorage\.setItem\((?!\'nuxr-)/', '/sessionStorage\.setItem\((?!\'nuxr-)/', '/navigator\.onLine\s*\?/'] as $re) {
+            $this->assertDoesNotMatchRegularExpression($re, $js, "nuxr-pwa.js: {$re}");
+        }
+    }
 }

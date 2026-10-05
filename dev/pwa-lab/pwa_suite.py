@@ -73,6 +73,8 @@ def staff_login(ctx, base, user):
     with pg.expect_navigation():
         pg.click('button[type=submit]')
     pg.wait_for_load_state('networkidle')
+    # the legacy login result is an interstitial (admin/post) that meta-refreshes after ~3 s: go to the shell directly
+    pg.goto(base + '?_route=dashboard', wait_until='networkidle')
     return pg
 
 
@@ -116,6 +118,19 @@ def expected_precache(base):
     return sorted(base + p for p in PRECACHE)
 
 
+
+def go_offline(ctx, pg):
+    """browser offline + an offline hint: the client must CONFIRM it with a failing heartbeat"""
+    ctx.set_offline(True)
+    pg.wait_for_function("() => document.body.getAttribute('data-nuxr-net') === 'offline'", timeout=20000)
+
+
+def record_posts(pg):
+    posts = []
+    pg.on('request', lambda r: posts.append(r.url) if r.method not in ('GET', 'HEAD') else None)
+    return posts
+
+
 # ---------------------------------------------------------------- T00 secure context + both installations
 @check('T00', 'Secure context at the root and the /billing/ subdirectory origin; staff login works on both')
 def t00(browser):
@@ -123,7 +138,7 @@ def t00(browser):
     for base in (ROOT, SUB):
         ctx = new_ctx(browser, base)
         pg = staff_login(ctx, base, 'ad')
-        expect(route_of(pg) in ('dashboard', 'admin/post'), 'login landed on ' + pg.url)
+        expect(route_of(pg) == 'dashboard', 'login did not reach the dashboard: ' + pg.url)
         pg.goto(base + '?_route=dashboard', wait_until='networkidle')
         app_url = pg.evaluate('() => window.appUrl')
         expect(app_url.rstrip('/') + '/' == base, f'APP_URL {app_url} for {base}')
@@ -301,6 +316,133 @@ def t07b(browser):
     ctx.set_offline(False)
     ctx.close()
     return f'POST navigation offline -> {url.split("/")[-1]}; reload sent no POST'
+
+
+@check('T08', 'OFFLINE: an ordinary POST form (WP6C confirmation sheet -> requestSubmit) is stopped before sending')
+def t08(browser):
+    ctx = new_ctx(browser, ROOT)
+    pg = staff_login(ctx, ROOT, 'ad')  # Admin may edit the customer (an Agent gets the 403 shell there)
+    sw_ready(pg)
+    pg.goto(ROOT + '?_route=customers/edit/%d' % LAB['customers']['mohammed'], wait_until='networkidle')
+    posts = record_posts(pg)
+    go_offline(ctx, pg)
+    url = pg.url
+    pg.locator('form > .nuxr-actionbar-form button[type=submit] >> visible=true').first.click()
+    pg.wait_for_timeout(300)
+    if pg.evaluate('() => { const d = document.getElementById("nuxr-ask-sheet"); return !!(d && d.open); }'):
+        pg.click('[data-nuxr-ask-ok]')
+    pg.wait_for_timeout(800)
+    expect(not posts, f'POST sent offline: {posts}')
+    expect(pg.url == url, 'navigated away')
+    toast = pg.locator('.nuxr-net-toast')
+    expect(toast.is_visible() and 'Not sent' in toast.inner_text(), 'no "not sent" notice')
+    pending = pg.evaluate('() => document.querySelectorAll("form[data-nuxr-submitted]").length')
+    expect(pending == 0, 'form left in the pending state')
+    pg.screenshot(path=os.path.join(ARGS.out, 'T08-form-blocked.png'))
+    ctx.set_offline(False)
+    ctx.close()
+    return 'requestSubmit via the confirmation sheet stopped: 0 POST requests, notice shown, form not left pending'
+
+
+@check('T09', 'OFFLINE: a[data-method=post], window.nuxrPost and native form.submit() are stopped')
+def t09(browser):
+    ctx = new_ctx(browser, ROOT, vp=DESK)  # desktop: the staff table shows the row Delete link directly
+    pg = staff_login(ctx, ROOT, 'ad')
+    sw_ready(pg)
+    pg.goto(ROOT + '?_route=settings/users', wait_until='networkidle')
+    pg.on('dialog', lambda d: d.accept())
+    posts = record_posts(pg)
+    go_offline(ctx, pg)
+    link = pg.locator('a[data-method="post"] >> visible=true').first
+    expect(link.count() == 1, 'no data-method link on the staff list')
+    link.click()
+    pg.wait_for_timeout(500)
+    n1 = len(posts)
+    pg.evaluate("() => window.nuxrPost(location.href)")
+    pg.wait_for_timeout(500)
+    n2 = len(posts)
+    pg.evaluate("""() => { const f = document.createElement('form'); f.method = 'post'; f.action = location.href; document.body.appendChild(f); f.submit(); }""")
+    pg.wait_for_timeout(500)
+    expect(len(posts) == 0, f'POST sent offline: data-method {n1}, nuxrPost {n2 - n1}, form.submit {len(posts) - n2}')
+    expect('settings/users' in pg.url, 'navigated away')
+    ctx.set_offline(False)
+    ctx.close()
+    return 'data-method link, nuxrPost and native form.submit(): 0 POST requests'
+
+
+@check('T10', 'OFFLINE: fetch POST, XMLHttpRequest POST and jQuery POST are stopped (error reported to the caller)')
+def t10(browser):
+    ctx = new_ctx(browser, ROOT)
+    pg = staff_login(ctx, ROOT, 'ad')
+    sw_ready(pg)
+    pg.goto(ROOT + '?_route=customers/list', wait_until='networkidle')
+    posts = record_posts(pg)
+    go_offline(ctx, pg)
+    res = pg.evaluate("""async () => {
+        const out = {};
+        try { await fetch(location.href, { method: 'POST', body: 'x=1' }); out.fetch = 'sent'; } catch (e) { out.fetch = 'blocked: ' + e.message; }
+        out.xhr = await new Promise(res => { const x = new XMLHttpRequest(); x.open('POST', location.href); x.onerror = () => res('error event');
+            x.onload = () => res('sent'); x.send('x=1'); setTimeout(() => res('no event'), 2000); });
+        out.jquery = await new Promise(res => { window.jQuery.ajax({ url: location.href, method: 'POST', data: { x: 1 } })
+            .done(() => res('sent')).fail((j, t) => res('fail: ' + t)); setTimeout(() => res('no callback'), 2000); });
+        return out; }""")
+    expect(not posts, f'POST sent offline: {posts}')
+    expect(res['fetch'].startswith('blocked') and res['xhr'] == 'error event' and res['jquery'].startswith('fail'), f'{res}')
+    ctx.set_offline(False)
+    ctx.close()
+    return f'0 POST requests; fetch={res["fetch"]}; xhr={res["xhr"]}; jquery={res["jquery"]}'
+
+
+@check('T10b', 'Customer portal and public pages: no gate defined (behaviour unchanged), CSRF shim intact')
+def t10b(browser):
+    ctx = new_ctx(browser, ROOT)
+    pg = ctx.new_page()
+    pg.goto(ROOT + '?_route=login', wait_until='networkidle')
+    secure(pg)
+    info = pg.evaluate("() => ({ gate: typeof window.nuxrMutationGate, token: typeof window.nuxrCsrfToken, post: typeof window.nuxrPost })")
+    expect(info['gate'] == 'undefined' and info['token'] == 'string' and info['post'] == 'function', f'{info}')
+    ctx.close()
+    return f'customer login: gate {info["gate"]}, csrf token {info["token"]}, nuxrPost {info["post"]}'
+
+
+@check('T11', 'Reconnect: OFFLINE -> RECONNECTING -> ONLINE confirmed by the heartbeat; mutations blocked while RECONNECTING')
+def t11(browser):
+    ctx = new_ctx(browser, ROOT)
+    pg = staff_login(ctx, ROOT, 'A')
+    sw_ready(pg)
+    pg.evaluate("() => { window.__net = []; document.addEventListener('nuxr-net', e => window.__net.push(e.detail.state)); }")
+    go_offline(ctx, pg)
+    ctx.set_offline(False)
+    pg.wait_for_function("() => document.body.getAttribute('data-nuxr-net') === 'reconnecting'", timeout=20000)
+    during = pg.evaluate("() => window.nuxrMutationGate('test', 'POST', location.href)")
+    pg.wait_for_function("() => document.body.getAttribute('data-nuxr-net') === 'online'", timeout=20000)
+    after = pg.evaluate("() => window.nuxrMutationGate('test', 'POST', location.href)")
+    seq = pg.evaluate('() => window.__net')
+    expect(seq[-3:] == ['offline', 'reconnecting', 'online'], f'sequence {seq}')
+    expect(during is False and after is True, f'gate during reconnecting {during}, after {after}')
+    ctx.close()
+    return f'states {seq}; POST blocked while reconnecting, allowed once online'
+
+
+@check('T12', 'SLOW/UNSTABLE (CDP latency 3 s): chip shown, mutations still allowed')
+def t12(browser):
+    ctx = new_ctx(browser, ROOT)
+    pg = staff_login(ctx, ROOT, 'A')
+    sw_ready(pg)
+    cdp = ctx.new_cdp_session(pg)
+    cdp.send('Network.enable')
+    cdp.send('Network.emulateNetworkConditions', {'offline': False, 'latency': 3000, 'downloadThroughput': -1, 'uploadThroughput': -1})
+    pg.evaluate("() => window.dispatchEvent(new Event('online'))")  # a hint: probe now
+    pg.wait_for_function("() => document.body.getAttribute('data-nuxr-net') === 'slow'", timeout=30000)
+    chip = pg.locator('.nuxr-net-chip')
+    expect(chip.is_visible() and chip.inner_text().strip() != '', 'slow chip not shown')
+    allowed = pg.evaluate("() => window.nuxrMutationGate('test', 'POST', location.href)")
+    expect(allowed is True, 'POST blocked while SLOW')
+    pg.screenshot(path=os.path.join(ARGS.out, 'T12-slow.png'))
+    label = chip.inner_text().strip()
+    cdp.send('Network.emulateNetworkConditions', {'offline': False, 'latency': 0, 'downloadThroughput': -1, 'uploadThroughput': -1})
+    ctx.close()
+    return f'slow chip "{label}"; POST allowed while SLOW'
 
 
 def main():

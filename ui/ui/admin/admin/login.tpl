@@ -14,7 +14,7 @@
     <meta name="theme-color" content="#1a202b" media="(prefers-color-scheme: dark)">
     <link rel="apple-touch-icon" href="{$app_url}/ui/ui/images/pwa/icon-180.png">
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/bootstrap.min.css">
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp6c.2">
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp7.1">
     <style>
         .nuxr-login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
         .nuxr-login-card { width: min(420px, 100%); }
@@ -44,6 +44,7 @@
         </div>
     </main>
 {* WP7: staff PWA client (registration; prune on the staff login page) *}
+{include file="admin/nuxr/pwa-config.tpl"}
 <script src="{$app_url}/ui/ui/scripts/nuxr-pwa.js?wp7.1" data-nuxr-sw="{$app_url}/nuxr-sw.js"></script>
 {include file="nuxr-csrf.tpl"}
 </body>

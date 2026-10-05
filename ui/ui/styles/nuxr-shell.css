@@ -2535,3 +2535,74 @@ body.nuxr-shell .select2-container .select2-selection__placeholder { color: var(
         display: flex;
     }
 }
+
+/* ---------- WP7 staff PWA: connectivity status, offline banner, "not sent" notice ---------- */
+.nuxr-net-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: var(--nx-warning-soft);
+    color: var(--nx-warning);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex: none;
+}
+
+.nuxr-net-chip::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.nuxr-net-chip[data-state="offline"] {
+    background: var(--nx-danger-soft);
+    color: var(--nx-danger);
+}
+
+.nuxr-net-chip[hidden], .nuxr-net-banner[hidden], .nuxr-net-toast[hidden] {
+    display: none;
+}
+
+.nuxr-net-banner {
+    margin: 12px 16px 0;
+    padding: 12px 14px;
+    border: 1px solid rgba(179, 38, 30, .25);
+    border-radius: 12px;
+    background: var(--nx-danger-soft);
+    color: var(--nx-danger);
+    font-weight: 600;
+}
+
+.nuxr-net-toast {
+    position: fixed;
+    z-index: 1100;
+    inset-inline: 12px;
+    bottom: calc(var(--nx-bottom-h) + var(--nx-safe-bottom) + 12px);
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #1d2433;
+    color: #ffffff;
+    box-shadow: var(--nx-shadow-lg);
+    font-weight: 600;
+}
+
+@media (min-width: 768px) {
+    .nuxr-net-toast {
+        bottom: calc(16px + var(--nx-safe-bottom));
+    }
+}
+
+@media (max-width: 420px) {
+    .nuxr-net-chip {
+        padding: 0 10px;
+        font-size: 12px;
+    }
+}
