@@ -38,6 +38,9 @@ final class RouteMap
         'forgot' => ['' => 'forgot', '*' => 'forgot', 'forgot' => 'public'],
         'logout' => ['' => 'logout', '*' => 'logout', 'logout' => 'public'],
         'callback' => ['' => 'notify', '*' => 'notify', 'notify' => 'public'],
+        // WP7 (owner decision OD-W7-2): staff PWA support - the manifest and the connectivity heartbeat only. GET-only,
+        // public, no capability, no business data, no mutation, never in API_ALLOWED; any other pwa/* is a 404.
+        'pwa' => ['' => 'notfound', '*' => 'notfound', 'notfound' => ['GET' => 'public'], 'manifest' => ['GET' => 'public'], 'ping' => ['GET' => 'public']],
         'plugin' => ['' => 'dispatch', '*' => 'dispatch', 'dispatch' => 'plugin'],
 
         // ---------- customer portal ----------

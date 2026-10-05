@@ -23,6 +23,7 @@
             <exclude>Unit/Wp6a</exclude>
             <exclude>Unit/Wp6b</exclude>
             <exclude>Unit/Wp6c</exclude>
+            <exclude>Unit/Wp7</exclude>
         </testsuite>
         <testsuite name="integration">
             <directory>Integration</directory>
@@ -35,6 +36,7 @@
             <exclude>Integration/Wp6a</exclude>
             <exclude>Integration/Wp6b</exclude>
             <exclude>Integration/Wp6c</exclude>
+            <exclude>Integration/Wp7</exclude>
         </testsuite>
         <testsuite name="regression">
             <directory>Regression</directory>
@@ -95,6 +97,12 @@
         </testsuite>
         <testsuite name="wp6c-integration">
             <directory>Integration/Wp6c</directory>
+        </testsuite>
+        <testsuite name="wp7-unit">
+            <directory>Unit/Wp7</directory>
+        </testsuite>
+        <testsuite name="wp7-integration">
+            <directory>Integration/Wp7</directory>
         </testsuite>
     </testsuites>
 </phpunit>
