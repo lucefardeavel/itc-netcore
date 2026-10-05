@@ -1,0 +1,19 @@
+# Route matrix evidence (RouteMatrixTest, WP2_EVIDENCE=1) on 8ffbf54a; rows byte-identical to the WP6B baseline on both engines
+== PHP 8.2 lint (php82 harness image) ==
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+PHP82 lint: 482 pass, 0 fail
+== route matrix: mariadb ==
+
+OK, but there were issues!
+Tests: 3, Assertions: 3638, PHPUnit Warnings: 5.
+ROUTE MATRIX (1727 requests, 1354 denials)
+== route matrix: mysql ==
+
+OK, but there were issues!
+Tests: 3, Assertions: 3638, PHPUnit Warnings: 5.
+ROUTE MATRIX (1727 requests, 1354 denials)
+
+real	9m39.167s
+user	0m4.754s
+sys	0m12.019s
+exit=1
