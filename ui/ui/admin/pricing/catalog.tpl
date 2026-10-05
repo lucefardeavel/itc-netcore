@@ -13,6 +13,7 @@
         <strong>{Lang::T('Retail (customer price)')}</strong>: {Lang::T('what the subscriber pays.')}</div></div>
 <section class="nuxr-card">
     {if $c.rows}
+        <div class="nuxr-adaptive is-lg">
         <div class="nuxr-table-wrap">
             <table class="nuxr-table">
                 <thead><tr><th>{Lang::T('Plan')}</th><th>{Lang::T('Wholesale (reseller cost)')}</th><th>{Lang::T('Retail (customer price)')}</th>
@@ -47,6 +48,7 @@
                 </div></li>
             {/foreach}
         </ul>
+        </div>
         {include file="admin/nuxr/list-pager.tpl" p=$c pager_url=$nuxr_base}
     {else}<div class="nuxr-empty"><i class="fa fa-tags" aria-hidden="true"></i><strong>{Lang::T('No resellable plans yet.')}</strong></div>{/if}
 </section>

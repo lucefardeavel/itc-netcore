@@ -12,8 +12,22 @@
 [dir="rtl"] .text-right { text-align: left !important; }
 [dir="rtl"] .text-left { text-align: right !important; }
 
-[dir="rtl"] [class*="col-xs-"], [dir="rtl"] [class*="col-sm-"], [dir="rtl"] [class*="col-md-"], [dir="rtl"] [class*="col-lg-"] {
+/* WP6C: columns float only from their own Bootstrap breakpoint up (as in LTR). Floating col-sm / col-md / col-lg at
+   every width made them shrink-to-fit on phones, so a wide legacy table widened the whole page in RTL. */
+[dir="rtl"] [class*="col-xs-"] {
     float: right;
+}
+
+@media (min-width: 768px) {
+    [dir="rtl"] [class*="col-sm-"] { float: right; }
+}
+
+@media (min-width: 992px) {
+    [dir="rtl"] [class*="col-md-"] { float: right; }
+}
+
+@media (min-width: 1200px) {
+    [dir="rtl"] [class*="col-lg-"] { float: right; }
 }
 
 @media (min-width: 768px) {

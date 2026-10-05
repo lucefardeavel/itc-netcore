@@ -1,5 +1,6 @@
 {* WP6B: immutable ledger rows (newest first): table on >= 768px, cards on phone. Direction is word + sign + icon,
    never colour alone. Parties outside the viewer's scope are role labels only (Format::party). *}
+<div class="nuxr-adaptive is-xl">
 <div class="nuxr-table-wrap">
     <table class="nuxr-table">
         <thead><tr><th>{Lang::T('Time (UTC)')}</th><th>{Lang::T('Type')}</th><th>{Lang::T('Amount')}</th><th>{Lang::T('Balance before')} → {Lang::T('after')}</th><th>{Lang::T('Linked to')}</th><th>{Lang::T('Counterparty')}</th><th>{Lang::T('By')}</th><th>{Lang::T('Reason')}</th></tr></thead>
@@ -37,3 +38,4 @@
         </li>
     {/foreach}
 </ul>
+</div>

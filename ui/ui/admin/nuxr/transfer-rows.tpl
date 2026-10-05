@@ -1,4 +1,5 @@
 {* WP6B: transfer rows (newest first): table on >= 768px, cards on phone. *}
+<div class="nuxr-adaptive is-lg">
 <div class="nuxr-table-wrap">
     <table class="nuxr-table">
         <thead><tr><th>{Lang::T('Time (UTC)')}</th><th>{Lang::T('Reference')}</th><th>{Lang::T('Type')}</th><th>{Lang::T('From')}</th><th>{Lang::T('To')}</th><th>{Lang::T('Amount')}</th><th>{Lang::T('Status')}</th></tr></thead>
@@ -30,3 +31,4 @@
         </li>
     {/foreach}
 </ul>
+</div>

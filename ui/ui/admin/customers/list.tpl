@@ -61,6 +61,7 @@
 
 <div class="nuxr-card">
     {if $d}
+        <div class="nuxr-adaptive is-lg">
         <div class="nuxr-table-wrap">
             <table class="nuxr-table">
                 <thead>
@@ -108,6 +109,7 @@
                 </li>
             {/foreach}
         </ul>
+        </div>
         {if $_can['message.send_selected']}
             <div class="nuxr-card-body nuxr-hide-phone" style="border-top:1px solid var(--nx-border)">
                 <button type="button" class="nuxr-btn" id="nuxr-message-selected"><i class="fa fa-comment" aria-hidden="true"></i>{Lang::T('Message selected')}</button>

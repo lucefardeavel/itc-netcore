@@ -224,7 +224,7 @@
                 {/if}
             {elseif $v eq 'invoices'}
                 {if Lang::arrayCount($activation)}
-                    <div class="nuxr-table-wrap"><table class="nuxr-table">
+                    <div class="nuxr-adaptive"><div class="nuxr-table-wrap"><table class="nuxr-table">
                         <thead><tr><th>{Lang::T('Invoice')}</th><th>{Lang::T('Plan')}</th><th class="is-num">{Lang::T('Customer price (retail)')}</th><th>{Lang::T('Created')}</th><th>{Lang::T('Expires')}</th><th>{Lang::T('Method')}</th></tr></thead>
                         <tbody>{foreach $activation as $ds}<tr>
                             <td>{if $_can['invoice.read']}<a href="{Text::url('plan/view/', $ds['id'])}"><bdi dir="ltr">{$ds['invoice']|escape}</bdi></a>{else}<bdi dir="ltr">{$ds['invoice']|escape}</bdi>{/if}</td>
@@ -234,7 +234,7 @@
                     </table></div>
                     <ul class="nuxr-mlist">{foreach $activation as $ds}<li><div class="nuxr-mcard">
                         <span class="nuxr-mcard-main"><span class="nuxr-mcard-title"><bdi dir="ltr">{$ds['invoice']|escape}</bdi></span><span class="nuxr-mcard-sub">{$ds['plan_name']|escape} · <bdi dir="ltr">{$ds['recharged_on']|escape}</bdi></span></span>
-                        <span class="nuxr-mcard-end"><bdi dir="ltr">{Lang::moneyFormat($ds['price'])}</bdi><span>{Lang::T('retail')}</span></span></div></li>{/foreach}</ul>
+                        <span class="nuxr-mcard-end"><bdi dir="ltr">{Lang::moneyFormat($ds['price'])}</bdi><span>{Lang::T('retail')}</span></span></div></li>{/foreach}</ul></div>
                     {include file="admin/nuxr/pager.tpl"}
                 {else}
                     <div class="nuxr-empty"><i class="fa fa-file-text-o" aria-hidden="true"></i><span>{Lang::T('No invoices yet.')}</span></div>

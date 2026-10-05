@@ -9,6 +9,7 @@
 </div>
 <section class="nuxr-card">
     {if $g.rows}
+        <div class="nuxr-adaptive is-lg">
         <div class="nuxr-table-wrap">
             <table class="nuxr-table">
                 <thead><tr><th>{Lang::T('Reseller')}</th><th>{Lang::T('Wholesale (reseller cost)')}</th><th>{Lang::T('Retail (customer price)')}</th>{if $g.show_margin}<th>{Lang::T('Your margin')}</th>{/if}<th>{Lang::T('Availability')}</th><th>{Lang::T('Saleable')}</th><th><span class="sr-only">{Lang::T('Edit')}</span></th></tr></thead>
@@ -38,6 +39,7 @@
                 </div></li>
             {/foreach}
         </ul>
+        </div>
         {include file="admin/nuxr/list-pager.tpl" p=$g pager_url=$nuxr_base}
     {else}<div class="nuxr-empty"><strong>{Lang::T('No resellers.')}</strong></div>{/if}
 </section>

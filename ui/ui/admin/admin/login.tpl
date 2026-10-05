@@ -5,11 +5,11 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{Lang::T('Login')} - {$_c['CompanyName']|escape}</title>
     <link rel="shortcut icon" href="{$app_url}/ui/ui/images/logo.png" type="image/x-icon" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/bootstrap.min.css">
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp6a.2">
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp6c.1">
     <style>
         .nuxr-login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
         .nuxr-login-card { width: min(420px, 100%); }

@@ -32,6 +32,7 @@
         </div></div>
     {/if}
     {if $r.rows}
+        <div class="nuxr-adaptive is-lg">
         <div class="nuxr-table-wrap"><table class="nuxr-table">
             {if $nuxr_kind eq 'sales' || $nuxr_kind eq 'commissions'}
                 <thead><tr><th>{Lang::T('Time (UTC)')}</th><th>{Lang::T('Activation')}</th><th>{Lang::T('Plan')}</th><th>{if $nuxr_kind eq 'sales'}{Lang::T('Reseller')}{else}{Lang::T('Recipient')}{/if}</th>
@@ -82,6 +83,7 @@
                 </div></li>
             {/foreach}
         </ul>
+        </div>
         {include file="admin/nuxr/list-pager.tpl" p=$r pager_url=$nuxr_base}
     {else}<div class="nuxr-empty"><i class="fa fa-bar-chart" aria-hidden="true"></i><strong>{Lang::T('Nothing in this period.')}</strong></div>{/if}
 </section>

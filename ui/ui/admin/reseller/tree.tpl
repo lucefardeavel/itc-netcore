@@ -16,6 +16,7 @@
 <section class="nuxr-card nuxr-tree" aria-labelledby="nuxr-tree-t">
     <div class="nuxr-card-head"><h2 id="nuxr-tree-t">{Lang::T('Reseller Tree')}</h2></div>
     {if $nuxr_tree}
+        <div class="nuxr-adaptive">
         <div class="nuxr-table-wrap">
             <table class="nuxr-table">
                 <thead><tr><th>{Lang::T('Account')}</th><th>{Lang::T('Role')}</th><th>{Lang::T('Status')}</th><th>{Lang::T('Subscribers')}</th><th>{Lang::T('Sales accounts')}</th><th><span class="sr-only">{Lang::T('Open')}</span></th></tr></thead>
@@ -61,6 +62,7 @@
                 {/foreach}
             </ul>
         </div>
+        </div>
     {else}
         <div class="nuxr-empty"><i class="fa fa-sitemap" aria-hidden="true"></i><strong>{Lang::T('No accounts in the hierarchy yet.')}</strong></div>
     {/if}
@@ -70,6 +72,7 @@
     <section class="nuxr-card" aria-labelledby="nuxr-unenrolled-t">
         <div class="nuxr-card-head"><h2 id="nuxr-unenrolled-t">{Lang::T('Not yet enrolled Agent/Sales accounts')}</h2></div>
         <div class="nuxr-card-body"><p class="nuxr-muted">{Lang::T('explicit onboarding; the legacy parent value is shown for reference only and is never applied automatically')}</p></div>
+        <div class="nuxr-adaptive">
         <div class="nuxr-table-wrap">
             <table class="nuxr-table">
                 <thead><tr><th>{Lang::T('Account')}</th><th>{Lang::T('Role')}</th><th>{Lang::T('Legacy parent id')}</th><th>{Lang::T('Place under')}</th></tr></thead>
@@ -118,6 +121,7 @@
                 <li><div class="nuxr-empty"><strong>{Lang::T('None')}</strong></div></li>
             {/foreach}
         </ul>
+        </div>
     </section>
 {/if}
 {if $nuxr_verify}

@@ -6,7 +6,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{$_title|escape} - {$_c['CompanyName']|escape}</title>
     <link rel="shortcut icon" href="{$app_url}/ui/ui/images/logo.png" type="image/x-icon" />
 
@@ -27,9 +27,9 @@
         <link rel="stylesheet" href="{$app_url}/ui/ui/summernote/summernote.min.css" />
     {/if}
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/phpnuxbill.css?2025.2.4" />
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp6a.2" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp6c.1" />
     {if $nuxr_dir eq 'rtl'}
-        <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?wp6a.1" />
+        <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?wp6c.1" />
     {/if}
 
     <script src="{$app_url}/ui/ui/scripts/sweetalert2.all.min.js"></script>

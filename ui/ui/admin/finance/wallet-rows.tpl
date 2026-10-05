@@ -1,4 +1,5 @@
 {* WP6B: wallet rows (finance read model): table on >= 768px, cards on phone. *}
+<div class="nuxr-adaptive">
 <div class="nuxr-table-wrap">
     <table class="nuxr-table">
         <thead><tr><th>{Lang::T('Reseller')}</th><th>{Lang::T('Status')}</th><th>{Lang::T('Balance')}</th><th>{Lang::T('Debt line')}</th><th>{Lang::T('Reserved')}</th><th>{Lang::T('Available credit')}</th></tr></thead>
@@ -31,3 +32,4 @@
         </li>
     {/foreach}
 </ul>
+</div>
