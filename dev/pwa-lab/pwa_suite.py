@@ -523,6 +523,54 @@ def t13b(browser):
     return f'kept another-app-on-this-origin and {current}; removed {stale}'
 
 
+@check('T14i', 'Install UX: user-initiated only; deferred beforeinstallprompt used on click; manual sheet otherwise; hidden when standalone')
+def t14i(browser):
+    notes = []
+    ctx = new_ctx(browser, ROOT)
+    pg = staff_login(ctx, ROOT, 'A')
+    sw_ready(pg)
+    expect(pg.evaluate("() => !document.getElementById('nuxr-install-sheet') && !document.querySelector('dialog[open]')"), 'something opened automatically after login')
+    # branch 1: no beforeinstallprompt -> generic manual instructions (menu item)
+    pg.click('details.nuxr-menu.nuxr-user > summary')
+    item = pg.locator('.nuxr-menu-panel [data-nuxr-install]')
+    expect(item.is_visible(), 'install item not offered in the account menu')
+    item.click()
+    pg.wait_for_timeout(300)
+    sheet = pg.locator('#nuxr-install-sheet')
+    expect(sheet.is_visible() and 'Install' in sheet.inner_text(), 'manual instructions not shown')
+    pg.screenshot(path=os.path.join(ARGS.out, 'T14i-install-manual.png'))
+    pg.keyboard.press('Escape')
+    notes.append('manual sheet when the browser offers no prompt')
+    # branch 2: a (simulated) deferred beforeinstallprompt is used only on the user's click
+    pg.evaluate("""() => { window.__prompted = 0; const e = new Event('beforeinstallprompt', { cancelable: true });
+        e.prompt = () => { window.__prompted++; return Promise.resolve(); }; e.userChoice = Promise.resolve({ outcome: 'dismissed' });
+        window.dispatchEvent(e); }""")
+    expect(pg.evaluate('() => window.__prompted') == 0, 'prompted without a user action')
+    pg.click('[data-nuxr-open=nuxr-more-sheet] >> visible=true')
+    pg.wait_for_timeout(300)
+    pg.locator('#nuxr-more-sheet [data-nuxr-install]').click()
+    pg.wait_for_timeout(300)
+    expect(pg.evaluate('() => window.__prompted') == 1, 'deferred prompt not used on click')
+    notes.append('deferred prompt used once, on the More-sheet click')
+    # standalone: the item is not offered (CSS display-mode)
+    cdp = ctx.new_cdp_session(pg)
+    cdp.send('Emulation.setEmulatedMedia', {'features': [{'name': 'display-mode', 'value': 'standalone'}]})
+    if pg.evaluate("() => matchMedia('(display-mode: standalone)').matches"):
+        hidden = pg.evaluate("() => getComputedStyle(document.querySelector('.nuxr-menu-panel [data-nuxr-install]')).display === 'none'")
+        expect(hidden, 'install item visible in standalone mode')
+        notes.append('hidden in emulated standalone mode')
+    else:
+        # this Chromium ignores display-mode emulation (prefers-color-scheme emulation works): verify the live CSSOM rule
+        rule = pg.evaluate("""() => { for (const sh of document.styleSheets) { let rules; try { rules = sh.cssRules; } catch (e) { continue; }
+            for (const r of rules) { if (r.media && /display-mode:\s*standalone/.test(r.conditionText || r.media.mediaText)) {
+                for (const i of r.cssRules) { if (i.selectorText === '[data-nuxr-install]' && i.style.getPropertyValue('display') === 'none'
+                    && i.style.getPropertyPriority('display') === 'important') { return true; } } } } } return false; }""")
+        expect(rule, 'no standalone rule hiding the install item')
+        notes.append('display-mode emulation unsupported by this Chromium; standalone CSS rule verified in the live CSSOM')
+    ctx.close()
+    return '; '.join(notes)
+
+
 def main():
     only = set(filter(None, ARGS.only.split(',')))
     global PLAYWRIGHT

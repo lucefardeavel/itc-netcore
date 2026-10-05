@@ -225,6 +225,59 @@
         }
     }, true);
 
+    /* ---------- install (user-initiated only; amendment J) ----------
+       Never prompted automatically. beforeinstallprompt, where the browser offers it, is kept and used only when the
+       user presses "Install app"; elsewhere the item opens generic manual instructions. No user-agent branching. The
+       item is hidden by CSS in the installed (standalone) app and after appinstalled. No business rule depends on
+       the display mode. */
+    var deferredPrompt = null;
+    var installItems = Array.prototype.slice.call(document.querySelectorAll('[data-nuxr-install]'));
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferredPrompt = e; });
+    window.addEventListener('appinstalled', function () {
+        deferredPrompt = null;
+        installItems.forEach(function (b) { b.hidden = true; });
+    });
+
+    function installSheet() {
+        var d = document.getElementById('nuxr-install-sheet');
+        if (d) { return d; }
+        d = document.createElement('dialog');
+        d.id = 'nuxr-install-sheet';
+        d.className = 'nuxr-sheet';
+        d.setAttribute('aria-labelledby', 'nuxr-install-title');
+        d.innerHTML = '<div class="nuxr-sheet-head"><h2 id="nuxr-install-title"></h2>' +
+            '<button type="button" class="nuxr-icon-btn" data-nuxr-close><i class="fa fa-times" aria-hidden="true"></i></button></div>' +
+            '<div class="nuxr-sheet-body"><p class="nuxr-install-text"></p><p class="nuxr-muted nuxr-install-note"></p>' +
+            '<div class="nuxr-step-nav"><button type="button" class="nuxr-btn nuxr-btn-primary" data-nuxr-close></button></div></div>';
+        q('#nuxr-install-title', d).textContent = S.installTitle || 'Install';
+        q('.nuxr-sheet-head [data-nuxr-close]', d).setAttribute('aria-label', S.close || 'Close');
+        q('.nuxr-install-text', d).textContent = S.installText || '';
+        q('.nuxr-install-note', d).textContent = S.installNote || '';
+        q('.nuxr-step-nav [data-nuxr-close]', d).textContent = S.close || 'Close';
+        document.body.appendChild(d);
+        return d;
+    }
+
+    function install() {
+        var more = document.getElementById('nuxr-more-sheet');
+        if (more && more.open && typeof more.close === 'function') { more.close(); }
+        if (deferredPrompt && typeof deferredPrompt.prompt === 'function') {
+            var p = deferredPrompt;
+            deferredPrompt = null; // a prompt can be shown once
+            p.prompt();
+            return;
+        }
+        var d = installSheet();
+        if (typeof d.showModal === 'function') { d.showModal(); } else { d.setAttribute('open', ''); }
+        var ok = q('.nuxr-step-nav [data-nuxr-close]', d);
+        if (ok) { ok.focus(); }
+    }
+
+    installItems.forEach(function (b) {
+        b.hidden = !secure; // installation needs a secure context: never offered where it cannot work
+        b.addEventListener('click', install);
+    });
+
     /* ---------- cross-user hygiene (amendment B / plan section 11) ----------
        Nothing user-specific is ever stored by the PWA. Defence in depth: the worker prunes its own namespace on the
        logout navigation; here the staff login page clears this client's transient nuxr-* session keys and every page

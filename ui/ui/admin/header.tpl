@@ -89,6 +89,8 @@
                     <button type="button" data-nuxr-lang="{if $nuxr_dir eq 'rtl'}english{else}arabic{/if}"><i class="fa fa-language" aria-hidden="true"></i>
                         {if $nuxr_dir eq 'rtl'}English{else}العربية{/if}</button>
                     <button type="button" data-nuxr-theme><i class="fa fa-adjust" aria-hidden="true"></i> {Lang::T('Light / dark theme')}</button>
+                    {* WP7: user-initiated install (shown by nuxr-pwa.js only in a secure context; hidden when installed) *}
+                    <button type="button" data-nuxr-install hidden><i class="fa fa-download" aria-hidden="true"></i> {Lang::T('Install app')}</button>
                     <a href="{Text::url('logout')}" class="nuxr-menu-logout"><i class="fa fa-sign-out" aria-hidden="true"></i> {Lang::T('Logout')}</a>
                 </div>
             </details>

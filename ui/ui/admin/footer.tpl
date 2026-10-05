@@ -16,7 +16,10 @@
         <dialog id="nuxr-more-sheet" class="nuxr-sheet" aria-labelledby="nuxr-more-title">
             <div class="nuxr-sheet-head"><h2 id="nuxr-more-title">{Lang::T('More')}</h2>
                 <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="{Lang::T('Close')}"><i class="fa fa-times" aria-hidden="true"></i></button></div>
-            <div class="nuxr-sheet-body">{include file="admin/nuxr/nav-groups.tpl" nuxr_place="sheet"}</div>
+            <div class="nuxr-sheet-body">{include file="admin/nuxr/nav-groups.tpl" nuxr_place="sheet"}
+                {* WP7: user-initiated install *}
+                <ul class="nuxr-sheet-list"><li><button type="button" data-nuxr-install hidden><i class="fa fa-download fa-fw" aria-hidden="true"></i><span>{Lang::T('Install app')}</span></button></li></ul>
+            </div>
         </dialog>
 
         {if $_nav.quick}

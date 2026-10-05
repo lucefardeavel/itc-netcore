@@ -154,6 +154,23 @@ final class Wp7GuardTest extends TestCase
         }
     }
 
+    public function testInstallIsUserInitiatedOnly(): void
+    {
+        $js = self::read('ui/ui/scripts/nuxr-pwa.js');
+        // the browser prompt is only deferred, then shown once from the click handler; nothing prompts on load
+        $this->assertStringContainsString("window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferredPrompt = e; });", $js);
+        $this->assertSame(1, substr_count($js, '.prompt()'), 'one prompt() call site');
+        $install = substr($js, (int) strpos($js, 'function install() {'), 700);
+        $this->assertStringContainsString('p.prompt();', $install, 'prompt() only inside install()');
+        $this->assertStringContainsString("b.addEventListener('click', install);", $js, 'install() is only a click handler');
+        $this->assertSame(1, substr_count($js, 'install()'), 'install() is defined and never called directly');
+        $this->assertStringContainsString('b.hidden = !secure;', $js, 'offered only in a secure context');
+        // both entry points are hidden by default in the markup, and hidden by CSS inside the installed app
+        $this->assertStringContainsString('<button type="button" data-nuxr-install hidden>', self::read('ui/ui/admin/header.tpl'));
+        $this->assertStringContainsString('<button type="button" data-nuxr-install hidden>', self::read('ui/ui/admin/footer.tpl'));
+        $this->assertMatchesRegularExpression('/@media \(display-mode: standalone\) \{\s*\[data-nuxr-install\] \{\s*display: none !important;/', self::read('ui/ui/styles/nuxr-shell.css'));
+    }
+
     public function testPruneStaysInsideTheInstallationNamespace(): void
     {
         $sw = self::read('nuxr-sw.js');

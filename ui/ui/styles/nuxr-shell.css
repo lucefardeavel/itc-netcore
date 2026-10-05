@@ -2606,3 +2606,10 @@ body.nuxr-shell .select2-container .select2-selection__placeholder { color: var(
         font-size: 12px;
     }
 }
+
+/* WP7 install item: never offered inside the installed (standalone) app */
+@media (display-mode: standalone) {
+    [data-nuxr-install] {
+        display: none !important;
+    }
+}
