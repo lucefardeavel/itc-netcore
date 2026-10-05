@@ -1,0 +1,9 @@
+[
+ {
+  "id": "T18",
+  "title": "Core online parity: worker active vs service_workers='block' (pages, forms, CSRF token, a reviewed POST)",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: 10 pages + funding review POST identical; worker-controlled vs blocked; http://localhost:18098/billing/: 10 pages + funding review POST identical; worker-controlled vs blocked",
+  "seconds": 56.7
+ }
+]

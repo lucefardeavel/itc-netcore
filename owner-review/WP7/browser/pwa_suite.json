@@ -1,0 +1,178 @@
+[
+ {
+  "id": "T00",
+  "title": "Secure context at the root and the /billing/ subdirectory origin; staff login works on both",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: isSecureContext=true, appUrl=http://localhost:18099; http://localhost:18098/billing/: isSecureContext=true, appUrl=http://localhost:18098/billing",
+  "seconds": 7.8
+ },
+ {
+  "id": "T01",
+  "title": "Valid user-neutral manifest at both installations",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: id=/?_route=admin icons=3 start=./?_route=admin; http://localhost:18098/billing/: id=/billing/?_route=admin icons=3 start=./?_route=admin",
+  "seconds": 1.6
+ },
+ {
+  "id": "T02",
+  "title": "Chromium installability inspection (CDP Page.getInstallabilityErrors, persistent profile)",
+  "result": "PASS",
+  "evidence": "no installability errors (root, persistent profile)",
+  "seconds": 1.5
+ },
+ {
+  "id": "T03",
+  "title": "Service worker installs, activates and controls - root and /billing/ (natural scope only)",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: scope=http://localhost:18099/ controller=activated; http://localhost:18098/billing/: scope=http://localhost:18098/billing/ controller=activated; outside /billing/: not controlled",
+  "seconds": 6.3
+ },
+ {
+  "id": "T04",
+  "title": "CacheStorage contains exactly the literal precache list (one cache, this installation)",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: nuxr-pwa:8acf0404:wp7.1 = 5 precache entries; http://localhost:18098/billing/: nuxr-pwa:82c75d71:wp7.1 = 5 precache entries",
+  "seconds": 5.4
+ },
+ {
+  "id": "T05",
+  "title": "After a full staff session no _route / authenticated response exists in CacheStorage",
+  "result": "PASS",
+  "evidence": "5 entries, all on the precache list; no identity, customer, finance or token text",
+  "seconds": 10.2
+ },
+ {
+  "id": "T06",
+  "title": "Offline launch (start_url) shows only the static offline document",
+  "result": "PASS",
+  "evidence": "start_url offline -> offline document (status 503), no user data",
+  "seconds": 4.4
+ },
+ {
+  "id": "T07",
+  "title": "Offline deep link (customer / activation / finance) shows only the generic offline document",
+  "result": "PASS",
+  "evidence": "offline deep links (subdirectory) -> generic document only: customers, activation, finance",
+  "seconds": 3.6
+ },
+ {
+  "id": "T07b",
+  "title": "Failed POST navigation (backstop) -> 303 to the GET offline document, reason=unconfirmed; reload does not resend",
+  "result": "PASS",
+  "evidence": "POST navigation offline -> nuxr-offline.html?reason=unconfirmed; reload sent no POST",
+  "seconds": 3.8
+ },
+ {
+  "id": "T08",
+  "title": "OFFLINE: an ordinary POST form (WP6C confirmation sheet -> requestSubmit) is stopped before sending",
+  "result": "PASS",
+  "evidence": "requestSubmit via the confirmation sheet stopped: 0 POST requests, notice shown, form not left pending",
+  "seconds": 5.3
+ },
+ {
+  "id": "T09",
+  "title": "OFFLINE: a[data-method=post], window.nuxrPost and native form.submit() are stopped",
+  "result": "PASS",
+  "evidence": "data-method link, nuxrPost and native form.submit(): 0 POST requests",
+  "seconds": 4.9
+ },
+ {
+  "id": "T10",
+  "title": "OFFLINE: fetch POST, XMLHttpRequest POST and jQuery POST are stopped (error reported to the caller)",
+  "result": "PASS",
+  "evidence": "0 POST requests; fetch=blocked: Not sent: offline; xhr=error event; jquery=fail: offline",
+  "seconds": 3.2
+ },
+ {
+  "id": "T10b",
+  "title": "Customer portal and public pages: no gate defined (behaviour unchanged), CSRF shim intact",
+  "result": "PASS",
+  "evidence": "customer login: gate undefined, csrf token string, nuxrPost function",
+  "seconds": 0.8
+ },
+ {
+  "id": "T11",
+  "title": "Reconnect: OFFLINE -> RECONNECTING -> ONLINE confirmed by the heartbeat; mutations blocked while RECONNECTING",
+  "result": "PASS",
+  "evidence": "states ['offline', 'reconnecting', 'online']; POST blocked while reconnecting, allowed once online",
+  "seconds": 2.7
+ },
+ {
+  "id": "T12",
+  "title": "SLOW/UNSTABLE (CDP latency 3 s): chip shown, mutations still allowed",
+  "result": "PASS",
+  "evidence": "slow chip \"Slow connection\"; POST allowed while SLOW",
+  "seconds": 5.4
+ },
+ {
+  "id": "T13",
+  "title": "Cross-user hygiene: Admin -> logout -> Agent -> logout -> Sales leaves no previous identity, data or token client-side",
+  "result": "PASS",
+  "evidence": "ad: 9 pages, logout clean; A: 7 pages, logout clean; A1: 2 pages, logout clean; final local=[], session=[], idb=[]",
+  "seconds": 24.0
+ },
+ {
+  "id": "T13b",
+  "title": "Prune stays inside this installation namespace: an unrelated cache on the origin survives, a stale nuxr-pwa cache is removed",
+  "result": "PASS",
+  "evidence": "kept another-app-on-this-origin and nuxr-pwa:8acf0404:wp7.1; removed nuxr-pwa:8acf0404:wp7.0",
+  "seconds": 6.6
+ },
+ {
+  "id": "T14i",
+  "title": "Install UX: user-initiated only; deferred beforeinstallprompt used on click; manual sheet otherwise; hidden when standalone",
+  "result": "PASS",
+  "evidence": "manual sheet when the browser offers no prompt; deferred prompt used once, on the More-sheet click; display-mode emulation unsupported by this Chromium; standalone CSS rule verified in the live CSSOM",
+  "seconds": 4.5
+ },
+ {
+  "id": "T14",
+  "title": "Update waiting: a new worker installs and WAITS; the user is offered Update; nothing activates or reloads by itself",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: waiting, offered, no self-activation for 4 s, offered again on the next page; http://localhost:18098/billing/: waiting, offered, no self-activation for 4 s, offered again on the next page",
+  "seconds": 17.0
+ },
+ {
+  "id": "T15",
+  "title": "Update deferred in critical flows: activation confirm, finance review, dirty POST form, open dialog, pending submit",
+  "result": "PASS",
+  "evidence": "activation confirm: deferred; finance review: deferred; dirty POST form: deferred; dialog[open]: deferred; form[data-nuxr-submitted]: deferred; offered again on a non-critical page",
+  "seconds": 17.3
+ },
+ {
+  "id": "T16",
+  "title": "Explicit safe update: SKIP_WAITING -> controllerchange -> exactly one reload of this tab; other tabs only notified",
+  "result": "PASS",
+  "evidence": "one reload (http://localhost:18099/?_route=dashboard); caches now ['nuxr-pwa:8acf0404:wp7.1-labnext']; other tab not reloaded, shows: The app was updated in another tab. Reload this page when convenient.Update",
+  "seconds": 10.9
+ },
+ {
+  "id": "T17",
+  "title": "Deep-link authorization parity: identical status / final route / denial with and without the worker",
+  "result": "PASS",
+  "evidence": "24 deep links identical (status, final route, title, h1, forms, alerts); 9 denials among them",
+  "seconds": 56.7
+ },
+ {
+  "id": "T18",
+  "title": "Core online parity: worker active vs service_workers='block' (pages, forms, CSRF token, a reviewed POST)",
+  "result": "FAIL",
+  "evidence": "Fail: http://localhost:18099/ customers/list: {'status': 200, 'route': 'customers/list', 'title': 'Customer - شبكة النور للإنترنت', 'h1': 'Customer', 'forms': ['get /', 'get /', 'get /'], 'token': True, 'dir': 'ltr', 'alerts': []} != {'status': 200, 'route': 'customers/list', 'title': 'Customer - شبكة النور للإنترنت', 'h1': 'Customer', 'forms': ['get /', 'get /', 'get /'], 'token': 'undefined:undefi', '",
+  "trace": "Traceback (most recent call last):\n  File \"/srv/phpnuxbill/dev/dev/pwa-lab/pwa_suite.py\", line 980, in main\n    ev = fn(browser)\n         ^^^^^^^^^^^\n  File \"/srv/phpnuxbill/dev/dev/pwa-lab/pwa_suite.py\", line 804, in t18\n    expect(a == b, f'{base} {r}: {a} != {b}')\n  File \"/srv/phpnuxbill/dev/dev/pwa-lab/pwa_suite.py\", line 53, in expect\n    raise Fail(msg)\nFail: http://localhost:18099/ customers/list: {'status': 200, 'route': 'customers/list', 'title': 'Customer - شبكة النور للإنترنت', 'h1': 'Customer', 'forms': ['get /', 'get /', 'get /'], 'token': True, 'dir': 'ltr', 'alerts': []} != {'status': 200, 'route': 'customers/list', 'title': 'Customer - شبكة النور للإنترنت', 'h1': 'Customer', 'forms': ['get /', 'get /', 'get /'], 'token': 'undefined:undefi', 'dir': 'ltr', 'alerts': []}\n",
+  "seconds": 12.1
+ },
+ {
+  "id": "T19",
+  "title": "Arabic RTL: status chip (offline / reconnecting / slow), banner, not-sent notice, install sheet, update bar, offline documents",
+  "result": "PASS",
+  "evidence": "offline / not-sent / reconnecting in Arabic; slow in Arabic; install item + sheet in Arabic; update bar + deferred in Arabic; offline documents: Arabic + English blocks with lang / dir",
+  "seconds": 25.9
+ },
+ {
+  "id": "T20",
+  "title": "axe-core wcag2a/aa serious + critical = 0 on the WP7 surfaces (phone Arabic + desktop English); 44 px targets; no overflow",
+  "result": "PASS",
+  "evidence": "10 audits (phone Arabic + desktop English): axe serious/critical 0, no target < 44 px, no horizontal overflow",
+  "seconds": 29.9
+ }
+]

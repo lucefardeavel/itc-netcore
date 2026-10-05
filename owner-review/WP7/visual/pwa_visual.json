@@ -1,0 +1,141 @@
+[
+ {
+  "capture": "V01-phone-ar-slow.png",
+  "surface": "status chip SLOW (phone, Arabic)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [],
+  "expected_offline_network_errors": 0,
+  "external_requests": []
+ },
+ {
+  "capture": "V02-phone-ar-offline.png",
+  "surface": "status chip OFFLINE + offline banner (phone, Arabic)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [],
+  "expected_offline_network_errors": 1,
+  "external_requests": []
+ },
+ {
+  "capture": "V03-phone-ar-not-sent.png",
+  "surface": "mutation blocked: \"Not sent\" notice above the bottom navigation (phone, Arabic)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [],
+  "expected_offline_network_errors": 1,
+  "external_requests": []
+ },
+ {
+  "capture": "V04-phone-ar-reconnecting.png",
+  "surface": "status chip RECONNECTING (phone, Arabic)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [],
+  "expected_offline_network_errors": 0,
+  "external_requests": []
+ },
+ {
+  "capture": "V05-phone-ar-install-sheet.png",
+  "surface": "manual-install sheet (phone, Arabic)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [],
+  "expected_offline_network_errors": 0,
+  "external_requests": []
+ },
+ {
+  "capture": "V06-phone-ar-update-available.png",
+  "surface": "update available (phone, Arabic)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [],
+  "expected_offline_network_errors": 0,
+  "external_requests": []
+ },
+ {
+  "capture": "V07-phone-offline-document.png",
+  "surface": "generic offline document for an offline deep link (phone; English + Arabic blocks)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [],
+  "expected_offline_network_errors": 2,
+  "external_requests": []
+ },
+ {
+  "capture": "V08-phone-unconfirmed.png",
+  "surface": "failed POST navigation -> reason=unconfirmed (phone)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:18099/system/uploads/user.default.jpg.thumb.jpg"
+  ],
+  "expected_offline_network_errors": 2,
+  "external_requests": []
+ },
+ {
+  "capture": "V09-desk-offline-not-sent.png",
+  "surface": "OFFLINE chip + banner + \"Not sent\" (desktop, English)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [],
+  "expected_offline_network_errors": 2,
+  "external_requests": []
+ },
+ {
+  "capture": "V10-desk-install-item.png",
+  "surface": "install item in the account menu (desktop, English)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [],
+  "expected_offline_network_errors": 0,
+  "external_requests": []
+ },
+ {
+  "capture": "V11-desk-update-deferred.png",
+  "surface": "update deferred during the activation confirmation (desktop, English)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [],
+  "expected_offline_network_errors": 0,
+  "external_requests": []
+ },
+ {
+  "capture": "V12-desk-other-tab-updated.png",
+  "surface": "another tab after the update: told, not reloaded (desktop, English)",
+  "overflow": false,
+  "targets_lt_44": 0,
+  "bottom_nav_collision": [],
+  "axe_serious_critical": [],
+  "console_errors": [],
+  "expected_offline_network_errors": 0,
+  "external_requests": []
+ },
+ {
+  "capture": "(none)",
+  "surface": "standalone mode (install item hidden)",
+  "note": "not capturable: Chromium CDP does not emulate display-mode; the @media (display-mode: standalone) rule is verified in the live CSSOM (T14i) and by Wp7GuardTest"
+ }
+]
