@@ -6,6 +6,10 @@ Candidate for owner review. **Status: WP6C_CANDIDATE_READY_WAITING_OWNER_REVIEW.
 > - Final implementation: `44505d59`.
 > - Sections A–J below are the original candidate report, kept unchanged.
 > - **Current status:** WP6C_FIX_ROUND_1_READY_WAITING_OWNER_REVIEW.
+>
+> **Acceptance and provenance note (added on `feat` in the owner-acceptance metadata commit; the frozen evidence branch `757d8de9` is unchanged).**
+> - The owner verdict of 2026-10-05 is **ACCEPTED_WITH_NOTES**, with implementation `44505d59` and evidence `757d8de9`; see `OWNER_DECISIONS.md`.
+> - Section K7 below was written before that verdict. It calls the MySQL `ServiceGateTest` flake classification an "owner decision" prematurely: the formal owner decision accepting that classification is the final verdict recorded in `OWNER_DECISIONS.md`.
 
 | Item | Value |
 |---|---|
