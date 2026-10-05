@@ -75,7 +75,7 @@
             <table id="datatable" class="table table-bordered table-striped table-condensed">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" id="select-all"></th>
+                        <th><input type="checkbox" id="select-all" aria-label="{Lang::T('Select all')}"></th>
                         <th>ID</th>
                         <th>{Lang::T('Type')}</th>
                         <th>{Lang::T('Routers')}</th>
@@ -92,7 +92,7 @@
                 <tbody>
                     {foreach $d as $ds}
                         <tr {if $ds['status'] eq '1' }class="danger" {/if}>
-                            <td><input type="checkbox" name="voucher_ids[]" value="{$ds['id']}"></td>
+                            <td><input type="checkbox" name="voucher_ids[]" value="{$ds['id']|escape}" aria-label="{Lang::T('Select')} #{$ds['id']|escape}"></td>
                             <td>{$ds['id']}</td>
                             <td>{$ds['type']}</td>
                             <td>{$ds['routers']}</td>
