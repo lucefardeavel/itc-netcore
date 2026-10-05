@@ -1,22 +1,25 @@
 {include file="sections/header.tpl"}
+{* WP6C (owner amendment A): actions follow the central route permission (RouteMap via NuxrUi::allowed), never role names *}
+{assign var=nuxr_can value=['add' => NuxrUi::allowed('plan/add-voucher'), 'print' => NuxrUi::allowed('plan/print-voucher'), 'remove' => NuxrUi::allowed('plan/remove-voucher', 'POST'),
+    'delete' => NuxrUi::allowed('plan/voucher-delete', 'POST'), 'staff' => NuxrUi::allowed('settings/users-view')]}
 <!-- voucher -->
 <div class="row" style="padding: 5px">
     <div class="col-lg-3 col-lg-offset-9">
         <div class="btn-group btn-group-justified" role="group">
             <div class="btn-group" role="group">
-                <a href="{Text::url('')}plan/add-voucher" class="btn btn-primary"><i class="ion ion-android-add"></i>
-                    {Lang::T('Vouchers')}</a>
+                {if $nuxr_can.add}<a href="{Text::url('')}plan/add-voucher" class="btn btn-primary"><i class="ion ion-android-add"></i>
+                    {Lang::T('Vouchers')}</a>{/if}
             </div>
             <div class="btn-group" role="group">
-                <a href="{Text::url('')}plan/print-voucher" target="print_voucher" class="btn btn-info"><i
-                        class="ion ion-android-print"></i> {Lang::T('Print')}</a>
+                {if $nuxr_can.print}<a href="{Text::url('')}plan/print-voucher" target="print_voucher" class="btn btn-info"><i
+                        class="ion ion-android-print"></i> {Lang::T('Print')}</a>{/if}
             </div>
         </div>
     </div>
 </div>
 <div class="panel panel-hovered mb20 panel-primary">
     <div class="panel-heading">
-        {if in_array($_admin['user_type'],['SuperAdmin','Admin'])}
+        {if $nuxr_can.remove}
             <div class="btn-group pull-right">
                 <a data-method="post" class="btn btn-danger btn-xs" title="Remove used Voucher" href="{Text::url('')}plan/remove-voucher"
                     onclick="return ask(this, 'Delete all used voucher code more than 3 months?')"><span
@@ -126,9 +129,10 @@
                                 {/if}</td>
                             <td>{if $ds['created_at']}{Lang::dateTimeFormat($ds['created_at'])}{/if}</td>
                             <td>{if $ds['used_date']}{Lang::dateTimeFormat($ds['used_date'])}{/if}</td>
-                            <td>{if $ds['generated_by']}
+                            <td>{if $ds['generated_by'] && $nuxr_can.staff}
                                     <a
                                         href="{Text::url('')}settings/users-view/{$ds['generated_by']}">{$admins[$ds['generated_by']]}</a>
+                                {elseif $ds['generated_by']}{$admins[$ds['generated_by']]}
                                 {else} -
                                 {/if}
                             </td>
@@ -137,7 +141,7 @@
                                     <a href="{Text::url('')}plan/voucher-view/{$ds['id']}" id="{$ds['id']}" style="margin: 0px;"
                                         class="btn btn-success btn-xs">&nbsp;&nbsp;{Lang::T('View')}&nbsp;&nbsp;</a>
                                 {/if}
-                                {if in_array($_admin['user_type'],['SuperAdmin','Admin'])}
+                                {if $nuxr_can.delete}
                                     <a data-method="post" href="{Text::url('')}plan/voucher-delete/{$ds['id']}" id="{$ds['id']}"
                                         class="btn btn-danger btn-xs" onclick="return ask(this, '{Lang::T('Delete')}?')"><i
                                             class="glyphicon glyphicon-trash"></i></a>

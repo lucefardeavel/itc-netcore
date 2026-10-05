@@ -45,6 +45,21 @@ final class Format
     }
 
     /** "IQD 12,500" / "IQD 12,500.50" from a server amount string; '' for null. Latin digits (OD-F). */
+    /**
+     * WP6C (owner amendment A): presentation-only action visibility for templates - true when the actor may open $route
+     * under the accepted RouteMap rule (Navigation::allowed). Never authorization: the route is checked again server-side.
+     */
+    public static function allowed(string $route, string $method = 'GET'): bool
+    {
+        return Navigation::allowed(\Reseller\Security\ActorContext::current(), $route, $method);
+    }
+
+    /** WP6C: the shell data for a page rendered before the dispatcher assigned it (403 / 404). @return array<string,mixed> */
+    public static function deniedShell(): array
+    {
+        return Navigation::deniedShell();
+    }
+
     public static function money(mixed $amount): string
     {
         global $config;

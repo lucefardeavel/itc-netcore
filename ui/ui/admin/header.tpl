@@ -47,7 +47,12 @@
     <a class="nuxr-skip" href="#nuxr-main">{Lang::T('Skip to content')}</a>
     <div class="wrapper">
         <header class="nuxr-topbar" role="banner">
-            <a href="{Text::url('dashboard')}" class="nuxr-brand" aria-label="{Lang::T('Home')}">
+            {* WP6C (owner amendment B): Up for detail / form workflows (presentation registry, only an allowed parent) *}
+            {if !empty($_nav.up)}
+                <a class="nuxr-icon-btn nuxr-up" href="{Text::url($_nav.up.route)}" aria-label="{Lang::T('Back to')} {Lang::T($_nav.up.label)|escape}">
+                    <i class="fa fa-arrow-left nuxr-dir-icon" aria-hidden="true"></i></a>
+            {/if}
+            <a href="{Text::url('dashboard')}" class="nuxr-brand{if !empty($_nav.up)} has-up{/if}" aria-label="{Lang::T('Home')}">
                 <span class="nuxr-brand-mark" aria-hidden="true">{$_c['CompanyName']|truncate:1:'':true|escape}</span>
                 <span class="nuxr-brand-name">{$_c['CompanyName']|escape}</span>
             </a>
@@ -103,6 +108,7 @@
                 </div>
             {/if}
             <section class="content-header">
+                {if !empty($_nav.up)}<a class="nuxr-upline" href="{Text::url($_nav.up.route)}"><i class="fa fa-angle-left nuxr-dir-icon" aria-hidden="true"></i>{Lang::T($_nav.up.label)|escape}</a>{/if}
                 <h1>{$_title|escape}</h1>
             </section>
 

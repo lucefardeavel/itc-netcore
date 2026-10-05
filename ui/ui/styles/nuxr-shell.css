@@ -1933,3 +1933,86 @@ a.nuxr-stat:hover, a.nuxr-stat:focus {
     }
 }
 
+/* AdaptiveHeader: Up / Back. Phone + tablet: a 44px Up button replaces the brand mark in the top bar; desktop: a quiet
+   "parent" line above the page title. The page title lives in the top bar on phones (the in-page h1 stays for assistive
+   technology), which returns ~70px to the content. */
+.nuxr-up {
+    flex: none;
+}
+
+.nuxr-upline {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    font-size: var(--nx-fs-sm);
+    font-weight: 600;
+    color: var(--nx-muted);
+}
+
+@media (min-width: 1200px) {
+    .nuxr-up {
+        display: none;
+    }
+
+    .nuxr-upline {
+        display: inline-flex;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .nuxr-brand.has-up .nuxr-brand-mark {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+    body.nuxr-shell .content-header {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+}
+
+/* shell state page (403 / 404 / 405) */
+.nuxr-state-page .nuxr-empty {
+    padding: 40px 20px;
+}
+
+.nuxr-state-page .nuxr-empty > .fa {
+    font-size: 40px;
+}
+
+.nuxr-state-page h2 {
+    margin: 8px 0 4px;
+    font-size: var(--nx-fs-lg);
+    font-weight: 700;
+}
+
+
+/* standalone pages (internal error): centred card, safe areas */
+body.nuxr-standalone {
+    min-height: 100vh;
+    margin: 0;
+    background: var(--nx-bg);
+    color: var(--nx-text);
+    font-family: var(--nx-font);
+}
+
+.nuxr-standalone-main {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: calc(24px + var(--nx-safe-top)) max(16px, var(--nx-safe-end)) calc(24px + var(--nx-safe-bottom)) max(16px, var(--nx-safe-start));
+}
+
+.nuxr-state-page h1 {
+    margin: 8px 0 4px;
+    font-size: var(--nx-fs-xl);
+    font-weight: 700;
+}

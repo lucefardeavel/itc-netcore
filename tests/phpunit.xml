@@ -88,5 +88,11 @@
         <testsuite name="wp6b-integration">
             <directory>Integration/Wp6b</directory>
         </testsuite>
+        <testsuite name="wp6c-unit">
+            <directory>Unit/Wp6c</directory>
+        </testsuite>
+        <testsuite name="wp6c-integration">
+            <directory>Integration/Wp6c</directory>
+        </testsuite>
     </testsuites>
 </phpunit>

@@ -1,4 +1,6 @@
 {include file="sections/header.tpl"}
+{* WP6C (owner amendment A): actions follow the central route permission (RouteMap via NuxrUi::allowed), never role names *}
+{assign var=nuxr_can value=['add' => NuxrUi::allowed('settings/users-add'), 'edit' => NuxrUi::allowed('settings/users-edit'), 'delete' => NuxrUi::allowed('settings/users-delete', 'POST')]}
 <!-- users -->
 
 <div class="row">
@@ -22,10 +24,10 @@
                             </div>
                         </form>
                     </div>
-                    <div class="col-md-4">
+                    {if $nuxr_can.add}<div class="col-md-4">
                         <a href="{Text::url('settings/users-add')}" class="btn btn-primary btn-block"><i
                                 class="ion ion-android-add"> </i> {Lang::T('Add New Administrator')}</a>
-                    </div>&nbsp;
+                    </div>{/if}&nbsp;
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped table-condensed">
@@ -59,10 +61,10 @@
                                     <td>
                                         <a href="{Text::url('settings/users-view/',$ds['id'])}"
                                             class="btn btn-success btn-xs">{Lang::T('View')}</a>
-                                        <a href="{Text::url('settings/users-edit/',$ds['id'])}"
-                                            class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
+                                        {if $nuxr_can.edit}<a href="{Text::url('settings/users-edit/',$ds['id'])}"
+                                            class="btn btn-info btn-xs">{Lang::T('Edit')}</a>{/if}
                                         {* Agent accounts are never deleted in V1 (reseller identity: disable / reactivate) *}
-                                        {if ($_admin['id']) neq ($ds['id']) && $ds['user_type'] neq 'Agent'}
+                                        {if ($_admin['id']) neq ($ds['id']) && $ds['user_type'] neq 'Agent' && $nuxr_can.delete}
                                             <a data-method="post" href="{Text::url('settings/users-delete/',$ds['id'])}" id="{$ds['id']}"
                                                 class="btn btn-danger btn-xs" onclick="return ask(this, '{Lang::T('Delete')}?')"><i class="glyphicon glyphicon-trash"></i></a>
                                         {/if}

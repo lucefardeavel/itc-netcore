@@ -148,7 +148,108 @@ final class Navigation
         ]));
         $primary = array_values(array_filter([$home, $customers, $quick !== [] ? ['id' => 'quick', 'label' => 'New', 'icon' => 'fa-plus', 'sheet' => 'quick'] : null,
             $wallet ?? $activations, ['id' => 'more', 'label' => 'More', 'icon' => 'fa-bars', 'sheet' => 'more']]));
-        return ['primary' => $primary, 'quick' => $quick, 'groups' => $groups, 'plugins' => array_map('strval', $plugins)];
+        return ['primary' => $primary, 'quick' => $quick, 'groups' => $groups, 'plugins' => array_map('strval', $plugins), 'up' => self::up($a, $routes)];
+    }
+
+    /**
+     * WP6C (owner amendment B): presentation-only "Up" relationships for detail / form workflows. This registry is NOT
+     * authorization and does not touch the RouteMap: each candidate parent is rendered only when the actor may open it
+     * (allowed()), the first allowed candidate wins, otherwise Home. Top-level destinations have no Up. "{2}" is the
+     * current route's id segment (validated to a safe token).
+     *
+     * @var array<string,array{0:list<string>,1:string}> "controller/action" => [parent candidates, label]
+     */
+    private const UP = [
+        'customers/view' => [['customers/list'], 'Subscribers'],
+        'customers/edit' => [['customers/view/{2}', 'customers/list'], 'Subscriber'],
+        'customers/add' => [['customers/list'], 'Subscribers'],
+        'activation/view' => [['activation/list'], 'Activations'],
+        'activation/create' => [['activation/list'], 'Activations'],
+        'finance/wallet' => [['finance/wallets', 'finance/overview'], 'Wallets'],
+        'finance/ledger' => [['finance/wallet/{2}', 'finance/overview'], 'Wallet'],
+        'finance/entry' => [['finance/overview'], 'Wallet'],
+        'finance/transfer' => [['finance/transfers'], 'Transfers'],
+        'finance/send' => [['finance/overview'], 'Wallet'],
+        'finance/funding' => [['finance/wallet/{2}'], 'Wallet'],
+        'finance/debt-limit' => [['finance/wallet/{2}'], 'Wallet'],
+        'finance/adjust' => [['finance/wallet/{2}'], 'Wallet'],
+        'finance/reverse' => [['finance/transfer/{2}'], 'Transfer'],
+        'pricing/plan' => [['pricing/plans'], 'Pricing'],
+        'pricing/catalog' => [['pricing/plans'], 'Pricing'],
+        'reseller/detail' => [['reseller/tree'], 'Reseller Tree'],
+        'operations/activations' => [['operations/overview'], 'Operations'],
+        'operations/held' => [['operations/overview'], 'Operations'],
+        'operations/renewals' => [['operations/overview'], 'Operations'],
+        'operations/drift' => [['operations/overview'], 'Operations'],
+        'plan/edit' => [['plan/list'], 'Active Customers'],
+        'plan/voucher-view' => [['plan/voucher'], 'Vouchers'],
+        'plan/add-voucher' => [['plan/voucher'], 'Vouchers'],
+        'settings/users-view' => [['settings/users'], 'Administrator Users'],
+        'settings/users-edit' => [['settings/users-view/{2}', 'settings/users'], 'Administrator Users'],
+        'settings/users-add' => [['settings/users'], 'Administrator Users'],
+        'settings/change-password' => [['dashboard'], 'Home'],
+        'services/edit' => [['services/hotspot'], 'Hotspot'],
+        'services/add' => [['services/hotspot'], 'Hotspot'],
+        'services/pppoe-edit' => [['services/pppoe'], 'PPPOE'],
+        'services/pppoe-add' => [['services/pppoe'], 'PPPOE'],
+        'services/vpn-edit' => [['services/vpn'], 'VPN'],
+        'services/vpn-add' => [['services/vpn'], 'VPN'],
+        'services/balance-edit' => [['services/balance'], 'Customer Balance'],
+        'services/balance-add' => [['services/balance'], 'Customer Balance'],
+        'bandwidth/edit' => [['bandwidth/list'], 'Bandwidth'],
+        'bandwidth/add' => [['bandwidth/list'], 'Bandwidth'],
+        'routers/edit' => [['routers'], 'Routers'],
+        'routers/add' => [['routers'], 'Routers'],
+        'pool/edit' => [['pool/list'], 'IP Pool'],
+        'pool/add' => [['pool/list'], 'IP Pool'],
+        'pool/port-edit' => [['pool/port'], 'Port Pool'],
+        'pool/port-add' => [['pool/port'], 'Port Pool'],
+        'odp/edit' => [['odp'], 'ODP List'],
+        'odp/add' => [['odp'], 'ODP List'],
+        'radius/nas-edit' => [['radius/nas-list'], 'Radius NAS'],
+        'radius/nas-add' => [['radius/nas-list'], 'Radius NAS'],
+        'coupons/edit' => [['coupons'], 'Coupons'],
+        'coupons/add' => [['coupons'], 'Coupons'],
+    ];
+
+    /** @param list<string> $routes current route segments @return array{route:string,label:string}|null */
+    public static function up(ActorContext $a, array $routes): ?array
+    {
+        $routes = array_values(array_filter($routes, 'is_string'));
+        $key = ($routes[0] ?? '') . '/' . ($routes[1] ?? '');
+        if (!isset(self::UP[$key]) || !$a->isStaff()) {
+            return null;
+        }
+        $id = (string) ($routes[2] ?? '');
+        foreach (self::UP[$key][0] as $candidate) {
+            if (str_contains($candidate, '{2}')) {
+                if (!preg_match('/^[A-Za-z0-9_-]{1,64}$/D', $id)) {
+                    continue;
+                }
+                $candidate = str_replace('{2}', $id, $candidate);
+            }
+            if (self::allowed($a, $candidate)) {
+                return ['route' => $candidate, 'label' => self::UP[$key][1]];
+            }
+        }
+        return ['route' => 'dashboard', 'label' => 'Home'];
+    }
+
+    /**
+     * WP6C (owner amendment C): the shell for a page rendered before the dispatcher assigned it (RouteGuard's 403 / 404
+     * page): the actor's own navigation (only destinations it may open), capability flags and identity. Presentation
+     * only; nothing about the denied object is exposed.
+     *
+     * @return array{nav:array<string,mixed>,can:array<string,bool>,admin:array<string,mixed>}
+     */
+    public static function deniedShell(): array
+    {
+        $a = ActorContext::current();
+        $config = is_array($GLOBALS['config'] ?? null) ? $GLOBALS['config'] : [];
+        $routes = is_array($GLOBALS['routes'] ?? null) ? $GLOBALS['routes'] : [];
+        $admin = $a->isStaff() && class_exists('Admin', false) ? (\Admin::_info() ?: []) : [];
+        return ['nav' => $a->isStaff() ? self::for($a, $config, [], $routes) : [], 'can' => PermissionService::flags($a),
+            'admin' => ['id' => (int) ($admin['id'] ?? 0), 'fullname' => (string) ($admin['fullname'] ?? ''), 'user_type' => (string) ($admin['user_type'] ?? '')]];
     }
 
     /** WP6B: the Agent has at least one Active direct child reseller (quick "Send" / Wallets destination). */
@@ -158,11 +259,11 @@ final class Navigation
         return PermissionService::can($a, Capability::WALLET_READ) && ResellerReadService::hasActiveChildren($a);
     }
 
-    /** True when the actor may open $route by GET (the accepted RouteMap rule; staff navigation only). */
-    public static function allowed(ActorContext $a, string $route): bool
+    /** True when the actor may open $route by GET (or submit it, $method = POST) under the accepted RouteMap rule (staff only). */
+    public static function allowed(ActorContext $a, string $route, string $method = 'GET'): bool
     {
-        $parts = explode('/', $route);
-        $r = RouteGuard::resolve($parts[0], $parts, [], 'GET');
+        $parts = explode('/', explode('&', $route)[0]);
+        $r = RouteGuard::resolve($parts[0], $parts, [], $method === 'POST' ? 'POST' : 'GET');
         if (!$r['mapped'] || !$r['method_allowed'] || !$a->isStaff()) {
             return false;
         }

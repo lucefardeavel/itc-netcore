@@ -1,73 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="{$nuxr_lang|default:'en'|escape}" dir="{$nuxr_dir|default:'ltr'|escape}">
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>Error - PHPNuxBill</title>
+    {* WP6C: standalone on purpose (an internal error must not depend on the shell that may have failed); adaptive,
+       zoom allowed, safe areas, the shell tokens; WP2 / OD-14: generic message + reference only *}
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{$error_title|escape}</title>
     <link rel="shortcut icon" href="{$app_url}/ui/ui/images/logo.png" type="image/x-icon" />
-
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/bootstrap.min.css">
-
-    <link rel="stylesheet" href="{$app_url}/ui/ui/fonts/ionicons/css/ionicons.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/fonts/font-awesome/css/font-awesome.min.css">
-
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/modern-AdminLTE.min.css">
-
-    <style>
-        ::-moz-selection {
-            /* Code for Firefox */
-            color: red;
-            background: yellow;
-        }
-
-        ::selection {
-            color: red;
-            background: yellow;
-        }
-    </style>
-
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp6c.1">
 </head>
 
-<body class="hold-transition skin-blue">
-    <div class="container">
-
-        <section class="content">
-            <div class="row">
-                <div class="col-md-10 col-md-offset-1">
-                    <div class="box box-danger box-solid">
-                        <section class="content-header">
-                            <h1 class="text-center">
-                                {$error_title}
-                            </h1>
-                        </section>
-                        <div class="box-body" style="font-size: larger;">
-                            <center>
-                            <img src="{$app_url}/ui/ui/images/error.png" class="img-responsive hidden-sm hidden-xs"></center>
-                            <br>
-                            {* WP2 / OD-14: plain text only (generic message + reference id); details stay in the server log *}
-                            {$error_message|escape}
-                        </div>
-                        <div class="box-footer">
-                            <br>
-                            <div class="btn-group btn-group-justified" role="group" aria-label="...">
-                            <a href="https://github.com/hotspotbilling/phpnuxbill/discussions" target="_blank"
-                            class="btn btn-success btn-sm btn-block" style="color: black;">{Lang::T('Ask Github Community')}</a>
-                                <a href="https://t.me/phpnuxbill" target="_blank"
-                                    class="btn btn-primary btn-sm btn-block">{Lang::T('Ask Telegram Community')}</a>
-                            </div>
-                            <br><br>
-                            <a href="javascript::history.back()" onclick="history.back()"
-                                class="btn btn-warning btn-block">{Lang::T('Back')}</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <img src="{$app_url}/ui/ui/images/error.png" class="img-responsive hidden-md hidden-lg">
+<body class="nuxr-shell nuxr-standalone">
+    <main class="nuxr-standalone-main" id="nuxr-main">
+        <section class="nuxr-card nuxr-state-page" aria-labelledby="nuxr-state-t">
+            <div class="nuxr-empty">
+                <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                <h1 id="nuxr-state-t">{$error_title|escape}</h1>
+                <p>{$error_message|escape}</p>
+                <div class="nuxr-actions" style="justify-content:center">
+                    <a class="nuxr-btn" href="javascript:history.back()"><i class="fa fa-arrow-left nuxr-dir-icon" aria-hidden="true"></i>{Lang::T('Back')}</a>
+                    <a class="nuxr-btn nuxr-btn-primary" href="{$app_url}/?_route=dashboard"><i class="fa fa-home" aria-hidden="true"></i>{Lang::T('Home')}</a>
                 </div>
             </div>
         </section>
-    </div>
+    </main>
 </body>
 
 </html>

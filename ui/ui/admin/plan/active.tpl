@@ -1,10 +1,13 @@
 {include file="sections/header.tpl"}
+{* WP6C (owner amendment A): actions follow the central route permission (RouteMap via NuxrUi::allowed), never role names *}
+{assign var=nuxr_can value=['recharge' => NuxrUi::allowed('plan/recharge'), 'edit' => NuxrUi::allowed('plan/edit'), 'delete' => NuxrUi::allowed('plan/delete', 'POST'),
+    'extend' => NuxrUi::allowed('plan/extend', 'POST'), 'plans' => NuxrUi::allowed('services/edit'), 'routers' => NuxrUi::allowed('routers/list')]}
 
 <div class="row">
     <div class="col-sm-12">
         <div class="panel panel-hovered mb20 panel-primary">
             <div class="panel-heading">
-                {if in_array($_admin['user_type'],['SuperAdmin','Admin'])}
+                {if NuxrUi::allowed('plan/sync', 'POST')}
                     <div class="btn-group pull-right">
                         <a data-method="post" class="btn btn-primary btn-xs" title="save" href="{Text::url('')}plan/sync"
                             onclick="return ask(this, '{Lang::T("This will sync dan send Customer active package to Mikrotik")}?')"><span
@@ -62,11 +65,13 @@
                             <button class="btn btn-success btn-block" type="submit"><span
                                     class="fa fa-search"></span></button>
                         </div>
+                        {if $nuxr_can.recharge}
                         <div class="col-md-2 col-xs-6">
                             <a href="{Text::url('')}plan/recharge" class="btn btn-primary btn-block"><i
                                     class="ion ion-android-add">
                                 </i> {Lang::T("Recharge Account")}</a>
                         </div>
+                        {/if}
                     </div>
                 </div>
             </form>
@@ -81,7 +86,7 @@
                                 <th>{Lang::T("Created On")}</th>
                                 <th>{Lang::T("Expires On")}</th>
                                 <th>{Lang::T("Method")}</th>
-                                <th><a href="{Text::url('')}routers/list">{Lang::T("Location")}</a></th>
+                                <th>{if $nuxr_can.routers}<a href="{Text::url('')}routers/list">{Lang::T("Location")}</a>{else}{Lang::T("Location")}{/if}</th>
                                 <th>{Lang::T("Manage")}</th>
                             </tr>
                         </thead>
@@ -98,15 +103,15 @@
                                     </td>
                                     <td>
                                         {if $ds['type'] == 'Hotspot'}
-                                            <a href="{Text::url('')}services/edit/{$ds['plan_id']}">{$ds['namebp']}</a>
+                                            {if $nuxr_can.plans}<a href="{Text::url('')}services/edit/{$ds['plan_id']}">{$ds['namebp']}</a>{else}{$ds['namebp']}{/if}
                                             <span
                                                 api-get-text="{Text::url('')}autoload/customer_is_active/{$ds['username']}/{$ds['plan_id']}"></span>
                                         {elseif $ds['type'] == 'PPPOE'}
-                                            <a href="{Text::url('')}services/pppoe-edit/{$ds['plan_id']}">{$ds['namebp']}</a>
+                                            {if $nuxr_can.plans}<a href="{Text::url('')}services/pppoe-edit/{$ds['plan_id']}">{$ds['namebp']}</a>{else}{$ds['namebp']}{/if}
                                             <span
                                                 api-get-text="{Text::url('')}autoload/customer_is_active/{$ds['username']}/{$ds['plan_id']}"></span>
                                         {elseif $ds['type'] == 'VPN'}
-                                            <a href="{Text::url('')}services/vpn-edit/{$ds['plan_id']}">{$ds['namebp']}</a>
+                                            {if $nuxr_can.plans}<a href="{Text::url('')}services/vpn-edit/{$ds['plan_id']}">{$ds['namebp']}</a>{else}{$ds['namebp']}{/if}
                                         {/if}
 
                                     </td>
@@ -116,14 +121,14 @@
                                     <td>{$ds['method']}</td>
                                     <td>{$ds['routers']}</td>
                                     <td>
-                                        <a href="{Text::url('')}plan/edit/{$ds['id']}" class="btn btn-warning btn-xs"
-                                            style="color: black;">{Lang::T("Edit")}</a>
-                                        {if in_array($_admin['user_type'],['SuperAdmin','Admin'])}
+                                        {if $nuxr_can.edit}<a href="{Text::url('')}plan/edit/{$ds['id']}" class="btn btn-warning btn-xs"
+                                            style="color: black;">{Lang::T("Edit")}</a>{/if}
+                                        {if $nuxr_can.delete}
                                             <a data-method="post" href="{Text::url('')}plan/delete/{$ds['id']}" id="{$ds['id']}"
                                                 onclick="return ask(this, '{Lang::T("Delete")}?')"
                                                 class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
                                         {/if}
-                                        {if $ds['status']=='off' && $_c['extend_expired']}
+                                        {if $ds['status']=='off' && $_c['extend_expired'] && $nuxr_can.extend}
                                             <a href="javascript:extend('{$ds['id']}')"
                                                 class="btn btn-info btn-xs">{Lang::T("Extend")}</a>
                                         {/if}
