@@ -93,7 +93,7 @@
                                 <div class="input-group-addon">
                                     <span class="fa fa-search"></span>
                                 </div>
-                                <input type="text" name="q" class="form-control" value="{$q}"
+                                <input type="text" name="q" class="form-control" aria-label="{Lang::T('Search')}" value="{$q|escape}"
                                     placeholder="{Lang::T('Search')}...">
                                 <div class="input-group-btn">
                                     <button class="btn btn-success" type="submit">{Lang::T('Search')}</button>
@@ -105,7 +105,7 @@
                         <form class="form-inline" method="post" action="{Text::url('')}logs/message/">
                             <div class="input-group has-error">
                                 <span class="input-group-addon">{Lang::T('Keep Logs')} </span>
-                                <input type="text" name="keep" class="form-control" placeholder="90" value="90">
+                                <input type="text" name="keep" class="form-control" inputmode="numeric" aria-label="{Lang::T('Keep Logs')} ({Lang::T('Days')})" placeholder="90" value="90">
                                 <span class="input-group-addon">{Lang::T('Days')}</span>
                             </div>
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return ask(this, '{Lang::T("

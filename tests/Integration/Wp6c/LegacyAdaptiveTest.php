@@ -82,6 +82,20 @@ final class LegacyAdaptiveTest extends Wp2HttpTestCase
         }
     }
 
+    public function testDailyListsRenderTheAdaptivePairWithRealLinks(): void
+    {
+        foreach (['plan/list', 'plan/voucher', 'settings/users', 'logs/list', 'reports', 'reports/activation'] as $page) {
+            $r = $this->staff('ad')->get($page);
+            $this->assertSame(200, $r->status, "{$page}: " . $r->excerpt());
+            $this->assertMatchesRegularExpression('/class="nuxr-adaptive[^"]*"/', $r->body, "{$page}: table + card pair");
+            $this->assertStringContainsString('class="nuxr-mlist"', $r->body, "{$page}: phone cards");
+            $this->assertDoesNotMatchRegularExpression('/<(td|div)[^>]*\sonclick="(window\.location|showFilter)/', $r->body, "{$page}: no click-only cells or headers");
+        }
+        // touch-safe reveal: the secret stays in the markup the role could already see, masked until revealed
+        $v = $this->staff('ad')->get('plan/voucher');
+        $this->assertStringContainsString('data-nuxr-reveal', $v->body);
+    }
+
     public function testAConvertedFormStillPostsThroughItsController(): void
     {
         $s = static::$seed;

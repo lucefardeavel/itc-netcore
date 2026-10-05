@@ -4,51 +4,53 @@
     <div class="col-lg-3">
         <form method="get" class="form">
             <div class="box box-primary box-solid">
-                <div class="box-header" onclick="showFilter()" style=" cursor: pointer;">
-                    <h3 class="box-title">{Lang::T('Filter')}</h3>
-                </div>
+                {* WP6C: a real, keyboard-operable toggle (was a clickable div) *}
+                <button type="button" class="box-header nuxr-filter-toggle" onclick="showFilter(); this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true')"
+                    aria-controls="filter_box" aria-expanded="false">
+                    <span class="box-title"><i class="fa fa-sliders" aria-hidden="true"></i> {Lang::T('Filter')}</span>
+                </button>
                 <div id="filter_box" class="box-body hidden-xs hidden-sm hidden-md">
                     <center>
-                        <label>
+                        <label for="show_chart">
                             <input type="checkbox" id="show_chart" onclick="return setShowChart()">
                             {Lang::T('Show chart')}
                         </label>
                     </center>
                     <hr style="margin: 1px;">
                     <input type="hidden" name="_route" value="reports">
-                    <label>{Lang::T('Start Date')}</label>
-                    <input type="date" class="form-control" name="sd" value="{$sd}">
-                    <label>{Lang::T('Start time')}</label>
-                    <input type="time" class="form-control" name="ts" value="{$ts}">
-                    <label>{Lang::T('End Date')}</label>
-                    <input type="date" class="form-control" name="ed" value="{$ed}">
-                    <label>{Lang::T('End Time')}</label>
-                    <input type="time" class="form-control" name="te" value="{$te}">
-                    <label>{Lang::T('Type')}</label>
-                    <select class="form-control select2" name="tps[]" multiple>
+                    <label for="nxf-r-sd">{Lang::T('Start Date')}</label>
+                    <input type="date" id="nxf-r-sd" class="form-control" name="sd" value="{$sd|escape}">
+                    <label for="nxf-r-ts">{Lang::T('Start time')}</label>
+                    <input type="time" id="nxf-r-ts" class="form-control" name="ts" value="{$ts|escape}">
+                    <label for="nxf-r-ed">{Lang::T('End Date')}</label>
+                    <input type="date" id="nxf-r-ed" class="form-control" name="ed" value="{$ed|escape}">
+                    <label for="nxf-r-te">{Lang::T('End Time')}</label>
+                    <input type="time" id="nxf-r-te" class="form-control" name="te" value="{$te|escape}">
+                    <label for="nxf-r-tps">{Lang::T('Type')}</label>
+                    <select id="nxf-r-tps" class="form-control select2" name="tps[]" multiple>
                         {foreach $types as $type}
                             <option value="{$type}" {if in_array($type, $tps)}selected{/if}>{$type}</option>
                         {/foreach}
                     </select>
-                    <label>{Lang::T('Internet Plans')}</label>
-                    <select class="form-control select2" name="plns[]" multiple>
+                    <label for="nxf-r-plns">{Lang::T('Internet Plans')}</label>
+                    <select id="nxf-r-plns" class="form-control select2" name="plns[]" multiple>
                         {foreach $plans as $plan}
                             <option value="{$plan}" {if in_array($plan, $plns)}selected{/if}>{$plan}</option>
                         {/foreach}
                     </select>
-                    <label>{Lang::T('Methods')}</label>
-                    <select class="form-control select2" name="mts[]" multiple>
+                    <label for="nxf-r-mts">{Lang::T('Methods')}</label>
+                    <select id="nxf-r-mts" class="form-control select2" name="mts[]" multiple>
                         {foreach $methods as $method}
                             <option value="{$method}" {if in_array($method, $mts)}selected{/if}>{$method}</option>
                         {/foreach}
                     </select>
-                    <label>{Lang::T('Routers')}</label>
-                    <select class="form-control select2" name="rts[]" multiple>
+                    <label for="nxf-r-rts">{Lang::T('Routers')}</label>
+                    <select id="nxf-r-rts" class="form-control select2" name="rts[]" multiple>
                         {foreach $routers as $router}
                             <option value="{$router}" {if in_array($router, $rts)}selected{/if}>{Lang::T($router)}</option>
                         {/foreach}
                     </select>
-                    <input type="submit" class="btn btn-success btn-block">
+                    <button type="submit" class="btn btn-success btn-block">{Lang::T('Apply')}</button>
                 </div>
             </div>
         </form>
@@ -83,7 +85,9 @@
             </div>
         </span>
         <div class="box box-primary box-solid">
-            <div class="table-responsive">&nbsp;&nbsp;
+            {* WP6C AdaptiveDataView: the transaction table where it fits; cards (price first) where narrow *}
+            <div class="nuxr-adaptive is-lg">
+            <div class="table-responsive nuxr-table-wrap">&nbsp;&nbsp;
                 <div style="margin-left: 5px; margin-right: 5px;">
                     <table class="table table-bordered table-condensed">
                         <thead>
@@ -129,6 +133,20 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+            <ul class="nuxr-mlist">
+                <li><div class="nuxr-mcard is-wrap"><div class="nuxr-mcard-main"><span class="nuxr-mcard-title">{Lang::T('Total')}: <bdi dir="ltr">{Lang::moneyFormat($dr)|escape}</bdi></span>
+                    <span class="nuxr-mcard-sub"><a href="{Text::url('export/print-by-date&')}{$filter}" target="_blank"><i class="ion ion-printer" aria-hidden="true"></i> {Lang::T('Print')}</a> · <a href="{Text::url('export/pdf-by-date&')}{$filter}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></span></div></div></li>
+                {foreach $d as $ds}
+                    <li><div class="nuxr-mcard is-wrap"><div class="nuxr-mcard-main">
+                        <span class="nuxr-mcard-title"><bdi dir="ltr">{Lang::moneyFormat($ds['price'])|escape}</bdi> · <bdi dir="ltr">{$ds['username']|escape}</bdi></span>
+                        <span class="nuxr-mcard-sub">{$ds['plan_name']|escape} · {$ds['type']|escape} · {$ds['method']|escape}</span>
+                        <span class="nuxr-mcard-sub"><bdi dir="ltr">{Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])|escape}</bdi> → <bdi dir="ltr">{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])|escape}</bdi>{if $ds['routers']} · <bdi dir="ltr">{$ds['routers']|escape}</bdi>{/if}</span>
+                    </div></div></li>
+                {foreachelse}
+                    <li><div class="nuxr-empty"><strong>{Lang::T('No records.')}</strong></div></li>
+                {/foreach}
+            </ul>
             </div>
             <div class="box-footer">
                 <p class="text-center small text-info">{Lang::T('All Transactions at Date')}:

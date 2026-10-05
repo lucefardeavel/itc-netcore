@@ -154,6 +154,23 @@
         }
     });
 
+    /* ---------- WP6C: explicit reveal of a masked value (touch / keyboard; re-masked when focus leaves) ---------- */
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('[data-nuxr-reveal]') : null;
+        if (!btn) { return; }
+        var value = btn.parentNode.querySelector('.nuxr-secret-value');
+        var on = btn.getAttribute('aria-pressed') !== 'true';
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (value) { value.classList.toggle('is-revealed', on); }
+    });
+    document.addEventListener('focusout', function (e) {
+        var btn = e.target.closest ? e.target.closest('[data-nuxr-reveal]') : null;
+        if (!btn || btn.getAttribute('aria-pressed') !== 'true') { return; }
+        btn.setAttribute('aria-pressed', 'false');
+        var value = btn.parentNode.querySelector('.nuxr-secret-value');
+        if (value) { value.classList.remove('is-revealed'); }
+    });
+
     /* ---------- pending state + double-submit protection (until the response; no timer re-enable) ---------- */
     document.addEventListener('submit', function (e) {
         if (e.defaultPrevented) { return; }

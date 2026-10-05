@@ -2122,3 +2122,135 @@ body.nuxr-standalone {
         object-fit: cover;
     }
 }
+
+/* row menu: secondary / destructive row actions behind one 44px control (native <details>, keyboard-operable) */
+.nuxr-rowmenu {
+    position: relative;
+    flex: none;
+}
+
+.nuxr-rowmenu > summary {
+    list-style: none;
+}
+
+.nuxr-rowmenu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.nuxr-rowmenu-panel {
+    position: absolute;
+    top: 100%;
+    inset-inline-end: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    min-width: 190px;
+    padding: 6px;
+    border: 1px solid var(--nx-border);
+    border-radius: var(--nx-radius-sm);
+    background: var(--nx-surface);
+    box-shadow: var(--nx-shadow-lg);
+}
+
+.nuxr-rowmenu-panel a, .nuxr-rowmenu-panel button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: var(--nx-touch);
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--nx-radius-sm);
+    background: transparent;
+    color: var(--nx-text);
+    font-weight: 600;
+    text-align: start;
+}
+
+.nuxr-rowmenu-panel a:hover, .nuxr-rowmenu-panel a:focus-visible, .nuxr-rowmenu-panel button:hover, .nuxr-rowmenu-panel button:focus-visible {
+    background: var(--nx-surface-2);
+    text-decoration: none;
+}
+
+.nuxr-rowmenu-panel .is-danger {
+    color: var(--nx-danger);
+}
+
+/* legacy list filter block on the shell components */
+.nuxr-legacy-filters .nuxr-filters > .form-control {
+    flex: 1 1 160px;
+    width: auto;
+    min-width: 0;
+}
+
+/* cards whose secondary lines must stay readable in full (legacy operational lists): wrap instead of truncating */
+.nuxr-mcard.is-wrap .nuxr-mcard-title, .nuxr-mcard.is-wrap .nuxr-mcard-sub {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+/* secret reveal (owner amendment G): masked until explicitly revealed; hover stays a convenience for fine pointers */
+.nuxr-secret {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+}
+
+.nuxr-secret-value {
+    padding: 2px 6px;
+    border-radius: 4px;
+    overflow-wrap: anywhere;
+}
+
+.nuxr-secret-value:not(.is-revealed) {
+    color: transparent;
+    background: var(--nx-text);
+    user-select: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .nuxr-secret:hover .nuxr-secret-value {
+        color: inherit;
+        background: transparent;
+        user-select: text;
+    }
+}
+
+.nuxr-reveal {
+    display: inline-grid;
+    place-items: center;
+    min-width: var(--nx-touch);
+    min-height: var(--nx-touch);
+    border: 0;
+    border-radius: var(--nx-radius-sm);
+    background: transparent;
+    color: var(--nx-muted);
+    cursor: pointer;
+}
+
+.nuxr-reveal[aria-pressed="true"] {
+    color: var(--nx-primary);
+}
+
+.nuxr-reveal:focus-visible {
+    outline: 2px solid var(--nx-focus);
+    outline-offset: 2px;
+}
+
+/* legacy report filter toggle as a real button (keyboard-operable) */
+.nuxr-filter-toggle {
+    display: block;
+    width: 100%;
+    min-height: var(--nx-touch);
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: start;
+    cursor: pointer;
+}
+
+.nuxr-filter-toggle:focus-visible {
+    outline: 2px solid var(--nx-focus);
+    outline-offset: -2px;
+}

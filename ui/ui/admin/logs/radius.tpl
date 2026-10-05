@@ -1,4 +1,5 @@
 {include file="sections/header.tpl"}
+{include file="admin/nuxr/macros.tpl"}
 <!-- pool -->
 <div class="row">
     <div class="col-sm-12">
@@ -21,7 +22,7 @@
                                 <div class="input-group-addon">
                                     <span class="fa fa-search"></span>
                                 </div>
-                                <input type="text" name="q" class="form-control" value="{$q}"
+                                <input type="text" name="q" class="form-control" aria-label="{Lang::T('Search')}" value="{$q|escape}"
                                     placeholder="{Lang::T('Search by Name')}...">
                                 <div class="input-group-btn">
                                     <button class="btn btn-success" type="submit">{Lang::T('Search')}</button>
@@ -33,7 +34,7 @@
                         <form class="form-inline" method="post" action="{Text::url('logs/radius/')}">
                             <div class="input-group has-error">
                                 <span class="input-group-addon">{Lang::T('Keep Logs')} </span>
-                                <input type="text" name="keep" class="form-control" placeholder="90" value="90">
+                                <input type="text" name="keep" class="form-control" inputmode="numeric" aria-label="{Lang::T('Keep Logs')} ({Lang::T('Days')})" placeholder="90" value="90">
                                 <span class="input-group-addon">{Lang::T('Days')}</span>
                             </div>
                             <button type="submit" class="btn btn-danger btn-sm"
@@ -42,7 +43,9 @@
                     </div>&nbsp;
                 </div>
                 <br>
-                <div class="table-responsive">
+                {* WP6C AdaptiveDataView: the log table where it fits; readable cards where narrow (same rows) *}
+                <div class="nuxr-adaptive">
+                <div class="table-responsive nuxr-table-wrap">
                     <table class="table table-bordered table-striped table-condensed">
                         <tbody>
                             {foreach $d as $ds}
@@ -50,15 +53,24 @@
                                     <td width="30px">{$ds['id']}</td>
                                     <td width="200px">{Lang::dateTimeFormat($ds['authdate'])}</td>
                                     <td width="100px">{$ds['username']}</td>
-                                    <td width="10px"><input type="password" value="{$ds['pass']}"
-                                            style="width:300px;border: 0px; text-align: right;" class="pull-right"
-                                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'"
-                                            onclick="this.select()"></td>
+                                    <td width="10px">{include file="admin/nuxr/secret.tpl" nuxr_secret=$ds['pass'] nuxr_secret_label=Lang::T('Password')}</td>
                                     <td>{$ds['reply']}</td>
                                 </tr>
                             {/foreach}
                         </tbody>
                     </table>
+                </div>
+                <ul class="nuxr-mlist">
+                    {foreach $d as $ds}
+                        <li><div class="nuxr-mcard is-wrap"><div class="nuxr-mcard-main">
+                            <span class="nuxr-mcard-title"><bdi dir="ltr">{$ds['username']|escape}</bdi> <span class="nuxr-muted">#<bdi dir="ltr">{$ds['id']|escape}</bdi></span></span>
+                            <span class="nuxr-mcard-sub"><bdi dir="ltr">{Lang::dateTimeFormat($ds['authdate'])|escape}</bdi> · {$ds['reply']|escape}</span>
+                            <span class="nuxr-mcard-sub">{include file="admin/nuxr/secret.tpl" nuxr_secret=$ds['pass'] nuxr_secret_label=Lang::T('Password')}</span>
+                        </div></div></li>
+                    {foreachelse}
+                        <li><div class="nuxr-empty"><strong>{Lang::T('No records.')}</strong></div></li>
+                    {/foreach}
+                </ul>
                 </div>
                 {include file="pagination.tpl"}
             </div>

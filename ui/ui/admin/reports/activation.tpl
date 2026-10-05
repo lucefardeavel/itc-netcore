@@ -14,7 +14,7 @@
                                 <div class="input-group-addon">
                                     <span class="fa fa-search"></span>
                                 </div>
-                                <input type="text" name="q" class="form-control" value="{$q}"
+                                <input type="search" name="q" class="form-control" value="{$q|escape}" aria-label="{Lang::T('Invoice')}"
                                     placeholder="{Lang::T('Invoice')}...">
                                 <div class="input-group-btn">
                                     <button class="btn btn-success" type="submit">{Lang::T('Search')}</button>
@@ -27,7 +27,9 @@
                     </div>&nbsp;
                 </div>
                 <br>
-                <div class="table-responsive">
+                {* WP6C AdaptiveDataView: the history table where it fits; cards where narrow; real links (were clickable cells) *}
+                <div class="nuxr-adaptive is-lg">
+                <div class="table-responsive nuxr-table-wrap">
                     <table id="datatable" class="table table-bordered table-striped">
                         <thead>
                             <tr>
@@ -44,10 +46,8 @@
                         <tbody>
                             {foreach $activation as $ds}
                                 <tr>
-                                    <td onclick="window.location.href = '{Text::url('')}plan/view/{$ds['id']}'"
-                                        style="cursor:pointer;">{$ds['invoice']}</td>
-                                    <td onclick="window.location.href = '{Text::url('')}customers/viewu/{$ds['username']}'"
-                                        style="cursor:pointer;">{$ds['username']}</td>
+                                    <td><a href="{Text::url('plan/view/')}{$ds['id']|escape:'url'}">{$ds['invoice']|escape}</a></td>
+                                    <td><a href="{Text::url('customers/viewu/')}{$ds['username']|escape:'url'}">{$ds['username']|escape}</a></td>
                                     <td>{$ds['plan_name']}</td>
                                     <td>{Lang::moneyFormat($ds['price'])}</td>
                                     <td>{$ds['type']}</td>
@@ -60,6 +60,20 @@
                             {/foreach}
                         </tbody>
                     </table>
+                </div>
+                <ul class="nuxr-mlist">
+                    {foreach $activation as $ds}
+                        <li><div class="nuxr-mcard is-wrap">
+                            <a class="nuxr-mcard-main" href="{Text::url('plan/view/')}{$ds['id']|escape:'url'}">
+                                <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">{$ds['invoice']|escape}</bdi></span>
+                                <span class="nuxr-mcard-sub"><bdi dir="ltr">{$ds['username']|escape}</bdi> · {$ds['plan_name']|escape} · <bdi dir="ltr">{Lang::moneyFormat($ds['price'])|escape}</bdi></span>
+                                <span class="nuxr-mcard-sub"><bdi dir="ltr">{Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])|escape}</bdi> → <bdi dir="ltr">{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])|escape}</bdi> · {$ds['method']|escape}</span>
+                            </a>
+                        </div></li>
+                    {foreachelse}
+                        <li><div class="nuxr-empty"><strong>{Lang::T('No records.')}</strong></div></li>
+                    {/foreach}
+                </ul>
                 </div>
                 {include file="pagination.tpl"}
             </div>

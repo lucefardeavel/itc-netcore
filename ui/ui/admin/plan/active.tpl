@@ -1,4 +1,5 @@
 {include file="sections/header.tpl"}
+{include file="admin/nuxr/macros.tpl"}
 {* WP6C (owner amendment A): actions follow the central route permission (RouteMap via NuxrUi::allowed), never role names *}
 {assign var=nuxr_can value=['recharge' => NuxrUi::allowed('plan/recharge'), 'edit' => NuxrUi::allowed('plan/edit'), 'delete' => NuxrUi::allowed('plan/delete', 'POST'),
     'extend' => NuxrUi::allowed('plan/extend', 'POST'), 'plans' => NuxrUi::allowed('services/edit'), 'routers' => NuxrUi::allowed('routers/list')]}
@@ -22,60 +23,50 @@
                 &nbsp;
                 {Lang::T('Active Customers')}
             </div>
+            {* WP6C: search stays visible; the location / plan / status filters use the WP6A filter disclosure (open when a
+               filter is active); same form, same field names, same POST *}
             <form id="site-search" method="post" action="{Text::url('')}plan/list/">
-                <div class="panel-body">
-                    <div class="row row-no-gutters" style="padding: 5px">
-                        <div class="col-lg-2">
-                            <div class="input-group">
-                                <div class="input-group-btn">
-                                    <a class="btn btn-danger" title="Clear Search Query"
-                                        href="{Text::url('')}plan/list"><span
-                                            class="glyphicon glyphicon-remove-circle"></span></a>
-                                </div>
-                                <input type="text" name="search" class="form-control"
-                                    placeholder="{Lang::T("Search")}..." value="{$search}">
-                            </div>
-                        </div>
-                        <div class="col-lg-2 col-xs-4">
+                <div class="panel-body nuxr-legacy-filters">
+                    <div class="nuxr-filters">
+                        <label class="sr-only" for="nxf-ac-search">{Lang::T("Search")}</label>
+                        <input type="search" id="nxf-ac-search" name="search" class="form-control nuxr-input" autocomplete="off"
+                            placeholder="{Lang::T("Search")}..." value="{$search|escape}">
+                        <button class="nuxr-btn nuxr-btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i>{Lang::T("Search")}</button>
+                        {if $search || $router || $plan || ($status && $status neq '-')}<a class="nuxr-btn" href="{Text::url('plan/list')}"><i class="fa fa-times" aria-hidden="true"></i>{Lang::T("Clear")}</a>{/if}
+                        {if $nuxr_can.recharge}<a href="{Text::url('plan/recharge')}" class="nuxr-btn"><i class="fa fa-refresh" aria-hidden="true"></i>{Lang::T("Recharge Account")}</a>{/if}
+                    </div>
+                    <details class="nuxr-filter-more" {if $router || $plan || ($status && $status neq '-')}open{/if}>
+                        <summary class="nuxr-btn"><i class="fa fa-sliders" aria-hidden="true"></i>{Lang::T('Filters')}</summary>
+                        <div class="nuxr-filters" style="margin:10px 0 0">
+                            <label class="sr-only" for="router">{Lang::T("Location")}</label>
                             <select class="form-control" id="router" name="router">
                                 <option value="">{Lang::T("Location")}</option>
                                 {foreach $routers as $r}
-                                    <option value="{$r}" {if $router eq $r }selected{/if}>{$r}
-                                    </option>
+                                    <option value="{$r|escape}" {if $router eq $r }selected{/if}>{$r|escape}</option>
                                 {/foreach}
                             </select>
-                        </div>
-                        <div class="col-lg-2 col-xs-4">
+                            <label class="sr-only" for="plan">{Lang::T("Plan Name")}</label>
                             <select class="form-control" id="plan" name="plan">
                                 <option value="">{Lang::T("Plan Name")}</option>
                                 {foreach $plans as $p}
-                                    <option value="{$p['id']}" {if $plan eq $p['id'] }selected{/if}>{$p['name_plan']}
-                                    </option>
+                                    <option value="{$p['id']|escape}" {if $plan eq $p['id'] }selected{/if}>{$p['name_plan']|escape}</option>
                                 {/foreach}
                             </select>
-                        </div>
-                        <div class="col-lg-2 col-xs-4">
+                            <label class="sr-only" for="status">{Lang::T("Status")}</label>
                             <select class="form-control" id="status" name="status">
                                 <option value="-">{Lang::T("Status")}</option>
                                 <option value="on" {if $status eq 'on' }selected{/if}>{Lang::T("Active")}</option>
                                 <option value="off" {if $status eq 'off' }selected{/if}>{Lang::T("Expired")}</option>
                             </select>
+                            <button class="nuxr-btn nuxr-btn-primary" type="submit">{Lang::T("Apply")}</button>
                         </div>
-                        <div class="col-md-2 col-xs-6">
-                            <button class="btn btn-success btn-block" type="submit"><span
-                                    class="fa fa-search"></span></button>
-                        </div>
-                        {if $nuxr_can.recharge}
-                        <div class="col-md-2 col-xs-6">
-                            <a href="{Text::url('')}plan/recharge" class="btn btn-primary btn-block"><i
-                                    class="ion ion-android-add">
-                                </i> {Lang::T("Recharge Account")}</a>
-                        </div>
-                        {/if}
-                    </div>
+                    </details>
                 </div>
             </form>
-            <div class="table-responsive">
+            {* WP6C AdaptiveDataView: the dense table where it fits; cards (primary information first, row menu) when the
+               component is narrow - the same rows, one query *}
+            <div class="nuxr-adaptive is-lg">
+            <div class="table-responsive nuxr-table-wrap">
                 <div style="margin-left: 5px; margin-right: 5px;">&nbsp;
                     <table id="datatable" class="table table-bordered table-striped table-condensed">
                         <thead>
@@ -138,6 +129,33 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+            <ul class="nuxr-mlist">
+                {foreach $d as $ds}
+                    <li><div class="nuxr-mcard is-wrap">
+                        {call name=nuxr_initial who=$ds['username']}
+                        <a class="nuxr-mcard-main" href="{if $ds['customer_id'] == '0'}{Text::url('plan/voucher/&search=')}{$ds['username']|escape:'url'}{else}{Text::url('customers/viewu/')}{$ds['username']|escape:'url'}{/if}">
+                            <span class="nuxr-mcard-title"><bdi dir="ltr">{$ds['username']|escape}</bdi></span>
+                            <span class="nuxr-mcard-sub">{$ds['namebp']|escape} · {$ds['type']|escape}</span>
+                            <span class="nuxr-mcard-sub">{Lang::T("Expires On")} <bdi dir="ltr">{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])|escape}</bdi>{if $ds['routers']} · <bdi dir="ltr">{$ds['routers']|escape}</bdi>{/if}</span>
+                            <span class="nuxr-mcard-sub">{if $ds['status'] eq 'on'}{call name=nuxr_badge tone='success' label=Lang::T('Active') icon='fa-check-circle'}{else}{call name=nuxr_badge tone='danger' label=Lang::T('Expired') icon='fa-clock-o'}{/if}</span>
+                        </a>
+                        {if $nuxr_can.edit || $nuxr_can.delete || ($ds['status']=='off' && $_c['extend_expired'] && $nuxr_can.extend)}
+                            <details class="nuxr-rowmenu">
+                                <summary class="nuxr-icon-btn" aria-label="{Lang::T('Actions')}: {$ds['username']|escape}"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></summary>
+                                <div class="nuxr-rowmenu-panel">
+                                    {if $nuxr_can.edit}<a href="{Text::url('plan/edit/')}{$ds['id']|escape:'url'}"><i class="fa fa-pencil" aria-hidden="true"></i>{Lang::T("Edit")}</a>{/if}
+                                    {if $ds['status']=='off' && $_c['extend_expired'] && $nuxr_can.extend}<a href="javascript:extend('{$ds['id']|escape:'javascript'}')"><i class="fa fa-calendar-plus-o" aria-hidden="true"></i>{Lang::T("Extend")}</a>{/if}
+                                    {if $nuxr_can.delete}<a data-method="post" href="{Text::url('plan/delete/')}{$ds['id']|escape:'url'}" class="is-danger"
+                                        onclick="return ask(this, '{Lang::T("Delete")|escape:'javascript'}?')"><i class="fa fa-trash" aria-hidden="true"></i>{Lang::T("Delete")}</a>{/if}
+                                </div>
+                            </details>
+                        {/if}
+                    </div></li>
+                {foreachelse}
+                    <li><div class="nuxr-empty"><i class="fa fa-users" aria-hidden="true"></i><strong>{Lang::T('No records.')}</strong></div></li>
+                {/foreach}
+            </ul>
             </div>
             {include file="pagination.tpl"}
         </div>
