@@ -8,8 +8,7 @@
             <div class="input-group">
                 <input type="text" name="q" class="form-control" placeholder="{Lang::T('Search')}..." value="{$q}">
                 <div class="input-group-btn">
-                    <button type="submit" class="btn btn-success"><span
-                            class="glyphicon glyphicon-search"></span></button>
+                    <button type="submit" class="btn btn-success" aria-label="{Lang::T('Search')}"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                 </div>
             </div>
         </form>

@@ -23,7 +23,8 @@ final class LegacyAdaptiveTest extends Wp2HttpTestCase
         $xp = new \DOMXPath($doc);
         foreach ($xp->query('//form') as $form) {
             /** @var \DOMElement $form */
-            if (!str_contains($form->getAttribute('action'), $actionNeedle)) {
+            // '' = the page's self-posting form (action="")
+            if ($actionNeedle === '' ? $form->getAttribute('action') !== '' : !str_contains($form->getAttribute('action'), $actionNeedle)) {
                 continue;
             }
             $names = [];
@@ -64,6 +65,17 @@ final class LegacyAdaptiveTest extends Wp2HttpTestCase
             ['ad', 'settings/users-edit/' . $s->staff['A'], 'settings/users-edit-post', ['username', 'fullname', 'id']],
             ['ad', 'settings/change-password', 'settings/change-password-post', ['password', 'npass', 'cnpass']],
             ['ad', 'plan/add-voucher', 'plan/voucher-post', ['type', 'server', 'plan', 'numbervoucher']],
+            // slice 5: admin / config Adaptive Layer
+            ['ad', 'services/add', 'services/add-post', ['name', 'id_bw', 'price', 'validity', 'validity_unit', 'enabled', 'prepaid']],
+            ['ad', 'services/pppoe-add', 'services/pppoe-add-post', ['name_plan', 'id_bw', 'price', 'validity', 'validity_unit']],
+            ['ad', 'bandwidth/add', 'bandwidth/add-post', ['name', 'rate_down', 'rate_down_unit', 'rate_up', 'rate_up_unit']],
+            ['ad', 'routers/add', 'routers/add-post', ['name', 'ip_address', 'username', 'password', 'description']],
+            ['ad', 'radius/nas-add', 'radius/nas-add-post', ['shortname', 'nasname', 'secret', 'ports', 'type']],
+            ['ad', 'coupons/add', 'coupons/add-post', ['code', 'type', 'value', 'max_usage', 'start_date', 'end_date']],
+            ['ad', 'pool/add', 'pool/add-post', ['name', 'ip_address', 'routers']],
+            ['ad', 'settings/localisation', 'settings/localisation-post', ['tzone', 'date_format', 'lan', 'currency_code']],
+            ['ad', 'settings/miscellaneous', '', ['router_check', 'extend_expiry']],
+            ['ad', 'settings/notifications', 'settings/notifications-post', ['expired', 'reminder_7_day', 'invoice_paid']],
         ];
     }
 
@@ -94,6 +106,45 @@ final class LegacyAdaptiveTest extends Wp2HttpTestCase
         // touch-safe reveal: the secret stays in the markup the role could already see, masked until revealed
         $v = $this->staff('ad')->get('plan/voucher');
         $this->assertStringContainsString('data-nuxr-reveal', $v->body);
+    }
+
+    public function testAdminConfigListsStackWithLabelsAndNoHoverOnlyData(): void
+    {
+        // radius/* needs the RADIUS database the harness does not provide (as in the accepted RouteMatrixTest); verified in the lab
+        foreach (['services/hotspot', 'services/pppoe', 'bandwidth/list', 'routers/list', 'pool/list', 'pool/port', 'odp', 'coupons'] as $page) {
+            $r = $this->staff('ad')->get($page);
+            $this->assertSame(200, $r->status, "{$page}: " . $r->excerpt());
+            $this->assertStringContainsString('nuxr-stack', $r->body, "{$page}: stacks into cards when narrow");
+            if (in_array($page, ['services/hotspot', 'bandwidth/list', 'routers/list'], true)) { // lists with seeded rows
+                $this->assertMatchesRegularExpression('/<td data-label="[^"]+"/', $r->body, "{$page}: cells carry their column name");
+            }
+            $this->assertStringNotContainsString('onmouseenter="this.style.backgroundColor', $r->body, "{$page}: no hover-only cells");
+        }
+        // the self-posting settings form keeps its submit name / value inside the action row
+        $this->assertMatchesRegularExpression('/<div class="nuxr-step-nav nuxr-actionbar-form">\s*<button class="nuxr-btn nuxr-btn-primary" name="save" value="save" type="submit">/',
+            $this->staff('ad')->get('settings/miscellaneous')->body);
+        // touch / keyboard equivalent for the legacy hover-revealed secrets (Amendment G); nothing new is rendered
+        $this->assertStringContainsString('data-nuxr-peek', $this->staff('ad')->get('routers/add')->body);
+        $this->assertStringContainsString('data-nuxr-reveal', $this->staff('ad')->get('routers/list')->body);
+    }
+
+    public function testAuditDefectsAreFixed(): void
+    {
+        // Amendment H: the database status page works on the shipped image (it needed the absent mysqli extension)
+        $db = $this->staff('ad')->get('settings/dbstatus');
+        $this->assertSame(200, $db->status, $db->excerpt());
+        $this->assertStringContainsString('name="tables[]"', $db->body);
+        // no template comment leaks into the page as text
+        foreach (['routers/add', 'odp/add', 'customers/edit/' . static::$seed->customers['cNULL']] as $page) {
+            $r = $this->staff('ad')->get($page);
+            $this->assertSame(200, $r->status, "{$page}: " . $r->excerpt());
+            $this->assertStringNotContainsString('{*', $r->body, "{$page}: no raw Smarty comment");
+        }
+        // the ODP search box is well-formed (its value attribute was never closed)
+        $odp = $this->staff('ad')->get('odp');
+        $this->assertMatchesRegularExpression('/<input type="text" name="name" class="form-control"\s+placeholder="[^"]*" value="[^"]*" aria-label="[^"]+">/', $odp->body);
+        // the database status page stays an Admin page
+        $this->assertNotSame(200, $this->staff('A')->get('settings/dbstatus')->status);
     }
 
     public function testAConvertedFormStillPostsThroughItsController(): void

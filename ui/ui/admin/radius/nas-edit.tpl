@@ -10,7 +10,7 @@
                 <form class="form-horizontal" method="post" role="form"
                     action="{Text::url('')}radius/nas-edit-post/{$d['id']}">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Router Name')}</label>
+                        <label for="shortname" class="col-md-2 control-label">{Lang::T('Router Name')}</label>
                         <div class="col-md-6">
                             <input type="text" required class="form-control" id="shortname" name="shortname"
                                 value="{$d['shortname']}" maxlength="32">
@@ -18,45 +18,45 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('IP Address')}</label>
+                        <label for="nasname" class="col-md-2 control-label">{Lang::T('IP Address')}</label>
                         <div class="col-md-6">
                             <input type="text" placeholder="192.168.88.1" value="{$d['nasname']}" required
                                 class="form-control" id="nasname" name="nasname" maxlength="128">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">Secret</label>
+                        <label for="secret" class="col-md-2 control-label">Secret</label>
                         <div class="col-md-6">
                             <input type="password" class="form-control" id="secret" name="secret" autocomplete="new-password"
                                 placeholder="{Lang::T('Leave empty to keep the current secret')}" maxlength="60">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">Ports</label>
+                        <label for="ports" class="col-md-2 control-label">Ports</label>
                         <div class="col-md-2">
                             <input type="text" class="form-control" id="ports" name="ports" placeholder="null"
                                 value="{$d['ports']}">
                         </div>
-                        <label class="col-md-2 control-label">{Lang::T('Type')}</label>
+                        <label for="type" class="col-md-2 control-label">{Lang::T('Type')}</label>
                         <div class="col-md-2">
                             <input type="text" class="form-control" id="type" name="type" value="other"
                                 value="{$d['type']}" required placeholder="other">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">Server</label>
+                        <label for="server" class="col-md-2 control-label">Server</label>
                         <div class="col-md-2">
                             <input type="text" class="form-control" id="server" name="server" value="{$d['server']}"
                                 placeholder="null">
                         </div>
-                        <label class="col-md-2 control-label">Community</label>
+                        <label for="community" class="col-md-2 control-label">Community</label>
                         <div class="col-md-2">
                             <input type="text" class="form-control" id="community" name="community"
                                 value="{$d['community']}" placeholder="null">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Description')}</label>
+                        <label for="description" class="col-md-2 control-label">{Lang::T('Description')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="description"
                                 name="description"> {htmlentities($d['description'])}</textarea>
@@ -64,7 +64,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label"><a
+                        <label for="routers" class="col-md-2 control-label"><a
                                 href="{Text::url('')}routers/add">{Lang::T('Routers')}</a></label>
                         <div class="col-md-6">
                             <select id="routers" name="routers" class="form-control select2">
@@ -77,14 +77,13 @@
                         </div>
                         <p class="help-block col-md-4">{Lang::T('Assign NAS to Router')}</p>
                     </div>
-                    <div class="form-group">
-                        <div class="col-lg-offset-2 col-lg-10">
-                            <button class="btn btn-primary"
+        {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+        <div class="nuxr-step-nav nuxr-actionbar-form">
+            <a class="nuxr-btn" href="{Text::url('')}radius/nas-list">{Lang::T('Cancel')}</a>
+            <button class="nuxr-btn nuxr-btn-primary"
                                 onclick="return ask(this, '{Lang::T("Continue the process of changing the Radius of the NAS?")}')"
-                                type="submit">{Lang::T('Save Changes')}</button>
-                            Or <a href="{Text::url('')}radius/nas-list">{Lang::T('Cancel')}</a>
-                        </div>
-                    </div>
+                                type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Changes')}</button>
+        </div>
                 </form>
 
             </div>

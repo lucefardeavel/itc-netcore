@@ -7,30 +7,30 @@
 			<div class="panel-body">
 				<form class="form-horizontal" method="post" role="form" action="{Text::url('bandwidth/add-post')}">
 					<div class="form-group">
-						<label class="col-md-3 control-label">{Lang::T('Bandwidth Name')}</label>
+						<label for="name" class="col-md-3 control-label">{Lang::T('Bandwidth Name')}</label>
 						<div class="col-md-9">
 							<input type="text" class="form-control" id="name" name="name">
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label">{Lang::T('Rate Download')}</label>
+						<label for="rate_down" class="col-md-3 control-label">{Lang::T('Rate Download')}</label>
 						<div class="col-md-6">
 							<input type="text" class="form-control" id="rate_down" name="rate_down">
 						</div>
 						<div class="col-md-3">
-							<select class="form-control" id="rate_down_unit" name="rate_down_unit">
+							<select class="form-control" id="rate_down_unit" name="rate_down_unit" aria-label="{Lang::T('Rate Download')} ({Lang::T('Unit')})">
 								<option value="Kbps">Kbps</option>
 								<option value="Mbps">Mbps</option>
 							</select>
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label">{Lang::T('Rate Upload')}</label>
+						<label for="rate_up" class="col-md-3 control-label">{Lang::T('Rate Upload')}</label>
 						<div class="col-md-6">
 							<input type="text" class="form-control" id="rate_up" name="rate_up">
 						</div>
 						<div class="col-md-3">
-							<select class="form-control" id="rate_up_unit" name="rate_up_unit">
+							<select class="form-control" id="rate_up_unit" name="rate_up_unit" aria-label="{Lang::T('Rate Upload')} ({Lang::T('Unit')})">
 								<option value="Kbps">Kbps</option>
 								<option value="Mbps">Mbps</option>
 							</select>
@@ -38,41 +38,40 @@
 					</div>
 					<div class="panel-heading">{Lang::T('Optional')}</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label">Burst Limit</label>
+						<label for="burst_limit" class="col-md-3 control-label">Burst Limit</label>
 						<div class="col-md-9">
 							<input type="text" class="form-control" id="burst_limit" name="burst[]" placeholder="[Burst/Limit]">
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label">Burst Threshold</label>
+						<label for="burst_threshold" class="col-md-3 control-label">Burst Threshold</label>
 						<div class="col-md-9">
 							<input type="text" class="form-control" id="burst_threshold" name="burst[]" placeholder="[Burst/Threshold]">
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label">Burst Time</label>
+						<label for="burst_time" class="col-md-3 control-label">Burst Time</label>
 						<div class="col-md-9">
 							<input type="text" class="form-control" id="burst_time" name="burst[]" placeholder="[Burst/Time]">
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label">Priority</label>
+						<label for="burst_priority" class="col-md-3 control-label">Priority</label>
 						<div class="col-md-9">
 							<input type="number" class="form-control" id="burst_priority" name="burst[]" placeholder="[Priority]">
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-3 control-label">Limit At</label>
+						<label for="burst_limit_at" class="col-md-3 control-label">Limit At</label>
 						<div class="col-md-9">
 							<input type="text" class="form-control" id="burst_limit_at" name="burst[]" placeholder="[Limit/At]">
 						</div>
 					</div>
-					<div class="form-group">
-						<div class="col-lg-offset-2 col-lg-10">
-							<button class="btn btn-primary" onclick="return ask(this, '{Lang::T("Continue the Bandwidth addition process?")}')" type="submit">{Lang::T('Save')}</button>
-							Or <a href="{Text::url('bandwidth/list')}">{Lang::T('Cancel')}</a>
-						</div>
-					</div>
+        {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+        <div class="nuxr-step-nav nuxr-actionbar-form">
+            <a class="nuxr-btn" href="{Text::url('bandwidth/list')}">{Lang::T('Cancel')}</a>
+            <button class="nuxr-btn nuxr-btn-primary" onclick="return ask(this, '{Lang::T("Continue the Bandwidth addition process?")}')" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save')}</button>
+        </div>
 				</form>
 			</div>
 		</div>

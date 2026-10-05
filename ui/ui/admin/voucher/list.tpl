@@ -121,8 +121,7 @@
                                 {/if}
                                 {if $nuxr_can.delete}
                                     <a data-method="post" href="{Text::url('')}plan/voucher-delete/{$ds['id']}" id="{$ds['id']}"
-                                        class="btn btn-danger btn-xs" onclick="return ask(this, '{Lang::T('Delete')}?')"><i
-                                            class="glyphicon glyphicon-trash"></i></a>
+                                        class="btn btn-danger btn-xs" onclick="return ask(this, '{Lang::T('Delete')}?')" aria-label="{Lang::T('Delete')}"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                                 {/if}
                             </td>
                         </tr>

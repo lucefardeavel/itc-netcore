@@ -896,10 +896,11 @@ switch ($action) {
             _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
         }
 
-        $dbc = new mysqli($db_host, $db_user, $db_pass, $db_name);
-        if ($result = $dbc->query('SHOW TABLE STATUS')) {
+        // WP6C (Amendment H): the application's own PDO connection - the mysqli extension is not part of the shipped
+        // image, so `new mysqli` was a fatal 500 here; no second connection from raw credentials either
+        if ($result = ORM::get_db()->query('SHOW TABLE STATUS')) {
             $tables = array();
-            while ($row = $result->fetch_array()) {
+            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
                 $tables[$row['Name']]['rows'] = ORM::for_table($row["Name"])->count();
                 $tables[$row['Name']]['name'] = $row["Name"];
             }

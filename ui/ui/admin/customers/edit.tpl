@@ -72,7 +72,7 @@
                         <label for="password" class="col-md-3 control-label">{Lang::T('Password')}</label>
                         <div class="col-md-9">
                             <input type="password" autocomplete="off" class="form-control" id="password" name="password"
-                                onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'"
+                                onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek
                                 value="{$d['password']}">
                             <span class="help-block">{Lang::T('Keep Blank to do not change Password')}</span>
                         </div>
@@ -149,7 +149,7 @@
                         <div class="col-md-9">
                             <input type="password" class="form-control" id="pppoe_password" name="pppoe_password"
                                 value="{$d['pppoe_password']}" onmouseleave="this.type = 'password'"
-                                onmouseenter="this.type = 'text'">
+                                onmouseenter="this.type = 'text'" data-nuxr-peek>
                         </div>
                     </div>
                     <div class="form-group">
@@ -278,8 +278,10 @@
             });
         });
     </script>
-
-    {* WP6A (OD-H): Leaflet and the map tiles load only when the operator opens the map (nuxr-shell.js) *}
+{/literal}
+{* WP6A (OD-H): Leaflet and the map tiles load only when the operator opens the map (nuxr-shell.js).
+   WP6C: kept outside the literal block so Smarty strips it (inside, it leaked into the page as text). *}
+{literal}
     <script>
         function getLocation() {
             if (window.location.protocol == "https:" && navigator.geolocation) {

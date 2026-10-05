@@ -14,7 +14,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Expired Notification Message')}</label>
+                        <label for="expired" class="col-md-2 control-label">{Lang::T('Expired Notification Message')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="expired" name="expired"
                                 placeholder="{Lang::T('Hello')} [[name]], {Lang::T('your internet package')} [[package]] {Lang::T('has been expired')}"
@@ -33,7 +33,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Reminder 7 days')}</label>
+                        <label for="reminder_7_day" class="col-md-2 control-label">{Lang::T('Reminder 7 days')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="reminder_7_day" name="reminder_7_day"
                                 rows="4">{Lang::htmlspecialchars($_json['reminder_7_day'])}</textarea>
@@ -52,7 +52,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Reminder 3 days')}</label>
+                        <label for="reminder_3_day" class="col-md-2 control-label">{Lang::T('Reminder 3 days')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="reminder_3_day" name="reminder_3_day"
                                 rows="4">{Lang::htmlspecialchars($_json['reminder_3_day'])}</textarea>
@@ -71,7 +71,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Reminder 1 day')}</label>
+                        <label for="reminder_1_day" class="col-md-2 control-label">{Lang::T('Reminder 1 day')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="reminder_1_day" name="reminder_1_day"
                                 rows="4">{Lang::htmlspecialchars($_json['reminder_1_day'])}</textarea>
@@ -90,7 +90,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Invoice Notification Payment')}</label>
+                        <label for="invoice_paid" class="col-md-2 control-label">{Lang::T('Invoice Notification Payment')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="invoice_paid" name="invoice_paid"
                                 placeholder="{Lang::T('Hello')} [[name]], {Lang::T('your internet package')} [[package]] {Lang::T('has been expired')}"
@@ -120,7 +120,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Balance Notification Payment')}</label>
+                        <label for="invoice_balance" class="col-md-2 control-label">{Lang::T('Balance Notification Payment')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="invoice_balance" name="invoice_balance"
                                 placeholder="{Lang::T('Hello')} [[name]], {Lang::T('your internet package')} [[package]] {Lang::T('has been expired')}"
@@ -149,7 +149,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Welcome Message')}</label>
+                        <label for="welcome_message" class="col-md-2 control-label">{Lang::T('Welcome Message')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="welcome_message" name="welcome_message"
                                 rows="4">{Lang::htmlspecialchars($_json['welcome_message'])}</textarea>
@@ -166,7 +166,7 @@
                 {if $_c['enable_balance'] == 'yes'}
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Send Balance')}</label>
+                        <label for="balance_send" class="col-md-2 control-label">{Lang::T('Send Balance')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="balance_send" name="balance_send"
                                 rows="4">{if $_json['balance_send']}{Lang::htmlspecialchars($_json['balance_send'])}{else}{Lang::htmlspecialchars($_default['balance_send'])}{/if}</textarea>
@@ -180,7 +180,7 @@
                 </div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Received Balance')}</label>
+                        <label for="balance_received" class="col-md-2 control-label">{Lang::T('Received Balance')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="balance_received" name="balance_received"
                                 rows="4">{if $_json['balance_received']}{Lang::htmlspecialchars($_json['balance_received'])}{else}{Lang::htmlspecialchars($_default['balance_received'])}{/if}</textarea>
@@ -195,7 +195,7 @@
                 {/if}
                {* <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('PDF Invoice Template')}</label>
+                        <label for="email_invoice" class="col-md-2 control-label">{Lang::T('PDF Invoice Template')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="email_invoice" name="email_invoice"
                                 placeholder="{Lang::T('Template for sending pdf invoice')}" rows="20">
@@ -231,12 +231,12 @@
                     </div>
                 </div> *}
 
-                <div class="panel-body">
-                    <div class="form-group">
-                        <button class="btn btn-success btn-block" type="submit">{Lang::T('Save Changes')}</button>
-                    </div>
-                </div>
             </div>
         </div>
+    </div>{* WP6C: closes the .row the legacy template left open (the browser nested the rest of the page in it) *}
+{* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+<div class="nuxr-step-nav nuxr-actionbar-form">
+    <button class="nuxr-btn nuxr-btn-primary" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Changes')}</button>
+</div>
 </form>
 {include file="sections/footer.tpl"}

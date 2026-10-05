@@ -2357,3 +2357,153 @@ dialog.nuxr-sheet:target:not([open]) {
     min-height: var(--nx-touch);
     border-radius: 10px;
 }
+
+/* WP6C Adaptive Layer for legacy admin / config lists (OD-1 A): the table stays a table while its own container is
+   wide enough; below that every row becomes a card of "label: value" lines (data-label from the column header). No
+   horizontal scroll, no hidden columns, same links and actions. Without container-query support it keeps scrolling. */
+.nuxr-stack {
+    container-type: inline-size;
+}
+
+.nuxr-peek-wrap {
+    position: relative;
+    display: block;
+}
+
+.nuxr-peek-wrap > input {
+    padding-inline-end: 52px;
+}
+
+.nuxr-peek-wrap > .nuxr-peek {
+    position: absolute;
+    inset-inline-end: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@container (max-width: 760px) {
+    .nuxr-stack table, .nuxr-stack tbody, .nuxr-stack tr, .nuxr-stack td {
+        display: block;
+        width: 100%;
+    }
+
+    .nuxr-stack thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .nuxr-stack table.table, .nuxr-stack table.table-bordered {
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .nuxr-stack tbody > tr {
+        margin: 0 0 10px;
+        padding: 6px 12px;
+        border: 1px solid var(--nx-border);
+        border-radius: 12px;
+        background: var(--nx-surface);
+    }
+
+    .nuxr-stack table.table > tbody > tr > td {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 4px 12px;
+        min-height: 36px;
+        padding: 6px 0;
+        border: 0;
+        border-bottom: 1px solid var(--nx-border);
+        background: transparent;
+        overflow-wrap: anywhere;
+        text-align: start;
+    }
+
+    .nuxr-stack table.table > tbody > tr > td:last-child {
+        border-bottom: 0;
+    }
+
+    .nuxr-stack td[data-label]::before {
+        content: attr(data-label);
+        flex: 0 0 auto;
+        max-width: 45%;
+        color: var(--nx-muted);
+        font-weight: 600;
+    }
+
+    .nuxr-stack td[data-label=""]::before {
+        content: none;
+    }
+
+    .nuxr-stack td .btn {
+        min-height: var(--nx-touch);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: var(--nx-touch);
+    }
+
+    .nuxr-stack td[colspan] {
+        justify-content: center;
+    }
+}
+
+/* WP6C: legacy AdminLTE button / label colours inside the shell meet WCAG AA with white text (the theme's #007bff,
+   #00d1b2, #ff6b81 and #3c8dbc did not). Fixed values, so they hold in the dark theme too; !important because the theme pins its own with !important. */
+body.nuxr-shell .content .btn-primary, body.nuxr-shell .content .label-primary { background-color: #3442c9 !important; border-color: #2c38a8 !important; color: #fff !important; }
+body.nuxr-shell .content .btn-success, body.nuxr-shell .content .label-success { background-color: #146c43 !important; border-color: #105a37 !important; color: #fff !important; }
+body.nuxr-shell .content .btn-danger, body.nuxr-shell .content .label-danger { background-color: #b3261e !important; border-color: #941f19 !important; color: #fff !important; }
+body.nuxr-shell .content .btn-warning, body.nuxr-shell .content .label-warning { background-color: #8a4b00 !important; border-color: #703d00 !important; color: #fff !important; }
+body.nuxr-shell .content .btn-info, body.nuxr-shell .content .label-info { background-color: #1c5a9e !important; border-color: #164a82 !important; color: #fff !important; }
+body.nuxr-shell .content :is(.btn-primary, .btn-success, .btn-danger, .btn-warning, .btn-info):is(:hover, :focus-visible) { filter: brightness(.9); color: #fff !important; }
+body.nuxr-shell .content .text-success { color: var(--nx-success); }
+body.nuxr-shell .content .text-warning { color: var(--nx-warning); }
+body.nuxr-shell .content .text-danger { color: var(--nx-danger); }
+body.nuxr-shell .content .text-info, body.nuxr-shell .content .bs-callout h4 { color: var(--nx-info); }
+body.nuxr-shell .content .has-success :is(.control-label, .help-block) { color: var(--nx-success); }
+body.nuxr-shell .content .has-warning :is(.control-label, .help-block) { color: var(--nx-warning); }
+body.nuxr-shell .content .has-error :is(.control-label, .help-block) { color: var(--nx-danger); }
+
+/* a legacy panel / box body that holds a form with the shared action row is not a scroll container, so the row can
+   stick to the viewport (the overflow-x scroller would otherwise capture position: sticky) */
+body.nuxr-shell .content :is(.panel-body, .box-body):has(> form > .nuxr-actionbar-form) {
+    overflow: visible;
+}
+
+/* legacy odds and ends: file inputs never push the page wider; disabled pager arrows keep AA contrast; inline help
+   links are underlined (not told apart by colour alone) */
+body.nuxr-shell .content input[type="file"] { max-width: 100%; }
+body.nuxr-shell .content .pagination > .disabled > :is(a, span), body.nuxr-shell .content .pagination > .disabled > a > span { color: var(--nx-muted); }
+body.nuxr-shell .content :is(.form-group p, .help-block) a { text-decoration: underline; }
+
+/* legacy filter rows (three tiny selects per row on a phone): two per row, readable */
+@media (max-width: 479.98px) {
+    body.nuxr-shell .content [class*="col-xs-4"]:has(> select.form-control) {
+        width: 50%;
+    }
+}
+
+/* a stacked cell's value keeps its own direction (e.g. "30 Days" in an Arabic page) */
+@container (max-width: 760px) {
+    .nuxr-stack table.table > tbody > tr > td {
+        unicode-bidi: plaintext;
+    }
+}
+
+/* a <summary> styled as a button keeps its touch size: the vendored-reset rule (body.nuxr-shell :where(summary))
+   outranks the single-class component rule */
+body.nuxr-shell summary.nuxr-icon-btn {
+    min-height: var(--nx-touch);
+}
+
+@media (pointer: coarse) {
+    body.nuxr-shell summary.nuxr-btn {
+        min-height: var(--nx-touch);
+    }
+}
+body.nuxr-shell .select2-container .select2-selection__placeholder { color: var(--nx-muted); }

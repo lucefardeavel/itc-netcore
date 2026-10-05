@@ -117,7 +117,7 @@
                                         {if $nuxr_can.delete}
                                             <a data-method="post" href="{Text::url('')}plan/delete/{$ds['id']}" id="{$ds['id']}"
                                                 onclick="return ask(this, '{Lang::T("Delete")}?')"
-                                                class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
+                                                class="btn btn-danger btn-xs" aria-label="{Lang::T('Delete')}"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                                         {/if}
                                         {if $ds['status']=='off' && $_c['extend_expired'] && $nuxr_can.extend}
                                             <a href="javascript:extend('{$ds['id']}')"

@@ -11,7 +11,7 @@
 
                     <!-- Coupon Code -->
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Coupon Code')}</label>
+                        <label for="code" class="col-md-2 control-label">{Lang::T('Coupon Code')}</label>
                         <div class="col-md-6">
                             <div class="input-group">
                                 <input type="text" class="form-control" name="code" id="code" maxlength="50" required>
@@ -26,7 +26,7 @@
 
                     <!-- Type -->
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Type')}</label>
+                        <label for="type" class="col-md-2 control-label">{Lang::T('Type')}</label>
                         <div class="col-md-6">
                             <select class="form-control" name="type" id="type" required onchange="updateValueInput()">
                                 <option value="fixed">{Lang::T('Fixed Discount')}</option>
@@ -37,7 +37,7 @@
 
                     <!-- Value -->
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Discount Value')}</label>
+                        <label for="value" class="col-md-2 control-label">{Lang::T('Discount Value')}</label>
                         <div class="col-md-6">
                             <input type="number" class="form-control" name="value" id="value" step="0.01"
                                 placeholder="{Lang::T("Enter amoun")}" required>
@@ -49,18 +49,18 @@
 
                     <!-- Description -->
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Description')}</label>
+                        <label for="nxf-description" class="col-md-2 control-label">{Lang::T('Description')}</label>
                         <div class="col-md-6">
-                            <textarea class="form-control" name="description" required></textarea>
+                            <textarea id="nxf-description" class="form-control" name="description" required></textarea>
                             <p class="help-block"><small>{Lang::T('Brief explanation of the coupon')}</small></p>
                         </div>
                     </div>
 
                     <!-- Max Usage -->
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Max Usage')}</label>
+                        <label for="nxf-max_usage" class="col-md-2 control-label">{Lang::T('Max Usage')}</label>
                         <div class="col-md-6">
-                            <input type="number" class="form-control" name="max_usage" value="0" required
+                            <input id="nxf-max_usage" type="number" class="form-control" name="max_usage" value="0" required
                                 placeholder="0 is Unlimited">
                             <p class="help-block">
                                 <small>{Lang::T('Maximum number of times this coupon can be used 0 is Unlimited')}</small>
@@ -70,9 +70,9 @@
 
                     <!-- Minimum Order Amount -->
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Minimum Order Amount')}</label>
+                        <label for="nxf-min_order_amount" class="col-md-2 control-label">{Lang::T('Minimum Order Amount')}</label>
                         <div class="col-md-6">
-                            <input type="number" class="form-control" name="min_order_amount" step="0.01" required>
+                            <input id="nxf-min_order_amount" type="number" class="form-control" name="min_order_amount" step="0.01" required>
                             <p class="help-block">
                                 <small>{Lang::T('Minimum cart total required to use this coupon')}</small></p>
                         </div>
@@ -80,9 +80,9 @@
 
                     <!-- Max Discount Amount -->
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Max Discount Amount')}</label>
+                        <label for="nxf-max_discount_amount" class="col-md-2 control-label">{Lang::T('Max Discount Amount')}</label>
                         <div class="col-md-6">
-                            <input type="number" class="form-control" name="max_discount_amount" step="0.01">
+                            <input id="nxf-max_discount_amount" type="number" class="form-control" name="max_discount_amount" step="0.01">
                             <p class="help-block">
                                 <small>{Lang::T('Maximum discount amount applicable (for percent type)')}</small></p>
                         </div>
@@ -103,29 +103,26 @@
 
                     <!-- Start Date -->
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Start Date')}</label>
+                        <label for="nxf-start_date" class="col-md-2 control-label">{Lang::T('Start Date')}</label>
                         <div class="col-md-6">
-                            <input type="date" class="form-control" name="start_date" required>
+                            <input id="nxf-start_date" type="date" class="form-control" name="start_date" required>
                         </div>
                     </div>
 
                     <!-- Expiry Date -->
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('End Date')}</label>
+                        <label for="nxf-end_date" class="col-md-2 control-label">{Lang::T('End Date')}</label>
                         <div class="col-md-6">
-                            <input type="date" class="form-control" name="end_date" required>
+                            <input id="nxf-end_date" type="date" class="form-control" name="end_date" required>
                         </div>
                     </div>
 
                     <!-- Submit Button -->
-                    <div class="form-group">
-                        <div class="col-lg-offset-2 col-lg-10">
-                            <button class="btn btn-primary" type="submit">
-                                {Lang::T('Save')}
-                            </button>
-                            Or <a href="{Text::url('coupons/list')}">{Lang::T('Cancel')}</a>
-                        </div>
-                    </div>
+        {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+        <div class="nuxr-step-nav nuxr-actionbar-form">
+            <a class="nuxr-btn" href="{Text::url('coupons/list')}">{Lang::T('Cancel')}</a>
+            <button class="nuxr-btn nuxr-btn-primary" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save')}</button>
+        </div>
                 </form>
 
             </div>

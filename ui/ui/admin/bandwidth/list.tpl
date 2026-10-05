@@ -12,7 +12,7 @@
 								<div class="input-group-addon">
 									<span class="fa fa-search"></span>
 								</div>
-								<input type="text" name="name" class="form-control"
+								<input type="text" name="name" class="form-control" aria-label="{Lang::T('Search by Name')}"
 									placeholder="{Lang::T('Search by Name')}...">
 								<div class="input-group-btn">
 									<button class="btn btn-success" type="submit">{Lang::T('Search')}</button>
@@ -26,7 +26,7 @@
 							</i> {Lang::T('New Bandwidth')}</a>
 					</div>&nbsp;
 				</div>
-				<div class="table-responsive">
+				<div class="table-responsive nuxr-stack">
 					<table class="table table-bordered table-condensed table-striped table_mobile">
 						<thead>
 							<tr>
@@ -39,17 +39,16 @@
 						<tbody>
 							{foreach $d as $ds}
 								<tr>
-									<td>{$ds['name_bw']}</td>
-									<td>{$ds['rate_down']} {$ds['rate_down_unit']} / {$ds['rate_up']} {$ds['rate_up_unit']}
+									<td data-label="{Lang::T('Bandwidth Name')}">{$ds['name_bw']}</td>
+									<td data-label="{Lang::T('Rate')}">{$ds['rate_down']} {$ds['rate_down_unit']} / {$ds['rate_up']} {$ds['rate_up_unit']}
 									</td>
-									<td>{$ds['burst']}</td>
-									<td>
+									<td data-label="Burst">{$ds['burst']}</td>
+									<td data-label="{Lang::T('Manage')}">
 										<a href="{Text::url('bandwidth/edit/', $ds['id'])}"
 											class="btn btn-sm btn-warning">{Lang::T('Edit')}</a>
 										<a data-method="post" href="{Text::url('bandwidth/delete/', $ds['id'])}" id="{$ds['id']}"
 											class="btn btn-danger btn-sm"
-											onclick="return ask(this, '{Lang::T('Delete')}?')"><i
-												class="glyphicon glyphicon-trash"></i></a>
+											onclick="return ask(this, '{Lang::T('Delete')}?')" aria-label="{Lang::T('Delete')}"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
 									</td>
 								</tr>
 							{/foreach}

@@ -8,7 +8,7 @@
                 <div class="panel-body">
                     <input type="hidden" class="form-control" required id="id" name="id" value="{$widget['id']}">
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T("Widget")}</label>
+                        <label for="widget" class="col-md-3 control-label">{Lang::T("Widget")}</label>
                         <div class="col-md-5">
                             <select name="widget" id="widget" class="form-control" onchange="changeTitle(this)">
                                 {foreach $widgets as $k => $v}
@@ -21,7 +21,7 @@
                         <p class="help-block col-md-4">&nbsp;</p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T("Title")}</label>
+                        <label for="title" class="col-md-3 control-label">{Lang::T("Title")}</label>
                         <div class="col-md-5">
                             <input type="text" class="form-control" required id="title" name="title"
                                 value="{$widget['title']}">
@@ -29,7 +29,7 @@
                         <span class="help-block col-md-4">&nbsp;</span>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T("Sequence")}</label>
+                        <label for="orders" class="col-md-3 control-label">{Lang::T("Sequence")}</label>
                         <div class="col-md-5">
                             <input type="number" class="form-control" id="orders" name="orders"
                                 value="{if $widget['orders']>0}{$widget['orders']}{else}99{/if}">
@@ -37,7 +37,7 @@
                         <span class="help-block col-md-4">&nbsp;</span>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T("Position")}</label>
+                        <label for="position" class="col-md-3 control-label">{Lang::T("Position")}</label>
                         <div class="col-md-5">
                             <select name="position" id="position" class="form-control">
                                 {for $pos=1 to $max}
@@ -50,7 +50,7 @@
                         <p class="help-block col-md-4">&nbsp;</p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T("User")}</label>
+                        <label for="tipeUser" class="col-md-3 control-label">{Lang::T("User")}</label>
                         <div class="col-md-5">
                             <select name="tipeUser" aria-readonly="" id="tipeUser" class="form-control">
                                 <option value="{$widget['user']}" {if $widget['user'] eq $u}selected="selected" {/if}>
@@ -61,7 +61,7 @@
                         <p class="help-block col-md-4">&nbsp;</p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T("Status")}</label>
+                        <label for="enabled" class="col-md-3 control-label">{Lang::T("Status")}</label>
                         <div class="col-md-5">
                             <select name="enabled" id="enabled" class="form-control">
                                 <option value="1"
@@ -77,7 +77,7 @@
                         <p class="help-block col-md-4">&nbsp;</p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T("Content")}</label>
+                        <label for="summernote" class="col-md-3 control-label">{Lang::T("Content")}</label>
                         <div class="col-md-9">
                             <textarea name="content" rows="15" id="summernote"
                                 class="form-control">{$widget['content']}</textarea>

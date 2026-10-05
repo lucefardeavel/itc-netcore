@@ -1,12 +1,12 @@
 {include file="sections/header.tpl"}
 <ul class="nav nav-tabs nav-justified">
-    <li role="presentation" {if $tipeUser=='Admin'} class="active" {/if}><a
+    <li {if $tipeUser=='Admin'} class="active" {/if}><a
             href="{Text::url('widgets&user=Admin')}">Admin</a></li>
-    <li role="presentation" {if $tipeUser=='Agent'} class="active" {/if}><a
+    <li {if $tipeUser=='Agent'} class="active" {/if}><a
             href="{Text::url('widgets&user=Agent')}">Agent</a></li>
-    <li role="presentation" {if $tipeUser=='Sales'} class="active" {/if}><a
+    <li {if $tipeUser=='Sales'} class="active" {/if}><a
             href="{Text::url('widgets&user=Sales')}">Sales</a></li>
-    <li role="presentation" {if $tipeUser=='Customer'} class="active" {/if}><a
+    <li {if $tipeUser=='Customer'} class="active" {/if}><a
             href="{Text::url('widgets&user=Customer')}">Customer</a></li>
 </ul>
 <br>
@@ -25,17 +25,15 @@
                                     <td>
                                         <div class="input-group">
                                             <span class="input-group-addon">{Lang::T("Sequence")}</span>
-                                            <input type="number" style="width: 100px;" name="orders[]" value="{$w['orders']}"
-                                                class="form-control" placeholder="{Lang::T("Sequence")}">
+                                            <input type="number" style="width: 100px;" name="orders[]" value="{$w['orders']|escape}"
+                                                class="form-control" placeholder="{Lang::T("Sequence")}" aria-label="{Lang::T("Sequence")}: {$w['title']|escape}">
                                         </div>
                                         <input type="hidden" name="id[]" value="{$w['id']}">
                                     </td>
                                     <td width="130">
                                         <div class="btn-group btn-group-justified" role="group">
                                             <a data-method="post" href="{Text::url('widgets/delete/', $w['id'], '&user=', $tipeUser)}"
-                                                onclick="return ask(this, '{Lang::T("Delete this widget?")}')" class="btn btn-sm btn-danger">
-                                                <i class="glyphicon glyphicon-trash"></i>
-                                            </a>
+                                                onclick="return ask(this, '{Lang::T("Delete this widget?")}')" class="btn btn-sm btn-danger" aria-label="{Lang::T('Delete')}"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                                             <a href="{Text::url('widgets/edit/', $w['id'], '&user=', $tipeUser)}"
                                                 class="btn btn-sm btn-success">{Lang::T("Edit")}</a>
                                         </div>
@@ -91,8 +89,8 @@
                     <div class="input-group">
                         <span class="input-group-addon"><a href="{$app_url}/docs/#Dashboard%20Structure"
                                 target="_blank">{Lang::T("Structure")}</a></span>
-                        <input type="text" name="dashboard" value="{$_c[$dtipe]}" class="form-control"
-                            placeholder="{Lang::T("Dashboard")}">
+                        <input type="text" name="dashboard" value="{$_c[$dtipe]|escape}" class="form-control"
+                            placeholder="{Lang::T("Dashboard")}" aria-label="{Lang::T("Dashboard")} {Lang::T("Structure")}">
                     </div>
                     <button type="submit" class="btn btn-primary btn-block" name="save"
                         value="struct">{Lang::T("Save")}</button>

@@ -9,31 +9,31 @@
                 <form class="form-horizontal" method="post" role="form" action="{Text::url('')}odp/edit-post" >
                     <input type="hidden" name="id" value="{$d['id']}">
                     <div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Name')}</label>
+						<label for="name" class="col-md-2 control-label">{Lang::T('Name')}</label>
 						<div class="col-md-6">
 							<input type="text" class="form-control" id="name" name="name" value="{$d['name']}" readonly>
 						</div>
                     </div>
                     <div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Port Amount')}</label>
+						<label for="port_amount" class="col-md-2 control-label">{Lang::T('Port Amount')}</label>
 						<div class="col-md-6">
 							<input type="number" class="form-control" id="port_amount" name="port_amount" placeholder="8" max="16" value="{$d['port_amount']}">
 						</div>
                     </div>
                     <div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Attenuation')}</label>
+						<label for="attenuation" class="col-md-2 control-label">{Lang::T('Attenuation')}</label>
 						<div class="col-md-6">
 							<input type="text" class="form-control" id="attenuation" name="attenuation" placeholder="-18.15" value="{$d['attenuation']}">
 						</div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Address')}</label>
+                        <label for="address" class="col-md-2 control-label">{Lang::T('Address')}</label>
                         <div class="col-md-6">
                             <textarea name="address" id="address" class="form-control">{$d['address']}</textarea>
                         </div>
                     </div>
                     <div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Coordinates')}</label>
+						<label for="coordinates" class="col-md-2 control-label">{Lang::T('Coordinates')}</label>
 						<div class="col-md-6">
 							<input type="text" name="coordinates" id="coordinates" class="form-control"
                                    placeholder="6.465422, 3.406448" value="{$d['coordinates']}">
@@ -42,26 +42,26 @@
 						</div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Coverage (meters)')}</label>
+                        <label for="coverage" class="col-md-2 control-label">{Lang::T('Coverage (meters)')}</label>
                         <div class="col-md-6">
                             <input type="number" name="coverage" id="coverage" class="form-control"
                                    placeholder="500" value="{$d['coverage']}">
                         </div>
                     </div>
-					<div class="form-group">
-						<div class="col-lg-offset-2 col-lg-10">
-							<button class="btn btn-primary" onclick="return ask(this, '{Lang::T("Continue the ODP addition process?")}')" type="submit">{Lang::T('Save Changes')}</button>
-							Or <a href="{Text::url('')}odp/list">{Lang::T('Cancel')}</a>
-						</div>
-					</div>
+        {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+        <div class="nuxr-step-nav nuxr-actionbar-form">
+            <a class="nuxr-btn" href="{Text::url('')}odp/list">{Lang::T('Cancel')}</a>
+            <button class="nuxr-btn nuxr-btn-primary" onclick="return ask(this, '{Lang::T("Continue the ODP addition process?")}')" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Changes')}</button>
+        </div>
                 </form>
 			</div>
 		</div>
 	</div>
 </div>
 
+{* WP6A (OD-H): Leaflet and the map tiles load only when the operator opens the map (nuxr-shell.js).
+   WP6C: this note sits outside the literal block, where Smarty strips it (inside, it leaked into the page as text). *}
 {literal}
-    {* WP6A (OD-H): Leaflet and the map tiles load only when the operator opens the map (nuxr-shell.js) *}
     <script>
         function getLocation() {
             if (navigator.geolocation) {

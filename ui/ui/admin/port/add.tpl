@@ -7,27 +7,27 @@
 			<div class="panel-body">
 				<form class="form-horizontal" method="post" role="form" action="{Text::url('')}pool/add-port-post">
 					<div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Port Name')}</label>
+						<label for="name" class="col-md-2 control-label">{Lang::T('Port Name')}</label>
 						<div class="col-md-6">
 							<input type="text" class="form-control" id="name" name="name" placeholder="Vpn Tunnel">
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Public IP')}</label>
+						<label for="public_ip" class="col-md-2 control-label">{Lang::T('Public IP')}</label>
 						<div class="col-md-6">
 							<input type="text" class="form-control" id="public_ip" name="public_ip"
 								placeholder="12.34.56.78">
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Range Port')}</label>
+						<label for="port_range" class="col-md-2 control-label">{Lang::T('Range Port')}</label>
 						<div class="col-md-6">
 							<input type="text" class="form-control" id="port_range" name="port_range"
 								placeholder="	3000-8000">
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-2 control-label"><a
+						<label for="routers" class="col-md-2 control-label"><a
 								href="{Text::url('')}routers/add">{Lang::T('Routers')}</a></label>
 						<div class="col-md-6">
 							<select id="routers" name="routers" class="form-control select2">
@@ -37,14 +37,13 @@
 							</select>
 						</div>
 					</div>
-					<div class="form-group">
-						<div class="col-lg-offset-2 col-lg-10">
-							<button class="btn btn-primary"
+        {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+        <div class="nuxr-step-nav nuxr-actionbar-form">
+            <a class="nuxr-btn" href="{Text::url('')}pool/port">{Lang::T('Cancel')}</a>
+            <button class="nuxr-btn nuxr-btn-primary"
 								onclick="return ask(this, '{Lang::T("Continue the process of adding Ports?")}')"
-								type="submit">{Lang::T('Save')}</button>
-							Or <a href="{Text::url('')}pool/port">{Lang::T('Cancel')}</a>
-						</div>
-					</div>
+								type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save')}</button>
+        </div>
 				</form>
 
 			</div>

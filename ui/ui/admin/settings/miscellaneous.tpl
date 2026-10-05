@@ -13,7 +13,7 @@
                 <div class="panel-body">
                     <input type="hidden" name="csrf_token" value="{$csrf_token}">
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('New Version Notification')}</label>
+                        <label for="new_version_notify" class="col-md-3 control-label">{Lang::T('New Version Notification')}</label>
                         <div class="col-md-5">
                             <select name="new_version_notify" id="new_version_notify" class="form-control">
                                 <option value="enable" {if $_c['new_version_notify']=='enable' }selected="selected"
@@ -32,7 +32,7 @@
                         </p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Router Check')}</label>
+                        <label for="router_check" class="col-md-3 control-label">{Lang::T('Router Check')}</label>
                         <div class="col-md-5">
                             <select name="router_check" id="router_check" class="form-control">
                                 <option value="0" {if $_c['router_check']=='0' }selected="selected" {/if}>
@@ -52,7 +52,7 @@
                         </p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Phone OTP Required')}</label>
+                        <label for="allow_phone_otp" class="col-md-3 control-label">{Lang::T('Phone OTP Required')}</label>
                         <div class="col-md-5">
                             <select name="allow_phone_otp" id="allow_phone_otp" class="form-control">
                                 <option value="no" {if $_c['allow_phone_otp']=='no' }selected="selected" {/if}>
@@ -68,7 +68,7 @@
                         </p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('OTP Method')}</label>
+                        <label for="phone_otp_type" class="col-md-3 control-label">{Lang::T('OTP Method')}</label>
                         <div class="col-md-5">
                             <select name="phone_otp_type" id="phone_otp_type" class="form-control">
                                 <option value="sms" {if $_c['phone_otp_type']=='sms' }selected="selected" {/if}>
@@ -86,7 +86,7 @@
                                 {Lang::T('For Registration and Update Phone Number')}</small></p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Email OTP Required')}</label>
+                        <label for="allow_email_otp" class="col-md-3 control-label">{Lang::T('Email OTP Required')}</label>
                         <div class="col-md-5">
                             <select name="allow_email_otp" id="allow_email_otp" class="form-control">
                                 <option value="no" {if $_c['allow_email_otp']=='no' }selected="selected" {/if}>
@@ -102,7 +102,7 @@
                         </p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Show Bandwidth Plan')}</label>
+                        <label for="show_bandwidth_plan" class="col-md-3 control-label">{Lang::T('Show Bandwidth Plan')}</label>
                         <div class="col-md-5">
                             <select name="show_bandwidth_plan" id="show_bandwidth_plan" class="form-control">
                                 <option value="no" {if $_c['show_bandwidth_plan']=='no' }selected="selected" {/if}>
@@ -115,7 +115,7 @@
                                 {Lang::T('Display bandwidth plan for customer')}</small></p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Hotspot Auth Method')}</label>
+                        <label for="auth_method" class="col-md-3 control-label">{Lang::T('Hotspot Auth Method')}</label>
                         <div class="col-md-5">
                             <select name="hs_auth_method" id="auth_method" class="form-control">
                                 <option value="api" {if $_c['hs_auth_method']=='api' }selected="selected" {/if}>
@@ -135,7 +135,7 @@
                         </p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Radius Rest Interim-Update')}</label>
+                        <label for="frrest_interim_update" class="col-md-3 control-label">{Lang::T('Radius Rest Interim-Update')}</label>
                         <div class="col-md-5">
                             <input type="number" class="form-control" id="frrest_interim_update" name="frrest_interim_update"
                                 value="{if $_c['frrest_interim_update']}{$_c['frrest_interim_update']}{else}0{/if}">
@@ -145,7 +145,7 @@
                         </p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Check if Customer Online')}</label>
+                        <label for="check_customer_online" class="col-md-3 control-label">{Lang::T('Check if Customer Online')}</label>
                         <div class="col-md-5">
                             <select name="check_customer_online" id="check_customer_online" class="form-control">
                                 <option value="no">
@@ -161,7 +161,7 @@
                         </p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Extend Package Expiry')}</label>
+                        <label for="extend_expiry" class="col-md-3 control-label">{Lang::T('Extend Package Expiry')}</label>
                         <div class="col-md-5">
                             <select name="extend_expiry" id="extend_expiry" class="form-control">
                                 <option value="yes" {if $_c['extend_expiry']!='no' }selected="selected" {/if}>
@@ -178,15 +178,12 @@
                 </div>
             </div>
 
-            <div class="panel-body">
-                <div class="form-group">
-                    <button class="btn btn-success btn-block" name="save" value="save" type="submit">
-                        {Lang::T('Save Changes')}
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
+{* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+<div class="nuxr-step-nav nuxr-actionbar-form">
+    <button class="nuxr-btn nuxr-btn-primary" name="save" value="save" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Changes')}</button>
+</div>
 </form>
 
 {include file="sections/footer.tpl"}

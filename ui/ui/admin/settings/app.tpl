@@ -9,8 +9,8 @@
 <form class="form-horizontal" method="post" role="form" action="{Text::url('')}settings/app-post"
     enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{$csrf_token}">
-    <div class="panel" id="accordion" role="tablist" aria-multiselectable="true">
-        <div class="panel-heading" role="tab" id="General">
+    <div class="panel" id="accordion">
+        <div class="panel-heading" id="General">
             <h3 class="panel-title">
                 <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseGeneral"
                     aria-expanded="true" aria-controls="collapseGeneral">
@@ -18,10 +18,10 @@
                 </a>
             </h3>
         </div>
-        <div id="collapseGeneral" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+        <div id="collapseGeneral" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Application Name / Company Name')}</label>
+                    <label for="CompanyName" class="col-md-3 control-label">{Lang::T('Application Name / Company Name')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="CompanyName" name="CompanyName"
                             value="{$_c['CompanyName']}">
@@ -40,7 +40,7 @@
                     </span>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Company Footer')}</label>
+                    <label for="CompanyFooter" class="col-md-3 control-label">{Lang::T('Company Footer')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="CompanyFooter" name="CompanyFooter"
                             value="{$_c['CompanyFooter']}">
@@ -48,7 +48,7 @@
                     <span class="help-block col-md-4">{Lang::T('Will show below user pages')}</span>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Address')}</label>
+                    <label for="address" class="col-md-3 control-label">{Lang::T('Address')}</label>
                     <div class="col-md-5">
                         <textarea class="form-control" id="address" name="address"
                             rows="3">{Lang::htmlspecialchars($_c['address'])}</textarea>
@@ -56,13 +56,13 @@
                     <span class="help-block col-md-4">{Lang::T('You can use html tag')}</span>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Phone Number')}</label>
+                    <label for="phone" class="col-md-3 control-label">{Lang::T('Phone Number')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="phone" name="phone" value="{$_c['phone']}">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Invoice Footer')}</label>
+                    <label for="note" class="col-md-3 control-label">{Lang::T('Invoice Footer')}</label>
                     <div class="col-md-5">
                         <textarea class="form-control" id="note" name="note"
                             rows="3">{Lang::htmlspecialchars($_c['note'])}</textarea>
@@ -70,7 +70,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label"><i class="glyphicon glyphicon-print"></i>
+                    <label for="printer_cols" class="col-md-3 control-label"><i class="glyphicon glyphicon-print"></i>
                         {Lang::T('Print Max Char')}</label>
                     <div class="col-md-5">
                         <input type="number" required class="form-control" id="printer_cols" placeholder="37"
@@ -80,7 +80,7 @@
                         Printer')}</span>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Theme')}</label>
+                    <label for="theme" class="col-md-3 control-label">{Lang::T('Theme')}</label>
                     <div class="col-md-5">
                         <select name="theme" id="theme" class="form-control">
                             <option value="default" {if $_c['theme'] eq 'default' }selected="selected" {/if}>
@@ -96,9 +96,9 @@
                             target="_blank">{Lang::T('Theme Info')}</a></p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Recharge Using')}</label>
+                    <label for="nxf-payment_usings" class="col-md-3 control-label">{Lang::T('Recharge Using')}</label>
                     <div class="col-md-5">
-                        <input type="text" name="payment_usings" class="form-control" value="{$_c['payment_usings']}"
+                        <input id="nxf-payment_usings" type="text" name="payment_usings" class="form-control" value="{$_c['payment_usings']}"
                             placeholder="{Lang::T('Cash')}, {Lang::T('Bank Transfer')}">
                     </div>
                     <p class="help-block col-md-4">
@@ -107,7 +107,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Income reset date')}</label>
+                    <label for="reset_day" class="col-md-3 control-label">{Lang::T('Income reset date')}</label>
                     <div class="col-md-5">
                         <input type="number" required class="form-control" id="reset_day" placeholder="20" min="1"
                             max="28" step="1" name="reset_day" value="{$_c['reset_day']}">
@@ -115,9 +115,9 @@
                     <span class="help-block col-md-4">{Lang::T('Income will reset every this day')}</span>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Dashboard Structure')}</label>
+                    <label for="nxf-dashboard_cr" class="col-md-3 control-label">{Lang::T('Dashboard Structure')}</label>
                     <div class="col-md-5">
-                        <input type="text" name="dashboard_cr" class="form-control" value="{$_c['dashboard_cr']}"
+                        <input id="nxf-dashboard_cr" type="text" name="dashboard_cr" class="form-control" value="{$_c['dashboard_cr']}"
                             placeholder="12.7,5.12">
                     </div>
                     <p class="help-block col-md-4">
@@ -126,7 +126,7 @@
                     </p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Pretty URL')}</label>
+                    <label for="url_canonical" class="col-md-3 control-label">{Lang::T('Pretty URL')}</label>
                     <div class="col-md-5">
                         <select name="url_canonical" id="url_canonical" class="form-control">
                             <option value="no" {if $_c['url_canonical']=='no' }selected="selected" {/if}>
@@ -150,8 +150,8 @@
         </div>
     </div>
 
-    <div class="panel" id="accordion" role="tablist" aria-multiselectable="true">
-        <div class="panel-heading" role="tab" id="LoginPage">
+    <div class="panel" id="accordion">
+        <div class="panel-heading" id="LoginPage">
             <h3 class="panel-title">
                 <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseLoginPage"
                     aria-expanded="true" aria-controls="collapseLoginPage">
@@ -159,10 +159,10 @@
                 </a>
             </h3>
         </div>
-        <div id="collapseLoginPage" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+        <div id="collapseLoginPage" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Choose Template')}</label>
+                    <label for="login_page_type" class="col-md-3 control-label">{Lang::T('Choose Template')}</label>
                     <div class="col-md-5">
                         <select name="login_page_type" id="login_page_type" class="form-control">
                             <option value="default" {if $_c['login_page_type']=='default' }selected="selected" {/if}>
@@ -175,7 +175,7 @@
                 </div>
                 <div id="customFields" style="display: none;">
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Select Login Page')}</label>
+                        <label for="login_Page_template" class="col-md-3 control-label">{Lang::T('Select Login Page')}</label>
                         <div class="col-md-5">
                             <select name="login_Page_template" id="login_Page_template" class="form-control">
                                 {foreach $template_files as $template}
@@ -189,7 +189,7 @@
                             class="help-block col-md-4"><small>{Lang::T('Select your preferred login template')}</small></span>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Page Heading / Company Name')}</label>
+                        <label for="login_page_head" class="col-md-3 control-label">{Lang::T('Page Heading / Company Name')}</label>
                         <div class="col-md-5">
                             <input type="text" class="form-control" id="login_page_head" name="login_page_head"
                                 value="{$_c['login_page_head']}">
@@ -198,7 +198,7 @@
                             class="help-block col-md-4"><small>{Lang::T('This Name will be shown on the login wallpaper')}</small></span>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Page Description')}</label>
+                        <label for="login_page_description" class="col-md-3 control-label">{Lang::T('Page Description')}</label>
                         <div class="col-md-5">
                             <textarea class="form-control" id="login_page_description" name="login_page_description"
                                 rows="3">{Lang::htmlspecialchars($_c['login_page_description'])}</textarea>
@@ -255,7 +255,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="Registration">
+        <div class="panel-heading" id="Registration">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseRegistration" aria-expanded="false" aria-controls="collapseRegistration">
@@ -263,10 +263,10 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseRegistration" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseRegistration" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Allow Registration')}</label>
+                    <label for="disable_registration" class="col-md-3 control-label">{Lang::T('Allow Registration')}</label>
                     <div class="col-md-5">
                         <select name="disable_registration" id="disable_registration" class="form-control">
                             <option value="no" {if $_c['disable_registration']=='no' }selected="selected" {/if}>
@@ -287,7 +287,7 @@
                     </p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Registration Username')}</label>
+                    <label for="voucher_format" class="col-md-3 control-label">{Lang::T('Registration Username')}</label>
                     <div class="col-md-5">
                         <select name="registration_username" id="voucher_format" class="form-control">
                             <option value="username" {if $_c['registration_username']=='username' }selected="selected"
@@ -303,7 +303,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Photo Required')}</label>
+                    <label for="photo_register" class="col-md-3 control-label">{Lang::T('Photo Required')}</label>
                     <div class="col-md-5">
                         <select name="photo_register" id="photo_register" class="form-control">
                             <option value="no">
@@ -319,7 +319,7 @@
                     </p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('SMS OTP Registration')}</label>
+                    <label for="sms_otp_registration" class="col-md-3 control-label">{Lang::T('SMS OTP Registration')}</label>
                     <div class="col-md-5">
                         <select name="sms_otp_registration" id="sms_otp_registration" class="form-control">
                             <option value="no">
@@ -335,7 +335,7 @@
                     </p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('OTP Method')}</label>
+                    <label for="phone_otp_type" class="col-md-3 control-label">{Lang::T('OTP Method')}</label>
                     <div class="col-md-5">
                         <select name="phone_otp_type" id="phone_otp_type" class="form-control">
                             <option value="sms" {if $_c['phone_otp_type']=='sms' }selected="selected" {/if}>
@@ -351,7 +351,7 @@
                         {Lang::T('For Registration and Update Phone Number')}</p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Notify Admin')}</label>
+                    <label for="reg_nofify_admin" class="col-md-3 control-label">{Lang::T('Notify Admin')}</label>
                     <div class="col-md-5">
                         <select name="reg_nofify_admin" id="reg_nofify_admin" class="form-control">
                             <option value="no">
@@ -393,7 +393,7 @@
 
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="Security">
+        <div class="panel-heading" id="Security">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseSecurity" aria-expanded="false" aria-controls="collapseSecurity">
@@ -401,7 +401,7 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseSecurity" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseSecurity" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
                     <label class="col-md-3 control-label">{Lang::T('Enable Session Timeout')}</label>
@@ -416,7 +416,7 @@
                         {Lang::T('Logout Admin if not Available/Online a period of time')}</p>
                 </div>
                 <div class="form-group" id="timeout_duration_input" style="display: none;">
-                    <label class="col-md-3 control-label">{Lang::T('Timeout Duration')}</label>
+                    <label for="session_timeout_duration" class="col-md-3 control-label">{Lang::T('Timeout Duration')}</label>
                     <div class="col-md-5">
                         <input type="number" value="{$_c['session_timeout_duration']}" class="form-control"
                             name="session_timeout_duration" id="session_timeout_duration"
@@ -427,7 +427,7 @@
                     </p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Single Admin Session')}</label>
+                    <label for="single_session" class="col-md-3 control-label">{Lang::T('Single Admin Session')}</label>
                     <div class="col-md-5">
                         <select name="single_session" id="single_session" class="form-control">
                             <option value="no">
@@ -451,7 +451,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="Voucher">
+        <div class="panel-heading" id="Voucher">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseVoucher" aria-expanded="false" aria-controls="collapseVoucher">
@@ -459,10 +459,10 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseVoucher" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseVoucher" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Disable Voucher')}</label>
+                    <label for="disable_voucher" class="col-md-3 control-label">{Lang::T('Disable Voucher')}</label>
                     <div class="col-md-5">
                         <select name="disable_voucher" id="disable_voucher" class="form-control">
                             <option value="no" {if $_c['disable_voucher']=='no' }selected="selected" {/if}>
@@ -476,7 +476,7 @@
                     <p class="help-block col-md-4">{Lang::T('Voucher activation menu will be hidden')}</p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Voucher Format')}</label>
+                    <label for="voucher_format" class="col-md-3 control-label">{Lang::T('Voucher Format')}</label>
                     <div class="col-md-5">
                         <select name="voucher_format" id="voucher_format" class="form-control">
                             <option value="up" {if $_c['voucher_format']=='up' }selected="selected" {/if}>UPPERCASE
@@ -496,7 +496,7 @@
                 </div>
                 {if $_c['disable_voucher'] != 'yes'}
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Redirect URL after Activation')}</label>
+                        <label for="voucher_redirect" class="col-md-3 control-label">{Lang::T('Redirect URL after Activation')}</label>
                         <div class="col-md-5">
                             <input type="text" class="form-control" id="voucher_redirect" name="voucher_redirect"
                                 placeholder="https://192.168.88.1/status" value="{$_c['voucher_redirect']}">
@@ -515,7 +515,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="FreeRadius">
+        <div class="panel-heading" id="FreeRadius">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseFreeRadius" aria-expanded="false" aria-controls="collapseFreeRadius">
@@ -523,10 +523,10 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseFreeRadius" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseFreeRadius" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Enable Radius')}</label>
+                    <label for="radius_enable" class="col-md-3 control-label">{Lang::T('Enable Radius')}</label>
                     <div class="col-md-5">
                         <select name="radius_enable" id="radius_enable" class="form-control text-muted">
                             <option value="0">{Lang::T('No')}</option>
@@ -546,7 +546,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="ExtendPostpaidExpiration">
+        <div class="panel-heading" id="ExtendPostpaidExpiration">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseExtendPostpaidExpiration" aria-expanded="false"
@@ -555,10 +555,10 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseExtendPostpaidExpiration" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseExtendPostpaidExpiration" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Allow Extend')}</label>
+                    <label for="extend_expired" class="col-md-3 control-label">{Lang::T('Allow Extend')}</label>
                     <div class="col-md-5">
                         <select name="extend_expired" id="extend_expired" class="form-control text-muted">
                             <option value="0">{Lang::T('No')}</option>
@@ -569,16 +569,16 @@
                     <p class="help-block col-md-4">{Lang::T('Customer can request to extend expirations')}</p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Extend Days')}</label>
+                    <label for="nxf-extend_days" class="col-md-3 control-label">{Lang::T('Extend Days')}</label>
                     <div class="col-md-5">
-                        <input type="text" class="form-control" name="extend_days" placeholder="3"
+                        <input id="nxf-extend_days" type="text" class="form-control" name="extend_days" placeholder="3"
                             value="{$_c['extend_days']}">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Confirmation Message')}</label>
+                    <label for="nxf-extend_confirmation" class="col-md-3 control-label">{Lang::T('Confirmation Message')}</label>
                     <div class="col-md-5">
-                        <textarea type="text" rows="4" class="form-control" name="extend_confirmation"
+                        <textarea id="nxf-extend_confirmation" type="text" rows="4" class="form-control" name="extend_confirmation"
                             placeholder="{Lang::T('i agree to extends and will paid full after this')}">{$_c['extend_confirmation']}</textarea>
                     </div>
                 </div>
@@ -590,7 +590,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="CustomerBalanceSystem">
+        <div class="panel-heading" id="CustomerBalanceSystem">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseCustomerBalanceSystem" aria-expanded="false"
@@ -599,10 +599,10 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseCustomerBalanceSystem" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseCustomerBalanceSystem" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Enable System')}</label>
+                    <label for="enable_balance" class="col-md-3 control-label">{Lang::T('Enable System')}</label>
                     <div class="col-md-5">
                         <select name="enable_balance" id="enable_balance" class="form-control">
                             <option value="no" {if $_c['enable_balance']=='no' }selected="selected" {/if}>
@@ -616,7 +616,7 @@
                     <p class="help-block col-md-4">{Lang::T('Customer can deposit money to buy voucher')}</p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Allow Transfer')}</label>
+                    <label for="allow_balance_transfer" class="col-md-3 control-label">{Lang::T('Allow Transfer')}</label>
                     <div class="col-md-5">
                         <select name="allow_balance_transfer" id="allow_balance_transfer" class="form-control">
                             <option value="no" {if $_c['allow_balance_transfer']=='no' }selected="selected" {/if}>
@@ -628,14 +628,14 @@
                     <p class="help-block col-md-4">{Lang::T('Allow balance transfer between customers')}</p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Minimum Balance Transfer')}</label>
+                    <label for="minimum_transfer" class="col-md-3 control-label">{Lang::T('Minimum Balance Transfer')}</label>
                     <div class="col-md-5">
                         <input type="number" class="form-control" id="minimum_transfer" name="minimum_transfer"
                             value="{$_c['minimum_transfer']}">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Allow Balance Custom
+                    <label for="allow_balance_custom" class="col-md-3 control-label">{Lang::T('Allow Balance Custom
                         Amount')}</label>
                     <div class="col-md-5">
                         <select name="allow_balance_custom" id="allow_balance_custom" class="form-control">
@@ -660,30 +660,29 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="TelegramNotification">
+        <div class="panel-heading" id="TelegramNotification">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseTelegramNotification" aria-expanded="false"
                     aria-controls="collapseTelegramNotification">
-                    {Lang::T('Telegram Notification')}
+                    {Lang::T('Telegram Notification')}</a>
                     <div class="btn-group pull-right">
                         <a class="btn btn-success btn-xs" style="color: black;" href="javascript:testTg()">Test TG</a>
                     </div>
-                </a>
             </h4>
         </div>
-        <div id="collapseTelegramNotification" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseTelegramNotification" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Telegram Bot Token')}</label>
+                    <label for="telegram_bot" class="col-md-3 control-label">{Lang::T('Telegram Bot Token')}</label>
                     <div class="col-md-5">
                         <input type="password" class="form-control" id="telegram_bot" name="telegram_bot"
-                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'"
+                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek
                             value="{$_c['telegram_bot']}" placeholder="123456:asdasgdkuasghddlashdashldhalskdklasd">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Telegram User/Channel/Group ID')}</label>
+                    <label for="telegram_target_id" class="col-md-3 control-label">{Lang::T('Telegram User/Channel/Group ID')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="telegram_target_id" name="telegram_target_id"
                             value="{$_c['telegram_target_id']}" placeholder="12345678">
@@ -700,23 +699,22 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="SMSNotification">
+        <div class="panel-heading" id="SMSNotification">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseSMSNotification" aria-expanded="false" aria-controls="collapseSMSNotification">
-                    {Lang::T('SMS Notification')}
+                    {Lang::T('SMS Notification')}</a>
                     <div class="btn-group pull-right">
                         <a class="btn btn-success btn-xs" style="color: black;" href="javascript:testSms()">
                             {Lang::T('Test SMS')}
                         </a>
                     </div>
-                </a>
             </h4>
         </div>
-        <div id="collapseSMSNotification" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseSMSNotification" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('SMS Server URL')}</label>
+                    <label for="sms_url" class="col-md-3 control-label">{Lang::T('SMS Server URL')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="sms_url" name="sms_url" value="{$_c['sms_url']}"
                             placeholder="https://domain/?param_number=[number]&param_text=[text]&secret=">
@@ -741,7 +739,7 @@
                     </p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Mikrotik SMS Command')}</label>
+                    <label for="mikrotik_sms_command" class="col-md-3 control-label">{Lang::T('Mikrotik SMS Command')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="mikrotik_sms_command" name="mikrotik_sms_command"
                             value="{$_c['mikrotik_sms_command']}" placeholder="mikrotik_sms_command">
@@ -759,22 +757,21 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="WhatsappNotification">
+        <div class="panel-heading" id="WhatsappNotification">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseWhatsappNotification" aria-expanded="false"
                     aria-controls="collapseWhatsappNotification">
-                    {Lang::T('Whatsapp Notification')}
+                    {Lang::T('Whatsapp Notification')}</a>
                     <div class="btn-group pull-right">
                         <a class="btn btn-success btn-xs" style="color: black;" href="javascript:testWa()">Test WA</a>
                     </div>
-                </a>
             </h4>
         </div>
-        <div id="collapseWhatsappNotification" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseWhatsappNotification" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('WhatsApp Server URL')}</label>
+                    <label for="wa_url" class="col-md-3 control-label">{Lang::T('WhatsApp Server URL')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="wa_url" name="wa_url" value="{$_c['wa_url']}"
                             placeholder="https://domain/?param_number=[number]&param_text=[text]&secret=">
@@ -793,22 +790,21 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="EmailNotification">
+        <div class="panel-heading" id="EmailNotification">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseEmailNotification" aria-expanded="false" aria-controls="collapseEmailNotification">
-                    {Lang::T('Email Notification')}
+                    {Lang::T('Email Notification')}</a>
                     <div class="btn-group pull-right">
                         <a class="btn btn-success btn-xs" style="color: black;" href="javascript:testEmail()">Test
                             Email</a>
                     </div>
-                </a>
             </h4>
         </div>
-        <div id="collapseEmailNotification" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseEmailNotification" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">SMTP Host : Port</label>
+                    <label for="smtp_host" class="col-md-3 control-label">SMTP Host : Port</label>
                     <div class="col-md-4">
                         <input type="text" class="form-control" id="smtp_host" name="smtp_host"
                             value="{$_c['smtp_host']}" placeholder="smtp.host.tld">
@@ -820,22 +816,22 @@
                     <p class="help-block col-md-4">{Lang::T('Empty this to use internal mail() PHP')}</p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('SMTP Username')}</label>
+                    <label for="smtp_user" class="col-md-3 control-label">{Lang::T('SMTP Username')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="smtp_user" name="smtp_user"
                             value="{$_c['smtp_user']}" placeholder="user@host.tld">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('SMTP Password')}</label>
+                    <label for="smtp_pass" class="col-md-3 control-label">{Lang::T('SMTP Password')}</label>
                     <div class="col-md-5">
                         <input type="password" class="form-control" id="smtp_pass" name="smtp_pass"
                             value="{$_c['smtp_pass']}" onmouseleave="this.type = 'password'"
-                            onmouseenter="this.type = 'text'">
+                            onmouseenter="this.type = 'text'" data-nuxr-peek>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('SMTP Security')}</label>
+                    <label for="smtp_ssltls" class="col-md-3 control-label">{Lang::T('SMTP Security')}</label>
                     <div class="col-md-5">
                         <select name="smtp_ssltls" id="smtp_ssltls" class="form-control">
                             <option value="" {if $_c['smtp_ssltls']=='' }selected="selected" {/if}>Not Secure
@@ -849,14 +845,14 @@
                     <p class="help-block col-md-4">UPPERCASE lowercase RaNdoM</p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">Mail {Lang::T('From')}</label>
+                    <label for="mail_from" class="col-md-3 control-label">Mail {Lang::T('From')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="mail_from" name="mail_from"
                             value="{$_c['mail_from']}" placeholder="noreply@host.tld">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Mail Reply To')}</label>
+                    <label for="mail_reply_to" class="col-md-3 control-label">{Lang::T('Mail Reply To')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="mail_reply_to" name="mail_reply_to"
                             value="{$_c['mail_reply_to']}" placeholder="support@host.tld">
@@ -875,7 +871,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="UserNotification">
+        <div class="panel-heading" id="UserNotification">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseUserNotification" aria-expanded="false" aria-controls="collapseUserNotification">
@@ -883,10 +879,10 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseUserNotification" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseUserNotification" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Expired Notification')}</label>
+                    <label for="user_notification_expired" class="col-md-3 control-label">{Lang::T('Expired Notification')}</label>
                     <div class="col-md-5">
                         <select name="user_notification_expired" id="user_notification_expired" class="form-control">
                             <option value="none">{Lang::T('None')}</option>
@@ -901,7 +897,7 @@
                     <p class="help-block col-md-4">{Lang::T('User will get notification when package expired')}</p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Payment Notification')}</label>
+                    <label for="user_notification_payment" class="col-md-3 control-label">{Lang::T('Payment Notification')}</label>
                     <div class="col-md-5">
                         <select name="user_notification_payment" id="user_notification_payment" class="form-control">
                             <option value="none">{Lang::T('None')}</option>
@@ -917,7 +913,7 @@
                         {Lang::T('User will get invoice notification when buy package or package refilled')}</p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Reminder Notification')}</label>
+                    <label for="user_notification_reminder" class="col-md-3 control-label">{Lang::T('Reminder Notification')}</label>
                     <div class="col-md-5">
                         <select name="user_notification_reminder" id="user_notification_reminder" class="form-control">
                             <option value="none">{Lang::T('None')}</option>
@@ -956,7 +952,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="TawkToChatWidget">
+        <div class="panel-heading" id="TawkToChatWidget">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseTawkToChatWidget" aria-expanded="false" aria-controls="collapseTawkToChatWidget">
@@ -964,10 +960,10 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseTawkToChatWidget" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseTawkToChatWidget" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">https://tawk.to/chat/</label>
+                    <label for="tawkto" class="col-md-3 control-label">https://tawk.to/chat/</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="tawkto" name="tawkto" value="{$_c['tawkto']}"
                             placeholder="62f1ca7037898912e961f5/1ga07df">
@@ -975,7 +971,7 @@
                     <p class="help-block col-md-4">{Lang::T('From Direct Chat Link.')}</p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">Tawk.to Javascript API key</label>
+                    <label for="tawkto_api_key" class="col-md-3 control-label">Tawk.to Javascript API key</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="tawkto_api_key" name="tawkto_api_key"
                             value="{$_c['tawkto_api_key']}" placeholder="39e52264cxxxxxxxxxxxxxdd078af5342e8">
@@ -993,7 +989,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="APIKey">
+        <div class="panel-heading" id="APIKey">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseAPIKey" aria-expanded="false" aria-controls="collapseAPIKey">
@@ -1001,7 +997,7 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseAPIKey" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseAPIKey" class="panel-collapse collapse">
             <div class="panel-body">
                 {* WP2 / OD-3: the global API key is disabled. Staff obtain personal, revocable a2 tokens by
                    logging in through the API; the server needs a dedicated $api_secret in config.php. *}
@@ -1014,7 +1010,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="Proxy">
+        <div class="panel-heading" id="Proxy">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseProxy"
                     aria-expanded="false" aria-controls="collapseProxy">
@@ -1022,21 +1018,21 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseProxy" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseProxy" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Proxy Server')}</label>
+                    <label for="http_proxy" class="col-md-3 control-label">{Lang::T('Proxy Server')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="http_proxy" name="http_proxy"
                             value="{$_c['http_proxy']}" placeholder="127.0.0.1:3128">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Proxy Server Login')}</label>
+                    <label for="http_proxyauth" class="col-md-3 control-label">{Lang::T('Proxy Server Login')}</label>
                     <div class="col-md-5">
                         <input type="password" class="form-control" id="http_proxyauth" name="http_proxyauth"
                             autocomplete="off" value="{$_c['http_proxyauth']}" placeholder="username:password"
-                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'">
+                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek>
                     </div>
                 </div>
                 <button class="btn btn-success btn-block" type="submit">
@@ -1047,7 +1043,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="TaxSystem">
+        <div class="panel-heading" id="TaxSystem">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseTaxSystem" aria-expanded="false" aria-controls="collapseTaxSystem">
@@ -1055,10 +1051,10 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseTaxSystem" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseTaxSystem" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Enable Tax System')}</label>
+                    <label for="enable_tax" class="col-md-3 control-label">{Lang::T('Enable Tax System')}</label>
                     <div class="col-md-5">
                         <select name="enable_tax" id="enable_tax" class="form-control">
                             <option value="no" {if $_c['enable_tax']=='no' }selected="selected" {/if}>
@@ -1072,7 +1068,7 @@
                     <p class="help-block col-md-4">{Lang::T('Tax will be calculated in Internet Plan Price')}</p>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Tax Rate')}</label>
+                    <label for="tax_rate" class="col-md-3 control-label">{Lang::T('Tax Rate')}</label>
                     <div class="col-md-5">
                         <select name="tax_rate" id="tax_rate" class="form-control">
                             <option value="0.5" {if $_c['tax_rate']=='0.5' }selected="selected" {/if}>
@@ -1102,7 +1098,7 @@
                 </div>
                 <!-- Custom tax rate input field (initially hidden) -->
                 <div class="form-group" id="customTaxRate" style="display: none;">
-                    <label class="col-md-3 control-label">{Lang::T('Custome Tax Rate')}</label>
+                    <label for="custom_tax_rate" class="col-md-3 control-label">{Lang::T('Custome Tax Rate')}</label>
                     <div class="col-md-5">
                         <input type="text" value="{$_c['custom_tax_rate']}" class="form-control" name="custom_tax_rate"
                             id="custom_tax_rate" placeholder="{Lang::T('Enter Custome Tax Rate')}">
@@ -1118,7 +1114,7 @@
     </div>
 
     <div class="panel">
-        <div class="panel-heading" role="tab" id="GithubAuthentication">
+        <div class="panel-heading" id="GithubAuthentication">
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseAuthentication" aria-expanded="false" aria-controls="collapseAuthentication">
@@ -1126,10 +1122,10 @@
                 </a>
             </h4>
         </div>
-        <div id="collapseAuthentication" class="panel-collapse collapse" role="tabpanel">
+        <div id="collapseAuthentication" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Github Username')}</label>
+                    <label for="github_username" class="col-md-3 control-label">{Lang::T('Github Username')}</label>
                     <div class="col-md-5">
                         <div class="input-group">
                             <span class="input-group-addon">https://github.com/</span>
@@ -1139,11 +1135,11 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="col-md-3 control-label">{Lang::T('Github Token')}</label>
+                    <label for="github_token" class="col-md-3 control-label">{Lang::T('Github Token')}</label>
                     <div class="col-md-5">
                         <input type="password" class="form-control" id="github_token" name="github_token"
                             value="{$_c['github_token']}" placeholder="ghp_........"
-                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'">
+                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek>
                     </div>
                     <span class="help-block col-md-4"><a href="https://github.com/settings/tokens/new"
                             target="_blank">{Lang::T('Create GitHub personal access token')} (classic)</a>,

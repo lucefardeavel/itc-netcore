@@ -66,7 +66,7 @@
                 <div class="panel-heading">{Lang::T('Maintenance Mode')}</div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Status:')}</label>
+                        <label class="col-md-2 control-label" for="maintenance_mode">{Lang::T('Status:')}</label>
                         <div class="col-md-6">
                             <label class="switch">
                                 <input type="checkbox" id="maintenance_mode" value="1" name="maintenance_mode" {if
@@ -76,7 +76,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Force Logout:')}</label>
+                        <label class="col-md-2 control-label" for="maintenance_mode_logout">{Lang::T('Force Logout:')}</label>
                         <div class="col-md-6">
                             <label class="switch">
                                 <input type="checkbox" id="maintenance_mode_logout" value="1"
@@ -86,7 +86,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('End Date:')}</label>
+                        <label for="start_date" class="col-md-2 control-label">{Lang::T('End Date:')}</label>
                         <div class="col-md-6">
                             <input class="form-control" value="{$_c['maintenance_date']}" type="date" id="start_date"
                                 name="maintenance_date">

@@ -18,18 +18,18 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Package Name')}</label>
+                        <label for="name" class="col-md-2 control-label">{Lang::T('Package Name')}</label>
                         <div class="col-md-6">
                             <input type="text" required class="form-control" id="name" name="name" maxlength="40"
                                 placeholder="Topup 100">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Package Price')}</label>
+                        <label for="nxf-price" class="col-md-2 control-label">{Lang::T('Package Price')}</label>
                         <div class="col-md-6">
                             <div class="input-group">
                                 <span class="input-group-addon">{$_c['currency_code']}</span>
-                                <input type="number" class="form-control" name="price" required>
+                                <input id="nxf-price" type="number" class="form-control" name="price" required>
                             </div>
                         </div>
                         {if $_c['enable_tax'] == 'yes'}
@@ -44,12 +44,11 @@
 
                     </div>
 
-                    <div class="form-group">
-                        <div class="col-lg-offset-2 col-lg-10">
-                            <button class="btn btn-success" onclick="return ask(this, '{Lang::T("Continue the balance top-up process?")}')" type="submit">{Lang::T('Save Changes')}</button>
-                            Or <a href="{Text::url('services/balance')}">{Lang::T('Cancel')}</a>
-                        </div>
-                    </div>
+        {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+        <div class="nuxr-step-nav nuxr-actionbar-form">
+            <a class="nuxr-btn" href="{Text::url('services/balance')}">{Lang::T('Cancel')}</a>
+            <button class="nuxr-btn nuxr-btn-primary" onclick="return ask(this, '{Lang::T("Continue the balance top-up process?")}')" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Changes')}</button>
+        </div>
                 </form>
             </div>
         </div>

@@ -5,7 +5,7 @@
         <div class="panel panel-primary">
             <div class="panel-heading">{Lang::T('Backup Database')}</div>
             <form method="post" action="{Text::url('')}settings/dbbackup">
-                <div class="table-responsive">
+                <div class="table-responsive nuxr-stack">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
@@ -17,9 +17,9 @@
                         <tbody>
                             {foreach $tables as $tbl}
                                 <tr>
-                                    <td>{$tbl['name']}</td>
-                                    <td>{$tbl['rows']}</td>
-                                    <td><input type="checkbox" checked name="tables[]" value="{$tbl['name']}"></td>
+                                    <td data-label="{Lang::T('Table Name')}">{$tbl['name']|escape}</td>
+                                    <td data-label="{Lang::T('Rows')}">{$tbl['rows']}</td>
+                                    <td data-label="{Lang::T('Choose')}"><input type="checkbox" checked name="tables[]" value="{$tbl['name']|escape}" aria-label="{Lang::T('Choose')} {$tbl['name']|escape}"></td>
                                 </tr>
                             {/foreach}
                         </tbody>
@@ -44,7 +44,7 @@
             <form method="post" action="{Text::url('')}settings/dbrestore" enctype="multipart/form-data">
                 <div class="panel-body">
                     <div class="row">
-                        <div class="col-md-7"><input type="file" name="json" accept="application/json"></div>
+                        <div class="col-md-7"><input type="file" name="json" accept="application/json" aria-label="{Lang::T('Restore Database')}"></div>
                         <div class="col-md-5 text-right">
                             <button type="submit" class="btn btn-primary btn-block btn-xs" aria-label="Restore Database">
                                 <i class="fa fa-upload"></i> {Lang::T('Restore Database')}

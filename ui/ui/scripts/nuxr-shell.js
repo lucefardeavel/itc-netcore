@@ -171,6 +171,38 @@
         if (value) { value.classList.remove('is-revealed'); }
     });
 
+    /* legacy password fields that only revealed on mouse hover: a real toggle (tap / keyboard) beside the field. The
+       value is the one already in the field; nothing new is fetched or shown to anyone else. */
+    qa('input[data-nuxr-peek]').forEach(function (inp) {
+        var wrap = document.createElement('span');
+        wrap.className = 'nuxr-peek-wrap';
+        inp.parentNode.insertBefore(wrap, inp);
+        wrap.appendChild(inp);
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'nuxr-reveal nuxr-peek';
+        b.setAttribute('aria-pressed', 'false');
+        var name = inp.labels && inp.labels[0] ? inp.labels[0].textContent.trim() : (inp.getAttribute('aria-label') || '');
+        b.setAttribute('aria-label', (T.show || 'Show') + (name ? ' ' + name : ''));
+        b.innerHTML = '<i class="fa fa-eye" aria-hidden="true"></i>';
+        b.addEventListener('click', function () {
+            var on = inp.type === 'password';
+            inp.type = on ? 'text' : 'password';
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        wrap.appendChild(b);
+    });
+
+    /* legacy select2 widgets: the rendered combobox takes the name of the select it replaces (label / aria-label) */
+    window.addEventListener('load', function () {
+        qa('select.select2-hidden-accessible').forEach(function (sel) {
+            var box = sel.nextElementSibling && sel.nextElementSibling.querySelector('.select2-selection[role="combobox"]');
+            if (!box || box.getAttribute('aria-label')) { return; }
+            var name = sel.labels && sel.labels[0] ? sel.labels[0].textContent.trim() : (sel.getAttribute('aria-label') || '');
+            if (name) { box.setAttribute('aria-label', name); }
+        });
+    });
+
     /* ---------- pending state + double-submit protection (until the response; no timer re-enable) ---------- */
     document.addEventListener('submit', function (e) {
         if (e.defaultPrevented) { return; }

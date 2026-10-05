@@ -94,7 +94,7 @@
                             <tr>
                                 <th>
                                     <a href="{Text::url('export/print-by-date&')}{$filter}" class="btn btn-default"
-                                        target="_blank"><i class="ion ion-printer"></i></a>
+                                        target="_blank" aria-label="{Lang::T('Print')}"><i class="ion ion-printer" aria-hidden="true"></i></a>
                                     <a href="{Text::url('export/pdf-by-date&')}{$filter}" class="btn btn-default"><i
                                             class="fa fa-file-pdf-o"></i></a>
                                 </th>

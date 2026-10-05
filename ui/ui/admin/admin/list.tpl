@@ -70,7 +70,7 @@
                                         {* Agent accounts are never deleted in V1 (reseller identity: disable / reactivate) *}
                                         {if ($_admin['id']) neq ($ds['id']) && $ds['user_type'] neq 'Agent' && $nuxr_can.delete}
                                             <a data-method="post" href="{Text::url('settings/users-delete/',$ds['id'])}" id="{$ds['id']}"
-                                                class="btn btn-danger btn-xs" onclick="return ask(this, '{Lang::T('Delete')}?')"><i class="glyphicon glyphicon-trash"></i></a>
+                                                class="btn btn-danger btn-xs" onclick="return ask(this, '{Lang::T('Delete')}?')" aria-label="{Lang::T('Delete')}"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                                         {/if}
                                     </td>
                                     <td>{$ds['id']}</td>

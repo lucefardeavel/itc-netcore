@@ -20,19 +20,19 @@
                                         href="{Text::url('services/hotspot/')}"><span
                                             class="glyphicon glyphicon-remove-circle"></span></a>
                                 </div>
-                                <input type="text" name="name" class="form-control"
+                                <input type="text" name="name" class="form-control" aria-label="{Lang::T('Search by Name')}"
                                     placeholder="{Lang::T('Search by Name')}...">
                             </div>
                         </div>
                         <div class="col-lg-1 col-xs-4">
-                            <select class="form-control" id="type1" name="type1">
+                            <select class="form-control" id="type1" name="type1" aria-label="{Lang::T('Prepaid')} / {Lang::T('Postpaid')}">
                                 <option value="">{Lang::T('Prepaid')} &amp; {Lang::T('Postpaid')}</option>
                                 <option value="yes" {if $type1 eq 'yes' }selected{/if}>{Lang::T('Prepaid')}</option>
                                 <option value="no" {if $type1 eq 'no' }selected{/if}>{Lang::T('Postpaid')}</option>
                             </select>
                         </div>
                         <div class="col-lg-1 col-xs-4">
-                            <select class="form-control" id="type2" name="type2">
+                            <select class="form-control" id="type2" name="type2" aria-label="{Lang::T('Type')}">
                                 <option value="">{Lang::T('Type')}</option>
                                 {foreach $type2s as $t}
                                     <option value="{$t}" {if $type2 eq $t }selected{/if}>{Lang::T($t)}
@@ -41,7 +41,7 @@
                             </select>
                         </div>
                         <div class="col-lg-1 col-xs-4">
-                            <select class="form-control" id="bandwidth" name="bandwidth">
+                            <select class="form-control" id="bandwidth" name="bandwidth" aria-label="{Lang::T('Bandwidth')}">
                                 <option value="">Bandwidth</option>
                                 {foreach $bws as $b}
                                     <option value="{$b['id']}" {if $bandwidth eq $b['id'] }selected{/if}>
@@ -51,7 +51,7 @@
                             </select>
                         </div>
                         <div class="col-lg-1 col-xs-4">
-                            <select class="form-control" id="type3" name="type3">
+                            <select class="form-control" id="type3" name="type3" aria-label="{Lang::T('Category')}">
                                 <option value="">{Lang::T('Category')}</option>
                                 {foreach $type3s as $t}
                                     <option value="{$t}" {if $type3 eq $t }selected{/if}>{$t}
@@ -60,7 +60,7 @@
                             </select>
                         </div>
                         <div class="col-lg-1 col-xs-4">
-                            <select class="form-control" id="valid" name="valid">
+                            <select class="form-control" id="valid" name="valid" aria-label="{Lang::T('Validity')}">
                                 <option value="">{Lang::T('Validity')}</option>
                                 {foreach $valids as $v}
                                     <option value="{$v}" {if $valid eq $v }selected{/if}>{$v}
@@ -69,7 +69,7 @@
                             </select>
                         </div>
                         <div class="col-lg-1 col-xs-4">
-                            <select class="form-control" id="router" name="router">
+                            <select class="form-control" id="router" name="router" aria-label="{Lang::T('Location')}">
                                 <option value="">{Lang::T('Location')}</option>
                                 {foreach $routers as $r}
                                     <option value="{$r}" {if $router eq $r }selected{/if}>{$r}</option>
@@ -78,7 +78,7 @@
                             </select>
                         </div>
                         <div class="col-lg-1 col-xs-4">
-                            <select class="form-control" id="device" name="device">
+                            <select class="form-control" id="device" name="device" aria-label="{Lang::T('Device')}">
                                 <option value="">{Lang::T('Device')}</option>
                                 {foreach $devices as $r}
                                     <option value="{$r}" {if $device eq $r }selected{/if}>{$r}</option>
@@ -86,15 +86,14 @@
                             </select>
                         </div>
                         <div class="col-lg-1 col-xs-4">
-                            <select class="form-control" id="status" name="status">
+                            <select class="form-control" id="status" name="status" aria-label="{Lang::T('Status')}">
                                 <option value="-">{Lang::T('Status')}</option>
                                 <option value="1" {if $status eq '1' }selected{/if}>{Lang::T('Active')}</option>
                                 <option value="0" {if $status eq '0' }selected{/if}>{Lang::T('Not Active')}</option>
                             </select>
                         </div>
                         <div class="col-lg-1 col-xs-8">
-                            <button class="btn btn-success btn-block" type="submit"><span
-                                    class="fa fa-search"></span></button>
+                            <button class="btn btn-success btn-block" type="submit" aria-label="{Lang::T('Search')}"><span class="fa fa-search" aria-hidden="true"></span></button>
                         </div>
                         <div class="col-lg-1 col-xs-4">
                             <a href="{Text::url('services/add')}" class="btn btn-primary btn-block"
@@ -103,7 +102,7 @@
                     </div>
                 </div>
             </form>
-            <div class="table-responsive">
+            <div class="table-responsive nuxr-stack">
                 <div style="margin-left: 5px; margin-right: 5px;">
                     <table class="table table-bordered table-striped table-condensed">
                         <thead>
@@ -138,20 +137,20 @@
                             {foreach $d as $ds}
                                 <tr {if $ds['enabled'] !=1}class="danger" title="disabled" {elseif $ds['prepaid'] !='yes'
                                             }class="warning" title="Postpaid" {/if}>
-                                    <td class="headcol">{$ds['name_plan']}</td>
-                                    <td>{if $ds['prepaid'] == no}<b>Postpaid</b>{else}Prepaid{/if} {$ds['plan_type']}</td>
-                                    <td>{$ds['name_bw']}</td>
-                                    <td>{$ds['typebp']}</td>
-                                    <td>{Lang::moneyFormat($ds['price'])}
+                                    <td data-label="{Lang::T('Name')}" class="headcol">{$ds['name_plan']}</td>
+                                    <td data-label="{Lang::T('Type')}">{if $ds['prepaid'] == no}<b>Postpaid</b>{else}Prepaid{/if} {$ds['plan_type']}</td>
+                                    <td data-label="Bandwidth">{$ds['name_bw']}</td>
+                                    <td data-label="{Lang::T('Category')}">{$ds['typebp']}</td>
+                                    <td data-label="{Lang::T('Price')}">{Lang::moneyFormat($ds['price'])}
                                         {if !empty($ds['price_old'])}
                                             <sup
                                                 style="text-decoration: line-through; color: red">{Lang::moneyFormat($ds['price_old'])}</sup>
                                         {/if}
                                     </td>
-                                    <td>{$ds['validity']} {$ds['validity_unit']}</td>
-                                    <td>{$ds['time_limit']} {$ds['time_unit']}</td>
-                                    <td>{$ds['data_limit']} {$ds['data_unit']}</td>
-                                    <td>
+                                    <td data-label="{Lang::T('Validity')}">{$ds['validity']} {$ds['validity_unit']}</td>
+                                    <td data-label="{Lang::T('Time')}">{$ds['time_limit']} {$ds['time_unit']}</td>
+                                    <td data-label="{Lang::T('Data')}">{$ds['data_limit']} {$ds['data_unit']}</td>
+                                    <td data-label="{Lang::T('Location')}">
                                         {if $ds['is_radius']}
                                             <span class="label label-primary">RADIUS</span>
                                         {else}
@@ -160,18 +159,18 @@
                                             {/if}
                                         {/if}
                                     </td>
-                                    <td>{$ds['device']}</td>
-                                    <td>{if $ds['plan_expired']}<a
+                                    <td data-label="{Lang::T('Device')}">{$ds['device']}</td>
+                                    <td data-label="{Lang::T('Internet Package')}">{if $ds['plan_expired']}<a
                                             href="{Text::url('services/edit/')}{$ds['plan_expired']}">{Lang::T('Yes')}</a>{else}{Lang::T('No')}
                                         {/if}</td>
-                                    <td>{if $ds['prepaid'] == no}{$ds['expired_date']}{/if}</td>
-                                    <td>{$ds['id']}</td>
-                                    <td>
+                                    <td data-label="{Lang::T('Date')}">{if $ds['prepaid'] == no}{$ds['expired_date']}{/if}</td>
+                                    <td data-label="{Lang::T('ID')}">{$ds['id']}</td>
+                                    <td data-label="{Lang::T('Manage')}">
                                         <a href="{Text::url('services/edit/')}{$ds['id']}"
                                             class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
                                         <a data-method="post" href="{Text::url('services/delete/')}{$ds['id']}" id="{$ds['id']}"
                                             onclick="return ask(this, '{Lang::T('Delete')}?')"
-                                            class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
+                                            class="btn btn-danger btn-xs" aria-label="{Lang::T('Delete')}"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                                     </td>
                                 </tr>
                             {/foreach}

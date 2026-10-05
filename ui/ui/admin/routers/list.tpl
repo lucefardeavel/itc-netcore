@@ -19,7 +19,7 @@
                                 <div class="input-group-addon">
                                     <span class="fa fa-search"></span>
                                 </div>
-                                <input type="text" name="name" class="form-control"
+                                <input type="text" name="name" class="form-control" aria-label="{Lang::T('Search by Name')}"
                                     placeholder="{Lang::T('Search by Name')}...">
                                 <div class="input-group-btn">
                                     <button class="btn btn-success" type="submit">{Lang::T('Search')}</button>
@@ -33,7 +33,7 @@
                             </i> {Lang::T('New Router')}</a>
                     </div>&nbsp;
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive nuxr-stack">
                     <table class="table table-bordered table-striped table-condensed">
                         <thead>
                             <tr>
@@ -53,7 +53,7 @@
                         <tbody>
                             {foreach $d as $ds}
                                 <tr {if $ds['enabled'] !=1}class="danger" title="disabled" {/if}>
-                                    <td>
+                                    <td data-label="{Lang::T('Router Name')}">
                                         {if $ds['coordinates']}
                                             <a href="https://www.google.com/maps/dir//{$ds['coordinates']}/" target="_blank"
                                                 class="btn btn-default btn-xs" title="{$ds['coordinates']}"><i
@@ -61,15 +61,11 @@
                                         {/if}
                                         {$ds['name']}
                                     </td>
-                                    <td style="background-color: black; color: black;"
-                                        onmouseleave="this.style.backgroundColor = 'black';"
-                                        onmouseenter="this.style.backgroundColor = 'white';">{$ds['ip_address']}</td>
-                                    <td style="background-color: black; color: black;"
-                                        onmouseleave="this.style.backgroundColor = 'black';"
-                                        onmouseenter="this.style.backgroundColor = 'white';">{$ds['username']}</td>
-                                    <td>{$ds['description']}</td>
+                                    <td data-label="{Lang::T('IP Address')}">{include file="admin/nuxr/secret.tpl" nuxr_secret=$ds['ip_address'] nuxr_secret_label=Lang::T('IP Address')}</td>
+                                    <td data-label="{Lang::T('Username')}">{include file="admin/nuxr/secret.tpl" nuxr_secret=$ds['username'] nuxr_secret_label=Lang::T('Username')}</td>
+                                    <td data-label="{Lang::T('Description')}">{$ds['description']}</td>
                                     {if $_c['router_check']}
-                                        <td>
+                                        <td data-label="{Lang::T('Online Status')}">
                                             <span
                                                 class="label {if $ds['status'] == 'Online'}label-success {else}label-danger {/if}">
                                                 {if $ds['status'] == 'Online'}
@@ -79,17 +75,17 @@
                                                 {/if}
                                             </span>
                                         </td>
-                                        <td>{$ds['last_seen']}</td>
+                                        <td data-label="{Lang::T('Last Seen')}">{$ds['last_seen']}</td>
                                     {/if}
-                                    <td>{if $ds['enabled'] == 1}{Lang::T('Enabled')}{else}{Lang::T('Disabled')}{/if}</td>
-                                    <td>
+                                    <td data-label="{Lang::T('Status')}">{if $ds['enabled'] == 1}{Lang::T('Enabled')}{else}{Lang::T('Disabled')}{/if}</td>
+                                    <td data-label="{Lang::T('Manage')}">
                                         <a href="{Text::url('')}routers/edit/{$ds['id']}"
                                             class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
                                         <a data-method="post" href="{Text::url('')}routers/delete/{$ds['id']}" id="{$ds['id']}"
                                             onclick="return ask(this, '{Lang::T('Delete')}?')"
-                                            class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
+                                            class="btn btn-danger btn-xs" aria-label="{Lang::T('Delete')}"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                                     </td>
-                                    <td>{$ds['id']}</td>
+                                    <td data-label="ID">{$ds['id']}</td>
                                 </tr>
                             {/foreach}
                         </tbody>

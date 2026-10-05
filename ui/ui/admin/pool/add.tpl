@@ -8,25 +8,25 @@
 
                 <form class="form-horizontal" method="post" role="form" action="{Text::url('')}pool/add-post" >
                     <div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Name Pool')}</label>
+						<label for="name" class="col-md-2 control-label">{Lang::T('Name Pool')}</label>
 						<div class="col-md-6">
 							<input type="text" class="form-control" id="name" name="name">
 						</div>
                     </div>
                     <div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Local IP')}</label>
+						<label for="local_ip" class="col-md-2 control-label">{Lang::T('Local IP')}</label>
 						<div class="col-md-6">
 							<input type="text" class="form-control" id="local_ip" name="local_ip" placeholder="192.168.88.1">
 						</div>
                     </div>
                     <div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Range IP')}</label>
+						<label for="ip_address" class="col-md-2 control-label">{Lang::T('Range IP')}</label>
 						<div class="col-md-6">
 							<input type="text" class="form-control" id="ip_address" name="ip_address" placeholder="192.168.88.2-192.168.88.254">
 						</div>
                     </div>
                     <div class="form-group">
-						<label class="col-md-2 control-label"><a href="{Text::url('')}routers/add">{Lang::T('Routers')}</a></label>
+						<label for="routers" class="col-md-2 control-label"><a href="{Text::url('')}routers/add">{Lang::T('Routers')}</a></label>
 						<div class="col-md-6">
 							<select id="routers" name="routers" class="form-control select2">
                                 {if $_c['radius_enable']}
@@ -38,12 +38,11 @@
                             </select>
 						</div>
                     </div>
-					<div class="form-group">
-						<div class="col-lg-offset-2 col-lg-10">
-							<button class="btn btn-primary" onclick="return ask(this, '{Lang::T("Continue the Pool addition process?")}')" type="submit">{Lang::T('Save Changes')}</button>
-							Or <a href="{Text::url('')}pool/list">{Lang::T('Cancel')}</a>
-						</div>
-					</div>
+        {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+        <div class="nuxr-step-nav nuxr-actionbar-form">
+            <a class="nuxr-btn" href="{Text::url('')}pool/list">{Lang::T('Cancel')}</a>
+            <button class="nuxr-btn nuxr-btn-primary" onclick="return ask(this, '{Lang::T("Continue the Pool addition process?")}')" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Changes')}</button>
+        </div>
                 </form>
 
 					</div>

@@ -10,47 +10,45 @@
                     <input type="hidden" name="id" value="{$d['id']}">
                     <div class="form-group">
                         <label class="col-md-3 control-label">{Lang::T('Status')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("Customer cannot buy disabled Package, but admin can recharge it, use it if you want only admin recharge it")}"
                                 data-trigger="focus" data-container="body"
                                 data-content="{Lang::T("Customer cannot buy disabled Package, but admin can recharge it, use it if you want only admin recharge it")}">?</a>
                         </label>
                         <div class="col-md-9">
-                            <input type="radio" name="enabled" value="1" {if $d['enabled'] == 1}checked{/if}> {Lang::T('Active')}
-                            <input type="radio" name="enabled" value="0" {if $d['enabled'] == 0}checked{/if}> {Lang::T('Not Active')}
+                            <label class="radio-inline"><input type="radio" name="enabled" value="1" {if $d['enabled'] == 1}checked{/if}> {Lang::T('Active')}</label>
+                            <label class="radio-inline"><input type="radio" name="enabled" value="0" {if $d['enabled'] == 0}checked{/if}> {Lang::T('Not Active')}</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-md-3 control-label">{Lang::T('Type')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("Postpaid will have fix expired date")}"
                                 data-trigger="focus" data-container="body"
                                 data-content="{Lang::T("Postpaid will have fix expired date")}">?</a>
                         </label>
                         <div class="col-md-9">
-                            <input type="radio" name="prepaid" onclick="prePaid()" value="yes"
-                                {if $d['prepaid'] == 'yes'}checked{/if}>
-                            {Lang::T('Prepaid')}
-                            <input type="radio" name="prepaid" onclick="postPaid()" value="no"
-                                {if $d['prepaid'] == 'no'}checked{/if}> {Lang::T('Postpaid')}
+                            <label class="radio-inline"><input type="radio" name="prepaid" onclick="prePaid()" value="yes"
+                                {if $d['prepaid'] == 'yes'}checked{/if}> {Lang::T('Prepaid')}</label>
+                            <label class="radio-inline"><input type="radio" name="prepaid" onclick="postPaid()" value="no"
+                                {if $d['prepaid'] == 'no'}checked{/if}> {Lang::T('Postpaid')}</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-md-3 control-label">{Lang::T('Package Type')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("Personal Package will only show to personal Customer, Business package will only show to Business Customer")}"
                                 data-trigger="focus" data-container="body"
                                 data-content="{Lang::T("Personal Package will only show to personal Customer, Business package will only show to Business Customer")}">?</a>
                         </label>
                         <div class="col-md-9">
-                            <input type="radio" name="plan_type" value="Personal"
-                                {if $d['plan_type'] == 'Personal'}checked{/if}>
-                            {Lang::T('Personal')}
-                            <input type="radio" name="plan_type" value="Business"
-                                {if $d['plan_type'] == 'Business'}checked{/if}> {Lang::T('Business')}
+                            <label class="radio-inline"><input type="radio" name="plan_type" value="Personal"
+                                {if $d['plan_type'] == 'Personal'}checked{/if}> {Lang::T('Personal')}</label>
+                            <label class="radio-inline"><input type="radio" name="plan_type" value="Business"
+                                {if $d['plan_type'] == 'Business'}checked{/if}> {Lang::T('Business')}</label>
                         </div>
                     </div>
                     {if $_c['radius_enable'] and $d['is_radius']}
                         <div class="form-group">
                             <label class="col-md-3 control-label">Radius
-                                <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                                <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("If you enable Radius, choose device to radius, except if you have custom device.")}"
                                     data-trigger="focus" data-container="body"
                                     data-content="{Lang::T("If you enable Radius, choose device to radius, except if you have custom device.")}">?</a>
                             </label>
@@ -60,8 +58,8 @@
                         </div>
                     {/if}
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Device')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                        <label for="device" class="col-md-3 control-label">{Lang::T('Device')}
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("This Device are the logic how PHPNuxBill Communicate with Mikrotik or other Devices")}"
                                 data-trigger="focus" data-container="body"
                                 data-content="{Lang::T("This Device are the logic how PHPNuxBill Communicate with Mikrotik or other Devices")}">?</a>
                         </label>
@@ -74,7 +72,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Package Name')}</label>
+                        <label for="name" class="col-md-3 control-label">{Lang::T('Package Name')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="name" name="name" maxlength="40"
                                 value="{$d['name_plan']}">
@@ -83,23 +81,22 @@
                     <div class="form-group">
                         <label class="col-md-3 control-label">{Lang::T('Package Type')}</label>
                         <div class="col-md-9">
-                            <input type="radio" id="Unlimited" name="typebp" value="Unlimited"
-                                {if $d['typebp'] eq 'Unlimited'} checked {/if}> {Lang::T('Unlimited')}
-                            <input type="radio" id="Limited" name="typebp" value="Limited"
-                                {if $d['typebp'] eq 'Limited'} checked {/if}>
-                            {Lang::T('Limited')}
+                            <label class="radio-inline"><input type="radio" id="Unlimited" name="typebp" value="Unlimited"
+                                {if $d['typebp'] eq 'Unlimited'} checked {/if}> {Lang::T('Unlimited')}</label>
+                            <label class="radio-inline"><input type="radio" id="Limited" name="typebp" value="Limited"
+                                {if $d['typebp'] eq 'Limited'} checked {/if}> {Lang::T('Limited')}</label>
                         </div>
                     </div>
                     <div {if $d['typebp'] eq 'Unlimited'} style="display:none;" {/if} id="Type">
                         <div class="form-group">
                             <label class="col-md-3 control-label">{Lang::T('Limit Type')}</label>
                             <div class="col-md-9">
-                                <input type="radio" id="Time_Limit" name="limit_type" value="Time_Limit"
-                                    {if $d['limit_type'] eq 'Time_Limit'} checked {/if}> {Lang::T('Time Limit')}
-                                <input type="radio" id="Data_Limit" name="limit_type" value="Data_Limit"
-                                    {if $d['limit_type'] eq 'Data_Limit'} checked {/if}> {Lang::T('Data Limit')}
-                                <input type="radio" id="Both_Limit" name="limit_type" value="Both_Limit"
-                                    {if $d['limit_type'] eq 'Both_Limit'} checked {/if}> {Lang::T('Both Limit')}
+                                <label class="radio-inline"><input type="radio" id="Time_Limit" name="limit_type" value="Time_Limit"
+                                    {if $d['limit_type'] eq 'Time_Limit'} checked {/if}> {Lang::T('Time Limit')}</label>
+                                <label class="radio-inline"><input type="radio" id="Data_Limit" name="limit_type" value="Data_Limit"
+                                    {if $d['limit_type'] eq 'Data_Limit'} checked {/if}> {Lang::T('Data Limit')}</label>
+                                <label class="radio-inline"><input type="radio" id="Both_Limit" name="limit_type" value="Both_Limit"
+                                    {if $d['limit_type'] eq 'Both_Limit'} checked {/if}> {Lang::T('Both Limit')}</label>
                             </div>
                         </div>
                     </div>
@@ -107,13 +104,13 @@
                     {elseif ($d['time_limit']) eq '0'}
                         style="display:none;" {/if} id="TimeLimit">
                         <div class="form-group">
-                            <label class="col-md-3 control-label">{Lang::T('Time Limit')}</label>
+                            <label for="time_limit" class="col-md-3 control-label">{Lang::T('Time Limit')}</label>
                             <div class="col-md-3">
                                 <input type="text" class="form-control" id="time_limit" name="time_limit"
                                     value="{$d['time_limit']}">
                             </div>
                             <div class="col-md-6">
-                                <select class="form-control" id="time_unit" name="time_unit">
+                                <select class="form-control" id="time_unit" name="time_unit" aria-label="{Lang::T('Time Limit')} ({Lang::T('Unit')})">
                                     <option value="Hrs" {if $d['time_unit'] eq 'Hrs'} selected {/if}>{Lang::T('Hrs')}
                                     </option>
                                     <option value="Mins" {if $d['time_unit'] eq 'Mins'} selected {/if}>{Lang::T('Mins')}
@@ -126,13 +123,13 @@
                     {elseif ($d['data_limit']) eq '0'}
                         style="display:none;" {/if} id="DataLimit">
                         <div class="form-group">
-                            <label class="col-md-3 control-label">{Lang::T('Data Limit')}</label>
+                            <label for="data_limit" class="col-md-3 control-label">{Lang::T('Data Limit')}</label>
                             <div class="col-md-3">
                                 <input type="text" class="form-control" id="data_limit" name="data_limit"
                                     value="{$d['data_limit']}">
                             </div>
                             <div class="col-md-6">
-                                <select class="form-control" id="data_unit" name="data_unit">
+                                <select class="form-control" id="data_unit" name="data_unit" aria-label="{Lang::T('Data Limit')} ({Lang::T('Unit')})">
                                     <option value="MB" {if $d['data_unit'] eq 'MB'} selected {/if}>MBs</option>
                                     <option value="GB" {if $d['data_unit'] eq 'GB'} selected {/if}>GBs</option>
                                 </select>
@@ -140,7 +137,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label"><a
+                        <label for="id_bw" class="col-md-3 control-label"><a
                                 href="{Text::url('bandwidth/add')}">{Lang::T('Bandwidth Name')}</a></label>
                         <div class="col-md-9">
                             <select id="id_bw" name="id_bw" class="form-control select2">
@@ -152,11 +149,11 @@
                         </div>
                     </div>
                     <div class="form-group has-success">
-                        <label class="col-md-3 control-label">{Lang::T('Package Price')}</label>
+                        <label for="nxf-price" class="col-md-3 control-label">{Lang::T('Package Price')}</label>
                         <div class="col-md-9">
                             <div class="input-group">
                                 <span class="input-group-addon">{$_c['currency_code']}</span>
-                                <input type="number" class="form-control" name="price" value="{$d['price']}" required>
+                                <input id="nxf-price" type="number" class="form-control" name="price" value="{$d['price']}" required>
                             </div>
                         </div>
                         {if $_c['enable_tax'] == 'yes'}
@@ -170,18 +167,18 @@
                         {/if}
                     </div>
                     <div class="form-group has-warning">
-                        <label class="col-md-3 control-label">{Lang::T('Price Before Discount')}</label>
+                        <label for="nxf-price_old" class="col-md-3 control-label">{Lang::T('Price Before Discount')}</label>
                         <div class="col-md-9">
                             <div class="input-group">
                                 <span class="input-group-addon">{$_c['currency_code']}</span>
-                                <input type="number" class="form-control" name="price_old" value="{$d['price_old']}">
+                                <input id="nxf-price_old" type="number" class="form-control" name="price_old" value="{$d['price_old']}">
                             </div>
                             <p class="help-block">{Lang::T('For Discount Rate, this is price before get discount, must be more expensive with real price')}</p>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Shared Users')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                        <label for="sharedusers" class="col-md-3 control-label">{Lang::T('Shared Users')}
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("How many devices can online in one Customer account")}"
                                 data-trigger="focus" data-container="body"
                                 data-content="{Lang::T("How many devices can online in one Customer account")}">?</a>
                         </label>
@@ -191,13 +188,13 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Package Validity')}</label>
+                        <label for="validity" class="col-md-3 control-label">{Lang::T('Package Validity')}</label>
                         <div class="col-md-3">
                             <input type="text" class="form-control" id="validity" name="validity"
                                 value="{$d['validity']}">
                         </div>
                         <div class="col-md-6">
-                            <select class="form-control" id="validity_unit" name="validity_unit">
+                            <select class="form-control" id="validity_unit" name="validity_unit" aria-label="{Lang::T('Validity')} ({Lang::T('Unit')})">
                                 {if $d['prepaid'] == yes}
                                     <option value="Mins" {if $d['validity_unit'] eq 'Mins'} selected {/if}>{Lang::T('Mins')}
                                     </option>
@@ -217,20 +214,20 @@
                         </div>
                     </div>
                     <div class="form-group {if $d['prepaid'] == yes}hidden{/if}" id="expired_date">
-                        <label class="col-md-3 control-label">{Lang::T('Expired Date')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                        <label for="nxf-expired_date" class="col-md-3 control-label">{Lang::T('Expired Date')}
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("Expired will be this date every month")}"
                                 data-trigger="focus" data-container="body"
                                 data-content="{Lang::T("Expired will be this date every month")}">?</a>
                         </label>
                         <div class="col-md-9">
-                            <input type="number" class="form-control" name="expired_date" maxlength="2"
+                            <input id="nxf-expired_date" type="number" class="form-control" name="expired_date" maxlength="2"
                                 value="{if $d['expired_date']}{$d['expired_date']}{else}20{/if}" min="1" max="28"
                                 step="1">
                         </div>
                     </div>
                     <span id="routerChoose" class="{if $d['is_radius']}hidden{/if}">
                         <div class="form-group">
-                            <label class="col-md-3 control-label"><a
+                            <label for="routers" class="col-md-3 control-label"><a
                                     href="{Text::url('routers/add')}">{Lang::T('Router Name')}</a></label>
                             <div class="col-md-9">
                                 <input type="text" class="form-control" id="routers" name="routers"
@@ -240,7 +237,7 @@
                     </span>
                     <legend>{Lang::T('Expired Action')} <sub>{Lang::T('Optional')}</sub></legend>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Expired Internet Package')}</label>
+                        <label for="plan_expired" class="col-md-3 control-label">{Lang::T('Expired Internet Package')}</label>
                         <div class="col-md-9">
                             <select id="plan_expired" name="plan_expired" class="form-control select2">
                                 <option value='0'>{Lang::T('Default - Remove Customer')}</option>
@@ -276,12 +273,11 @@
             </div>
         {/if}
     </div>
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-9">
-            <button class="btn btn-success" onclick="return ask(this, '{Lang::T("Continue the process of changing Hotspot Package data?")}')" type="submit">{Lang::T('Save Changes')}</button>
-            {Lang::T("Or")} <a href="{Text::url('services/hotspot')}">{Lang::T('Cancel')}</a>
+        {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+        <div class="nuxr-step-nav nuxr-actionbar-form">
+            <a class="nuxr-btn" href="{Text::url('services/hotspot')}">{Lang::T('Cancel')}</a>
+            <button class="nuxr-btn nuxr-btn-primary" onclick="return ask(this, '{Lang::T("Continue the process of changing Hotspot Package data?")}')" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Changes')}</button>
         </div>
-    </div>
 </form>
 
 <script>
@@ -333,10 +329,12 @@
 
 <script>
     CodeMirror.fromTextArea(document.getElementById('code'), {
+        screenReaderLabel: '{Lang::T('on-login / on-up')|escape:'javascript'}', // WP6C: the editor's input gets a name
         lineNumbers: true,
         mode: 'text/x-perl',
     });
     CodeMirror.fromTextArea(document.getElementById('code2'), {
+        screenReaderLabel: '{Lang::T('on-logout / on-down')|escape:'javascript'}', // WP6C: the editor's input gets a name
         lineNumbers: true,
         mode: 'text/x-perl',
     });

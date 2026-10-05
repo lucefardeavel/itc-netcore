@@ -106,9 +106,9 @@
 <form id="" method="post" action="">
     <div class="input-group">
         <div class="input-group-addon">
-            <a href=""><span class="fa fa-refresh"></span></a>
+            <a href="" aria-label="{Lang::T('Refresh')}"><span class="fa fa-refresh" aria-hidden="true"></span></a>
         </div>
-        <input type="text" name="search" class="form-control" value="{$search}" placeholder="{Lang::T('Search')}...">
+        <input type="search" name="search" class="form-control" value="{$search|escape}" aria-label="{Lang::T('Search')}" placeholder="{Lang::T('Search')}...">
         <div class="input-group-btn">
             <button class="btn btn-success" type="submit">{Lang::T('Search Coupons')}</button>
         </div>
@@ -130,11 +130,12 @@
     <div class="panel-heading">
         &nbsp;
     </div>
-    <div class="container">
+    {* WP6C: the fixed-width .container overflowed the tablet content column; the list stacks into cards when narrow *}
+    <div class="table-responsive nuxr-stack">
         <table id="datatable" class="table table-bordered table-striped table-condensed">
             <thead>
                 <tr>
-                    <th><input type="checkbox" id="select-all"></th>
+                    <th><input type="checkbox" id="select-all" aria-label="{Lang::T('Select all')}"></th>
                     <th>{Lang::T('Code')}</th>
                     <th>{Lang::T('Type')}</th>
                     <th>{Lang::T('Value')}</th>
@@ -155,18 +156,14 @@
                 {if $coupons}
                     {foreach $coupons as $coupon}
                         <tr>
-                            <td><input type="checkbox" name="coupon_ids[]" value="{$coupon['id']}"></td>
-                            <td style="background-color: black; color: black;"
-                                onmouseleave="this.style.backgroundColor = 'black';"
-                                onmouseenter="this.style.backgroundColor = 'white';">
-                                {$coupon['code']}
-                            </td>
-                            <td>{$coupon['type']}</td>
-                            <td>{$coupon['value']}</td>
-                            <td>{$coupon['description']}</td>
-                            <td>{$coupon['max_usage']}</td>
-                            <td>{$coupon['usage_count']}</td>
-                            <td>
+                            <td data-label=""><input type="checkbox" name="coupon_ids[]" value="{$coupon['id']}" aria-label="{Lang::T('Select')} #{$coupon['id']|escape}"></td>
+                            <td data-label="{Lang::T('Code')}">{include file="admin/nuxr/secret.tpl" nuxr_secret=$coupon['code'] nuxr_secret_label=Lang::T('Code')}</td>
+                            <td data-label="{Lang::T('Type')}">{$coupon['type']}</td>
+                            <td data-label="{Lang::T('Value')}">{$coupon['value']}</td>
+                            <td data-label="{Lang::T('Description')}">{$coupon['description']}</td>
+                            <td data-label="{Lang::T('Max Usage')}">{$coupon['max_usage']}</td>
+                            <td data-label="{Lang::T('Usage Count')}">{$coupon['usage_count']}</td>
+                            <td data-label="{Lang::T('Status')}">
                                 {if $coupon['status'] == 'inactive'}
                                     <span class="label label-danger">{Lang::T('Inactive')}</span>
                                 {elseif $coupon['status'] == 'active'}
@@ -175,18 +172,18 @@
                                     <span class="label label-primary">{Lang::T('Unknown')}</span>
                                 {/if}
                             </td>
-                            <td>{$coupon['min_order_amount']}</td>
-                            <td>{$coupon['max_discount_amount']}</td>
-                            <td>{$coupon['start_date']}</td>
-                            <td>{$coupon['end_date']}</td>
-                            <td>{$coupon['created_at']}</td>
-                            <td>{$coupon['updated_at']}</td>
+                            <td data-label="{Lang::T('Min Order')}">{$coupon['min_order_amount']}</td>
+                            <td data-label="{Lang::T('Max Discount')}">{$coupon['max_discount_amount']}</td>
+                            <td data-label="{Lang::T('Start Date')}">{$coupon['start_date']}</td>
+                            <td data-label="{Lang::T('End Date')}">{$coupon['end_date']}</td>
+                            <td data-label="{Lang::T('Created Date')}">{$coupon['created_at']}</td>
+                            <td data-label="{Lang::T('Updated Date')}">{$coupon['updated_at']}</td>
                             <!-- <td>{if $coupon['admin_name']}
                         <a href="{Text::url('settings/users-view/', $coupon['generated_by'])}">{$coupon['admin_name']}</a>
                         {else} -
                         {/if}
                     </td> -->
-                            <td colspan="10" style="text-align: center;">
+                            <td data-label="{Lang::T('Action')}" colspan="10" style="text-align: center;">
                                 <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                                     <a href="{Text::url('coupons/edit/', $coupon['id'], '&token=', $csrf_token)}"
                                         id="{$coupon['id']}" class="btn btn-success btn-xs">{Lang::T('Edit')}</a>

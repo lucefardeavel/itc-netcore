@@ -19,7 +19,7 @@
                                 <div class="input-group-addon">
                                     <span class="fa fa-search"></span>
                                 </div>
-                                <input type="text" name="name" class="form-control"
+                                <input type="text" name="name" class="form-control" aria-label="{Lang::T('Search by Name')}"
                                     placeholder="{Lang::T('Search by Name')}...">
                                 <div class="input-group-btn">
                                     <button class="btn btn-success" type="submit">{Lang::T('Search')}</button>
@@ -32,7 +32,7 @@
                                 class="ion ion-android-add"> </i> {Lang::T('New port')}</a>
                     </div>&nbsp;
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive nuxr-stack">
                     <table class="table table-bordered table-striped table-condensed">
                         <thead>
                             <tr>
@@ -47,17 +47,17 @@
                         <tbody>
                             {foreach $d as $ds}
                                 <tr>
-                                    <td>{$ds['port_name']}</td>
-                                    <td>{$ds['public_ip']}</td>
-                                    <td>{$ds['range_port']}</td>
-                                    <td>{$ds['routers']}</td>
-                                    <td align="center">
+                                    <td data-label="{Lang::T('Port Name')}">{$ds['port_name']}</td>
+                                    <td data-label="{Lang::T('Public IP')}">{$ds['public_ip']}</td>
+                                    <td data-label="{Lang::T('Range Port')}">{$ds['range_port']}</td>
+                                    <td data-label="{Lang::T('Routers')}">{$ds['routers']}</td>
+                                    <td data-label="{Lang::T('Manage')}" align="center">
                                         <a href="{Text::url('')}pool/edit-port/{$ds['id']}" class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
                                         <a data-method="post" href="{Text::url('')}pool/delete-port/{$ds['id']}" id="{$ds['id']}"
                                             onclick="return ask(this, '{Lang::T('Delete')}?')"
-                                            class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
+                                            class="btn btn-danger btn-xs" aria-label="{Lang::T('Delete')}"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                                     </td>
-                                    <td>{$ds['id']}</td>
+                                    <td data-label="ID">{$ds['id']}</td>
                                 </tr>
                             {/foreach}
                         </tbody>

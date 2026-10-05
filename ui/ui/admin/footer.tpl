@@ -62,7 +62,8 @@
             searching: '{Lang::T('Searching...')|escape:'javascript'}',
             minChars: '{Lang::T('Type at least 2 characters.')|escape:'javascript'}',
             failed: '{Lang::T('Search is unavailable. Try again.')|escape:'javascript'}',
-            working: '{Lang::T('Working...')|escape:'javascript'}'
+            working: '{Lang::T('Working...')|escape:'javascript'}',
+            show: '{Lang::T('Show')|escape:'javascript'}'
         };
     </script>
     <script src="{$app_url}/ui/ui/scripts/nuxr-shell.js?wp6c.1"></script>

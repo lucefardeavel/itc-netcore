@@ -21,7 +21,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Router Name / Location')}</label>
+                        <label for="name" class="col-md-2 control-label">{Lang::T('Router Name / Location')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="name" name="name" maxlength="32"
                                 value="{$d['name']}">
@@ -29,29 +29,29 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('IP Address')}</label>
+                        <label for="ip_address" class="col-md-2 control-label">{Lang::T('IP Address')}</label>
                         <div class="col-md-6">
                             <input type="text" placeholder="192.168.88.1:8728" class="form-control" id="ip_address"
                                 name="ip_address" value="{$d['ip_address']}">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Username')}</label>
+                        <label for="username" class="col-md-2 control-label">{Lang::T('Username')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="username" name="username"
                                 value="{$d['username']}">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Router Secret')}</label>
+                        <label for="password" class="col-md-2 control-label">{Lang::T('Router Secret')}</label>
                         <div class="col-md-6">
                             <input type="password" class="form-control" id="password" name="password"
                                 value="{$d['password']}" onmouseleave="this.type = 'password'"
-                                onmouseenter="this.type = 'text'">
+                                onmouseenter="this.type = 'text'" data-nuxr-peek>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Description')}</label>
+                        <label for="description" class="col-md-2 control-label">{Lang::T('Description')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="description"
                                 name="description">{$d['description']}</textarea>
@@ -59,7 +59,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Coordinates')}</label>
+                        <label for="coordinates" class="col-md-2 control-label">{Lang::T('Coordinates')}</label>
                         <div class="col-md-6">
                             <input name="coordinates" id="coordinates" class="form-control" value="{$d['coordinates']}"
                                 placeholder="6.465422, 3.406448">
@@ -68,7 +68,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Coverage')}</label>
+                        <label for="coverage" class="col-md-2 control-label">{Lang::T('Coverage')}</label>
                         <div class="col-md-6">
                             <div class="input-group">
                                 <input type="number" class="form-control" id="coverage" name="coverage" value="{$d['coverage']}"
@@ -77,12 +77,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <div class="col-lg-offset-2 col-lg-10">
-                            <button class="btn btn-primary" onclick="return ask(this, '{Lang::T("Continue the process of changing Routers?")}')" type="submit">{Lang::T('Save Changes')}</button>
-                            Or <a href="{Text::url('')}routers/list">{Lang::T('Cancel')}</a>
-                        </div>
-                    </div>
+        {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+        <div class="nuxr-step-nav nuxr-actionbar-form">
+            <a class="nuxr-btn" href="{Text::url('')}routers/list">{Lang::T('Cancel')}</a>
+            <button class="nuxr-btn nuxr-btn-primary" onclick="return ask(this, '{Lang::T("Continue the process of changing Routers?")}')" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Changes')}</button>
+        </div>
                 </form>
             </div>
         </div>
@@ -90,8 +89,9 @@
 </div>
 </div>
 
+{* WP6A (OD-H): Leaflet and the map tiles load only when the operator opens the map (nuxr-shell.js).
+   WP6C: this note sits outside the literal block, where Smarty strips it (inside, it leaked into the page as text). *}
 {literal}
-    {* WP6A (OD-H): Leaflet and the map tiles load only when the operator opens the map (nuxr-shell.js) *}
     <script>
         var circle;
         function getLocation() {

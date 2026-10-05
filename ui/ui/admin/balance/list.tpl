@@ -12,7 +12,7 @@
 								<div class="input-group-addon">
 									<span class="fa fa-search"></span>
 								</div>
-								<input type="text" name="name" class="form-control"
+								<input type="text" name="name" class="form-control" aria-label="{Lang::T('Search by Name')}"
 									placeholder="{Lang::T('Search by Name')}...">
 								<div class="input-group-btn">
 									<button class="btn btn-success" type="submit">{Lang::T('Search')}</button>
@@ -25,7 +25,7 @@
 								class="ion ion-android-add"> </i> {Lang::T('New Service Package')}</a>
 					</div>&nbsp;
 				</div>
-				<div class="table-responsive">
+				<div class="table-responsive nuxr-stack">
 					<table class="table table-bordered table-striped table-condensed">
 						<thead>
 							<tr>
@@ -37,18 +37,18 @@
 						<tbody>
 							{foreach $d as $ds}
 								<tr {if $ds['enabled'] != 1}class="danger" title="disabled" {/if}>
-									<td>{$ds['name_plan']}</td>
-									<td>{Lang::moneyFormat($ds['price'])}{if !empty($ds['price_old'])}
+									<td data-label="{Lang::T('Package Name')}">{$ds['name_plan']}</td>
+									<td data-label="{Lang::T('Package Price')}">{Lang::moneyFormat($ds['price'])}{if !empty($ds['price_old'])}
 											<sup
 												style="text-decoration: line-through; color: red">{Lang::moneyFormat($ds['price_old'])}</sup>
 										{/if}
 									</td>
-									<td>
+									<td data-label="{Lang::T('Manage')}">
 										<a href="{Text::url('services/balance-edit/',$ds['id'])}"
 											class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
 										<a data-method="post" href="{Text::url('services/balance-delete/',$ds['id'])}"
 											onclick="return ask(this, '{Lang::T('Delete')}?')" id="{$ds['id']}"
-											class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
+											class="btn btn-danger btn-xs" aria-label="{Lang::T('Delete')}"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
 									</td>
 								</tr>
 							{/foreach}

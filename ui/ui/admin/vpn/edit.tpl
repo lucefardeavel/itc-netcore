@@ -9,49 +9,45 @@
                     <input type="hidden" name="id" value="{$d['id']}">
                     <div class="form-group">
                         <label class="col-md-3 control-label">{Lang::T('Status')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("Customer cannot buy disabled Package, but admin can recharge it, use it if you want only admin recharge it")}"
                                 data-trigger="focus" data-container="body"
                                 data-content="{Lang::T("Customer cannot buy disabled Package, but admin can recharge it, use it if you want only admin recharge it")}">?</a>
                         </label>
                         <div class="col-md-9">
-                            <input type="radio" name="enabled" value="1" {if $d['enabled'] == 1}checked{/if}>
-                            {Lang::T('Enable')}
-                            <input type="radio" name="enabled" value="0" {if $d['enabled'] == 0}checked{/if}>
-                            {Lang::T('Disable')}
+                            <label class="radio-inline"><input type="radio" name="enabled" value="1" {if $d['enabled'] == 1}checked{/if}> {Lang::T('Enable')}</label>
+                            <label class="radio-inline"><input type="radio" name="enabled" value="0" {if $d['enabled'] == 0}checked{/if}> {Lang::T('Disable')}</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-md-3 control-label">{Lang::T('Type')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("Postpaid will have fix expired date")}"
                                 data-trigger="focus" data-container="body"
                                 data-content="{Lang::T("Postpaid will have fix expired date")}">?</a>
                         </label>
                         <div class="col-md-9">
-                            <input type="radio" name="prepaid" onclick="prePaid()" value="yes"
-                                {if $d['prepaid'] == 'yes'}checked{/if}>
-                            {Lang::T('Prepaid')}
-                            <input type="radio" name="prepaid" onclick="postPaid()" value="no"
-                                {if $d['prepaid'] == 'no'}checked{/if}> {Lang::T('Postpaid')}
+                            <label class="radio-inline"><input type="radio" name="prepaid" onclick="prePaid()" value="yes"
+                                {if $d['prepaid'] == 'yes'}checked{/if}> {Lang::T('Prepaid')}</label>
+                            <label class="radio-inline"><input type="radio" name="prepaid" onclick="postPaid()" value="no"
+                                {if $d['prepaid'] == 'no'}checked{/if}> {Lang::T('Postpaid')}</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-md-3 control-label">{Lang::T('Plan Type')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("Personal Package will only show to personal Customer, Business Package will only show to Business Customer")}"
                                 data-trigger="focus" data-container="body"
                                 data-content="{Lang::T("Personal Package will only show to personal Customer, Business Package will only show to Business Customer")}">?</a>
                         </label>
                         <div class="col-md-9">
-                            <input type="radio" name="plan_type" value="Personal"
-                                {if $d['plan_type'] == 'Personal'}checked{/if}>
-                            {Lang::T('Personal')}
-                            <input type="radio" name="plan_type" value="Business"
-                                {if $d['plan_type'] == 'Business'}checked{/if}> {Lang::T('Business')}
+                            <label class="radio-inline"><input type="radio" name="plan_type" value="Personal"
+                                {if $d['plan_type'] == 'Personal'}checked{/if}> {Lang::T('Personal')}</label>
+                            <label class="radio-inline"><input type="radio" name="plan_type" value="Business"
+                                {if $d['plan_type'] == 'Business'}checked{/if}> {Lang::T('Business')}</label>
                         </div>
                     </div>
                     {if $_c['radius_enable'] and $d['is_radius']}
                         <div class="form-group">
                             <label class="col-md-3 control-label">Radius
-                                <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                                <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("If you enable Radius, choose device to radius, except if you have custom device.")}"
                                     data-trigger="focus" data-container="body"
                                     data-content="{Lang::T("If you enable Radius, choose device to radius, except if you have custom device.")}">?</a>
                             </label>
@@ -61,8 +57,8 @@
                         </div>
                     {/if}
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Device')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                        <label for="device" class="col-md-3 control-label">{Lang::T('Device')}
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("This Device are the logic how PHPNuxBill Communicate with Mikrotik or other Devices")}"
                                 data-trigger="focus" data-container="body"
                                 data-content="{Lang::T("This Device are the logic how PHPNuxBill Communicate with Mikrotik or other Devices")}">?</a>
                         </label>
@@ -75,14 +71,14 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Plan Name')}</label>
+                        <label for="name_plan" class="col-md-3 control-label">{Lang::T('Plan Name')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="name_plan" maxlength="40" name="name_plan"
                                 value="{$d['name_plan']}">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label"><a
+                        <label for="id_bw" class="col-md-3 control-label"><a
                                 href="{Text::url('bandwidth/add')}">{Lang::T('Bandwidth Name')}</a></label>
                         <div class="col-md-9">
                             <select id="id_bw" name="id_bw" class="form-control select2">
@@ -94,11 +90,11 @@
                         </div>
                     </div>
                     <div class="form-group has-success">
-                        <label class="col-md-3 control-label">{Lang::T('Plan Price')}</label>
+                        <label for="nxf-price" class="col-md-3 control-label">{Lang::T('Plan Price')}</label>
                         <div class="col-md-9">
                             <div class="input-group">
                                 <span class="input-group-addon">{$_c['currency_code']}</span>
-                                <input type="number" class="form-control" name="price" required value="{$d['price']}">
+                                <input id="nxf-price" type="number" class="form-control" name="price" required value="{$d['price']}">
                             </div>
                         </div>
                         {if $_c['enable_tax'] == 'yes'}
@@ -112,11 +108,11 @@
                         {/if}
                     </div>
                     <div class="form-group has-warning">
-                        <label class="col-md-3 control-label">{Lang::T('Price Before Discount')}</label>
+                        <label for="nxf-price_old" class="col-md-3 control-label">{Lang::T('Price Before Discount')}</label>
                         <div class="col-md-9">
                             <div class="input-group">
                                 <span class="input-group-addon">{$_c['currency_code']}</span>
-                                <input type="number" class="form-control" name="price_old" value="{$d['price_old']}">
+                                <input id="nxf-price_old" type="number" class="form-control" name="price_old" value="{$d['price_old']}">
                             </div>
                             <p class="help-block">
                                 {Lang::T('For Discount Rate, this is price before get discount, must be more expensive with real price')}
@@ -124,13 +120,13 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Plan Validity')}</label>
+                        <label for="validity" class="col-md-3 control-label">{Lang::T('Plan Validity')}</label>
                         <div class="col-md-3">
                             <input type="text" class="form-control" id="validity" name="validity"
                                 value="{$d['validity']}">
                         </div>
                         <div class="col-md-6">
-                            <select class="form-control" id="validity_unit" name="validity_unit">
+                            <select class="form-control" id="validity_unit" name="validity_unit" aria-label="{Lang::T('Validity')} ({Lang::T('Unit')})">
                                 {if $d['prepaid'] == yes}
                                     <option value="Mins" {if $d['validity_unit'] eq 'Mins'} selected {/if}>{Lang::T('Mins')}
                                     </option>
@@ -150,19 +146,19 @@
 
                     </div>
                     <div class="form-group {if $d['prepaid'] == yes}hidden{/if}" id="expired_date">
-                        <label class="col-md-3 control-label">{Lang::T('Expired Date')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover"
+                        <label for="nxf-expired_date" class="col-md-3 control-label">{Lang::T('Expired Date')}
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("Expired will be this date every month")}"
                                 data-trigger="focus" data-container="body"
                                 data-content="{Lang::T("Expired will be this date every month")}">?</a>
                         </label>
                         <div class="col-md-9">
-                            <input type="number" class="form-control" name="expired_date" maxlength="2"
+                            <input id="nxf-expired_date" type="number" class="form-control" name="expired_date" maxlength="2"
                                 value="{if $d['expired_date']}{$d['expired_date']}{else}20{/if}" min="1" max="28"
                                 step="1">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label"><a
+                        <label for="pool_name" class="col-md-3 control-label"><a
                                 href="{Text::url('pool/add')}">{Lang::T('IP Pool')}</a></label>
                         <div class="col-md-9">
                             <select id="pool_name" name="pool_name" required class="form-control select2">
@@ -174,7 +170,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Router Name')}</label>
+                        <label for="routers" class="col-md-3 control-label">{Lang::T('Router Name')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="routers" name="routers" value="{$d['routers']}"
                                 readonly>
@@ -182,7 +178,7 @@
                     </div>
                     <legend>{Lang::T('Expired Action')} <sub>{Lang::T('Optional')}</sub></legend>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Expired Internet Plan')}</label>
+                        <label for="plan_expired" class="col-md-3 control-label">{Lang::T('Expired Internet Plan')}</label>
                         <div class="col-md-9">
                             <select id="plan_expired" name="plan_expired" class="form-control select2">
                                 <option value='0'>Default - Remove Customer</option>
@@ -217,14 +213,13 @@
             </div>
         {/if}
     </div>
-    <div class="form-group">
-        <div class="col-lg-offset-2 col-lg-10">
-            <button class="btn btn-success"
+        {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+        <div class="nuxr-step-nav nuxr-actionbar-form">
+            <a class="nuxr-btn" href="{Text::url('services/vpn')}">{Lang::T('Cancel')}</a>
+            <button class="nuxr-btn nuxr-btn-primary"
                 onclick="return ask(this, '{Lang::T("Continue the VPN creation process?")}')"
-                type="submit">{Lang::T('Save Changes')}</button>
-            Or <a href="{Text::url('services/vpn')}">{Lang::T('Cancel')}</a>
+                type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Changes')}</button>
         </div>
-    </div>
 </form>
 
 
@@ -259,10 +254,12 @@
 
 <script>
     CodeMirror.fromTextArea(document.getElementById('code'), {
+        screenReaderLabel: '{Lang::T('on-login / on-up')|escape:'javascript'}', // WP6C: the editor's input gets a name
         lineNumbers: true,
         mode: 'text/x-perl',
     });
     CodeMirror.fromTextArea(document.getElementById('code2'), {
+        screenReaderLabel: '{Lang::T('on-logout / on-down')|escape:'javascript'}', // WP6C: the editor's input gets a name
         lineNumbers: true,
         mode: 'text/x-perl',
     });

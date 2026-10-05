@@ -81,7 +81,7 @@
                         <label for="password" class="col-md-3 control-label">{Lang::T('Password')}</label>
                         <div class="col-md-9">
                             <input type="password" class="form-control" id="password" value="{rand(000000,999999)}" name="password"
-                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'">
+                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek>
                         </div>
                     </div>
                     <div class="form-group">

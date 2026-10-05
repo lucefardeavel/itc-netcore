@@ -23,7 +23,7 @@
                                             <div class="btn-group" role="group">
                                                 <a data-method="post" href="{Text::url('paymentgateway/delete/')}{$pg}"
                                                     onclick="return ask(this, '{Lang::T('Delete')} {$pg}?')"
-                                                    class="btn btn-danger"><i class="glyphicon glyphicon-trash"></i></a>
+                                                    class="btn btn-danger" aria-label="{Lang::T('Delete')}"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                                             </div>
                                         </div>
                                     </td>

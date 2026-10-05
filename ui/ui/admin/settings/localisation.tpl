@@ -16,7 +16,7 @@
                     action="{Text::url('')}settings/localisation-post">
                     <input type="hidden" name="csrf_token" value="{$csrf_token}">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Timezone')}</label>
+                        <label for="tzone" class="col-md-2 control-label">{Lang::T('Timezone')}</label>
                         <div class="col-md-6">
                             <select name="tzone" id="tzone" class="form-control">
                                 {foreach $tlist as $value => $label}
@@ -27,7 +27,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Date Format')}</label>
+                        <label for="date_format" class="col-md-2 control-label">{Lang::T('Date Format')}</label>
                         <div class="col-md-6">
                             <select class="form-control" name="date_format" id="date_format">
                                 <option value="d/m/Y" {if $_c['date_format'] eq 'd/m/Y'} selected="selected" {/if}>
@@ -52,7 +52,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Default Language')}</label>
+                        <label for="lan" class="col-md-2 control-label">{Lang::T('Default Language')}</label>
                         <div class="col-md-6">
                             <select class="form-control" name="lan" id="lan">
                                 {foreach $lani as $lanis}
@@ -74,21 +74,21 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Decimal Point')}</label>
+                        <label for="dec_point" class="col-md-2 control-label">{Lang::T('Decimal Point')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="dec_point" name="dec_point"
                                 value="{$_c['dec_point']}">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Thousands Separator')}</label>
+                        <label for="thousands_sep" class="col-md-2 control-label">{Lang::T('Thousands Separator')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="thousands_sep" name="thousands_sep"
                                 value="{$_c['thousands_sep']}">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Currency Code')}</label>
+                        <label for="currency_code" class="col-md-2 control-label">{Lang::T('Currency Code')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="currency_code" name="currency_code"
                                 value="{$_c['currency_code']}">
@@ -97,7 +97,7 @@
                             class="help-block col-md-4">{Lang::T('Keep it blank if you do not want to show currency code')}</span>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Country Code Phone')}</label>
+                        <label for="country_code_phone" class="col-md-2 control-label">{Lang::T('Country Code Phone')}</label>
                         <div class="col-md-6">
                             <div class="input-group">
                                 <span class="input-group-addon" id="basic-addon1">+</span>
@@ -108,7 +108,7 @@
                     </div>
                     <hr>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Radius Package')}</label>
+                        <label for="radius_plan" class="col-md-2 control-label">{Lang::T('Radius Package')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="radius_plan" name="radius_plan"
                                 value="{if $_c['radius_plan']==''}Radius Plan{else}{$_c['radius_plan']}{/if}">
@@ -116,7 +116,7 @@
                         <span class="help-block col-md-4">{Lang::T('Change title in user Plan order')}</span>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Hotspot Package')}</label>
+                        <label for="hotspot_plan" class="col-md-2 control-label">{Lang::T('Hotspot Package')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="hotspot_plan" name="hotspot_plan"
                                 value="{if $_c['hotspot_plan']==''}Hotspot Plan{else}{$_c['hotspot_plan']}{/if}">
@@ -124,7 +124,7 @@
                         <span class="help-block col-md-4">{Lang::T('Change title in user Plan order')}</span>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('PPPOE Package')}</label>
+                        <label for="pppoe_plan" class="col-md-2 control-label">{Lang::T('PPPOE Package')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="pppoe_plan" name="pppoe_plan"
                                 value="{if $_c['pppoe_plan']==''}PPPOE Plan{else}{$_c['pppoe_plan']}{/if}">
@@ -132,18 +132,17 @@
                         <span class="help-block col-md-4">{Lang::T('Change title in user Plan order')}</span>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('VPN Package')}</label>
+                        <label for="vpn_plan" class="col-md-2 control-label">{Lang::T('VPN Package')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="vpn_plan" name="vpn_plan"
                                 value="{if $_c['vpn_plan']==''}VPN Plan{else}{$_c['vpn_plan']}{/if}">
                         </div>
                         <span class="help-block col-md-4">{Lang::T('Change title in user Plan order')}</span>
                     </div>
-                    <div class="form-group">
-                        <div class="col-lg-offset-2 col-lg-10">
-                            <button class="btn btn-primary" type="submit">{Lang::T('Save Changes')}</button>
-                        </div>
-                    </div>
+        {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}
+        <div class="nuxr-step-nav nuxr-actionbar-form">
+            <button class="nuxr-btn nuxr-btn-primary" type="submit"><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Save Changes')}</button>
+        </div>
                 </form>
 
             </div>

@@ -14,7 +14,7 @@
                                 <div class="input-group-addon">
                                     <span class="fa fa-search"></span>
                                 </div>
-                                <input type="text" name="name" class="form-control" value="{$name}"
+                                <input type="text" name="name" class="form-control" aria-label="{Lang::T('Search by Name')}" value="{$name}"
                                     placeholder="{Lang::T('Search by Name')}...">
                                 <div class="input-group-btn">
                                     <button class="btn btn-success" type="submit">{Lang::T('Search')}</button>
@@ -27,7 +27,7 @@
                                 class="ion ion-android-add"> </i> {Lang::T('New NAS')}</a>
                     </div>&nbsp;
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive nuxr-stack">
                     <table class="table table-bordered table-striped table-condensed">
                         <thead>
                             <tr>
@@ -45,21 +45,21 @@
                         <tbody>
                             {foreach $nas as $ds}
                                 <tr>
-                                    <td>{$ds['shortname']}</td>
-                                    <td>{$ds['nasname']}</td>
-                                    <td>{$ds['type']}</td>
-                                    <td>{$ds['ports']}</td>
-                                    <td>{$ds['server']}</td>
-                                    <td>{$ds['community']}</td>
-                                    <td>{$ds['routers']}</td>
-                                    <td align="center">
+                                    <td data-label="{Lang::T('Name')}">{$ds['shortname']}</td>
+                                    <td data-label="IP">{$ds['nasname']}</td>
+                                    <td data-label="{Lang::T('Type')}">{$ds['type']}</td>
+                                    <td data-label="Port">{$ds['ports']}</td>
+                                    <td data-label="Server">{$ds['server']}</td>
+                                    <td data-label="Community">{$ds['community']}</td>
+                                    <td data-label="Routers">{$ds['routers']}</td>
+                                    <td data-label="{Lang::T('Manage')}" align="center">
                                         <a href="{Text::url('')}radius/nas-edit/{$ds['id']}"
                                             class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
                                         <a data-method="post" href="{Text::url('')}radius/nas-delete/{$ds['id']}" id="{$ds['id']}"
                                             onclick="return ask(this, '{Lang::T('Delete')}?')"
-                                            class="btn btn-danger btn-xs"><i class="glyphicon glyphicon-trash"></i></a>
+                                            class="btn btn-danger btn-xs" aria-label="{Lang::T('Delete')}"><i class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                                     </td>
-                                    <td align="center">{$ds['id']}</td>
+                                    <td data-label="ID" align="center">{$ds['id']}</td>
                                 </tr>
                             {/foreach}
                         </tbody>

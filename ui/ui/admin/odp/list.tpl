@@ -15,7 +15,7 @@
                                     <span class="fa fa-search"></span>
                                 </div>
                                 <input type="text" name="name" class="form-control"
-                                    placeholder="{Lang::T('Search by Name')}..." value="{$name}>
+                                    placeholder="{Lang::T('Search by Name')}..." value="{$name|escape}" aria-label="{Lang::T('Search by Name')}">
                                 <div class="input-group-btn">
                                     <button class="btn btn-success" type="submit">{Lang::T('Search')}</button>
                                 </div>
@@ -27,7 +27,7 @@
                                 class="ion ion-android-add"> </i> {Lang::T('New odp')}</a>
                     </div>&nbsp;
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive nuxr-stack">
                     <table class="table table-bordered table-striped table-condensed">
                         <thead>
                             <tr>
@@ -44,26 +44,26 @@
                         <tbody>
                             {foreach $d as $ds}
                                 <tr>
-                                    <td>{$ds['name']}</td>
-                                    <td>{$ds['port_amount']}</td>
-                                    <td>{$ds['attenuation']}</td>
-                                    <td>{$ds['address']}</td>
-                                    <td>{$ds['coverage']} m</td>
-                                    <td align="center">
+                                    <td data-label="{Lang::T('Name')}">{$ds['name']}</td>
+                                    <td data-label="{Lang::T('Port Amount')}">{$ds['port_amount']}</td>
+                                    <td data-label="{Lang::T('Attenuation')}">{$ds['attenuation']}</td>
+                                    <td data-label="{Lang::T('Address')}">{$ds['address']}</td>
+                                    <td data-label="{Lang::T('Covarage')}">{$ds['coverage']} m</td>
+                                    <td data-label="{Lang::T('Coordinates')}" align="center">
                                         {if $ds['coordinates']}
                                         <a href="https://www.google.com/maps/dir//{$ds['coordinates']}/" target="_blank"
                                             class="btn btn-default btn-xs" title="{$ds['coordinates']}"><i
                                                 class="glyphicon glyphicon-map-marker"></i></a>
                                         {/if}
                                     </td>
-                                    <td align="center">
+                                    <td data-label="{Lang::T('Action')}" align="center">
                                         <a href="{Text::url('')}odp/edit/{$ds['id']}" class="btn btn-primary btn-xs"
                                             title="{Lang::T('Edit')}"><i class="glyphicon glyphicon-edit"></i></a>
                                         <a data-method="post" href="{Text::url('')}odp/delete/{$ds['id']}" class="btn btn-danger btn-xs"
                                             onclick="return ask(this, '{Lang::T('Are you sure you want to delete this ODP?')}')" title="{Lang::T('Delete')}"><i
                                                 class="glyphicon glyphicon-trash"></i></a>
                                     </td>
-                                    <td>{$ds['id']}</td>
+                                    <td data-label="ID">{$ds['id']}</td>
                                 </tr>
                             {/foreach}
                         </tbody>
