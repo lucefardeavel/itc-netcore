@@ -30,7 +30,7 @@
                             {if $c.relation eq 'global'}<td><bdi dir="ltr">{NuxrUi::money($r.base_cost|default:'')|escape}</bdi></td>{/if}
                             <td>{call name=nuxr_avail r=$r}</td>
                             <td>{call name=nuxr_saleable r=$r}</td>
-                            <td>{call name=nuxr_pricing_edits r=$r o=$c.offers back='catalog' mid=$c.target.id pid=$r.plan_id}</td>
+                            <td>{call name=nuxr_pricing_edit_btn o=$c.offers mid=$c.target.id pid=$r.plan_id title=$r.plan_name}</td>
                         </tr>
                     {/foreach}
                 </tbody>
@@ -38,17 +38,18 @@
         </div>
         <ul class="nuxr-mlist">
             {foreach $c.rows as $r}
-                <li><div class="nuxr-mcard nuxr-mcard-form">
+                <li><div class="nuxr-mcard is-wrap">
                     <span class="nuxr-mcard-main"><span class="nuxr-mcard-title">{$r.plan_name|escape}</span>
                         <span class="nuxr-mcard-sub">{Lang::T('Wholesale (reseller cost)')}: <bdi dir="ltr">{NuxrUi::money($r.effective_wholesale)|escape}</bdi> · {call name=nuxr_wsource src=$r.wholesale_source}</span>
                         <span class="nuxr-mcard-sub">{Lang::T('Retail (customer price)')}: <bdi dir="ltr">{NuxrUi::money($r.effective_retail)|escape}</bdi> · {call name=nuxr_rsource src=$r.retail_source}</span>
                         {if $r.viewer_margin}<span class="nuxr-mcard-sub">{Lang::T('Your margin')}: <bdi dir="ltr">{NuxrUi::money($r.viewer_margin)|escape}</bdi></span>{/if}
                         <span class="nuxr-mcard-sub">{call name=nuxr_avail r=$r} {call name=nuxr_saleable r=$r}</span></span>
-                    <div class="nuxr-actions">{call name=nuxr_pricing_edits r=$r o=$c.offers back='catalog' mid=$c.target.id pid=$r.plan_id}</div>
+                    <div class="nuxr-actions">{call name=nuxr_pricing_edit_btn o=$c.offers mid=$c.target.id pid=$r.plan_id title=$r.plan_name}</div>
                 </div></li>
             {/foreach}
         </ul>
         </div>
+        {foreach $c.rows as $r}{call name=nuxr_pricing_editor r=$r o=$c.offers back='catalog' mid=$c.target.id pid=$r.plan_id title=$r.plan_name}{/foreach}
         {include file="admin/nuxr/list-pager.tpl" p=$c pager_url=$nuxr_base}
     {else}<div class="nuxr-empty"><i class="fa fa-tags" aria-hidden="true"></i><strong>{Lang::T('No resellable plans yet.')}</strong></div>{/if}
 </section>

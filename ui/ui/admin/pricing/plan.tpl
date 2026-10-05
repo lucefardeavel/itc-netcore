@@ -22,7 +22,7 @@
                             {if $g.show_margin}<td>{if $r.viewer_margin}<bdi dir="ltr">{NuxrUi::money($r.viewer_margin)|escape}</bdi>{/if}</td>{/if}
                             <td>{call name=nuxr_avail r=$r}</td>
                             <td>{call name=nuxr_saleable r=$r}</td>
-                            <td>{call name=nuxr_pricing_edits r=$r o=$r.offers back='plan' mid=$r.manager_id pid=$g.plan.id}</td>
+                            <td>{call name=nuxr_pricing_edit_btn o=$r.offers mid=$r.manager_id pid=$g.plan.id title=$r.fullname}</td>
                         </tr>
                     {/foreach}
                 </tbody>
@@ -30,16 +30,17 @@
         </div>
         <ul class="nuxr-mlist">
             {foreach $g.rows as $r}
-                <li><div class="nuxr-mcard nuxr-mcard-form">
+                <li><div class="nuxr-mcard is-wrap">
                     <span class="nuxr-mcard-main"><span class="nuxr-mcard-title">{$r.fullname|escape}</span>
                         <span class="nuxr-mcard-sub">{Lang::T('Wholesale (reseller cost)')}: <bdi dir="ltr">{NuxrUi::money($r.effective_wholesale)|escape}</bdi> · {call name=nuxr_wsource src=$r.wholesale_source}</span>
                         <span class="nuxr-mcard-sub">{Lang::T('Retail (customer price)')}: <bdi dir="ltr">{NuxrUi::money($r.effective_retail)|escape}</bdi></span>
                         <span class="nuxr-mcard-sub">{call name=nuxr_avail r=$r} {call name=nuxr_saleable r=$r}</span></span>
-                    <div class="nuxr-actions">{call name=nuxr_pricing_edits r=$r o=$r.offers back='plan' mid=$r.manager_id pid=$g.plan.id}</div>
+                    <div class="nuxr-actions">{call name=nuxr_pricing_edit_btn o=$r.offers mid=$r.manager_id pid=$g.plan.id title=$r.fullname}</div>
                 </div></li>
             {/foreach}
         </ul>
         </div>
+        {foreach $g.rows as $r}{call name=nuxr_pricing_editor r=$r o=$r.offers back='plan' mid=$r.manager_id pid=$g.plan.id title=$r.fullname}{/foreach}
         {include file="admin/nuxr/list-pager.tpl" p=$g pager_url=$nuxr_base}
     {else}<div class="nuxr-empty"><strong>{Lang::T('No resellers.')}</strong></div>{/if}
 </section>

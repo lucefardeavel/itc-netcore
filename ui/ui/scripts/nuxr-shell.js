@@ -20,7 +20,7 @@
         if (!d) { return; }
         d._nuxrTrigger = trigger || document.activeElement;
         if (typeof d.showModal === 'function') { if (!d.open) { d.showModal(); } } else { d.setAttribute('open', ''); }
-        var first = q('[autofocus], input:not([type=hidden]):not([disabled]), button:not([data-nuxr-close]):not([disabled]), a[href]', d);
+        var first = q('[autofocus], input:not([type=hidden]):not([disabled]), button:not([data-nuxr-close]):not([disabled]), a[href]:not([data-nuxr-close])', d);
         if (first) { first.focus(); }
     }
 

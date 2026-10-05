@@ -2254,3 +2254,106 @@ body.nuxr-standalone {
     outline: 2px solid var(--nx-focus);
     outline-offset: -2px;
 }
+
+/* WP6C (OD-2) editing surface: one row-level Edit. Phone = full screen; >= 768px = a side panel docked to the
+   inline end (RTL-aware), full height. The save button of the open section stays reachable (sticky). */
+.nuxr-sheet-edit {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    border-radius: 0;
+    padding: var(--nx-safe-top) var(--nx-safe-right) var(--nx-safe-bottom) var(--nx-safe-left);
+}
+
+@media (min-width: 768px) {
+    .nuxr-sheet-edit {
+        width: min(460px, 100vw);
+        margin: 0;
+        margin-inline-start: auto;
+        border-radius: 0;
+        border-inline-start: 1px solid var(--nx-border);
+    }
+}
+
+.nuxr-sheet-edit .nuxr-sheet-head h2 {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.nuxr-sheet-subtitle {
+    font-size: var(--nx-fs-sm);
+    font-weight: 400;
+    color: var(--nx-muted);
+    overflow-wrap: anywhere;
+}
+
+.nuxr-pe-now {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--nx-surface-2);
+}
+
+.nuxr-pe-now > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 12px;
+}
+
+.nuxr-pe-now dt {
+    font-weight: 600;
+}
+
+.nuxr-pe-now dd {
+    margin: 0;
+}
+
+.nuxr-pe-section {
+    margin: 0 0 14px;
+    padding: 12px 0 0;
+    border-top: 1px solid var(--nx-border);
+}
+
+.nuxr-pe-section h3 {
+    margin: 0 0 8px;
+    font-size: var(--nx-fs-lg);
+    font-weight: 700;
+}
+
+.nuxr-pe-section .nuxr-btn-primary, .nuxr-pe-section > .nuxr-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* no-JS fallback: the Edit link targets the surface */
+dialog.nuxr-sheet:target:not([open]) {
+    display: block;
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 12px 0;
+}
+
+/* WP6C: segmented tabs never hide a section behind a horizontal scroll - they wrap into an even grid when narrow,
+   with 44px targets */
+.nuxr-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5em, 1fr));
+    overflow: visible;
+    border-radius: 14px;
+}
+
+.nuxr-tabs a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--nx-touch);
+    border-radius: 10px;
+}
