@@ -153,4 +153,16 @@ final class Wp7GuardTest extends TestCase
             $this->assertDoesNotMatchRegularExpression($re, $js, "nuxr-pwa.js: {$re}");
         }
     }
+
+    public function testPruneStaysInsideTheInstallationNamespace(): void
+    {
+        $sw = self::read('nuxr-sw.js');
+        $this->assertStringContainsString("var NS = 'nuxr-pwa:' + scopeHash(SCOPE.href) + ':';", $sw);
+        $this->assertSame(1, substr_count($sw, 'caches.delete('), 'one cache deletion site');
+        $this->assertStringContainsString("keys.filter(function (k) { return k.indexOf(NS) === 0 && k !== CACHE; })", $sw, 'only this installation namespace');
+        $js = self::read('ui/ui/scripts/nuxr-pwa.js');
+        $this->assertStringContainsString("r.active.postMessage({ type: 'PRUNE' })", $js);
+        $this->assertStringContainsString("if (k.indexOf('nuxr-') === 0) { sessionStorage.removeItem(k); }", $js, 'clears only its own transient keys');
+        $this->assertDoesNotMatchRegularExpression('/localStorage\.clear|sessionStorage\.clear|caches\.delete/', $js);
+    }
 }

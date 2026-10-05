@@ -445,6 +445,84 @@ def t12(browser):
     return f'slow chip "{label}"; POST allowed while SLOW'
 
 
+def logout(pg, base):
+    pg.goto(base + '?_route=logout', wait_until='load')
+    pg.wait_for_timeout(800)
+
+
+def leak_scan(pg, secrets):
+    """dump every client store of this origin and search it for the previous users' identifiers / tokens"""
+    blob = json.dumps({'cache': pg.evaluate(CACHE_DUMP), 'storage': pg.evaluate(STORAGE_DUMP)}, ensure_ascii=False)
+    found = [k for k, v in secrets.items() if v and v in blob]
+    return found, blob
+
+
+@check('T13', 'Cross-user hygiene: Admin -> logout -> Agent -> logout -> Sales leaves no previous identity, data or token client-side')
+def t13(browser):
+    ctx = new_ctx(browser, ROOT)
+    secrets = {}
+    steps = []
+    plan = [('ad', ['dashboard', 'customers/list', 'customers/view/%d' % LAB['customers']['mohammed'], 'finance/wallets', 'finance/ledger/%d' % LAB['staff_ids']['A'],
+                    'activation/view/' + LAB['refs']['mohammed'], 'settings/users', 'pricing/plans', 'reports/activation']),
+            ('A', ['dashboard', 'customers/list', 'customers/view/%d' % LAB['customers']['fatima'], 'finance/overview', 'finance/ledger', 'pricing', 'search_user&query=fat']),
+            ('A1', ['dashboard', 'customers/list'])]
+    pg = None
+    for i, (user, routes) in enumerate(plan):
+        pg = staff_login(ctx, ROOT, user) if pg is None else pg
+        if i > 0:
+            pg.goto(ROOT + '?_route=admin', wait_until='networkidle')
+            pg.fill('input[name=username]', user)
+            pg.fill('input[name=password]', LAB['staff'][user])
+            with pg.expect_navigation():
+                pg.click('button[type=submit]')
+            pg.goto(ROOT + '?_route=dashboard', wait_until='networkidle')
+        sw_ready(pg)
+        found, _ = leak_scan(pg, secrets)
+        expect(not found, f'after {user} login: previous identifiers present client-side: {found}')
+        for r in routes:
+            pg.goto(ROOT + '?_route=' + r, wait_until='networkidle')
+        # this user's identifiers become the secrets the NEXT user must never find
+        secrets.update({
+            f'{user}:fullname': 'Staff ' + user, f'{user}:username': f'"{user}"',
+            f'{user}:csrf': pg.evaluate('() => window.nuxrCsrfToken || ""'),
+        })
+        for c in ctx.cookies():
+            if c['name'] in ('PHPSESSID', 'aid') and c['value']:
+                secrets[f'{user}:cookie:{c["name"]}'] = c['value']
+        secrets.update({'customer:mohammed': 'mohammed.h', 'customer:محمد': 'محمد', 'customer:fatima': 'fatima.z',
+                        'activation-ref': LAB['refs']['mohammed'], 'finance:750': '750.00', 'finance:funding': 'initial provider funding'})
+        logout(pg, ROOT)
+        found, blob = leak_scan(pg, secrets)
+        expect(not found, f'after {user} logout: present client-side: {found}')
+        ents = pg.evaluate(CACHE_DUMP)
+        expect(sorted(e['url'] for e in ents) == expected_precache(ROOT), f'after {user} logout: cache {[e["url"] for e in ents]}')
+        steps.append(f'{user}: {len(routes)} pages, logout clean')
+    store = pg.evaluate(STORAGE_DUMP)
+    ctx.close()
+    return '; '.join(steps) + f'; final local={sorted(store["local"])}, session={sorted(store["session"])}, idb={store["idb"]}'
+
+
+@check('T13b', 'Prune stays inside this installation namespace: an unrelated cache on the origin survives, a stale nuxr-pwa cache is removed')
+def t13b(browser):
+    ctx = new_ctx(browser, ROOT)
+    pg = staff_login(ctx, ROOT, 'A')
+    sw_ready(pg)
+    current = sorted(set(e['cache'] for e in pg.evaluate(CACHE_DUMP)))[0]
+    stale = current.rsplit(':', 1)[0] + ':wp7.0'
+    pg.evaluate("""async ([stale]) => {
+        await (await caches.open('another-app-on-this-origin')).put('/another-app/data.json', new Response('{"x":1}'));
+        await (await caches.open(stale)).put('/stale.txt', new Response('old')); }""", [stale])
+    logout(pg, ROOT)            # the worker prunes on the logout navigation
+    pg.goto(ROOT + '?_route=admin', wait_until='networkidle')  # and the login page asks it to prune
+    pg.wait_for_timeout(800)
+    keys = pg.evaluate('() => caches.keys()')
+    expect('another-app-on-this-origin' in keys, f'an unrelated cache was deleted: {keys}')
+    expect(stale not in keys, f'stale namespace cache survived: {keys}')
+    expect(current in keys, 'current precache deleted')
+    ctx.close()
+    return f'kept another-app-on-this-origin and {current}; removed {stale}'
+
+
 def main():
     only = set(filter(None, ARGS.only.split(',')))
     global PLAYWRIGHT

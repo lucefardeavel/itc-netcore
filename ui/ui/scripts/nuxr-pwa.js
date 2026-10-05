@@ -225,6 +225,21 @@
         }
     }, true);
 
+    /* ---------- cross-user hygiene (amendment B / plan section 11) ----------
+       Nothing user-specific is ever stored by the PWA. Defence in depth: the worker prunes its own namespace on the
+       logout navigation; here the staff login page clears this client's transient nuxr-* session keys and every page
+       asks the worker to prune (only this installation's "nuxr-pwa:<scope>:" caches; nothing else on the origin). */
+    function pruneWorker() {
+        if (!secure) { return; }
+        navigator.serviceWorker.ready.then(function (r) { if (r.active) { r.active.postMessage({ type: 'PRUNE' }); } }).catch(function () { });
+    }
+    if (q('form[action*="admin/post"]')) {
+        try {
+            Object.keys(sessionStorage).forEach(function (k) { if (k.indexOf('nuxr-') === 0) { sessionStorage.removeItem(k); } });
+        } catch (e) { /* storage unavailable */ }
+    }
+    pruneWorker();
+
     window.nuxrPwa = cfg;
     cfg.registration = function () { return reg; };
     cfg.state = function () { return state; };
