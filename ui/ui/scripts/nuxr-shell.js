@@ -60,6 +60,8 @@
         var btn = e.target.closest ? e.target.closest('[data-nuxr-ask]') : null;
         var sheet = document.getElementById('nuxr-ask-sheet');
         if (!btn || !sheet || btn._nuxrConfirmed) { return; }
+        // an invalid form shows the browser's own field messages first; the question comes once it can be sent
+        if (btn.form && typeof btn.form.checkValidity === 'function' && !btn.form.checkValidity()) { return; }
         e.preventDefault();
         q('#nuxr-ask-text', sheet).textContent = btn.getAttribute('data-nuxr-ask');
         sheet._nuxrAsk = btn;

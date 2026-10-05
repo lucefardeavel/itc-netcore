@@ -1924,12 +1924,24 @@ a.nuxr-stat:hover, a.nuxr-stat:focus {
    typing and would cover the field / the action bar above the software keyboard); the action bar drops to the bottom */
 @media (max-width: 767px) {
     body.nuxr-shell:has(#nuxr-main :is(input:not([type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="file"], [type="hidden"], [type="range"], [type="color"]), textarea, [contenteditable="true"]):focus) .nuxr-bottomnav {
-        display: none;
+        visibility: hidden;
+        transition: none;
     }
 
     body.nuxr-shell:has(#nuxr-main :is(input:not([type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="file"], [type="hidden"], [type="range"], [type="color"]), textarea, [contenteditable="true"]):focus) .nuxr-actionbar {
         bottom: 0;
         padding-bottom: max(10px, var(--nx-safe-bottom));
+        transition: none;
+    }
+
+    /* leaving the typing state (e.g. the tap on Save moves focus off the field) must not move the bar under the finger
+       between press and release: the navigation / bars return only after a short delay, so the tap lands */
+    .nuxr-bottomnav {
+        transition: visibility 0s linear .4s;
+    }
+
+    .nuxr-actionbar, form > .nuxr-step-nav {
+        transition: bottom 0s linear .4s, padding-bottom 0s linear .4s;
     }
 }
 
@@ -2039,6 +2051,7 @@ body.nuxr-standalone {
     body.nuxr-shell:has(#nuxr-main :is(input:not([type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="file"], [type="hidden"], [type="range"], [type="color"]), textarea, [contenteditable="true"]):focus) form > .nuxr-step-nav {
         bottom: 0;
         padding-bottom: max(10px, var(--nx-safe-bottom));
+        transition: none;
     }
 
     /* legacy form controls (Adaptive Layer): touch size, no iOS focus zoom, stacked labels, larger choices */
