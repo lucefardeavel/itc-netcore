@@ -126,7 +126,7 @@ final class LegacyAdaptiveTest extends Wp2HttpTestCase
         // confirmations moved from window.confirm to the shell's sheet: same question, same submit
         $bw = $this->staff('ad')->get('bandwidth/add')->body;
         $this->assertMatchesRegularExpression('/<div class="nuxr-step-nav nuxr-actionbar-form">.*?<button class="nuxr-btn nuxr-btn-primary" data-nuxr-ask="Continue the Bandwidth addition process\?" type="submit">/s', $bw);
-        $this->assertStringContainsString('<dialog id="nuxr-ask-sheet"', $bw);
+        $this->assertStringContainsString("askTitle: 'Please confirm'", $bw, 'the sheet is built on first use from the shell strings (no page markup)');
         $this->assertDoesNotMatchRegularExpression('/nuxr-actionbar-form">(?:(?!<\/div>).)*onclick="return ask\(/s', $bw);
         // touch / keyboard equivalent for the legacy hover-revealed secrets (Amendment G); nothing new is rendered
         $this->assertStringContainsString('data-nuxr-peek', $this->staff('ad')->get('routers/add')->body);

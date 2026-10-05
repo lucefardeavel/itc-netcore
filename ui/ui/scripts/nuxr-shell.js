@@ -56,13 +56,35 @@
 
     /* WP6C: a submit carrying data-nuxr-ask is confirmed in the shell's sheet (not window.confirm); Confirm submits the
        same form with the same button (its name / value), so the pending / double-submit guard below still applies */
+    function askSheet() {
+        var d = document.getElementById('nuxr-ask-sheet');
+        if (d) { return d; }
+        // built on first use (no markup on pages that never ask); text via textContent only
+        d = document.createElement('dialog');
+        d.id = 'nuxr-ask-sheet';
+        d.className = 'nuxr-sheet';
+        d.setAttribute('aria-labelledby', 'nuxr-ask-title');
+        d.setAttribute('aria-describedby', 'nuxr-ask-text');
+        d.innerHTML = '<div class="nuxr-sheet-head"><h2 id="nuxr-ask-title"></h2>' +
+            '<button type="button" class="nuxr-icon-btn" data-nuxr-close><i class="fa fa-times" aria-hidden="true"></i></button></div>' +
+            '<div class="nuxr-sheet-body"><p id="nuxr-ask-text" class="nuxr-ask-text"></p><div class="nuxr-step-nav">' +
+            '<button type="button" class="nuxr-btn" data-nuxr-close></button>' +
+            '<button type="button" class="nuxr-btn nuxr-btn-primary" data-nuxr-ask-ok><i class="fa fa-check" aria-hidden="true"></i><span></span></button></div></div>';
+        q('#nuxr-ask-title', d).textContent = T.askTitle || 'Please confirm';
+        q('.nuxr-sheet-head [data-nuxr-close]', d).setAttribute('aria-label', T.close || 'Close');
+        q('.nuxr-step-nav [data-nuxr-close]', d).textContent = T.cancel || 'Cancel';
+        q('[data-nuxr-ask-ok] span', d).textContent = T.confirm || 'Confirm';
+        document.body.appendChild(d);
+        return d;
+    }
+
     document.addEventListener('click', function (e) {
         var btn = e.target.closest ? e.target.closest('[data-nuxr-ask]') : null;
-        var sheet = document.getElementById('nuxr-ask-sheet');
-        if (!btn || !sheet || btn._nuxrConfirmed) { return; }
+        if (!btn || btn._nuxrConfirmed) { return; }
         // an invalid form shows the browser's own field messages first; the question comes once it can be sent
         if (btn.form && typeof btn.form.checkValidity === 'function' && !btn.form.checkValidity()) { return; }
         e.preventDefault();
+        var sheet = askSheet();
         q('#nuxr-ask-text', sheet).textContent = btn.getAttribute('data-nuxr-ask');
         sheet._nuxrAsk = btn;
         openDialog(sheet, btn);

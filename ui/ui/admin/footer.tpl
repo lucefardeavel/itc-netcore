@@ -19,19 +19,6 @@
             <div class="nuxr-sheet-body">{include file="admin/nuxr/nav-groups.tpl" nuxr_place="sheet"}</div>
         </dialog>
 
-        {* WP6C: the confirmation sheet for forms whose submit carries data-nuxr-ask (replaces window.confirm) *}
-        <dialog id="nuxr-ask-sheet" class="nuxr-sheet" aria-labelledby="nuxr-ask-title" aria-describedby="nuxr-ask-text">
-            <div class="nuxr-sheet-head"><h2 id="nuxr-ask-title">{Lang::T('Please confirm')}</h2>
-                <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="{Lang::T('Close')}"><i class="fa fa-times" aria-hidden="true"></i></button></div>
-            <div class="nuxr-sheet-body">
-                <p id="nuxr-ask-text" class="nuxr-ask-text"></p>
-                <div class="nuxr-step-nav">
-                    <button type="button" class="nuxr-btn" data-nuxr-close>{Lang::T('Cancel')}</button>
-                    <button type="button" class="nuxr-btn nuxr-btn-primary" data-nuxr-ask-ok><i class="fa fa-check" aria-hidden="true"></i>{Lang::T('Confirm')}</button>
-                </div>
-            </div>
-        </dialog>
-
         {if $_nav.quick}
             <dialog id="nuxr-quick-sheet" class="nuxr-sheet" aria-labelledby="nuxr-quick-title">
                 <div class="nuxr-sheet-head"><h2 id="nuxr-quick-title">{Lang::T('Quick action')}</h2>
@@ -76,10 +63,14 @@
             minChars: '{Lang::T('Type at least 2 characters.')|escape:'javascript'}',
             failed: '{Lang::T('Search is unavailable. Try again.')|escape:'javascript'}',
             working: '{Lang::T('Working...')|escape:'javascript'}',
-            show: '{Lang::T('Show')|escape:'javascript'}'
+            show: '{Lang::T('Show')|escape:'javascript'}',
+            askTitle: '{Lang::T('Please confirm')|escape:'javascript'}',
+            cancel: '{Lang::T('Cancel')|escape:'javascript'}',
+            confirm: '{Lang::T('Confirm')|escape:'javascript'}',
+            close: '{Lang::T('Close')|escape:'javascript'}'
         };
     </script>
-    <script src="{$app_url}/ui/ui/scripts/nuxr-shell.js?wp6c.2"></script>
+    <script src="{$app_url}/ui/ui/scripts/nuxr-shell.js?wp6c.3"></script>
 
     {if isset($xfooter)}
         {$xfooter}
