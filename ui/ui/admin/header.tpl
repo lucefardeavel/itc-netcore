@@ -9,6 +9,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{$_title|escape} - {$_c['CompanyName']|escape}</title>
     <link rel="shortcut icon" href="{$app_url}/ui/ui/images/logo.png" type="image/x-icon" />
+    {* WP7: staff PWA - the user-neutral manifest (fetched without credentials) and replaceable interim identity assets *}
+    <link rel="manifest" href="{$app_url}/?_route=pwa/manifest">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1a202b" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="{$app_url}/ui/ui/images/pwa/icon-180.png">
 
     <script>
         var appUrl = '{$app_url}';

@@ -8,6 +8,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{Lang::T('Login')} - {$_c['CompanyName']|escape}</title>
     <link rel="shortcut icon" href="{$app_url}/ui/ui/images/logo.png" type="image/x-icon" />
+    {* WP7: staff PWA - the user-neutral manifest (fetched without credentials) and replaceable interim identity assets *}
+    <link rel="manifest" href="{$app_url}/?_route=pwa/manifest">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1a202b" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="{$app_url}/ui/ui/images/pwa/icon-180.png">
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/bootstrap.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp6c.2">
     <style>
@@ -38,6 +43,8 @@
             </section>
         </div>
     </main>
+{* WP7: staff PWA client (registration; prune on the staff login page) *}
+<script src="{$app_url}/ui/ui/scripts/nuxr-pwa.js?wp7.1" data-nuxr-sw="{$app_url}/nuxr-sw.js"></script>
 {include file="nuxr-csrf.tpl"}
 </body>
 

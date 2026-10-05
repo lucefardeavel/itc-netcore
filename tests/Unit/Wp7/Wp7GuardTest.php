@@ -56,4 +56,70 @@ final class Wp7GuardTest extends TestCase
         }
         $this->assertMatchesRegularExpression("/'start_url' => '\.\/\?_route=admin'/", $src);
     }
+
+    public function testTheServiceWorkerStoresOnlyTheLiteralPrecacheList(): void
+    {
+        $sw = self::read('nuxr-sw.js');
+        preg_match('/var PRECACHE = \[(.*?)\];/s', $sw, $m);
+        preg_match_all("/'([^']+)'/", $m[1] ?? '', $items);
+        $this->assertSame(['ui/ui/images/pwa/icon-180.png', 'ui/ui/images/pwa/icon-192.png', 'ui/ui/images/pwa/icon-512.png', 'ui/ui/images/pwa/icon-maskable-512.png'],
+            $items[1], 'precache = the offline document (OFFLINE) + the interim icons, nothing else');
+        $this->assertStringContainsString("PRECACHE = [\n    OFFLINE,", $sw);
+        $this->assertStringContainsString("var OFFLINE = 'nuxr-offline.html';", $sw);
+        // exactly one write into CacheStorage, inside the install handler, over the precache URLs only
+        $this->assertSame(1, substr_count($sw, '.put('), 'one cache.put');
+        $install = substr($sw, (int) strpos($sw, "addEventListener('install'"), 900);
+        $this->assertStringContainsString('cache.put(u, r)', $install);
+        $this->assertStringContainsString('PRECACHE_URLS.map(', $install);
+        $this->assertStringContainsString("credentials: 'omit'", $install, 'precache fetched without credentials');
+        foreach (['/\.add\(|addAll\(/', '/indexedDB/', "/addEventListener\\('(sync|periodicsync|push|backgroundfetch)/", '/requestPermission|pushManager|showNotification/',
+                  '/importScripts/', '#https?://#', '/navigator\.userAgent/', '/caches\.open\((?!CACHE\))/'] as $re) {
+            $this->assertDoesNotMatchRegularExpression($re, $sw, "nuxr-sw.js: {$re}");
+        }
+        // no automatic activation: skipWaiting only in the user-initiated message branch
+        $this->assertSame(1, substr_count($sw, 'skipWaiting()'));
+        $this->assertMatchesRegularExpression("/data\\.type === 'SKIP_WAITING' && event\\.source && event\\.source\\.type === 'window'\\) \\{\\s*self\\.skipWaiting\\(\\)/", $sw);
+        // navigations are network-only; the only other respondWith serves the precache list
+        $this->assertSame(2, substr_count($sw, 'respondWith('));
+        $this->assertMatchesRegularExpression('/return res; \/\/ network response, never stored/', $sw);
+        $this->assertStringContainsString("Response.redirect(OFFLINE_URL + '?reason=unconfirmed', 303)", $sw);
+    }
+
+    public function testOneVersionForWorkerClientAndBuilder(): void
+    {
+        preg_match("/var VERSION = '([^']+)';/", self::read('nuxr-sw.js'), $sw);
+        preg_match("/public const VERSION = '([^']+)';/", self::read('system/autoload/Reseller/Ui/Pwa.php'), $php);
+        $this->assertNotEmpty($sw);
+        $this->assertSame($php[1], $sw[1]);
+        foreach (['ui/ui/admin/footer.tpl', 'ui/ui/admin/admin/login.tpl'] as $tpl) {
+            $this->assertStringContainsString('nuxr-pwa.js?' . $sw[1] . '" data-nuxr-sw="{$app_url}/nuxr-sw.js"', self::read($tpl), $tpl);
+        }
+    }
+
+    public function testTheOfflineDocumentIsStaticAndGeneric(): void
+    {
+        $html = (string) preg_replace('/<!--.*?-->/s', '', self::read('nuxr-offline.html'));
+        foreach (['/<script[^>]+src=/i', '/<link[^>]+href=/i', '#url\(\s*["\']?https?:#i', '/<\?|\{\$/', '/csrf|token|password/i', '/fetch\(|XMLHttpRequest/'] as $re) {
+            $this->assertDoesNotMatchRegularExpression($re, $html, "nuxr-offline.html: {$re}");
+        }
+        $this->assertStringContainsString('It may or may not have reached the server. Reconnect and check the authoritative record before repeating the action.', $html);
+        $this->assertStringContainsString('must not be treated as authoritative', $html);
+        $this->assertStringContainsString('Changes cannot be sent while offline.', $html);
+        $this->assertStringNotContainsString('nothing changed', strtolower($html));
+    }
+
+    public function testThePwaClientUsesFeatureDetectionOnly(): void
+    {
+        $js = self::read('ui/ui/scripts/nuxr-pwa.js');
+        foreach (['/navigator\.(userAgent|platform|vendor|maxTouchPoints)/', '/matchMedia\(/', '/ontouchstart/', '/isMobile/i', '#https?://#',
+                  '/requestPermission|pushManager/', '/indexedDB/', '/caches\./'] as $re) {
+            $this->assertDoesNotMatchRegularExpression($re, $js, "nuxr-pwa.js: {$re}");
+        }
+        $this->assertStringContainsString("register(swUrl, { updateViaCache: 'none' })", $js);
+        foreach (['ui/ui/admin/header.tpl', 'ui/ui/admin/admin/login.tpl'] as $tpl) {
+            $src = self::read($tpl);
+            $this->assertStringContainsString('<link rel="manifest" href="{$app_url}/?_route=pwa/manifest">', $src, $tpl . ': manifest without credentials');
+            $this->assertStringNotContainsString('use-credentials', $src);
+        }
+    }
 }
