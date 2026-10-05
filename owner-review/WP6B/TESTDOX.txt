@@ -1,0 +1,2347 @@
+WP6B — PHPUnit testdox, implementation HEAD f7496710b44d5c5d387765cb13194156c6bf77d5
+Canonical run: dev/test/run-tests.sh --testdox (PHP 8.2.34, MariaDB 10.11.19, MySQL 8.0.46, FreeRADIUS 3.2.8 test containers), 2026-10-04T23:51Z – 2026-10-05T00:57Z
+Result: MariaDB OK (866 tests, 64626 assertions); MySQL OK (866 tests, 64626 assertions); 1732 passed, 0 failed; variant registry matches freshly built fixtures
+
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+================ engine: mariadb ================
+ Container nuxbill-reseller-test-php82-run-9e5b78de5d54 Creating 
+ Container nuxbill-reseller-test-php82-run-9e5b78de5d54 Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-431f63a8c270 Creating 
+ Container nuxbill-reseller-test-php82-run-431f63a8c270 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............................................................  63 / 866 (  7%)
+............................................................... 126 / 866 ( 14%)
+............................................................... 189 / 866 ( 21%)
+............................................................... 252 / 866 ( 29%)
+............................................................... 315 / 866 ( 36%)
+............................................................... 378 / 866 ( 43%)
+............................................................... 441 / 866 ( 50%)
+............................................................... 504 / 866 ( 58%)
+............................................................... 567 / 866 ( 65%)
+............................................................... 630 / 866 ( 72%)
+............................................................... 693 / 866 ( 80%)
+............................................................... 756 / 866 ( 87%)
+............................................................... 819 / 866 ( 94%)
+...............................................                 866 / 866 (100%)
+
+Time: 28:13.532, Memory: 56.00 MB
+
+Activation Action Matrix (Reseller\Tests\Integration\Wp6b\ActivationActionMatrix)
+ ✔ Every state renders exactly the accepted operations
+ ✔ The operation table mirrors the accepted primitives
+
+Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
+ ✔ Owner sales and admin may activate on the owners wallet
+ ✔ Scope refusals write nothing
+ ✔ Eligibility refusals write nothing
+ ✔ Frozen reseller cannot start but settlement completes
+ ✔ Schema not ready refuses before any write
+ ✔ Replay never doubles a period debit or commission
+ ✔ Read scope and reconciliation authority
+
+Activation Capability (Reseller\Tests\Unit\Wp5a\ActivationCapability)
+ ✔ Exact matrix
+ ✔ Fail closed principals
+ ✔ Activation create requires a validly placed reseller identity
+
+Activation Catalog (Reseller\Tests\Integration\Wp5a\ActivationCatalog)
+ ✔ Unplaced agent is refused before any data
+ ✔ Agent sees only plans saleable for itself
+ ✔ Invalid wholesale chain is absent
+ ✔ Sales catalog follows the authoritative customer owner
+ ✔ Admin keeps the administrative list
+
+Activation Contract (Reseller\Tests\Integration\Wp5a\ActivationContract)
+ ✔ Completed activation authenticates and renewal extends it
+
+Activation Failure (Reseller\Tests\Integration\Wp5a\ActivationFailure)
+ ✔ Confirmed radius failure releases and charges nothing
+ ✔ Retryable failure is retried identically then succeeds
+ ✔ Retries are bounded
+ ✔ Unknown keeps the reservation and reconciliation settles once
+ ✔ Crash before the radius call reconciles to failed
+ ✔ Crash after the radius call reconciles to completed
+ ✔ Settlement failure never becomes free service
+ ✔ Capacity failure needs an administrative fix
+ ✔ Settlement failures are classified
+ ✔ Verify mismatch keeps the funds reserved until reconciled
+ ✔ Disconnect is best effort and recorded
+ ✔ Rollback restores the previous service
+ ✔ Rollback of a new service restores the empty prior state
+ ✔ Cancel before provisioning and resume
+
+Activation Http (Reseller\Tests\Integration\Wp5a\ActivationHttp)
+ ✔ Staff flow completes and repeats are safe
+ ✔ Authorization over http
+ ✔ Eligibility and catalog over http
+ ✔ Reconciliation is admin only and the cli tool works
+
+Activation Lifecycle (Reseller\Tests\Integration\Wp5a\ActivationLifecycle)
+ ✔ New activation completes end to end
+ ✔ Renew extends from the current expiry
+ ✔ Reactivate after expiry starts now
+ ✔ Change plan starts now and records the previous plan
+ ✔ The action is server derived and a mismatch is refused
+
+Activation Preview (Reseller\Tests\Integration\Wp6a\ActivationPreview)
+ ✔ Quote values and role visibility write nothing
+ ✔ Confirmed quote executes and changed material is refused before any write
+ ✔ Non material changes keep the quote
+ ✔ Missing forged or foreign fingerprints are refused
+ ✔ Replay returns the same activation whatever changed later
+ ✔ Insufficient credit is a yes no for sales
+ ✔ A changed plan service term refuses the old quote with data set "id_bw"
+ ✔ A changed plan service term refuses the old quote with data set "typebp"
+ ✔ A changed plan service term refuses the old quote with data set "limit_type"
+ ✔ A changed plan service term refuses the old quote with data set "time_limit"
+ ✔ A changed plan service term refuses the old quote with data set "time_unit"
+ ✔ A changed plan service term refuses the old quote with data set "data_limit"
+ ✔ A changed plan service term refuses the old quote with data set "data_unit"
+ ✔ A changed plan service term refuses the old quote with data set "shared_users"
+ ✔ A changed plan service term refuses the old quote with data set "pool"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_up"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_up_unit"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_down"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_down_unit"
+ ✔ A changed bandwidth rate refuses the old quote with data set "burst"
+ ✔ Presentation only renames keep the quote
+ ✔ Every service term the policy consumes is bound
+
+Activation Race (Reseller\Tests\Integration\Wp5a\ActivationRace)
+ ✔ Double submit with the same key is one activation
+ ✔ Two devices with different keys yield one period
+ ✔ Concurrent activations cannot overspend
+ ✔ Activation versus price change is never a mix
+ ✔ Activation versus plan delete
+
+Activation Read Model (Reseller\Tests\Integration\Wp6a\ActivationReadModel)
+ ✔ List and view visibility equal status visibility
+ ✔ View is display only and money is role filtered
+ ✔ Groups counts and customer flags
+
+Activation Reconciliation (Reseller\Tests\Integration\Wp5a\ActivationReconciliation)
+ ✔ Verified delivery is reconciled financially despite foreign edits
+ ✔ Financial reconciliation that still fails keeps the funds held
+ ✔ Unverified but exactly the target is settled once
+ ✔ Unverified and exactly the prior state is not applied
+ ✔ Unverified foreign state is ambiguous and holds the funds
+ ✔ Rollback from the ambiguous state restores and releases once
+ ✔ Uncertain rollback keeps the funds held
+ ✔ Rollback restores the customer password exactly
+ ✔ Rollback restores the pppoe password exactly
+ ✔ Unknown prior password is refused before any write
+ ✔ Prior without password restores the absence
+ ✔ Ambiguous state with unknown prior password stays untouched
+ ✔ Capture is durable and holds no secret
+ ✔ Unreadable radius never starts provisioning
+
+Activation Reversal (Reseller\Tests\Integration\Wp5b\ActivationReversal)
+ ✔ Full reversal of a new activation
+ ✔ Reversal of a renewal restores the previous recharge row exactly
+ ✔ Later activation refuses without any write
+ ✔ External radius edit refuses without any write
+ ✔ Legacy recharge drift refuses without any write
+ ✔ Activation without captured context is not reversible
+ ✔ Financial preflight refusal writes nothing
+ ✔ Unrestorable prior secret is refused before any write
+ ✔ Only admin and super admin may reverse and a reason is required
+ ✔ Crash after start resumes with the radius compensation
+ ✔ Crash after the restore records the evidence without a second write
+ ✔ Financial commit failure after the restore holds and resumes without a second radius write
+ ✔ Financial refusal after the restore keeps reversal pending for the operator
+ ✔ Radius is read and restored with no database transaction open
+
+Activation Reversal Race (Reseller\Tests\Integration\Wp5b\ActivationReversalRace)
+ ✔ Reversal start and activation open never both proceed
+ ✔ Reversal start and reprovision are serialized
+
+Activation Source Guard (Reseller\Tests\Unit\Wp5a\ActivationSourceGuard)
+ ✔ One sealed insert only under the tree lock
+ ✔ Snapshots are never updated and events are append only
+ ✔ The activation layer uses only the authoritative services
+ ✔ The controller stays thin
+
+Activation State And Period (Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriod)
+ ✔ Transition table over the full matrix
+ ✔ Fresh period matches the legacy arithmetic with data set "months"
+ ✔ Fresh period matches the legacy arithmetic with data set "days"
+ ✔ Fresh period matches the legacy arithmetic with data set "hours"
+ ✔ Fresh period matches the legacy arithmetic with data set "minutes"
+ ✔ Fresh period matches the legacy arithmetic with data set "period"
+ ✔ Fresh period matches the legacy arithmetic with data set "period-short"
+ ✔ Renewal extends from the current expiry with data set "months"
+ ✔ Renewal extends from the current expiry with data set "days"
+ ✔ Renewal extends from the current expiry with data set "hours"
+ ✔ Renewal extends from the current expiry with data set "minutes"
+ ✔ Renewal extends from the current expiry with data set "period"
+ ✔ Period day is clamped and invalid validity refused
+ ✔ Derived action
+
+Activation Ux (Reseller\Tests\Integration\Wp6a\ActivationUx)
+ ✔ Confirmation shows live server values by role
+ ✔ Browser money is ignored and a stale quote writes nothing
+ ✔ Customer picker is scoped to activatable customers
+ ✔ Status page maps every state honestly
+
+Adjustment (Reseller\Tests\Integration\Wp3a\Adjustment)
+ ✔ Adjustments never create a wallet
+ ✔ Credit and debit adjustment ledger shape
+ ✔ Debit adjustment obeys the available floor
+ ✔ Adjustment permissions and frozen owner
+
+Api (Reseller\Tests\Http\Api)
+ ✔ Valid token works and responses are sanitized
+ ✔ Invalid tokens are refused
+ ✔ Password change revokes earlier tokens
+ ✔ Disabled user token is refused
+ ✔ Api inherits the actor scope and allowlist
+
+Api No Secret (Reseller\Tests\Http\ApiNoSecret)
+ ✔ Api fails closed
+
+Api Secret Equals Db Pass (Reseller\Tests\Http\ApiSecretEqualsDbPass)
+ ✔ Api fails closed when secret equals db pass
+
+Api Short Secret (Reseller\Tests\Http\ApiShortSecret)
+ ✔ Api fails closed
+
+App Regression (Reseller\Tests\Regression\AppRegression)
+ ✔ Legacy flows identical before and after migration
+
+App Surface (Reseller\Tests\Integration\Wp3a\AppSurface)
+ ✔ Finance services run in the application context
+ ✔ No finance routes or api
+
+Audit (Reseller\Tests\Http\Audit)
+ ✔ Audit rows carry context and never secrets
+ ✔ No runtime code mutates the audit table
+
+Auth Session (Reseller\Tests\Http\AuthSession)
+ ✔ Inactive staff cannot login and gets the same message
+ ✔ Disabled mid session is cut off immediately
+ ✔ Password change invalidates other sessions and cookies
+ ✔ Remember cookie works and is bound to user and password
+ ✔ Session id regenerated on login and logout clears everything
+ ✔ Deleted user session is unauthenticated
+ ✔ Default credential must be changed first
+
+Availability (Reseller\Tests\Integration\Wp3b\Availability)
+ ✔ Ancestor disable blocks the subtree and explicit enable cannot override
+ ✔ Authority
+
+Base Cost (Reseller\Tests\Integration\Wp3b\BaseCost)
+ ✔ Missing base row means not resellable
+ ✔ Base is created disabled audited and then enabled
+ ✔ Resale disable blocks everyone and reenables
+ ✔ Zero base is valid but a zero leaf is not activatable
+ ✔ Money boundaries and malformed input
+ ✔ Balance plans are not resellable
+ ✔ Only admin and super admin may mutate
+ ✔ Upstream base raise cannot invalidate an explicit override
+
+Chap And Rest Gate (Reseller\Tests\Unit\Wp4\ChapAndRestGate)
+ ✔ Chap verifies only the right response
+ ✔ Rest endpoint is off until configured
+ ✔ Secret and source are both required
+ ✔ Unknown is never retryable
+
+Cli Only (Reseller\Tests\Integration\CliOnly)
+ ✔ New php files refuse http execution
+ ✔ Every new php file carries the cli guard
+
+Co AClient (Reseller\Tests\Integration\Wp4\CoAClient)
+ ✔ Disconnect ack ends only open sessions and keeps history
+ ✔ Nak is failed and session not found is success
+ ✔ Silence is unknown with identical retransmissions only
+ ✔ Forged reply is ignored
+ ✔ Coa request changes the rate
+ ✔ Offline subscriber and unknown nas
+ ✔ No shell is involved
+
+Concurrency (Reseller\Tests\Integration\Wp3a\Concurrency)
+ ✔ Double spend of the last credit
+ ✔ Two transfers from one parent cannot overspend
+ ✔ Reservation versus transfer
+ ✔ Reservation versus withdrawal
+ ✔ Reservation versus debt limit reduction
+ ✔ Concurrent operations on the same wallets
+ ✔ Commit versus duplicate commit
+ ✔ Commit versus release
+ ✔ Two requests for the same activation
+ ✔ Same funding reference twice
+ ✔ Double reversal
+ ✔ Subtree move versus transfer
+ ✔ Stampede cannot overspend
+
+Constraint (Reseller\Tests\Integration\Constraint)
+ ✔ Activation idempotency and checks
+ ✔ Activation events represent every frozen transition
+ ✔ Tree constraints
+ ✔ Pricing constraints
+ ✔ Manager plan availability override is optional and audited
+ ✔ Price override setter fields describe only the current override
+ ✔ Customer actor identity on activations
+ ✔ Customer actor identity on activation events
+ ✔ Ledger customer actor identity
+ ✔ Wallet ledger transfer reservation constraints
+ ✔ Customer ownership foreign keys
+
+Create Flow (Reseller\Tests\Integration\Wp6a\CreateFlow)
+ ✔ Form offers only the actors ownership choices
+ ✔ Ownership is resolved by the server and forgeries fail
+ ✔ Arabic names and the activate now prompt
+
+Cron Hardening (Reseller\Tests\Integration\Wp5b\CronHardening)
+ ✔ Cron is not reachable over the web
+ ✔ Reseller owned auto renew is unavailable exactly once per obligation
+ ✔ Unassigned auto renew is exactly once per obligation
+ ✔ Held obligation is skipped and never retried
+
+Csrf (Reseller\Tests\Http\Csrf)
+ ✔ Csrf enforced even when legacy switch is off
+ ✔ Token is stable per session and rotates on login
+ ✔ Get on mutating routes is refused
+ ✔ Public login flows with and without token
+ ✔ Public register flow
+ ✔ Public forgot flow
+ ✔ Public voucher activation flow
+ ✔ Api is not subject to csrf but callbacks are exempt
+ ✔ Browser cookie gives no authority through the api
+
+Customer Ownership (Reseller\Tests\Http\CustomerOwnership)
+ ✔ Sales creates for its manager and self ignoring forged fields
+ ✔ Agent creates for self with optional own sales
+ ✔ Admin creates unassigned or for an enrolled agent
+ ✔ Report and non enrolled cannot create
+ ✔ Sales assignment inside scope
+ ✔ Owner transfer is admin only and clears foreign sales
+ ✔ Explicit legacy owner assignment only
+ ✔ Customer delete has reference pre check and is audited
+ ✔ Customer referenced by reseller domain is not deleted
+
+Dashboard (Reseller\Tests\Integration\Wp6a\Dashboard)
+ ✔ Counts are the actors scope
+ ✔ Widgets tab is global only and report gets an empty state
+
+Drift And Registry (Reseller\Tests\Integration\DriftAndRegistry)
+ ✔ Manual change to project table is drift
+ ✔ Edited applied migration file is drift
+ ✔ Tampered registry is not ready
+ ✔ Unknown migration in registry is not ready
+ ✔ Concurrent runner is refused by lock
+ ✔ Committed variant registry equals freshly built fixtures
+
+Drift Report (Reseller\Tests\Integration\Wp5b\DriftReport)
+ ✔ A clean activation has no finding and direct writes are reported
+
+Error Handling (Reseller\Tests\Http\ErrorHandling)
+ ✔ Staff of every role gets generic error with reference
+ ✔ Customer and anonymous get generic error
+ ✔ Api errors are generic
+ ✔ Display errors forced off even if config enables it
+
+Failure Injection (Reseller\Tests\Integration\Wp3a\FailureInjection)
+ ✔ Failure at every step rolls back completely with data set "fund.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "fund.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "fund.after_audit"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_audit"
+ ✔ Failure at every step rolls back completely with data set "adjust.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "adjust.after_audit"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_wallet_locks"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_first_leg"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_second_leg"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_audit"
+ ✔ Failure at every step rolls back completely with data set "debt_limit.after_update"
+ ✔ Failure at every step rolls back completely with data set "debt_limit.after_audit"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_reversal_row"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_first_leg"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_status_update"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_audit"
+ ✔ Failure at every step rolls back completely with data set "reserve.after_insert"
+ ✔ Failure at every step rolls back completely with data set "commit.after_ledger_before_status"
+ ✔ Failure at every step rolls back completely with data set "commit.after_status"
+ ✔ Failure at every step rolls back completely with data set "release.after_status"
+
+Finance Actor (Reseller\Tests\Unit\Wp3a\FinanceActor)
+ ✔ Staff stays staff on every channel
+ ✔ Customer stays customer on every channel
+ ✔ System and cron are explicit
+ ✔ Wrong principals are refused
+ ✔ There is no api or inferred factory
+
+Finance Capability (Reseller\Tests\Unit\Wp3a\FinanceCapability)
+ ✔ Finance capabilities are defined and classified
+ ✔ Exact role matrix
+ ✔ Pricing and activation stay reserved
+ ✔ Frozen non enrolled inconsistent and inactive
+ ✔ Schema not ready fails closed for every role
+ ✔ Non staff principals hold no finance capability
+ ✔ Flags reflect the matrix
+
+Finance Correction (Reseller\Tests\Integration\Wp6b\FinanceCorrection)
+ ✔ Debt line review typed decrease and exposure floor
+ ✔ Adjustments are explicit and never open a wallet
+ ✔ Only an existing reversible transfer can be reversed
+ ✔ Corrections are admin only
+
+Finance Mutation (Reseller\Tests\Integration\Wp6b\FinanceMutation)
+ ✔ Provider funding review execute and replay
+ ✔ A tampered review is refused before any service call
+ ✔ Withdrawal needs the typed username
+ ✔ Agent sends only from its own wallet to a direct child
+ ✔ Roles without the capability are denied
+
+Finance Navigation (Reseller\Tests\Integration\Wp6b\FinanceNavigation)
+ ✔ Destinations follow the role
+ ✔ Primary navigation and quick actions
+ ✔ Dashboard finance tiles are role specific
+
+Finance Read (Reseller\Tests\Integration\Wp6b\FinanceRead)
+ ✔ Scopes follow the accepted capabilities
+ ✔ Identities above the viewer are role labels and in scope reasons stay
+ ✔ Exports equal the screen and are audited without contents
+ ✔ Read pages write nothing
+
+Finance Schema Readiness (Reseller\Tests\Integration\Wp3a\FinanceSchemaReadiness)
+ ✔ Required table list is exact
+ ✔ Missing finance table fails closed and recovers with data set "tbl_reseller_activations"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallets"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_transfers"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_ledger"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallet_reservations"
+
+Finance Tx (Reseller\Tests\Integration\Wp3a\FinanceTx)
+ ✔ Deadlock is retried with a clean envelope
+ ✔ Retries are bounded
+ ✔ Lock wait timeout and other errors are not retried
+ ✔ Strict mode envelope on success and failure
+ ✔ Tree lock name is the accepted wp 2 lock
+
+Forward Migration (Reseller\Tests\Integration\ForwardMigration)
+ ✔ Forward migration produces contract and keeps legacy data untouched with data set "V1_FRESH_INSTALL"
+ ✔ Forward migration produces contract and keeps legacy data untouched with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Forward migration produces contract and keeps legacy data untouched with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Registry is durable and journal complete
+ ✔ Second run executes zero ddl and writes nothing with data set "V1_FRESH_INSTALL"
+ ✔ Second run executes zero ddl and writes nothing with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Second run executes zero ddl and writes nothing with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Foreign key signedness and rules from catalog
+
+Free Radius Contract (Reseller\Tests\Integration\Wp4\FreeRadiusContract)
+ ✔ Pppoe pap and chap with static address and rate
+ ✔ Pppoe dynamic pool
+ ✔ Hotspot group rate and simultaneous use
+ ✔ Expiration
+ ✔ Time quota per period keeps history
+ ✔ Data quota per period keeps history
+ ✔ Suspended and removed subscribers are rejected and history kept
+
+Funding (Reseller\Tests\Integration\Wp3a\Funding)
+ ✔ Provider funding is one operation one credit and one audit
+ ✔ Withdrawal boundary counts active reservations
+ ✔ Withdrawal can draw into the debt line
+ ✔ Insufficient credit on absent wallet writes nothing
+ ✔ Idempotency replay and conflict per field
+ ✔ Funding targets and permissions
+ ✔ Refused reference is reusable
+
+Grants (Reseller\Tests\Unit\Grants)
+ ✔ Global all privileges is sufficient
+ ✔ Database level explicit privileges
+ ✔ Escaped underscore matches literal only
+ ✔ Wildcard pattern
+ ✔ Missing references is reported
+ ✔ Other database or table level does not count
+ ✔ Role only grants are not assumed
+
+Guards (Reseller\Tests\Unit\Wp2\Guards)
+ ✔ Customer predicates are parenthesized and bound
+ ✔ Id validation
+ ✔ Path guard rejects traversal
+ ✔ Api sanitizer removes credentials and config
+ ✔ Audit redactor and error sanitizer
+
+Hierarchy (Reseller\Tests\Http\Hierarchy)
+ ✔ Seed tree is consistent
+ ✔ Explicit placement of legacy accounts
+ ✔ Move rules cycle self parent and roles
+ ✔ Move subtree keeps closure consistent and clears mismatched sales assignments
+ ✔ Agent disables strict descendants only
+ ✔ Frozen descendant is read only
+ ✔ Concurrent cross moves cannot create a cycle
+
+Hierarchy Cli (Reseller\Tests\Integration\Wp2\HierarchyCli)
+ ✔ Read only commands never mutate
+ ✔ Validate reports every finding with the cycle path
+ ✔ Plan excludes invalid subtrees and orders parents first
+ ✔ Plan is deterministic across reruns and insertion order
+ ✔ Already enrolled nodes are never replaced and inspect reports state
+ ✔ Apply is refused without owner authorization
+ ✔ Unknown commands and options are usage errors
+
+Ledger (Reseller\Tests\Integration\Wp3a\Ledger)
+ ✔ Continuity across every operation type
+ ✔ Entry keys are derived and unique
+ ✔ No generic or mutating ledger api
+ ✔ Forged wallet state cannot be posted
+ ✔ Ledger read scope
+ ✔ Corrections only by compensation
+
+Legacy Balance Atomicity (Reseller\Tests\Integration\Wp5b\LegacyBalanceAtomicity)
+ ✔ Duplicate usernames change at most one row
+ ✔ Legacy credit never overwrites a concurrent hardened debit
+
+Legacy Customer Balance (Reseller\Tests\Integration\Wp5b\LegacyCustomerBalance)
+ ✔ Purchase is exactly once and replays without a second debit or grant
+ ✔ Concurrent same key debits once
+ ✔ Insufficient balance writes nothing
+ ✔ Proven pre write refusal is refunded once
+ ✔ Interrupted grant is held for the operator and resolved once
+ ✔ Reseller owned payer or target is refused
+ ✔ Transfer is atomic and validated
+ ✔ Concurrent transfers never overdraw
+ ✔ Operator resolution waits for the live dispatcher with data set "A: refund"
+ ✔ Operator resolution waits for the live dispatcher with data set "B: completed"
+ ✔ Abandoned held operation is resolvable once its lock is gone
+ ✔ Finalizer that loses its conditional update reports the persisted state
+
+Legacy Entrypoint Closure (Reseller\Tests\Integration\Wp5b\LegacyEntrypointClosure)
+ ✔ Admin recharge of a reseller owned customer continues at the activation
+ ✔ Admin balance recharge of an unassigned customer is exactly once
+ ✔ Customer balance purchase gift and transfer are post only and replay safe
+ ✔ Payment check and cancel are post only
+ ✔ Reseller owned reprovision goes through the service
+ ✔ The activation reverse route is admin only and post only
+
+Legacy Reprovision (Reseller\Tests\Integration\Wp5b\LegacyReprovision)
+ ✔ Tree serialization is the same lock as the finance tree lock
+ ✔ Admin sync reprovisions without touching billing
+ ✔ Refused while an activation is in flight without any device call
+ ✔ Password change by the customer is applied and verified
+ ✔ Confirmed device failure reverts the database
+ ✔ Unknown device outcome keeps the new values and is reported
+ ✔ Identity edit renames the subscriber and never activates
+ ✔ Authorization and ownership
+ ✔ Device default deny for reseller owned customers
+ ✔ Activation open and admin sync are serialized
+ ✔ Activation open and password change are serialized
+ ✔ Partial success across targets is unconfirmed and never reverted
+ ✔ Rename applied then add failed is unconfirmed and never reverted
+ ✔ First operation failed is still reverted
+
+Legacy Retail Price (Reseller\Tests\Unit\Wp3b\LegacyRetailPrice)
+ ✔ Accepted
+ ✔ Refused without normalisation
+
+Migration Definitions (Reseller\Tests\Unit\MigrationDefinitions)
+ ✔ Ordered gap free ids
+ ✔ Only legacy change is customer ownership and later migrations only create tables
+ ✔ Every foreign key is restrict never cascade
+ ✔ User references are unsigned and customer plan references signed
+ ✔ AllNewMoneyIsDecimal18 2
+ ✔ No voucher commerce schema
+ ✔ Timestamps are datetime 6 without server defaults
+ ✔ Every down step has existence guard and reverse order
+
+Migration Redefines (Reseller\Tests\Unit\MigrationRedefines)
+ ✔ Well formed redefinition loads
+ ✔ Malformed redefinition is rejected with data set "redefines not an array"
+ ✔ Malformed redefinition is rejected with data set "table without columns"
+ ✔ Malformed redefinition is rejected with data set "columns not an array"
+ ✔ Malformed redefinition is rejected with data set "numeric table key"
+ ✔ Malformed redefinition is rejected with data set "invalid table identifier"
+ ✔ Malformed redefinition is rejected with data set "quoted table identifier"
+ ✔ Malformed redefinition is rejected with data set "upper-case table identifier"
+ ✔ Malformed redefinition is rejected with data set "numeric column key"
+ ✔ Malformed redefinition is rejected with data set "invalid column identifier"
+ ✔ Malformed redefinition is rejected with data set "entry not an array"
+ ✔ Malformed redefinition is rejected with data set "missing from"
+ ✔ Malformed redefinition is rejected with data set "missing to"
+ ✔ Malformed redefinition is rejected with data set "missing data_guard"
+ ✔ Malformed redefinition is rejected with data set "extra key"
+ ✔ Malformed redefinition is rejected with data set "empty from"
+ ✔ Malformed redefinition is rejected with data set "empty to"
+ ✔ Malformed redefinition is rejected with data set "non-string to"
+ ✔ Malformed redefinition is rejected with data set "from equals to"
+ ✔ Malformed redefinition is rejected with data set "empty data_guard"
+ ✔ Redefining migration may not also create tables or parts
+ ✔ Mutating or non select data guard is rejected with data set "not a select"
+ ✔ Mutating or non select data guard is rejected with data set "leading space"
+ ✔ Mutating or non select data guard is rejected with data set "update"
+ ✔ Mutating or non select data guard is rejected with data set "delete"
+ ✔ Mutating or non select data guard is rejected with data set "insert"
+ ✔ Mutating or non select data guard is rejected with data set "drop"
+ ✔ Mutating or non select data guard is rejected with data set "alter"
+ ✔ Mutating or non select data guard is rejected with data set "truncate"
+ ✔ Mutating or non select data guard is rejected with data set "second statement"
+ ✔ Mutating or non select data guard is rejected with data set "trailing separator"
+ ✔ Mutating or non select data guard is rejected with data set "select into outfile"
+ ✔ Mutating or non select data guard is rejected with data set "select into variable"
+ ✔ Mutating or non select data guard is rejected with data set "locking read"
+ ✔ Mutating or non select data guard is rejected with data set "share lock"
+ ✔ Mutating or non select data guard is rejected with data set "sleep"
+ ✔ Mutating or non select data guard is rejected with data set "benchmark"
+ ✔ Mutating or non select data guard is rejected with data set "named lock"
+ ✔ Mutating or non select data guard is rejected with data set "line comment"
+ ✔ Mutating or non select data guard is rejected with data set "hash comment"
+ ✔ Mutating or non select data guard is rejected with data set "block comment"
+ ✔ Mutating or non select data guard is rejected with data set "executable comment"
+ ✔ Mutating or non select data guard is rejected with data set "backslash escape"
+ ✔ Mutating or non select data guard is rejected with data set "replace"
+ ✔ Mutating or non select data guard is rejected with data set "set"
+ ✔ Read only guards accepted
+
+Mikrotik Device (Reseller\Tests\Integration\Wp5b\MikrotikDevice)
+ ✔ Hotspot rename really renames the existing user
+ ✔ Expiry of a reseller owned customer applies the restricted plan without the grant guard
+ ✔ The primitive is private and not a bypass
+
+Money (Reseller\Tests\Unit\Wp3a\Money)
+ ✔ Exact smallest unit and canonical forms
+ ✔ Largest decimal 1802 value is exact
+ ✔ Intermediate beyond one column is valid
+ ✔ Checked int 64 never overflows
+ ✔ No floating point drift
+ ✔ Malformed inputs are rejected with data set "NaN"
+ ✔ Malformed inputs are rejected with data set "nan"
+ ✔ Malformed inputs are rejected with data set "INF"
+ ✔ Malformed inputs are rejected with data set "Infinity"
+ ✔ Malformed inputs are rejected with data set "-INF"
+ ✔ Malformed inputs are rejected with data set "exponent"
+ ✔ Malformed inputs are rejected with data set "exponent2"
+ ✔ Malformed inputs are rejected with data set "plus sign"
+ ✔ Malformed inputs are rejected with data set "leading space"
+ ✔ Malformed inputs are rejected with data set "trailing space"
+ ✔ Malformed inputs are rejected with data set "trailing newline"
+ ✔ Malformed inputs are rejected with data set "dot only"
+ ✔ Malformed inputs are rejected with data set "trailing dot"
+ ✔ Malformed inputs are rejected with data set "leading dot"
+ ✔ Malformed inputs are rejected with data set "leading zero"
+ ✔ Malformed inputs are rejected with data set "leading zero int"
+ ✔ Malformed inputs are rejected with data set "thousands"
+ ✔ Malformed inputs are rejected with data set "comma decimal"
+ ✔ Malformed inputs are rejected with data set "three decimals"
+ ✔ Malformed inputs are rejected with data set "three decimals zero"
+ ✔ Malformed inputs are rejected with data set "17 int digits"
+ ✔ Malformed inputs are rejected with data set "17 digits max"
+ ✔ Malformed inputs are rejected with data set "arabic digits"
+ ✔ Malformed inputs are rejected with data set "fullwidth"
+ ✔ Malformed inputs are rejected with data set "hex"
+ ✔ Malformed inputs are rejected with data set "empty"
+ ✔ Malformed inputs are rejected with data set "negative"
+ ✔ Malformed inputs are rejected with data set "negative zero"
+ ✔ Malformed inputs are rejected with data set "underscore"
+ ✔ Malformed inputs are rejected with data set "float"
+ ✔ Malformed inputs are rejected with data set "int"
+ ✔ Malformed inputs are rejected with data set "null"
+ ✔ Malformed inputs are rejected with data set "bool"
+ ✔ Malformed inputs are rejected with data set "array"
+ ✔ Malformed inputs are rejected with data set "nul byte"
+ ✔ Malformed inputs are rejected with data set "tab"
+ ✔ Column values are strict
+ ✔ Comparisons and json
+
+Money Boundary (Reseller\Tests\Integration\Wp3a\MoneyBoundary)
+ ✔ Max balance plus max debt and reservation sum beyond one column
+ ✔ Credit beyond storage is rejected before sql
+ ✔ Reversal credit overflow is atomic
+
+Operations Center (Reseller\Tests\Integration\Wp6b\OperationsCenter)
+ ✔ Only admins reach the operations center
+ ✔ Cancel is refused while fresh and cancels once stale
+ ✔ Resume of a stale activation completes it
+ ✔ An attention item is never listed twice
+ ✔ Informational items carry no action buttons
+
+Pages Boundary (Reseller\Tests\Http\PagesBoundary)
+ ✔ Admin may read a page without write controls
+ ✔ Admin forged write and reset are denied
+ ✔ Denied reset performs no remote fetch or write
+ ✔ Super admin writes an allowed page
+ ✔ Super admin reset only on canonical pages
+ ✔ Other roles have no pages access
+ ✔ Api never exposes pages
+
+Partial Failure (Reseller\Tests\Integration\PartialFailure)
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V1_FRESH_INSTALL"
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Interrupted run becomes rollback required
+ ✔ Failure of atomic customer alter leaves tbl customers untouched
+ ✔ Postflight contract mismatch fails closed
+ ✔ Failed rollback blocks and can be resumed
+
+Payment Hardening (Reseller\Tests\Integration\Wp5b\PaymentHardening)
+ ✔ Only a configured gateway inside the directory is used
+ ✔ Posted discount is ignored
+ ✔ A paid row is never cancelled or checked again
+ ✔ Resolver unit
+ ✔ A valid coupon is consumed once with the payment row
+ ✔ A stale coupon never discounts with data set "A: disabled before buy"
+ ✔ A stale coupon never discounts with data set "B: expired before buy"
+ ✔ A stale coupon never discounts with data set "C: exhausted before buy"
+ ✔ Concurrent buys cannot both consume the last use
+ ✔ Percent coupon uses the invoice override as its basis
+ ✔ Minimum order is checked against the invoice override
+ ✔ Buy reads the current invoice override
+ ✔ Without an override the percent coupon uses the plan price
+
+Permission Model (Reseller\Tests\Unit\Wp2\PermissionModel)
+ ✔ Every mapped capability is defined and every scope known
+ ✔ Reserved finance capabilities are never granted
+ ✔ Agent and sales have no service capability
+ ✔ Report has no data access
+ ✔ Admin super admin boundary
+ ✔ Scopes by role
+ ✔ Non enrolled and inconsistent have no tree scope
+ ✔ Frozen actor keeps read only
+ ✔ Schema not ready fails closed for every role
+ ✔ Non staff and denied contexts hold nothing
+
+Plan Delete Guard (Reseller\Tests\Integration\Wp3b\PlanDeleteGuard)
+ ✔ Referenced plans are refused before any side effect
+ ✔ Activation references including previous plan are refused
+ ✔ Unreferenced plans are deleted as before
+
+Plan Delete Race (Reseller\Tests\Integration\Wp3b\PlanDeleteRace)
+ ✔ Delete wins serialization
+ ✔ Pricing wins serialization
+ ✔ Lock timeout refuses before any effect
+ ✔ Concurrent delete and pricing never split
+
+Plugin Bypass (Reseller\Tests\Integration\Wp5b\PluginBypass)
+ ✔ Core writers and device grants refuse reseller owned customers
+
+Preflight (Reseller\Tests\Integration\Preflight)
+ ✔ Recognises verified variant with zero mutation with data set "V1_FRESH_INSTALL"
+ ✔ Recognises verified variant with zero mutation with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Recognises verified variant with zero mutation with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Extra unrelated table passes and is reported
+ ✔ Incompatible required core change fails before mutation with data set "tbl_users.id signed"
+ ✔ Incompatible required core change fails before mutation with data set "tbl_customers MyISAM"
+ ✔ Incompatible required core change fails before mutation with data set "tbl_customers utf8mb3"
+ ✔ Incompatible required core change fails before mutation with data set "unknown column on required core table"
+ ✔ Incompatible required core change fails before mutation with data set "required column type changed"
+ ✔ Incompatible required core change fails before mutation with data set "required column dropped"
+ ✔ Incompatible required core change fails before mutation with data set "tbl_plans.id bigint"
+ ✔ Incompatible required core change fails before mutation with data set "extra index on core table"
+ ✔ Incompatible required core change fails before mutation with data set "required core table missing"
+ ✔ Empty database is not ready
+ ✔ Collisions are never adopted with data set "unregistered project table"
+ ✔ Collisions are never adopted with data set "pre-existing manager_id column"
+ ✔ Collisions are never adopted with data set "foreign key name already used"
+ ✔ Missing privilege is not ready
+
+Pricing Capability (Reseller\Tests\Unit\Wp3b\PricingCapability)
+ ✔ Classification
+ ✔ Exact role matrix
+ ✔ Frozen inconsistent non enrolled and not ready
+ ✔ Non staff hold nothing
+
+Pricing Concurrency (Reseller\Tests\Integration\Wp3b\PricingConcurrency)
+ ✔ Settlement versus every writer on the recipient
+ ✔ Settlement versus reversal and reserve and another settlement
+ ✔ Settlement versus the leaf agents own transfer
+ ✔ Near maximum settlement first
+ ✔ Near maximum funding first
+ ✔ Near maximum recipient balance race
+ ✔ Pricing mutation races
+ ✔ Reserve versus price change and move
+
+Pricing Failure Injection (Reseller\Tests\Integration\Wp3b\PricingFailureInjection)
+ ✔ Failure at every step rolls back completely with data set "base pricing.after_write"
+ ✔ Failure at every step rolls back completely with data set "base pricing.after_audit"
+ ✔ Failure at every step rolls back completely with data set "resale pricing.after_write"
+ ✔ Failure at every step rolls back completely with data set "resale pricing.after_audit"
+ ✔ Failure at every step rolls back completely with data set "wholesale pricing.after_write"
+ ✔ Failure at every step rolls back completely with data set "wholesale pricing.after_audit"
+ ✔ Failure at every step rolls back completely with data set "retail pricing.after_write"
+ ✔ Failure at every step rolls back completely with data set "retail pricing.after_audit"
+ ✔ Failure at every step rolls back completely with data set "availability pricing.after_write"
+ ✔ Failure at every step rolls back completely with data set "availability pricing.after_audit"
+ ✔ Failure at every step rolls back completely with data set "settle commit.after_debit_before_commissions"
+ ✔ Failure at every step rolls back completely with data set "settle commit.after_commissions"
+ ✔ Failure at every step rolls back completely with data set "settle commit.after_ledger_before_status"
+ ✔ Failure at every step rolls back completely with data set "settle commit.after_status"
+ ✔ Failure at every step rolls back completely with data set "reserve-sealed reserve.after_insert"
+
+Pricing Read Model (Reseller\Tests\Unit\Wp3b\PricingReadModel)
+ ✔ Admin sees everything
+ ✔ Agent sees only its part of the chain
+
+Pricing Schema Readiness (Reseller\Tests\Integration\Wp3b\PricingSchemaReadiness)
+ ✔ Expected is r 0001 to r 0007
+ ✔ Missing pricing table fails closed and recovers with data set "tbl_reseller_plan_base_costs"
+ ✔ Missing pricing table fails closed and recovers with data set "tbl_manager_plan_prices"
+
+Pricing Snapshot (Reseller\Tests\Unit\Wp3b\PricingSnapshot)
+ ✔ Canonical bytes and completeness
+ ✔ Decode refuses tampering and partial rows
+ ✔ Invariants are enforced on seal
+ ✔ Plan snapshot excludes scripts
+
+Pricing Source Guard (Reseller\Tests\Unit\Wp3b\PricingSourceGuard)
+ ✔ Pricing tables have only the approved writer
+ ✔ Activation snapshots are write once
+ ✔ One settlement authority
+ ✔ Pricing code writes no money
+ ✔ No entrypoint or route
+ ✔ Plan delete is guarded before any side effect
+ ✔ Plan reference writers hold the tree lock
+
+Pricing Ux (Reseller\Tests\Integration\Wp6b\PricingUx)
+ ✔ Agents see only their projection and admin sees everything
+ ✔ The accepted setters stay authoritative
+ ✔ Admin base cost resale and retail warnings
+
+R0007Reversal States Migration (Reseller\Tests\Integration\R0007ReversalStatesMigration)
+ ✔ Clean apply and verify on every variant with data set "V1_FRESH_INSTALL"
+ ✔ Clean apply and verify on every variant with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Clean apply and verify on every variant with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ R 0003 drift is still detected outside the redefined columns
+ ✔ Unknown third definition while applied is drift
+ ✔ To definition present while r 0007 not applied is a collision
+ ✔ Unknown third definition while not applied fails closed
+ ✔ Interrupted apply after first alter blocks and is recoverable
+ ✔ Failed second alter is partial and rollback restores
+ ✔ Rollback restores exact r 0003 definitions with data set "V1_FRESH_INSTALL"
+ ✔ Rollback restores exact r 0003 definitions with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Rollback restores exact r 0003 definitions with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Rollback refused while a new state is used with data set "activation REVERSAL_PENDING"
+ ✔ Rollback refused while a new state is used with data set "activation REVERSED"
+ ✔ Rollback refused while a new state is used with data set "event to_state REVERSAL_PENDING"
+ ✔ Rollback refused while a new state is used with data set "event to_state REVERSED"
+ ✔ Rollback refused while a new state is used with data set "event from_state REVERSAL_PENDING"
+ ✔ Rollback refused while a new state is used with data set "event from_state REVERSED"
+ ✔ Checksum and contract fingerprint are deterministic
+ ✔ Redefinition of a non project target is refused before any work with data set "legacy core table"
+ ✔ Redefinition of a non project target is refused before any work with data set "legacy non-core table"
+ ✔ Redefinition of a non project target is refused before any work with data set "wrong from"
+ ✔ Redefinition of a non project target is refused before any work with data set "unknown column"
+
+Radius Admin Flow (Reseller\Tests\Integration\Wp4\RadiusAdminFlow)
+ ✔ Recharge renewal and edit provision the saved billing expiry
+ ✔ Radius plan delete removes the group rows
+ ✔ Nas secret is never rendered and input is validated
+
+Radius Device Lifecycle (Reseller\Tests\Integration\Wp4\RadiusDeviceLifecycle)
+ ✔ Expiration is the saved billing expiry
+ ✔ No active recharge refuses without writing
+ ✔ No lifecycle path touches accounting history
+ ✔ Expired plan and suspension semantics
+ ✔ Pppoe key and rename across all tables
+ ✔ Plan group and nas through the device
+
+Radius Packet (Reseller\Tests\Unit\Wp4\RadiusPacket)
+ ✔ Disconnect request authenticator and message authenticator
+ ✔ Access request hides the password
+ ✔ Response verification
+ ✔ Chap response and malformed packets
+
+Radius Policy Builder (Reseller\Tests\Unit\Wp4\RadiusPolicyBuilder)
+ ✔ Pppoe static address policy
+ ✔ Pppoe dynamic pool and fallbacks
+ ✔ Hotspot shared users rate burst and terminate time
+ ✔ Hotspot quotas are not overwritten by the expiry
+ ✔ Group reply uses the upload rate for xmit
+ ✔ Invalid input is refused
+ ✔ Managed attribute sets cover every policy attribute
+
+Radius Repository (Reseller\Tests\Integration\Wp4\RadiusRepository)
+ ✔ Apply is exact and idempotent and leaves unmanaged rows alone
+ ✔ Plan change replaces the policy completely
+ ✔ Rename moves all three tables and keeps history
+ ✔ Suspend and remove never touch accounting
+ ✔ Plan group rows
+ ✔ Failure before commit is failed and rolled back
+ ✔ Lost commit is unknown
+ ✔ Verify mismatch is unknown
+
+Radius Repository Separate Db (Reseller\Tests\Integration\Wp4\RadiusRepositorySeparateDb)
+ ✔ Apply is exact and idempotent and leaves unmanaged rows alone
+ ✔ Plan change replaces the policy completely
+ ✔ Rename moves all three tables and keeps history
+ ✔ Suspend and remove never touch accounting
+ ✔ Plan group rows
+ ✔ Failure before commit is failed and rolled back
+ ✔ Lost commit is unknown
+ ✔ Verify mismatch is unknown
+ ✔ The radius tables are only in the separate database
+
+Radius Rest Disabled (Reseller\Tests\Integration\Wp4\RadiusRestDisabled)
+ ✔ Every action is refused
+
+Radius Rest Endpoint (Reseller\Tests\Integration\Wp4\RadiusRestEndpoint)
+ ✔ Refused without or with a wrong secret
+ ✔ Injection payloads have no effect
+ ✔ Voucher authentication
+ ✔ Chap verifies the response
+ ✔ Accounting counters per session
+ ✔ Radius runtime classes refuse direct http
+
+Radius Source Guard (Reseller\Tests\Unit\Wp4\RadiusSourceGuard)
+ ✔ Accounting history is never deleted or rewritten
+ ✔ No shell in any radius path
+ ✔ No interpolated sql in the endpoint and radius classes
+ ✔ Radius code makes no finance or billing writes
+ ✔ Nas secret is never rendered
+ ✔ Endpoint gate runs before any action
+ ✔ Package calls the device after saving the recharge
+
+Radius State (Reseller\Tests\Unit\Wp5a\RadiusState)
+ ✔ The target is the provisioner contract without the password
+ ✔ Equality is exact and canonical
+ ✔ Diff names components never values
+
+Reseller Lifecycle (Reseller\Tests\Http\ResellerLifecycle)
+ ✔ Super admin cannot delete an enrolled agent
+ ✔ Super admin cannot delete an unreferenced non enrolled agent
+ ✔ The same agent can be disabled and reactivated
+ ✔ No role can bypass the rule
+ ✔ Permitted deletions of other roles are unchanged
+
+Reseller Workspace (Reseller\Tests\Integration\Wp6b\ResellerWorkspace)
+ ✔ Tree scope drill down and no money
+ ✔ Detail is scoped and masks accounts above the viewer
+ ✔ Subscriber filters only narrow the scope
+
+Reservation (Reseller\Tests\Integration\Wp3a\Reservation)
+ ✔ Reserve counts against available without ledger
+ ✔ Reserve history states
+ ✔ Reserve validates the activation and owner
+ ✔ In tx variant requires the tree lock
+ ✔ Commit exactly once without rewriting the actor
+ ✔ Customer actor is preserved and may differ from the target
+ ✔ Release idempotency and conflicts
+ ✔ Commit and release allowed for a frozen owner
+ ✔ No blind expiry
+
+Resolution Snapshot (Reseller\Tests\Integration\Wp3b\ResolutionSnapshot)
+ ✔ Sealed snapshot is complete and reads back byte identical
+ ✔ Historical snapshot survives every later change
+ ✔ Resolution requires the tree lock and a transaction
+ ✔ Quotes are scoped and role filtered
+
+Restore Guard (Reseller\Tests\Http\RestoreGuard)
+ ✔ Restore is refused before mutation on reseller installation
+ ✔ Only super admin reaches backup and restore and csrf is required
+
+Restore Legacy Install (Reseller\Tests\Http\RestoreLegacyInstall)
+ ✔ Hardened legacy restore
+
+Retail (Reseller\Tests\Integration\Wp3b\Retail)
+ ✔ Explicit retail clear to legacy default and authority
+ ✔ Malformed or low legacy default fails closed
+ ✔ Upstream raise invalidates retail without veto or rewrite
+ ✔ Browser money is never authoritative
+
+Reversal (Reseller\Tests\Integration\Wp3a\Reversal)
+ ✔ Funding reversal
+ ✔ Withdrawal and adjustment reversals
+ ✔ Transfer reversal after subtree move
+ ✔ Reversal idempotency ordering
+ ✔ Reversal blocked when the debit side cannot afford it
+ ✔ Reversal on frozen historical counterparty
+ ✔ Reversal never creates a wallet
+
+Rollback (Reseller\Tests\Integration\Rollback)
+ ✔ Full rollback restores pre migration core fingerprint and forward again with data set "V1_FRESH_INSTALL"
+ ✔ Full rollback restores pre migration core fingerprint and forward again with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Full rollback restores pre migration core fingerprint and forward again with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Partial rollback to target
+ ✔ Rollback refuses when new domain holds data
+ ✔ Rollback requires explicit scope
+
+Route Map (Reseller\Tests\Unit\Wp2\RouteMap)
+ ✔ Every controller is mapped
+ ✔ Every action label is mapped and no stale entries
+ ✔ Every rule is known and every alias resolves
+ ✔ Variants and api allowlist refer to mapped entries
+ ✔ Fall through entries are not wider than their targets
+ ✔ Pages write and reset are a code surface
+ ✔ Resolution of keys variants and methods
+
+Route Matrix (Reseller\Tests\Http\RouteMatrix)
+ ✔ Role route matrix
+ ✔ Mutating routes refuse get
+ ✔ Unmapped routes are denied for everyone
+
+Schema Drift (Reseller\Tests\Http\SchemaDrift)
+ ✔ Failed partial migration
+ ✔ Checksum drift
+ ✔ Missing migration and unknown entry
+ ✔ Missing required table
+ ✔ Migration run in progress
+
+Schema Not Migrated (Reseller\Tests\Http\SchemaNotMigrated)
+ ✔ Dependent mutations fail closed for every role
+ ✔ Own profile password and logout remain
+
+Scope Isolation (Reseller\Tests\Http\ScopeIsolation)
+ ✔ Customer object scope without existence oracle
+ ✔ Customer lists search and pickers are scoped
+ ✔ Derived objects invoices recharges vouchers are scoped
+ ✔ Messaging is scoped all or nothing
+ ✔ Staff directory is scoped
+
+Security Routes (Reseller\Tests\Http\SecurityRoutes)
+ ✔ Plugin dispatch requires registered authorized function
+ ✔ Updater is disabled
+ ✔ Installer is disabled once configured
+ ✔ Search user requires staff and scope
+ ✔ Raw sql parameters are inert
+ ✔ Agent and sales cannot generate vouchers
+ ✔ Pages traversal is rejected
+ ✔ Language cookie traversal is ignored
+ ✔ Public invoice signature
+ ✔ Print content is escaped
+ ✔ Wp 2 files refuse direct http execution
+
+Service Gate (Reseller\Tests\Http\ServiceGate)
+ ✔ Agent and sales cannot grant service to their own in scope customer
+ ✔ Agent and sales cannot grant service through the api
+ ✔ Super admin and admin are refused on reseller owned customers
+ ✔ Core guards refuse direct calls for reseller owned customers
+ ✔ Cron skips reseller owned auto renewal and renews unassigned
+ ✔ Customer portal refuses service for reseller owned customer
+ ✔ Public voucher activation refused and password unchanged
+ ✔ Customer edit refuses reprovisioning changes for reseller owned
+ ✔ Bulk plan sync skips reseller owned customers
+ ✔ Unassigned customers keep admin service compatibility
+
+Settlement (Reseller\Tests\Integration\Wp3b\Settlement)
+ ✔ Spec chain settles exactly and conserves
+ ✔ One two level inherited equal and base zero chains
+ ✔ Commission recipient must already have a wallet
+ ✔ Recipient capacity is checked at reserve and again at commit
+ ✔ Frozen recipient is still credited and move after reserve keeps the snapshot
+ ✔ Stale partial zero and null snapshot activations
+ ✔ Customer actor and tampered snapshot at commit
+
+Settlement Failure (Reseller\Tests\Unit\Wp3b\SettlementFailure)
+ ✔ Classification
+ ✔ Messages are sanitized
+
+Settlement Math (Reseller\Tests\Unit\Wp3b\SettlementMath)
+ ✔ Exact settlement with data set "one level, override"
+ ✔ Exact settlement with data set "no override (base)"
+ ✔ Exact settlement with data set "two levels 10->12->15"
+ ✔ Exact settlement with data set "spec 10->12->15->17"
+ ✔ Exact settlement with data set "inherited middle earns the gap"
+ ✔ Exact settlement with data set "equal adjacent explicit"
+ ✔ Exact settlement with data set "all inherit base"
+ ✔ Exact settlement with data set "base 0, owner example 0->5->8"
+ ✔ Exact settlement with data set "base 0, top inherits 0"
+ ✔ Exact settlement with data set "cents"
+ ✔ Exact settlement with data set "deep chain"
+ ✔ Exact settlement with data set "maximum"
+ ✔ Zero leaf wholesale is never sealed
+ ✔ No float drift across many cents
+
+Settlement Report (Reseller\Tests\Integration\Wp6b\SettlementReport)
+ ✔ The settlement card follows the role projection
+ ✔ Reports and exports follow the same scopes
+
+Shell Navigation (Reseller\Tests\Integration\Wp6a\ShellNavigation)
+ ✔ Every rendered navigation link is authorized for the actor
+ ✔ Primary navigation and quick actions follow capabilities
+ ✔ Document direction language landmarks and assets
+ ✔ Missing translations never leave the server
+
+Source Guard (Reseller\Tests\Unit\Wp3a\SourceGuard)
+ ✔ Scan covers the runtime
+ ✔ Ledger has no update or delete path and one writer
+ ✔ Wallet writers
+ ✔ Reservation and transfer writers
+ ✔ No orm access to finance tables
+ ✔ Finance code is separated from legacy money and input
+ ✔ No entrypoint reaches the finance services
+ ✔ Fault hook is never assigned at runtime
+ ✔ No generic ledger writer
+ ✔ Accepted files are byte identical
+
+Staff Management (Reseller\Tests\Http\StaffManagement)
+ ✔ Role escalation on create is rejected
+ ✔ Agent creates only direct children and parent is never taken from the form
+ ✔ Admin creates tree accounts under valid parents only
+ ✔ Self cannot change own type status or parent
+ ✔ Edit targets are scoped
+ ✔ Delete rules
+ ✔ Role change is tree safe and last super admin protected
+
+Subscriber Search (Reseller\Tests\Integration\Wp6a\SubscriberSearch)
+ ✔ Every identifier matches within scope only
+ ✔ Bounds wildcards and escaping
+ ✔ List filters and role actions
+
+Subscriber360 (Reseller\Tests\Integration\Wp6a\Subscriber360)
+ ✔ Actions follow capabilities and nothing rendered is denied
+ ✔ Secrets escaping tokens and assets
+ ✔ Session state comes from accounting only
+ ✔ Operational flags and tabs
+
+Transfer (Reseller\Tests\Integration\Wp3a\Transfer)
+ ✔ Direct child transfer is balanced and audited
+ ✔ Structural refusals
+ ✔ Inactive or frozen source or target is refused
+ ✔ Available credit boundary includes reservations and debt line
+ ✔ Admin transfer uses the same rule and records the operator
+ ✔ Idempotent transfer replay and conflict
+ ✔ Destination storage overflow is atomic
+
+Voucher Redemption (Reseller\Tests\Integration\Wp5b\VoucherRedemption)
+ ✔ Portal redemption claims once and is audited for the customer
+ ✔ Reseller owned target is refused and the voucher untouched
+ ✔ Proven not started grant releases the voucher
+ ✔ Interrupted grant keeps the voucher claimed forever
+ ✔ Concurrent redemptions of one code grant once
+ ✔ New username voucher creates one customer and never touches an existing one
+ ✔ New username proven not started removes the provisional customer and ambiguous keeps it
+ ✔ Concurrent new username vouchers create at most one customer
+ ✔ Claimed vouchers cannot be deleted
+ ✔ Generated codes use the csprng and never duplicate
+
+Wallet (Reseller\Tests\Integration\Wp3a\Wallet)
+ ✔ Absent wallet is synthesized without any write
+ ✔ First funding creates the wallet with initial zero state
+ ✔ Debt limit zero on absent wallet is a no op
+ ✔ Positive debt limit creates the wallet without ledger entry
+ ✔ Debt limit increase and decrease against exact exposure
+ ✔ Debt limit input and target rules
+ ✔ Read scope
+
+Wholesale (Reseller\Tests\Integration\Wp3b\Wholesale)
+ ✔ Admin sets top level parent sets direct child floor is the parent
+ ✔ Scope self sibling grandchild unrelated and forged ids
+ ✔ Inheritance nearest ancestor base fallback and clear
+ ✔ Introduced descendant conflict is rejected never rewritten
+ ✔ Pre existing violation from a move
+ ✔ Deep chain and frozen policy
+
+Wp5b Source Guard (Reseller\Tests\Unit\Wp5b\Wp5bSourceGuard)
+ ✔ Single voucher redemption path
+ ✔ Voucher deletes are conditional on status
+ ✔ Hardened balance paths never call balance
+ ✔ Device grants are default deny
+ ✔ Reprovision controllers never pre save
+ ✔ Single gateway resolver
+ ✔ Hardened controllers never call balance
+ ✔ Reversal and hook guards
+ ✔ Voucher generation uses the csprng
+
+Wp6a Source Guard (Reseller\Tests\Unit\Wp6a\Wp6aSourceGuard)
+ ✔ Every variable is escaped or allow listed
+ ✔ Confirmations use dialogs not window confirm
+ ✔ No external assets beyond the documented residuals
+ ✔ Activation flow never shows the legacy plan price
+ ✔ Ui helpers stay outside finance and translation stays local
+
+Wp6b Boundary (Reseller\Tests\Unit\Wp6b\Wp6bBoundary)
+ ✔ Nothing wp 6b adds is api reachable
+ ✔ Backoffice is a gateway only
+ ✔ Controllers stay thin
+ ✔ Pricing pages take one tree lock per page
+ ✔ Finance read models are read only
+
+Wp6b Template Guard (Reseller\Tests\Unit\Wp6b\Wp6bTemplateGuard)
+ ✔ Every variable is escaped
+ ✔ Every wp 6b string has an arabic entry
+
+OK (866 tests, 64626 assertions)
+================ engine: mysql ================
+ Container nuxbill-reseller-test-php82-run-deb2ee8315fe Creating 
+ Container nuxbill-reseller-test-php82-run-deb2ee8315fe Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-90a499a2e2b0 Creating 
+ Container nuxbill-reseller-test-php82-run-90a499a2e2b0 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............................................................  63 / 866 (  7%)
+............................................................... 126 / 866 ( 14%)
+............................................................... 189 / 866 ( 21%)
+............................................................... 252 / 866 ( 29%)
+............................................................... 315 / 866 ( 36%)
+............................................................... 378 / 866 ( 43%)
+............................................................... 441 / 866 ( 50%)
+............................................................... 504 / 866 ( 58%)
+............................................................... 567 / 866 ( 65%)
+............................................................... 630 / 866 ( 72%)
+............................................................... 693 / 866 ( 80%)
+............................................................... 756 / 866 ( 87%)
+............................................................... 819 / 866 ( 94%)
+...............................................                 866 / 866 (100%)
+
+Time: 35:59.750, Memory: 56.00 MB
+
+Activation Action Matrix (Reseller\Tests\Integration\Wp6b\ActivationActionMatrix)
+ ✔ Every state renders exactly the accepted operations
+ ✔ The operation table mirrors the accepted primitives
+
+Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
+ ✔ Owner sales and admin may activate on the owners wallet
+ ✔ Scope refusals write nothing
+ ✔ Eligibility refusals write nothing
+ ✔ Frozen reseller cannot start but settlement completes
+ ✔ Schema not ready refuses before any write
+ ✔ Replay never doubles a period debit or commission
+ ✔ Read scope and reconciliation authority
+
+Activation Capability (Reseller\Tests\Unit\Wp5a\ActivationCapability)
+ ✔ Exact matrix
+ ✔ Fail closed principals
+ ✔ Activation create requires a validly placed reseller identity
+
+Activation Catalog (Reseller\Tests\Integration\Wp5a\ActivationCatalog)
+ ✔ Unplaced agent is refused before any data
+ ✔ Agent sees only plans saleable for itself
+ ✔ Invalid wholesale chain is absent
+ ✔ Sales catalog follows the authoritative customer owner
+ ✔ Admin keeps the administrative list
+
+Activation Contract (Reseller\Tests\Integration\Wp5a\ActivationContract)
+ ✔ Completed activation authenticates and renewal extends it
+
+Activation Failure (Reseller\Tests\Integration\Wp5a\ActivationFailure)
+ ✔ Confirmed radius failure releases and charges nothing
+ ✔ Retryable failure is retried identically then succeeds
+ ✔ Retries are bounded
+ ✔ Unknown keeps the reservation and reconciliation settles once
+ ✔ Crash before the radius call reconciles to failed
+ ✔ Crash after the radius call reconciles to completed
+ ✔ Settlement failure never becomes free service
+ ✔ Capacity failure needs an administrative fix
+ ✔ Settlement failures are classified
+ ✔ Verify mismatch keeps the funds reserved until reconciled
+ ✔ Disconnect is best effort and recorded
+ ✔ Rollback restores the previous service
+ ✔ Rollback of a new service restores the empty prior state
+ ✔ Cancel before provisioning and resume
+
+Activation Http (Reseller\Tests\Integration\Wp5a\ActivationHttp)
+ ✔ Staff flow completes and repeats are safe
+ ✔ Authorization over http
+ ✔ Eligibility and catalog over http
+ ✔ Reconciliation is admin only and the cli tool works
+
+Activation Lifecycle (Reseller\Tests\Integration\Wp5a\ActivationLifecycle)
+ ✔ New activation completes end to end
+ ✔ Renew extends from the current expiry
+ ✔ Reactivate after expiry starts now
+ ✔ Change plan starts now and records the previous plan
+ ✔ The action is server derived and a mismatch is refused
+
+Activation Preview (Reseller\Tests\Integration\Wp6a\ActivationPreview)
+ ✔ Quote values and role visibility write nothing
+ ✔ Confirmed quote executes and changed material is refused before any write
+ ✔ Non material changes keep the quote
+ ✔ Missing forged or foreign fingerprints are refused
+ ✔ Replay returns the same activation whatever changed later
+ ✔ Insufficient credit is a yes no for sales
+ ✔ A changed plan service term refuses the old quote with data set "id_bw"
+ ✔ A changed plan service term refuses the old quote with data set "typebp"
+ ✔ A changed plan service term refuses the old quote with data set "limit_type"
+ ✔ A changed plan service term refuses the old quote with data set "time_limit"
+ ✔ A changed plan service term refuses the old quote with data set "time_unit"
+ ✔ A changed plan service term refuses the old quote with data set "data_limit"
+ ✔ A changed plan service term refuses the old quote with data set "data_unit"
+ ✔ A changed plan service term refuses the old quote with data set "shared_users"
+ ✔ A changed plan service term refuses the old quote with data set "pool"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_up"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_up_unit"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_down"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_down_unit"
+ ✔ A changed bandwidth rate refuses the old quote with data set "burst"
+ ✔ Presentation only renames keep the quote
+ ✔ Every service term the policy consumes is bound
+
+Activation Race (Reseller\Tests\Integration\Wp5a\ActivationRace)
+ ✔ Double submit with the same key is one activation
+ ✔ Two devices with different keys yield one period
+ ✔ Concurrent activations cannot overspend
+ ✔ Activation versus price change is never a mix
+ ✔ Activation versus plan delete
+
+Activation Read Model (Reseller\Tests\Integration\Wp6a\ActivationReadModel)
+ ✔ List and view visibility equal status visibility
+ ✔ View is display only and money is role filtered
+ ✔ Groups counts and customer flags
+
+Activation Reconciliation (Reseller\Tests\Integration\Wp5a\ActivationReconciliation)
+ ✔ Verified delivery is reconciled financially despite foreign edits
+ ✔ Financial reconciliation that still fails keeps the funds held
+ ✔ Unverified but exactly the target is settled once
+ ✔ Unverified and exactly the prior state is not applied
+ ✔ Unverified foreign state is ambiguous and holds the funds
+ ✔ Rollback from the ambiguous state restores and releases once
+ ✔ Uncertain rollback keeps the funds held
+ ✔ Rollback restores the customer password exactly
+ ✔ Rollback restores the pppoe password exactly
+ ✔ Unknown prior password is refused before any write
+ ✔ Prior without password restores the absence
+ ✔ Ambiguous state with unknown prior password stays untouched
+ ✔ Capture is durable and holds no secret
+ ✔ Unreadable radius never starts provisioning
+
+Activation Reversal (Reseller\Tests\Integration\Wp5b\ActivationReversal)
+ ✔ Full reversal of a new activation
+ ✔ Reversal of a renewal restores the previous recharge row exactly
+ ✔ Later activation refuses without any write
+ ✔ External radius edit refuses without any write
+ ✔ Legacy recharge drift refuses without any write
+ ✔ Activation without captured context is not reversible
+ ✔ Financial preflight refusal writes nothing
+ ✔ Unrestorable prior secret is refused before any write
+ ✔ Only admin and super admin may reverse and a reason is required
+ ✔ Crash after start resumes with the radius compensation
+ ✔ Crash after the restore records the evidence without a second write
+ ✔ Financial commit failure after the restore holds and resumes without a second radius write
+ ✔ Financial refusal after the restore keeps reversal pending for the operator
+ ✔ Radius is read and restored with no database transaction open
+
+Activation Reversal Race (Reseller\Tests\Integration\Wp5b\ActivationReversalRace)
+ ✔ Reversal start and activation open never both proceed
+ ✔ Reversal start and reprovision are serialized
+
+Activation Source Guard (Reseller\Tests\Unit\Wp5a\ActivationSourceGuard)
+ ✔ One sealed insert only under the tree lock
+ ✔ Snapshots are never updated and events are append only
+ ✔ The activation layer uses only the authoritative services
+ ✔ The controller stays thin
+
+Activation State And Period (Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriod)
+ ✔ Transition table over the full matrix
+ ✔ Fresh period matches the legacy arithmetic with data set "months"
+ ✔ Fresh period matches the legacy arithmetic with data set "days"
+ ✔ Fresh period matches the legacy arithmetic with data set "hours"
+ ✔ Fresh period matches the legacy arithmetic with data set "minutes"
+ ✔ Fresh period matches the legacy arithmetic with data set "period"
+ ✔ Fresh period matches the legacy arithmetic with data set "period-short"
+ ✔ Renewal extends from the current expiry with data set "months"
+ ✔ Renewal extends from the current expiry with data set "days"
+ ✔ Renewal extends from the current expiry with data set "hours"
+ ✔ Renewal extends from the current expiry with data set "minutes"
+ ✔ Renewal extends from the current expiry with data set "period"
+ ✔ Period day is clamped and invalid validity refused
+ ✔ Derived action
+
+Activation Ux (Reseller\Tests\Integration\Wp6a\ActivationUx)
+ ✔ Confirmation shows live server values by role
+ ✔ Browser money is ignored and a stale quote writes nothing
+ ✔ Customer picker is scoped to activatable customers
+ ✔ Status page maps every state honestly
+
+Adjustment (Reseller\Tests\Integration\Wp3a\Adjustment)
+ ✔ Adjustments never create a wallet
+ ✔ Credit and debit adjustment ledger shape
+ ✔ Debit adjustment obeys the available floor
+ ✔ Adjustment permissions and frozen owner
+
+Api (Reseller\Tests\Http\Api)
+ ✔ Valid token works and responses are sanitized
+ ✔ Invalid tokens are refused
+ ✔ Password change revokes earlier tokens
+ ✔ Disabled user token is refused
+ ✔ Api inherits the actor scope and allowlist
+
+Api No Secret (Reseller\Tests\Http\ApiNoSecret)
+ ✔ Api fails closed
+
+Api Secret Equals Db Pass (Reseller\Tests\Http\ApiSecretEqualsDbPass)
+ ✔ Api fails closed when secret equals db pass
+
+Api Short Secret (Reseller\Tests\Http\ApiShortSecret)
+ ✔ Api fails closed
+
+App Regression (Reseller\Tests\Regression\AppRegression)
+ ✔ Legacy flows identical before and after migration
+
+App Surface (Reseller\Tests\Integration\Wp3a\AppSurface)
+ ✔ Finance services run in the application context
+ ✔ No finance routes or api
+
+Audit (Reseller\Tests\Http\Audit)
+ ✔ Audit rows carry context and never secrets
+ ✔ No runtime code mutates the audit table
+
+Auth Session (Reseller\Tests\Http\AuthSession)
+ ✔ Inactive staff cannot login and gets the same message
+ ✔ Disabled mid session is cut off immediately
+ ✔ Password change invalidates other sessions and cookies
+ ✔ Remember cookie works and is bound to user and password
+ ✔ Session id regenerated on login and logout clears everything
+ ✔ Deleted user session is unauthenticated
+ ✔ Default credential must be changed first
+
+Availability (Reseller\Tests\Integration\Wp3b\Availability)
+ ✔ Ancestor disable blocks the subtree and explicit enable cannot override
+ ✔ Authority
+
+Base Cost (Reseller\Tests\Integration\Wp3b\BaseCost)
+ ✔ Missing base row means not resellable
+ ✔ Base is created disabled audited and then enabled
+ ✔ Resale disable blocks everyone and reenables
+ ✔ Zero base is valid but a zero leaf is not activatable
+ ✔ Money boundaries and malformed input
+ ✔ Balance plans are not resellable
+ ✔ Only admin and super admin may mutate
+ ✔ Upstream base raise cannot invalidate an explicit override
+
+Chap And Rest Gate (Reseller\Tests\Unit\Wp4\ChapAndRestGate)
+ ✔ Chap verifies only the right response
+ ✔ Rest endpoint is off until configured
+ ✔ Secret and source are both required
+ ✔ Unknown is never retryable
+
+Cli Only (Reseller\Tests\Integration\CliOnly)
+ ✔ New php files refuse http execution
+ ✔ Every new php file carries the cli guard
+
+Co AClient (Reseller\Tests\Integration\Wp4\CoAClient)
+ ✔ Disconnect ack ends only open sessions and keeps history
+ ✔ Nak is failed and session not found is success
+ ✔ Silence is unknown with identical retransmissions only
+ ✔ Forged reply is ignored
+ ✔ Coa request changes the rate
+ ✔ Offline subscriber and unknown nas
+ ✔ No shell is involved
+
+Concurrency (Reseller\Tests\Integration\Wp3a\Concurrency)
+ ✔ Double spend of the last credit
+ ✔ Two transfers from one parent cannot overspend
+ ✔ Reservation versus transfer
+ ✔ Reservation versus withdrawal
+ ✔ Reservation versus debt limit reduction
+ ✔ Concurrent operations on the same wallets
+ ✔ Commit versus duplicate commit
+ ✔ Commit versus release
+ ✔ Two requests for the same activation
+ ✔ Same funding reference twice
+ ✔ Double reversal
+ ✔ Subtree move versus transfer
+ ✔ Stampede cannot overspend
+
+Constraint (Reseller\Tests\Integration\Constraint)
+ ✔ Activation idempotency and checks
+ ✔ Activation events represent every frozen transition
+ ✔ Tree constraints
+ ✔ Pricing constraints
+ ✔ Manager plan availability override is optional and audited
+ ✔ Price override setter fields describe only the current override
+ ✔ Customer actor identity on activations
+ ✔ Customer actor identity on activation events
+ ✔ Ledger customer actor identity
+ ✔ Wallet ledger transfer reservation constraints
+ ✔ Customer ownership foreign keys
+
+Create Flow (Reseller\Tests\Integration\Wp6a\CreateFlow)
+ ✔ Form offers only the actors ownership choices
+ ✔ Ownership is resolved by the server and forgeries fail
+ ✔ Arabic names and the activate now prompt
+
+Cron Hardening (Reseller\Tests\Integration\Wp5b\CronHardening)
+ ✔ Cron is not reachable over the web
+ ✔ Reseller owned auto renew is unavailable exactly once per obligation
+ ✔ Unassigned auto renew is exactly once per obligation
+ ✔ Held obligation is skipped and never retried
+
+Csrf (Reseller\Tests\Http\Csrf)
+ ✔ Csrf enforced even when legacy switch is off
+ ✔ Token is stable per session and rotates on login
+ ✔ Get on mutating routes is refused
+ ✔ Public login flows with and without token
+ ✔ Public register flow
+ ✔ Public forgot flow
+ ✔ Public voucher activation flow
+ ✔ Api is not subject to csrf but callbacks are exempt
+ ✔ Browser cookie gives no authority through the api
+
+Customer Ownership (Reseller\Tests\Http\CustomerOwnership)
+ ✔ Sales creates for its manager and self ignoring forged fields
+ ✔ Agent creates for self with optional own sales
+ ✔ Admin creates unassigned or for an enrolled agent
+ ✔ Report and non enrolled cannot create
+ ✔ Sales assignment inside scope
+ ✔ Owner transfer is admin only and clears foreign sales
+ ✔ Explicit legacy owner assignment only
+ ✔ Customer delete has reference pre check and is audited
+ ✔ Customer referenced by reseller domain is not deleted
+
+Dashboard (Reseller\Tests\Integration\Wp6a\Dashboard)
+ ✔ Counts are the actors scope
+ ✔ Widgets tab is global only and report gets an empty state
+
+Drift And Registry (Reseller\Tests\Integration\DriftAndRegistry)
+ ✔ Manual change to project table is drift
+ ✔ Edited applied migration file is drift
+ ✔ Tampered registry is not ready
+ ✔ Unknown migration in registry is not ready
+ ✔ Concurrent runner is refused by lock
+ ✔ Committed variant registry equals freshly built fixtures
+
+Drift Report (Reseller\Tests\Integration\Wp5b\DriftReport)
+ ✔ A clean activation has no finding and direct writes are reported
+
+Error Handling (Reseller\Tests\Http\ErrorHandling)
+ ✔ Staff of every role gets generic error with reference
+ ✔ Customer and anonymous get generic error
+ ✔ Api errors are generic
+ ✔ Display errors forced off even if config enables it
+
+Failure Injection (Reseller\Tests\Integration\Wp3a\FailureInjection)
+ ✔ Failure at every step rolls back completely with data set "fund.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "fund.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "fund.after_audit"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "withdraw.after_audit"
+ ✔ Failure at every step rolls back completely with data set "adjust.after_ledger"
+ ✔ Failure at every step rolls back completely with data set "adjust.after_audit"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_wallet_locks"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_transfer_row"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_first_leg"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_second_leg"
+ ✔ Failure at every step rolls back completely with data set "transfer.after_audit"
+ ✔ Failure at every step rolls back completely with data set "debt_limit.after_update"
+ ✔ Failure at every step rolls back completely with data set "debt_limit.after_audit"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_reversal_row"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_first_leg"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_status_update"
+ ✔ Failure at every step rolls back completely with data set "reverse.after_audit"
+ ✔ Failure at every step rolls back completely with data set "reserve.after_insert"
+ ✔ Failure at every step rolls back completely with data set "commit.after_ledger_before_status"
+ ✔ Failure at every step rolls back completely with data set "commit.after_status"
+ ✔ Failure at every step rolls back completely with data set "release.after_status"
+
+Finance Actor (Reseller\Tests\Unit\Wp3a\FinanceActor)
+ ✔ Staff stays staff on every channel
+ ✔ Customer stays customer on every channel
+ ✔ System and cron are explicit
+ ✔ Wrong principals are refused
+ ✔ There is no api or inferred factory
+
+Finance Capability (Reseller\Tests\Unit\Wp3a\FinanceCapability)
+ ✔ Finance capabilities are defined and classified
+ ✔ Exact role matrix
+ ✔ Pricing and activation stay reserved
+ ✔ Frozen non enrolled inconsistent and inactive
+ ✔ Schema not ready fails closed for every role
+ ✔ Non staff principals hold no finance capability
+ ✔ Flags reflect the matrix
+
+Finance Correction (Reseller\Tests\Integration\Wp6b\FinanceCorrection)
+ ✔ Debt line review typed decrease and exposure floor
+ ✔ Adjustments are explicit and never open a wallet
+ ✔ Only an existing reversible transfer can be reversed
+ ✔ Corrections are admin only
+
+Finance Mutation (Reseller\Tests\Integration\Wp6b\FinanceMutation)
+ ✔ Provider funding review execute and replay
+ ✔ A tampered review is refused before any service call
+ ✔ Withdrawal needs the typed username
+ ✔ Agent sends only from its own wallet to a direct child
+ ✔ Roles without the capability are denied
+
+Finance Navigation (Reseller\Tests\Integration\Wp6b\FinanceNavigation)
+ ✔ Destinations follow the role
+ ✔ Primary navigation and quick actions
+ ✔ Dashboard finance tiles are role specific
+
+Finance Read (Reseller\Tests\Integration\Wp6b\FinanceRead)
+ ✔ Scopes follow the accepted capabilities
+ ✔ Identities above the viewer are role labels and in scope reasons stay
+ ✔ Exports equal the screen and are audited without contents
+ ✔ Read pages write nothing
+
+Finance Schema Readiness (Reseller\Tests\Integration\Wp3a\FinanceSchemaReadiness)
+ ✔ Required table list is exact
+ ✔ Missing finance table fails closed and recovers with data set "tbl_reseller_activations"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallets"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_transfers"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_ledger"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallet_reservations"
+
+Finance Tx (Reseller\Tests\Integration\Wp3a\FinanceTx)
+ ✔ Deadlock is retried with a clean envelope
+ ✔ Retries are bounded
+ ✔ Lock wait timeout and other errors are not retried
+ ✔ Strict mode envelope on success and failure
+ ✔ Tree lock name is the accepted wp 2 lock
+
+Forward Migration (Reseller\Tests\Integration\ForwardMigration)
+ ✔ Forward migration produces contract and keeps legacy data untouched with data set "V1_FRESH_INSTALL"
+ ✔ Forward migration produces contract and keeps legacy data untouched with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Forward migration produces contract and keeps legacy data untouched with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Registry is durable and journal complete
+ ✔ Second run executes zero ddl and writes nothing with data set "V1_FRESH_INSTALL"
+ ✔ Second run executes zero ddl and writes nothing with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Second run executes zero ddl and writes nothing with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Foreign key signedness and rules from catalog
+
+Free Radius Contract (Reseller\Tests\Integration\Wp4\FreeRadiusContract)
+ ✔ Pppoe pap and chap with static address and rate
+ ✔ Pppoe dynamic pool
+ ✔ Hotspot group rate and simultaneous use
+ ✔ Expiration
+ ✔ Time quota per period keeps history
+ ✔ Data quota per period keeps history
+ ✔ Suspended and removed subscribers are rejected and history kept
+
+Funding (Reseller\Tests\Integration\Wp3a\Funding)
+ ✔ Provider funding is one operation one credit and one audit
+ ✔ Withdrawal boundary counts active reservations
+ ✔ Withdrawal can draw into the debt line
+ ✔ Insufficient credit on absent wallet writes nothing
+ ✔ Idempotency replay and conflict per field
+ ✔ Funding targets and permissions
+ ✔ Refused reference is reusable
+
+Grants (Reseller\Tests\Unit\Grants)
+ ✔ Global all privileges is sufficient
+ ✔ Database level explicit privileges
+ ✔ Escaped underscore matches literal only
+ ✔ Wildcard pattern
+ ✔ Missing references is reported
+ ✔ Other database or table level does not count
+ ✔ Role only grants are not assumed
+
+Guards (Reseller\Tests\Unit\Wp2\Guards)
+ ✔ Customer predicates are parenthesized and bound
+ ✔ Id validation
+ ✔ Path guard rejects traversal
+ ✔ Api sanitizer removes credentials and config
+ ✔ Audit redactor and error sanitizer
+
+Hierarchy (Reseller\Tests\Http\Hierarchy)
+ ✔ Seed tree is consistent
+ ✔ Explicit placement of legacy accounts
+ ✔ Move rules cycle self parent and roles
+ ✔ Move subtree keeps closure consistent and clears mismatched sales assignments
+ ✔ Agent disables strict descendants only
+ ✔ Frozen descendant is read only
+ ✔ Concurrent cross moves cannot create a cycle
+
+Hierarchy Cli (Reseller\Tests\Integration\Wp2\HierarchyCli)
+ ✔ Read only commands never mutate
+ ✔ Validate reports every finding with the cycle path
+ ✔ Plan excludes invalid subtrees and orders parents first
+ ✔ Plan is deterministic across reruns and insertion order
+ ✔ Already enrolled nodes are never replaced and inspect reports state
+ ✔ Apply is refused without owner authorization
+ ✔ Unknown commands and options are usage errors
+
+Ledger (Reseller\Tests\Integration\Wp3a\Ledger)
+ ✔ Continuity across every operation type
+ ✔ Entry keys are derived and unique
+ ✔ No generic or mutating ledger api
+ ✔ Forged wallet state cannot be posted
+ ✔ Ledger read scope
+ ✔ Corrections only by compensation
+
+Legacy Balance Atomicity (Reseller\Tests\Integration\Wp5b\LegacyBalanceAtomicity)
+ ✔ Duplicate usernames change at most one row
+ ✔ Legacy credit never overwrites a concurrent hardened debit
+
+Legacy Customer Balance (Reseller\Tests\Integration\Wp5b\LegacyCustomerBalance)
+ ✔ Purchase is exactly once and replays without a second debit or grant
+ ✔ Concurrent same key debits once
+ ✔ Insufficient balance writes nothing
+ ✔ Proven pre write refusal is refunded once
+ ✔ Interrupted grant is held for the operator and resolved once
+ ✔ Reseller owned payer or target is refused
+ ✔ Transfer is atomic and validated
+ ✔ Concurrent transfers never overdraw
+ ✔ Operator resolution waits for the live dispatcher with data set "A: refund"
+ ✔ Operator resolution waits for the live dispatcher with data set "B: completed"
+ ✔ Abandoned held operation is resolvable once its lock is gone
+ ✔ Finalizer that loses its conditional update reports the persisted state
+
+Legacy Entrypoint Closure (Reseller\Tests\Integration\Wp5b\LegacyEntrypointClosure)
+ ✔ Admin recharge of a reseller owned customer continues at the activation
+ ✔ Admin balance recharge of an unassigned customer is exactly once
+ ✔ Customer balance purchase gift and transfer are post only and replay safe
+ ✔ Payment check and cancel are post only
+ ✔ Reseller owned reprovision goes through the service
+ ✔ The activation reverse route is admin only and post only
+
+Legacy Reprovision (Reseller\Tests\Integration\Wp5b\LegacyReprovision)
+ ✔ Tree serialization is the same lock as the finance tree lock
+ ✔ Admin sync reprovisions without touching billing
+ ✔ Refused while an activation is in flight without any device call
+ ✔ Password change by the customer is applied and verified
+ ✔ Confirmed device failure reverts the database
+ ✔ Unknown device outcome keeps the new values and is reported
+ ✔ Identity edit renames the subscriber and never activates
+ ✔ Authorization and ownership
+ ✔ Device default deny for reseller owned customers
+ ✔ Activation open and admin sync are serialized
+ ✔ Activation open and password change are serialized
+ ✔ Partial success across targets is unconfirmed and never reverted
+ ✔ Rename applied then add failed is unconfirmed and never reverted
+ ✔ First operation failed is still reverted
+
+Legacy Retail Price (Reseller\Tests\Unit\Wp3b\LegacyRetailPrice)
+ ✔ Accepted
+ ✔ Refused without normalisation
+
+Migration Definitions (Reseller\Tests\Unit\MigrationDefinitions)
+ ✔ Ordered gap free ids
+ ✔ Only legacy change is customer ownership and later migrations only create tables
+ ✔ Every foreign key is restrict never cascade
+ ✔ User references are unsigned and customer plan references signed
+ ✔ AllNewMoneyIsDecimal18 2
+ ✔ No voucher commerce schema
+ ✔ Timestamps are datetime 6 without server defaults
+ ✔ Every down step has existence guard and reverse order
+
+Migration Redefines (Reseller\Tests\Unit\MigrationRedefines)
+ ✔ Well formed redefinition loads
+ ✔ Malformed redefinition is rejected with data set "redefines not an array"
+ ✔ Malformed redefinition is rejected with data set "table without columns"
+ ✔ Malformed redefinition is rejected with data set "columns not an array"
+ ✔ Malformed redefinition is rejected with data set "numeric table key"
+ ✔ Malformed redefinition is rejected with data set "invalid table identifier"
+ ✔ Malformed redefinition is rejected with data set "quoted table identifier"
+ ✔ Malformed redefinition is rejected with data set "upper-case table identifier"
+ ✔ Malformed redefinition is rejected with data set "numeric column key"
+ ✔ Malformed redefinition is rejected with data set "invalid column identifier"
+ ✔ Malformed redefinition is rejected with data set "entry not an array"
+ ✔ Malformed redefinition is rejected with data set "missing from"
+ ✔ Malformed redefinition is rejected with data set "missing to"
+ ✔ Malformed redefinition is rejected with data set "missing data_guard"
+ ✔ Malformed redefinition is rejected with data set "extra key"
+ ✔ Malformed redefinition is rejected with data set "empty from"
+ ✔ Malformed redefinition is rejected with data set "empty to"
+ ✔ Malformed redefinition is rejected with data set "non-string to"
+ ✔ Malformed redefinition is rejected with data set "from equals to"
+ ✔ Malformed redefinition is rejected with data set "empty data_guard"
+ ✔ Redefining migration may not also create tables or parts
+ ✔ Mutating or non select data guard is rejected with data set "not a select"
+ ✔ Mutating or non select data guard is rejected with data set "leading space"
+ ✔ Mutating or non select data guard is rejected with data set "update"
+ ✔ Mutating or non select data guard is rejected with data set "delete"
+ ✔ Mutating or non select data guard is rejected with data set "insert"
+ ✔ Mutating or non select data guard is rejected with data set "drop"
+ ✔ Mutating or non select data guard is rejected with data set "alter"
+ ✔ Mutating or non select data guard is rejected with data set "truncate"
+ ✔ Mutating or non select data guard is rejected with data set "second statement"
+ ✔ Mutating or non select data guard is rejected with data set "trailing separator"
+ ✔ Mutating or non select data guard is rejected with data set "select into outfile"
+ ✔ Mutating or non select data guard is rejected with data set "select into variable"
+ ✔ Mutating or non select data guard is rejected with data set "locking read"
+ ✔ Mutating or non select data guard is rejected with data set "share lock"
+ ✔ Mutating or non select data guard is rejected with data set "sleep"
+ ✔ Mutating or non select data guard is rejected with data set "benchmark"
+ ✔ Mutating or non select data guard is rejected with data set "named lock"
+ ✔ Mutating or non select data guard is rejected with data set "line comment"
+ ✔ Mutating or non select data guard is rejected with data set "hash comment"
+ ✔ Mutating or non select data guard is rejected with data set "block comment"
+ ✔ Mutating or non select data guard is rejected with data set "executable comment"
+ ✔ Mutating or non select data guard is rejected with data set "backslash escape"
+ ✔ Mutating or non select data guard is rejected with data set "replace"
+ ✔ Mutating or non select data guard is rejected with data set "set"
+ ✔ Read only guards accepted
+
+Mikrotik Device (Reseller\Tests\Integration\Wp5b\MikrotikDevice)
+ ✔ Hotspot rename really renames the existing user
+ ✔ Expiry of a reseller owned customer applies the restricted plan without the grant guard
+ ✔ The primitive is private and not a bypass
+
+Money (Reseller\Tests\Unit\Wp3a\Money)
+ ✔ Exact smallest unit and canonical forms
+ ✔ Largest decimal 1802 value is exact
+ ✔ Intermediate beyond one column is valid
+ ✔ Checked int 64 never overflows
+ ✔ No floating point drift
+ ✔ Malformed inputs are rejected with data set "NaN"
+ ✔ Malformed inputs are rejected with data set "nan"
+ ✔ Malformed inputs are rejected with data set "INF"
+ ✔ Malformed inputs are rejected with data set "Infinity"
+ ✔ Malformed inputs are rejected with data set "-INF"
+ ✔ Malformed inputs are rejected with data set "exponent"
+ ✔ Malformed inputs are rejected with data set "exponent2"
+ ✔ Malformed inputs are rejected with data set "plus sign"
+ ✔ Malformed inputs are rejected with data set "leading space"
+ ✔ Malformed inputs are rejected with data set "trailing space"
+ ✔ Malformed inputs are rejected with data set "trailing newline"
+ ✔ Malformed inputs are rejected with data set "dot only"
+ ✔ Malformed inputs are rejected with data set "trailing dot"
+ ✔ Malformed inputs are rejected with data set "leading dot"
+ ✔ Malformed inputs are rejected with data set "leading zero"
+ ✔ Malformed inputs are rejected with data set "leading zero int"
+ ✔ Malformed inputs are rejected with data set "thousands"
+ ✔ Malformed inputs are rejected with data set "comma decimal"
+ ✔ Malformed inputs are rejected with data set "three decimals"
+ ✔ Malformed inputs are rejected with data set "three decimals zero"
+ ✔ Malformed inputs are rejected with data set "17 int digits"
+ ✔ Malformed inputs are rejected with data set "17 digits max"
+ ✔ Malformed inputs are rejected with data set "arabic digits"
+ ✔ Malformed inputs are rejected with data set "fullwidth"
+ ✔ Malformed inputs are rejected with data set "hex"
+ ✔ Malformed inputs are rejected with data set "empty"
+ ✔ Malformed inputs are rejected with data set "negative"
+ ✔ Malformed inputs are rejected with data set "negative zero"
+ ✔ Malformed inputs are rejected with data set "underscore"
+ ✔ Malformed inputs are rejected with data set "float"
+ ✔ Malformed inputs are rejected with data set "int"
+ ✔ Malformed inputs are rejected with data set "null"
+ ✔ Malformed inputs are rejected with data set "bool"
+ ✔ Malformed inputs are rejected with data set "array"
+ ✔ Malformed inputs are rejected with data set "nul byte"
+ ✔ Malformed inputs are rejected with data set "tab"
+ ✔ Column values are strict
+ ✔ Comparisons and json
+
+Money Boundary (Reseller\Tests\Integration\Wp3a\MoneyBoundary)
+ ✔ Max balance plus max debt and reservation sum beyond one column
+ ✔ Credit beyond storage is rejected before sql
+ ✔ Reversal credit overflow is atomic
+
+Operations Center (Reseller\Tests\Integration\Wp6b\OperationsCenter)
+ ✔ Only admins reach the operations center
+ ✔ Cancel is refused while fresh and cancels once stale
+ ✔ Resume of a stale activation completes it
+ ✔ An attention item is never listed twice
+ ✔ Informational items carry no action buttons
+
+Pages Boundary (Reseller\Tests\Http\PagesBoundary)
+ ✔ Admin may read a page without write controls
+ ✔ Admin forged write and reset are denied
+ ✔ Denied reset performs no remote fetch or write
+ ✔ Super admin writes an allowed page
+ ✔ Super admin reset only on canonical pages
+ ✔ Other roles have no pages access
+ ✔ Api never exposes pages
+
+Partial Failure (Reseller\Tests\Integration\PartialFailure)
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V1_FRESH_INSTALL"
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Interrupted run becomes rollback required
+ ✔ Failure of atomic customer alter leaves tbl customers untouched
+ ✔ Postflight contract mismatch fails closed
+ ✔ Failed rollback blocks and can be resumed
+
+Payment Hardening (Reseller\Tests\Integration\Wp5b\PaymentHardening)
+ ✔ Only a configured gateway inside the directory is used
+ ✔ Posted discount is ignored
+ ✔ A paid row is never cancelled or checked again
+ ✔ Resolver unit
+ ✔ A valid coupon is consumed once with the payment row
+ ✔ A stale coupon never discounts with data set "A: disabled before buy"
+ ✔ A stale coupon never discounts with data set "B: expired before buy"
+ ✔ A stale coupon never discounts with data set "C: exhausted before buy"
+ ✔ Concurrent buys cannot both consume the last use
+ ✔ Percent coupon uses the invoice override as its basis
+ ✔ Minimum order is checked against the invoice override
+ ✔ Buy reads the current invoice override
+ ✔ Without an override the percent coupon uses the plan price
+
+Permission Model (Reseller\Tests\Unit\Wp2\PermissionModel)
+ ✔ Every mapped capability is defined and every scope known
+ ✔ Reserved finance capabilities are never granted
+ ✔ Agent and sales have no service capability
+ ✔ Report has no data access
+ ✔ Admin super admin boundary
+ ✔ Scopes by role
+ ✔ Non enrolled and inconsistent have no tree scope
+ ✔ Frozen actor keeps read only
+ ✔ Schema not ready fails closed for every role
+ ✔ Non staff and denied contexts hold nothing
+
+Plan Delete Guard (Reseller\Tests\Integration\Wp3b\PlanDeleteGuard)
+ ✔ Referenced plans are refused before any side effect
+ ✔ Activation references including previous plan are refused
+ ✔ Unreferenced plans are deleted as before
+
+Plan Delete Race (Reseller\Tests\Integration\Wp3b\PlanDeleteRace)
+ ✔ Delete wins serialization
+ ✔ Pricing wins serialization
+ ✔ Lock timeout refuses before any effect
+ ✔ Concurrent delete and pricing never split
+
+Plugin Bypass (Reseller\Tests\Integration\Wp5b\PluginBypass)
+ ✔ Core writers and device grants refuse reseller owned customers
+
+Preflight (Reseller\Tests\Integration\Preflight)
+ ✔ Recognises verified variant with zero mutation with data set "V1_FRESH_INSTALL"
+ ✔ Recognises verified variant with zero mutation with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Recognises verified variant with zero mutation with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Extra unrelated table passes and is reported
+ ✔ Incompatible required core change fails before mutation with data set "tbl_users.id signed"
+ ✔ Incompatible required core change fails before mutation with data set "tbl_customers MyISAM"
+ ✔ Incompatible required core change fails before mutation with data set "tbl_customers utf8mb3"
+ ✔ Incompatible required core change fails before mutation with data set "unknown column on required core table"
+ ✔ Incompatible required core change fails before mutation with data set "required column type changed"
+ ✔ Incompatible required core change fails before mutation with data set "required column dropped"
+ ✔ Incompatible required core change fails before mutation with data set "tbl_plans.id bigint"
+ ✔ Incompatible required core change fails before mutation with data set "extra index on core table"
+ ✔ Incompatible required core change fails before mutation with data set "required core table missing"
+ ✔ Empty database is not ready
+ ✔ Collisions are never adopted with data set "unregistered project table"
+ ✔ Collisions are never adopted with data set "pre-existing manager_id column"
+ ✔ Collisions are never adopted with data set "foreign key name already used"
+ ✔ Missing privilege is not ready
+
+Pricing Capability (Reseller\Tests\Unit\Wp3b\PricingCapability)
+ ✔ Classification
+ ✔ Exact role matrix
+ ✔ Frozen inconsistent non enrolled and not ready
+ ✔ Non staff hold nothing
+
+Pricing Concurrency (Reseller\Tests\Integration\Wp3b\PricingConcurrency)
+ ✔ Settlement versus every writer on the recipient
+ ✔ Settlement versus reversal and reserve and another settlement
+ ✔ Settlement versus the leaf agents own transfer
+ ✔ Near maximum settlement first
+ ✔ Near maximum funding first
+ ✔ Near maximum recipient balance race
+ ✔ Pricing mutation races
+ ✔ Reserve versus price change and move
+
+Pricing Failure Injection (Reseller\Tests\Integration\Wp3b\PricingFailureInjection)
+ ✔ Failure at every step rolls back completely with data set "base pricing.after_write"
+ ✔ Failure at every step rolls back completely with data set "base pricing.after_audit"
+ ✔ Failure at every step rolls back completely with data set "resale pricing.after_write"
+ ✔ Failure at every step rolls back completely with data set "resale pricing.after_audit"
+ ✔ Failure at every step rolls back completely with data set "wholesale pricing.after_write"
+ ✔ Failure at every step rolls back completely with data set "wholesale pricing.after_audit"
+ ✔ Failure at every step rolls back completely with data set "retail pricing.after_write"
+ ✔ Failure at every step rolls back completely with data set "retail pricing.after_audit"
+ ✔ Failure at every step rolls back completely with data set "availability pricing.after_write"
+ ✔ Failure at every step rolls back completely with data set "availability pricing.after_audit"
+ ✔ Failure at every step rolls back completely with data set "settle commit.after_debit_before_commissions"
+ ✔ Failure at every step rolls back completely with data set "settle commit.after_commissions"
+ ✔ Failure at every step rolls back completely with data set "settle commit.after_ledger_before_status"
+ ✔ Failure at every step rolls back completely with data set "settle commit.after_status"
+ ✔ Failure at every step rolls back completely with data set "reserve-sealed reserve.after_insert"
+
+Pricing Read Model (Reseller\Tests\Unit\Wp3b\PricingReadModel)
+ ✔ Admin sees everything
+ ✔ Agent sees only its part of the chain
+
+Pricing Schema Readiness (Reseller\Tests\Integration\Wp3b\PricingSchemaReadiness)
+ ✔ Expected is r 0001 to r 0007
+ ✔ Missing pricing table fails closed and recovers with data set "tbl_reseller_plan_base_costs"
+ ✔ Missing pricing table fails closed and recovers with data set "tbl_manager_plan_prices"
+
+Pricing Snapshot (Reseller\Tests\Unit\Wp3b\PricingSnapshot)
+ ✔ Canonical bytes and completeness
+ ✔ Decode refuses tampering and partial rows
+ ✔ Invariants are enforced on seal
+ ✔ Plan snapshot excludes scripts
+
+Pricing Source Guard (Reseller\Tests\Unit\Wp3b\PricingSourceGuard)
+ ✔ Pricing tables have only the approved writer
+ ✔ Activation snapshots are write once
+ ✔ One settlement authority
+ ✔ Pricing code writes no money
+ ✔ No entrypoint or route
+ ✔ Plan delete is guarded before any side effect
+ ✔ Plan reference writers hold the tree lock
+
+Pricing Ux (Reseller\Tests\Integration\Wp6b\PricingUx)
+ ✔ Agents see only their projection and admin sees everything
+ ✔ The accepted setters stay authoritative
+ ✔ Admin base cost resale and retail warnings
+
+R0007Reversal States Migration (Reseller\Tests\Integration\R0007ReversalStatesMigration)
+ ✔ Clean apply and verify on every variant with data set "V1_FRESH_INSTALL"
+ ✔ Clean apply and verify on every variant with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Clean apply and verify on every variant with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ R 0003 drift is still detected outside the redefined columns
+ ✔ Unknown third definition while applied is drift
+ ✔ To definition present while r 0007 not applied is a collision
+ ✔ Unknown third definition while not applied fails closed
+ ✔ Interrupted apply after first alter blocks and is recoverable
+ ✔ Failed second alter is partial and rollback restores
+ ✔ Rollback restores exact r 0003 definitions with data set "V1_FRESH_INSTALL"
+ ✔ Rollback restores exact r 0003 definitions with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Rollback restores exact r 0003 definitions with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Rollback refused while a new state is used with data set "activation REVERSAL_PENDING"
+ ✔ Rollback refused while a new state is used with data set "activation REVERSED"
+ ✔ Rollback refused while a new state is used with data set "event to_state REVERSAL_PENDING"
+ ✔ Rollback refused while a new state is used with data set "event to_state REVERSED"
+ ✔ Rollback refused while a new state is used with data set "event from_state REVERSAL_PENDING"
+ ✔ Rollback refused while a new state is used with data set "event from_state REVERSED"
+ ✔ Checksum and contract fingerprint are deterministic
+ ✔ Redefinition of a non project target is refused before any work with data set "legacy core table"
+ ✔ Redefinition of a non project target is refused before any work with data set "legacy non-core table"
+ ✔ Redefinition of a non project target is refused before any work with data set "wrong from"
+ ✔ Redefinition of a non project target is refused before any work with data set "unknown column"
+
+Radius Admin Flow (Reseller\Tests\Integration\Wp4\RadiusAdminFlow)
+ ✔ Recharge renewal and edit provision the saved billing expiry
+ ✔ Radius plan delete removes the group rows
+ ✔ Nas secret is never rendered and input is validated
+
+Radius Device Lifecycle (Reseller\Tests\Integration\Wp4\RadiusDeviceLifecycle)
+ ✔ Expiration is the saved billing expiry
+ ✔ No active recharge refuses without writing
+ ✔ No lifecycle path touches accounting history
+ ✔ Expired plan and suspension semantics
+ ✔ Pppoe key and rename across all tables
+ ✔ Plan group and nas through the device
+
+Radius Packet (Reseller\Tests\Unit\Wp4\RadiusPacket)
+ ✔ Disconnect request authenticator and message authenticator
+ ✔ Access request hides the password
+ ✔ Response verification
+ ✔ Chap response and malformed packets
+
+Radius Policy Builder (Reseller\Tests\Unit\Wp4\RadiusPolicyBuilder)
+ ✔ Pppoe static address policy
+ ✔ Pppoe dynamic pool and fallbacks
+ ✔ Hotspot shared users rate burst and terminate time
+ ✔ Hotspot quotas are not overwritten by the expiry
+ ✔ Group reply uses the upload rate for xmit
+ ✔ Invalid input is refused
+ ✔ Managed attribute sets cover every policy attribute
+
+Radius Repository (Reseller\Tests\Integration\Wp4\RadiusRepository)
+ ✔ Apply is exact and idempotent and leaves unmanaged rows alone
+ ✔ Plan change replaces the policy completely
+ ✔ Rename moves all three tables and keeps history
+ ✔ Suspend and remove never touch accounting
+ ✔ Plan group rows
+ ✔ Failure before commit is failed and rolled back
+ ✔ Lost commit is unknown
+ ✔ Verify mismatch is unknown
+
+Radius Repository Separate Db (Reseller\Tests\Integration\Wp4\RadiusRepositorySeparateDb)
+ ✔ Apply is exact and idempotent and leaves unmanaged rows alone
+ ✔ Plan change replaces the policy completely
+ ✔ Rename moves all three tables and keeps history
+ ✔ Suspend and remove never touch accounting
+ ✔ Plan group rows
+ ✔ Failure before commit is failed and rolled back
+ ✔ Lost commit is unknown
+ ✔ Verify mismatch is unknown
+ ✔ The radius tables are only in the separate database
+
+Radius Rest Disabled (Reseller\Tests\Integration\Wp4\RadiusRestDisabled)
+ ✔ Every action is refused
+
+Radius Rest Endpoint (Reseller\Tests\Integration\Wp4\RadiusRestEndpoint)
+ ✔ Refused without or with a wrong secret
+ ✔ Injection payloads have no effect
+ ✔ Voucher authentication
+ ✔ Chap verifies the response
+ ✔ Accounting counters per session
+ ✔ Radius runtime classes refuse direct http
+
+Radius Source Guard (Reseller\Tests\Unit\Wp4\RadiusSourceGuard)
+ ✔ Accounting history is never deleted or rewritten
+ ✔ No shell in any radius path
+ ✔ No interpolated sql in the endpoint and radius classes
+ ✔ Radius code makes no finance or billing writes
+ ✔ Nas secret is never rendered
+ ✔ Endpoint gate runs before any action
+ ✔ Package calls the device after saving the recharge
+
+Radius State (Reseller\Tests\Unit\Wp5a\RadiusState)
+ ✔ The target is the provisioner contract without the password
+ ✔ Equality is exact and canonical
+ ✔ Diff names components never values
+
+Reseller Lifecycle (Reseller\Tests\Http\ResellerLifecycle)
+ ✔ Super admin cannot delete an enrolled agent
+ ✔ Super admin cannot delete an unreferenced non enrolled agent
+ ✔ The same agent can be disabled and reactivated
+ ✔ No role can bypass the rule
+ ✔ Permitted deletions of other roles are unchanged
+
+Reseller Workspace (Reseller\Tests\Integration\Wp6b\ResellerWorkspace)
+ ✔ Tree scope drill down and no money
+ ✔ Detail is scoped and masks accounts above the viewer
+ ✔ Subscriber filters only narrow the scope
+
+Reservation (Reseller\Tests\Integration\Wp3a\Reservation)
+ ✔ Reserve counts against available without ledger
+ ✔ Reserve history states
+ ✔ Reserve validates the activation and owner
+ ✔ In tx variant requires the tree lock
+ ✔ Commit exactly once without rewriting the actor
+ ✔ Customer actor is preserved and may differ from the target
+ ✔ Release idempotency and conflicts
+ ✔ Commit and release allowed for a frozen owner
+ ✔ No blind expiry
+
+Resolution Snapshot (Reseller\Tests\Integration\Wp3b\ResolutionSnapshot)
+ ✔ Sealed snapshot is complete and reads back byte identical
+ ✔ Historical snapshot survives every later change
+ ✔ Resolution requires the tree lock and a transaction
+ ✔ Quotes are scoped and role filtered
+
+Restore Guard (Reseller\Tests\Http\RestoreGuard)
+ ✔ Restore is refused before mutation on reseller installation
+ ✔ Only super admin reaches backup and restore and csrf is required
+
+Restore Legacy Install (Reseller\Tests\Http\RestoreLegacyInstall)
+ ✔ Hardened legacy restore
+
+Retail (Reseller\Tests\Integration\Wp3b\Retail)
+ ✔ Explicit retail clear to legacy default and authority
+ ✔ Malformed or low legacy default fails closed
+ ✔ Upstream raise invalidates retail without veto or rewrite
+ ✔ Browser money is never authoritative
+
+Reversal (Reseller\Tests\Integration\Wp3a\Reversal)
+ ✔ Funding reversal
+ ✔ Withdrawal and adjustment reversals
+ ✔ Transfer reversal after subtree move
+ ✔ Reversal idempotency ordering
+ ✔ Reversal blocked when the debit side cannot afford it
+ ✔ Reversal on frozen historical counterparty
+ ✔ Reversal never creates a wallet
+
+Rollback (Reseller\Tests\Integration\Rollback)
+ ✔ Full rollback restores pre migration core fingerprint and forward again with data set "V1_FRESH_INSTALL"
+ ✔ Full rollback restores pre migration core fingerprint and forward again with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Full rollback restores pre migration core fingerprint and forward again with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Partial rollback to target
+ ✔ Rollback refuses when new domain holds data
+ ✔ Rollback requires explicit scope
+
+Route Map (Reseller\Tests\Unit\Wp2\RouteMap)
+ ✔ Every controller is mapped
+ ✔ Every action label is mapped and no stale entries
+ ✔ Every rule is known and every alias resolves
+ ✔ Variants and api allowlist refer to mapped entries
+ ✔ Fall through entries are not wider than their targets
+ ✔ Pages write and reset are a code surface
+ ✔ Resolution of keys variants and methods
+
+Route Matrix (Reseller\Tests\Http\RouteMatrix)
+ ✔ Role route matrix
+ ✔ Mutating routes refuse get
+ ✔ Unmapped routes are denied for everyone
+
+Schema Drift (Reseller\Tests\Http\SchemaDrift)
+ ✔ Failed partial migration
+ ✔ Checksum drift
+ ✔ Missing migration and unknown entry
+ ✔ Missing required table
+ ✔ Migration run in progress
+
+Schema Not Migrated (Reseller\Tests\Http\SchemaNotMigrated)
+ ✔ Dependent mutations fail closed for every role
+ ✔ Own profile password and logout remain
+
+Scope Isolation (Reseller\Tests\Http\ScopeIsolation)
+ ✔ Customer object scope without existence oracle
+ ✔ Customer lists search and pickers are scoped
+ ✔ Derived objects invoices recharges vouchers are scoped
+ ✔ Messaging is scoped all or nothing
+ ✔ Staff directory is scoped
+
+Security Routes (Reseller\Tests\Http\SecurityRoutes)
+ ✔ Plugin dispatch requires registered authorized function
+ ✔ Updater is disabled
+ ✔ Installer is disabled once configured
+ ✔ Search user requires staff and scope
+ ✔ Raw sql parameters are inert
+ ✔ Agent and sales cannot generate vouchers
+ ✔ Pages traversal is rejected
+ ✔ Language cookie traversal is ignored
+ ✔ Public invoice signature
+ ✔ Print content is escaped
+ ✔ Wp 2 files refuse direct http execution
+
+Service Gate (Reseller\Tests\Http\ServiceGate)
+ ✔ Agent and sales cannot grant service to their own in scope customer
+ ✔ Agent and sales cannot grant service through the api
+ ✔ Super admin and admin are refused on reseller owned customers
+ ✔ Core guards refuse direct calls for reseller owned customers
+ ✔ Cron skips reseller owned auto renewal and renews unassigned
+ ✔ Customer portal refuses service for reseller owned customer
+ ✔ Public voucher activation refused and password unchanged
+ ✔ Customer edit refuses reprovisioning changes for reseller owned
+ ✔ Bulk plan sync skips reseller owned customers
+ ✔ Unassigned customers keep admin service compatibility
+
+Settlement (Reseller\Tests\Integration\Wp3b\Settlement)
+ ✔ Spec chain settles exactly and conserves
+ ✔ One two level inherited equal and base zero chains
+ ✔ Commission recipient must already have a wallet
+ ✔ Recipient capacity is checked at reserve and again at commit
+ ✔ Frozen recipient is still credited and move after reserve keeps the snapshot
+ ✔ Stale partial zero and null snapshot activations
+ ✔ Customer actor and tampered snapshot at commit
+
+Settlement Failure (Reseller\Tests\Unit\Wp3b\SettlementFailure)
+ ✔ Classification
+ ✔ Messages are sanitized
+
+Settlement Math (Reseller\Tests\Unit\Wp3b\SettlementMath)
+ ✔ Exact settlement with data set "one level, override"
+ ✔ Exact settlement with data set "no override (base)"
+ ✔ Exact settlement with data set "two levels 10->12->15"
+ ✔ Exact settlement with data set "spec 10->12->15->17"
+ ✔ Exact settlement with data set "inherited middle earns the gap"
+ ✔ Exact settlement with data set "equal adjacent explicit"
+ ✔ Exact settlement with data set "all inherit base"
+ ✔ Exact settlement with data set "base 0, owner example 0->5->8"
+ ✔ Exact settlement with data set "base 0, top inherits 0"
+ ✔ Exact settlement with data set "cents"
+ ✔ Exact settlement with data set "deep chain"
+ ✔ Exact settlement with data set "maximum"
+ ✔ Zero leaf wholesale is never sealed
+ ✔ No float drift across many cents
+
+Settlement Report (Reseller\Tests\Integration\Wp6b\SettlementReport)
+ ✔ The settlement card follows the role projection
+ ✔ Reports and exports follow the same scopes
+
+Shell Navigation (Reseller\Tests\Integration\Wp6a\ShellNavigation)
+ ✔ Every rendered navigation link is authorized for the actor
+ ✔ Primary navigation and quick actions follow capabilities
+ ✔ Document direction language landmarks and assets
+ ✔ Missing translations never leave the server
+
+Source Guard (Reseller\Tests\Unit\Wp3a\SourceGuard)
+ ✔ Scan covers the runtime
+ ✔ Ledger has no update or delete path and one writer
+ ✔ Wallet writers
+ ✔ Reservation and transfer writers
+ ✔ No orm access to finance tables
+ ✔ Finance code is separated from legacy money and input
+ ✔ No entrypoint reaches the finance services
+ ✔ Fault hook is never assigned at runtime
+ ✔ No generic ledger writer
+ ✔ Accepted files are byte identical
+
+Staff Management (Reseller\Tests\Http\StaffManagement)
+ ✔ Role escalation on create is rejected
+ ✔ Agent creates only direct children and parent is never taken from the form
+ ✔ Admin creates tree accounts under valid parents only
+ ✔ Self cannot change own type status or parent
+ ✔ Edit targets are scoped
+ ✔ Delete rules
+ ✔ Role change is tree safe and last super admin protected
+
+Subscriber Search (Reseller\Tests\Integration\Wp6a\SubscriberSearch)
+ ✔ Every identifier matches within scope only
+ ✔ Bounds wildcards and escaping
+ ✔ List filters and role actions
+
+Subscriber360 (Reseller\Tests\Integration\Wp6a\Subscriber360)
+ ✔ Actions follow capabilities and nothing rendered is denied
+ ✔ Secrets escaping tokens and assets
+ ✔ Session state comes from accounting only
+ ✔ Operational flags and tabs
+
+Transfer (Reseller\Tests\Integration\Wp3a\Transfer)
+ ✔ Direct child transfer is balanced and audited
+ ✔ Structural refusals
+ ✔ Inactive or frozen source or target is refused
+ ✔ Available credit boundary includes reservations and debt line
+ ✔ Admin transfer uses the same rule and records the operator
+ ✔ Idempotent transfer replay and conflict
+ ✔ Destination storage overflow is atomic
+
+Voucher Redemption (Reseller\Tests\Integration\Wp5b\VoucherRedemption)
+ ✔ Portal redemption claims once and is audited for the customer
+ ✔ Reseller owned target is refused and the voucher untouched
+ ✔ Proven not started grant releases the voucher
+ ✔ Interrupted grant keeps the voucher claimed forever
+ ✔ Concurrent redemptions of one code grant once
+ ✔ New username voucher creates one customer and never touches an existing one
+ ✔ New username proven not started removes the provisional customer and ambiguous keeps it
+ ✔ Concurrent new username vouchers create at most one customer
+ ✔ Claimed vouchers cannot be deleted
+ ✔ Generated codes use the csprng and never duplicate
+
+Wallet (Reseller\Tests\Integration\Wp3a\Wallet)
+ ✔ Absent wallet is synthesized without any write
+ ✔ First funding creates the wallet with initial zero state
+ ✔ Debt limit zero on absent wallet is a no op
+ ✔ Positive debt limit creates the wallet without ledger entry
+ ✔ Debt limit increase and decrease against exact exposure
+ ✔ Debt limit input and target rules
+ ✔ Read scope
+
+Wholesale (Reseller\Tests\Integration\Wp3b\Wholesale)
+ ✔ Admin sets top level parent sets direct child floor is the parent
+ ✔ Scope self sibling grandchild unrelated and forged ids
+ ✔ Inheritance nearest ancestor base fallback and clear
+ ✔ Introduced descendant conflict is rejected never rewritten
+ ✔ Pre existing violation from a move
+ ✔ Deep chain and frozen policy
+
+Wp5b Source Guard (Reseller\Tests\Unit\Wp5b\Wp5bSourceGuard)
+ ✔ Single voucher redemption path
+ ✔ Voucher deletes are conditional on status
+ ✔ Hardened balance paths never call balance
+ ✔ Device grants are default deny
+ ✔ Reprovision controllers never pre save
+ ✔ Single gateway resolver
+ ✔ Hardened controllers never call balance
+ ✔ Reversal and hook guards
+ ✔ Voucher generation uses the csprng
+
+Wp6a Source Guard (Reseller\Tests\Unit\Wp6a\Wp6aSourceGuard)
+ ✔ Every variable is escaped or allow listed
+ ✔ Confirmations use dialogs not window confirm
+ ✔ No external assets beyond the documented residuals
+ ✔ Activation flow never shows the legacy plan price
+ ✔ Ui helpers stay outside finance and translation stays local
+
+Wp6b Boundary (Reseller\Tests\Unit\Wp6b\Wp6bBoundary)
+ ✔ Nothing wp 6b adds is api reachable
+ ✔ Backoffice is a gateway only
+ ✔ Controllers stay thin
+ ✔ Pricing pages take one tree lock per page
+ ✔ Finance read models are read only
+
+Wp6b Template Guard (Reseller\Tests\Unit\Wp6b\Wp6bTemplateGuard)
+ ✔ Every variable is escaped
+ ✔ Every wp 6b string has an arabic entry
+
+OK (866 tests, 64626 assertions)
+================ variant registry reproducibility ================
+ Container nuxbill-reseller-test-php82-run-cc0107240fcf Creating 
+ Container nuxbill-reseller-test-php82-run-cc0107240fcf Created 
+variant registry matches freshly built fixtures
+  mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mariadb V2_FRESH_INSTALL_UPDATED on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mariadb V3_LONGLIVED_2023_UPDATED on 10.11.19-MariaDB-ubu2204: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+  mysql V1_FRESH_INSTALL on 8.0.46: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mysql V2_FRESH_INSTALL_UPDATED on 8.0.46: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mysql V3_LONGLIVED_2023_UPDATED on 8.0.46: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+
+real	65m18.848s
+user	0m7.646s
+sys	0m15.463s
+exit=0
