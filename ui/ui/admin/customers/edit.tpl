@@ -205,7 +205,7 @@
                 <div class="box-header with-border">
                     <h3 class="box-title">{Lang::T('Additional Information')}</h3>
                     <div class="box-tools pull-right">
-                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-label="{Lang::T('Show')}"><i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>

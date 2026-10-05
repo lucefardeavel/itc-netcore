@@ -2507,3 +2507,18 @@ body.nuxr-shell summary.nuxr-icon-btn {
     }
 }
 body.nuxr-shell .select2-container .select2-selection__placeholder { color: var(--nx-muted); }
+
+/* touch screens wider than a phone (tablet portrait / landscape): legacy controls keep the 44px touch size too */
+@media (pointer: coarse) {
+    body.nuxr-shell #nuxr-main :is(.form-control, .btn:not(.btn-box-tool), .select2-container .select2-selection--single) {
+        min-height: var(--nx-touch);
+    }
+    body.nuxr-shell #nuxr-main .btn:not(.btn-box-tool) {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    body.nuxr-shell #nuxr-main .btn-block {
+        display: flex;
+    }
+}

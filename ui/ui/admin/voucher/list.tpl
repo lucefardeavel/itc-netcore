@@ -223,7 +223,9 @@
     }
 
     // Example usage for selected vouchers
-    document.getElementById('deleteSelectedVouchers').addEventListener('click', function() {
+    // WP6C: the bulk controls render only for roles that may delete (permission-aware presentation)
+    var nuxrDeleteSelected = document.getElementById('deleteSelectedVouchers');
+    if (nuxrDeleteSelected) nuxrDeleteSelected.addEventListener('click', function() {
         var selectedVouchers = [];
         document.querySelectorAll('input[name="voucher_ids[]"]:checked').forEach(function(checkbox) {
             selectedVouchers.push(checkbox.value);
@@ -250,7 +252,8 @@
 
 
     // Select or deselect all checkboxes
-    document.getElementById('select-all').addEventListener('change', function() {
+    var nuxrSelectAll = document.getElementById('select-all');
+    if (nuxrSelectAll) nuxrSelectAll.addEventListener('change', function() {
         var checkboxes = document.querySelectorAll('input[name="voucher_ids[]"]');
         for (var checkbox of checkboxes) {
             checkbox.checked = this.checked;
