@@ -10,7 +10,7 @@
                     <div class="panel-body">
                         <center>
                             <a href="{$app_url}/{$UPLOAD_PATH}{$d['photo']}" target="foto">
-                                <img src="{$app_url}/{$UPLOAD_PATH}{$d['photo']}.thumb.jpg" width="200"
+                                <img src="{$app_url}/{$UPLOAD_PATH}{if $d['photo']}{$d['photo']}.thumb.jpg{else}/admin.default.png{/if}" width="200"
                                     onerror="this.src='{$app_url}/{$UPLOAD_PATH}/admin.default.png'" class="img-circle img-responsive" alt="Foto">
                             </a>
                         </center><br>

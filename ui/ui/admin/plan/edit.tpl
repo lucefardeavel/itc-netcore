@@ -10,7 +10,7 @@
                 <form class="form-horizontal" method="post" role="form" action="{Text::url('')}plan/edit-post">
                     <input type="hidden" name="id" value="{$d['id']}">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Select Account')}</label>
+                        <label for="username" class="col-md-2 control-label">{Lang::T('Select Account')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="username" name="username"
                                 value="{$d['username']}" readonly>
@@ -18,7 +18,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Service Plan')}</label>
+                        <label for="id_plan" class="col-md-2 control-label">{Lang::T('Service Plan')}</label>
                         <div class="col-md-6">
 
                             <select id="id_plan" name="id_plan" class="form-control select2">
@@ -45,7 +45,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Expires On')}</label>
+                        <label for="expiration" class="col-md-2 control-label">{Lang::T('Expires On')}</label>
                         <div class="col-md-4">
                             <input type="date" class="form-control" id="expiration" name="expiration"
                                 value="{$d['expiration']}">
@@ -56,12 +56,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <div class="col-lg-offset-2 col-lg-10">
-                            <button class="btn btn-success" onclick="return ask(this, '{Lang::T('Continue the package change process')}?')" type="submit">{Lang::T('Edit')}</button>
-                            Or <a href="{Text::url('')}plan/list">{Lang::T('Cancel')}</a>
-                        </div>
-                    </div>
+                    {include file="admin/nuxr/actionbar.tpl" nuxr_submit='Edit' nuxr_ask='Continue the package change process' nuxr_ask_q=1 nuxr_cancel='plan/list'}
                 </form>
             </div>
         </div>

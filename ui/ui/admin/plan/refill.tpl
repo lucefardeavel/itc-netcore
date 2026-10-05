@@ -7,7 +7,7 @@
             <div class="panel-body">
                 <form class="form-horizontal" method="post" role="form" action="{Text::url('')}plan/refill-post">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Select Account')}</label>
+                        <label for="personSelect" class="col-md-2 control-label">{Lang::T('Select Account')}</label>
                         <div class="col-md-6">
                             <select id="personSelect" class="form-control select2" name="id_customer"
                                 style="width: 100%" data-placeholder="{Lang::T('Select a customer')}...">
@@ -15,20 +15,14 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Code Voucher')}</label>
+                        <label for="code" class="col-md-2 control-label">{Lang::T('Code Voucher')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="code" name="code"
                                 placeholder="{Lang::T('Enter voucher code here')}">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <div class="col-lg-offset-2 col-lg-10">
-                            <button class="btn btn-success" onclick="return ask(this, '{Lang::T('Continue the Refill process')}?')"
-                                type="submit">{Lang::T('Recharge')}</button>
-                            Or <a href="{Text::url('')}customers/list">{Lang::T('Cancel')}</a>
-                        </div>
-                    </div>
+                    {include file="admin/nuxr/actionbar.tpl" nuxr_submit='Recharge' nuxr_icon='fa-refresh' nuxr_ask='Continue the Refill process' nuxr_ask_q=1 nuxr_cancel='customers/list'}
                 </form>
             </div>
         </div>

@@ -11,7 +11,7 @@
                 <form class="form-horizontal" method="get" role="form" id="bulkMessageForm" action="">
                     <input type="hidden" name="page" value="{if $page>0 && $totalCustomers==0}-1{else}{$page}{/if}">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Router')}</label>
+                        <label for="router" class="col-md-2 control-label">{Lang::T('Router')}</label>
                         <div class="col-md-6">
                             <select class="form-control select2" name="router" id="router">
                                 <option value="">{Lang::T('All Routers')}</option>
@@ -25,7 +25,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Service Type')}</label>
+                        <label for="service" class="col-md-2 control-label">{Lang::T('Service Type')}</label>
                         <div class="col-md-6">
                             <select class="form-control" name="service" id="service">
                                 <option value="all" {if $group=='all' }selected{/if}>{Lang::T('All')}</option>
@@ -36,7 +36,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Group')}</label>
+                        <label for="group" class="col-md-2 control-label">{Lang::T('Group')}</label>
                         <div class="col-md-6">
                             <select class="form-control" name="group" id="group">
                                 <option value="all" {if $group=='all' }selected{/if}>{Lang::T('All Customers')}</option>
@@ -47,7 +47,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Send Via')}</label>
+                        <label for="via" class="col-md-2 control-label">{Lang::T('Send Via')}</label>
                         <div class="col-md-6">
                             <select class="form-control" name="via" id="via">
                                 <option value="sms" {if $via=='sms' }selected{/if}>{Lang::T('SMS')}</option>
@@ -57,7 +57,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Message per time')}</label>
+                        <label for="batch" class="col-md-2 control-label">{Lang::T('Message per time')}</label>
                         <div class="col-md-6">
                             <select class="form-control" name="batch" id="batch">
                                 <option value="5" {if $batch=='5' }selected{/if}>{Lang::T('5 Messages')}</option>
@@ -73,11 +73,10 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Message')}</label>
+                        <label for="message" class="col-md-2 control-label">{Lang::T('Message')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="message" name="message" required placeholder="{Lang::T('Compose your message...')}" rows="5">{$message}</textarea>
-                            <input name="test" id="test" type="checkbox">
-                            {Lang::T('Testing [if checked no real message is sent]')}
+                            <label class="radio-inline"><input name="test" id="test" type="checkbox"> {Lang::T('Testing [if checked no real message is sent]')}</label>
                         </div>
                         <p class="help-block col-md-4">
                             {Lang::T('Use placeholders:')}

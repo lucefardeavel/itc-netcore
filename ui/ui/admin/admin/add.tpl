@@ -9,32 +9,32 @@
                 <div class="panel-heading">{Lang::T('Profile')}</div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Full Name')}</label>
+                        <label for="fullname" class="col-md-3 control-label">{Lang::T('Full Name')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="fullname" name="fullname">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Phone')}</label>
+                        <label for="phone" class="col-md-3 control-label">{Lang::T('Phone')}</label>
                         <div class="col-md-9">
                             <input type="number" class="form-control" id="phone" name="phone">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Email')}</label>
+                        <label for="email" class="col-md-3 control-label">{Lang::T('Email')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="email" name="email">
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="col-md-4">
-                            <input type="text" class="form-control" id="city" name="city" placeholder="{Lang::T('City')}">
+                            <input type="text" class="form-control" id="city" name="city" aria-label="{Lang::T('City')}" placeholder="{Lang::T('City')}">
                         </div>
                         <div class="col-md-4">
-                            <input type="text" class="form-control" id="subdistrict" name="subdistrict" placeholder="{Lang::T('Sub District')}">
+                            <input type="text" class="form-control" id="subdistrict" name="subdistrict" aria-label="{Lang::T('Sub District')}" placeholder="{Lang::T('Sub District')}">
                         </div>
                         <div class="col-md-4">
-                            <input type="text" class="form-control" id="ward" name="ward" placeholder="{Lang::T('Ward')}">
+                            <input type="text" class="form-control" id="ward" name="ward" aria-label="{Lang::T('Ward')}" placeholder="{Lang::T('Ward')}">
                         </div>
                     </div>
                 </div>
@@ -45,7 +45,7 @@
                 <div class="panel-heading">{Lang::T('Credentials')}</div>
                 <div class="panel-body">
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('User Type')}</label>
+                        <label for="user_type" class="col-md-3 control-label">{Lang::T('User Type')}</label>
                         <div class="col-md-9">
                             {* WP2 / SEC-04: offered roles come from the server-side target-role table *}
                             <select name="user_type" id="user_type" class="form-control" onchange="checkUserType(this)">
@@ -57,7 +57,7 @@
                     </div>
                     {if !$nuxr_parent_fixed}
                     <div class="form-group hidden" id="agentChooser">
-                        <label class="col-md-3 control-label">{Lang::T('Parent Agent')}</label>
+                        <label for="parent_id" class="col-md-3 control-label">{Lang::T('Parent Agent')}</label>
                         <div class="col-md-9">
                             <select name="parent_id" id="parent_id" class="form-control">
                                 <option value="">{Lang::T('None (top-level Agent)')}</option>
@@ -72,20 +72,20 @@
                         <p class="help-block">{Lang::T('New accounts are created as your direct children.')}</p>
                     {/if}
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Username')}</label>
+                        <label for="username" class="col-md-3 control-label">{Lang::T('Username')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="username" name="username">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Password')}</label>
+                        <label for="password" class="col-md-3 control-label">{Lang::T('Password')}</label>
                         <div class="col-md-9">
                             <input type="password" class="form-control" id="password" value="{rand(000000,999999)}" name="password"
                             onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-5 control-label">{Lang::T('Send Notification')}</label>
+                        <label for="send_notif" class="col-md-5 control-label">{Lang::T('Send Notification')}</label>
                         <div class="col-md-7">
                             <select name="send_notif" id="send_notif" class="form-control">
                                 <option value="-">{Lang::T("Don't Send")}</option>
@@ -98,10 +98,7 @@
             </div>
         </div>
     </div>
-    <div class="form-group text-center">
-        <button class="btn btn-primary" onclick="return ask(this, 'Continue the process of adding Admin?')" type="submit">{Lang::T('Save Changes')}</button>
-        Or <a href="{Text::url('settings/users')}">{Lang::T('Cancel')}</a>
-    </div>
+    {include file="admin/nuxr/actionbar.tpl" nuxr_submit='Save Changes' nuxr_ask='Continue the process of adding Admin?' nuxr_cancel='settings/users'}
 </form>
 {literal}
     <script>

@@ -11,12 +11,12 @@
                     <div class="form-group">
                         <label class="col-md-2 control-label">{Lang::T('Type')}</label>
                         <div class="col-md-6">
-                            <input type="radio" id="Hot" name="type" value="Hotspot"> {Lang::T('Hotspot Plans')}
-                            <input type="radio" id="POE" name="type" value="PPPOE"> {Lang::T('PPPOE Plans')}
+                            <label class="radio-inline"><input type="radio" id="Hot" name="type" value="Hotspot"> {Lang::T('Hotspot Plans')}</label>
+                            <label class="radio-inline"><input type="radio" id="POE" name="type" value="PPPOE"> {Lang::T('PPPOE Plans')}</label>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Routers')}</label>
+                        <label for="server" class="col-md-2 control-label">{Lang::T('Routers')}</label>
                         <div class="col-md-6">
                             <select id="server" name="server" class="form-control select2">
                                 <option value=''>{Lang::T('Select Routers')}</option>
@@ -24,7 +24,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Service Plan')}</label>
+                        <label for="plan" class="col-md-2 control-label">{Lang::T('Service Plan')}</label>
                         <div class="col-md-6">
                             <select id="plan" name="plan" class="form-control select2">
                                 <option value=''>{Lang::T('Select Plans')}</option>
@@ -32,13 +32,13 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Number of Vouchers')}</label>
+                        <label for="nxf-numbervoucher" class="col-md-2 control-label">{Lang::T('Number of Vouchers')}</label>
                         <div class="col-md-6">
-                            <input type="text" class="form-control" name="numbervoucher" value="1">
+                            <input id="nxf-numbervoucher" type="text" class="form-control" name="numbervoucher" value="1">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Voucher Format')}</label>
+                        <label for="voucher_format" class="col-md-2 control-label">{Lang::T('Voucher Format')}</label>
                         <div class="col-md-6">
                             <select name="voucher_format" id="voucher_format" class="form-control">
                                 <option value="numbers" {if $_c['voucher_format']=='numbers' }selected="selected" {/if}>
@@ -57,22 +57,22 @@
                         <p class="help-block col-md-4">UPPERCASE lowercase RaNdoM</p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Voucher Prefix')}</label>
+                        <label for="nxf-prefix" class="col-md-2 control-label">{Lang::T('Voucher Prefix')}</label>
                         <div class="col-md-6">
-                            <input type="text" class="form-control" name="prefix" placeholder="NUX-"
+                            <input id="nxf-prefix" type="text" class="form-control" name="prefix" placeholder="NUX-"
                                 value="{$_c['voucher_prefix']}">
                         </div>
                         <p class="help-block col-md-4">NUX-VoUCHeRCOdE</p>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Length Code')}</label>
+                        <label for="nxf-lengthcode" class="col-md-2 control-label">{Lang::T('Length Code')}</label>
                         <div class="col-md-6">
-                            <input type="text" class="form-control" name="lengthcode" value="12">
+                            <input id="nxf-lengthcode" type="text" class="form-control" name="lengthcode" value="12">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="inputSkills" class="col-sm-2 control-label">{Lang::T('Print Now')}</label>
+                        <label for="print_now" class="col-sm-2 control-label">{Lang::T('Print Now')}</label>
 
                         <div class="col-sm-10">
                             <input type="checkbox" id="print_now" name="print_now" class="iCheck" value="yes"
@@ -81,7 +81,7 @@
                     </div>
 
                     <div class="form-group" id="printers" style="display:none;">
-                        <label class="col-md-2 control-label">{Lang::T('Vouchers Per Page')}</label>
+                        <label for="voucher-print" class="col-md-2 control-label">{Lang::T('Vouchers Per Page')}</label>
                         <div class="col-md-6">
                             <input type="text" id="voucher-print" class="form-control" name="voucher_per_page"
                                 value="36" placeholder="{Lang::T("Vouchers Per Page")} (default 36)">
@@ -90,13 +90,7 @@
                             {Lang::T('Vouchers Per Page')} (default 36)
                         </p>
                     </div>
-                    <div class="form-group">
-                        <div class="col-lg-offset-2 col-lg-10">
-                            <button class="btn btn-success"
-                                onclick="return ask(this, '{Lang::T("Continue the Voucher creation process?")}')"
-                                type="submit">{Lang::T('Generate')}</button>
-                        </div>
-                    </div>
+                    {include file="admin/nuxr/actionbar.tpl" nuxr_submit='Generate' nuxr_icon='fa-ticket' nuxr_ask='Continue the Voucher creation process?' nuxr_cancel='plan/voucher'}
                 </form>
 
             </div>

@@ -7,7 +7,7 @@
 			<div class="panel-body">
 				<form class="form-horizontal" method="post" role="form" action="{Text::url('message/send-post')}">
 					<div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Customer')}</label>
+						<label for="personSelect" class="col-md-2 control-label">{Lang::T('Customer')}</label>
 						<div class="col-md-6">
 							<select {if $cust}{else}id="personSelect" {/if} class="form-control select2"
 								name="id_customer" style="width: 100%"
@@ -20,7 +20,7 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Send Via')}</label>
+						<label for="via" class="col-md-2 control-label">{Lang::T('Send Via')}</label>
 						<div class="col-md-6">
 							<select class="form-control" name="via" id="via">
 								<option value="sms" selected> {Lang::T('via SMS')}</option>
@@ -30,7 +30,7 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label class="col-md-2 control-label">{Lang::T('Message')}</label>
+						<label for="message" class="col-md-2 control-label">{Lang::T('Message')}</label>
 						<div class="col-md-6">
 							<textarea class="form-control" id="message" name="message"
 								placeholder="{Lang::T('Compose your message...')}" rows="5"></textarea>
@@ -51,14 +51,7 @@
 						</p>
 					</div>
 
-					<div class="form-group">
-						<div class="col-lg-offset-2 col-lg-10">
-							<button class="btn btn-success"
-								onclick="return ask(this, '{Lang::T('Continue the process of sending messages')}?')"
-								type="submit">{Lang::T('Send Message')}</button>
-							<a href="{Text::url('dashboard')}" class="btn btn-default">{Lang::T('Cancel')}</a>
-						</div>
-					</div>
+					{include file="admin/nuxr/actionbar.tpl" nuxr_submit='Send Message' nuxr_icon='fa-paper-plane' nuxr_ask='Continue the process of sending messages' nuxr_ask_q=1 nuxr_cancel='dashboard'}
 				</form>
 			</div>
 		</div>

@@ -2016,3 +2016,109 @@ body.nuxr-standalone {
     font-size: var(--nx-fs-xl);
     font-weight: 700;
 }
+
+/* AdaptiveActions for forms: the form's action row (.nuxr-step-nav as a direct child of the <form>, also via
+   nuxr/actionbar.tpl for legacy forms) is sticky above the bottom navigation on phones - Save stays reachable in long
+   forms without covering content (sticky keeps its own space); inline row on larger screens */
+.nuxr-actionbar-form {
+    margin-top: 16px;
+    padding: 12px 0 0;
+}
+
+@media (max-width: 767px) {
+    form > .nuxr-step-nav {
+        position: sticky;
+        bottom: calc(var(--nx-bottom-h) + var(--nx-safe-bottom));
+        z-index: 6;
+        padding: 10px 12px;
+        background: var(--nx-surface);
+        border-top: 1px solid var(--nx-border);
+        box-shadow: 0 -4px 12px rgba(16, 24, 40, .08);
+    }
+
+    body.nuxr-shell:has(#nuxr-main :is(input:not([type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="file"], [type="hidden"], [type="range"], [type="color"]), textarea, [contenteditable="true"]):focus) form > .nuxr-step-nav {
+        bottom: 0;
+        padding-bottom: max(10px, var(--nx-safe-bottom));
+    }
+
+    /* legacy form controls (Adaptive Layer): touch size, no iOS focus zoom, stacked labels, larger choices */
+    #nuxr-main .form-control {
+        min-height: var(--nx-touch);
+        font-size: 16px;
+    }
+
+    #nuxr-main textarea.form-control {
+        min-height: 96px;
+    }
+
+    #nuxr-main .form-horizontal .control-label {
+        display: block;
+        padding-top: 0;
+        margin-bottom: 6px;
+        text-align: start;
+    }
+
+    #nuxr-main .btn, #nuxr-main .input-group-btn > .btn, #nuxr-main .input-group-addon {
+        min-height: var(--nx-touch);
+    }
+
+    #nuxr-main .radio label, #nuxr-main .checkbox label, #nuxr-main .radio-inline, #nuxr-main .checkbox-inline,
+    #nuxr-main label:has(> input[type="radio"]), #nuxr-main label:has(> input[type="checkbox"]) {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: var(--nx-touch);
+    }
+
+    #nuxr-main input[type="radio"], #nuxr-main input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin: 0;
+        flex: none;
+    }
+
+    #nuxr-main .select2-container .select2-selection--single {
+        height: var(--nx-touch);
+    }
+
+    #nuxr-main .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: calc(var(--nx-touch) - 2px);
+    }
+
+    #nuxr-main .select2-container .select2-selection--single .select2-selection__arrow {
+        height: calc(var(--nx-touch) - 2px);
+    }
+
+    #nuxr-main .help-block {
+        font-size: var(--nx-fs-sm);
+    }
+}
+
+/* the phone bottom navigation is exactly --nx-bottom-h tall (+ the safe area), so every surface offset by the token
+   (sticky / fixed action bars, content clearance) lines up with it; the raised "New" button may overflow upwards */
+@media (max-width: 767px) {
+    .nuxr-bottomnav {
+        box-sizing: border-box;
+        height: calc(var(--nx-bottom-h) + var(--nx-safe-bottom));
+        overflow: visible;
+    }
+
+    .nuxr-bottomnav .nuxr-primary {
+        height: var(--nx-bottom-h);
+        align-items: stretch;
+    }
+
+    .nuxr-bottomnav .nuxr-primary-item {
+        min-height: 0;
+        height: 100%;
+    }
+}
+
+@media (max-width: 767px) {
+    /* legacy profile photos: a compact avatar on phones instead of a 200px block above the form */
+    #nuxr-main .panel-body img.img-circle[width="200"], #nuxr-main .box-body img.img-circle[width="200"] {
+        width: 96px;
+        height: 96px;
+        object-fit: cover;
+    }
+}

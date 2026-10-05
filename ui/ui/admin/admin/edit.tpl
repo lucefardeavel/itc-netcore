@@ -12,49 +12,49 @@
                 <div class="panel-body">
                     <input type="hidden" name="id" value="{$d['id']}">
                     <center>
-                        <img src="{$app_url}/{$UPLOAD_PATH}{$d['photo']}.thumb.jpg" width="200"
+                        <img src="{$app_url}/{$UPLOAD_PATH}{if $d['photo']}{$d['photo']}.thumb.jpg{else}/admin.default.png{/if}" width="200"
                             onerror="this.src='{$app_url}/{$UPLOAD_PATH}/admin.default.png'" class="img-circle img-responsive" alt="Foto"
                             onclick="return deletePhoto({$d['id']})">
                     </center><br>
                     <div class="form-group">
-                        <label class="col-md-3 col-xs-12 control-label">{Lang::T('Photo')}</label>
+                        <label for="nxf-photo" class="col-md-3 col-xs-12 control-label">{Lang::T('Photo')}</label>
                         <div class="col-md-6 col-xs-8">
-                            <input type="file" class="form-control" name="photo" accept="image/*">
+                            <input type="file" id="nxf-photo" class="form-control" name="photo" accept="image/*">
                         </div>
                         <div class="form-group col-md-3 col-xs-4" title="Not always Working">
                             <label class=""><input type="checkbox" checked name="faceDetect" value="yes"> Facedetect</label>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Full Name')}</label>
+                        <label for="fullname" class="col-md-3 control-label">{Lang::T('Full Name')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="fullname" name="fullname"
                                 value="{$d['fullname']}">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Phone')}</label>
+                        <label for="phone" class="col-md-3 control-label">{Lang::T('Phone')}</label>
                         <div class="col-md-9">
                             <input type="number" class="form-control" id="phone" name="phone" value="{$d['phone']}">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Email')}</label>
+                        <label for="email" class="col-md-3 control-label">{Lang::T('Email')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="email" name="email" value="{$d['email']}">
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="col-md-4">
-                            <input type="text" class="form-control" id="city" name="city"
+                            <input type="text" class="form-control" id="city" name="city" aria-label="{Lang::T('City')}"
                                 placeholder="{Lang::T('City')}" value="{$d['city']}">
                         </div>
                         <div class="col-md-4">
-                            <input type="text" class="form-control" id="subdistrict" name="subdistrict"
+                            <input type="text" class="form-control" id="subdistrict" name="subdistrict" aria-label="{Lang::T('Sub District')}"
                                 placeholder="{Lang::T('Sub District')}" value="{$d['subdistrict']}">
                         </div>
                         <div class="col-md-4">
-                            <input type="text" class="form-control" id="ward" name="ward"
+                            <input type="text" class="form-control" id="ward" name="ward" aria-label="{Lang::T('Ward')}"
                                 placeholder="{Lang::T('Ward')}" value="{$d['ward']}">
                         </div>
                     </div>
@@ -70,7 +70,7 @@
                        the parent (root) is never edited here — use the Reseller tree (place / move). *}
                     {if $nuxr_can_status}
                         <div class="form-group">
-                            <label class="col-md-3 control-label">{Lang::T('Status')}</label>
+                            <label for="status" class="col-md-3 control-label">{Lang::T('Status')}</label>
                             <div class="col-md-9">
                                 <select name="status" id="status" class="form-control">
                                     <option value="Active" {if $d['status'] eq 'Active'}selected="selected" {/if}>
@@ -83,7 +83,7 @@
                     {/if}
                     {if $nuxr_can_role}
                         <div class="form-group">
-                            <label class="col-md-3 control-label">{Lang::T('User Type')}</label>
+                            <label for="user_type" class="col-md-3 control-label">{Lang::T('User Type')}</label>
                             <div class="col-md-9">
                                 <select name="user_type" id="user_type" class="form-control">
                                     {foreach $nuxr_roles as $nuxrRole}
@@ -95,21 +95,21 @@
                         </div>
                     {/if}
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Username')}</label>
+                        <label for="username" class="col-md-3 control-label">{Lang::T('Username')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="username" name="username"
                                 value="{$d['username']}">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Password')}</label>
+                        <label for="password" class="col-md-3 control-label">{Lang::T('Password')}</label>
                         <div class="col-md-9">
                             <input type="password" class="form-control" id="password" name="password">
                             <span class="help-block">{Lang::T('Keep Blank to do not change Password')}</span>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Password')}</label>
+                        <label for="cpassword" class="col-md-3 control-label">{Lang::T('Password')}</label>
                         <div class="col-md-9">
                             <input type="password" class="form-control" id="cpassword" name="cpassword"
                                 placeholder="{Lang::T('Confirm Password')}">
@@ -120,11 +120,7 @@
             </div>
         </div>
     </div>
-    <div class="form-group text-center">
-        <button class="btn btn-primary" onclick="return ask(this, 'Continue the Admin change process?')"
-            type="submit">{Lang::T('Save Changes')}</button>
-        Or <a href="{Text::url('settings/users')}">{Lang::T('Cancel')}</a>
-    </div>
+    {include file="admin/nuxr/actionbar.tpl" nuxr_submit='Save Changes' nuxr_ask='Continue the Admin change process?' nuxr_cancel='settings/users'}
 </form>
 
 <script>

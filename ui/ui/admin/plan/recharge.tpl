@@ -9,7 +9,7 @@
                     <div class="form-group">
                         <label class="col-md-2 control-label">{Lang::T('Select Account')}</label>
                         <div class="col-md-6">
-                            <select {if $cust}{else}id="personSelect" {/if} class="form-control select2"
+                            <select {if $cust}{else}id="personSelect" {/if}aria-label="{Lang::T('Select Account')}" class="form-control select2"
                                 name="id_customer" style="width: 100%"
                                 data-placeholder="{Lang::T('Select a customer')}...">
                                 {if $cust}
@@ -30,7 +30,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Routers')}</label>
+                        <label for="server" class="col-md-2 control-label">{Lang::T('Routers')}</label>
                         <div class="col-md-6">
                             <select id="server" data-type="server" name="server" class="form-control select2">
                                 <option value=''>{Lang::T('Select Routers')}</option>
@@ -39,7 +39,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Service Plan')}</label>
+                        <label for="plan" class="col-md-2 control-label">{Lang::T('Service Plan')}</label>
                         <div class="col-md-6">
                             <select id="plan" name="plan" class="form-control select2">
                                 <option value=''>{Lang::T('Select Plans')}</option>
@@ -47,9 +47,9 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Using')}</label>
+                        <label for="nxf-using" class="col-md-2 control-label">{Lang::T('Using')}</label>
                         <div class="col-md-6">
-                            <select name="using" class="form-control">
+                            <select id="nxf-using" name="using" class="form-control">
                                 {foreach $usings as $using}
                                     <option value="{trim($using)}">{trim(ucWords($using))}</option>
                                 {/foreach}
@@ -64,14 +64,7 @@
                         <p class="help-block col-md-4">{Lang::T('Postpaid Recharge for the first time use')}
                             {$_c['currency_code']} 0</p>
                     </div>
-                    <div class="form-group">
-                        <div class="col-lg-offset-2 col-lg-10">
-                            <button class="btn btn-success"
-                                onclick="return ask(this, '{Lang::T('Continue the Recharge process')}?')"
-                                type="submit">{Lang::T('Recharge')}</button>
-                            {Lang::T('Or')} <a href="{Text::url('')}customers/list">{Lang::T('Cancel')}</a>
-                        </div>
-                    </div>
+                    {include file="admin/nuxr/actionbar.tpl" nuxr_submit='Recharge' nuxr_icon='fa-refresh' nuxr_ask='Continue the Recharge process' nuxr_ask_q=1 nuxr_cancel='customers/list'}
                 </form>
             </div>
         </div>
