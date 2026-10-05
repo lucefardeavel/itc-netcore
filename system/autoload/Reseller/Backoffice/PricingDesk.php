@@ -5,6 +5,7 @@ namespace Reseller\Backoffice;
 if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
 
 use Reseller\Domain\DomainError;
+use Reseller\Finance\ExportCap;
 use Reseller\Finance\PricingService;
 use Reseller\Security\ActorContext;
 use Reseller\Security\Capability as C;
@@ -69,7 +70,10 @@ final class PricingDesk
      */
     public static function exportCatalog(ActorContext $a, mixed $managerId): int
     {
+        // fix round 1 (OD-6): the first bounded page (the same tree-locked PricingReadModel read as the screen) carries
+        // the authoritative scoped total; above the cap the export is refused before any CSV byte
         $first = self::catalog($a, $managerId, 1);
+        ExportCap::assertWithin((int) $first['total']);
         $t = static fn(string $s): string => \Lang::T($s);
         $full = PermissionService::scopeOf($a, C::PRICING_READ) === 'G';
         $columns = [
@@ -82,14 +86,17 @@ final class PricingDesk
         if ($full) {
             $columns[] = [$t('Provider base cost'), static fn($r) => $r['base_cost'] ?? null];
         }
-        return ExportStream::csv($a, 'pricing_catalog', $first['target']['id'], [], $columns, static function (callable $sink) use ($a, $managerId, $first): int {
+        // exactly the preflight's pages, one tree lock per page (never one unbounded lock): at most
+        // pages x PAGE_PLANS rows, and PAGE_PLANS divides the cap, so the stream can never exceed it
+        $pages = (int) $first['pages'];
+        return ExportStream::csv($a, 'pricing_catalog', $first['target']['id'], [], $columns, static function (callable $sink) use ($a, $managerId, $first, $pages): int {
             $n = 0;
             for ($page = 1, $c = $first; ; $c = self::catalog($a, $managerId, ++$page)) {
                 foreach ($c['rows'] as $r) {
                     $sink($r);
                     $n++;
                 }
-                if ($page >= $c['pages']) {
+                if ($page >= $pages) {
                     return $n;
                 }
             }

@@ -156,4 +156,64 @@ PHP);
         $this->assertStringNotContainsString('Accounting corrections', $agent->get('finance/wallet/' . $a)->body);
         $this->assertUnchanged($before, 'nothing written', ['tbl_logs', 'tbl_reseller_audit_events', 'tbl_users']);
     }
+
+    /** Sets a debt line through the accepted service, outside the web review (another operator / process). */
+    private static function setLimit(string $user, string $limit): void
+    {
+        $id = static::$seed->staff[$user];
+        $out = static::$app->exec(<<<PHP
+\$ad = \\Reseller\\Security\\ActorContext::forStaff(ORM::for_table('tbl_users')->where('username', 'ad')->find_one()->as_array(), 'CLI');
+\\Reseller\\Finance\\WalletService::setDebtLimit(\$ad, {$id}, '{$limit}', 'set by another operator');
+\$result = 'ok';
+PHP);
+        if ($out !== 'ok') {
+            throw new \RuntimeException('setDebtLimit failed: ' . json_encode($out));
+        }
+    }
+
+    /**
+     * Owner fix round 1: a reviewed debt-line change is classified (increase / decrease) against the limit at review
+     * time; when the authoritative limit changed since then, the old review is refused (REVIEW_EXPIRED) and nothing is
+     * written - an increase confirmation can never silently become an unconfirmed decrease. The normal increase and the
+     * confirmed decrease still work.
+     */
+    public function testAStaleDebtLineReviewNeverChangesItsRiskDirection(): void
+    {
+        $c = (string) $this->sid('C');
+        $ad = $this->staff('ad');
+        $ad->get('dashboard');
+        self::setLimit('C', '50');
+        $this->assertSame('50.00', (string) $this->wallet('C')['debt_limit']);
+        // 50 -> 100 is reviewed as an increase: no typed confirmation
+        $inc = $this->review($ad, 'finance/debt-limit-review', ['manager_id' => $c, 'limit' => '100', 'reason' => 'raise the line']);
+        $this->assertStringNotContainsString('data-nuxr-match=', $inc, 'an increase needs no typed confirmation');
+        $stale = self::hidden($inc);
+        // another accepted operation moves the limit to 200: submitting 100 now would be a decrease
+        self::setLimit('C', '200');
+        $before = $this->snapshot();
+        foreach ([$stale, $stale + ['confirm' => 'C'], $stale + ['decrease' => '0']] as $i => $post) {
+            $r = $ad->postWithToken('finance/debt-limit-post', $post);
+            $this->assertSame('200.00', (string) $this->wallet('C')['debt_limit'], "stale review #{$i}: the limit is not changed to 100");
+            $this->assertStringContainsString('This confirmation is no longer valid', $r->body, "stale review #{$i}: refused, a fresh review is required");
+        }
+        $this->assertUnchanged($before, 'a stale review writes nothing (no wallet, ledger, transfer or audit change)');
+        // a tampered review value is refused by the confirm token
+        $this->assertStringContainsString('This confirmation is no longer valid', $ad->postWithToken('finance/debt-limit-post', ['current' => '200.00'] + $stale)->body);
+        $this->assertSame('200.00', (string) $this->wallet('C')['debt_limit']);
+        // the fresh review of 100 is a decrease now: typed username required, then applied through the accepted service
+        $dec = $this->review($ad, 'finance/debt-limit-review', ['manager_id' => $c, 'limit' => '100', 'reason' => 'lower the line']);
+        $this->assertStringContainsString('data-nuxr-match="C"', $dec);
+        $f = self::hidden($dec);
+        $this->assertStringContainsString('The typed confirmation does not match', $ad->postWithToken('finance/debt-limit-post', $f)->body);
+        $this->assertSame('200.00', (string) $this->wallet('C')['debt_limit']);
+        $this->assertSame(302, $ad->postWithToken('finance/debt-limit-post', $f + ['confirm' => 'C'])->status);
+        $this->assertSame('100.00', (string) $this->wallet('C')['debt_limit'], 'the confirmed decrease is applied');
+        // a normal increase still needs no typed confirmation
+        $up = $this->review($ad, 'finance/debt-limit-review', ['manager_id' => $c, 'limit' => '150', 'reason' => 'raise again']);
+        $this->assertStringNotContainsString('data-nuxr-match=', $up);
+        $this->assertSame(302, $ad->postWithToken('finance/debt-limit-post', self::hidden($up))->status);
+        $this->assertSame('150.00', (string) $this->wallet('C')['debt_limit'], 'the increase is applied');
+        $this->assertSame(0, (int) static::$db->value("SELECT COUNT(*) FROM tbl_manager_ledger WHERE manager_id = ?", [$this->sid('C')]), 'a debt line never posts to the ledger');
+        $this->assertSame(0, (int) static::$db->value('SELECT COUNT(*) FROM tbl_manager_transfers WHERE from_manager_id = ? OR to_manager_id = ?', [$this->sid('C'), $this->sid('C')]));
+    }
 }

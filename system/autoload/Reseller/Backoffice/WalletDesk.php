@@ -266,22 +266,35 @@ final class WalletDesk
         self::requireGlobal($a, C::WALLET_DEBT_LIMIT);
         $wallet = LedgerReadModel::wallet($a, $in['manager_id'] ?? null);
         $preview = WalletPreview::debtLimit($a, $wallet['id'], self::amount($in['limit'] ?? null));
+        // fix round 1: the review binds the authoritative current limit it was classified against (never a risk flag)
         $fields = ['op' => 'debt_limit', 'target' => $wallet['id'], 'amount' => $preview['amount'], 'reason' => FinanceInput::reason($in['reason'] ?? null),
-            'decrease' => $preview['decrease'] ? '1' : '0'];
+            'current' => $preview['debt_limit'][0]];
         return ['kind' => 'debt_limit', 'op' => 'debt_limit', 'post_route' => 'finance/debt-limit-post', 'wallet' => $wallet, 'preview' => $preview,
             'fields' => $fields, 'token' => ConfirmToken::sign($key, $fields), 'typed' => $preview['decrease'] ? $wallet['username'] : null,
             'blocked' => $preview['unchanged'] ? 'No change: the debt line already has this value.' : null];
     }
 
-    /** @param array<string,mixed> $in @return array<string,mixed> the resulting wallet view */
+    /**
+     * Executes a reviewed debt-line change (fix round 1). Whether it is a (dangerous) decrease is never taken from the
+     * browser or the signed review: the authoritative current limit is re-read, and when it differs from the limit the
+     * review was classified against, the stale review is refused (REVIEW_EXPIRED) and nothing is written, so an old
+     * confirmation can never silently become a different risk direction. A decrease against the current limit needs
+     * the typed username. WalletService::setDebtLimit stays the only writer (it re-validates everything).
+     *
+     * @param array<string,mixed> $in @return array<string,mixed> the resulting wallet view
+     */
     public static function executeDebtLimit(ActorContext $a, string $key, array $in): array
     {
-        $fields = self::posted($in, ['op', 'target', 'amount', 'reason', 'decrease']);
+        $fields = self::posted($in, ['op', 'target', 'amount', 'reason', 'current']);
         ConfirmToken::verify($key, $fields, $in['token'] ?? null);
         if ($fields['op'] !== 'debt_limit') {
             throw new DomainError('REVIEW_EXPIRED');
         }
-        if ($fields['decrease'] === '1') {
+        $now = WalletPreview::debtLimit($a, $fields['target'], $fields['amount']);
+        if ($now['debt_limit'][0] !== $fields['current']) {
+            throw new DomainError('REVIEW_EXPIRED');
+        }
+        if ($now['decrease']) {
             self::typed($in['confirm'] ?? null, LedgerReadModel::wallet($a, $fields['target'])['username']);
         }
         return WalletService::setDebtLimit($a, $fields['target'], $fields['amount'], $fields['reason'])->toArray();

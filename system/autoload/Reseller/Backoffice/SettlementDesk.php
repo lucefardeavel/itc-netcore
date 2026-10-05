@@ -5,7 +5,6 @@ namespace Reseller\Backoffice;
 if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
 
 use Reseller\Domain\DomainError;
-use Reseller\Finance\LedgerReadModel;
 use Reseller\Finance\SettlementReadModel;
 use Reseller\Security\ActorContext;
 use Reseller\Security\Capability as C;
@@ -77,24 +76,13 @@ final class SettlementDesk
                     [$t('Status'), static fn($r) => $r['status']],
                 ], static fn(callable $sink): int => SettlementReadModel::exportSettlement($a, $f, $sink), 'settlement.csv');
             case 'performance':
-                LedgerReadModel::exportRange($f);
+                // fix round 1 (OD-6): the authoritative scoped count is read before any output and refused above the
+                // cap; never truncated (SettlementReadModel::exportPerformance, one read snapshot)
                 return ExportStream::csv($a, 'performance', null, $f, [
                     [$t('Reseller'), static fn($r) => $r['username']], [$t('Full Name'), static fn($r) => $r['fullname']],
                     [$t('Activations'), static fn($r) => $r['activations']], [$t('Wholesale debited'), static fn($r) => $r['wholesale']],
                     [$t('Commissions received'), static fn($r) => $r['commissions']], [$t('Reversal entries'), static fn($r) => $r['reversals']],
-                ], static function (callable $sink) use ($a, $f): int {
-                    $n = 0;
-                    for ($page = 1; ; $page++) {
-                        $p = SettlementReadModel::performance($a, $f, $page);
-                        foreach ($p['rows'] as $r) {
-                            $sink($r);
-                            $n++;
-                        }
-                        if ($page >= $p['pages'] || $n >= LedgerReadModel::EXPORT_MAX_ROWS) {
-                            return $n;
-                        }
-                    }
-                }, 'performance.csv');
+                ], static fn(callable $sink): int => SettlementReadModel::exportPerformance($a, $f, $sink), 'performance.csv');
         }
         throw new DomainError('NOT_FOUND');
     }

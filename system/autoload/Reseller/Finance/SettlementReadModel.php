@@ -119,20 +119,21 @@ final class SettlementReadModel
         LedgerReadModel::exportRange($f);
         [$where, $params] = self::legWhere($a, self::legType($type), $f);
         $pdo = FinanceTx::pdo();
-        if ((int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_manager_ledger l WHERE ' . $where, $params)['n'] ?? 0) > LedgerReadModel::EXPORT_MAX_ROWS) {
-            throw new DomainError('EXPORT_TOO_LARGE');
-        }
-        $n = 0;
-        $last = PHP_INT_MAX;
-        do {
-            $rows = Tx::rows($pdo, self::LEG_SELECT . ' WHERE ' . $where . ' AND l.id < ? ORDER BY l.id DESC LIMIT 1000', array_merge($params, [$last]));
-            foreach (self::legRows($a, $rows) as $r) {
-                $sink($r);
-                $n++;
-            }
-            $last = $rows !== [] ? (int) end($rows)['id'] : $last;
-        } while (count($rows) === 1000 && $n < LedgerReadModel::EXPORT_MAX_ROWS);
-        return $n;
+        return ExportCap::snapshot($pdo,
+            static fn(): int => (int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_manager_ledger l WHERE ' . $where, $params)['n'] ?? 0),
+            static function () use ($pdo, $a, $where, $params, $sink): int {
+                $n = 0;
+                $last = PHP_INT_MAX;
+                do {
+                    $rows = Tx::rows($pdo, self::LEG_SELECT . ' WHERE ' . $where . ' AND l.id < ? ORDER BY l.id DESC LIMIT 1000', array_merge($params, [$last]));
+                    foreach (self::legRows($a, $rows) as $r) {
+                        $sink($r);
+                        $n++;
+                    }
+                    $last = $rows !== [] ? (int) end($rows)['id'] : $last;
+                } while (count($rows) === 1000);
+                return $n;
+            });
     }
 
     /**
@@ -165,20 +166,21 @@ final class SettlementReadModel
         LedgerReadModel::exportRange($f);
         [$where, $params] = self::settlementWhere($f);
         $pdo = FinanceTx::pdo();
-        $n = 0;
-        $last = PHP_INT_MAX;
-        if ((int) (Tx::row($pdo, "SELECT COUNT(*) AS n FROM tbl_reseller_activations a JOIN tbl_manager_ledger l ON l.activation_id = a.id AND l.entry_type = 'ACTIVATION_DEBIT' WHERE " . $where, $params)['n'] ?? 0) > LedgerReadModel::EXPORT_MAX_ROWS) {
-            throw new DomainError('EXPORT_TOO_LARGE');
-        }
-        do {
-            $rows = Tx::rows($pdo, self::SETTLEMENT_SELECT . ' WHERE ' . $where . ' AND a.id < ? ORDER BY a.id DESC LIMIT 1000', array_merge($params, [$last]));
-            foreach (self::settlementRows($a, $rows) as $r) {
-                $sink($r);
-                $n++;
-            }
-            $last = $rows !== [] ? (int) end($rows)['id'] : $last;
-        } while (count($rows) === 1000 && $n < LedgerReadModel::EXPORT_MAX_ROWS);
-        return $n;
+        return ExportCap::snapshot($pdo,
+            static fn(): int => (int) (Tx::row($pdo, "SELECT COUNT(*) AS n FROM tbl_reseller_activations a JOIN tbl_manager_ledger l ON l.activation_id = a.id AND l.entry_type = 'ACTIVATION_DEBIT' WHERE " . $where, $params)['n'] ?? 0),
+            static function () use ($pdo, $a, $where, $params, $sink): int {
+                $n = 0;
+                $last = PHP_INT_MAX;
+                do {
+                    $rows = Tx::rows($pdo, self::SETTLEMENT_SELECT . ' WHERE ' . $where . ' AND a.id < ? ORDER BY a.id DESC LIMIT 1000', array_merge($params, [$last]));
+                    foreach (self::settlementRows($a, $rows) as $r) {
+                        $sink($r);
+                        $n++;
+                    }
+                    $last = $rows !== [] ? (int) end($rows)['id'] : $last;
+                } while (count($rows) === 1000);
+                return $n;
+            });
     }
 
     /**
@@ -198,6 +200,47 @@ final class SettlementReadModel
         $page = min(max(1, $page), $pages);
         $who = Tx::rows($pdo, "SELECT u.id, u.username, u.fullname, u.status FROM tbl_users u WHERE u.user_type = 'Agent' AND {$pred} ORDER BY u.username LIMIT "
             . self::PAGE_SIZE . ' OFFSET ' . (($page - 1) * self::PAGE_SIZE), $params);
+        $rows = self::performanceRows($pdo, $who, $f);
+        return ['rows' => $rows, 'total' => $total, 'page' => $page, 'pages' => $pages];
+    }
+
+    /**
+     * CSV cursor of the reseller performance (fix round 1, OD-6): the same scope and query as the screen; the
+     * authoritative scoped reseller count is read before any output and refused above the cap (never truncated);
+     * count and rows come from one read snapshot (ExportCap). Date range required.
+     */
+    public static function exportPerformance(ActorContext $a, array $f, callable $sink): int
+    {
+        ResellerTreeService::authorize($a, C::WALLET_READ);
+        ResellerTreeService::authorize($a, C::LEDGER_READ);
+        LedgerReadModel::exportRange($f);
+        [$pred, $params] = DataScope::staffPredicate($a, C::WALLET_READ, 'u.id') ?? ['(1 = 1)', []];
+        $pdo = FinanceTx::pdo();
+        return ExportCap::snapshot($pdo,
+            static fn(): int => (int) (Tx::row($pdo, "SELECT COUNT(*) AS n FROM tbl_users u WHERE u.user_type = 'Agent' AND {$pred}", $params)['n'] ?? 0),
+            static function () use ($pdo, $pred, $params, $f, $sink): int {
+                // the screen's order; offset paging is exact inside the snapshot
+                $n = 0;
+                do {
+                    $who = Tx::rows($pdo, "SELECT u.id, u.username, u.fullname, u.status FROM tbl_users u WHERE u.user_type = 'Agent' AND {$pred} "
+                        . 'ORDER BY u.username, u.id LIMIT 1000 OFFSET ' . $n, $params);
+                    foreach (self::performanceRows($pdo, $who, $f) as $r) {
+                        $sink($r);
+                        $n++;
+                    }
+                } while (count($who) === 1000);
+                return $n;
+            });
+    }
+
+    /**
+     * Ledger metrics (activation debits, wholesale, commissions, reversal entries over the period) for resellers.
+     *
+     * @param list<array<string,mixed>> $who id / username / fullname / status
+     * @return list<array<string,mixed>>
+     */
+    private static function performanceRows(\PDO $pdo, array $who, array $f): array
+    {
         $ids = array_map(static fn(array $w): int => (int) $w['id'], $who);
         $metrics = [];
         if ($ids !== []) {
@@ -228,7 +271,7 @@ final class SettlementReadModel
                 'reversals' => $m['REVERSAL']['n'] ?? 0,
             ];
         }
-        return ['rows' => $rows, 'total' => $total, 'page' => $page, 'pages' => $pages];
+        return $rows;
     }
 
     // ------------------------------------------------------------------ helpers

@@ -10,7 +10,8 @@ use Reseller\Ui\Format;
 
 /**
  * WP6B (owner decision OD-6): streams a CSV export produced by an authoritative, scoped export cursor (the same query
- * and filters as the screen; caps enforced there: at most 366 days and 20,000 rows, refused above, never truncated).
+ * and filters as the screen). The caps are Finance\ExportCap's (at most 366 days and 20,000 rows): the scoped total is
+ * known before the first byte and an export above the cap is refused, never truncated (fix round 1).
  * Headers are sent only when the first row exists, so a refusal before any row still lets the caller redirect with a
  * message. The export is audited with metadata only (type, filters, target, row count) — never the exported data.
  */

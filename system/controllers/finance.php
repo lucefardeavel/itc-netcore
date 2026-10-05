@@ -269,7 +269,7 @@ switch ($action) {
         $review = str_ends_with($action, '-review');
         $kind = substr($action, 0, (int) strrpos($action, '-')); // debt-limit | adjust | reverse
         $in = match ($kind) {
-            'debt-limit' => $review ? $nuxrPost(['manager_id', 'limit', 'reason']) : $nuxrPost(['op', 'target', 'amount', 'reason', 'decrease', 'token', 'confirm']),
+            'debt-limit' => $review ? $nuxrPost(['manager_id', 'limit', 'reason']) : $nuxrPost(['op', 'target', 'amount', 'reason', 'current', 'token', 'confirm']),
             'adjust' => $review ? $nuxrPost(['manager_id', 'op', 'amount', 'reason', 'external_reference']) : $nuxrPost(['op', 'target', 'amount', 'reason', 'external', 'reference', 'token', 'confirm']),
             default => $review ? $nuxrPost(['transfer_id', 'reason']) : $nuxrPost(['op', 'target', 'reason', 'reference', 'token', 'confirm']),
         };

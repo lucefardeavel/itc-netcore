@@ -30,8 +30,8 @@ use Reseller\Security\PermissionService;
 final class LedgerReadModel
 {
     public const PAGE_SIZE = 50;
-    public const EXPORT_MAX_ROWS = 20000;
-    public const EXPORT_MAX_DAYS = 366;
+    public const EXPORT_MAX_ROWS = ExportCap::MAX_ROWS;
+    public const EXPORT_MAX_DAYS = ExportCap::MAX_DAYS;
     private const CHUNK = 1000;
 
     public const ENTRY_TYPES = ['FUNDING', 'WITHDRAWAL', 'ACTIVATION_DEBIT', 'COMMISSION_CREDIT', 'TRANSFER_OUT', 'TRANSFER_IN', 'REFUND', 'REVERSAL', 'ADJUSTMENT'];
@@ -101,21 +101,21 @@ final class LedgerReadModel
         ResellerTreeService::authorize($a, C::WALLET_READ);
         [$where, $params] = self::walletWhere($a, $f);
         $pdo = FinanceTx::pdo();
-        $total = (int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_users u LEFT JOIN tbl_manager_wallets w ON w.manager_id = u.id WHERE ' . $where, $params)['n'] ?? 0);
-        if ($total > self::EXPORT_MAX_ROWS) {
-            throw new DomainError('EXPORT_TOO_LARGE');
-        }
-        $n = 0;
-        $last = 0;
-        do {
-            $rows = Tx::rows($pdo, self::WALLET_SELECT . ' WHERE ' . $where . ' AND u.id > ? ORDER BY u.id LIMIT ' . self::CHUNK, array_merge($params, [$last]));
-            foreach (self::walletRows($a, $rows) as $r) {
-                $sink($r);
-                $n++;
-            }
-            $last = $rows !== [] ? (int) end($rows)['id'] : $last;
-        } while (count($rows) === self::CHUNK && $n < self::EXPORT_MAX_ROWS);
-        return $n;
+        return ExportCap::snapshot($pdo,
+            static fn(): int => (int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_users u LEFT JOIN tbl_manager_wallets w ON w.manager_id = u.id WHERE ' . $where, $params)['n'] ?? 0),
+            static function () use ($pdo, $a, $where, $params, $sink): int {
+                $n = 0;
+                $last = 0;
+                do {
+                    $rows = Tx::rows($pdo, self::WALLET_SELECT . ' WHERE ' . $where . ' AND u.id > ? ORDER BY u.id LIMIT ' . self::CHUNK, array_merge($params, [$last]));
+                    foreach (self::walletRows($a, $rows) as $r) {
+                        $sink($r);
+                        $n++;
+                    }
+                    $last = $rows !== [] ? (int) end($rows)['id'] : $last;
+                } while (count($rows) === self::CHUNK);
+                return $n;
+            });
     }
 
     // ------------------------------------------------------------------ ledger
@@ -153,20 +153,21 @@ final class LedgerReadModel
         self::exportRange($f);
         [$where, $params] = self::ledgerWhere($id, $f);
         $pdo = FinanceTx::pdo();
-        if ((int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_manager_ledger l WHERE ' . $where, $params)['n'] ?? 0) > self::EXPORT_MAX_ROWS) {
-            throw new DomainError('EXPORT_TOO_LARGE');
-        }
-        $n = 0;
-        $last = PHP_INT_MAX;
-        do {
-            $rows = Tx::rows($pdo, 'SELECT l.* FROM tbl_manager_ledger l WHERE ' . $where . ' AND l.id < ? ORDER BY l.id DESC LIMIT ' . self::CHUNK, array_merge($params, [$last]));
-            foreach (self::ledgerRows($a, $rows) as $r) {
-                $sink($r);
-                $n++;
-            }
-            $last = $rows !== [] ? (int) end($rows)['id'] : $last;
-        } while (count($rows) === self::CHUNK && $n < self::EXPORT_MAX_ROWS);
-        return $n;
+        return ExportCap::snapshot($pdo,
+            static fn(): int => (int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_manager_ledger l WHERE ' . $where, $params)['n'] ?? 0),
+            static function () use ($pdo, $a, $where, $params, $sink): int {
+                $n = 0;
+                $last = PHP_INT_MAX;
+                do {
+                    $rows = Tx::rows($pdo, 'SELECT l.* FROM tbl_manager_ledger l WHERE ' . $where . ' AND l.id < ? ORDER BY l.id DESC LIMIT ' . self::CHUNK, array_merge($params, [$last]));
+                    foreach (self::ledgerRows($a, $rows) as $r) {
+                        $sink($r);
+                        $n++;
+                    }
+                    $last = $rows !== [] ? (int) end($rows)['id'] : $last;
+                } while (count($rows) === self::CHUNK);
+                return $n;
+            });
     }
 
     /**
@@ -223,20 +224,21 @@ final class LedgerReadModel
         self::exportRange($f);
         [$where, $params] = self::transferWhere($a, $f);
         $pdo = FinanceTx::pdo();
-        if ((int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_manager_transfers t WHERE ' . $where, $params)['n'] ?? 0) > self::EXPORT_MAX_ROWS) {
-            throw new DomainError('EXPORT_TOO_LARGE');
-        }
-        $n = 0;
-        $last = PHP_INT_MAX;
-        do {
-            $rows = Tx::rows($pdo, 'SELECT t.* FROM tbl_manager_transfers t WHERE ' . $where . ' AND t.id < ? ORDER BY t.id DESC LIMIT ' . self::CHUNK, array_merge($params, [$last]));
-            foreach (self::transferRows($a, $rows) as $r) {
-                $sink($r);
-                $n++;
-            }
-            $last = $rows !== [] ? (int) end($rows)['id'] : $last;
-        } while (count($rows) === self::CHUNK && $n < self::EXPORT_MAX_ROWS);
-        return $n;
+        return ExportCap::snapshot($pdo,
+            static fn(): int => (int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_manager_transfers t WHERE ' . $where, $params)['n'] ?? 0),
+            static function () use ($pdo, $a, $where, $params, $sink): int {
+                $n = 0;
+                $last = PHP_INT_MAX;
+                do {
+                    $rows = Tx::rows($pdo, 'SELECT t.* FROM tbl_manager_transfers t WHERE ' . $where . ' AND t.id < ? ORDER BY t.id DESC LIMIT ' . self::CHUNK, array_merge($params, [$last]));
+                    foreach (self::transferRows($a, $rows) as $r) {
+                        $sink($r);
+                        $n++;
+                    }
+                    $last = $rows !== [] ? (int) end($rows)['id'] : $last;
+                } while (count($rows) === self::CHUNK);
+                return $n;
+            });
     }
 
     /**
