@@ -1,0 +1,5 @@
+if [ "${NUXR_WP8_SITE_MA_POLICY:-}" = "yes" ]; then
+  # LAB EVALUATION ONLY (option for the owner): enforce Message-Authenticator in the virtual server for every client
+  sed -i 's/^authorize {$/authorize {\n\tif (!\&Message-Authenticator) {\n\t\tdo_not_respond\n\t}/' "$R/sites-enabled/phpnuxbill"
+  echo "[wp8] site policy:"; sed -n '/^authorize {/,/filter_username/p' "$R/sites-enabled/phpnuxbill"
+fi

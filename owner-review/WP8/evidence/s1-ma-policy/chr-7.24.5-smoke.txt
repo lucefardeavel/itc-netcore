@@ -1,0 +1,58 @@
+# RouterOS CHR 7.24.5 compatibility smoke (owner amendment W8-A2), FreeRADIUS lab mode C, read_clients=yes
+image: https://download.mikrotik.com/routeros/7.24.5/chr-7.24.5.img.zip
+zip sha256: 16f07222a3213352c9c4fbea4f4dec6a8ffb78fdc0fa5e398c23103ed357c6eb (45293979 bytes)
+img sha256: e4caf173aceb497433c5fc285bffee09c1e6761dfe0e658a2b178970249fc2d2 (134217728 bytes, DOS/MBR raw disk)
+package: routeros 7.24.5, build-time 2026-09-29 14:21:27; license level free; QEMU 8.2.2 TCG -cpu max, 1 vCPU, 1 GiB
+CHR 7.24.5: API login OK after 67.3s
+--- configuration over API
+admin password set (blank -> lab password)
+/system/identity/set                     OK
+/ip/address/add                          OK
+/ip/address/add                          OK
+/ip/pool/add                             OK
+/ip/pool/add                             OK
+/ppp/profile/add                         OK
+/interface/pppoe-server/server/add       OK
+/ppp/aaa/set                             OK
+/radius/add                              OK
+/radius/incoming/set                     OK
+/ip/dhcp-server/network/add              OK
+/ip/dhcp-server/add                      OK
+/ip/hotspot/profile/add                  OK
+/ip/hotspot/add                          OK
+/ip/service/set                          OK
+facilities: resource=1, license=1, identity=1, package=1, interface=5, address=3, radius=1, incoming=1, aaa=1, profile=3, server=1, pool=2, dhcp-server=1, hotspot=1, profile=2, filter=0, nat=0, active=0, active=0, secret=[REDACTED], user=1, service=19, user=1, simple=0
+radius entry: {'address': '10.88.0.10', 'service': 'ppp,hotspot', 'src-address': '10.88.0.2', 'timeout': '3s', 'require-message-auth': 'yes-for-request-resp'}
+incoming: {'accept': 'true', 'port': '3799', 'vrf': 'main'} | ppp aaa: {'use-radius': 'true', 'accounting': 'true', 'use-circuit-id-in-nas-port-id': 'false', 'interim-update': '1m', 'enable-ipv6-accounting': 'false'}
+--- PPPoE
+PPPoE up after 4.1s: 10.88.10.199
+Recv PPPOE Discovery V1T1 PADO session 0x0 length 40
+CHAP authentication succeeded: Welcome.
+CHAP authentication succeeded
+local  IP address 10.88.10.199
+remote IP address 10.88.10.1
+--- Hotspot: DHCP lease, 302 interception, http-pap 'logged in', /ip/hotspot/active radius=true (see report)
+--- radacct while open (Start + Interim)
+radacctid	acctsessionid	username	nasipaddress	nasporttype	acctstarttime	acctupdatetime	acctstoptime	framedipaddress
+1	81000000	nuxr_wp8_gate_radius	10.88.0.2	Ethernet	2026-10-06 11:13:19	2026-10-06 11:14:19	NULL	10.88.10.199
+2	80000000	nuxr_wp8_gate_hs	10.88.0.2	Wireless-802.11	2026-10-06 11:13:23	2026-10-06 11:14:22	NULL	10.88.2.198
+--- application CoAClient::disconnect (source 10.88.0.10)
+{
+    "mode": "disconnect",
+    "source_hint": "10.88.0.10 172.20.0.3",
+    "elapsed_s": 0.154,
+    "results": [
+        {
+            "status": "SUCCESS",
+            "code": "COA_ACK",
+            "message": "The NAS confirmed the request.",
+            "retryable": false,
+            "nas_id": "1",
+            "metadata": []
+        }
+    ]
+}
+--- radacct after
+radacctid	username	acctstoptime	acctsessiontime	acctterminatecause	acctinputoctets	acctoutputoctets
+1	nuxr_wp8_gate_radius	2026-10-06 11:14:39	80	NAS-Request	298	490
+2	nuxr_wp8_gate_hs	NULL	59		0	0

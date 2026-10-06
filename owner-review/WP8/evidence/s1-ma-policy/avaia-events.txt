@@ -1,0 +1,5 @@
+window 2026-10-06T11:08:57Z .. 2026-10-06T11:15:12Z
+non-exec, non-nuxbill container events (epoch): 
+1791285285 avaia-wp2-pg-dev create
+1791285285 avaia-wp2-pg-dev start
+note: 27 protected containers at the end of the feasibility gate (10:31Z); 24 at the valid S0 snapshot (11:06Z) - avaia-wp2-pg-base/-dev/-rehearsal disappeared while no WP8 activity was running; avaia-wp2-pg-dev re-created ~11:14:45Z during this window. CONCURRENT / UNATTRIBUTED SHARED-HOST ACTIVITY; no WP8 command addressed any AVAIA object.

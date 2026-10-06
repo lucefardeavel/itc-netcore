@@ -1,0 +1,33 @@
+# FreeRADIUS 3.2.8 -X excerpt, lab mode C (read_clients=yes, client_table=nas)
+1:[wp8] site policy:
+3:	if (!&Message-Authenticator) {
+4:		do_not_respond
+7:[wp8] global security policy:
+18:[wp8] sql read_clients:  read_clients = yes
+89: security {
+130: security {
+135: 	require_message_authenticator = "auto"
+136: 	limit_proxy_state = "auto"
+190: client localhost {
+192: 	require_message_authenticator = "yes"
+717:rlm_sql (sql): Adding client 10.88.0.2 (nuxr_wp8_chr) to global clients list
+718:rlm_sql (10.88.0.2): Client "nuxr_wp8_chr" (sql) added
+719:rlm_sql (sql): Adding client 10.88.0.30 (nuxr_wp8_maprobe) to global clients list
+720:rlm_sql (10.88.0.30): Client "nuxr_wp8_maprobe" (sql) added
+757:BlastRADIUS check: Received packet without Message-Authenticator.
+758:YOU MUST SET "require_message_authenticator = true", or
+759:YOU MUST SET "limit_proxy_state = true" for client nuxr_wp8_maprobe
+763:Once the client is upgraded, set "require_message_authenticator = true" for client nuxr_wp8_maprobe
+765:(0) Received Access-Request Id 121 from 10.88.0.30:35835 to 10.88.0.10:1812 length 82
+771:(0)     if (!&Message-Authenticator) {
+772:(0)     if (!&Message-Authenticator)  -> TRUE
+773:(0)     if (!&Message-Authenticator)  {
+774:(0)       policy do_not_respond {
+779:(0)       } # policy do_not_respond = handled
+780:(0)     } # if (!&Message-Authenticator)  = handled
+785:(0) Not sending reply to client.
+788:(1) Received Access-Request Id 231 from 10.88.0.30:56468 to 10.88.0.10:1812 length 100
+792:(1)   Message-Authenticator = 0x1b2ead9cc2ed58d1b34475e3f2b7012f
+795:(1)     if (!&Message-Authenticator) {
+796:(1)     if (!&Message-Authenticator)  -> FALSE
+853:(1) Sent Access-Accept Id 231 from 10.88.0.10:1812 to 10.88.0.30:56468 length 38

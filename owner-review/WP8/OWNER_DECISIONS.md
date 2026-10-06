@@ -67,3 +67,25 @@ the canonical WP8 lifecycle path. `R-HF-CARRY-01` remains untouched and OPEN.
 the gate (`compose.wp8.yml` override, `rosapi.py`, `configure_chr.py`, `cleanup.sh`, `redact.py`, `coa_probe.php`,
 `api_probe.php`, `pppd.opts` template) are proposed as generic test tooling under `dev/wp8/` in slice S1, with the CHR
 image, secrets and pcaps excluded by `.gitignore`. Owner approval requested before committing them.
+
+## Implementation GO (2026-10-06) — amendments recorded
+
+Owner message "WP8 — FULL REAL FREERADIUS + MIKROTIK INTEGRATION POC — OWNER IMPLEMENTATION GO": feasibility
+`ad314341` ACCEPTED (`PASS_LOCAL_CHR`); S1–S8 authorised. Recorded amendments:
+- **W8-A2**: canonical RouterOS for all WP8 evidence = CHR **7.24.5** (stable, released 2026-10-01); no silent fallback.
+- **OD-W8-10 APPROVED WITH AMENDMENT**: keep `require_message_authenticator = yes`; never `auto`/`no`; RouterOS ≥ 7.15;
+  verify the EFFECTIVE policy for SQL-loaded `nas` clients; STOP if it cannot be preserved without a configuration change.
+- **OD-W8-11 APPROVED WITH AMENDMENT**: binding invariant "CoA source IP must be a configured RouterOS RADIUS-server
+  address"; WP8 uses Option A with the ACTUAL application execution context sharing the FreeRADIUS NAS-visible address
+  (no SNAT, no second generic `/radius` server).
+- **OD-W8-12 APPROVED**: commit the generic lab tooling under `dev/wp8/` with ignore rules for images, disks, secrets,
+  pcaps, serial logs and credentials.
+- AVAIA rule: valid snapshot before / check after every substantial slice; STOP on any protected change.
+- 406 investigation in S3; no mapping change without owner review. R-WP8-CARRY-01 and R-HF-CARRY-01 unchanged.
+
+## OD-W8-13 — Message-Authenticator enforcement for SQL-loaded NAS clients (NEW, BLOCKING S1)
+
+Raised by the OD-W8-10 verification; full evidence and options in `S1_STOP_MESSAGE_AUTHENTICATOR.md`.
+FreeRADIUS 3.2.8 accepts Access-Requests without Message-Authenticator from `read_clients = yes` clients even with the
+global `security.require_message_authenticator = yes`. Recommended: **Option A** — enforce in the project virtual server
+(`if (!&Message-Authenticator) { do_not_respond }` in `authorize`), proven in the lab. Status: **WAITING OWNER**.

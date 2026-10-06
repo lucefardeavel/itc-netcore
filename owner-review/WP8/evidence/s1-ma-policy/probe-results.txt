@@ -1,0 +1,20 @@
+# Probe results (PAP Access-Request from SQL-loaded client 10.88.0.30 = nas row 'nuxr_wp8_maprobe'; first packet of a fresh server process each mode)
+mode A  stock global security.require_message_authenticator = auto
+  A1 WITHOUT Message-Authenticator -> Access-Accept (BlastRADIUS warning only)
+  A2 WITH    Message-Authenticator -> Access-Accept
+  A3 WITHOUT again                 -> Access-Accept
+mode B  global security.require_message_authenticator = yes (lab hardening)
+  B1 WITHOUT Message-Authenticator -> Access-Accept (debug: 'YOU MUST SET require_message_authenticator = true ... for client nuxr_wp8_maprobe')
+  B2 WITH    Message-Authenticator -> Access-Accept
+mode C  global stock 'auto' + virtual-server policy 'if (!&Message-Authenticator) { do_not_respond }' in authorize (LAB EVALUATION ONLY)
+  C1 WITHOUT Message-Authenticator -> NO REPLY (dropped)
+  C2 WITH    Message-Authenticator -> Access-Accept
+
+RADIUS packets on wp8lab0 (mode A probe, mode B probe, mode C probe, then RouterOS 7.24.5 traffic):
+    2 Access-Accept         10.88.0.10 -> 10.88.0.2   Message-Authenticator=True
+    6 Access-Accept         10.88.0.10 -> 10.88.0.30  Message-Authenticator=True
+    2 Access-Request         10.88.0.2 -> 10.88.0.10  Message-Authenticator=True
+    4 Access-Request        10.88.0.30 -> 10.88.0.10  Message-Authenticator=False
+    3 Access-Request        10.88.0.30 -> 10.88.0.10  Message-Authenticator=True
+    9 Accounting-Request     10.88.0.2 -> 10.88.0.10  Message-Authenticator=False
+    5 Accounting-Response   10.88.0.10 -> 10.88.0.2   Message-Authenticator=False
