@@ -196,6 +196,14 @@ def ros_cmd(words):
     return {'ok': not traps, 'rows': [a for k, a in rows if k == '!re'], 'ret': next((a.get('ret') for k, a in rows if k == '!done'), None), 'trap': traps}
 
 
+def nas_link(state):
+    """drill: take the CHR lab-network TAP (wp8tap1) down / up - the NAS becomes unreachable from FreeRADIUS and the
+    application; the PPPoE / Hotspot segments are untouched"""
+    assert state in ('up', 'down')
+    p = sh(['ip', 'link', 'set', 'wp8tap1', state])
+    return {'ok': p.returncode == 0, 'state': state}
+
+
 def fr(action):
     assert action in ('pause', 'unpause')
     p = sh(['docker', action, FR])
@@ -248,7 +256,7 @@ def capture_stop(name):
 
 OPS = {'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
        'pppoe_wait_down': pppoe_wait_down, 'hs_dhcp': hs_dhcp, 'hs_login': hs_login, 'hs_logout': hs_logout, 'http_probe': http_probe,
-       'traffic': traffic, 'ros': ros_cmd, 'fr': fr, 'fr_log': fr_log, 'capture_start': capture_start, 'capture_stop': capture_stop}
+       'traffic': traffic, 'ros': ros_cmd, 'fr': fr, 'nas_link': nas_link, 'fr_log': fr_log, 'capture_start': capture_start, 'capture_stop': capture_stop}
 
 
 def main():

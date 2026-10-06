@@ -119,3 +119,31 @@ change (RouterOS ACKs and ignores `Framed-Pool` / `Framed-IP-Address`): address 
 policy -> Disconnect -> re-authentication. Rate changes by CoA (`Mikrotik-Rate-Limit`) are applied live.
 
 **STOP (AVAIA)**: see `STOP_AVAIA_S3.md`.
+
+## Final resume directive (2026-10-06) — additive record
+
+Owner verdicts: **S1 ACCEPTED** (`c7811e50`), **S2 ACCEPTED** (`b4347279`), **S3 ACCEPTED_WITH_NOTES** (`cc29b505`).
+**OD-W8-14 = CLOSED / OPTION A ACCEPTED** (406 stays FAILED / COA_NAK; `CoAClient` unchanged). The earlier AVAIA stop
+(`STOP_AVAIA_S3.md`) is **CLEARED BY OWNER SCOPE CORRECTION**; **AVAIA is out of scope for WP8** (no monitoring, no
+snapshots, no reporting). Binding S3 rules adopted: live rate change by CoA; address / pool change only by policy ->
+Disconnect -> re-authentication (a CoA-ACK proves nothing for them); one radacct row per session; CoA timeout = UNKNOWN.
+
+| Slice | Result |
+|---|---|
+| S4 (`67b79099`) | PASS — A -> B -> C -> Sales -> customer; conservation 17.00 = 5.00 + 12.00 from the original ledger rows; Sales scope and redaction held (`evidence/s4/`) |
+| S5 (`cb29ac4f`) | PASS — RENEW, CHANGE_PLAN rate / pool, EXPIRY, REACTIVATE, LegacyReprovisionService password / username / uncertain commit on the real NAS (`evidence/s5/`) |
+| S6 (this commit) | drills 1-6 and 8-10 PASS; **drill 7 -> STOP CONDITION 9** (`STOP_S6_LOST_STOP.md`) |
+| S7, S8 | not started |
+
+**OD-W8-15 (raised in S5, non-blocking, owner decision).** A username change through `LegacyReprovisionService`
+(IDENTITY_EDIT, Admin only) re-provisions and disconnects only the NEW RADIUS key; the live session of the OLD identity
+survives, and a second session under the new name is possible meanwhile (two concurrent sessions beyond
+Simultaneous-Use 1 until the old session ends). Options: (A) also disconnect the old key in the Radius device rename
+path (runtime change, separate approval) - recommended; (B) document an operator step (disconnect before renaming).
+
+**OD-W8-16 (raised in S6, BLOCKING).** Lost accounting Stop -> indefinite Simultaneous-Use lockout without a safe
+per-subscriber recovery. Options A-D and recommendation (A, staleness-bounded Simultaneous-Use in the FreeRADIUS
+project configuration) in `STOP_S6_LOST_STOP.md`.
+
+Carry-forwards unchanged: **R-WP8-CARRY-01** OPEN / PRE-EXISTING / MEDIUM (must close before production);
+**R-HF-CARRY-01** OPEN / PRE-EXISTING / MEDIUM.
