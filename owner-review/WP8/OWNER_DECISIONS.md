@@ -104,3 +104,18 @@ MA-2 / MA-3 and the accounting negative control on a SQL-loaded NAS client).
 
 S1 verdict: **PASS** (evidence `evidence/s1/`, report `REPORT.md`). Per the owner instruction, S2 to S8 continue
 without a further approval unless a stop condition occurs.
+
+## Raised during S2 / S3 (2026-10-06)
+
+**OD-W8-14 — RouterOS Error-Cause 406 (non-blocking, owner review).** RouterOS 7.24.5 never returns 503; it NAKs every
+Disconnect / CoA that matches no session with Error-Cause 406 - stale radacct, unknown user, wrong session id, and also
+a request carrying no identifying attribute. Options: (A) keep the accepted mapping (406 -> FAILED COA_NAK) and
+document that a vanished session shows as `FAILED COA_NAK (406)` in the best-effort annotation - **recommended**,
+no code change, no state-machine impact; (B) map 406 to SUCCESS SESSION_NOT_FOUND only when the request carried a
+User-Name AND Acct-Session-Id (code change in `CoAClient`, separate approval). Evidence `evidence/s3/`.
+
+**Binding operational rules proven on the real NAS (for the WP8 model):** CoA-ACK is not proof of an address / pool
+change (RouterOS ACKs and ignores `Framed-Pool` / `Framed-IP-Address`): address and pool changes always use
+policy -> Disconnect -> re-authentication. Rate changes by CoA (`Mikrotik-Rate-Limit`) are applied live.
+
+**STOP (AVAIA)**: see `STOP_AVAIA_S3.md`.
