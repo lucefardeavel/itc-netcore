@@ -1,0 +1,70 @@
+# CoA / Disconnect through the application's Reseller\Radius\CoAClient (no app change)
+## probe 1 (7.12.1): send() unknown session, source co-located with FreeRADIUS 10.88.0.10
+{
+    "mode": "send",
+    "source_hint": "172.20.0.2 10.88.0.10",
+    "elapsed_s": 0.608,
+    "results": [
+        {
+            "status": "FAILED",
+            "code": "COA_NAK",
+            "message": "The NAS refused the request.",
+            "retryable": false,
+            "nas_id": "lab-chr",
+            "metadata": {
+                "error_cause": 406
+            }
+        }
+    ]
+}
+## probe 2 (7.12.1): send() unknown session, source 10.88.0.20 (not a /radius entry on CHR)
+{
+    "mode": "send",
+    "source_hint": "172.20.0.4 10.88.0.20",
+    "elapsed_s": 6.019,
+    "results": [
+        {
+            "status": "UNKNOWN",
+            "code": "COA_NO_RESPONSE",
+            "message": "The NAS did not answer; the session state is unknown.",
+            "retryable": false,
+            "nas_id": "lab-chr",
+            "metadata": []
+        }
+    ]
+}
+## 7.20.3: disconnect('nuxr_wp8_gate_hs') via nas table + radacct
+{
+    "mode": "disconnect",
+    "source_hint": "172.20.0.2 10.88.0.10",
+    "elapsed_s": 0.235,
+    "results": [
+        {
+            "status": "SUCCESS",
+            "code": "COA_ACK",
+            "message": "The NAS confirmed the request.",
+            "retryable": false,
+            "nas_id": "1",
+            "metadata": []
+        }
+    ]
+}
+## 7.20.3: radacct after hotspot disconnect
+radacctid	username	nasipaddress	acctstarttime	acctstoptime	acctsessiontime	acctterminatecause	framedipaddress
+1	nuxr_wp8_gate_hs	10.88.0.2	2026-10-06 10:25:44	2026-10-06 10:26:56	72	Admin-Reset	10.88.2.198
+## 7.20.3: disconnect('nuxr_wp8_gate_radius') PPPoE
+{
+    "mode": "disconnect",
+    "source_hint": "172.20.0.2 10.88.0.10",
+    "elapsed_s": 0.088,
+    "results": [
+        {
+            "status": "SUCCESS",
+            "code": "COA_ACK",
+            "message": "The NAS confirmed the request.",
+            "retryable": false,
+            "nas_id": "1",
+            "metadata": []
+        }
+    ]
+}

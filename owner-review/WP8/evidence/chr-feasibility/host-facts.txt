@@ -1,0 +1,7 @@
+# WP8 CHR feasibility gate — host facts (2026-10-06T10:29:31Z)
+os: Ubuntu 24.04.5 LTS kernel 6.8.0-142-generic
+virtualization: kvm guest; /dev/kvm: ls: cannot access '/dev/kvm': No such file or directory; cpu vmx/svm flags: 0
+cpus: 12; mem: 47G total, 40G available; disk /: 92G free
+qemu: QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18); accelerators: tcg kvm 
+pppd: pppd version 2.4.9; pppoe: RP-PPPoE Version 3.15; tun: /dev/net/tun present, builtin
+root uid 0; netns create/delete probe: OK; br_netfilter: not loaded

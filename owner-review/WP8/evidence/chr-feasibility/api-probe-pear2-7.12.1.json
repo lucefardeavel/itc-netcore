@@ -1,0 +1,59 @@
+{
+ "login_s": 0.087,
+ "transport": "plain api (PEAR2 CRYPTO_OFF, as in system/autoload/Mikrotik.php)",
+ "/system/resource/print": {
+  "elapsed_s": 0.033,
+  "rows": [
+   {
+    "uptime": "6m33s",
+    "version": "7.12.1 (stable)",
+    "build-time": "Nov/17/2023 11:38:45",
+    "factory-software": "7.1",
+    "free-memory": "916037632",
+    "total-memory": "1006632960",
+    "cpu": "QEMU",
+    "cpu-count": "1",
+    "cpu-frequency": "2794",
+    "cpu-load": "9",
+    "free-hdd-space": "74153984",
+    "total-hdd-space": "93564928",
+    "write-sect-since-reboot": "3792",
+    "write-sect-total": "3792",
+    "architecture-name": "x86_64",
+    "board-name": "CHR",
+    "platform": "MikroTik"
+   }
+  ]
+ },
+ "/system/license/print": {
+  "elapsed_s": 0.019,
+  "rows": [
+   {
+    "system-id": "Y2O+cltdB/K",
+    "level": "free"
+   }
+  ]
+ },
+ "/radius/incoming/print": {
+  "elapsed_s": 0.037,
+  "rows": [
+   {
+    "accept": "true",
+    "port": "3799",
+    "vrf": "main"
+   }
+  ]
+ },
+ "/ppp/aaa/print": {
+  "elapsed_s": 0.012,
+  "rows": [
+   {
+    "use-radius": "true",
+    "accounting": "true",
+    "use-circuit-id-in-nas-port-id": "false",
+    "interim-update": "1m"
+   }
+  ]
+ },
+ "php82_deprecation_notices": 14
+}

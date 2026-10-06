@@ -1,0 +1,15 @@
+# Hotspot (client namespace wp8c2 -> CHR ether4)
+udhcpc: started, v1.36.1
+udhcpc: broadcasting discover
+udhcpc: broadcasting select for 10.88.2.199, server 10.88.2.1
+udhcpc: lease of 10.88.2.199 obtained from 10.88.2.1, lease time 600
+# interception
+HTTP/1.1 302 Found
+Location: http://10.88.2.1/login?dst=http%3A%2F%2F192.0.2.1%2F
+# login form fields: name="dst" name="password" name="username" 
+# http-pap login result text: logged in  If nothing happens, click h
+# status page: IP address 10.88.2.198  Bytes up / down 0 B / 0 B
+# CHR /ip/hotspot/active
+CHR /ip/hotspot/active: [{".id": "*C602580A", "server": "nuxr_wp8_hs", "user": "nuxr_wp8_gate_hs", "address": "10.88.2.198", "mac-address": "6E:59:58:28:E8:37", "login-by": "http-pap", "uptime": "1s", "idle-time": "0s", "keepalive-timeout": "2m", "bytes-in": "60", "bytes-out": "88", "packets-in": "1", "packets-out": "1", "radius": "true"}]
+
+# 7.12.1 attempt result text: RADIUS server is not responding

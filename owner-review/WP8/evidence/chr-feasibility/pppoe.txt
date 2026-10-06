@@ -1,0 +1,34 @@
+# PPPoE (client namespace wp8c1 -> CHR ether3, RADIUS CHAP)
+Access-Concentrator: nuxr_wp8_chr
+       Service-Name: nuxr_wp8
+AC-Ethernet-Address: 52:54:00:12:34:58
+--------------------------------------------------
+PPPoE session up after 4.2s: ppp0 10.88.10.199
+# pppd log (CHAP hashes only)
+Recv PPPOE Discovery V1T1 PADO session 0x0 length 40
+Recv PPPOE Discovery V1T1 PADS session 0x2 length 12
+PADS: Service-Name: ''
+Connect: ppp0 <--> wp8v1c
+rcvd [CHAP Challenge id=0x1 <a35a78e8e73b9882720409d4541b29df>, name = "nuxr_wp8_chr"]
+sent [CHAP Response id=0x1 <cdc06c63bd9a5ab109b404f36a1cdb0c>, name = "nuxr_wp8_gate_radius"]
+rcvd [CHAP Success id=0x1 "Welcome."]
+CHAP authentication succeeded: Welcome.
+CHAP authentication succeeded
+local  IP address 10.88.10.199
+remote IP address 10.88.10.1
+Modem hangup
+Connection terminated.
+# CHR /ppp/active
+[{".id": "*80000000", "name": "nuxr_wp8_gate_radius", "service": "pppoe", "caller-id": "CA:80:7E:17:26:BB", "address": "10.88.10.199", "uptime": "5s", "encoding": "", "session-id": "0x81000000", "limit-bytes-in": "0", "limit-bytes-out": "0", "radius": "true"}]
+
+# CHR dynamic queue
+[{"name": "<pppoe-nuxr_wp8_gate_radius>", "target": "<pppoe-nuxr_wp8_gate_radius>", "max-limit": "512000/1000000", "dynamic": "true"}]
+
+# CHR /radius monitor
+[{"pending": "0", "requests": "11", "accepts": "5", "rejects": "0", "resends": "0", "timeouts": "6", "bad-replies": "0", "last-request-rtt": "160ms"}]
+
+# 7.12.1 attempt (radius timeout):
+CHAP authentication failed: bad username or password
+CHAP authentication failed
+rcvd [LCP TermReq id=0x3 "user nuxr_wp8_gate_radius authentication failed - radius timeout"]
+[{"pending": "0", "requests": "7", "accepts": "0", "rejects": "0", "resends": "3", "timeouts": "7", "bad-replies": "0", "last-request-rtt": "0ms"}]

@@ -1,0 +1,17 @@
+# WP8 CHR feasibility gate — LAB-ONLY override of dev/test/freeradius/clients.conf (the harness file is unchanged).
+# RouterOS 7.12.1 sends no Message-Authenticator in Access-Request (pre-BlastRADIUS firmware), so the harness setting
+# require_message_authenticator = yes makes FreeRADIUS 3.2.8 silently discard every request. "auto" is the FreeRADIUS
+# recommended value for mixed clients; evidence of the drop is kept in owner-review/WP8/evidence.
+client nuxr_wp8_lab {
+	ipaddr = 10.88.0.0/24
+	secret = [from environment]
+	require_message_authenticator = auto
+	nas_type = mikrotik
+	shortname = nuxr_wp8_chr
+}
+client nuxr_test_network {
+	ipaddr = 0.0.0.0/0
+	secret = [from environment]
+	require_message_authenticator = yes
+	nas_type = other
+}

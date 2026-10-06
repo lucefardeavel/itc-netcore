@@ -1,0 +1,12 @@
+# CHR images (downloaded from MikroTik, NOT committed; kept under /srv/phpnuxbill/wp8lab/img)
+upgrade.mikrotik.com NEWEST7.stable answered: 7.12.1 (stale vs. download server)
+sources:
+https://download.mikrotik.com/routeros/7.12.1/chr-7.12.1.img.zip
+https://download.mikrotik.com/routeros/7.20.3/chr-7.20.3.img.zip
+sha256 (zip):
+3c6c42b86cefabf5ba2a5aacc701e6b1d96709533b1a23cf050f4c0844abd69e  chr-7.12.1.img.zip
+feade269f247fb76aea41e7ae9379698d33eccfcf2d9435868ef5ef9b0fa13ea  chr-7.20.3.img.zip
+sha256 (raw img, 134217728 bytes, DOS/MBR boot sector, 2 partitions):
+36d550f3e49f9125c57aad84baac7ccfd096f15b5f8b7c9ca001be8fa9b146f1  chr-7.12.1.img
+231babe722ace2a397c8a230ea1a5fb15b159797e06196cc66ba982d7fea1548  chr-7.20.3.img
+used for the gate result: chr-7.20.3.img (7.12.1 used only for the first boot + Message-Authenticator finding)

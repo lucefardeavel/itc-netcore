@@ -1,0 +1,20 @@
+== RouterOS 7.12.1: 18 RADIUS packets
+     6  Access-Request       10.88.0.2>10.88.0.10
+     7  Accounting-Request   10.88.0.2>10.88.0.10
+     1  Disconnect-NAK       10.88.0.2>10.88.0.10
+     1  Disconnect-Request   10.88.0.10>10.88.0.2
+     3  Disconnect-Request   10.88.0.20>10.88.0.2
+   Access-Request has Message-Authenticator(80): [False] | attrs of last: ['NAS-Port-Type', 'Calling-Station-Id', 'Called-Station-Id', 'NAS-Port-Id', 'User-Name', 'NAS-Port', 'Acct-Session-Id', 'Framed-IP-Address', 'Vendor-Specific', 'User-Password', 'Service-Type', 'Vendor-Specific', 'NAS-Identifier', 'NAS-IP-Address']
+   CoA exchange: [('Disconnect-Request', '10.88.0.10>10.88.0.2'), ('Disconnect-NAK', '10.88.0.2>10.88.0.10'), ('Disconnect-Request', '10.88.0.20>10.88.0.2'), ('Disconnect-Request', '10.88.0.20>10.88.0.2'), ('Disconnect-Request', '10.88.0.20>10.88.0.2')]
+== RouterOS 7.20.3 (same capture file, later packets): 44 RADIUS packets
+     2  Access-Accept        10.88.0.10>10.88.0.2
+     8  Access-Request       10.88.0.2>10.88.0.10
+    19  Accounting-Request   10.88.0.2>10.88.0.10
+     6  Accounting-Response  10.88.0.10>10.88.0.2
+     2  Disconnect-ACK       10.88.0.2>10.88.0.10
+     1  Disconnect-NAK       10.88.0.2>10.88.0.10
+     3  Disconnect-Request   10.88.0.10>10.88.0.2
+     3  Disconnect-Request   10.88.0.20>10.88.0.2
+   Access-Request has Message-Authenticator(80): [False, True] | attrs of last: ['Service-Type', 'Framed-Protocol', 'NAS-Port', 'NAS-Port-Type', 'User-Name', 'Calling-Station-Id', 'Called-Station-Id', 'NAS-Port-Id', 'Acct-Session-Id', 'CHAP-Challenge', 'CHAP-Password', 'NAS-Identifier', 'NAS-IP-Address', 'Message-Authenticator']
+   Access-Accept attrs: ['Message-Authenticator']
+   CoA exchange: [('Disconnect-Request', '10.88.0.10>10.88.0.2'), ('Disconnect-NAK', '10.88.0.2>10.88.0.10'), ('Disconnect-Request', '10.88.0.20>10.88.0.2'), ('Disconnect-Request', '10.88.0.20>10.88.0.2'), ('Disconnect-Request', '10.88.0.20>10.88.0.2'), ('Disconnect-Request', '10.88.0.10>10.88.0.2'), ('Disconnect-ACK', '10.88.0.2>10.88.0.10'), ('Disconnect-Request', '10.88.0.10>10.88.0.2'), ('Disconnect-ACK', '10.88.0.2>10.88.0.10')]

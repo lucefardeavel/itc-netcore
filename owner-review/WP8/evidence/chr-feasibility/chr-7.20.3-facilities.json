@@ -1,0 +1,1072 @@
+{
+ "/system/resource/print": {
+  "elapsed_s": 0.044,
+  "rows": [
+   {
+    "uptime": "46s",
+    "version": "7.20.3 (stable)",
+    "build-time": "2025-10-28 12:45:18",
+    "factory-software": "7.1",
+    "free-memory": "842104832",
+    "total-memory": "1073741824",
+    "cpu": "QEMU",
+    "cpu-count": "1",
+    "cpu-frequency": "2794",
+    "cpu-load": "97",
+    "free-hdd-space": "73199616",
+    "total-hdd-space": "93564928",
+    "write-sect-since-reboot": "1968",
+    "write-sect-total": "1968",
+    "architecture-name": "x86_64",
+    "board-name": "CHR QEMU Standard PC (i440FX + PIIX, 1996)",
+    "platform": "MikroTik"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/system/license/print": {
+  "elapsed_s": 0.034,
+  "rows": [
+   {
+    "system-id": "5nyF/K2pLXA",
+    "level": "free"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/system/identity/print": {
+  "elapsed_s": 0.008,
+  "rows": [
+   {
+    "name": "nuxr_wp8_chr"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/system/package/print": {
+  "elapsed_s": 0.019,
+  "rows": [
+   {
+    ".id": "*1",
+    "name": "routeros",
+    "version": "7.20.3",
+    "build-time": "2025-10-28 12:45:18",
+    "scheduled": "",
+    "size": "20026227",
+    "available": "false",
+    "disabled": "false"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/interface/print": {
+  "elapsed_s": 0.039,
+  "rows": [
+   {
+    ".id": "*2",
+    "name": "ether1",
+    "default-name": "ether1",
+    "type": "ether",
+    "mtu": "1500",
+    "actual-mtu": "1500",
+    "mac-address": "52:54:00:12:34:56",
+    "last-link-up-time": "2026-10-06 10:23:50",
+    "link-downs": "0",
+    "rx-byte": "2949",
+    "tx-byte": "4225",
+    "rx-packet": "27",
+    "tx-packet": "36",
+    "rx-drop": "0",
+    "tx-drop": "0",
+    "tx-queue-drop": "0",
+    "rx-error": "0",
+    "tx-error": "0",
+    "fp-rx-byte": "0",
+    "fp-tx-byte": "0",
+    "fp-rx-packet": "0",
+    "fp-tx-packet": "0",
+    "running": "true",
+    "disabled": "false"
+   },
+   {
+    ".id": "*3",
+    "name": "ether2",
+    "default-name": "ether2",
+    "type": "ether",
+    "mtu": "1500",
+    "actual-mtu": "1500",
+    "mac-address": "52:54:00:12:34:57",
+    "last-link-up-time": "2026-10-06 10:23:50",
+    "link-downs": "0",
+    "rx-byte": "90",
+    "tx-byte": "2084",
+    "rx-packet": "1",
+    "tx-packet": "15",
+    "rx-drop": "0",
+    "tx-drop": "0",
+    "tx-queue-drop": "0",
+    "rx-error": "0",
+    "tx-error": "0",
+    "fp-rx-byte": "0",
+    "fp-tx-byte": "0",
+    "fp-rx-packet": "0",
+    "fp-tx-packet": "0",
+    "running": "true",
+    "disabled": "false"
+   },
+   {
+    ".id": "*4",
+    "name": "ether3",
+    "default-name": "ether3",
+    "type": "ether",
+    "mtu": "1500",
+    "actual-mtu": "1500",
+    "mac-address": "52:54:00:12:34:58",
+    "last-link-up-time": "2026-10-06 10:23:50",
+    "link-downs": "0",
+    "rx-byte": "0",
+    "tx-byte": "1699",
+    "rx-packet": "0",
+    "tx-packet": "13",
+    "rx-drop": "0",
+    "tx-drop": "0",
+    "tx-queue-drop": "0",
+    "rx-error": "0",
+    "tx-error": "0",
+    "fp-rx-byte": "0",
+    "fp-tx-byte": "0",
+    "fp-rx-packet": "0",
+    "fp-tx-packet": "0",
+    "running": "true",
+    "disabled": "false"
+   },
+   {
+    ".id": "*5",
+    "name": "ether4",
+    "default-name": "ether4",
+    "type": "ether",
+    "mtu": "1500",
+    "actual-mtu": "1500",
+    "mac-address": "52:54:00:12:34:59",
+    "last-link-up-time": "2026-10-06 10:23:50",
+    "link-downs": "0",
+    "rx-byte": "0",
+    "tx-byte": "1699",
+    "rx-packet": "0",
+    "tx-packet": "13",
+    "rx-drop": "0",
+    "tx-drop": "0",
+    "tx-queue-drop": "0",
+    "rx-error": "0",
+    "tx-error": "0",
+    "fp-rx-byte": "0",
+    "fp-tx-byte": "0",
+    "fp-rx-packet": "0",
+    "fp-tx-packet": "0",
+    "running": "true",
+    "disabled": "false"
+   },
+   {
+    ".id": "*1",
+    "name": "lo",
+    "type": "loopback",
+    "mtu": "65536",
+    "actual-mtu": "65536",
+    "mac-address": "00:00:00:00:00:00",
+    "last-link-up-time": "2026-10-06 10:23:44",
+    "link-downs": "0",
+    "rx-byte": "0",
+    "tx-byte": "0",
+    "rx-packet": "0",
+    "tx-packet": "0",
+    "rx-drop": "0",
+    "tx-drop": "0",
+    "tx-queue-drop": "0",
+    "rx-error": "0",
+    "tx-error": "0",
+    "fp-rx-byte": "0",
+    "fp-tx-byte": "0",
+    "fp-rx-packet": "0",
+    "fp-tx-packet": "0",
+    "running": "true",
+    "disabled": "false"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/ip/address/print": {
+  "elapsed_s": 0.032,
+  "rows": [
+   {
+    ".id": "*1",
+    "address": "10.0.2.15/24",
+    "network": "10.0.2.0",
+    "interface": "ether1",
+    "actual-interface": "ether1",
+    "invalid": "false",
+    "dynamic": "true",
+    "slave": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*2",
+    "address": "10.88.0.2/24",
+    "network": "10.88.0.0",
+    "interface": "ether2",
+    "actual-interface": "ether2",
+    "invalid": "false",
+    "dynamic": "false",
+    "slave": "false",
+    "disabled": "false",
+    "comment": "nuxr_wp8"
+   },
+   {
+    ".id": "*3",
+    "address": "10.88.2.1/24",
+    "network": "10.88.2.0",
+    "interface": "ether4",
+    "actual-interface": "ether4",
+    "invalid": "false",
+    "dynamic": "false",
+    "slave": "false",
+    "disabled": "false",
+    "comment": "nuxr_wp8"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/radius/print": {
+  "elapsed_s": 0.661,
+  "rows": [
+   {
+    ".id": "*1",
+    "service": "ppp,hotspot",
+    "called-id": "",
+    "domain": "",
+    "address": "10.88.0.10",
+    "secret": "[REDACTED]",
+    "authentication-port": "1812",
+    "accounting-port": "1813",
+    "timeout": "3s",
+    "radsec-timeout": "3s300ms",
+    "accounting-backup": "false",
+    "realm": "",
+    "src-address": "10.88.0.2",
+    "protocol": "udp",
+    "certificate": "none",
+    "require-message-auth": "yes-for-request-resp",
+    "status": "",
+    "disabled": "false",
+    "comment": "nuxr_wp8_freeradius"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/radius/incoming/print": {
+  "elapsed_s": 0.527,
+  "rows": [
+   {
+    "accept": "true",
+    "port": "3799",
+    "vrf": "main"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/ppp/aaa/print": {
+  "elapsed_s": 0.032,
+  "rows": [
+   {
+    "use-radius": "true",
+    "accounting": "true",
+    "use-circuit-id-in-nas-port-id": "false",
+    "interim-update": "1m",
+    "enable-ipv6-accounting": "false"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/ppp/profile/print": {
+  "elapsed_s": 0.629,
+  "rows": [
+   {
+    ".id": "*0",
+    "name": "default",
+    "bridge-learning": "default",
+    "use-ipv6": "yes",
+    "use-mpls": "default",
+    "use-compression": "default",
+    "use-encryption": "default",
+    "only-one": "default",
+    "change-tcp-mss": "yes",
+    "use-upnp": "default",
+    "address-list": "",
+    "on-up": "",
+    "on-down": "",
+    "default": "true"
+   },
+   {
+    ".id": "*1",
+    "name": "nuxr_wp8_pppoe",
+    "local-address": "10.88.10.1",
+    "remote-address": "nuxr_wp8_pool_dyn",
+    "bridge-learning": "default",
+    "use-ipv6": "yes",
+    "use-mpls": "default",
+    "use-compression": "default",
+    "use-encryption": "default",
+    "only-one": "default",
+    "change-tcp-mss": "default",
+    "use-upnp": "default",
+    "address-list": "",
+    "on-up": "",
+    "on-down": "",
+    "default": "false"
+   },
+   {
+    ".id": "*FFFFFFFE",
+    "name": "default-encryption",
+    "bridge-learning": "default",
+    "use-ipv6": "yes",
+    "use-mpls": "default",
+    "use-compression": "default",
+    "use-encryption": "yes",
+    "only-one": "default",
+    "change-tcp-mss": "yes",
+    "use-upnp": "default",
+    "address-list": "",
+    "on-up": "",
+    "on-down": "",
+    "default": "true"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/interface/pppoe-server/server/print": {
+  "elapsed_s": 0.038,
+  "rows": [
+   {
+    ".id": "*1",
+    "service-name": "nuxr_wp8",
+    "interface": "ether3",
+    "max-mtu": "auto",
+    "max-mru": "auto",
+    "mrru": "disabled",
+    "authentication": "pap,chap",
+    "keepalive-timeout": "10",
+    "one-session-per-host": "false",
+    "max-sessions": "unlimited",
+    "pado-delay": "0",
+    "default-profile": "nuxr_wp8_pppoe",
+    "pppoe-over-vlan-range": "",
+    "accept-untagged": "true",
+    "invalid": "false",
+    "disabled": "false"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/ip/pool/print": {
+  "elapsed_s": 0.067,
+  "rows": [
+   {
+    ".id": "*1",
+    "name": "nuxr_wp8_pool_dyn",
+    "ranges": "10.88.10.100-10.88.10.199",
+    "total": "100",
+    "used": "0",
+    "available": "100"
+   },
+   {
+    ".id": "*2",
+    "name": "nuxr_wp8_pool_hs",
+    "ranges": "10.88.2.100-10.88.2.199",
+    "total": "100",
+    "used": "0",
+    "available": "100"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/ip/dhcp-server/print": {
+  "elapsed_s": 0.07,
+  "rows": [
+   {
+    ".id": "*1",
+    "name": "nuxr_wp8_dhcp",
+    "interface": "ether4",
+    "lease-time": "10m",
+    "address-pool": "nuxr_wp8_pool_hs",
+    "use-radius": "no",
+    "use-reconfigure": "false",
+    "lease-script": "",
+    "address-lists": "",
+    "dynamic": "false",
+    "invalid": "false",
+    "disabled": "false"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/ip/hotspot/print": {
+  "elapsed_s": 0.073,
+  "rows": [
+   {
+    ".id": "*1",
+    "name": "nuxr_wp8_hs",
+    "interface": "ether4",
+    "address-pool": "nuxr_wp8_pool_hs",
+    "profile": "nuxr_wp8_hs_prof",
+    "idle-timeout": "5m",
+    "keepalive-timeout": "none",
+    "login-timeout": "none",
+    "addresses-per-mac": "2",
+    "proxy-status": "running",
+    "invalid": "false",
+    "HTTPS": "false",
+    "disabled": "false"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/ip/hotspot/profile/print": {
+  "elapsed_s": 0.096,
+  "rows": [
+   {
+    ".id": "*0",
+    "name": "default",
+    "hotspot-address": "0.0.0.0",
+    "dns-name": "",
+    "html-directory": "hotspot",
+    "html-directory-override": "",
+    "install-hotspot-queue": "false",
+    "http-proxy": "0.0.0.0:0",
+    "smtp-server": "0.0.0.0",
+    "login-by": "cookie,http-chap",
+    "http-cookie-lifetime": "3d",
+    "split-user-domain": "false",
+    "use-radius": "false",
+    "default": "true"
+   },
+   {
+    ".id": "*1",
+    "name": "nuxr_wp8_hs_prof",
+    "hotspot-address": "10.88.2.1",
+    "dns-name": "",
+    "html-directory": "hotspot",
+    "html-directory-override": "",
+    "install-hotspot-queue": "false",
+    "http-proxy": "0.0.0.0:0",
+    "smtp-server": "0.0.0.0",
+    "login-by": "http-chap,http-pap",
+    "split-user-domain": "false",
+    "use-radius": "true",
+    "radius-accounting": "true",
+    "radius-interim-update": "1m",
+    "nas-port-type": "wireless-802.11",
+    "radius-default-domain": "",
+    "radius-location-id": "",
+    "radius-location-name": "",
+    "radius-mac-format": "XX:XX:XX:XX:XX:XX"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/ip/firewall/filter/print": {
+  "elapsed_s": 1.742,
+  "rows": [
+   {
+    ".id": "*2",
+    "chain": "forward",
+    "action": "jump",
+    "jump-target": "hs-unauth",
+    "hotspot": "from-client,!auth",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*3",
+    "chain": "forward",
+    "action": "jump",
+    "jump-target": "hs-unauth-to",
+    "hotspot": "to-client,!auth",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*4",
+    "chain": "input",
+    "action": "jump",
+    "jump-target": "hs-input",
+    "hotspot": "from-client",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*5",
+    "chain": "input",
+    "action": "drop",
+    "protocol": "tcp",
+    "hotspot": "!from-client",
+    "dst-port": "64872-64875",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*6",
+    "chain": "hs-input",
+    "action": "jump",
+    "jump-target": "pre-hs-input",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*7",
+    "chain": "hs-input",
+    "action": "accept",
+    "protocol": "udp",
+    "dst-port": "64872",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*8",
+    "chain": "hs-input",
+    "action": "accept",
+    "protocol": "tcp",
+    "dst-port": "64872-64875",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*9",
+    "chain": "hs-input",
+    "action": "jump",
+    "jump-target": "hs-unauth",
+    "hotspot": "!auth",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*A",
+    "chain": "hs-unauth",
+    "action": "reject",
+    "reject-with": "tcp-reset",
+    "protocol": "tcp",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*B",
+    "chain": "hs-unauth",
+    "action": "reject",
+    "reject-with": "icmp-net-prohibited",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "true",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*C",
+    "chain": "hs-unauth-to",
+    "action": "reject",
+    "reject-with": "icmp-host-prohibited",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "true",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*1",
+    "chain": "unused-hs-chain",
+    "action": "passthrough",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "false",
+    "disabled": "true",
+    "comment": "place hotspot rules here"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/ip/firewall/nat/print": {
+  "elapsed_s": 0.072,
+  "rows": [
+   {
+    ".id": "*2",
+    "chain": "dstnat",
+    "action": "jump",
+    "jump-target": "hotspot",
+    "hotspot": "from-client",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*3",
+    "chain": "hotspot",
+    "action": "jump",
+    "jump-target": "pre-hotspot",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*4",
+    "chain": "hotspot",
+    "action": "redirect",
+    "to-ports": "64872",
+    "protocol": "udp",
+    "dst-port": "53",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*5",
+    "chain": "hotspot",
+    "action": "redirect",
+    "to-ports": "64872",
+    "protocol": "tcp",
+    "dst-port": "53",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*6",
+    "chain": "hotspot",
+    "action": "redirect",
+    "to-ports": "64873",
+    "protocol": "tcp",
+    "hotspot": "local-dst",
+    "dst-port": "80",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*7",
+    "chain": "hotspot",
+    "action": "redirect",
+    "to-ports": "64875",
+    "protocol": "tcp",
+    "hotspot": "local-dst",
+    "dst-port": "443",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*8",
+    "chain": "hotspot",
+    "action": "jump",
+    "jump-target": "hs-unauth",
+    "protocol": "tcp",
+    "hotspot": "!auth",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*9",
+    "chain": "hotspot",
+    "action": "jump",
+    "jump-target": "hs-auth",
+    "protocol": "tcp",
+    "hotspot": "auth",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*A",
+    "chain": "hs-unauth",
+    "action": "redirect",
+    "to-ports": "64874",
+    "protocol": "tcp",
+    "dst-port": "80",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*B",
+    "chain": "hs-unauth",
+    "action": "redirect",
+    "to-ports": "64874",
+    "protocol": "tcp",
+    "dst-port": "3128",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*C",
+    "chain": "hs-unauth",
+    "action": "redirect",
+    "to-ports": "64874",
+    "protocol": "tcp",
+    "dst-port": "8080",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*D",
+    "chain": "hs-unauth",
+    "action": "redirect",
+    "to-ports": "64875",
+    "protocol": "tcp",
+    "dst-port": "443",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*E",
+    "chain": "hs-unauth",
+    "action": "jump",
+    "jump-target": "hs-smtp",
+    "protocol": "tcp",
+    "dst-port": "25",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*F",
+    "chain": "hs-auth",
+    "action": "redirect",
+    "to-ports": "64874",
+    "protocol": "tcp",
+    "hotspot": "http",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*10",
+    "chain": "hs-auth",
+    "action": "jump",
+    "jump-target": "hs-smtp",
+    "protocol": "tcp",
+    "dst-port": "25",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "true"
+   },
+   {
+    ".id": "*1",
+    "chain": "unused-hs-chain",
+    "action": "passthrough",
+    "bytes": "0",
+    "packets": "0",
+    "invalid": "false",
+    "dynamic": "false",
+    "disabled": "true",
+    "comment": "place hotspot rules here"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/ppp/active/print": {
+  "elapsed_s": 0.037,
+  "rows": [],
+  "note": "genuine RouterOS menu"
+ },
+ "/ip/hotspot/active/print": {
+  "elapsed_s": 0.019,
+  "rows": [],
+  "note": "genuine RouterOS menu"
+ },
+ "/ppp/secret/print": {
+  "elapsed_s": 0.009,
+  "rows": [],
+  "note": "genuine RouterOS menu"
+ },
+ "/ip/hotspot/user/print": {
+  "elapsed_s": 0.012,
+  "rows": [
+   {
+    ".id": "*0",
+    "name": "default-trial",
+    "uptime": "0s",
+    "bytes-in": "0",
+    "bytes-out": "0",
+    "packets-in": "0",
+    "packets-out": "0",
+    "default": "true",
+    "dynamic": "false",
+    "disabled": "false",
+    "comment": "counters and limits for trial users"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/ip/service/print": {
+  "elapsed_s": 0.138,
+  "rows": [
+   {
+    ".id": "*1",
+    "name": "ftp",
+    "port": "21",
+    "proto": "tcp",
+    "address": "",
+    "vrf": "main",
+    "max-sessions": "20",
+    "dynamic": "false",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*4",
+    "name": "ssh",
+    "port": "22",
+    "proto": "tcp",
+    "address": "",
+    "vrf": "main",
+    "max-sessions": "20",
+    "dynamic": "false",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*0",
+    "name": "telnet",
+    "port": "23",
+    "proto": "tcp",
+    "address": "",
+    "vrf": "main",
+    "max-sessions": "20",
+    "dynamic": "false",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*F",
+    "name": "dhcp",
+    "port": "67",
+    "proto": "udp",
+    "dynamic": "true",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*10",
+    "name": "dhcpclient",
+    "port": "68",
+    "proto": "udp",
+    "dynamic": "true",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*2",
+    "name": "www",
+    "port": "80",
+    "proto": "tcp",
+    "address": "",
+    "vrf": "main",
+    "max-sessions": "20",
+    "dynamic": "false",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*6",
+    "name": "www-ssl",
+    "port": "443",
+    "proto": "tcp",
+    "address": "",
+    "certificate": "none",
+    "tls-version": "any",
+    "vrf": "main",
+    "max-sessions": "20",
+    "dynamic": "false",
+    "invalid": "true",
+    "disabled": "true"
+   },
+   {
+    ".id": "*A",
+    "name": "btest",
+    "port": "2000",
+    "proto": "tcp",
+    "dynamic": "true",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*D",
+    "name": "radius",
+    "port": "3799",
+    "proto": "udp",
+    "dynamic": "true",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*E",
+    "name": "discover",
+    "port": "5678",
+    "proto": "udp",
+    "dynamic": "true",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*8",
+    "name": "winbox",
+    "port": "8291",
+    "proto": "tcp",
+    "address": "",
+    "vrf": "main",
+    "max-sessions": "20",
+    "dynamic": "false",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*7",
+    "name": "api",
+    "port": "8728",
+    "proto": "tcp",
+    "address": "10.88.0.0/24,10.0.2.0/24",
+    "vrf": "main",
+    "max-sessions": "20",
+    "dynamic": "false",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*B",
+    "name": "api",
+    "port": "8728",
+    "proto": "tcp",
+    "local": "10.0.2.15",
+    "remote": "10.0.2.2:42582",
+    "dynamic": "true",
+    "invalid": "false",
+    "connection": "true",
+    "disabled": "false"
+   },
+   {
+    ".id": "*9",
+    "name": "api-ssl",
+    "port": "8729",
+    "proto": "tcp",
+    "address": "",
+    "certificate": "none",
+    "tls-version": "any",
+    "vrf": "main",
+    "max-sessions": "20",
+    "dynamic": "false",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*14",
+    "name": "resolver",
+    "port": "64872",
+    "proto": "tcp",
+    "dynamic": "true",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*15",
+    "name": "resolver",
+    "port": "64872",
+    "proto": "udp",
+    "dynamic": "true",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*11",
+    "name": "hotspot",
+    "port": "64873",
+    "proto": "tcp",
+    "dynamic": "true",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*12",
+    "name": "wproxy",
+    "port": "64874",
+    "proto": "tcp",
+    "dynamic": "true",
+    "invalid": "false",
+    "disabled": "false"
+   },
+   {
+    ".id": "*13",
+    "name": "wproxy",
+    "port": "64875",
+    "proto": "tcp",
+    "dynamic": "true",
+    "invalid": "false",
+    "disabled": "false"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/user/print": {
+  "elapsed_s": 0.022,
+  "rows": [
+   {
+    ".id": "*1",
+    "name": "admin",
+    "group": "full",
+    "inactivity-timeout": "10m",
+    "inactivity-policy": "none",
+    "address": "",
+    "last-logged-in": "2026-10-06 10:23:59",
+    "expired": "false",
+    "disabled": "false",
+    "comment": "system default user"
+   }
+  ],
+  "note": "genuine RouterOS menu"
+ },
+ "/queue/simple/print": {
+  "elapsed_s": 0.013,
+  "rows": [],
+  "note": "genuine RouterOS menu"
+ }
+}

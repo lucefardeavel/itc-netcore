@@ -1,0 +1,38 @@
+# boot timing (QEMU TCG, -cpu max, 1 vCPU, 1 GiB, 4 virtio-net)
+7.12.1: API login OK after 79.7s (from qemu start)
+7.20.3: CHR 7.20.3: API login OK after 52.3s (from qemu start)
+# responsiveness 7.12.1 idle:
+{
+ "login_ms": 334.9,
+ "resource_print_ms": [
+  30.4,
+  31.5,
+  281.8,
+  18.8,
+  27.6,
+  56.0,
+  33.8,
+  49.8,
+  30.1,
+  123.0
+ ],
+ "min_ms": 18.8,
+ "max_ms": 281.8,
+ "avg_ms": 68.3,
+ "guest": {
+  "uptime": "11m34s",
+  "version": "7.12.1 (stable)",
+  "cpu": "QEMU",
+  "cpu-count": "1",
+  "cpu-frequency": "2794",
+  "cpu-load": "6",
+  "free-memory": "916070400",
+  "total-memory": "1006632960",
+  "architecture-name": "x86_64",
+  "board-name": "CHR"
+ }
+}
+# final 7.20.3 resource + host qemu process:
+{'uptime': '4m45s', 'version': '7.20.3 (stable)', 'cpu-load': '35', 'free-memory': '830038016', 'total-memory': '1073741824', 'free-hdd-space': '73191424', 'architecture-name': 'x86_64', 'board-name': 'CHR QEMU Standard PC (i440FX + PIIX, 1996)'}
+    PID %CPU   RSS     ELAPSED
+1268188 39.2 386236      04:57

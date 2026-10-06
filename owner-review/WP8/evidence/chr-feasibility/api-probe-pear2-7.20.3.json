@@ -1,0 +1,59 @@
+{
+ "login_s": 0.155,
+ "transport": "plain api (PEAR2 CRYPTO_OFF, as in system/autoload/Mikrotik.php)",
+ "/system/resource/print": {
+  "elapsed_s": 0.033,
+  "rows": [
+   {
+    "uptime": "2m33s",
+    "version": "7.20.3 (stable)",
+    "build-time": "2025-10-28 12:45:18",
+    "factory-software": "7.1",
+    "free-memory": "836567040",
+    "total-memory": "1073741824",
+    "cpu": "QEMU",
+    "cpu-count": "1",
+    "cpu-frequency": "2794",
+    "cpu-load": "10",
+    "free-hdd-space": "73191424",
+    "total-hdd-space": "93564928",
+    "write-sect-since-reboot": "2824",
+    "write-sect-total": "2824",
+    "architecture-name": "x86_64",
+    "board-name": "CHR QEMU Standard PC (i440FX + PIIX, 1996)",
+    "platform": "MikroTik"
+   }
+  ]
+ },
+ "/system/license/print": {
+  "elapsed_s": 0.02,
+  "rows": [
+   {
+    "system-id": "5nyF/K2pLXA",
+    "level": "free"
+   }
+  ]
+ },
+ "/radius/incoming/print": {
+  "elapsed_s": 0.051,
+  "rows": [
+   {
+    "accept": "true",
+    "port": "3799",
+    "vrf": "main"
+   }
+  ]
+ },
+ "/ppp/aaa/print": {
+  "elapsed_s": 0.02,
+  "rows": [
+   {
+    "use-radius": "true",
+    "accounting": "true",
+    "use-circuit-id-in-nas-port-id": "false",
+    "interim-update": "1m",
+    "enable-ipv6-accounting": "false"
+   }
+  ]
+ }
+}

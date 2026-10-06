@@ -1,0 +1,25 @@
+# WP8 CHR feasibility gate — UNCOMMITTED lab override for the existing nuxbill-reseller-test compose project.
+# Adds an isolated lab network (10.88.0.0/24, host bridge "wp8lab0") so the CHR TAP can join it at Layer 2.
+# No published ports. Development/test only.
+name: nuxbill-reseller-test
+networks:
+  wp8lab:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: wp8lab0
+      com.docker.network.bridge.enable_ip_masquerade: "false"
+    ipam:
+      config:
+        - subnet: 10.88.0.0/24
+          gateway: 10.88.0.1
+services:
+  freeradius-mariadb:
+    networks:
+      default: {}
+      wp8lab:
+        ipv4_address: 10.88.0.10
+  php82:
+    networks:
+      default: {}
+      wp8lab:
+        ipv4_address: 10.88.0.20

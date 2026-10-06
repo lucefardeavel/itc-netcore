@@ -1,0 +1,4 @@
+# Docker container events 10:10-10:16Z excluding healthcheck exec_* (read-only; the gate's own containers are nuxbill-reseller-test*)
+
+# avaia-wp2-pg-base inspect (read-only): policy=no exit=0 status=running started=2026-10-06T10:14:08.970061244Z
+# WP8 gate docker actions (complete list): compose up/down of project nuxbill-reseller-test (mariadb, freeradius-mariadb; one --force-recreate of freeradius-mariadb at ~10:23Z), docker run --rm nuxbill-reseller-test-wp8probe1..5, docker compose run php82 probes, docker exec/logs/inspect on nuxbill-reseller-test containers only.

@@ -1,0 +1,24 @@
+# host networking before/after the gate — public interface, default route, ufw, iptables INPUT/FORWARD, docker networks
+## eth0 before
+eth0             UP             00:50:56:67:46:f6 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+eth0             UP             167.86.107.145/24 2a02:c207:2357:7555::1/64 fe80::250:56ff:fe67:46f6/64 
+## eth0 after
+eth0             UP             00:50:56:67:46:f6 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+eth0             UP             167.86.107.145/24 2a02:c207:2357:7555::1/64 fe80::250:56ff:fe67:46f6/64 
+## default route before/after
+net-after.txt:default via 167.86.107.1 dev eth0 proto static 
+net-before.txt:default via 167.86.107.1 dev eth0 proto static 
+## ufw status after
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] 22/tcp                     ALLOW IN    Anywhere                   # SSH
+[ 2] 22/tcp (v6)                ALLOW IN    Anywhere (v6)              # SSH
+
+## ufw ALLOW count before/after: 2 / 2
+## iptables INPUT identical: yes
+## iptables FORWARD (first 40) identical: yes
+## docker networks identical: yes
+## wp8 links/netns/qemu after cleanup: 0 / 0 / 0
+0
