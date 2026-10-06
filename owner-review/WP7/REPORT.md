@@ -2,6 +2,11 @@
 
 **Status:** `WP7_CANDIDATE_READY_WAITING_OWNER_REVIEW`. This is not self-accepted. The owner decides.
 
+> **Acceptance and provenance note (added on `feat` in the owner-acceptance metadata commit; the frozen branch `wp7/staff-pwa` = `8e7f0e1c` is unchanged).**
+> - The owner verdict of 2026-10-06 is **ACCEPTED_WITH_NOTES**, with the accepted implementation / evidence state `8e7f0e1c024e6c319b5088896e001555d6c4f079`; see `OWNER_DECISIONS.md`.
+> - The sections below are the original candidate report, kept unchanged; fix round 1 is in `FIX_ROUND_1.md`.
+> - The pre-existing Pace / CSRF-shim XHR defect in §8 is recorded as **R-WP7-CARRY-01 — OPEN — PRE-EXISTING — NOT A WP7 REGRESSION**, to be handled by a separate pre-WP8 hotfix.
+
 ## 1. Identification
 
 | Item | Value |
