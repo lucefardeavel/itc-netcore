@@ -1,0 +1,15 @@
+{
+ "stack": {
+  "gate": "undefined",
+  "ctor": "(anonymous Pace function)",
+  "src": "function(b){var c;return c=new P(b),a(c),c}",
+  "protoOpen": "function (m, u) { this._nuxrSame = sameOrigin(u); this._nuxr"
+ },
+ "requests": [
+  {
+   "method": "POST",
+   "x-csrf-token": "ABSENT",
+   "status": 403
+  }
+ ]
+}

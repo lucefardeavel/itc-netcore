@@ -1,0 +1,240 @@
+[
+ {
+  "base": "http://localhost:18099/",
+  "sw": "allow",
+  "radio": "Hot",
+  "chain": {
+   "ctorName": "GatedXHR",
+   "ctorSrc": "function GatedXHR(a) {\n            var x = arguments.length ? new Prev(a) : new Prev();\n  ",
+   "ctorPrototypeHasOpen": "function",
+   "ctorPrototypeOpenSrc": "function (m, u) { this._nuxrSame = sameOrigin(u); this._nuxrMethod = m; this._nuxrUrl = u;",
+   "instanceProtoIsNative": "XMLHttpRequest",
+   "instanceIsCtorPrototype": false,
+   "instanceofCurrent": false,
+   "ownOpen": true,
+   "ownSend": true,
+   "ownOpenSrc": "function (m, u) { x.__nuxrMethod = m; x.__nuxrUrl = u; return open.apply(x, arguments); }",
+   "nativeProtoOpenPatched": false,
+   "DONE": null,
+   "paceLoaded": "object",
+   "jq": "1.11.1"
+  },
+  "requests": [
+   {
+    "method": "POST",
+    "url": "<base>?_route=autoload/server",
+    "x-csrf-token": "ABSENT",
+    "x-requested-with": "XMLHttpRequest",
+    "status": 403,
+    "body": "<!doctype html><html><head><meta charset=\"utf-8\"><title>403 Forbidden<"
+   }
+  ],
+  "probes": [
+   {
+    "probe": "jq-post",
+    "method": "POST",
+    "x-csrf-token": "ABSENT"
+   },
+   {
+    "probe": "native-post",
+    "method": "POST",
+    "x-csrf-token": "ABSENT"
+   },
+   {
+    "probe": "fetch-post",
+    "method": "POST",
+    "x-csrf-token": "present"
+   },
+   {
+    "probe": "jq-get",
+    "method": "GET",
+    "x-csrf-token": "ABSENT"
+   }
+  ],
+  "pageerrors": []
+ },
+ {
+  "base": "http://localhost:18099/",
+  "sw": "block",
+  "radio": "Hot",
+  "chain": {
+   "ctorName": "GatedXHR",
+   "ctorSrc": "function GatedXHR(a) {\n            var x = arguments.length ? new Prev(a) : new Prev();\n  ",
+   "ctorPrototypeHasOpen": "function",
+   "ctorPrototypeOpenSrc": "function (m, u) { this._nuxrSame = sameOrigin(u); this._nuxrMethod = m; this._nuxrUrl = u;",
+   "instanceProtoIsNative": "XMLHttpRequest",
+   "instanceIsCtorPrototype": false,
+   "instanceofCurrent": false,
+   "ownOpen": true,
+   "ownSend": true,
+   "ownOpenSrc": "function (m, u) { x.__nuxrMethod = m; x.__nuxrUrl = u; return open.apply(x, arguments); }",
+   "nativeProtoOpenPatched": false,
+   "DONE": null,
+   "paceLoaded": "object",
+   "jq": "1.11.1"
+  },
+  "requests": [
+   {
+    "method": "POST",
+    "url": "<base>?_route=autoload/server",
+    "x-csrf-token": "ABSENT",
+    "x-requested-with": "XMLHttpRequest",
+    "status": 403,
+    "body": "<!doctype html><html><head><meta charset=\"utf-8\"><title>403 Forbidden<"
+   }
+  ],
+  "probes": [
+   {
+    "probe": "jq-post",
+    "method": "POST",
+    "x-csrf-token": "ABSENT"
+   },
+   {
+    "probe": "native-post",
+    "method": "POST",
+    "x-csrf-token": "ABSENT"
+   },
+   {
+    "probe": "fetch-post",
+    "method": "POST",
+    "x-csrf-token": "present"
+   },
+   {
+    "probe": "jq-get",
+    "method": "GET",
+    "x-csrf-token": "ABSENT"
+   }
+  ],
+  "pageerrors": []
+ },
+ {
+  "base": "http://localhost:18098/billing/",
+  "sw": "allow",
+  "radio": "Hot",
+  "chain": {
+   "ctorName": "GatedXHR",
+   "ctorSrc": "function GatedXHR(a) {\n            var x = arguments.length ? new Prev(a) : new Prev();\n  ",
+   "ctorPrototypeHasOpen": "function",
+   "ctorPrototypeOpenSrc": "function (m, u) { this._nuxrSame = sameOrigin(u); this._nuxrMethod = m; this._nuxrUrl = u;",
+   "instanceProtoIsNative": "XMLHttpRequest",
+   "instanceIsCtorPrototype": false,
+   "instanceofCurrent": false,
+   "ownOpen": true,
+   "ownSend": true,
+   "ownOpenSrc": "function (m, u) { x.__nuxrMethod = m; x.__nuxrUrl = u; return open.apply(x, arguments); }",
+   "nativeProtoOpenPatched": false,
+   "DONE": null,
+   "paceLoaded": "object",
+   "jq": "1.11.1"
+  },
+  "requests": [
+   {
+    "method": "POST",
+    "url": "<base>?_route=autoload/server",
+    "x-csrf-token": "ABSENT",
+    "x-requested-with": "XMLHttpRequest",
+    "status": 403,
+    "body": "<!doctype html><html><head><meta charset=\"utf-8\"><title>403 Forbidden<"
+   }
+  ],
+  "probes": [
+   {
+    "probe": "jq-post",
+    "method": "POST",
+    "x-csrf-token": "ABSENT"
+   },
+   {
+    "probe": "native-post",
+    "method": "POST",
+    "x-csrf-token": "ABSENT"
+   },
+   {
+    "probe": "fetch-post",
+    "method": "POST",
+    "x-csrf-token": "present"
+   },
+   {
+    "probe": "jq-get",
+    "method": "GET",
+    "x-csrf-token": "ABSENT"
+   }
+  ],
+  "pageerrors": []
+ },
+ {
+  "base": "http://localhost:18098/billing/",
+  "sw": "block",
+  "radio": "Hot",
+  "chain": {
+   "ctorName": "GatedXHR",
+   "ctorSrc": "function GatedXHR(a) {\n            var x = arguments.length ? new Prev(a) : new Prev();\n  ",
+   "ctorPrototypeHasOpen": "function",
+   "ctorPrototypeOpenSrc": "function (m, u) { this._nuxrSame = sameOrigin(u); this._nuxrMethod = m; this._nuxrUrl = u;",
+   "instanceProtoIsNative": "XMLHttpRequest",
+   "instanceIsCtorPrototype": false,
+   "instanceofCurrent": false,
+   "ownOpen": true,
+   "ownSend": true,
+   "ownOpenSrc": "function (m, u) { x.__nuxrMethod = m; x.__nuxrUrl = u; return open.apply(x, arguments); }",
+   "nativeProtoOpenPatched": false,
+   "DONE": null,
+   "paceLoaded": "object",
+   "jq": "1.11.1"
+  },
+  "requests": [
+   {
+    "method": "POST",
+    "url": "<base>?_route=autoload/server",
+    "x-csrf-token": "ABSENT",
+    "x-requested-with": "XMLHttpRequest",
+    "status": 403,
+    "body": "<!doctype html><html><head><meta charset=\"utf-8\"><title>403 Forbidden<"
+   }
+  ],
+  "probes": [
+   {
+    "probe": "jq-post",
+    "method": "POST",
+    "x-csrf-token": "ABSENT"
+   },
+   {
+    "probe": "native-post",
+    "method": "POST",
+    "x-csrf-token": "ABSENT"
+   },
+   {
+    "probe": "fetch-post",
+    "method": "POST",
+    "x-csrf-token": "present"
+   },
+   {
+    "probe": "jq-get",
+    "method": "GET",
+    "x-csrf-token": "ABSENT"
+   }
+  ],
+  "pageerrors": []
+ },
+ {
+  "customer chain": {
+   "ctorName": "XMLHttpRequest",
+   "ctorSrc": "function XMLHttpRequest() { [native code] }",
+   "ctorPrototypeHasOpen": "function",
+   "ctorPrototypeOpenSrc": "function (m, u) { this._nuxrSame = sameOrigin(u); this._nuxrMethod = m; this._nuxrUrl = u;",
+   "instanceProtoIsNative": "XMLHttpRequest",
+   "instanceIsCtorPrototype": true,
+   "instanceofCurrent": true,
+   "ownOpen": false,
+   "ownSend": false,
+   "ownOpenSrc": "function (m, u) { this._nuxrSame = sameOrigin(u); this._nuxrMethod = m; this._nuxrUrl = u; return xOpen.apply(",
+   "nativeProtoOpenPatched": true,
+   "DONE": 4,
+   "paceLoaded": "undefined",
+   "jq": "1.11.1"
+  },
+  "customer probes": [
+   "present",
+   "present"
+  ]
+ }
+]

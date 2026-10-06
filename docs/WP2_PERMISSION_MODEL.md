@@ -251,6 +251,13 @@ identity / password / status → Active.
 - Former GET mutations are POST-only (`data-method="post"` links, `window.nuxrPost(url)`); a GET returns 405.
 - `ui/ui/nuxr-csrf.tpl` (included by the admin, customer and public footers and the standalone
   login/register/print templates) adds the hidden field to every POST form and the header to jQuery/fetch.
+- XHR interception patches the prototype that real `XMLHttpRequest` instances inherit, resolved from a
+  disposable, never-opened instance (pre-WP8 hotfix for R-WP7-CARRY-01). On staff pages, Pace 1.0.2 replaces
+  `window.XMLHttpRequest` with a factory that returns native instances, so `XMLHttpRequest.prototype` is not
+  their prototype there. Only `open` and `send` are patched, once per document. The constructor and
+  `setRequestHeader` are not replaced.
+  - The header goes on every same-origin XHR (any method) and never on a cross-origin one.
+  - The shim is the only runtime producer of `X-CSRF-Token`; `tests/Unit/HotfixPaceXhrCsrf` guards this.
 - Public login, register (all variants), forgot and voucher activation work with the token rendered in
   their page; a missing or foreign token is refused with no side effect.
 - Custom templates outside `ui/ui` that render their own POST forms without the shared footer must add
