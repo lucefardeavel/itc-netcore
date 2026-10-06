@@ -3,7 +3,9 @@
    <a data-method="post"> links into POST submissions.
    WP7 (owner decision OD-W7-2): each script-driven send path consults window.nuxrMutationGate when the staff PWA
    client defines it. The gate can only STOP a request (offline / reconnecting): token injection is unchanged, nothing
-   is generated, altered, queued or replayed. Where the gate is absent (customer portal) behaviour is unchanged. *}
+   is generated, altered, queued or replayed. Where the gate is absent (customer portal) behaviour is unchanged.
+   Pre-WP8 hotfix (R-WP7-CARRY-01): the XHR interception targets the prototype real instances inherit, so it also
+   reaches the native instances returned by Pace's XMLHttpRequest replacement on staff pages. *}
 <script>
     window.nuxrCsrfToken = "{$csrf_token|escape:'javascript'}";
 </script>
@@ -35,17 +37,30 @@
             if (!allowed('form.submit', this.getAttribute('method') || this.method, this.action)) { return; }
             return nativeSubmit.apply(this, arguments);
         };
-        var xOpen = XMLHttpRequest.prototype.open, xSend = XMLHttpRequest.prototype.send;
-        XMLHttpRequest.prototype.open = function (m, u) { this._nuxrSame = sameOrigin(u); this._nuxrMethod = m; this._nuxrUrl = u; return xOpen.apply(this, arguments); };
-        XMLHttpRequest.prototype.send = function () {
-            if (this._nuxrSame) { try { this.setRequestHeader('X-CSRF-Token', token); } catch (e) { } }
-            if (!allowed('xhr', this._nuxrMethod, this._nuxrUrl)) {
-                var x = this; // not sent: report a network error to the caller (jQuery error callbacks run)
-                setTimeout(function () { x.dispatchEvent(new ProgressEvent('error')); x.dispatchEvent(new ProgressEvent('loadend')); }, 0);
-                return;
-            }
-            return xSend.apply(this, arguments);
-        };
+        // XHR: patch the prototype that real XMLHttpRequest instances inherit (R-WP7-CARRY-01). On staff pages Pace has
+        // replaced window.XMLHttpRequest with a factory that returns native instances, whose prototype is not the
+        // replacement's .prototype; a disposable instance (never opened, never sent) reveals the real one. Only open and
+        // send are patched, once per document; window.XMLHttpRequest itself is never reassigned.
+        var XP = XMLHttpRequest.prototype;
+        try {
+            var probeXhr = new XMLHttpRequest();
+            var realProto = Object.getPrototypeOf(probeXhr);
+            if (realProto && typeof realProto.open === 'function' && typeof realProto.send === 'function') { XP = realProto; }
+        } catch (e) { /* compatibility fallback: the constructor's prototype */ }
+        if (!XP.__nuxrCsrfXhr) {
+            try { Object.defineProperty(XP, '__nuxrCsrfXhr', { value: true }); } catch (e) { XP.__nuxrCsrfXhr = true; }
+            var xOpen = XP.open, xSend = XP.send;
+            XP.open = function (m, u) { this._nuxrSame = sameOrigin(u); this._nuxrMethod = m; this._nuxrUrl = u; return xOpen.apply(this, arguments); };
+            XP.send = function () {
+                if (this._nuxrSame) { try { this.setRequestHeader('X-CSRF-Token', token); } catch (e) { } }
+                if (!allowed('xhr', this._nuxrMethod, this._nuxrUrl)) {
+                    var x = this; // not sent: report a network error to the caller (jQuery error callbacks run)
+                    setTimeout(function () { x.dispatchEvent(new ProgressEvent('error')); x.dispatchEvent(new ProgressEvent('loadend')); }, 0);
+                    return;
+                }
+                return xSend.apply(this, arguments);
+            };
+        }
         if (window.fetch) {
             var nativeFetch = window.fetch;
             window.fetch = function (input, init) {
