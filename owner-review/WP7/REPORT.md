@@ -181,3 +181,7 @@ The run went from 2026-10-05T17:18:51Z to 18:40:20Z, in the isolated `nuxbill-re
 - No merge, PR, tag or deployment.
 - No WP8 work.
 - The lab and the test stack are torn down. AVAIA was observed only and is unchanged.
+
+## Fix round 1 addendum
+
+The owner's fix round 1 (FR1-1 … FR1-6) is documented in `FIX_ROUND_1.md`. The sections above are unchanged as the original candidate record.

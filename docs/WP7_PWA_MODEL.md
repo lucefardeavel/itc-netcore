@@ -35,8 +35,9 @@ The staff header, footer and login page include the client, the manifest link, `
   - While the heartbeat confirms OFFLINE or RECONNECTING, a same-origin non-GET request from the staff UI is stopped before it is sent, on every path: form submit, `requestSubmit`, `HTMLFormElement.submit`, XHR (per instance, because Pace replaces the constructor), jQuery, `fetch`, `nuxrPost` and `data-method`. The user sees a "Not sent" notice.
   - SLOW submits normally. The gate is UX only; the server still decides.
 - **Heartbeat.**
-  - `pwa/ping` is sent with no cookies (`credentials:'omit'`, `no-store`) and needs an exact JSON marker, so a captive portal page counts as a failure.
-  - A cookie-less ping leaves no session file behind, and a ping never extends a staff session.
+  - `pwa/ping` is anonymous and identity-free (fix round 1, FR1-1). It is sent with the browser's own `fetch`, captured by `nuxr-pwa.js` before the WP2 CSRF shim wraps `window.fetch`, so it carries no `X-CSRF-Token`. It also sends no cookies (`credentials:'omit'`) and no `Referer` (`referrerPolicy:'no-referrer'`), uses `no-store`, and needs an exact JSON marker, so a captive portal page counts as a failure. Only the heartbeat uses the captured fetch; every ordinary request still goes through the shim.
+  - A cookie-less ping or manifest request leaves no session file and no `Set-Cookie` behind (one controller-local helper, FR1-5). A cookie-identified session is never touched, and a ping never extends a staff session.
+  - **Network-error hint (FR1-2).** A genuine network failure of an ordinary same-origin request (a `fetch` TypeError rejection or an XHR `error` event) triggers an immediate heartbeat, at most once per second. It is only a hint: the state changes solely from the heartbeat result, and the failed request is not retried, queued or replayed. The caller receives the same rejection or error. The heartbeat never passes through these wrappers, so there is no loop.
   - Cadence: ONLINE about 60 s, SLOW about 10 s, RECONNECTING about 2 s, OFFLINE 5 s growing to about 30 s. It pauses while the page is hidden.
 - **Scope.**
   - The worker sits at the installation root (`/` or a subdirectory such as `/billing/`). It ignores requests outside its scope.
@@ -107,7 +108,10 @@ The staff header, footer and login page include the client, the manifest link, `
   - Arabic coverage and namespace-only prune.
 - `tests/Unit/Wp7/PwaManifestTest.php` covers the builder.
 - `tests/Integration/Wp7/PwaRoutesTest.php` and `PwaCsrfGateTest.php` cover HTTP: the manifest, ping, route surface, API refusal, the gate order, and unchanged token injection and server-side CSRF.
-- `dev/pwa-lab/pwa_suite.py` runs browser checks T00–T20 at both installations.
+- `dev/pwa-lab/pwa_suite.py` runs browser checks T00–T20 at both installations. Fix round 1 added:
+  - T12h: the heartbeat's request headers;
+  - T12n: the network-error hint;
+  - T10c: public and customer parity with the root worker installed.
 
 ## 10. Residuals
 
@@ -118,3 +122,4 @@ The staff header, footer and login page include the client, the manifest link, `
 - `short_name` can cut a word (it is a plain 12-character prefix).
 - Chromium's CDP does not emulate `display-mode`. The standalone CSS rule is verified in the live CSSOM and by the guard instead.
 - The interim icons are deliberately interim (OD-W7-1).
+- **R-WP7-CARRY-01 — Legacy Pace / XHR CSRF header compatibility.** This predates WP7 and is carried forward; it is not fixed in WP7. The staff pages load Pace before the WP2 CSRF shim. Pace replaces `window.XMLHttpRequest`, so the shim's `XMLHttpRequest.prototype` patch never reaches the instances legacy jQuery creates. Their POSTs go out without `X-CSRF-Token` and are refused (403); one known example is `autoload/server` on the Admin `plan/recharge` page. The WP7 offline gate is unaffected because it wraps each instance created through the current constructor (`GatedXHR`) rather than the prototype. Recommendation: a dedicated pre-WP8 security / compatibility hotfix (owner decision).

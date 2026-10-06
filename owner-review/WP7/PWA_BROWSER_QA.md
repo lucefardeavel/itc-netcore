@@ -88,3 +88,7 @@ The WP6C 37-shot sweep was **not** repeated. Each capture was probed for:
 **Safe areas.** The fixed "Not sent" notice is positioned at `bottom: calc(var(--nx-bottom-h) + var(--nx-safe-bottom) + 12px)` on a phone, using the WP6C safe-area tokens. Headless Chromium cannot emulate device insets, so this is a CSS-level check.
 
 **Standalone mode (install item hidden).** Not capturable: Chromium's CDP does not emulate `display-mode` (the `prefers-color-scheme` control works). The `@media (display-mode: standalone)` rule hiding `[data-nuxr-install]` is verified in the live CSSOM (T14i) and by `Wp7GuardTest`.
+
+## Fix round 1 run
+
+The complete WP7 browser suite was rerun once after fix round 1: **28 / 28 PASS**. This includes T17, T18 and the new T12h, T12n and T10c. Evidence: `browser/pwa_suite_fix_round_1.json`; details in `FIX_ROUND_1.md`. The T18 anomaly record above and its files are kept as prior evidence.

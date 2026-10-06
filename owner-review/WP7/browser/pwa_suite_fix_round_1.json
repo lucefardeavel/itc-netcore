@@ -1,0 +1,198 @@
+[
+ {
+  "id": "T00",
+  "title": "Secure context at the root and the /billing/ subdirectory origin; staff login works on both",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: isSecureContext=true, appUrl=http://localhost:18099; http://localhost:18098/billing/: isSecureContext=true, appUrl=http://localhost:18098/billing",
+  "seconds": 6.2
+ },
+ {
+  "id": "T01",
+  "title": "Valid user-neutral manifest at both installations",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: id=/?_route=admin icons=3 start=./?_route=admin; http://localhost:18098/billing/: id=/billing/?_route=admin icons=3 start=./?_route=admin",
+  "seconds": 1.8
+ },
+ {
+  "id": "T02",
+  "title": "Chromium installability inspection (CDP Page.getInstallabilityErrors, persistent profile)",
+  "result": "PASS",
+  "evidence": "no installability errors (root, persistent profile)",
+  "seconds": 1.2
+ },
+ {
+  "id": "T03",
+  "title": "Service worker installs, activates and controls - root and /billing/ (natural scope only)",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: scope=http://localhost:18099/ controller=activated; http://localhost:18098/billing/: scope=http://localhost:18098/billing/ controller=activated; outside /billing/: not controlled",
+  "seconds": 5.7
+ },
+ {
+  "id": "T04",
+  "title": "CacheStorage contains exactly the literal precache list (one cache, this installation)",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: nuxr-pwa:8acf0404:wp7.1 = 5 precache entries; http://localhost:18098/billing/: nuxr-pwa:82c75d71:wp7.1 = 5 precache entries",
+  "seconds": 7.5
+ },
+ {
+  "id": "T05",
+  "title": "After a full staff session no _route / authenticated response exists in CacheStorage",
+  "result": "PASS",
+  "evidence": "5 entries, all on the precache list; no identity, customer, finance or token text",
+  "seconds": 9.6
+ },
+ {
+  "id": "T06",
+  "title": "Offline launch (start_url) shows only the static offline document",
+  "result": "PASS",
+  "evidence": "start_url offline -> offline document (status 503), no user data",
+  "seconds": 2.7
+ },
+ {
+  "id": "T07",
+  "title": "Offline deep link (customer / activation / finance) shows only the generic offline document",
+  "result": "PASS",
+  "evidence": "offline deep links (subdirectory) -> generic document only: customers, activation, finance",
+  "seconds": 2.6
+ },
+ {
+  "id": "T07b",
+  "title": "Failed POST navigation (backstop) -> 303 to the GET offline document, reason=unconfirmed; reload does not resend",
+  "result": "PASS",
+  "evidence": "POST navigation offline -> nuxr-offline.html?reason=unconfirmed; reload sent no POST",
+  "seconds": 3.9
+ },
+ {
+  "id": "T08",
+  "title": "OFFLINE: an ordinary POST form (WP6C confirmation sheet -> requestSubmit) is stopped before sending",
+  "result": "PASS",
+  "evidence": "requestSubmit via the confirmation sheet stopped: 0 POST requests, notice shown, form not left pending",
+  "seconds": 4.9
+ },
+ {
+  "id": "T09",
+  "title": "OFFLINE: a[data-method=post], window.nuxrPost and native form.submit() are stopped",
+  "result": "PASS",
+  "evidence": "data-method link, nuxrPost and native form.submit(): 0 POST requests",
+  "seconds": 4.9
+ },
+ {
+  "id": "T10",
+  "title": "OFFLINE: fetch POST, XMLHttpRequest POST and jQuery POST are stopped (error reported to the caller)",
+  "result": "PASS",
+  "evidence": "0 POST requests; fetch=blocked: Not sent: offline; xhr=error event; jquery=fail: offline",
+  "seconds": 3.8
+ },
+ {
+  "id": "T10b",
+  "title": "Customer portal and public pages: no gate defined (behaviour unchanged), CSRF shim intact",
+  "result": "PASS",
+  "evidence": "customer login: gate undefined, csrf token string, nuxrPost function",
+  "seconds": 1.0
+ },
+ {
+  "id": "T11",
+  "title": "Reconnect: OFFLINE -> RECONNECTING -> ONLINE confirmed by the heartbeat; mutations blocked while RECONNECTING",
+  "result": "PASS",
+  "evidence": "states ['offline', 'reconnecting', 'online']; POST blocked while reconnecting, allowed once online",
+  "seconds": 2.7
+ },
+ {
+  "id": "T12",
+  "title": "SLOW/UNSTABLE (CDP latency 3 s): chip shown, mutations still allowed",
+  "result": "PASS",
+  "evidence": "slow chip \"Slow connection\"; POST allowed while SLOW",
+  "seconds": 5.9
+ },
+ {
+  "id": "T12h",
+  "title": "Heartbeat from an authenticated staff page carries no Cookie, Authorization, X-CSRF-Token or other identifier (root + /billing/)",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: heartbeat headers ['accept', 'accept-encoding', 'cache-control', 'connection', 'host', 'pragma', 'sec-ch-ua', 'sec-ch-ua-mobile', 'sec-ch-ua-platform', 'sec-fetch-dest', 'sec-fetch-mode', 'sec-fetch-site', 'user-agent']; marker exact; no Set-Cookie; ordinary fetch keeps X-CSRF-Token; http://localhost:18098/billing/: heartbeat headers ['accept', 'accept-encoding', 'cache-control', 'connection', 'host', 'pragma', 'sec-ch-ua', 'sec-ch-ua-mobile', 'sec-ch-ua-platform', 'sec-fetch-dest', 'sec-fetch-mode', 'sec-fetch-site', 'user-agent']; marker exact; no Set-Cookie; ordinary fetch keeps X-CSRF-Token",
+  "seconds": 11.8
+ },
+ {
+  "id": "T12n",
+  "title": "Same-origin network error (fetch rejection, XHR error) triggers an immediate heartbeat; state only from the ping; no retry",
+  "result": "PASS",
+  "evidence": "fetch: rejected TypeError to the caller, 1 immediate ping after 0.57 s, state stayed online, 1 request (with X-CSRF-Token); xhr: error once to the caller, ping after 0.25 s, states from pings only ['slow', 'online'], 1 request; no retry",
+  "seconds": 25.7
+ },
+ {
+  "id": "T10c",
+  "title": "Root worker installed by staff, then logout: public / customer pages behave exactly as without a worker; no gate, no cache, no client storage",
+  "result": "PASS",
+  "evidence": "staff logout landing -> 200 logout; public login -> 200 login; public register -> 200 register; public forgot -> 200 forgot; customer login result -> 200 login/post; customer home -> 200 home; customer profile (GET) -> 200 accounts/profile; customer POST change-password (wrong current password: refused, nothing changed) -> 200 accounts/change-password; all identical with / without the worker, gate undefined, precache unchanged, no WP7 storage",
+  "seconds": 27.6
+ },
+ {
+  "id": "T13",
+  "title": "Cross-user hygiene: Admin -> logout -> Agent -> logout -> Sales leaves no previous identity, data or token client-side",
+  "result": "PASS",
+  "evidence": "ad: 9 pages, logout clean; A: 7 pages, logout clean; A1: 2 pages, logout clean; final local=[], session=[], idb=[]",
+  "seconds": 31.6
+ },
+ {
+  "id": "T13b",
+  "title": "Prune stays inside this installation namespace: an unrelated cache on the origin survives, a stale nuxr-pwa cache is removed",
+  "result": "PASS",
+  "evidence": "kept another-app-on-this-origin and nuxr-pwa:8acf0404:wp7.1; removed nuxr-pwa:8acf0404:wp7.0",
+  "seconds": 5.3
+ },
+ {
+  "id": "T14i",
+  "title": "Install UX: user-initiated only; deferred beforeinstallprompt used on click; manual sheet otherwise; hidden when standalone",
+  "result": "PASS",
+  "evidence": "manual sheet when the browser offers no prompt; deferred prompt used once, on the More-sheet click; display-mode emulation unsupported by this Chromium; standalone CSS rule verified in the live CSSOM",
+  "seconds": 6.1
+ },
+ {
+  "id": "T14",
+  "title": "Update waiting: a new worker installs and WAITS; the user is offered Update; nothing activates or reloads by itself",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: waiting, offered, no self-activation for 4 s, offered again on the next page; http://localhost:18098/billing/: waiting, offered, no self-activation for 4 s, offered again on the next page",
+  "seconds": 17.5
+ },
+ {
+  "id": "T15",
+  "title": "Update deferred in critical flows: activation confirm, finance review, dirty POST form, open dialog, pending submit",
+  "result": "PASS",
+  "evidence": "activation confirm: deferred; finance review: deferred; dirty POST form: deferred; dialog[open]: deferred; form[data-nuxr-submitted]: deferred; offered again on a non-critical page",
+  "seconds": 24.0
+ },
+ {
+  "id": "T16",
+  "title": "Explicit safe update: SKIP_WAITING -> controllerchange -> exactly one reload of this tab; other tabs only notified",
+  "result": "PASS",
+  "evidence": "one reload (http://localhost:18099/?_route=dashboard); caches now ['nuxr-pwa:8acf0404:wp7.1-labnext']; other tab not reloaded, shows: The app was updated in another tab. Reload this page when convenient.Update",
+  "seconds": 10.3
+ },
+ {
+  "id": "T17",
+  "title": "Deep-link authorization parity: identical status / final route / denial with and without the worker",
+  "result": "PASS",
+  "evidence": "24 deep links identical (status, final route, title, h1, forms, alerts); 9 denials among them",
+  "seconds": 67.8
+ },
+ {
+  "id": "T18",
+  "title": "Core online parity: worker active vs service_workers='block' (pages, forms, CSRF token, a reviewed POST)",
+  "result": "PASS",
+  "evidence": "http://localhost:18099/: 10 pages + funding review POST identical; worker-controlled vs blocked; http://localhost:18098/billing/: 10 pages + funding review POST identical; worker-controlled vs blocked",
+  "seconds": 68.5
+ },
+ {
+  "id": "T19",
+  "title": "Arabic RTL: status chip (offline / reconnecting / slow), banner, not-sent notice, install sheet, update bar, offline documents",
+  "result": "PASS",
+  "evidence": "offline / not-sent / reconnecting in Arabic; slow in Arabic; install item + sheet in Arabic; update bar + deferred in Arabic; offline documents: Arabic + English blocks with lang / dir",
+  "seconds": 14.4
+ },
+ {
+  "id": "T20",
+  "title": "axe-core wcag2a/aa serious + critical = 0 on the WP7 surfaces (phone Arabic + desktop English); 44 px targets; no overflow",
+  "result": "PASS",
+  "evidence": "10 audits (phone Arabic + desktop English): axe serious/critical 0, no target < 44 px, no horizontal overflow",
+  "seconds": 28.1
+ }
+]
