@@ -89,6 +89,33 @@ final class PwaRoutesTest extends Wp2HttpTestCase
         $this->assertStringContainsString('nuxr-shell', $dash->body);
     }
 
+    public function testManifestLeavesNoAnonymousSessionAndNeverTouchesACookieSession(): void
+    {
+        // owner fix round 1 (FR1-5): the same throwaway-session hygiene as the heartbeat
+        $before = $this->sessionFiles();
+        $bodies = [];
+        for ($i = 0; $i < 5; $i++) {
+            $r = $this->client()->get('pwa/manifest'); // a fresh client per request: the browser fetches it without credentials
+            $this->assertSame(200, $r->status);
+            $this->assertNull($r->header('set-cookie'), 'no session cookie for an anonymous manifest request');
+            $bodies[] = $r->body;
+        }
+        $this->assertSame($before, $this->sessionFiles(), 'cookie-less manifest requests leave no session files');
+        $this->assertCount(1, array_unique($bodies));
+        // a manifest request carrying an existing staff session: the session survives, nothing is re-issued
+        foreach (['ad', 'A', 'A1'] as $u) {
+            $staff = $this->staff($u);
+            $files = $this->sessionFiles();
+            $r = $staff->get('pwa/manifest');
+            $this->assertSame($bodies[0], $r->body, "{$u}: byte-identical to the anonymous manifest");
+            $this->assertNull($r->header('set-cookie'), "{$u}: the session cookie is not re-issued or cleared");
+            $this->assertSame($files, $this->sessionFiles(), "{$u}: no session file created or removed");
+            $dash = $staff->get('dashboard');
+            $this->assertSame(200, $dash->status, "{$u}: the staff session survives a manifest request sent with its cookie");
+            $this->assertStringContainsString('nuxr-shell', $dash->body);
+        }
+    }
+
     public function testOnlyTwoGetActionsExistAndNothingMutates(): void
     {
         foreach (['pwa', 'pwa/start', 'pwa/offline', 'pwa/sw', 'pwa/anything'] as $route) {

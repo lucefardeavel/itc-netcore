@@ -44,8 +44,11 @@ final class Wp7GuardTest extends TestCase
         }
         preg_match_all("/case '([a-z-]+)':/", $src, $m);
         $this->assertSame(['manifest', 'ping', 'notfound'], $m[1]);
-        // heartbeat session disposal only for the cookie-less throwaway session
-        $this->assertMatchesRegularExpression('/if \(!isset\(\$_COOKIE\[session_name\(\)\]\) && session_status\(\) === PHP_SESSION_ACTIVE\)/', $src);
+        // session disposal only for the cookie-less throwaway session, one helper used by both actions (FR1-5)
+        $this->assertSame(1, preg_match_all('/if \(!isset\(\$_COOKIE\[session_name\(\)\]\) && session_status\(\) === PHP_SESSION_ACTIVE\)/', $src));
+        $this->assertSame(1, substr_count($src, 'session_destroy()'));
+        $this->assertMatchesRegularExpression('/case \'manifest\':\s*\$nuxrDisposeAnonymousSession\(\);/', $src);
+        $this->assertMatchesRegularExpression('/case \'ping\':\s*\$nuxrDisposeAnonymousSession\(\);/', $src);
     }
 
     public function testThePwaBuilderIsPureAndUserNeutral(): void
@@ -144,7 +147,7 @@ final class Wp7GuardTest extends TestCase
         $js = self::read('ui/ui/scripts/nuxr-pwa.js');
         $this->assertMatchesRegularExpression("/if \(m === 'GET' \|\| m === 'HEAD' \|\| !sameOrigin\(url\)\) \{ return true; \}/", $js);
         $this->assertMatchesRegularExpression("/if \(state !== 'offline' && state !== 'reconnecting'\) \{ return true; \}/", $js, 'SLOW submits normally');
-        $this->assertStringContainsString("fetch(cfg.ping, { credentials: 'omit', cache: 'no-store', redirect: 'error'", $js, 'heartbeat without cookies');
+        $this->assertStringContainsString("heartbeatFetch(cfg.ping, { credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store', redirect: 'error'", $js, 'heartbeat without cookies');
         $this->assertMatchesRegularExpression("/j\.app === 'nuxr' && j\.ok === true && Object\.keys\(j\)\.length === 2/", $js, 'exact marker (captive portals fail)');
         $this->assertStringContainsString("document.addEventListener('submit', function (e) {", $js);
         $this->assertStringContainsString('window.XMLHttpRequest = GatedXHR;', $js, 'XHR gated per instance (Pace replaces the constructor)');
@@ -208,6 +211,34 @@ final class Wp7GuardTest extends TestCase
         foreach (['ui/ui/admin/header.tpl', 'ui/ui/admin/footer.tpl'] as $tpl) {
             $this->assertStringContainsString("{Lang::T('Install app')}", self::read($tpl));
         }
+    }
+
+    public function testTheHeartbeatBypassesTheCsrfShimAndNothingElseDoes(): void
+    {
+        // FR1-1: pwa/ping uses the browser fetch captured before the CSRF shim wraps window.fetch (no X-CSRF-Token)
+        $js = self::read('ui/ui/scripts/nuxr-pwa.js');
+        $head = substr($js, (int) strpos($js, "'use strict';"), 600);
+        $this->assertStringContainsString("var heartbeatFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;", $head,
+            'captured as the first statement, before any wrapper is installed');
+        $this->assertSame(1, substr_count($js, '(cfg.ping,'), 'the ping URL is requested at exactly one call site');
+        $this->assertSame(1, preg_match_all('/heartbeatFetch\(/', $js), 'heartbeatFetch is called only by the heartbeat');
+        $this->assertMatchesRegularExpression("/heartbeatFetch\(cfg\.ping, /", $js);
+        $this->assertDoesNotMatchRegularExpression('/(?<![A-Za-z.])fetch\(cfg\.ping/', $js, 'never through the CSRF-wrapped global fetch');
+        // the client loads before the shim on every staff page (so the capture is the browser's own fetch)
+        foreach (['ui/ui/admin/footer.tpl', 'ui/ui/admin/admin/login.tpl'] as $tpl) {
+            $src = self::read($tpl);
+            $this->assertLessThan(strpos($src, 'nuxr-csrf.tpl'), strpos($src, 'nuxr-pwa.js?'), "{$tpl}: client before the CSRF shim");
+        }
+        // FR1-2: a network failure of an ordinary same-origin request is only a hint for an immediate heartbeat
+        $this->assertStringContainsString("if (e && e.name === 'TypeError') { networkHint(url); }", $js);
+        $this->assertStringContainsString('throw e; // the same rejection for the caller', $js);
+        $this->assertStringContainsString("x.addEventListener('error', function () { if (!x.__nuxrBlocked) { networkHint(x.__nuxrUrl); } });", $js);
+        $hint = substr($js, (int) strpos($js, 'function networkHint(url) {'), 300);
+        $this->assertStringContainsString('probeNow();', $hint);
+        $this->assertDoesNotMatchRegularExpression('/setState\(|fetch\(|send\(/', $hint, 'the hint never sets the state or re-sends anything');
+        // ordinary requests keep the CSRF shim: it wraps (after) the hint wrapper, the shim is unchanged
+        $this->assertStringContainsString('var appFetch = window.fetch;', $js);
+        $this->assertStringContainsString('return appFetch.apply(window, arguments).then(null, function (e) {', $js);
     }
 
     public function testPruneStaysInsideTheInstallationNamespace(): void

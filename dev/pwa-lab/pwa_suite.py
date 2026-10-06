@@ -447,6 +447,165 @@ def t12(browser):
     return f'slow chip "{label}"; POST allowed while SLOW'
 
 
+
+# ---------------------------------------------------------------- owner fix round 1: heartbeat identity, network hint
+PING_WAIT = 3000  # the immediate probe must appear well inside this, far below the 60 s ONLINE cadence
+
+
+def ping_requests(pg):
+    pings = []
+    pg.on('request', lambda r: pings.append((time.time(), r)) if '_route=pwa/ping' in r.url else None)
+    return pings
+
+
+@check('T12h', 'Heartbeat from an authenticated staff page carries no Cookie, Authorization, X-CSRF-Token or other identifier (root + /billing/)')
+def t12h(browser):
+    notes = []
+    for base in (ROOT, SUB):
+        ctx = new_ctx(browser, base, vp=DESK)
+        pg = staff_login(ctx, base, 'A')
+        sw_ready(pg)
+        pg.wait_for_function(TOKEN_READY, timeout=10000)
+        token = pg.evaluate('() => window.nuxrCsrfToken')
+        sess = [c['value'] for c in ctx.cookies() if c['value']]
+        pings = ping_requests(pg)
+        pg.evaluate("() => window.dispatchEvent(new Event('online'))")  # a hint: probe now
+        pg.wait_for_timeout(PING_WAIT)
+        expect(pings, base + ': no heartbeat observed')
+        req = pings[0][1]
+        headers = req.all_headers()
+        resp = req.response()
+        names = sorted(headers)
+        expect(not any(h in headers for h in ('cookie', 'authorization', 'x-csrf-token', 'proxy-authorization', 'referer')), f'{base}: identity header sent {names}')
+        blob = json.dumps(headers) + req.url
+        leaked = [v[:6] + '...' for v in [token] + sess if v and v in blob] + [u for u in ('Staff A', LAB['staff']['A']) if u and u in blob]
+        expect(not leaked, f'{base}: identifier in the heartbeat: {leaked}')
+        expect(req.url == base + '?_route=pwa/ping', f'{base}: unexpected heartbeat URL {req.url}')
+        expect(resp.status == 200 and resp.text() == '{"app":"nuxr","ok":true}', f'{base}: marker {resp.status} {resp.text()[:60]}')
+        expect('set-cookie' not in resp.all_headers(), f'{base}: heartbeat response sets a cookie')
+        # control: an ordinary same-origin application fetch still goes through the CSRF shim
+        app = []
+        pg.on('request', lambda r: app.append(r) if 'nuxr_control=1' in r.url else None)
+        pg.evaluate("() => fetch('?_route=dashboard&nuxr_control=1').then(r => r.status)")
+        expect(app and app[0].all_headers().get('x-csrf-token') == token, f'{base}: ordinary fetch lost its CSRF header')
+        notes.append(f'{base}: heartbeat headers {names}; marker exact; no Set-Cookie; ordinary fetch keeps X-CSRF-Token')
+        ctx.close()
+    return '; '.join(notes)
+
+
+@check('T12n', 'Same-origin network error (fetch rejection, XHR error) triggers an immediate heartbeat; state only from the ping; no retry')
+def t12n(browser):
+    ctx = new_ctx(browser, ROOT, vp=DESK)
+    pg = staff_login(ctx, ROOT, 'A')
+    sw_ready(pg)
+    pg.wait_for_function(TOKEN_READY, timeout=10000)
+    pg.wait_for_timeout(3500)  # the load probe (2 s after load) is done: the next scheduled ping is ~60 s away
+    expect(pg.evaluate("() => navigator.onLine === true && document.body.getAttribute('data-nuxr-net') === 'online'"), 'not online at start')
+    pg.evaluate("() => { window.__net = []; document.addEventListener('nuxr-net', e => window.__net.push([Date.now(), e.detail.state])); }")
+    pings = ping_requests(pg)
+    failed = []
+    ctx.route(re.compile(r'nuxr_netfail='), lambda r: (failed.append((r.request.url, r.request.method, r.request.headers.get('x-csrf-token'))), r.abort('failed')))
+    # A: fetch POST fails at network level while the heartbeat works -> immediate ping, state stays online
+    t0 = time.time()
+    out = pg.evaluate("() => fetch('?_route=dashboard&nuxr_netfail=fetch', { method: 'POST', body: 'x=1' }).then(r => 'resolved ' + r.status, e => 'rejected ' + e.name + ': ' + e.message)")
+    pg.wait_for_timeout(PING_WAIT)
+    a_pings = [t for t, _ in pings if t >= t0]
+    expect(out.startswith('rejected TypeError'), 'caller did not see the network rejection: ' + out)
+    expect(len(a_pings) == 1 and a_pings[0] - t0 < 2.0, f'fetch: immediate pings {[round(t - t0, 2) for t in a_pings]}')
+    expect(pg.evaluate('() => window.__net.length') == 0 and pg.evaluate("() => document.body.getAttribute('data-nuxr-net')") == 'online',
+           'state changed although the heartbeat succeeded')
+    fetch_tries = [x for x in failed if x[0].endswith('nuxr_netfail=fetch')]
+    expect(len(fetch_tries) == 1 and fetch_tries[0][1] == 'POST' and fetch_tries[0][2], f'fetch request retried or lost its CSRF header: {fetch_tries}')
+    # B: XHR fails at network level and the heartbeat fails too -> the state changes only from the ping result
+    pg.wait_for_timeout(1200)  # past the 1 s hint throttle
+    ctx.route(re.compile(r'_route=pwa/ping'), lambda r: r.abort('failed'))
+    t1 = time.time()
+    xhr = pg.evaluate("""() => new Promise(res => { const x = new XMLHttpRequest(); let errors = 0;
+        x.onerror = () => { errors++; setTimeout(() => res({ errors, status: x.status, state: x.readyState, net: document.body.getAttribute('data-nuxr-net') }), 0); };
+        x.onload = () => res({ loaded: x.status });
+        x.open('POST', '?_route=dashboard&nuxr_netfail=xhr'); x.send('x=1'); })""")
+    expect(xhr.get('errors') == 1 and xhr.get('status') == 0 and xhr.get('state') == 4, f'XHR error not delivered once to the caller: {xhr}')
+    expect(xhr.get('net') == 'online', 'state changed before the heartbeat answered: ' + str(xhr))
+    pg.wait_for_function("() => window.__net.length > 0", timeout=PING_WAIT)
+    b_pings = [t for t, _ in pings if t >= t1]
+    first_change = pg.evaluate('() => window.__net[0]')
+    expect(b_pings and b_pings[0] - t1 < 2.0, f'xhr: immediate pings {[round(t - t1, 2) for t in b_pings]}')
+    expect(first_change[1] == 'slow' and first_change[0] / 1000 >= b_pings[0], f'first state change {first_change} (expected slow, after the ping)')
+    pg.wait_for_timeout(1500)
+    xhr_tries = [x for x in failed if x[0].endswith('nuxr_netfail=xhr')]
+    expect(len(xhr_tries) == 1, f'XHR request retried: {len(xhr_tries)}')
+    ctx.unroute(re.compile(r'_route=pwa/ping'))
+    pg.wait_for_function("() => document.body.getAttribute('data-nuxr-net') === 'online'", timeout=40000)
+    seq = [s for _, s in pg.evaluate('() => window.__net')]
+    ctx.close()
+    return (f'fetch: rejected TypeError to the caller, 1 immediate ping after {a_pings[0] - t0:.2f} s, state stayed online, 1 request (with X-CSRF-Token); '
+            f'xhr: error once to the caller, ping after {b_pings[0] - t1:.2f} s, states from pings only {seq}, 1 request; no retry')
+
+
+@check('T10c', 'Root worker installed by staff, then logout: public / customer pages behave exactly as without a worker; no gate, no cache, no client storage')
+def t10c(browser):
+    cust_user, cust_pw = 'mohammed.h', 'lab-mohammed.h'
+    flows = {}
+    for mode in ('worker', 'blocked'):
+        kw = {} if mode == 'worker' else {'service_workers': 'block'}
+        ctx = new_ctx(browser, ROOT, vp=PHONE, **kw)
+        pg = staff_login(ctx, ROOT, 'A')
+        if mode == 'worker':
+            sw_ready(pg)
+        steps = []
+
+        def facts(label, res):
+            page_ready(pg, res)
+            f = {'step': label, 'status': res.status if res else None, 'route': route_of(pg), **pg.evaluate(PAGE_FACTS),
+                 'gate': pg.evaluate('() => typeof window.nuxrMutationGate'), 'pwa': pg.locator('script[src*="nuxr-pwa.js"]').count(),
+                 'manifest': pg.locator('link[rel=manifest]').count()}
+            f['controlled'] = pg.evaluate('() => !!(navigator.serviceWorker && navigator.serviceWorker.controller)')
+            steps.append(f)
+
+        res = pg.goto(ROOT + '?_route=logout', wait_until='networkidle')
+        facts('staff logout landing', res)
+        for r in ('login', 'register', 'forgot'):
+            facts('public ' + r, pg.goto(ROOT + '?_route=' + r, wait_until='networkidle'))
+        pg.goto(ROOT + '?_route=login', wait_until='networkidle')
+        pg.fill('input[name=username]', cust_user)
+        pg.fill('input[name=password]', cust_pw)
+        with pg.expect_navigation() as nav:
+            pg.locator('form[action*="login/post"] button[type=submit]').click()
+        pg.wait_for_load_state('networkidle')
+        facts('customer login result', nav.value)
+        facts('customer home', pg.goto(ROOT + '?_route=home', wait_until='networkidle'))
+        facts('customer profile (GET)', pg.goto(ROOT + '?_route=accounts/profile', wait_until='networkidle'))
+        pg.goto(ROOT + '?_route=accounts/change-password', wait_until='networkidle')
+        pg.fill('input[name=password]', 'not-the-current-password')
+        for n in ('npass', 'cnpass'):
+            if pg.locator(f'input[name={n}]').count():
+                pg.fill(f'input[name={n}]', 'unused-new-password-1')
+        with pg.expect_navigation() as nav:
+            pg.locator('form[action*="change-password-post"] [type=submit]').first.click()
+        pg.wait_for_load_state('networkidle')
+        facts('customer POST change-password (wrong current password: refused, nothing changed)', nav.value)
+        if mode == 'worker':
+            entries = cache_entries(pg)
+            urls = sorted(e['url'] for e in entries)
+            expect(urls == expected_precache(ROOT), f'CacheStorage changed by public / customer pages: {urls}')
+            blob = json.dumps(entries, ensure_ascii=False)
+            expect(not any(x in blob for x in (cust_user, 'محمد', '_route=home', '_route=login', 'nuxrCsrfToken')), 'customer / public data in CacheStorage')
+        store = pg.evaluate(STORAGE_DUMP)
+        nuxr_keys = [k for k in list(store['local']) + list(store['session']) if k.startswith('nuxr')]
+        expect(not nuxr_keys and store['idb'] in ([], ['(unsupported)']), f'{mode}: WP7 client storage on customer pages: {nuxr_keys} {store["idb"]}')
+        flows[mode] = steps
+        ctx.close()
+    for a, b in zip(flows['worker'], flows['blocked']):
+        ca, cb = dict(a), dict(b)
+        expect(ca.pop('controlled') is True and cb.pop('controlled') is False, f"{a['step']}: worker control not as set up")
+        expect(ca == cb, f"{a['step']}: with the staff root worker {ca} != without a worker {cb}")
+        expect(a['gate'] == 'undefined' and a['pwa'] == 0 and a['manifest'] == 0, f"{a['step']}: staff PWA client present on a public / customer page")
+    home = flows['worker'][5]
+    expect(home['status'] == 200 and home['route'] == 'home' and home['token'] is True, f'customer not signed in on home: {home}')
+    expect(len(flows['worker']) == len(flows['blocked']) == 8, 'step count')
+    return '; '.join(f"{s['step']} -> {s['status']} {s['route']}" for s in flows['worker']) + '; all identical with / without the worker, gate undefined, precache unchanged, no WP7 storage'
+
+
 def logout(pg, base):
     pg.goto(base + '?_route=logout', wait_until='load')
     pg.wait_for_timeout(800)
@@ -754,8 +913,23 @@ PAGE_FACTS = """() => ({ title: document.title, h1: (document.querySelector('h1'
     alerts: Array.from(document.querySelectorAll('.nuxr-alert, .alert')).map(a => a.textContent.trim().slice(0, 80)) })"""
 
 
+TOKEN_READY = "() => typeof window.nuxrCsrfToken === 'string' && /^[0-9a-f]{64}$/.test(window.nuxrCsrfToken)"
+
+
+def page_ready(pg, res):
+    """owner fix round 1 (FR1-3): a page whose server HTML renders the footer CSRF include is read only after that
+    script has run (bounded). If the token never initialises, this raises and the check FAILS - nothing is skipped."""
+    try:
+        html = res.text() if res else ''
+    except Exception:  # noqa: BLE001  (a response without a body, e.g. a redirect)
+        html = ''
+    if 'window.nuxrCsrfToken =' in html:
+        pg.wait_for_function(TOKEN_READY, timeout=10000)
+
+
 def visit(pg, base, route):
     res = pg.goto(base + '?_route=' + route, wait_until='networkidle')
+    page_ready(pg, res)
     return {'status': res.status if res else None, 'route': route_of(pg), **pg.evaluate(PAGE_FACTS)}
 
 
