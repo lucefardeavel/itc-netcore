@@ -26,6 +26,19 @@ listen {
 }
 
 authorize {
+	# Message-Authenticator is REQUIRED on every Access-Request (BlastRADIUS hardening; WP8 owner decision
+	# OD-W8-13, satisfying OD-W8-10). The NAS list is loaded from the PHPNuxBill `nas` table (sql read_clients =
+	# yes), and in the pinned FreeRADIUS 3.2.8 such SQL-loaded clients do not inherit
+	# require_message_authenticator = yes - neither from clients.conf nor from the global security section - so
+	# the project virtual server enforces it here, first, for every client. A request without the attribute gets
+	# no response at all (no Accept, no Reject). A wrong Message-Authenticator never reaches this section: the
+	# server verifies the HMAC on receipt and discards the packet. Authentication only: accounting (preacct /
+	# accounting) is not subject to this check, because NAS accounting packets do not carry the attribute.
+	# NAS firmware floor: MikroTik RouterOS >= 7.15 (WP8 validated RouterOS 7.24.5).
+	if (!&Message-Authenticator) {
+		do_not_respond
+	}
+
 	filter_username
 	preprocess
 	chap

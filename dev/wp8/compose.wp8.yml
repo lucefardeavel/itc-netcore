@@ -1,0 +1,58 @@
+# WP8 real-NAS lab (development/test only; never production). Applied ON TOP of dev/test/compose.yml, i.e. inside the
+# existing isolated compose project "nuxbill-reseller-test" (owner rule). Started and stopped only by dev/wp8/lab.sh.
+#
+#   network wp8lab   10.88.0.0/24, Linux bridge "wp8lab0", no IP masquerade, no published ports
+#   freeradius-wp8   10.88.0.10   FreeRADIUS 3.2.8 (pinned digest), project configuration, PRODUCTION-STYLE NAS
+#                                 clients from the `nas` table (read_clients = yes), application time zone
+#   php82-wp8        shares the network namespace of freeradius-wp8 (owner decision OD-W8-11, option A): the real
+#                    application code (ActivationService, Radius device, CoAClient) sends CoA / Disconnect from
+#                    10.88.0.10, the address configured as the RouterOS /radius server. No SNAT, no second /radius.
+#   CHR (QEMU, outside compose) 10.88.0.2 joins wp8lab0 through a TAP device.
+name: nuxbill-reseller-test
+
+networks:
+  wp8lab:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: wp8lab0
+      com.docker.network.bridge.enable_ip_masquerade: "false"
+    ipam:
+      config:
+        - subnet: 10.88.0.0/24
+          gateway: 10.88.0.1
+
+services:
+  freeradius-wp8:
+    image: freeradius/freeradius-server:3.2.8@sha256:af6fd34a5b7826b6245008732f43fbc0432eb23d23e5de7106371b2941e70a4b
+    profiles: ["wp8"]
+    environment:
+      WP1_DB_ROOT_PASSWORD: ${WP1_DB_ROOT_PASSWORD}
+      NUXR_RADIUS_SECRET: ${NUXR_RADIUS_SECRET}
+      NUXR_RADIUS_DB_HOST: mariadb
+      TZ: ${NUXR_WP8_TZ}
+    volumes:
+      - ../../install/freeradius:/nuxr/install:ro
+      - ./freeradius:/nuxr/test:ro
+      - ../wp8/freeradius:/nuxr/wp8:ro
+    entrypoint: ["sh", "/nuxr/wp8/start.sh"]
+    networks:
+      default: {}
+      wp8lab:
+        ipv4_address: 10.88.0.10
+
+  php82-wp8:
+    image: nuxbill-reseller-test-php82
+    profiles: ["wp8-runner"]
+    network_mode: "service:freeradius-wp8"
+    working_dir: /repo
+    volumes:
+      - ../..:/repo
+      - ${NUXR_WP8_STATE}/ctl:/wp8ctl
+    environment:
+      WP1_DB_HOST: mariadb
+      WP1_DB_ROOT_PASSWORD: ${WP1_DB_ROOT_PASSWORD}
+      NUXR_RADIUS_SECRET: ${NUXR_RADIUS_SECRET}
+      NUXR_WP8_LAB: "1"
+      NUXR_WP8_TZ: ${NUXR_WP8_TZ}
+      NUXR_WP8_CHR_PASSWORD: ${NUXR_WP8_CHR_PASSWORD}
+    entrypoint: ["php", "-d", "date.timezone=${NUXR_WP8_TZ}"]

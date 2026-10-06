@@ -12,6 +12,9 @@ use Reseller\Radius\RadiusRepository;
 use Reseller\Tests\Support\FixtureBuilder;
 use Reseller\Tests\Support\RadiusClient;
 use Reseller\Tests\Support\TestDatabase;
+use Reseller\Tests\Support\Wp8Radius;
+
+require_once dirname(__DIR__, 2) . '/Support/Wp8Radius.php';
 
 /**
  * RADIUS contract (06_RADIUS_CONTRACT verification list; owner decisions C16 / Q1 / Q2): the policies written by
@@ -186,5 +189,23 @@ final class FreeRadiusContractTest extends TestCase
         $this->assertSame('SUCCESS', $this->provisioner()->remove($key)->status);
         $this->assertSame(RadiusPacket::ACCESS_REJECT, RadiusClient::access($key, 'Sus-pass-1')?->code, 'removed');
         $this->assertSame(1, self::sessions($key), 'accounting history kept after suspend and remove');
+    }
+
+    /**
+     * WP8 OD-W8-13 / W8-A3 on the WP4 harness client: an Access-Request without Message-Authenticator or with a wrong
+     * one is never answered; a valid one is (Accept / Reject); Accounting-Requests without it are answered.
+     */
+    public function testMessageAuthenticatorIsRequiredForAuthenticationOnly(): void
+    {
+        $raw = Wp8Radius::harness();
+        $key = $this->provision(['username' => self::user('ma'), 'password' => 'Ma-pass-1'], self::plan('Hotspot', ['shared_users' => 2]), self::BW, new \DateTimeImmutable('+1 day'));
+        $this->assertNull($raw->access($key, 'Ma-pass-1', 'missing'), 'missing Message-Authenticator: no response');
+        $this->assertNull($raw->access($key, 'Ma-pass-1', 'bogus', true), 'wrong Message-Authenticator: no response');
+        $this->assertSame(RadiusPacket::ACCESS_ACCEPT, $raw->access($key, 'Ma-pass-1', 'valid', true)?->code);
+        $this->assertSame(RadiusPacket::ACCESS_REJECT, $raw->access($key, 'wrong', 'valid')?->code);
+        $session = bin2hex(random_bytes(6));
+        $this->assertSame(RadiusPacket::ACCOUNTING_RESPONSE, $raw->accounting([['User-Name', $key], ['Acct-Status-Type', 1], ['Acct-Session-Id', $session], ['Event-Timestamp', time()]])?->code);
+        $this->assertSame(RadiusPacket::ACCOUNTING_RESPONSE, $raw->accounting([['User-Name', $key], ['Acct-Status-Type', 2], ['Acct-Session-Id', $session], ['Event-Timestamp', time()], ['Acct-Session-Time', 4]])?->code);
+        $this->assertSame(1, self::sessions($key), 'accounting without Message-Authenticator written');
     }
 }

@@ -61,3 +61,14 @@ system/uploads/invoices/**
 
 # Dev-only test tooling dependencies (WP1)
 tests/vendor/
+
+# WP8 real-NAS lab (dev/wp8): never commit RouterOS images, working disks, lab state, secrets, captures or logs.
+# The lab keeps them in $NUXR_WP8_STATE (outside the repository); these patterns guard against stray copies.
+*.img
+*.img.zip
+*.pcap
+*.pcapng
+dev/wp8/.state/
+dev/wp8/**/secrets.env
+dev/wp8/**/serial*.log
+dev/wp8/**/*.chrpw

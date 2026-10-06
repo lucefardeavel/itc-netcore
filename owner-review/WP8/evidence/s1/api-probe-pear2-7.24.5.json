@@ -1,0 +1,102 @@
+{
+    "host": "10.88.0.2",
+    "login_s": 0.261,
+    "transport": "plain API (CRYPTO_OFF)",
+    "/system/resource/print": {
+        "elapsed_s": 0.051,
+        "rows": [
+            {
+                "uptime": "9m53s",
+                "version": "7.24.5 (stable)",
+                "build-time": "2026-09-29 14:21:27",
+                "minimum-version": "7.1",
+                "free-memory": "828264448",
+                "total-memory": "1073741824",
+                "cpu": "QEMU",
+                "cpu-count": "1",
+                "cpu-frequency": "2794",
+                "cpu-load": "6",
+                "free-hdd-space": "72380416",
+                "total-hdd-space": "93564928",
+                "write-sect-since-reboot": "3376",
+                "write-sect-total": "3376",
+                "architecture-name": "x86_64",
+                "board-name": "CHR QEMU Standard PC (i440FX + PIIX, 1996)",
+                "platform": "MikroTik"
+            }
+        ]
+    },
+    "/system/license/print": {
+        "elapsed_s": 0.117,
+        "rows": [
+            {
+                "system-id": "3uFANsMKJfP",
+                "level": "free"
+            }
+        ]
+    },
+    "/radius/print": {
+        "elapsed_s": 0.076,
+        "rows": [
+            {
+                ".id": "*1",
+                "service": "ppp,hotspot",
+                "called-id": "",
+                "domain": "",
+                "address": "10.88.0.10",
+                "secret": "[REDACTED]",
+                "authentication-port": "1812",
+                "accounting-port": "1813",
+                "timeout": "3s",
+                "radsec-timeout": "3s300ms",
+                "accounting-backup": "false",
+                "realm": "",
+                "src-address": "10.88.0.2",
+                "protocol": "udp",
+                "certificate": "none",
+                "require-message-auth": "yes-for-request-resp",
+                "status": "",
+                "disabled": "false",
+                "comment": "nuxr_wp8_freeradius"
+            }
+        ]
+    },
+    "/radius/incoming/print": {
+        "elapsed_s": 0.16,
+        "rows": [
+            {
+                "accept": "true",
+                "port": "3799",
+                "vrf": "main"
+            }
+        ]
+    },
+    "/ppp/aaa/print": {
+        "elapsed_s": 0.015,
+        "rows": [
+            {
+                "use-radius": "true",
+                "accounting": "true",
+                "use-circuit-id-in-nas-port-id": "false",
+                "interim-update": "1m",
+                "enable-ipv6-accounting": "false"
+            }
+        ]
+    },
+    "php_deprecations": {
+        "Autoload.php:206": "is_file(): Passing null to parameter #1 ($filename) of type string is deprecated",
+        "Message.php:184": "Return type of PEAR2\\Net\\RouterOS\\Message::getIterator() should either be compatible with IteratorAggregate::getIterator(): Traversable, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "Message.php:194": "Return type of PEAR2\\Net\\RouterOS\\Message::count() should either be compatible with Countable::count(): int, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "ResponseCollection.php:264": "Return type of PEAR2\\Net\\RouterOS\\ResponseCollection::offsetExists($offset) should either be compatible with ArrayAccess::offsetExists(mixed $offset): bool, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "ResponseCollection.php:279": "Return type of PEAR2\\Net\\RouterOS\\ResponseCollection::offsetGet($offset) should either be compatible with ArrayAccess::offsetGet(mixed $offset): mixed, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "ResponseCollection.php:301": "Return type of PEAR2\\Net\\RouterOS\\ResponseCollection::offsetSet($offset, $value) should either be compatible with ArrayAccess::offsetSet(mixed $offset, mixed $value): void, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "ResponseCollection.php:318": "Return type of PEAR2\\Net\\RouterOS\\ResponseCollection::offsetUnset($offset) should either be compatible with ArrayAccess::offsetUnset(mixed $offset): void, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "ResponseCollection.php:344": "Return type of PEAR2\\Net\\RouterOS\\ResponseCollection::seek($position) should either be compatible with SeekableIterator::seek(int $offset): void, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "ResponseCollection.php:374": "Return type of PEAR2\\Net\\RouterOS\\ResponseCollection::current() should either be compatible with Iterator::current(): mixed, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "ResponseCollection.php:362": "Return type of PEAR2\\Net\\RouterOS\\ResponseCollection::next() should either be compatible with Iterator::next(): void, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "ResponseCollection.php:411": "Return type of PEAR2\\Net\\RouterOS\\ResponseCollection::key() should either be compatible with Iterator::key(): mixed, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "ResponseCollection.php:421": "Return type of PEAR2\\Net\\RouterOS\\ResponseCollection::valid() should either be compatible with Iterator::valid(): bool, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "ResponseCollection.php:329": "Return type of PEAR2\\Net\\RouterOS\\ResponseCollection::rewind() should either be compatible with Iterator::rewind(): void, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice",
+        "ResponseCollection.php:250": "Return type of PEAR2\\Net\\RouterOS\\ResponseCollection::count() should either be compatible with Countable::count(): int, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice"
+    }
+}

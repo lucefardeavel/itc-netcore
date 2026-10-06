@@ -34,9 +34,38 @@ It is tested with FreeRADIUS **3.2.8** (`freeradius/freeradius-server:3.2.8`) on
 **Post-auth logging.** `radpostauth` is not enabled here, because the stock query stores the cleartext password.
 
 **NAS clients.**
-- `read_clients = yes` loads the NAS list that PHPNuxBill manages (RADIUS > NAS).
+- `read_clients = yes` (with `client_table = "nas"`) loads the NAS list that PHPNuxBill manages (RADIUS > NAS). This is the
+  production arrangement validated in WP8: the `nas` table is the single NAS source for FreeRADIUS (authentication and
+  accounting clients) and for PHPNuxBill (CoA / Disconnect target). Restart or reload FreeRADIUS after changing a NAS.
 - The NAS secret is stored in the `nas` table in plaintext, because FreeRADIUS needs to read it.
 - PHPNuxBill never shows the stored secret again after it is saved.
+- `nas.nasname` must be the IP address that the NAS sends as `NAS-IP-Address` and uses as the source of its RADIUS
+  packets (RouterOS: `/radius src-address`). PHPNuxBill finds the NAS of a session by `radacct.nasipaddress == nas.nasname`.
+
+## Message-Authenticator (required on every Access-Request)
+
+The `phpnuxbill` virtual server drops, without any response, every **Access-Request** that carries no
+`Message-Authenticator` (BlastRADIUS hardening; owner decisions OD-W8-10 / OD-W8-13):
+
+```
+authorize {
+    if (!&Message-Authenticator) {
+        do_not_respond
+    }
+    ...
+```
+
+- Why in the virtual server: NAS clients loaded from SQL (`read_clients = yes`) do **not** inherit
+  `require_message_authenticator = yes` in FreeRADIUS 3.2.8 - neither from `clients.conf` nor from the global `security`
+  section (proven in the WP8 lab: a SQL client's request without the attribute was accepted with the global setting at
+  `yes`). The check is the first statement of `authorize`, so it applies to every client however it is defined.
+- A request with a **wrong** `Message-Authenticator` never reaches `authorize`: FreeRADIUS verifies the HMAC on receipt
+  and discards the packet without a response.
+- **Authentication only.** `preacct` / `accounting` are not subject to the check: NAS **Accounting-Request** packets do not
+  carry `Message-Authenticator` (RouterOS does not send it) and are authenticated by their Request Authenticator.
+- NAS firmware floor: **MikroTik RouterOS 7.15** or later sends `Message-Authenticator` in Access-Request; WP8 validated
+  **RouterOS 7.24.5** (CHR). Older RouterOS (for example 7.12.1) cannot authenticate subscribers against this server.
+- Do not relax this with `require_message_authenticator = auto` or `no`.
 
 ## Disconnect / CoA
 

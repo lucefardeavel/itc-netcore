@@ -67,6 +67,36 @@ final class RadiusSourceGuardTest extends TestCase
         return array_filter(self::runtime(), static fn(string $rel): bool => str_starts_with($rel, self::RADIUS_DIR) || in_array($rel, self::RADIUS_PATHS, true), ARRAY_FILTER_USE_KEY);
     }
 
+    /**
+     * WP8 owner decision OD-W8-13 (satisfies OD-W8-10): the project virtual server requires Message-Authenticator on
+     * every Access-Request as the FIRST statement of authorize, because SQL-loaded NAS clients (read_clients = yes) do
+     * not inherit require_message_authenticator = yes in FreeRADIUS 3.2.8. Authentication only: no such check in
+     * preacct / accounting / authenticate / session / post-auth (NAS accounting carries no Message-Authenticator).
+     */
+    public function testVirtualServerRequiresMessageAuthenticatorOnAccessRequestOnly(): void
+    {
+        $site = (string) file_get_contents(self::root() . '/install/freeradius/sites-available/phpnuxbill');
+        $code = (string) preg_replace('/^\s*#.*$/m', '', $site);
+        $sections = [];
+        foreach (['authorize', 'authenticate', 'preacct', 'accounting', 'session', 'post-auth'] as $name) {
+            $this->assertSame(1, preg_match('/^' . preg_quote($name, '/') . ' \{\n(.*?)^\}/ms', $code, $m), "section {$name}");
+            $sections[$name] = $m[1];
+        }
+        $statements = array_values(array_filter(array_map('trim', explode("\n", $sections['authorize'])), static fn(string $l): bool => $l !== ''));
+        $this->assertSame(['if (!&Message-Authenticator) {', 'do_not_respond', '}', 'filter_username'], array_slice($statements, 0, 4),
+            'the Message-Authenticator check is the first statement of authorize, before every module');
+        $this->assertSame(1, substr_count($code, 'Message-Authenticator'), 'exactly one enforcement point');
+        foreach (['authenticate', 'preacct', 'accounting', 'session', 'post-auth'] as $name) {
+            $this->assertStringNotContainsString('Message-Authenticator', $sections[$name], "{$name}: no Message-Authenticator rule");
+            $this->assertStringNotContainsString('do_not_respond', $sections[$name], "{$name}: accounting and other packet classes are never silenced");
+        }
+        $this->assertStringContainsString('RouterOS >= 7.15', $site, 'the NAS firmware floor is documented next to the rule');
+        $readme = (string) file_get_contents(self::root() . '/install/freeradius/README.md');
+        foreach (['read_clients = yes', 'Message-Authenticator', 'RouterOS 7.15', '7.24.5', 'Accounting-Request'] as $needle) {
+            $this->assertStringContainsString($needle, $readme, "README documents: {$needle}");
+        }
+    }
+
     public function testAccountingHistoryIsNeverDeletedOrRewritten(): void
     {
         $hits = [];

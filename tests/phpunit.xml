@@ -38,6 +38,7 @@
             <exclude>Integration/Wp6b</exclude>
             <exclude>Integration/Wp6c</exclude>
             <exclude>Integration/Wp7</exclude>
+            <exclude>Integration/Wp8</exclude>
         </testsuite>
         <testsuite name="regression">
             <directory>Regression</directory>
@@ -104,6 +105,9 @@
         </testsuite>
         <testsuite name="wp7-integration">
             <directory>Integration/Wp7</directory>
+        </testsuite>
+        <testsuite name="wp8-integration">
+            <directory>Integration/Wp8</directory>
         </testsuite>
         <testsuite name="hotfix-pace-unit">
             <directory>Unit/HotfixPaceXhrCsrf</directory>

@@ -89,3 +89,18 @@ Raised by the OD-W8-10 verification; full evidence and options in `S1_STOP_MESSA
 FreeRADIUS 3.2.8 accepts Access-Requests without Message-Authenticator from `read_clients = yes` clients even with the
 global `security.require_message_authenticator = yes`. Recommended: **Option A** — enforce in the project virtual server
 (`if (!&Message-Authenticator) { do_not_respond }` in `authorize`), proven in the lab. Status: **WAITING OWNER**.
+
+## OD-W8-13 decision and S1 closure (2026-10-06)
+
+Owner message "WP8 — OWNER DECISION OD-W8-13": **Option A approved** — project-level enforcement in
+`install/freeradius/sites-available/phpnuxbill`, inside `authorize {}` only, with amendment **W8-A3** (prove MA-1 /
+MA-2 / MA-3 and the accounting negative control on a SQL-loaded NAS client).
+
+| ID | Status |
+|---|---|
+| **OD-W8-13** | **APPROVED — IMPLEMENTED — VERIFIED.** `if (!&Message-Authenticator) { do_not_respond }` is the first statement of `authorize`; nothing in `preacct` / `accounting` / `authenticate` / `session` / `post-auth`. |
+| **OD-W8-10** | **CLOSED / SATISFIED BY OD-W8-13.** Hardened requirement preserved; no `auto` relaxation; SQL-loaded NAS path protected; RouterOS firmware floor >= 7.15 documented (site file + `install/freeradius/README.md`). |
+| **W8-A3** | MA-1 missing -> no response (policy, before every module); MA-2 wrong HMAC -> "Dropping packet without response ... invalid Message-Authenticator", never reaches authorize, for PAP and CHAP, also as a client's first packet; MA-3 valid -> Accept / Reject; Accounting-Request without Message-Authenticator answered and Start / Interim / Stop written (contract client and real RouterOS 7.24.5). |
+
+S1 verdict: **PASS** (evidence `evidence/s1/`, report `REPORT.md`). Per the owner instruction, S2 to S8 continue
+without a further approval unless a stop condition occurs.

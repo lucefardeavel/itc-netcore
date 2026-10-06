@@ -1,0 +1,31 @@
+1:[wp8] TZ=Asia/Baghdad sql:  read_clients = yes  client_table = "nas" 
+2:[wp8] global:  require_message_authenticator = auto
+118: 	require_message_authenticator = "auto"
+175: 	require_message_authenticator = "yes"
+701:rlm_sql (10.88.0.2): Client "nuxr_wp8_chr" (sql) added
+703:rlm_sql (10.88.0.10): Client "nuxr_wp8_app" (sql) added
+735:Listening on auth address * port 1812 bound to server phpnuxbill
+736:Listening on acct address * port 1813 bound to server phpnuxbill
+737:Listening on proxy address * port 55866
+738:Ready to process requests
+794:Ready to process requests
+850:Ready to process requests
+906:Ready to process requests
+962:Ready to process requests
+1018:Ready to process requests
+1074:Ready to process requests
+1109:Ready to process requests
+1254:Ready to process requests
+3229:Ready to process requests
+3285:Ready to process requests
+3697:Ready to process requests
+3779:Ready to process requests
+3852:Ready to process requests
+3926:Ready to process requests
+4009:Ready to process requests
+4188:Ready to process requests
+6517:Ready to process requests
+6599:Ready to process requests
+6672:Ready to process requests
+6746:Ready to process requests
+6829:Ready to process requests
