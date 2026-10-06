@@ -4,6 +4,11 @@
 
 **R-WP7-CARRY-01 status:** FIX CANDIDATE — WAITING OWNER ACCEPTANCE. It is not closed until the owner accepts.
 
+> **Acceptance and provenance note** (added on `feat` in the owner-acceptance metadata commit; the frozen branch `hotfix/pace-xhr-csrf` = `6d4f3f96` is unchanged).
+> - The owner verdict of 2026-10-06 is **ACCEPTED_WITH_NOTES**, with accepted implementation / evidence `6d4f3f962482b6e125429da7ae459ae8dfd4214c`. See `OWNER_DECISIONS.md`.
+> - **R-WP7-CARRY-01 is CLOSED — ACCEPTED HOTFIX.** The candidate-stage wording above and below is kept as the original record.
+> - OBS-HF-1 is now recorded as **R-HF-CARRY-01 — Legacy autoload router / plan metadata authorization exposure: OPEN — PRE-EXISTING — NOT CAUSED BY HOTFIX, MEDIUM**, for a later owner decision only.
+
 ## 1. Identification
 
 | Item | Value |

@@ -22,6 +22,12 @@ Upstream baseline: `d3e0596287322944ee21fcc14dc1798158463140`
 | WP9 | PENDING |  |  |
 | WP10 | PENDING |  |  |
 
+## Post-WP7 hotfixes
+
+| Hotfix | Status | Accepted commit | Owner decision / notes |
+|---|---|---|---|
+| Pre-WP8 Pace / XHR CSRF (`hotfix/pace-xhr-csrf`) | ACCEPTED_WITH_NOTES | `6d4f3f962482b6e125429da7ae459ae8dfd4214c` | Owner decision 2026-10-06 ("PRE-WP8 PACE/XHR CSRF HOTFIX — OWNER ACCEPTANCE"). Not WP8. Base `7e3a557c` (WP7 acceptance); plan `ae4eaeac`; runtime `349b864a` (`ui/ui/nuxr-csrf.tpl` XHR section only); tests `b57876f5`; branch frozen at `6d4f3f96`; feat fast-forwarded plus this docs-only acceptance commit. OD-HF-1 (WP2 semantics, every same-origin XHR), OD-HF-2 (Option D: patch the `open` / `send` of the prototype a real instance inherits), amendment HF-A1 (no `setRequestHeader` wrapper), OD-HF-3 (focused validation), OD-HF-4 (restored legacy functions acknowledged). Focused PHP on MariaDB and MySQL (33 / 377 and 27 / 330 each); complete WP7 + hotfix browser suite 32/32. No PHP runtime, server authority, RouteMap, schema or migration change. **R-WP7-CARRY-01 CLOSED — ACCEPTED HOTFIX.** New carry-forward **R-HF-CARRY-01 — legacy autoload router / plan metadata authorization exposure: OPEN — PRE-EXISTING — NOT CAUSED BY HOTFIX, MEDIUM** (later owner decision only). Observations: legacy DataTables errors on the coupons page; AVAIA-side container activity during validation. No deploy; WP8 not started. Details: `owner-review/HOTFIX_PACE_XHR_CSRF/OWNER_DECISIONS.md`. |
+
 ## Rules
 - The accepted HEAD of the previous WP is the execution base of the next WP.
 - A chat response from Claude saying it is complete does not change this ledger.
