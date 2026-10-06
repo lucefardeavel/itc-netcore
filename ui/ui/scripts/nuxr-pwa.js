@@ -11,8 +11,9 @@
 (function () {
     'use strict';
     // The heartbeat's fetch: the browser's own fetch captured HERE, before the WP2 CSRF shim (loaded after this file)
-    // wraps window.fetch. pwa/ping therefore never carries the staff CSRF token, and credentials: 'omit' keeps cookies
-    // off it: the heartbeat is anonymous and identity-free (owner fix round 1, FR1-1). Used for pwa/ping ONLY.
+    // wraps window.fetch. pwa/ping therefore never carries the staff CSRF token; credentials: 'omit' keeps cookies off it
+    // and referrerPolicy: 'no-referrer' keeps the current page URL (which can name a customer or an activation) off it:
+    // the heartbeat is anonymous and identity-free (owner fix round 1, FR1-1). Used for pwa/ping ONLY.
     var heartbeatFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
     var script = document.currentScript;
     var cfg = window.nuxrPwa || {};
@@ -58,7 +59,7 @@
         var ctl = window.AbortController ? new AbortController() : null;
         var t0 = Date.now();
         var to = setTimeout(function () { if (ctl) { ctl.abort(); } }, TIMEOUT_MS);
-        heartbeatFetch(cfg.ping, { credentials: 'omit', cache: 'no-store', redirect: 'error', signal: ctl ? ctl.signal : undefined })
+        heartbeatFetch(cfg.ping, { credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store', redirect: 'error', signal: ctl ? ctl.signal : undefined })
             .then(function (r) {
                 var rtt = Date.now() - t0;
                 if (r.status >= 500) { return { reachable: true, slow: true }; }
