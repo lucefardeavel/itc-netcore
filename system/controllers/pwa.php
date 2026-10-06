@@ -9,15 +9,28 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  *   manifest  GET  the web app manifest, built from public configuration only (identical for every visitor)
  *   ping      GET  the connectivity heartbeat: a fixed marker, Cache-Control: no-store
  *
- * Any other pwa/* action is a 404 with no body. The heartbeat client sends no cookies (credentials: 'omit'), so it
- * never extends a staff session; the throwaway anonymous session that index.php starts for such a request is
- * destroyed here so heartbeats leave no session files. A session identified by a cookie is never touched.
+ * Any other pwa/* action is a 404 with no body. The browser fetches the manifest without credentials and the heartbeat
+ * client sends no cookies (credentials: 'omit'), so neither extends a staff session; the throwaway anonymous session
+ * that index.php starts for such a request is destroyed here so neither leaves session files. A session identified by
+ * a cookie is never touched.
  */
 
 $action = $routes['1'] ?? '';
 
+// Both actions are fetched without credentials. index.php has already started a session for such a request: when no
+// session cookie identified the request, that throwaway anonymous session is discarded (file and Set-Cookie header).
+// A session identified by a cookie is never touched.
+$nuxrDisposeAnonymousSession = static function (): void {
+    if (!isset($_COOKIE[session_name()]) && session_status() === PHP_SESSION_ACTIVE) {
+        $_SESSION = [];
+        session_destroy();
+        header_remove('Set-Cookie');
+    }
+};
+
 switch ($action) {
     case 'manifest':
+        $nuxrDisposeAnonymousSession();
         header('Content-Type: application/manifest+json; charset=utf-8');
         header('Cache-Control: no-cache');
         header('X-Content-Type-Options: nosniff');
@@ -25,12 +38,7 @@ switch ($action) {
         break;
 
     case 'ping':
-        if (!isset($_COOKIE[session_name()]) && session_status() === PHP_SESSION_ACTIVE) {
-            // the session index.php started for this cookie-less request: discard it (file and cookie header)
-            $_SESSION = [];
-            session_destroy();
-            header_remove('Set-Cookie');
-        }
+        $nuxrDisposeAnonymousSession();
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store');
         header('X-Content-Type-Options: nosniff');

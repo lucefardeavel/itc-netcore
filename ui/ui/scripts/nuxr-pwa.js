@@ -10,6 +10,10 @@
  */
 (function () {
     'use strict';
+    // The heartbeat's fetch: the browser's own fetch captured HERE, before the WP2 CSRF shim (loaded after this file)
+    // wraps window.fetch. pwa/ping therefore never carries the staff CSRF token, and credentials: 'omit' keeps cookies
+    // off it: the heartbeat is anonymous and identity-free (owner fix round 1, FR1-1). Used for pwa/ping ONLY.
+    var heartbeatFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
     var script = document.currentScript;
     var cfg = window.nuxrPwa || {};
     var S = cfg.s || {};
@@ -49,12 +53,12 @@
 
     /** one heartbeat: valid only with HTTP 200 + JSON + the exact marker (a captive portal page is a failure) */
     function probe() {
-        if (inflight || !cfg.ping) { return; }
+        if (inflight || !cfg.ping || !heartbeatFetch) { return; }
         inflight = true;
         var ctl = window.AbortController ? new AbortController() : null;
         var t0 = Date.now();
         var to = setTimeout(function () { if (ctl) { ctl.abort(); } }, TIMEOUT_MS);
-        fetch(cfg.ping, { credentials: 'omit', cache: 'no-store', redirect: 'error', signal: ctl ? ctl.signal : undefined })
+        heartbeatFetch(cfg.ping, { credentials: 'omit', cache: 'no-store', redirect: 'error', signal: ctl ? ctl.signal : undefined })
             .then(function (r) {
                 var rtt = Date.now() - t0;
                 if (r.status >= 500) { return { reachable: true, slow: true }; }
@@ -178,6 +182,34 @@
         return false;
     };
 
+    /* ---------- same-origin network-error hint (locked plan; owner fix round 1, FR1-2) ----------
+       A genuine network-level failure of an ordinary same-origin application request triggers an immediate heartbeat.
+       Only a hint: the state changes solely from the heartbeat result; the failed request is not retried, queued or
+       replayed, and its rejection / error reaches the caller unchanged. The heartbeat itself uses heartbeatFetch, which
+       never passes through these wrappers (no loop). */
+    var lastHint = 0;
+    function networkHint(url) {
+        if (!sameOrigin(url)) { return; }
+        var now = Date.now();
+        if (now - lastHint < 1000) { return; } // a burst of failures asks for one probe
+        lastHint = now;
+        probeNow();
+    }
+
+    // fetch: wrapped here, BEFORE the CSRF shim wraps it in turn (shim -> this hint -> browser fetch), so every
+    // ordinary request still gets its X-CSRF-Token from the shim. A network failure rejects with a TypeError; an
+    // abort (AbortError) or an HTTP error status is not a network failure.
+    if (heartbeatFetch) {
+        var appFetch = window.fetch;
+        window.fetch = function (input, init) {
+            var url = typeof input === 'string' ? input : (input && input.url) || String(input);
+            return appFetch.apply(window, arguments).then(null, function (e) {
+                if (e && e.name === 'TypeError') { networkHint(url); }
+                throw e; // the same rejection for the caller
+            });
+        };
+    }
+
     // XMLHttpRequest / jQuery: the staff pages load Pace, which replaces window.XMLHttpRequest with a factory returning
     // native instances (so a prototype patch never reaches them). Gate each instance created through the current
     // constructor instead. Only the send decision is added: headers, tokens and everything else are untouched.
@@ -189,8 +221,11 @@
             var open = x.open;
             var send = x.send;
             x.open = function (m, u) { x.__nuxrMethod = m; x.__nuxrUrl = u; return open.apply(x, arguments); };
+            // a real network error ('error' fires for network failures only, never for an HTTP status): hint only
+            x.addEventListener('error', function () { if (!x.__nuxrBlocked) { networkHint(x.__nuxrUrl); } });
             x.send = function () {
                 if (typeof window.nuxrMutationGate === 'function' && window.nuxrMutationGate('xhr', x.__nuxrMethod, x.__nuxrUrl) === false) {
+                    x.__nuxrBlocked = true; // our own "not sent" error below is not a network failure
                     setTimeout(function () { x.dispatchEvent(new ProgressEvent('error')); x.dispatchEvent(new ProgressEvent('loadend')); }, 0);
                     return; // not sent: the caller sees a network error (jQuery error callbacks run)
                 }
