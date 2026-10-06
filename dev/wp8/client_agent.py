@@ -139,8 +139,10 @@ def hs_login(client, user, password):
     body, _ = _curl(ns, '--data-urlencode', f'username={user}', '--data-urlencode', f'password={resp}',
                     '--data-urlencode', 'dst=', '--data-urlencode', 'popup=false', 'http://10.88.2.1/login')
     text = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', body))
-    err = re.search(r'(RADIUS server is not responding|invalid username or password|[a-z ]*(?:reject|limit|expired|not allowed|already)[^.!]{0,60})', text, re.I)
-    ok = 'logged in' in text.lower()
+    err = re.search(r'(RADIUS server is not responding|invalid username or password|[^.!]{0,40}(?:denied|reject|limit|expired|not allowed)[^.!]{0,60})', text, re.I)
+    # success only on RouterOS' own success page; a RADIUS Reply-Message such as "You are already logged in - access
+    # denied" (FreeRADIUS Simultaneous-Use) is a refusal
+    ok = err is None and re.search(r'You are logged in', text) is not None
     return {'ok': ok, 'state': 'LOGGED_IN' if ok else 'REFUSED', 'message': (err.group(1) if err else text[:160]).strip(), 'auth': 'http-chap'}
 
 
@@ -174,6 +176,8 @@ while time.time()-t0<sec:
 def traffic(client, direction, seconds=8, kbps_offer=2000):
     ns, _, unit = CLIENTS[client]
     cip = addr(ns, f'ppp{unit}') or addr(ns, CLIENTS[client][1])
+    if addr(ns, f'ppp{unit}'):  # pppd runs with nodefaultroute: route the traffic peer over the PPPoE session
+        nsx(ns, 'ip', 'route', 'replace', '10.88.0.40/32', 'dev', f'ppp{unit}')
     rx_ns, tx_ns, dst = ('wp8srv', ns, '10.88.0.40') if direction == 'up' else (ns, 'wp8srv', cip)
     rx = subprocess.Popen(['ip', 'netns', 'exec', rx_ns, 'python3', '-c', RX, str(seconds)], stdout=subprocess.PIPE, text=True)
     time.sleep(0.8)

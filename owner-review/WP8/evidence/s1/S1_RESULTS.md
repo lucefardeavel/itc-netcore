@@ -17,7 +17,7 @@ Refusal checks, idempotent `down` (0 links / namespaces / QEMU / containers / ne
 | `wp8-integration` `RouterOsClosureTest` (CHR 7.24.5, independent clients) | 1/1 — PPPoE CHAP (pool address), Hotspot http-chap, all RouterOS Access-Requests with Message-Authenticator, Access-Accepts, Start / Interim / Stop without Message-Authenticator answered, application `CoAClient` disconnect from 10.88.0.10 -> Disconnect-ACK x2, `nas_id = 1`, Stop rows, Hotspot re-intercepted (302) |
 | WP4 `wp4-unit` + `wp4-integration` (new source guard + harness MA contract) | MariaDB 71/71 (599 assertions), MySQL 71/71 (599) |
 | PEAR2 `RouterOS\Client` from the runner (plain 8728) | login 0.26 s; `/system/resource`, `/radius`, `/radius incoming` (3799), `/ppp aaa` read; 14 PHP 8.2 deprecation notices (pre-existing, OBS-W8-6) |
-| AVAIA guard (valid snapshot 11:22:57Z -> check 11:49:53Z) | all 25 protected containers unchanged; no non-lab container event |
+| AVAIA guard (valid snapshot 11:22:57Z -> check 11:49:53Z) | all 25 protected containers unchanged. **Correction (recorded in S2):** the `docker events` query returned nothing for the window, but two NEW unattributed AVAIA containers were created during it (`avaia-wp2-pg-full` 11:28:25Z, `avaia-wp2-pg-rehearsal` 11:30:57Z; restart policy `no`); `docker events` history is not reliable here (healthcheck exec flood), so from S2 on every slice also diffs the full container list with creation times |
 
 Observation **OBS-W8-7** (pre-existing, not changed): RouterOS sends a NAS-level **Accounting-On** before its first
 accounting record; the stock `accounting-on` SQL query updates 0 rows when the NAS has no open session, the section

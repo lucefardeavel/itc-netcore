@@ -48,7 +48,8 @@ STEPS = [
     # Hotspot: explicit auth method http-chap only (no PAP, no MAC / cookie / trial login that could bypass RADIUS)
     ['/ip/hotspot/profile/add', '=name=nuxr_wp8_hs_prof', '=hotspot-address=10.88.2.1', '=login-by=http-chap',
      '=use-radius=yes', '=radius-accounting=yes', '=radius-interim-update=1m'],
-    ['/ip/hotspot/add', '=name=nuxr_wp8_hs', '=interface=ether4', '=address-pool=nuxr_wp8_pool_hs', '=profile=nuxr_wp8_hs_prof', '=disabled=no'],
+    # address-pool=none: the client keeps its DHCP address (no one-to-one NAT pool that could collide with DHCP)
+    ['/ip/hotspot/add', '=name=nuxr_wp8_hs', '=interface=ether4', '=address-pool=none', '=profile=nuxr_wp8_hs_prof', '=disabled=no'],
     # RADIUS (Simultaneous-Use) is the session-count authority: the local default user profile must not cap first
     ['/ip/hotspot/user/profile/set', '=numbers=default', '=shared-users=10'],
     ['/ip/service/set', '=numbers=api', '=address=10.88.0.0/24,10.0.2.0/24'],
