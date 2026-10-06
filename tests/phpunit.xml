@@ -24,6 +24,7 @@
             <exclude>Unit/Wp6b</exclude>
             <exclude>Unit/Wp6c</exclude>
             <exclude>Unit/Wp7</exclude>
+            <exclude>Unit/HotfixPaceXhrCsrf</exclude>
         </testsuite>
         <testsuite name="integration">
             <directory>Integration</directory>
@@ -103,6 +104,9 @@
         </testsuite>
         <testsuite name="wp7-integration">
             <directory>Integration/Wp7</directory>
+        </testsuite>
+        <testsuite name="hotfix-pace-unit">
+            <directory>Unit/HotfixPaceXhrCsrf</directory>
         </testsuite>
     </testsuites>
 </phpunit>

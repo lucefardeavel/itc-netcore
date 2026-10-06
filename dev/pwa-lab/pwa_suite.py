@@ -1140,6 +1140,327 @@ def t20(browser):
     return f'{len(results)} audits (phone Arabic + desktop English): axe serious/critical 0, no target < 44 px, no horizontal overflow'
 
 
+
+# ---------------------------------------------------------------- pre-WP8 hotfix R-WP7-CARRY-01 (Pace / XHR CSRF)
+def csrf_of(headers):
+    """the X-CSRF-Token value as sent ('' when absent); a duplicated header would arrive comma-joined"""
+    return headers.get('x-csrf-token', '')
+
+
+def token_ok(value, token):
+    return value == token and ',' not in value
+
+
+@check('T21', 'Hotfix: plan/recharge -> autoload/server and autoload/plan send exactly one correct X-CSRF-Token and render (root + /billing/, worker active + blocked)')
+def t21(browser):
+    notes = []
+    for base in (ROOT, SUB):
+        for sw in ('allow', 'block'):
+            kw = {} if sw == 'allow' else {'service_workers': 'block'}
+            ctx = new_ctx(browser, base, vp=DESK, **kw)
+            pg = staff_login(ctx, base, 'ad')
+            if sw == 'allow':
+                sw_ready(pg)
+            errors = []
+            pg.on('pageerror', lambda e: errors.append(str(e)[:160]))
+            reqs = []
+            pg.on('requestfinished', lambda r: reqs.append(r) if re.search(r'_route=autoload/(server|plan)\b', r.url) else None)
+            page_ready(pg, pg.goto(base + '?_route=plan/recharge', wait_until='networkidle'))
+            token = pg.evaluate('() => window.nuxrCsrfToken')
+            pg.locator('input[type=radio]#Hot').check(force=True)
+            pg.wait_for_function("() => !!document.querySelector('#server option[value=radius]')", timeout=10000)
+            pg.select_option('#server', 'radius', force=True)
+            pg.wait_for_function("() => document.querySelectorAll('#plan option').length > 1", timeout=10000)
+            pg.wait_for_timeout(500)
+            by = {k: [r for r in reqs if f'autoload/{k}' in r.url] for k in ('server', 'plan')}
+            for k, rs in by.items():
+                expect(len(rs) == 1, f'{base} {sw}: {len(rs)} autoload/{k} requests')
+                r = rs[0]
+                expect(r.method == 'POST' and r.response().status == 200, f'{base} {sw}: autoload/{k} {r.method} {r.response().status}')
+                expect(token_ok(csrf_of(r.all_headers()), token), f'{base} {sw}: autoload/{k} X-CSRF-Token {csrf_of(r.all_headers())[:12]!r}')
+            plans = pg.evaluate("() => Array.from(document.querySelectorAll('#plan option')).map(o => o.textContent.trim()).filter(Boolean)")
+            expect(any('Hotspot' in p for p in plans), f'{base} {sw}: plan list not rendered {plans}')
+            expect(not errors and pg.evaluate("() => typeof window.Pace === 'object'"), f'{base} {sw}: page errors {errors}')
+            notes.append(f'{base} {sw}: server 200 + plan 200, one exact token each, {len(plans) - 1} plan(s) rendered')
+            ctx.close()
+    return '; '.join(notes)
+
+
+PROBE_JS = """(cross) => new Promise(done0 => {
+  const out = {}; const T = setTimeout(() => done0(Object.assign({ TIMEOUT: true }, out)), 15000);
+  const done = () => { clearTimeout(T); done0(out); };
+  const xhr = (key, method, url, body, upload) => new Promise(res => {
+    const x = new XMLHttpRequest(); const ev = [];
+    x.addEventListener('readystatechange', () => ev.push('rs' + x.readyState));
+    ['load', 'error', 'abort', 'timeout', 'loadend'].forEach(t => x.addEventListener(t, () => ev.push(t)));
+    if (upload) { ['loadstart', 'progress', 'load', 'loadend'].forEach(t => x.upload.addEventListener(t, () => ev.push('up-' + t))); }
+    x.open(method, url); x.onloadend = () => { out[key] = { status: x.status, text: x.responseText, events: [...new Set(ev)].join(',') }; res(); };
+    x.send(body === undefined ? null : body); });
+  jQuery.ajax({ type: 'POST', url: '?_route=dashboard&nuxr_probe=jq-post', data: 'a=1',
+    success: (d, s) => { out.jqPost = { cb: 'success', data: d }; }, error: (x, s) => { out.jqPost = { cb: 'error:' + s }; },
+    complete: () => {
+      jQuery.get('?_route=dashboard&nuxr_probe=jq-get', d => { out.jqGet = { cb: 'success', data: d }; })
+        .always(() => xhr('nativePost', 'POST', '?_route=dashboard&nuxr_probe=native-post', 'a=1')
+        .then(() => xhr('nativeGet', 'GET', '?_route=dashboard&nuxr_probe=native-get'))
+        .then(() => xhr('upload', 'POST', '?_route=dashboard&nuxr_probe=upload', new Blob(['x'.repeat(4096)]), true))
+        .then(() => xhr('crossPost', 'POST', cross + '/upload?nuxr_probe=cross-post', new Blob(['y'.repeat(4096)]), true))
+        .then(() => xhr('crossGet', 'GET', cross + '/v?nuxr_probe=cross-get'))
+        .then(() => fetch('?_route=dashboard&nuxr_probe=fetch-post', { method: 'POST', body: 'a=1' }).then(r => r.text()).then(t => { out.fetchPost = { text: t }; }))
+        .then(done, done));
+    } });
+})"""
+CROSS = 'https://cross.example.invalid'
+
+
+def probe_routes(ctx, base):
+    seen = []
+    origin = base.split('/', 3)[0] + '//' + base.split('/', 3)[2]
+
+    def rec(route):
+        seen.append({'probe': re.search(r'nuxr_probe=([a-z-]+)', route.request.url).group(1), 'method': route.request.method,
+                     'csrf': csrf_of(route.request.headers)})
+        route.fulfill(status=200, body='ok', headers={'access-control-allow-origin': origin, 'content-type': 'text/plain'})
+    ctx.route(re.compile(r'nuxr_probe='), rec)
+    return seen
+
+
+@check('T22', 'Hotfix: XHR transport matrix - jQuery / native POST + GET, upload, fetch, cross-origin, customer portal, Pace; exactly one token, none cross-origin')
+def t22(browser):
+    notes = []
+    want_same = {'jq-post', 'jq-get', 'native-post', 'native-get', 'upload', 'fetch-post'}
+    for base in (ROOT, SUB):
+        for sw in ('allow', 'block'):
+            kw = {} if sw == 'allow' else {'service_workers': 'block'}
+            ctx = new_ctx(browser, base, vp=DESK, **kw)
+            seen = probe_routes(ctx, base)
+            pg = staff_login(ctx, base, 'ad')
+            if sw == 'allow':
+                sw_ready(pg)
+            errors = []
+            pg.on('pageerror', lambda e: errors.append(str(e)[:160]))
+            page_ready(pg, pg.goto(base + '?_route=dashboard', wait_until='networkidle'))
+            token = pg.evaluate('() => window.nuxrCsrfToken')
+            out = pg.evaluate(PROBE_JS, CROSS)
+            expect('TIMEOUT' not in out, f'{base} {sw}: probes timed out {out}')
+            counts = {}
+            for x in seen:
+                counts[x['probe']] = counts.get(x['probe'], 0) + 1
+            expect(all(counts.get(p) == 1 for p in want_same | {'cross-post', 'cross-get'}), f'{base} {sw}: request counts {counts}')
+            for x in seen:
+                if x['probe'] in want_same:
+                    expect(token_ok(x['csrf'], token), f"{base} {sw}: {x['probe']} token {x['csrf'][:12]!r}")
+                else:
+                    expect(x['csrf'] == '', f"{base} {sw}: cross-origin {x['probe']} carried X-CSRF-Token")
+            expect(out['jqPost'] == {'cb': 'success', 'data': 'ok'} and out['jqGet'] == {'cb': 'success', 'data': 'ok'}, f'jQuery callbacks {out}')
+            for k in ('nativePost', 'nativeGet'):
+                expect(out[k]['status'] == 200 and out[k]['text'] == 'ok' and out[k]['events'] == 'rs1,rs2,rs3,rs4,load,loadend',
+                       f'{base} {sw}: {k} {out[k]}')
+            # a test-fulfilled request (interception) emits only upload.loadstart in Chromium: the full sequence is checked on
+            # the real, un-intercepted upload below
+            for k in ('upload', 'crossPost'):
+                expect(out[k]['status'] == 200 and 'up-loadstart' in out[k]['events'] and out[k]['events'].endswith('load,loadend'), f'{base} {sw}: {k} {out[k]}')
+            real = []
+            pg.on('requestfinished', lambda r: real.append(r) if 'nuxr_upload=real' in r.url else None)
+            up = pg.evaluate("""() => new Promise(done => { const x = new XMLHttpRequest(); const ev = [];
+                ['loadstart', 'progress', 'load', 'loadend'].forEach(t => x.upload.addEventListener(t, () => ev.push('up-' + t)));
+                ['load', 'loadend'].forEach(t => x.addEventListener(t, () => ev.push(t)));
+                x.open('POST', '?_route=dashboard&nuxr_upload=real'); x.onloadend = () => setTimeout(() => done({ status: x.status, events: [...new Set(ev)].join(',') }), 0);
+                x.send(new Blob(['z'.repeat(256 * 1024)])); })""")
+            pg.wait_for_timeout(300)
+            expect(up['events'] == 'up-loadstart,up-progress,up-load,up-loadend,load,loadend', f'{base} {sw}: real upload events {up}')
+            expect(len(real) == 1 and token_ok(csrf_of(real[0].all_headers()), token), f'{base} {sw}: real upload request / token')
+            expect(out['fetchPost'] == {'text': 'ok'}, f'fetch {out}')
+            chain = pg.evaluate("""() => { const x = new XMLHttpRequest(); const p = Object.getPrototypeOf(x);
+                return { pace: typeof window.Pace, paceEl: !!document.querySelector('.pace'), ctorReplaced: !/native code/.test(String(window.XMLHttpRequest)),
+                         marker: Object.prototype.propertyIsEnumerable.call(p, '__nuxrCsrfXhr') ? 'enumerable' : (p.__nuxrCsrfXhr === true ? 'non-enumerable' : 'missing') }; }""")
+            expect(chain['pace'] == 'object' and chain['paceEl'] and chain['ctorReplaced'] and chain['marker'] == 'non-enumerable', f'{base} {sw}: chain {chain}')
+            expect(not errors, f'{base} {sw}: page errors {errors}')
+            notes.append(f'{base} {sw}: 6 same-origin probes one exact token, 2 cross-origin none, events + callbacks unchanged, upload events, Pace active')
+            ctx.close()
+    # customer portal: unchanged behaviour (no Pace; the native constructor is not replaced)
+    ctx = new_ctx(browser, ROOT, vp=DESK)
+    seen = probe_routes(ctx, ROOT)
+    pg = ctx.new_page()
+    pg.goto(ROOT + '?_route=login', wait_until='networkidle')
+    pg.fill('input[name=username]', 'mohammed.h')
+    pg.fill('input[name=password]', 'lab-mohammed.h')
+    with pg.expect_navigation():
+        pg.locator('form[action*="login/post"] button[type=submit]').click()
+    page_ready(pg, pg.goto(ROOT + '?_route=home', wait_until='networkidle'))
+    token = pg.evaluate('() => window.nuxrCsrfToken')
+    info = pg.evaluate("""() => ({ ctorNative: /native code/.test(String(window.XMLHttpRequest)), inst: (new XMLHttpRequest()) instanceof XMLHttpRequest,
+        protoIsCtor: Object.getPrototypeOf(new XMLHttpRequest()) === XMLHttpRequest.prototype, pace: typeof window.Pace, gate: typeof window.nuxrMutationGate })""")
+    out = pg.evaluate(PROBE_JS, CROSS)
+    expect(info == {'ctorNative': True, 'inst': True, 'protoIsCtor': True, 'pace': 'undefined', 'gate': 'undefined'}, f'customer page {info}')
+    for x in seen:
+        if x['probe'] in want_same:
+            expect(token_ok(x['csrf'], token), f"customer {x['probe']} token {x['csrf'][:12]!r}")
+        else:
+            expect(x['csrf'] == '', f"customer cross-origin {x['probe']} carried X-CSRF-Token")
+    expect(out['jqPost']['cb'] == 'success' and out['nativePost']['events'] == 'rs1,rs2,rs3,rs4,load,loadend', f'customer callbacks {out}')
+    ctx.close()
+    notes.append('customer portal: native constructor, instanceof intact, same-origin one exact token, cross-origin none (as before the hotfix)')
+    return '; '.join(notes)
+
+
+@check('T23', 'Hotfix: WP7 SLOW sends the XHR POST with the token; a genuine XHR network error keeps its semantics, triggers the heartbeat, carried the token, no retry')
+def t23(browser):
+    ctx = new_ctx(browser, ROOT, vp=DESK)
+    seen = probe_routes(ctx, ROOT)
+    pg = staff_login(ctx, ROOT, 'A')
+    sw_ready(pg)
+    page_ready(pg, pg.goto(ROOT + '?_route=dashboard', wait_until='networkidle'))
+    token = pg.evaluate('() => window.nuxrCsrfToken')
+    cdp = ctx.new_cdp_session(pg)
+    cdp.send('Network.enable')
+    cdp.send('Network.emulateNetworkConditions', {'offline': False, 'latency': 3000, 'downloadThroughput': -1, 'uploadThroughput': -1})
+    pg.evaluate("() => window.dispatchEvent(new Event('online'))")
+    pg.wait_for_function("() => document.body.getAttribute('data-nuxr-net') === 'slow'", timeout=30000)
+    slow = pg.evaluate("""() => new Promise(r => jQuery.ajax({ type: 'POST', url: '?_route=dashboard&nuxr_probe=slow-post', data: 'a=1',
+        success: () => r('success'), error: (x, s) => r('error:' + s) }))""")
+    cdp.send('Network.emulateNetworkConditions', {'offline': False, 'latency': 0, 'downloadThroughput': -1, 'uploadThroughput': -1})
+    slow_reqs = [x for x in seen if x['probe'] == 'slow-post']
+    expect(slow == 'success' and len(slow_reqs) == 1 and token_ok(slow_reqs[0]['csrf'], token), f'SLOW: {slow} {slow_reqs}')
+    pg.wait_for_function("() => document.body.getAttribute('data-nuxr-net') === 'online'", timeout=40000)
+    pg.wait_for_timeout(1500)
+    pings = ping_requests(pg)
+    failed = []
+    ctx.route(re.compile(r'nuxr_netfail=hotfix'), lambda r: (failed.append(csrf_of(r.request.headers)), r.abort('failed')))
+    t0 = time.time()
+    res = pg.evaluate("""() => new Promise(r => { const x = new XMLHttpRequest(); let n = 0;
+        x.onerror = () => { n++; setTimeout(() => r({ errors: n, status: x.status, state: x.readyState }), 0); };
+        x.open('POST', '?_route=dashboard&nuxr_netfail=hotfix'); x.send('a=1'); })""")
+    pg.wait_for_timeout(PING_WAIT)
+    near = [t - t0 for t, _ in pings if t >= t0]
+    expect(res == {'errors': 1, 'status': 0, 'state': 4}, f'caller error semantics {res}')
+    expect(len(failed) == 1 and token_ok(failed[0], token), f'attempted request: {len(failed)} sent, token {failed[:1]}')
+    expect(near and near[0] < 2.0, f'immediate heartbeat {near}')
+    ctx.close()
+    return f'SLOW: jQuery POST success, one request with the exact token; network error: caller error once (status 0, readyState 4), request sent once with the exact token, heartbeat after {near[0]:.2f} s, no retry'
+
+
+def swal_confirm(pg):
+    pg.wait_for_selector('.swal2-confirm', timeout=10000)
+    pg.locator('.swal2-confirm').click()
+
+
+@check('T24', 'Hotfix: restored legacy XHR operations on isolated lab fixtures (coupon / voucher bulk delete, bulk message TEST mode); Agent / Sales still refused')
+def t24(browser):
+    notes = []
+    ctx = new_ctx(browser, ROOT, vp=DESK)
+    pg = staff_login(ctx, ROOT, 'ad')
+    errors = []
+    pg.on('pageerror', lambda e: errors.append(str(e)[:160]))
+    xhrs = []
+    pg.on('requestfinished', lambda r: xhrs.append(r) if re.search(r'coupons/delete|voucher-delete-many|send_bulk_ajax', r.url) else None)
+    token = None
+    # coupons: two isolated fixtures created through the Admin form, then deleted through the restored XHR
+    codes = ['HFXC%d%s' % (i, str(int(time.time()))[-5:]) for i in (1, 2)]
+    for code in codes:
+        page_ready(pg, pg.goto(ROOT + '?_route=coupons/add', wait_until='networkidle'))
+        pg.fill('#code', code)
+        pg.select_option('#type', 'fixed')
+        pg.fill('#value', '1')
+        pg.fill('#nxf-description', 'hotfix lab fixture')
+        pg.fill('#nxf-min_order_amount', '1')
+        pg.fill('#nxf-max_discount_amount', '1')
+        pg.fill('#nxf-start_date', '2026-01-01')
+        pg.fill('#nxf-end_date', '2027-01-01')
+        with pg.expect_navigation():
+            pg.locator('form[action*="coupons/add-post"] [type=submit]').first.click()
+        pg.wait_for_load_state('networkidle')
+    page_ready(pg, pg.goto(ROOT + '?_route=coupons/list', wait_until='networkidle'))
+    token = pg.evaluate('() => window.nuxrCsrfToken')
+    for code in codes:
+        row = pg.locator('tr', has_text=code)
+        expect(row.count() == 1, f'coupon fixture {code} not listed')
+        row.locator('input[name="coupon_ids[]"]').check(force=True)
+    pg.locator('#deleteSelectedCoupons').click()
+    swal_confirm(pg)
+    pg.wait_for_selector('.swal2-title:has-text("Deleted")', timeout=10000)
+    r = [x for x in xhrs if 'coupons/delete' in x.url]
+    expect(len(r) == 1 and r[0].response().status == 200 and token_ok(csrf_of(r[0].all_headers()), token), 'coupon delete request')
+    expect(json.loads(r[0].response().text()).get('status') == 'success', 'coupon delete response ' + r[0].response().text()[:120])
+    swal_confirm(pg)
+    pg.wait_for_load_state('networkidle')
+    expect(all(pg.locator('tr', has_text=c).count() == 0 for c in codes), 'coupon fixtures still listed')
+    notes.append('coupon bulk delete: 1 XHR, 200 success, exact token, 2 lab fixtures removed')
+    # vouchers: generated through the voucher form (which itself uses the restored autoload/server + autoload/plan)
+    prefix = 'HFX%s-' % str(int(time.time()))[-5:]
+    page_ready(pg, pg.goto(ROOT + '?_route=plan/add-voucher', wait_until='networkidle'))
+    pg.locator('input[type=radio]#Hot').check(force=True)
+    pg.wait_for_function("() => !!document.querySelector('#server option[value=radius]')", timeout=10000)
+    pg.select_option('#server', 'radius', force=True)
+    pg.wait_for_function("() => document.querySelectorAll('#plan option').length > 1", timeout=10000)
+    first_plan = pg.evaluate("() => Array.from(document.querySelectorAll('#plan option')).map(o => o.value).filter(Boolean)[0]")
+    pg.select_option('#plan', first_plan, force=True)
+    pg.fill('#nxf-numbervoucher', '2')
+    pg.fill('#nxf-prefix', prefix)
+    pg.fill('#nxf-lengthcode', '8')
+    if pg.locator('#print_now').is_checked():
+        pg.locator('#print_now').uncheck(force=True)
+    pg.locator('form[action*="plan/voucher-post"] button[type=submit] >> visible=true').first.click()
+    with pg.expect_navigation():
+        pg.click('[data-nuxr-ask-ok]')  # the WP6C confirmation sheet of the voucher form
+    pg.wait_for_load_state('networkidle')
+    page_ready(pg, pg.goto(ROOT + '?_route=plan/voucher&search=' + prefix, wait_until='networkidle'))
+    boxes = pg.locator('tr', has_text=prefix).locator('input[name="voucher_ids[]"]')
+    expect(boxes.count() == 2, f'voucher fixtures listed: {boxes.count()}')
+    for i in range(boxes.count()):
+        boxes.nth(i).check(force=True)
+    pg.locator('#deleteSelectedVouchers').click()
+    swal_confirm(pg)
+    pg.wait_for_selector('.swal2-title:has-text("Deleted")', timeout=10000)
+    r = [x for x in xhrs if 'voucher-delete-many' in x.url]
+    expect(len(r) == 1 and r[0].response().status == 200 and token_ok(csrf_of(r[0].all_headers()), token), 'voucher delete request')
+    body = json.loads(r[0].response().text())
+    expect(body.get('status') == 'success' and body.get('skipped') == 0, 'voucher delete response ' + str(body))
+    swal_confirm(pg)
+    page_ready(pg, pg.goto(ROOT + '?_route=plan/voucher&search=' + prefix, wait_until='networkidle'))
+    expect(pg.locator('tr', has_text=prefix).count() == 0, 'voucher fixtures still listed')
+    notes.append('voucher bulk delete: generated 2 lab vouchers via the restored autoload paths, 1 XHR, 200 success (0 skipped), exact token, removed')
+    # bulk message: TEST mode only (no message is delivered); the whole lab customer set
+    page_ready(pg, pg.goto(ROOT + '?_route=message/send_bulk', wait_until='networkidle'))
+    pg.select_option('#group', 'all')
+    pg.select_option('#service', 'all')
+    pg.select_option('#via', 'sms')
+    pg.fill('#message', 'hotfix lab test [[name]]')
+    pg.locator('#test').check(force=True)
+    expect(pg.locator('#test').is_checked(), 'test mode not set')
+    pg.locator('#startBulk').click()
+    pg.wait_for_function("() => /All batches sent|Error/.test(document.getElementById('status').textContent)", timeout=30000)
+    r = [x for x in xhrs if 'send_bulk_ajax' in x.url]
+    expect(r and all(x.response().status == 200 and token_ok(csrf_of(x.all_headers()), token) for x in r), 'bulk message requests')
+    expect(all('test=on' in (x.post_data or '') for x in r), 'bulk message was not in TEST mode')
+    payload = json.loads(r[0].response().text())
+    statuses = {b.get('status') for b in payload.get('batchStatus', [])} if isinstance(payload.get('batchStatus'), list) else set()
+    expect(payload.get('status') == 'success' and statuses <= {'Test Mode', 'No Phone Number'}, f'bulk message response {str(payload)[:200]}')
+    # the legacy page has two id="status" elements; its jQuery writes to the first
+    expect('All batches sent' in pg.evaluate("() => document.getElementById('status').textContent"), 'bulk message UI did not complete')
+    notes.append(f'bulk message TEST mode: {len(r)} XHR(s), 200 success, exact token, statuses {sorted(statuses)} (nothing delivered)')
+    # pre-existing upstream legacy errors, unrelated to XHR: coupons/list calls $j('#datatable').DataTable() but never loads
+    # DataTables (upstream 2024-12 code); every other page error fails the check
+    legacy = [e for e in errors if 'DataTable is not a function' in e]
+    other = [e for e in errors if e not in legacy]
+    expect(not other, f'page errors {other}')
+    notes.append(f'pre-existing legacy page errors (DataTables not loaded on coupons/list): {len(legacy)}; other page errors: 0')
+    ctx.close()
+    # no privilege expansion: Agent and Sales stay refused by RouteGuard, from the browser transport too
+    for user in ('A', 'A1'):
+        ctx = new_ctx(browser, ROOT, vp=DESK)
+        pg = staff_login(ctx, ROOT, user)
+        page_ready(pg, pg.goto(ROOT + '?_route=dashboard', wait_until='networkidle'))
+        res = pg.evaluate("""() => Promise.all([
+            ['coupons/delete', 'couponIds=[999999]'], ['plan/voucher-delete-many', 'voucherIds=[999999]'],
+            ['message/send_bulk_ajax', 'group=all&service=all&via=sms&message=x&test=on']
+          ].map(([r, b]) => new Promise(done => { const x = new XMLHttpRequest(); x.open('POST', '?_route=' + r);
+            x.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); x.onloadend = () => done(r + ':' + x.status); x.send(b); })))""")
+        expect(all(x.endswith(':403') for x in res), f'{user}: {res}')
+        notes.append(f'{user}: {res} (RouteGuard; token present, still refused)')
+        ctx.close()
+    return '; '.join(notes)
+
+
 def main():
     only = set(filter(None, ARGS.only.split(',')))
     global PLAYWRIGHT
