@@ -123,6 +123,7 @@ down() {
   for n in "${LINKS[@]}"; do ip link show "$n" >/dev/null 2>&1 && ip link del "$n"; done
   [ -f "$S/secrets.env" ] && { set -a; . "$S/secrets.env"; set +a; }
   export WP1_DB_ROOT_PASSWORD="${WP1_DB_ROOT_PASSWORD:-down}" NUXR_RADIUS_SECRET="${NUXR_RADIUS_SECRET:-down}" NUXR_WP8_CHR_PASSWORD="${NUXR_WP8_CHR_PASSWORD:-down}"
+  docker rm -f nuxbill-reseller-test-wp8nasb >/dev/null 2>&1      # OD-W8-16 Option G gate: fake second NAS (if any)
   dc --profile wp8 --profile wp8-runner down -v --remove-orphans >/dev/null 2>&1
   docker network rm nuxbill-reseller-test_wp8lab >/dev/null 2>&1
   [ -f "$S/ctl/evidence.jsonl" ] && { mkdir -p "$S/evidence"; mv "$S/ctl/evidence.jsonl" "$S/evidence/evidence-$(date -u +%Y%m%dT%H%M%SZ).jsonl"; }

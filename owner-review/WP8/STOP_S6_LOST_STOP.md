@@ -98,3 +98,16 @@ production mapping and the new observation OBS-W8-8 (radacct time zone vs applic
 assert the observed fail-open behaviour); lab switches `dev/wp8/checkrad_gate.{py,sh}`.
 
 Status: **OD-W8-16 OPEN**; S6 remains ACCEPTED_WITH_BLOCKER; S7 / S8 not started.
+
+---
+
+## Owner third resolution round (2026-10-07) — OPTION G (fail-closed PPPoE post-auth session guard) — GATE PASSED
+
+Option F formally REJECTED by the owner (fail-open stock verification path). Option G investigated as a lab-only gate:
+existing `Simultaneous-Use` / `session { sql }` unchanged + a project-owned PPPoE post-auth guard that verifies the
+NAS of every open radacct row over read-only SNMP and accepts only a proven SAFE; LIVE, ERROR, timeout and anything
+unexpected -> Access-Reject. Result: **every mandatory gate passed** on the real RouterOS 7.24.5 - the lost-Stop
+lockout is resolved without reboot, freshness wait, deletion or fabricated Stop (stale row byte-for-byte unchanged),
+a live session stays protected with accounting lost > 190 s, and SNMP unreachable / tool missing / wrong community /
+missing credentials / unknown or malformed NAS all REJECT (never an Accept). Details:
+`evidence/od-w8-16-option-g-gate/GATE_RESULTS.md`. Permanent implementation follows in the next commit (owner §30).

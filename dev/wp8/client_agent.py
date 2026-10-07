@@ -304,7 +304,33 @@ def checkrad_trace(user):
     return {'lines': lines}
 
 
-OPS = {'checkrad_state': checkrad_state, 'checkrad_trace': checkrad_trace, 'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_start': pppoe_start, 'watch_active': watch_active, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
+def option_g(cmd, arg=None):
+    """OD-W8-16 Option G gate switches that do NOT restart FreeRADIUS (fault | nasb | state); result redacted"""
+    import option_g_gate
+    if cmd == 'fault':
+        res = option_g_gate.fault(arg)
+    elif cmd == 'nasb':
+        res = option_g_gate.nasb(arg[0], arg[1] if len(arg) > 1 else None)
+    else:
+        res = option_g_gate.state()
+    return json.loads(_redact(json.dumps(res)))
+
+
+def guard_invoke(argv):
+    """runs the candidate guard directly as the FreeRADIUS user with an exact argv (no shell)"""
+    assert isinstance(argv, list) and all(isinstance(a, str) for a in argv)
+    t0 = time.time()
+    p = sh(['docker', 'exec', '-u', 'freerad', FR, '/etc/freeradius/nuxr/nuxr_pppoe_session_guard', *argv], timeout=30)
+    return {'rc': p.returncode, 'out': _redact(p.stdout), 'err': _redact(p.stderr)[-300:], 'ms': int((time.time() - t0) * 1000)}
+
+
+def fr_canaries():
+    """files a successful shell injection would have created inside the FreeRADIUS container"""
+    p = sh(['docker', 'exec', FR, 'find', '/tmp', '/etc/freeradius', '-name', 'nuxr_pwn*'])
+    return {'found': [l for l in p.stdout.splitlines() if l]}
+
+
+OPS = {'option_g': option_g, 'guard_invoke': guard_invoke, 'fr_canaries': fr_canaries, 'checkrad_state': checkrad_state, 'checkrad_trace': checkrad_trace, 'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_start': pppoe_start, 'watch_active': watch_active, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
        'pppoe_wait_down': pppoe_wait_down, 'hs_dhcp': hs_dhcp, 'hs_login': hs_login, 'hs_logout': hs_logout, 'http_probe': http_probe,
        'traffic': traffic, 'ros': ros_cmd, 'fr': fr, 'nas_link': nas_link, 'fr_log': fr_log, 'capture_start': capture_start, 'capture_stop': capture_stop}
 

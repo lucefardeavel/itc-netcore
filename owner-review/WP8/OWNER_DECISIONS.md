@@ -182,3 +182,30 @@ time zone different from the application time zone, live sessions are reported s
 
 Carry-forwards unchanged: **R-WP8-CARRY-01**, **R-WP8-CARRY-02** (OPEN / PRE-EXISTING / MEDIUM / MUST CLOSE BEFORE
 PRODUCTION), **R-HF-CARRY-01**. OD-W8-16 OPEN; S6 ACCEPTED_WITH_BLOCKER; S7 / S8 not started.
+
+## OD-W8-16 third resolution round (2026-10-07) — additive record
+
+Owner: **Option F = REJECTED** (stock Simultaneous-Use verification path fails open: rlm_sql checksimul FAIL ->
+`process_checksimul()` allows; stock MikroTik checkrad maps SNMP failures to "not logged in"). Option E stays
+REJECTED; `/ppp profile only-one=yes` stays observation only. **Option G** selected for investigation: existing
+Simultaneous-Use + project-owned FAIL-CLOSED PPPoE post-auth session guard (real-NAS SNMP verification, tri-state
+SAFE / LIVE / ERROR, only SAFE accepts) + Hotspot Port-Limit; gate first, permanent change only if every gate passes.
+
+**Option G gate: PASSED** (clean run, `evidence/od-w8-16-option-g-gate/GATE_RESULTS.md`): discriminator, A-I,
+hostile usernames, Hotspot 1 / 2 / accounting lost, functional stock-checkrad variant. Two candidate defects were found
+BY the gate and fixed before the passing run (SQL key in post-auth; policy attributes in the guard's Access-Reject);
+two lab-harness incidents are disclosed there (duplicate agent; the disposable container's stock checkrad overwritten
+through a symlink - affected runs discarded, lab recreated).
+
+**R-WP8-CARRY-03 — ACCOUNTINGSERVICE STALE-SESSION TIME-ZONE MISMATCH** (from OBS-W8-8). Status: **OPEN —
+PRE-EXISTING — MEDIUM — NOT CAUSED BY WP8 — MUST CLOSE BEFORE PRODUCTION DEPLOYMENT.** FreeRADIUS writes radacct
+times with `FROM_UNIXTIME()` in the database session time zone; `AccountingService::staleSessions()` builds its cutoff
+from the PHP application clock; with different time zones a live session may be reported stale or a stale one missed.
+Not fixed. `staleSessions()` is not an authority for session admission (Option G uses real NAS state, not row age).
+
+**OBS-W8-9 (new, pre-existing, not fixed):** stock rlm_sql escapes usernames outside `safe_characters` (`=XX`; `"` and
+`\` backslash-escaped first) while PHPNuxBill stores the raw username -> such subscribers cannot authenticate (fails
+safe); whitespace usernames are refused by the stock `filter_username`.
+
+Carry-forwards: **R-WP8-CARRY-01**, **R-WP8-CARRY-02**, **R-WP8-CARRY-03**, **R-HF-CARRY-01** — all OPEN, production
+blockers unless separately closed; none fixed in WP8.

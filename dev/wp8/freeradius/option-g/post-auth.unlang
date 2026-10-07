@@ -1,0 +1,99 @@
+	#
+	#  WP8 OD-W8-16 Option G - FAIL-CLOSED PPPoE SESSION GUARD (backstop behind Simultaneous-Use / session { sql }).
+	#
+	#  Runs only here, in the normal post-auth section, i.e. for a request that authenticated AND passed the stock
+	#  Simultaneous-Use check (an already rejected request runs only Post-Auth-Type REJECT). FreeRADIUS 3.2.8 treats
+	#  any failure of the stock session verification (checkrad error / timeout / unreachable NAS) as "allow"; this
+	#  guard re-checks the real NAS and turns everything except a proven SAFE into Access-Reject.
+	#
+	#  PPPoE discriminator (RouterOS 7.24.5, captured in WP8): Service-Type = Framed-User AND Framed-Protocol = PPP
+	#  AND NAS-Port-Type = Ethernet. Hotspot (Service-Type = Login-User, NAS-Port-Type = Wireless-802.11) is NOT
+	#  guarded here: RouterOS enforces the Port-Limit reply attribute for Hotspot.
+	#
+	#  The open-row query needs the SAME key as session { sql } / accounting. Two traps caught by the WP8 gate: in
+	#  post-auth SQL-User-Name does not exist yet when a nested expansion inside %{sql:...} is evaluated (it silently
+	#  became '' and found no row), and a nested %{User-Name} differs from the stock key for '"' and '\' (the stock key
+	#  backslash-escapes them) - both would have skipped the verification. See the key construction below.
+	#
+	#  No open radacct row -> nothing to verify, no NAS query (first login). Open rows -> the DISTINCT NAS addresses
+	#  of those rows are verified by bin/nuxr_pppoe_session_guard: SAFE -> accept; LIVE, ERROR, timeout, missing
+	#  verdict, SQL failure or anything unexpected -> reject. radacct is only READ (history is never changed).
+	#
+	if ((&Service-Type == Framed-User) && (&Framed-Protocol == PPP) && (&NAS-Port-Type == Ethernet) && &control:Simultaneous-Use) {
+		# The radacct key must be EXACTLY the stock one: rlm_sql's SQL-User-Name (sql_set_user(): the expansion of
+		# sql_user_name = "%{User-Name}", which backslash-escapes '"' and '\'), escaped by the sql xlat like every
+		# stock query. A first, trivial %{sql:} call makes rlm_sql create that stock SQL-User-Name (sql_xlat() sets it
+		# and does not remove it); the open-row query then uses it. No SQL-User-Name -> cannot prove -> reject.
+		update request {
+			&Tmp-String-5 := "%{sql:SELECT '1'}"
+		}
+		if (!&SQL-User-Name || (&Tmp-String-5 != "1")) {
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		update request {
+			&Tmp-String-8 := "%{sql:SELECT CONCAT('n=', COUNT(*), ';', COALESCE(GROUP_CONCAT(DISTINCT nasipaddress ORDER BY nasipaddress SEPARATOR ','), '')) FROM radacct WHERE username = '%{SQL-User-Name}' AND acctstoptime IS NULL}"
+		}
+		if (&Tmp-String-8 == "n=0;") {
+			# first login: no open accounting row, nothing to verify
+		}
+		elsif (&Tmp-String-8 =~ /^n=[1-9][0-9]*;([0-9]{1,3}(\.[0-9]{1,3}){3}(,[0-9]{1,3}(\.[0-9]{1,3}){3})*)$/) {
+			update request {
+				&Tmp-String-9 := "%{1}"
+			}
+			update control {
+				&Tmp-String-7 !* ANY
+				&Tmp-String-6 !* ANY
+			}
+			# a reply Exec-Program / Exec-Program-Wait would make rlm_exec run THAT program instead
+			update reply {
+				&Exec-Program !* ANY
+				&Exec-Program-Wait !* ANY
+			}
+			# The module result never ends the section by itself (every return code continues here), so ONE explicit
+			# mapping decides: accept only for exit 0 (ok) WITH the verdict SAFE in the control list; LIVE (exit 1),
+			# ERROR (exit 2), timeout / kill (fail), a missing or unexpected verdict -> the reject block below, which
+			# also strips the policy reply attributes (on this path FreeRADIUS 3.2.8 does not run Post-Auth-Type REJECT).
+			nuxr_pppoe_session_guard {
+				reject = 1
+				fail = 1
+				ok = 1
+				handled = 1
+				invalid = 1
+				userlock = 1
+				notfound = 1
+				noop = 1
+				updated = 1
+			}
+			if (ok) {
+				if (&control:Tmp-String-7 == "SAFE") {
+					# proven: every NAS answered and the live PPPoE sessions are below Simultaneous-Use
+				}
+				else {
+					attr_filter.access_reject
+					update reply {
+						&Reply-Message := "Session verification failed"
+					}
+					reject
+				}
+			}
+			else {
+				attr_filter.access_reject
+				update reply {
+					&Reply-Message := "Session verification failed"
+				}
+				reject
+			}
+		}
+		else {
+			# SQL failure or unexpected open-row data: cannot prove safety
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+	}

@@ -1,0 +1,205 @@
+#!/bin/sh
+# nuxr_pppoe_session_guard - PHPNuxBill project-owned, FAIL-CLOSED PPPoE live-session verifier (WP8 OD-W8-16 Option G).
+#
+# Called ONLY by the FreeRADIUS exec module "nuxr_pppoe_session_guard" from the post-auth policy of the phpnuxbill
+# virtual server, for a PPPoE Access-Request that already passed authentication AND the stock Simultaneous-Use check,
+# and only when radacct still has OPEN rows for the username. It asks every NAS named by those rows, over read-only
+# SNMP, whether the username has a live PPPoE interface right now.
+#
+#   nuxr_pppoe_session_guard USERNAME_HEX LIMIT NAS_IP[,NAS_IP...]
+#
+#   USERNAME_HEX  the raw bytes of the RADIUS User-Name in hex (%{hex:&User-Name}): no quoting, escaping or shell
+#                 meaning can survive in it, and it is compared byte-exactly (never decoded, never interpreted)
+#   LIMIT     Simultaneous-Use of the subscriber (1..99)
+#   NAS_IP    the DISTINCT radacct.nasipaddress values of the open rows (dotted IPv4, 1..16 addresses)
+#
+# Result (stdout, parsed by FreeRADIUS into the control list) and exit status - EXACT tri-state:
+#   Tmp-String-7 = "SAFE"   exit 0   every NAS answered and the live PPPoE sessions are below LIMIT
+#   Tmp-String-7 = "LIVE"   exit 1   live PPPoE sessions for USERNAME >= LIMIT (any NAS)
+#   Tmp-String-7 = "ERROR"  exit 2   anything that cannot be proven: bad input, missing credentials, SNMP health
+#                                    failure, timeout, missing tool, malformed SNMP output, empty interface table
+#   Tmp-String-6 = per-NAS detail (addresses, results, elapsed ms; never the community, never the username)
+# LIVE wins over ERROR (both reject); ERROR wins over SAFE. The FreeRADIUS policy rejects everything except SAFE.
+#
+# SNMP: v2c, read-only, community from the protected credential file (one "NAS_IP COMMUNITY" per line, generated
+# from the PHPNuxBill nas table, mode 0600, owned by the FreeRADIUS user) - NEVER on a command line: it is written to
+# a private per-run net-snmp configuration (SNMPCONFPATH) that is deleted on exit. Per NAS: an explicit health probe
+# (sysUpTime.0) FIRST, then a walk of MIKROTIK-MIB mtxrInterfaceStatsName (1.3.6.1.4.1.14988.1.1.14.1.1.2), in hex
+# (-Ox), compared byte-exactly with "<pppoe-USERNAME>" or "<pppoe-USERNAME-N>" (RouterOS duplicate suffix). Empty or
+# unparseable output is ERROR, never "offline". NAS queries run in parallel; 1 s SNMP timeout, no retries, hard total
+# deadline below 2 s.
+set -uf
+umask 077
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+LC_ALL=C
+export LC_ALL
+
+CREDS=/etc/freeradius/nuxr/nas_snmp
+OID_UPTIME=.1.3.6.1.2.1.1.3.0
+OID_IFNAME=.1.3.6.1.4.1.14988.1.1.14.1.1.2
+DEADLINE_TICKS=36          # x 0.05 s = 1.8 s for all NAS together
+T0=$(date +%s%N)
+WORK=''
+
+verdict() {
+	printf 'Tmp-String-7 = "%s"\nTmp-String-6 = "%s ms=%s"\n' "$1" "$2" "$(( ($(date +%s%N) - T0) / 1000000 ))"
+	case $1 in
+	SAFE) exit 0 ;;
+	LIVE) exit 1 ;;
+	*) exit 2 ;;
+	esac
+}
+
+cleanup() {
+	if [ -n "$WORK" ] && [ -d "$WORK" ]; then
+		rm -rf -- "$WORK"
+	fi
+}
+trap cleanup EXIT
+trap 'exit 2' HUP INT TERM
+
+hex() { printf '%s' "$1" | od -An -v -tx1 | tr -d ' \n' | tr 'a-f' 'A-F'; }
+
+valid_ip() {
+	case $1 in
+	*[!0-9.]* | .* | *. | *..*) return 1 ;;
+	esac
+	old_ifs=$IFS; IFS=.
+	# shellcheck disable=SC2086
+	set -- $1
+	IFS=$old_ifs
+	[ $# -eq 4 ] || return 1
+	for o in "$@"; do
+		case $o in
+		'' | ????*) return 1 ;;
+		0?*) return 1 ;;
+		esac
+		[ "$o" -le 255 ] || return 1
+	done
+	return 0
+}
+
+# ---------------------------------------------------------------- input
+[ $# -eq 3 ] || verdict ERROR "argc"
+USER_HEX=$1
+LIMIT=$2
+NAS_LIST=$3
+case $USER_HEX in
+'' | *[!0-9A-Fa-f]*) verdict ERROR "username-hex" ;;
+esac
+USER_HEX=$(printf '%s' "$USER_HEX" | tr 'a-f' 'A-F')
+len=${#USER_HEX}
+[ $((len % 2)) -eq 0 ] && [ "$len" -le 506 ] || verdict ERROR "username-length"
+# control characters (00-1F, 7F) are never a valid PPPoE username here
+printf '%s' "$USER_HEX" | fold -w2 | grep -qE '^(0[0-9A-F]|1[0-9A-F]|7F)$' && verdict ERROR "username-control-char"
+case $LIMIT in
+[1-9] | [1-9][0-9]) ;;
+*) verdict ERROR "limit" ;;
+esac
+[ -n "$NAS_LIST" ] || verdict ERROR "no-nas"
+NAS=''
+n=0
+old_ifs=$IFS; IFS=,
+for ip in $NAS_LIST; do
+	IFS=$old_ifs
+	valid_ip "$ip" || verdict ERROR "malformed-nas"
+	case " $NAS " in *" $ip "*) continue ;; esac
+	NAS="$NAS $ip"
+	n=$((n + 1))
+done
+IFS=$old_ifs
+[ "$n" -ge 1 ] && [ "$n" -le 16 ] || verdict ERROR "nas-count"
+[ -r "$CREDS" ] || verdict ERROR "no-credential-file"
+
+PREFIX="$(hex '<pppoe-')$USER_HEX"
+[ -n "$PREFIX" ] || verdict ERROR "hex"
+WORK=$(mktemp -d /tmp/nuxr-guard.XXXXXXXX) || verdict ERROR "tmp"
+
+# ---------------------------------------------------------------- one NAS (background job; result file = last line)
+check_nas() {
+	ip=$1; out=$2; d=$3
+	comm=$(awk -v ip="$ip" '$1 == ip { print $2; exit }' "$CREDS")
+	case $comm in
+	'' | *[!A-Za-z0-9._-]*) echo "ERROR:credentials" > "$out"; return ;;
+	esac
+	mkdir "$d" || { echo "ERROR:tmp" > "$out"; return; }
+	printf 'defCommunity %s\ndefVersion 2c\nhexOutputLength 0\nmibs :\n' "$comm" > "$d/snmp.conf" || { echo "ERROR:tmp" > "$out"; return; }
+	h=$(SNMPCONFPATH=$d SNMP_PERSISTENT_DIR=$d MIBS= snmpget -r0 -t1 -On "$ip" "$OID_UPTIME" 2>/dev/null) || { echo "ERROR:health" > "$out"; return; }
+	case $h in
+	"$OID_UPTIME = Timeticks: ("[0-9]*")"*) ;;
+	*) echo "ERROR:health-format" > "$out"; return ;;
+	esac
+	w=$(SNMPCONFPATH=$d SNMP_PERSISTENT_DIR=$d MIBS= snmpbulkwalk -r0 -t1 -On -Ox -Cr50 "$ip" "$OID_IFNAME" 2>/dev/null) || { echo "ERROR:walk" > "$out"; return; }
+	printf '%s\n' "$w" | awk -v oid="$OID_IFNAME" -v pfx="$PREFIX" '
+		BEGIN { rows = 0; live = 0; bad = 0; base = oid "." }
+		$0 == "" { next }
+		{
+			if (index($0, base) != 1) { bad = 1; next }
+			rest = substr($0, length(base) + 1)
+			if (match(rest, /^[0-9]+ = /) == 0) { bad = 1; next }
+			val = substr(rest, RLENGTH + 1)
+			if (val == "\"\"") { rows++; next }
+			if (substr(val, 1, 12) != "Hex-STRING: ") { bad = 1; next }
+			h = substr(val, 13); gsub(/ /, "", h)
+			if (h !~ /^([0-9A-F][0-9A-F])*$/) { bad = 1; next }
+			rows++
+			if (h == pfx "3E") { live++; next }
+			if (index(h, pfx "2D") == 1) {
+				tail = substr(h, length(pfx) + 3)
+				if (tail ~ /^(3[0-9])+3E$/) live++
+			}
+		}
+		END {
+			if (bad) print "ERROR:walk-format"
+			else if (rows == 0) print "ERROR:walk-empty"
+			else if (live > 0) print "LIVE:" live
+			else print "SAFE"
+		}' > "$out.tmp" && mv "$out.tmp" "$out" || echo "ERROR:parse" > "$out"
+}
+
+i=0
+PIDS=''
+for ip in $NAS; do
+	i=$((i + 1))
+	check_nas "$ip" "$WORK/r$i" "$WORK/c$i" &
+	PIDS="$PIDS $!"
+done
+
+ticks=0
+while :; do
+	done_n=0
+	k=0
+	for ip in $NAS; do
+		k=$((k + 1))
+		[ -s "$WORK/r$k" ] && done_n=$((done_n + 1))
+	done
+	[ "$done_n" -eq "$n" ] && break
+	ticks=$((ticks + 1))
+	if [ "$ticks" -ge "$DEADLINE_TICKS" ]; then
+		for p in $PIDS; do kill -9 "$p" 2>/dev/null; done
+		break
+	fi
+	sleep 0.05
+done
+
+# ---------------------------------------------------------------- decision
+live_total=0
+errors=0
+detail=''
+k=0
+for ip in $NAS; do
+	k=$((k + 1))
+	r=$(cat "$WORK/r$k" 2>/dev/null)
+	case $r in
+	SAFE) ;;
+	LIVE:[0-9]*) live_total=$((live_total + ${r#LIVE:})) ;;
+	ERROR:*) errors=$((errors + 1)) ;;
+	'') r="ERROR:timeout"; errors=$((errors + 1)) ;;
+	*) r="ERROR:result"; errors=$((errors + 1)) ;;
+	esac
+	detail="$detail$ip=$r;"
+done
+[ "$live_total" -ge "$LIMIT" ] && verdict LIVE "$detail"
+[ "$errors" -eq 0 ] || verdict ERROR "$detail"
+verdict SAFE "$detail"
