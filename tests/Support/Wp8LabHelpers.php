@@ -40,7 +40,7 @@ trait Wp8LabHelpers
         foreach (['c1', 'c3'] as $c) {
             Wp8Lab::agent('pppoe_down', ['client' => $c]);
         }
-        foreach (['c2', 'c4'] as $c) {
+        foreach (['c2', 'c4', 'c5'] as $c) {
             Wp8Lab::agent('hs_logout', ['client' => $c]);
         }
     }

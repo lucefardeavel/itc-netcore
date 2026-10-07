@@ -22,8 +22,8 @@ ROS_VERSION=7.24.5
 ZIP_SHA=16f07222a3213352c9c4fbea4f4dec6a8ffb78fdc0fa5e398c23103ed357c6eb
 IMG_SHA=e4caf173aceb497433c5fc285bffee09c1e6761dfe0e658a2b178970249fc2d2
 IMG="$S/img/chr-$ROS_VERSION.img"
-LINKS=(wp8tap1 wp8tap2 wp8tap3 wp8br1 wp8br2 wp8v1h wp8v2h wp8v3h wp8v4h wp8vsh)
-NETNS=(wp8c1 wp8c2 wp8c3 wp8c4 wp8srv)
+LINKS=(wp8tap1 wp8tap2 wp8tap3 wp8br1 wp8br2 wp8v1h wp8v2h wp8v3h wp8v4h wp8v5h wp8vsh)
+NETNS=(wp8c1 wp8c2 wp8c3 wp8c4 wp8c5 wp8srv)
 log() { echo "[wp8 $(date -u +%T)] $*"; }
 dc() { docker compose -f "$REPO/dev/test/compose.yml" -f "$HERE/compose.wp8.yml" --project-directory "$REPO/dev/test" "$@"; }
 secrets() {
@@ -92,6 +92,7 @@ SQL
            ip netns exec "$1" ip link set lo up; ip netns exec "$1" ip link set "$3" up; }
   mkns wp8c1 wp8v1h wp8v1c wp8br1; mkns wp8c3 wp8v3h wp8v3c wp8br1     # PPPoE clients A, B
   mkns wp8c2 wp8v2h wp8v2c wp8br2; mkns wp8c4 wp8v4h wp8v4c wp8br2     # Hotspot clients A, B
+  mkns wp8c5 wp8v5h wp8v5c wp8br2                                      # Hotspot client C (Port-Limit 2 gate)
   mkns wp8srv wp8vsh wp8vsc wp8lab0                                    # traffic peer on the lab network
   ip netns exec wp8srv ip addr add 10.88.0.40/24 dev wp8vsc
   ip netns exec wp8srv ip route add 10.88.10.0/24 via 10.88.0.2; ip netns exec wp8srv ip route add 10.88.2.0/24 via 10.88.0.2

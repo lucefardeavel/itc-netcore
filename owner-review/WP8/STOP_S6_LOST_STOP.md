@@ -29,3 +29,44 @@ count only live sessions. Real-world triggers: any FreeRADIUS / network / databa
 
 Recommendation: **A** now (automatic, configuration-only, no authority change), optionally **C** later for operator
 visibility. Any option requires owner approval before implementation; WP8 resumes at S6 closure / S7 afterwards.
+
+---
+
+## Owner resolution (2026-10-07) — OD-W8-16 = OPTION E, conditional on a Port-Limit gate — GATE FAILED (PPPoE)
+
+Owner decision: **OD-W8-16 = OPTION E** — freshness-aware Simultaneous-Use (180 s window, 60 s interim) **plus**
+NAS-side `Port-Limit` as a required second enforcement layer; implementation (`RadiusPolicyBuilder` Port-Limit reply,
+project-owned `simul_count_query` / `simul_verify_query`) conditionally authorized **only if** a lab-only gate proves
+on the real RouterOS 7.24.5 that Port-Limit enforces the live-session limit for **both** PPPoE and Hotspot.
+Status recorded per instruction: **IMPLEMENTATION CANDIDATE -> gate run -> NOT IMPLEMENTED (gate failed).**
+
+### Gate (lab only; Port-Limit reply injected into disposable subscriber policy, Simultaneous-Use removed so the NAS is
+### the only enforcer; NAS active table sampled every 0.5 s while the competing client tried) — `PortLimitGateTest`
+
+| Case | RouterOS 7.24.5 behaviour | Gate |
+|---|---|---|
+| PPPoE, Port-Limit 1, C1 live, C2 same username | FreeRADIUS Access-Accept to C2 **carries Port-Limit = 1** (debug reply + capture: attribute 62 on the wire in both Access-Accepts); RouterOS logs `logged in` twice and creates `<pppoe-USER>` **and** `<pppoe-USER-1>`; both clients keep an address (10.88.10.149 / .148), `/ppp active` shows **2 live sessions** (`radius=true`) for the whole 35 s window | **FAILED** |
+| PPPoE, Port-Limit 1, accounting (UDP 1813) lost 190 s, SQL count bypassed | same: Access-Accept with Port-Limit 1, second session admitted, **2 live sessions** | **FAILED** |
+| Hotspot, Port-Limit 1 (`shared_users 1`) | 1st client logged in; 2nd: RADIUS Access-Accept, **RouterOS refuses** the login (back to the login page); never more than 1 active | PASSED |
+| Hotspot, Port-Limit 2 (`shared_users 2`) | 1st and 2nd logged in; 3rd: Access-Accept, **refused by RouterOS**; never more than 2 active | PASSED |
+| Hotspot, Port-Limit 1, accounting lost 190 s, SQL count bypassed | 2nd device refused by RouterOS; never more than 1 active | PASSED |
+
+Why Option E fails: on RouterOS 7.24.5 the RADIUS `Port-Limit` reply is enforced by the **Hotspot** service but
+**ignored by the PPPoE server**. With the freshness query, a live PPPoE session whose accounting is lost for > 180 s
+would no longer be counted and a second real PPPoE session would be admitted — Option E would trade the permanent
+lockout for duplicate PPPoE sessions. Per the owner instruction the freshness query and the RadiusPolicyBuilder change
+were **not implemented**.
+
+### Additional lab observation (not implemented; for the owner decision)
+
+With RouterOS' own NAS-side PPP control **`/ppp profile only-one=yes`** on the PPPoE server profile (lab profile
+`nuxr_wp8_pppoe`, restored to `default` afterwards), Simultaneous-Use removed and accounting lost: FreeRADIUS accepted
+the second client and **RouterOS tore the newcomer down within ~1-2 s**; C1 kept its session and the second client
+never obtained an IPv4 (`testObservationPppProfileOnlyOne`, three runs). In one of the three runs the 0.5 s sampler saw
+a **transient second `/ppp active` entry with an address (10.88.10.136) for one sample** before the teardown, so
+`only-one=yes` is **not** a strict "never two live sessions" guarantee - it is a fast newcomer rejection. PPPoE
+subscribers always have a limit of 1 in the accepted policy, so this NAS setting is a candidate PPPoE second layer (a
+NAS-configuration requirement rather than a RADIUS attribute) — owner decision required, e.g. Option E' = freshness +
+Port-Limit for Hotspot + `only-one=yes` on every PPPoE server profile, accepting the observed ~1-2 s transient.
+
+Evidence: `evidence/od-w8-16-gate/` (redacted), `tests/Integration/Wp8/PortLimitGateTest.php`.

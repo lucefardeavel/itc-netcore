@@ -147,3 +147,22 @@ project configuration) in `STOP_S6_LOST_STOP.md`.
 
 Carry-forwards unchanged: **R-WP8-CARRY-01** OPEN / PRE-EXISTING / MEDIUM (must close before production);
 **R-HF-CARRY-01** OPEN / PRE-EXISTING / MEDIUM.
+
+## OD-W8-16 decision round (2026-10-07) — additive record
+
+Owner verdicts: **S4 = ACCEPTED**; **S5 = ACCEPTED_WITH_NOTE** (note = R-WP8-CARRY-02); **S6 = ACCEPTED_WITH_BLOCKER**
+(blocker = OD-W8-16).
+
+**R-WP8-CARRY-02 — OLD RADIUS SESSION SURVIVES USERNAME REPROVISION** (from OD-W8-15). Status: **OPEN — PRE-EXISTING —
+MEDIUM — NOT CAUSED BY WP8 — MUST BE CLOSED BEFORE PRODUCTION DEPLOYMENT.** An Admin IDENTITY_EDIT username change can
+leave the OLD username's active RouterOS session alive while the NEW username authenticates (two simultaneous sessions
+beyond the intended limit; evidence `evidence/s5/`). Privileged action only; no unpaid service, no cross-tenant access;
+does not block the POC. Not fixed in WP8. To be resolved before production together with R-WP8-CARRY-01 and
+R-HF-CARRY-01.
+
+**OD-W8-16 = OPTION E** (freshness-aware Simultaneous-Use + NAS-side Port-Limit), implementation conditional on a
+real-NAS Port-Limit gate for PPPoE AND Hotspot. Status: **IMPLEMENTATION CANDIDATE -> GATE FAILED FOR PPPoE ->
+NOT IMPLEMENTED.** RouterOS 7.24.5 enforces Port-Limit on Hotspot (1 and 2) but its PPPoE server ignores it (two live
+PPPoE sessions with Port-Limit 1 in the Access-Accept). Details, packet evidence and a lab observation of
+`/ppp profile only-one=yes` (which does hold PPPoE to one live session) in `STOP_S6_LOST_STOP.md` (owner resolution
+section). WP8 stays stopped; S6 remains ACCEPTED_WITH_BLOCKER; S7 / S8 not started.

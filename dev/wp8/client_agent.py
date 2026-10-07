@@ -16,7 +16,7 @@ STATE = os.environ['NUXR_WP8_STATE']
 CTL = f'{STATE}/ctl'
 SEC = dict(l.strip().split('=', 1) for l in open(f'{STATE}/secrets.env') if '=' in l and not l.startswith('#'))
 FR = 'nuxbill-reseller-test-freeradius-wp8-1'
-CLIENTS = {'c1': ('wp8c1', 'wp8v1c', 1), 'c3': ('wp8c3', 'wp8v3c', 3), 'c2': ('wp8c2', 'wp8v2c', 2), 'c4': ('wp8c4', 'wp8v4c', 4)}
+CLIENTS = {'c1': ('wp8c1', 'wp8v1c', 1), 'c3': ('wp8c3', 'wp8v3c', 3), 'c2': ('wp8c2', 'wp8v2c', 2), 'c4': ('wp8c4', 'wp8v4c', 4), 'c5': ('wp8c5', 'wp8v5c', 5)}
 PPPD = {}
 CAPS = {}
 
@@ -73,6 +73,36 @@ def pppoe_up(client, user, password, wait=40):
 def _pppd_log(txt):
     keep = [l for l in txt.splitlines() if re.search(r'PADO|PADS|CHAP|authentication|local  IP|remote IP|TermReq|hangup|terminated|Connection|radius|exit', l, re.I)]
     return keep[-14:]
+
+
+def pppoe_start(client, user, password):
+    """non-blocking pppd start (the caller then watches the NAS / pppoe_state)"""
+    ns, nic, unit = CLIENTS[client]
+    pppoe_down(client)
+    d = f'{STATE}/run/{client}'; os.makedirs(d, mode=0o700, exist_ok=True)
+    log = f'{d}/pppd.log'; open(log, 'w').close()
+    opts = f'{d}/pppd.opts'
+    with open(opts, 'w') as f:
+        os.chmod(opts, 0o600)
+        f.write(open(os.path.dirname(os.path.abspath(__file__)) + '/pppd-client.opts.tpl').read()
+                .replace('@NIC@', nic).replace('@UNIT@', str(unit)).replace('@LOG@', log)
+                .replace('@USER@', user).replace('@PASSWORD@', password))
+    PPPD[client] = subprocess.Popen(['ip', 'netns', 'exec', ns, 'pppd', 'file', opts], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(1.0); os.unlink(opts)
+    return {'ok': True}
+
+
+def watch_active(kind, user, seconds=30, interval=0.5):
+    """samples the NAS active table for $user: max simultaneous live sessions over the window"""
+    path = {'ppp': '/ppp/active/print', 'hotspot': '/ip/hotspot/active/print'}[kind]
+    key = '?name=' if kind == 'ppp' else '?user='
+    r = ros(); samples = []; t0 = time.time()
+    while time.time() - t0 < seconds:
+        rows = [a for k, a in r.talk([path, key + user]) if k == '!re']
+        samples.append([round(time.time() - t0, 1), len(rows), [x.get('address') for x in rows]])
+        time.sleep(interval)
+    r.close()
+    return {'max': max(s[1] for s in samples), 'samples': samples[::max(1, len(samples) // 20)], 'n': len(samples)}
 
 
 def pppoe_state(client):
@@ -254,7 +284,7 @@ def capture_stop(name):
     return {'packets': out, 'file': os.path.basename(f)}
 
 
-OPS = {'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
+OPS = {'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_start': pppoe_start, 'watch_active': watch_active, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
        'pppoe_wait_down': pppoe_wait_down, 'hs_dhcp': hs_dhcp, 'hs_login': hs_login, 'hs_logout': hs_logout, 'http_probe': http_probe,
        'traffic': traffic, 'ros': ros_cmd, 'fr': fr, 'nas_link': nas_link, 'fr_log': fr_log, 'capture_start': capture_start, 'capture_stop': capture_stop}
 
