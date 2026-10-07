@@ -247,8 +247,16 @@ def fr_log(pattern, since=None):
     return {'lines': [_redact(l) for l in lines[-200:]]}
 
 
+def _lab_secrets():
+    """secrets.env plus the OD-W8-16 checkrad gate SNMP community (snmp.env, created later by checkrad_gate.py)"""
+    vals = set(SEC.values())
+    if os.path.exists(f'{STATE}/snmp.env'):
+        vals |= {l.strip().split('=', 1)[1] for l in open(f'{STATE}/snmp.env') if '=' in l}
+    return vals
+
+
 def _redact(s):
-    for v in sorted({v for v in SEC.values() if len(v) >= 6}, key=len, reverse=True):
+    for v in sorted({v for v in _lab_secrets() if len(v) >= 6}, key=len, reverse=True):
         s = s.replace(v, '[REDACTED]')
     return re.sub(r'(User-Password|Cleartext-Password|CHAP-Password)\s*=\s*\S+', r'\1 = [REDACTED]', s)
 
@@ -284,7 +292,19 @@ def capture_stop(name):
     return {'packets': out, 'file': os.path.basename(f)}
 
 
-OPS = {'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_start': pppoe_start, 'watch_active': watch_active, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
+def checkrad_state():
+    """OD-W8-16 checkrad gate state (read-only; never contains the community)"""
+    import checkrad_gate
+    return json.loads(_redact(json.dumps(checkrad_gate.state())))
+
+
+def checkrad_trace(user):
+    """the checkrad runs FreeRADIUS made for $user (trace wrapper lines) plus the session-section decisions"""
+    lines = fr_log(r'\[wp8-checkrad\] .*user=' + re.escape(user) + r' |checkrad: |Check-TS|Failed to check the terminal server|Multiple logins|delete_stale|snmpwalk|-r: not found')['lines']
+    return {'lines': lines}
+
+
+OPS = {'checkrad_state': checkrad_state, 'checkrad_trace': checkrad_trace, 'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_start': pppoe_start, 'watch_active': watch_active, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
        'pppoe_wait_down': pppoe_wait_down, 'hs_dhcp': hs_dhcp, 'hs_login': hs_login, 'hs_logout': hs_logout, 'http_probe': http_probe,
        'traffic': traffic, 'ros': ros_cmd, 'fr': fr, 'nas_link': nas_link, 'fr_log': fr_log, 'capture_start': capture_start, 'capture_stop': capture_stop}
 

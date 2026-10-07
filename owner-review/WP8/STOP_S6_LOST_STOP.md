@@ -70,3 +70,31 @@ NAS-configuration requirement rather than a RADIUS attribute) — owner decision
 Port-Limit for Hotspot + `only-one=yes` on every PPPoE server profile, accepting the observed ~1-2 s transient.
 
 Evidence: `evidence/od-w8-16-gate/` (redacted), `tests/Integration/Wp8/PortLimitGateTest.php`.
+
+---
+
+## Owner second resolution round (2026-10-07) — OPTION F (checkrad real-NAS verification) — GATE FAILED (Gate D)
+
+Owner verdicts recorded: **Option E formally REJECTED** (PPPoE ignores Port-Limit; no freshness query, no PPPoE
+Port-Limit; the Option E gate evidence above stays as written). **`/ppp profile only-one=yes` is NOT an accepted
+solution** — MikroTik's PPP AAA documentation states "Only-one parameter is ignored if RADIUS authentication is used";
+the lab teardown above is recorded as an **observation only**. Owner selected **OPTION F** for investigation: SQL
+Simultaneous-Use + real-NAS verification of open radacct rows by the stock FreeRADIUS 3.2.8 checkrad
+(`nas.type = mikrotik_snmp`, SNMP read-only), `delete_stale_sessions = no`, gate first, no runtime change before it.
+
+| Gate | Result |
+|---|---|
+| A healthy live PPPoE duplicate | PASS — checkrad asked the NAS (exit 1), Access-Reject, never two sessions |
+| B lost Stop, session gone | PASS — checkrad exit 0, login allowed without reboot / timeout / delete / fake Stop; stale row byte-for-byte unchanged; `staleSessions()` still reports it |
+| C accounting lost 190 s, session live | PASS — checkrad exit 1, Access-Reject, never two sessions |
+| **D verification failure** | **FAIL — fails OPEN**: SNMP client unavailable -> checkrad exit 0 -> Access-Accept -> **two real PPPoE sessions**; checkrad exit 2 -> `Failed to check the terminal server` -> `session = fail` -> Access-Accept -> **two real PPPoE sessions**; RouterOS SNMP unreachable -> exit 0 after ~10 s -> Access-Accept (no second session only because RouterOS had already timed out) |
+| E `nas.type = other` control | PASS — checkrad not run, stale row trusted, lockout reproduced |
+| Hotspot 1 / 2 / accounting lost | PASS at the RouterOS layer — checkrad cannot see Hotspot sessions (exit 0), FreeRADIUS admits, RouterOS Port-Limit refuses |
+
+Per owner sections 13 and 23: **STOP. Option F is not implemented** (no `install/freeradius/**` change, no
+`RadiusPolicyBuilder` / Hotspot Port-Limit change, no permanent image change). Exact trace, stock source analysis,
+production mapping and the new observation OBS-W8-8 (radacct time zone vs application clock in `staleSessions()`):
+`evidence/od-w8-16-checkrad-gate/GATE_RESULTS.md`; tests `tests/Integration/Wp8/CheckradGateTest.php` (Gate D tests
+assert the observed fail-open behaviour); lab switches `dev/wp8/checkrad_gate.{py,sh}`.
+
+Status: **OD-W8-16 OPEN**; S6 remains ACCEPTED_WITH_BLOCKER; S7 / S8 not started.

@@ -166,3 +166,19 @@ NOT IMPLEMENTED.** RouterOS 7.24.5 enforces Port-Limit on Hotspot (1 and 2) but 
 PPPoE sessions with Port-Limit 1 in the Access-Accept). Details, packet evidence and a lab observation of
 `/ppp profile only-one=yes` (which does hold PPPoE to one live session) in `STOP_S6_LOST_STOP.md` (owner resolution
 section). WP8 stays stopped; S6 remains ACCEPTED_WITH_BLOCKER; S7 / S8 not started.
+
+## OD-W8-16 second resolution round (2026-10-07) — additive record
+
+Owner: **Option E = REJECTED** (formal). **`/ppp profile only-one=yes` = observation only, not a solution**
+(MikroTik: ignored with RADIUS authentication). **Option F** (SQL Simultaneous-Use + stock checkrad `mikrotik_snmp`
+real-NAS verification, `delete_stale_sessions = no`, Hotspot-only Port-Limit conditional) investigated by a lab gate:
+Gates A, B, C, E and the Hotspot cases pass; **Gate D fails open** (verification failure admits a second real PPPoE
+session) -> **OPTION F GATE FAILED -> NOT IMPLEMENTED.** Details `STOP_S6_LOST_STOP.md` (second resolution section),
+`evidence/od-w8-16-checkrad-gate/`.
+
+**OBS-W8-8 (new, pre-existing, not fixed, owner classification).** radacct times are written in the database session
+time zone (`FROM_UNIXTIME`), `AccountingService::staleSessions()` compares them with the application clock; with a DB
+time zone different from the application time zone, live sessions are reported stale (or stale ones missed).
+
+Carry-forwards unchanged: **R-WP8-CARRY-01**, **R-WP8-CARRY-02** (OPEN / PRE-EXISTING / MEDIUM / MUST CLOSE BEFORE
+PRODUCTION), **R-HF-CARRY-01**. OD-W8-16 OPEN; S6 ACCEPTED_WITH_BLOCKER; S7 / S8 not started.
