@@ -4,6 +4,15 @@
 - **Mission:** a FreeRADIUS-first provisioning and accounting abstraction, without activation finance orchestration. Orchestration is WP5A's job.
 - **No schema change:** no R0007; R0001–R0006 are byte-identical; the FreeRADIUS schema (`install/radius.sql`) is unchanged.
 
+> **Note added 2026-10-09 (documentation sync; the accepted WP4 model below is unchanged and remains the implemented state on `feat/reseller-system-v1`).**
+> The owner architecture lock [`architecture/owner-lock-2026-10-09/`](architecture/owner-lock-2026-10-09/OWNER_ARCHITECTURE_LOCK.md) adds these directions. None of them is implemented on the accepted branch yet.
+> - **AD-03:** `radacct` is FreeRADIUS-owned accounting history. It is not literally immutable, because FreeRADIUS updates rows on Interim / Stop. The binding rule is unchanged: application code never deletes or rewrites it (D018 / C17 below).
+> - **AD-04 / AD-06 / AD-07:** session admission moves to a logical Session Authority (PROVEN_SAFE / PROVEN_LIVE / UNKNOWN). "Stale" means unverified, not offline. Simultaneous-Use is service-aware and needs a concurrent-first-login gate.
+>   - WP8 Option G is the lab-proven candidate (`wp8/integration-poc@47a3a02c`). It is **not** productionized.
+>   - `AccountingService::staleSessions` stays a report only. It is never an admission authority.
+> - **Accounting time contract:** R-WP8-CARRY-03 / GAP-05 is open, and WP4 owner decision 4 (run FreeRADIUS in the application time zone) is unchanged.
+>   - The lock suggests a canonical (preferably UTC) time contract. The final contract is an open owner decision; see `architecture/DOCUMENTATION_SYNC_REPORT.md`, conflict C-05.
+
 ## 1. Components (`system/autoload/Reseller/Radius/`, namespace `Reseller\Radius`)
 
 | Class | Responsibility |
