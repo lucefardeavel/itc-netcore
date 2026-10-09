@@ -108,6 +108,14 @@
         </testsuite>
         <testsuite name="wp8-integration">
             <directory>Integration/Wp8</directory>
+            <!-- WP8 A2 security gate: FAILS by design while the race is open (A2_RACE_PROVEN) - its own suite below -->
+            <exclude>Integration/Wp8/ConcurrentFirstLoginGateTest.php</exclude>
+        </testsuite>
+        <!-- WP8 A2 concurrent first-login race gate (real NAS lab, production contract). Owner 2026-10-09: evidence
+             ACCEPTED, SECURITY GATE FAILED - RACE_PROVEN. The suite is EXPECTED TO FAIL until the A2-R remediation is
+             implemented and re-gated; it is never part of a "green" regression run and its failure is never waived. -->
+        <testsuite name="wp8-security-gates">
+            <file>Integration/Wp8/ConcurrentFirstLoginGateTest.php</file>
         </testsuite>
         <testsuite name="hotfix-pace-unit">
             <directory>Unit/HotfixPaceXhrCsrf</directory>

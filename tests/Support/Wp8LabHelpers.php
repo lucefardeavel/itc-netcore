@@ -74,6 +74,68 @@ trait Wp8LabHelpers
     }
 
     /**
+     * WP8 A2: every Access-Request of $user in log order, request-local and restart-safe (the packet type is tracked in
+     * log order; a request number reused by a later request ends the previous one). Per request: RADIUS Id and source
+     * port (to join the pcap), the post-auth open-row lookup (Tmp-String-8 "n=..;NAS"), whether the PPPoE session guard
+     * ran and its verdict, whether the STOCK Simultaneous-Use layer refused it, and the reply sent.
+     *
+     * @return list<array<string,mixed>>
+     */
+    protected static function accessDecisions(string $user): array
+    {
+        $lines = Wp8Lab::frLog('^\(\d+\) ', 5000);
+        $out = [];
+        $open = [];          // request number => index in $out of the Access-Request being read
+        $kind = [];
+        $hdr = [];
+        foreach ($lines as $l) {
+            if (!preg_match('/^\((\d+)\) (.*)$/', $l, $m)) {
+                continue;
+            }
+            [$n, $rest] = [$m[1], $m[2]];
+            if (preg_match('/^Received (Access|Accounting)-Request Id (\d+) from [\d.]+:(\d+)/', $rest, $r)) {
+                unset($open[$n]);
+                $kind[$n] = $r[1];
+                $hdr[$n] = ['id' => (int) $r[2], 'port' => (int) $r[3]];
+                continue;
+            }
+            if (($kind[$n] ?? '') === 'Access' && !isset($open[$n]) && preg_match('/^\s+User-Name = "(.*)"$/', $rest, $u)) {
+                if (stripcslashes($u[1]) === $user || $u[1] === $user) {
+                    $out[] = ['request' => (int) $n, 'radius_id' => $hdr[$n]['id'], 'src_port' => $hdr[$n]['port'], 'open_rows' => null,
+                        'guard_ran' => false, 'guard_verdict' => null, 'guard_detail' => null, 'stock_session_reject' => false, 'reply' => null, 'reply_message' => null];
+                    $open[$n] = count($out) - 1;
+                }
+                continue;
+            }
+            if (!isset($open[$n])) {
+                continue;
+            }
+            $d = &$out[$open[$n]];
+            if (preg_match('/Tmp-String-8 := "?([^"]*?)"?$/', $rest, $r)) {
+                $d['open_rows'] = $r[1];
+            }
+            if (str_contains($rest, 'Program returned code') || str_contains($rest, 'Program executed') || str_contains($rest, 'nuxr_pppoe_session_guard (')) {
+                $d['guard_ran'] = true;
+            }
+            if (preg_match('/Tmp-String-7 = "(\w+)"/', $rest, $r)) {
+                $d['guard_verdict'] = $r[1];
+            }
+            if (preg_match('/Tmp-String-6 = "([^"]*)"/', $rest, $r)) {
+                $d['guard_detail'] = $r[1];
+            }
+            if (preg_match('/Multiple logins|already logged in/i', $rest)) {
+                $d['stock_session_reject'] = true;
+            } elseif (preg_match('/^Sent (Access-\w+) Id/', $rest, $r)) {
+                $d['reply'] = $r[1];
+            } elseif ($d['reply'] !== null && preg_match('/^\s+Reply-Message = "(.*)"$/', $rest, $r)) {
+                $d['reply_message'] = $r[1];
+            }
+            unset($d);
+        }
+        return $out;
+    }
+
+    /**
      * The reply attributes FreeRADIUS sent in its LAST Access-Accept / Access-Reject for $user (debug log, redacted).
      * @return array{code:?string, attrs:array<string,string>}
      */

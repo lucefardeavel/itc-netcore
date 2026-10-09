@@ -289,7 +289,7 @@ def capture_stop(name):
             t, l = a[i], a[i + 1]
             if t == 101 and l == 6: cause = struct.unpack('!I', a[i + 2:i + 6])[0]
             types.append(t); i += max(l, 2)
-        out.append({'t': round(ts + us / 1e6, 3), 'src': '.'.join(map(str, pkt[26:30])) + f':{sport}', 'dst': '.'.join(map(str, pkt[30:34])) + f':{dport}',
+        out.append({'t': round(ts + us / 1e6, 3), 't_us': ts * 1_000_000 + us, 'src': '.'.join(map(str, pkt[26:30])) + f':{sport}', 'dst': '.'.join(map(str, pkt[30:34])) + f':{dport}',
                     'code': RCODES.get(r[0], r[0]), 'id': r[1], 'message_authenticator': 80 in types, 'error_cause': cause, 'attrs': types})
     return {'packets': out, 'file': os.path.basename(f)}
 
@@ -332,7 +332,149 @@ def fr_canaries():
     return {'found': [l for l in p.stdout.splitlines() if l]}
 
 
-OPS = {'option_g': option_g, 'guard_invoke': guard_invoke, 'fr_canaries': fr_canaries, 'checkrad_state': checkrad_state, 'checkrad_trace': checkrad_trace, 'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_start': pppoe_start, 'watch_active': watch_active, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
+# ---------------------------------------------------------------- WP8 A2: concurrent first-login race (lab only)
+def _ros_clock(r):
+    """host realtime before/after one RouterOS /system/clock read (RouterOS clock resolution: 1 s)"""
+    t0 = time.time_ns(); rows = [a for k, a in r.talk(['/system/clock/print']) if k == '!re']; t1 = time.time_ns()
+    c = rows[0] if rows else {}
+    return {'host_before_ns': t0, 'host_after_ns': t1, 'ros_date': c.get('date'), 'ros_time': c.get('time'), 'ros_tz': c.get('time-zone-name')}
+
+
+def pppoe_race(clients, user, password, offset_ms=0, observe=20, interval=0.15, ping_interval=0.2):
+    """Two independent PPPoE logins of the SAME username from two client namespaces, released together by a barrier
+    (second one offset_ms later), observed in parallel by independent threads. Every timestamp is host CLOCK_REALTIME
+    in ns (time.time_ns) - the same clock tcpdump stamps the pcap with on this host (microsecond resolution) - so the
+    pcap, the client events and the NAS samples share one time base without conversion. RouterOS clock readings
+    (1 s resolution) are bracketed by host time for the coarse NAS-log correlation. Sessions are LEFT UP: the caller
+    inspects and then calls pppoe_down for each client (always, also after a failed assertion)."""
+    import threading
+    assert len(clients) == 2 and clients[0] != clients[1] and all(c in CLIENTS for c in clients)
+    assert 0 <= int(offset_ms) <= 30000 and 5 <= float(observe) <= 120 and 0.05 <= float(interval) <= 1.0
+    for c in clients:
+        pppoe_down(c)
+    tpl = open(os.path.dirname(os.path.abspath(__file__)) + '/pppd-client.opts.tpl').read()
+    prep = {}
+    for c in clients:
+        ns, nic, unit = CLIENTS[c]
+        d = f'{STATE}/run/{c}'; os.makedirs(d, mode=0o700, exist_ok=True)
+        log = f'{d}/pppd.log'; open(log, 'w').close()
+        opts = f'{d}/pppd.opts'
+        with open(opts, 'w') as f:
+            os.chmod(opts, 0o600)
+            f.write(tpl.replace('@NIC@', nic).replace('@UNIT@', str(unit)).replace('@LOG@', log).replace('@USER@', user).replace('@PASSWORD@', password))
+        prep[c] = (ns, unit, opts, log)
+    sampler_ros = ros()
+    clock_before = _ros_clock(sampler_ros)
+    stop = threading.Event()
+    samples = []
+    out = {c: {'launch_ns': None, 'popen_ns': None, 'ip': None, 'ip_up_ns': None, 'ip_down_ns': None, 'ping_ok_ns': [], 'ping_sent': 0, 'pppd_exit': None} for c in clients}
+
+    def sampler():
+        while not stop.is_set():
+            t0 = time.time_ns()
+            try:
+                rows = [a for k, a in sampler_ros.talk(['/ppp/active/print', '?name=' + user]) if k == '!re']
+                err = None
+            except Exception as e:  # recorded as a gap, never hidden
+                rows, err = [], type(e).__name__
+            t1 = time.time_ns()
+            samples.append({'t0_ns': t0, 't1_ns': t1, 'n': len(rows), 'err': err,
+                            'rows': [{k: x.get(k) for k in ('.id', 'session-id', 'caller-id', 'address', 'uptime', 'service', 'radius')} for x in rows]})
+            stop.wait(float(interval))
+
+    barrier = threading.Barrier(2)
+    base = {}
+
+    def launch(i, c):
+        ns, unit, opts, log = prep[c]
+        barrier.wait()
+        if i == 0:
+            base['t'] = time.monotonic_ns() + 300_000_000           # common release point, 0.3 s ahead
+        while 't' not in base:
+            time.sleep(0.0005)
+        target = base['t'] + i * int(offset_ms) * 1_000_000
+        while time.monotonic_ns() < target:                       # busy-wait the last stretch for a tight release
+            rem = target - time.monotonic_ns()
+            if rem > 2_000_000:
+                time.sleep(rem / 2e9)
+        out[c]['launch_ns'] = time.time_ns()
+        PPPD[c] = subprocess.Popen(['ip', 'netns', 'exec', ns, 'pppd', 'file', opts], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        out[c]['popen_ns'] = time.time_ns()
+        stop.wait(1.0)                                             # this client's pppd has read its options by now
+        try: os.unlink(opts)
+        except FileNotFoundError: pass
+
+    def client_watch(c):
+        ns, unit, opts, log = prep[c]
+        ifn = f'ppp{unit}'
+        pinger = None
+        while not stop.is_set():
+            p = PPPD.get(c)
+            ip = addr(ns, ifn) if p is not None else None
+            now = time.time_ns()
+            if ip and out[c]['ip_up_ns'] is None:
+                out[c]['ip'], out[c]['ip_up_ns'] = ip, now
+                pinger = subprocess.Popen(['ip', 'netns', 'exec', ns, 'ping', '-D', '-n', '-I', ifn, '-i', str(ping_interval), '-W', '1', '10.88.10.1'],
+                                          stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+            if out[c]['ip_up_ns'] is not None and not ip and out[c]['ip_down_ns'] is None:
+                out[c]['ip_down_ns'] = now
+            if p is not None and p.poll() is not None and out[c]['pppd_exit'] is None:
+                out[c]['pppd_exit'] = [p.returncode, now]
+            stop.wait(0.05)
+        if pinger is not None:
+            pinger.send_signal(signal.SIGINT)
+            try:
+                txt = pinger.communicate(timeout=5)[0]
+            except subprocess.TimeoutExpired:
+                pinger.kill(); txt = pinger.communicate()[0]
+            for l in txt.splitlines():
+                m = re.match(r'\[(\d+)\.(\d+)\] \d+ bytes from 10\.88\.10\.1: icmp_seq=(\d+)', l)
+                if m:
+                    out[c]['ping_ok_ns'].append(int(m.group(1)) * 10**9 + int(m.group(2).ljust(9, '0')[:9]))
+            m = re.search(r'(\d+) packets transmitted', txt)
+            out[c]['ping_sent'] = int(m.group(1)) if m else 0
+
+    threads = [threading.Thread(target=sampler, daemon=True)]
+    threads += [threading.Thread(target=launch, args=(i, c), daemon=True) for i, c in enumerate(clients)]
+    threads += [threading.Thread(target=client_watch, args=(c,), daemon=True) for c in clients]
+    t_start = time.time_ns()
+    for t in threads:
+        t.start()
+    # each launch thread removes its own options file 1 s after ITS pppd started (a delayed second client must still
+    # find its file: removing both after a fixed 1.5 s broke offsets >= 1.5 s - WP8 A2 tooling defect, fixed)
+    stop.wait(float(observe) + int(offset_ms) / 1000.0)
+    stop.set()
+    for t in threads:
+        t.join(15)
+    for c in clients:                                             # never leave a password file behind
+        try: os.unlink(prep[c][2])
+        except FileNotFoundError: pass
+    clock_after = _ros_clock(sampler_ros)
+    sampler_ros.close()
+
+    # ---- overlap from independent sources (all host realtime ns)
+    gaps = [b['t0_ns'] - a['t1_ns'] for a, b in zip(samples, samples[1:])]
+    doubles = [s for s in samples if s['n'] >= 2]
+    a, b = clients
+    def alive(c):
+        o = out[c]
+        return (o['ip_up_ns'], o['ip_down_ns'] or (o['pppd_exit'][1] if o['pppd_exit'] else None) or time.time_ns()) if o['ip_up_ns'] else None
+    ia, ib = alive(a), alive(b)
+    client_overlap = [max(ia[0], ib[0]), min(ia[1], ib[1])] if ia and ib and max(ia[0], ib[0]) < min(ia[1], ib[1]) else None
+    pa, pb = out[a]['ping_ok_ns'], out[b]['ping_ok_ns']
+    ping_pairs = sum(1 for x in pa if any(abs(x - y) <= 500_000_000 for y in pb))     # replies on BOTH links within 0.5 s
+    sess_ids = sorted({r.get('session-id') for s in samples for r in s['rows'] if r.get('session-id')})
+    return {'user': user, 'offset_ms': int(offset_ms), 'clients': out, 'launch_skew_ns': (out[b]['launch_ns'] or 0) - (out[a]['launch_ns'] or 0),
+            'popen_ns': {c: out[c]['popen_ns'] for c in clients}, 't_start_ns': t_start, 'ros_clock': [clock_before, clock_after],
+            'samples': samples, 'sample_count': len(samples), 'max_gap_ms': round(max(gaps) / 1e6, 1) if gaps else None,
+            'mean_api_ms': round(sum(s['t1_ns'] - s['t0_ns'] for s in samples) / max(1, len(samples)) / 1e6, 1),
+            'sample_errors': sum(1 for s in samples if s['err']),
+            'nas_max': max([s['n'] for s in samples] or [0]), 'nas_double_samples': len(doubles),
+            'nas_double_first_ns': doubles[0]['t0_ns'] if doubles else None, 'nas_double_last_ns': doubles[-1]['t1_ns'] if doubles else None,
+            'nas_session_ids': sess_ids, 'client_overlap_ns': client_overlap, 'ping_ok': {c: len(out[c]['ping_ok_ns']) for c in clients},
+            'ping_pairs_within_500ms': ping_pairs, 'logs': {c: _pppd_log(open(prep[c][3]).read()) for c in clients}}
+
+OPS = {'option_g': option_g, 'guard_invoke': guard_invoke, 'fr_canaries': fr_canaries, 'checkrad_state': checkrad_state, 'checkrad_trace': checkrad_trace, 'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_start': pppoe_start, 'pppoe_race': pppoe_race, 'watch_active': watch_active, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
        'pppoe_wait_down': pppoe_wait_down, 'hs_dhcp': hs_dhcp, 'hs_login': hs_login, 'hs_logout': hs_logout, 'http_probe': http_probe,
        'traffic': traffic, 'ros': ros_cmd, 'fr': fr, 'nas_link': nas_link, 'fr_log': fr_log, 'capture_start': capture_start, 'capture_stop': capture_stop}
 

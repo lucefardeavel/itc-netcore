@@ -231,3 +231,44 @@ Owner approved (2026-10-09, after the Architecture Lock of the same date and the
 - The notes are NOTE-01 (pre-existing PHPUnit warnings and deprecation, non-blocking), NOTE-02 (clean recreation and the lab marker) and NOTE-03 (A1 is no deployment authorization; release items stay open). They are recorded in `evidence/a1-permanent-option-g/A1_RESULTS.md` §6.
 - The permanent Option G integration is accepted. The owner did not state a formal change of the OD-W8-16 / S6 blocker status, so none is recorded here.
 - A2 has not started.
+
+## A2 — Concurrent first-login race gate (2026-10-09) — additive record
+
+**Owner approval.** The A2 plan was approved with amendments, with these decisions:
+- **D-A2-1:** Cross-NAS testing only if no same-NAS race is found.
+- **D-A2-2:** any proven live overlap is `TRANSIENT_DOUBLE — SECURITY GATE FAILED`.
+- **D-A2-3:** RouterOS `only-one` is recorded only, never changed and never treated as a fix.
+- **D-A2-4:** no fix without a separate owner-approved plan.
+
+**Result: `A2_RACE_PROVEN`**, not committed and pending owner review. Details in `evidence/a2-concurrent-first-login/A2_RESULTS.md`.
+- **Same NAS (CHR 7.24.5, permanent A1 configuration):** two live PPPoE sessions of one username were proven:
+  - two logins 11.6 ms and 40 ms apart: both `n=0`, both accepted without verification, two distinct NAS sessions with traffic on both links until cleanup;
+  - with the Accounting-Start lost, the same result for logins 5 s and 30 s apart.
+- **Fail-closed checks:**
+  - stale row + SNMP down: both concurrent logins rejected, by Option G (ERROR);
+  - stale row + healthy SNMP (5 trials): single session only, but by timing, not by design (T5 not proven, not excluded).
+- **Not done:** Cross-NAS (D), because the race was proven on one NAS (D-A2-1).
+- **No functional change:** `install/`, `system/`, schema, `radacct` and the A1 policy are all untouched.
+- **Remediation options:** R1 (atomic per-username admission reservation) with R2 (accounting-time duplicate eviction) as a backstop, both proposed only. They need a separate owner-approved plan.
+- **Open:** OD-W8-16 carry-forwards are unchanged. A3 has not started.
+
+**Owner verdict on A2 (2026-10-09):**
+- **Test findings ACCEPTED** as engineering evidence.
+- **SECURITY GATE FAILED — RACE_PROVEN.** Status: `A2_EVIDENCE_ACCEPTED_RACE_PROVEN_BLOCKER_OPEN`.
+- **What A2 found:**
+  - A2 was executed.
+  - The race is proven:
+    - B0: two logins 11.6 ms / 40 ms apart;
+    - C: Accounting-Start lost, second login 5 s / 30 s later;
+    - E3: accounting lost + SNMP down.
+  - E1: fail-closed, enforced by Option G.
+  - E2: single session in 5/5 trials, but only incidental to timing.
+- **The blocker stays open until a separately approved remediation is implemented and re-gated:**
+  - no functional remediation has been made;
+  - the A2-R plan is pending owner approval.
+- **No production authorization.**
+- OD-W8-16 and WP8 are NOT closed by this verdict. A1 is unchanged.
+- The gate test `tests/Integration/Wp8/ConcurrentFirstLoginGateTest.php` fails by design.
+  - It runs only in the PHPUnit suite `wp8-security-gates`, which is excluded from `wp8-integration`.
+  - Its assertions are unchanged.
+- Invalid first-pass trials (tooling defects) are listed in `A2_RESULTS.md` §6 and are not used in the conclusion.
