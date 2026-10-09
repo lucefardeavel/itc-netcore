@@ -240,11 +240,13 @@ def fr(action):
     return {'ok': p.returncode == 0, 'err': p.stderr.strip()[-200:]}
 
 
-def fr_log(pattern, since=None):
+def fr_log(pattern, since=None, limit=200):
+    """matching FreeRADIUS log lines, newest last. limit: how many of the newest matches (default 200, max 5000); the
+    permanent PPPoE session guard (WP8 A1) logs many post-auth lines per PPPoE request, so request parsers ask for more."""
     args = ['docker', 'logs', FR] + (['--since', since] if since else [])
     p = sh(args, timeout=60)
     lines = [l for l in (p.stdout + p.stderr).splitlines() if re.search(pattern, l)]
-    return {'lines': [_redact(l) for l in lines[-200:]]}
+    return {'lines': [_redact(l) for l in lines[-max(1, min(int(limit), 5000)):]]}
 
 
 def _lab_secrets():

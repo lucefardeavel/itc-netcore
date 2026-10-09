@@ -20,7 +20,7 @@ sql {
 	usergroup_table = "radusergroup"
 	read_groups = yes
 	read_profiles = yes
-	delete_stale_sessions = yes
+	delete_stale_sessions = no
 	read_clients = no
 	client_table = "nas"
 	pool {

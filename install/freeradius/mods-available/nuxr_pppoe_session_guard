@@ -1,0 +1,23 @@
+# PHPNuxBill - WP8 OD-W8-16 Option G: the fail-closed PPPoE session guard as a NAMED exec module. Called only from
+# the post-auth policy of sites-available/phpnuxbill (never from session { }). Install bin/nuxr_pppoe_session_guard
+# as ${confdir}/nuxr/nuxr_pppoe_session_guard (0755) - see README.md "PPPoE session guard".
+#
+#   wait = yes            the result is needed before the reply is sent
+#   program               fixed path; each %{...} becomes exactly ONE argv element (FreeRADIUS splits the program
+#                         line BEFORE expanding, then execve()s it - no shell). Only the username AS HEX of its raw
+#                         bytes (%{hex:&User-Name}: [0-9a-f] only, immune to the backslash escaping that a plain
+#                         %{User-Name} expansion applies to '"' and '\'), the subscriber's Simultaneous-Use and the
+#                         NAS address list (pre-validated by the policy) are passed; never a secret or the community.
+#   shell_escape = no     values are passed byte-for-byte (no shell exists that could interpret them)
+#   input_pairs           not set: the program gets an EMPTY environment (no request attributes, no passwords)
+#   output_pairs = control  the verdict (Tmp-String-7) and detail (Tmp-String-6) land in the control list, where
+#                         no NAS or radreply data can forge them
+#   timeout = 3           hard upper bound (the program itself finishes below 2 s); a timeout is a module FAIL
+#                         -> Access-Reject
+exec nuxr_pppoe_session_guard {
+	wait = yes
+	program = "${confdir}/nuxr/nuxr_pppoe_session_guard %{hex:&User-Name} %{control:Simultaneous-Use} %{request:Tmp-String-9}"
+	shell_escape = no
+	output_pairs = control
+	timeout = 3
+}

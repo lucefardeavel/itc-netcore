@@ -54,9 +54,23 @@ final class RadiusPolicyBuilderTest extends TestCase
         $this->assertSame('512K/2M 1M/4M 384K/1500K 16/16 8 256K/1M', $p->replyMap()['Mikrotik-Rate-Limit']);
         $this->assertSame('2027-01-31T23:59:59+03:00', $p->replyMap()['WISPr-Session-Terminate-Time']);
         $this->assertArrayNotHasKey('Max-All-Session', $p->checkMap(), 'unlimited: no quota');
+        $this->assertSame('3', $p->replyMap()['Port-Limit'], 'WP8 A1: Hotspot Port-Limit = Simultaneous-Use, in the REPLY list');
+        $this->assertArrayNotHasKey('Port-Limit', $p->checkMap(), 'never in the control list (the legacy placement never reached the NAS)');
         $bad = RadiusPolicyBuilder::build(['username' => 'hs2', 'password' => 'p'], ['id' => 3, 'type' => 'Hotspot'], ['burst' => "1M'; DROP"] + $bw, null);
         $this->assertSame('512K/2M', $bad->replyMap()['Mikrotik-Rate-Limit'], 'a malformed burst tail is dropped');
         $this->assertSame('1', $bad->checkMap()['Simultaneous-Use'], 'shared_users defaults to 1');
+        $this->assertSame('1', $bad->replyMap()['Port-Limit'], 'Port-Limit follows the same max(1, shared_users)');
+        $this->assertSame('1', RadiusPolicyBuilder::build(['username' => 'hs3', 'password' => 'p'], ['id' => 3, 'type' => 'Hotspot', 'shared_users' => 0], null, null)->replyMap()['Port-Limit'], 'never 0, even without rate or expiry');
+    }
+
+    /** WP8 A1 / OD-W8-16: RouterOS ignores Port-Limit for PPPoE, so PPPoE (and VPN) never get one. */
+    public function testPortLimitIsHotspotOnly(): void
+    {
+        foreach (['PPPOE', 'VPN'] as $type) {
+            $p = RadiusPolicyBuilder::build(['username' => 'u', 'password' => 'p', 'pppoe_ip' => '10.0.0.9'], ['id' => 5, 'type' => $type, 'shared_users' => 4, 'pool' => 'x'], self::BW, self::expiry());
+            $this->assertArrayNotHasKey('Port-Limit', $p->replyMap(), $type);
+            $this->assertArrayNotHasKey('Port-Limit', $p->checkMap(), $type);
+        }
     }
 
     public function testHotspotQuotasAreNotOverwrittenByTheExpiry(): void

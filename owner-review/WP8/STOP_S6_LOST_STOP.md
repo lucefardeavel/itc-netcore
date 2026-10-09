@@ -111,3 +111,5 @@ lockout is resolved without reboot, freshness wait, deletion or fabricated Stop 
 a live session stays protected with accounting lost > 190 s, and SNMP unreachable / tool missing / wrong community /
 missing credentials / unknown or malformed NAS all REJECT (never an Accept). Details:
 `evidence/od-w8-16-option-g-gate/GATE_RESULTS.md`. Permanent implementation follows in the next commit (owner §30).
+
+> **Correction note (2026-10-09, additive).** The sentence above "Permanent implementation follows in the next commit (owner §30)" did not come true at the time. The permanent implementation was carried out later as WP8 A1, after the owner's 2026-10-09 decisions D1–D5 (`OWNER_DECISIONS.md`; `evidence/a1-permanent-option-g/A1_RESULTS.md`).

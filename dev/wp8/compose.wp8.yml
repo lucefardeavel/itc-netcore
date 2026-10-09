@@ -2,7 +2,7 @@
 # existing isolated compose project "nuxbill-reseller-test" (owner rule). Started and stopped only by dev/wp8/lab.sh.
 #
 #   network wp8lab   10.88.0.0/24, Linux bridge "wp8lab0", no IP masquerade, no published ports
-#   freeradius-wp8   10.88.0.10   FreeRADIUS 3.2.8 (pinned digest), project configuration, PRODUCTION-STYLE NAS
+#   freeradius-wp8   10.88.0.10   FreeRADIUS 3.2.8 (pinned digest + net-snmp, dev/test/freeradius/Dockerfile), project configuration, PRODUCTION-STYLE NAS
 #                                 clients from the `nas` table (read_clients = yes), application time zone
 #   php82-wp8        shares the network namespace of freeradius-wp8 (owner decision OD-W8-11, option A): the real
 #                    application code (ActivationService, Radius device, CoAClient) sends CoA / Disconnect from
@@ -23,7 +23,10 @@ networks:
 
 services:
   freeradius-wp8:
-    image: freeradius/freeradius-server:3.2.8@sha256:af6fd34a5b7826b6245008732f43fbc0432eb23d23e5de7106371b2941e70a4b
+    build:
+      context: ./freeradius
+      dockerfile: Dockerfile
+    image: nuxbill-reseller-test-freeradius:3.2.8-snmp
     profiles: ["wp8"]
     environment:
       WP1_DB_ROOT_PASSWORD: ${WP1_DB_ROOT_PASSWORD}
@@ -34,6 +37,9 @@ services:
       - ../../install/freeradius:/nuxr/install:ro
       - ./freeradius:/nuxr/test:ro
       - ../wp8/freeradius:/nuxr/wp8:ro
+      # WP8 A1: the persistent lab SNMP credential file for the PPPoE session guard (host dir 0700, file 0600); start.sh
+      # installs it as $R/nuxr/nas_snmp (0600 freerad) on every start, so a recreated container gets it back.
+      - ${NUXR_WP8_STATE}/radius-secrets:/nuxr/secrets:ro
     entrypoint: ["sh", "/nuxr/wp8/start.sh"]
     networks:
       default: {}

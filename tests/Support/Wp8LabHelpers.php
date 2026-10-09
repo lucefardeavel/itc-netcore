@@ -79,31 +79,39 @@ trait Wp8LabHelpers
      */
     protected static function lastReply(string $user): array
     {
-        $lines = Wp8Lab::frLog('^\(\d+\) ');
-        $access = [];
+        // Request-local and restart-safe (WP8 A1): the log may hold several FreeRADIUS runs (request numbers restart at
+        // 0) and an accounting request may reuse a number seen earlier as an Access-Request, so the packet type is
+        // tracked in log order and the reply is taken only AFTER the matching request. The permanent PPPoE session guard
+        // logs many post-auth lines per PPPoE request, hence the larger window.
+        $lines = Wp8Lab::frLog('^\(\d+\) ', 4000);
+        $kind = [];
         $req = null;
-        foreach ($lines as $l) {
-            if (preg_match('/^\((\d+)\) Received Access-Request /', $l, $m)) {
-                $access[$m[1]] = true;
-            } elseif (preg_match('/^\((\d+)\)\s+User-Name = "' . preg_quote($user, '/') . '"$/', $l, $m) && isset($access[$m[1]])) {
+        $at = -1;
+        foreach ($lines as $i => $l) {
+            if (preg_match('/^\((\d+)\) Received (Access|Accounting)-Request /', $l, $m)) {
+                $kind[$m[1]] = $m[2];
+            } elseif (preg_match('/^\((\d+)\)\s+User-Name = "' . preg_quote($user, '/') . '"$/', $l, $m) && ($kind[$m[1]] ?? '') === 'Access') {
                 $req = $m[1];
+                $at = $i;
             }
         }
         $code = null;
         $attrs = [];
         if ($req !== null) {
             $in = false;
-            foreach ($lines as $l) {
-                if (preg_match('/^\(' . $req . '\) Sent (Access-\w+) Id/', $l, $m)) {
+            foreach (array_slice($lines, $at + 1) as $l) {
+                if (preg_match('/^\(' . $req . '\) Received /', $l)) {
+                    break;                       // the number was reused by a newer request
+                }
+                if ($code === null && preg_match('/^\(' . $req . '\) Sent (Access-\w+) Id/', $l, $m)) {
                     $code = $m[1];
                     $in = true;
-                    $attrs = [];
                     continue;
                 }
-                if ($in && preg_match('/^\(' . $req . '\)\s+([A-Za-z][\w-]+) = (.*)$/', $l, $m)) {
+                if ($in && preg_match('/^\(' . $req . '\)\s+([A-Za-z][\w-]+) :?= (.*)$/', $l, $m)) {
                     $attrs[$m[1]] = trim($m[2], '"');
                 } elseif ($in && str_starts_with($l, '(' . $req . ')')) {
-                    $in = false;
+                    break;
                 }
             }
         }

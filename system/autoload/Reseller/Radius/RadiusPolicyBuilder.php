@@ -18,10 +18,13 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  *    quota, Nuxr-Period-Start (epoch of the billing period start): the counters sum only the sessions of
  *    the current period, because accounting history is no longer deleted at renewal (C17);
  *  - reply (radreply): Mikrotik-Rate-Limit; PPPoE static Framed-IP-Address OR Framed-Pool (never 0.0.0.0,
- *    never both); Hotspot WISPr-Session-Terminate-Time;
+ *    never both); Hotspot WISPr-Session-Terminate-Time and Port-Limit = Simultaneous-Use (max(1, shared_users));
  *  - group: plan_<id> (radusergroup -> radgroupreply rows of the plan).
- * Port-Limit and Mikrotik-Wireless-Comment are no longer written: the legacy device stored them in the
- * control list, where they never reached the NAS.
+ * Port-Limit placement: the legacy device stored Port-Limit (and Mikrotik-Wireless-Comment) in radcheck, the
+ * control list, where they never reached the NAS; that placement is still removed and never written. The Hotspot
+ * Port-Limit is a REPLY attribute (WP8 OD-W8-16 Option G, verified on RouterOS 7.24.5: the Hotspot enforces it,
+ * also when an accounting Stop was lost). PPPoE gets no Port-Limit - RouterOS ignores it for PPPoE, which is
+ * protected by Simultaneous-Use plus the fail-closed post-auth session guard (install/freeradius). VPN unchanged.
  */
 final class RadiusPolicyBuilder
 {
@@ -72,6 +75,9 @@ final class RadiusPolicyBuilder
         }
         if ($type === 'Hotspot' && $expiry !== null) {
             $reply[] = ['WISPr-Session-Terminate-Time', ':=', $expiry->format('Y-m-d\TH:i:sP')];
+        }
+        if ($type === 'Hotspot') {
+            $reply[] = ['Port-Limit', ':=', (string) $shared];
         }
         $planId = (int) ($plan['id'] ?? 0);
         return new RadiusPolicy($username, $check, $reply, $planId > 0 ? 'plan_' . $planId : null);

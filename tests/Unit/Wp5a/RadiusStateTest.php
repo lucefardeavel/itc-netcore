@@ -26,7 +26,7 @@ final class RadiusStateTest extends TestCase
         $this->assertSame('cust1', $t['username']);
         $this->assertSame([['plan_7', 1]], $t['subscriber']['groups']);
         $this->assertSame(['Cleartext-Password', 'Expiration', 'Simultaneous-Use'], array_column($t['subscriber']['check'], 0));
-        $this->assertSame(['Mikrotik-Rate-Limit', 'WISPr-Session-Terminate-Time'], array_column($t['subscriber']['reply'], 0));
+        $this->assertSame(['Mikrotik-Rate-Limit', 'Port-Limit', 'WISPr-Session-Terminate-Time'], array_column($t['subscriber']['reply'], 0), 'WP8 A1: Hotspot Port-Limit is a managed reply attribute');
         $this->assertSame(['Ascend-Data-Rate', 'Ascend-Xmit-Rate', 'Mikrotik-Rate-Limit'], array_column($t['plan_group'], 0));
         $this->assertStringNotContainsString('pw-secret-1', json_encode($t), 'the password is never in the projection');
         $this->assertSame(RadiusState::digest('ACT-0000000000000001', 'pw-secret-1'), $t['subscriber']['check'][0][2]);
@@ -48,6 +48,18 @@ final class RadiusStateTest extends TestCase
         $this->assertTrue(RadiusState::sameSubscriber($t, array_replace($t, ['plan_group' => []])), 'subscriber-only comparison ignores the plan group');
         $this->assertFalse(RadiusState::same($t, array_replace($t, ['plan_group' => []])));
         $this->assertFalse(RadiusState::same($t, ['garbage' => true]), 'a malformed stored projection never matches');
+    }
+
+    /** WP8 A1: a target captured before the Hotspot Port-Limit existed differs from an A1 write exactly by that attribute. */
+    public function testPreA1TargetDiffersFromAnA1WriteOnlyByThePortLimit(): void
+    {
+        $t = self::target();
+        $pre = $t;
+        $pre['subscriber']['reply'] = array_values(array_filter($t['subscriber']['reply'], static fn(array $r): bool => $r[0] !== 'Port-Limit'));
+        $this->assertSame(['2'], array_column(array_filter($t['subscriber']['reply'], static fn(array $r): bool => $r[0] === 'Port-Limit'), 2), 'shared_users 2');
+        $this->assertTrue(RadiusState::same($pre, json_decode(json_encode($pre), true)), 'a pre-A1 capture still equals the pre-A1 state');
+        $this->assertFalse(RadiusState::same($t, $pre));
+        $this->assertSame(['reply:Port-Limit'], RadiusState::diff($t, $pre));
     }
 
     public function testDiffNamesComponentsNeverValues(): void

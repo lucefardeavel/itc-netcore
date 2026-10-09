@@ -46,10 +46,13 @@ final class RadiusClient
         return self::send(1812, RadiusPacket::ACCESS_REQUEST, [...$attrs, ...$extra]);
     }
 
-    /** @param list<array{0:string,1:string|int}> $attrs */
-    public static function accounting(array $attrs): ?RadiusPacket
+    /**
+     * @param list<array{0:string,1:string|int}> $attrs
+     * @param string $nas NAS-IP-Address of the accounting record (radacct.nasipaddress); WP8 A1 guard tests use TEST-NET NAS
+     */
+    public static function accounting(array $attrs, string $nas = '127.0.0.1'): ?RadiusPacket
     {
-        return self::send(1813, RadiusPacket::ACCOUNTING_REQUEST, [['NAS-IP-Address', '127.0.0.1'], ...$attrs]);
+        return self::send(1813, RadiusPacket::ACCOUNTING_REQUEST, [['NAS-IP-Address', $nas], ...$attrs]);
     }
 
     /**

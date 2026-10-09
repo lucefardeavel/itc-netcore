@@ -209,3 +209,25 @@ safe); whitespace usernames are refused by the stock `filter_username`.
 
 Carry-forwards: **R-WP8-CARRY-01**, **R-WP8-CARRY-02**, **R-WP8-CARRY-03**, **R-HF-CARRY-01** — all OPEN, production
 blockers unless separately closed; none fixed in WP8.
+
+## Owner decisions D1–D5 and A1 execution (2026-10-09) — additive record
+
+Owner approved (2026-10-09, after the Architecture Lock of the same date and the WP8 preflight):
+- **D1 order:** A1 → A2 → A3 → A4 → A5 → S7 → S8 → WP8 acceptance; `system/` changes allowed per stage after that stage's plan is approved.
+- **D2 packaging:** Option A, complete Option G in the existing FreeRADIUS structure.
+- **D3:** protect the five uncommitted files first.
+- **D4 SNMP / secrets:** the simplest stable, rebuildable mechanism, isolated per ISP, with documented source, provisioning and rotation.
+- **D5:** S7 not before A1, A2 and A3–A5.
+- **Additional approval:** the Hotspot-only `Port-Limit` in `RadiusPolicyBuilder` (PPPoE must not rely on it).
+
+**A1 — permanent Option G integration: executed, not committed (pending owner acceptance).**
+- Results: `evidence/a1-permanent-option-g/A1_RESULTS.md`.
+- Protective backup before any edit: `/srv/phpnuxbill/wp8-a1-backup-20261009T034740Z` (outside Git; 5/5 SHA-256 verified).
+- **Superseded wording:** `STOP_S6_LOST_STOP.md` ("Permanent implementation follows in the next commit (owner §30)") — the permanent implementation was made in A1 instead (preflight conflict C-10).
+- OD-W8-16 stays OPEN until the owner accepts A1. S6 stays ACCEPTED_WITH_BLOCKER, and S7 / S8 have not started.
+- Carry-forwards are unchanged: **R-WP8-CARRY-01**, **R-WP8-CARRY-02**, **R-WP8-CARRY-03** (scope note C-09: `Reseller/Ui/Subscriber.php` has the same time-zone comparison) and **R-HF-CARRY-01** are all OPEN.
+
+**Owner verdict (2026-10-09): A1 = ACCEPTED WITH NOTES.**
+- The notes are NOTE-01 (pre-existing PHPUnit warnings and deprecation, non-blocking), NOTE-02 (clean recreation and the lab marker) and NOTE-03 (A1 is no deployment authorization; release items stay open). They are recorded in `evidence/a1-permanent-option-g/A1_RESULTS.md` §6.
+- The permanent Option G integration is accepted. The owner did not state a formal change of the OD-W8-16 / S6 blocker status, so none is recorded here.
+- A2 has not started.

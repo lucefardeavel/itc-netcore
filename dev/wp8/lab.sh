@@ -67,6 +67,7 @@ mysql_root() { docker exec -i nuxbill-reseller-test-mariadb-1 sh -c 'exec mariad
 up() {
   preflight; secrets; fetch_image
   mkdir -p "$S/ctl" "$S/run" "$S/pcap" "$S/evidence"
+  mkdir -p "$S/radius-secrets"; chmod 700 "$S/radius-secrets"     # PPPoE session guard credentials (WP8 A1)
   log "compose: mariadb"; dc up -d mariadb >/dev/null
   for _ in $(seq 1 60); do [ "$(docker inspect -f '{{.State.Health.Status}}' nuxbill-reseller-test-mariadb-1 2>/dev/null)" = healthy ] && break; sleep 2; done
   log "RADIUS database nuxr_radius (install/radius.sql) + NAS rows (production-style SQL clients)"

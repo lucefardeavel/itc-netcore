@@ -103,9 +103,9 @@ final class Wp8Lab
     }
 
     /** FreeRADIUS debug-log lines (redacted by the agent) matching $pattern */
-    public static function frLog(string $pattern): array
+    public static function frLog(string $pattern, int $limit = 200): array
     {
-        return self::agent('fr_log', ['pattern' => $pattern])['lines'];
+        return self::agent('fr_log', ['pattern' => $pattern, 'limit' => $limit])['lines'];
     }
 
     /** appends a sanitized evidence record for the WP8 report ($NUXR_WP8_STATE/ctl/evidence.jsonl) */

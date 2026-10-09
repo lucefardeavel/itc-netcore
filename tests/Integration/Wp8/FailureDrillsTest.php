@@ -272,8 +272,24 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
      * Investigates whether the open radacct row locks the subscriber out (Simultaneous-Use 1) and which EXISTING
      * recovery mechanisms there are. Nothing is deleted, no acctstoptime is set by hand, nothing is bypassed.
      */
+    /** NAS row 1 (the CHR) type: "other" = the S6 baseline lab, "mikrotik_snmp" = the production contract of the guard */
+    private static function chrNasType(): string
+    {
+        return (string) static::labRadius()->query('SELECT type FROM nas WHERE id = 1')->fetchColumn();
+    }
+
+    /**
+     * Drill 7 as recorded in S6 (2026-10-06): the NAS row of type "other" (no live verification possible) - the stock
+     * layer trusts the stale row and the subscriber stays locked out until a NAS-level Accounting-On. Still the exact
+     * behaviour for a NAS whose PHPNuxBill type is not mikrotik_snmp (fail-safe, never an Accept). With the NAS
+     * configured per the WP8 A1 production contract the permanent guard decides instead: testDrill7GuardLostStop...
+     */
     public function testDrill7LostAccountingStopAndSimultaneousUse(): void
     {
+        if (self::chrNasType() !== 'other') {
+            $this->markTestSkipped('S6 drill 7 baseline needs the CHR NAS row of type "other" (lab without dev/wp8/option_g_gate.sh on); '
+                . 'the production-contract variant is testDrill7GuardLostStopReloginIsAcceptedWithoutAnyRepair');
+        }
         $h = $this->hierarchy();
         $plan = $this->chainPlan($h);
         [$cust, $user, $ref] = $this->onSession($h, $plan, 'D7-pass');
@@ -336,6 +352,47 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
             'freeradius_simultaneous_use_log' => array_slice($simul, -8), 'application_stale_report_lists_it' => $staleListed, 'application_coa' => $coa,
             'locked_after_minutes' => true, 'recovery' => ['mechanism' => 'RouterOS restart -> Accounting-On -> stock accounting-on query', 'needed_other_session_to_trigger' => $trigger,
             'closed_row' => $afterBoot, 'relogin_after' => $back['ok']]]);
+    }
+
+    /**
+     * WP8 A1: drill 7 with the PERMANENT fail-closed PPPoE session guard and the NAS configured per the production
+     * contract (type mikrotik_snmp, guard credential entry, RouterOS SNMP read-only): the lost Stop leaves the row open,
+     * the real re-login is ACCEPTED because the NAS proves the old session gone (SAFE) - no reboot, no Accounting-On,
+     * no freshness wait, no deletion, no fabricated Stop; the stale row stays byte-for-byte unchanged, a new row is added.
+     */
+    public function testDrill7GuardLostStopReloginIsAcceptedWithoutAnyRepair(): void
+    {
+        if (self::chrNasType() !== 'mikrotik_snmp') {
+            $this->markTestSkipped('needs the production-contract lab: dev/wp8/option_g_gate.sh on (CHR NAS row type mikrotik_snmp + guard credentials)');
+        }
+        $h = $this->hierarchy();
+        $plan = $this->chainPlan($h);
+        [$cust, $user, $ref] = $this->onSession($h, $plan, 'D7G-pass');
+        $this->assertCount(1, $this->acct($user));
+        $this->block('=chain=output', '=protocol=udp', '=dst-port=1813', '=dst-address=10.88.0.10');
+        Wp8Lab::agent('pppoe_down', ['client' => 'c1']);
+        $this->assertTrue((bool) Wp8Lab::until(fn() => Wp8Lab::pppActive($user) === [], 20, 1), 'the NAS session is gone');
+        sleep(8);
+        $this->unblockAll();
+        sleep(75);
+        $st = static::labRadius()->prepare('SELECT * FROM radacct WHERE username = ? ORDER BY radacctid');
+        $st->execute([$user]);
+        $stale = $st->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertCount(1, $stale);
+        $this->assertNull($stale[0]['acctstoptime'], 'the Stop was lost: radacct stays OPEN');
+        $relogin = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'D7G-pass', 'wait' => 25]);
+        $reply = self::lastReply($user);
+        $this->assertTrue($relogin['ok'], 'the real re-login succeeds without any repair');
+        $this->assertSame('Access-Accept', $reply['code']);
+        $guard = Wp8Lab::frLog('Tmp-String-7|Session verification failed');
+        $st->execute([$user]);
+        $after = $st->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertSame($stale[0], $after[0], 'the stale row is byte-for-byte unchanged (no zap, no fabricated Stop, no NAS-Reboot)');
+        $this->assertCount(2, $after, 'history kept: the stale row + the new session');
+        Wp8Lab::agent('pppoe_down', ['client' => 'c1']);
+        $this->invariants($this->inspect($ref, $user, $h));
+        Wp8Lab::evidence('A1.D7G.lost-stop-guard', ['stale_row' => $stale[0], 'relogin' => ['reply' => $reply, 'ok' => $relogin['ok']], 'guard_log' => array_slice($guard, -6),
+            'rows_after' => count($after), 'stale_row_unchanged' => $stale[0] === $after[0]]);
     }
 
     /** drill 8: RouterOS API unavailable - not on the FreeRADIUS-first activation path */

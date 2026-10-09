@@ -32,7 +32,10 @@ sql {
 	# plan rate rows live in radgroupreply (group plan_<id>)
 	read_groups = yes
 	read_profiles = yes
-	delete_stale_sessions = yes
+	# NEVER let FreeRADIUS "zap" a stale session: with yes, a checkrad "not logged in" answer makes rlm_sql write a
+	# fabricated Accounting-Stop into radacct (history is never rewritten - WP4 Q8). Stale rows stay visible; PPPoE
+	# admission is decided against the real NAS by the post-auth session guard (WP8 OD-W8-16 Option G, README).
+	delete_stale_sessions = no
 
 	# NAS clients from the PHPNuxBill "nas" table (RADIUS > NAS in the admin UI)
 	read_clients = yes

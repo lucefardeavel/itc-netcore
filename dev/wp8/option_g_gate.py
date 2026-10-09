@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
-"""WP8 lab only - OD-W8-16 Option G GATE switches (owner third resolution round): the CANDIDATE fail-closed PPPoE
-session guard (dev/wp8/freeradius/option-g, a temporary copy - install/freeradius is not touched by the gate) on the
-RUNNING lab. Development/test only; undone by `off` and by dev/wp8/lab.sh down.
+"""WP8 lab only - OD-W8-16 Option G gate tooling on the RUNNING lab. Since WP8 A1 the fail-closed PPPoE session guard
+is PERMANENT project configuration (install/freeradius: bin/nuxr_pppoe_session_guard, the named exec module and the
+post-auth policy of sites-available/phpnuxbill; installed by dev/wp8/freeradius/start.sh on every start); this tool
+only configures what the production contract leaves to the operator - RouterOS SNMP, the NAS rows (type
+mikrotik_snmp) and the guard credential file - plus the fault injection used by the tests. The original gate copy
+dev/wp8/freeradius/option-g/ is kept as the reference of the 2026-10-07 gate and is not used. Development/test only;
+undone by `off` and by dev/wp8/lab.sh down.
 
   option_g_gate.py on [shipped|functional]
-        RouterOS SNMP read-only (random test-only community, source 10.88.0.10 only, `public` disabled), net-snmp in
-        the disposable FreeRADIUS container, nas row 1 (the CHR) -> type mikrotik_snmp + community, nas row 3
-        (10.88.0.30, the fake second NAS) -> type mikrotik_snmp, guard credential file rendered from the nas table
-        (/etc/freeradius/nuxr/nas_snmp, 0600 freerad), Option G marker (start.sh: guard module + post-auth policy +
-        delete_stale_sessions = no), FreeRADIUS restart.
+        RouterOS SNMP read-only (random test-only community, source 10.88.0.10 only, `public` disabled), nas row 1
+        (the CHR) -> type mikrotik_snmp, nas row 3 (10.88.0.30, the fake second NAS) -> type mikrotik_snmp, guard
+        credential file = the PERSISTENT lab file $NUXR_WP8_STATE/radius-secrets/nas_snmp (dir 0700, file 0600; the
+        container mounts it read-only and start.sh installs it as /etc/freeradius/nuxr/nas_snmp, 0600 freerad, on
+        every start), gate marker (start.sh: stock checkrad as shipped behind the trace wrapper), FreeRADIUS restart.
+        net-snmp is part of the FreeRADIUS image (dev/test/freeradius/Dockerfile), never installed at run time.
         shipped    (default) the stock checkrad exactly as shipped in the pinned image (no naspasswd)
         functional lab-only variant: the stock checkrad with its two build-time program paths + naspasswd (the
                    OD-W8-16 Option F lab configuration), to observe the stock layer rejecting first
@@ -19,7 +24,7 @@ RUNNING lab. Development/test only; undone by `off` and by dev/wp8/lab.sh down.
   option_g_gate.py state | off
 
 The community lives only in $NUXR_WP8_STATE/snmp.env (0600), the disposable lab database, the guard credential file
-and the fake NAS configuration; it is never printed (client_agent.py and redact.py redact it). Restarting FreeRADIUS
+($NUXR_WP8_STATE/radius-secrets/nas_snmp and its installed copy) and the fake NAS configuration; it is never printed (client_agent.py and redact.py redact it). Restarting FreeRADIUS
 kills a running PHPUnit runner (shared network namespace): run `on` between PHPUnit runs; `fault` and `nasb` never
 restart FreeRADIUS and are also available to the tests through the lab agent."""
 import json, os, sys, time
@@ -33,11 +38,32 @@ IFNAME = '.1.3.6.1.4.1.14988.1.1.14.1.1.2'
 DEFAULT_IFNAMES = ['lo'.encode().hex(), 'ether1'.encode().hex()]
 
 
+SECRETS = os.path.join(cg.STATE, 'radius-secrets')     # mounted read-only at /nuxr/secrets (compose.wp8.yml)
+INSTALL = f'install -m 0600 -o freerad -g freerad /nuxr/secrets/nas_snmp {R}/nuxr/nas_snmp'
+
+
 def creds(community=None):
-    """the guard credential file, derived from the nas table (type mikrotik_snmp with a community)"""
+    """the guard credential file, derived from the disposable lab nas table (type mikrotik_snmp with a community).
+    Normal: written to the persistent lab file and installed into the running container (no restart).
+    community=...: a deliberately WRONG file for the fault test, written to the running container only - the
+    persistent file stays correct, so a restart or a recreated container always gets the right one back."""
     rows = [l.split('\t') for l in cg.sql("SELECT nasname, community FROM nas WHERE type = 'mikrotik_snmp' AND COALESCE(community, '') <> '' ORDER BY id").splitlines() if l]
     body = ''.join(f'{n} {community or c}\n' for n, c in rows)
-    cg.sh(['docker', 'exec', '-i', FR, 'sh', '-c', f'mkdir -p {R}/nuxr; chmod 0755 {R}/nuxr; umask 077; cat > {R}/nuxr/nas_snmp; chown freerad:freerad {R}/nuxr/nas_snmp; chmod 0600 {R}/nuxr/nas_snmp'], body)
+    if community:
+        cg.sh(['docker', 'exec', '-i', FR, 'sh', '-c', f'umask 077; cat > {R}/nuxr/nas_snmp; chown freerad:freerad {R}/nuxr/nas_snmp; chmod 0600 {R}/nuxr/nas_snmp'], body)
+        return len(rows)
+    old = os.umask(0o077)
+    try:
+        os.makedirs(SECRETS, exist_ok=True)
+        os.chmod(SECRETS, 0o700)
+        tmp = os.path.join(SECRETS, '.nas_snmp.new')
+        with open(tmp, 'w') as f:
+            f.write(body)
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, os.path.join(SECRETS, 'nas_snmp'))     # atomic, like the documented rotation
+    finally:
+        os.umask(old)
+    cg.sh(['docker', 'exec', FR, 'sh', '-c', INSTALL])
     return len(rows)
 
 
@@ -53,8 +79,8 @@ def on(stock='shipped'):
     if not [x for x in r.rows(['/ip/firewall/filter/print']) if x.get('comment') == cg.TAG]:
         r.rows(['/ip/firewall/filter/add', '=chain=input', '=protocol=udp', '=dst-port=161', '=src-address=!10.88.0.10', '=action=drop', '=comment=' + cg.TAG])
     r.rows(['/snmp/set', '=enabled=yes'])
-    if cg.sh(['docker', 'exec', FR, 'sh', '-c', 'command -v snmpbulkwalk'], check=False).returncode != 0:
-        cg.sh(['docker', 'exec', FR, 'sh', '-c', 'apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends snmp >/dev/null'])
+    if cg.sh(['docker', 'exec', FR, 'sh', '-c', 'test -x /usr/bin/snmpget && test -x /usr/bin/snmpbulkwalk'], check=False).returncode != 0:
+        raise RuntimeError('net-snmp missing from the FreeRADIUS image (dev/test/freeradius/Dockerfile): rebuild, never install at run time')
     cg.sql(f"UPDATE nas SET type = 'mikrotik_snmp', community = '{c}' WHERE id = 1")
     cg.sql(f"DELETE FROM nas WHERE id = 3; INSERT INTO nas (id, nasname, shortname, type, ports, secret, community, description, routers) "
            f"SELECT 3, '10.88.0.30', 'nuxr_wp8_nasb', 'mikrotik_snmp', 3799, secret, '{c}', 'WP8 Option G fake second NAS (SNMP only)', '' FROM nas WHERE id = 1")
@@ -120,7 +146,12 @@ def state():
                 f'sha256sum /usr/sbin/checkrad | cut -c1-64 | sed "s/^/stock_checkrad_sha256=/"; '
                 f'stat -c "guard_creds=%a %U" {R}/nuxr/nas_snmp 2>/dev/null || echo guard_creds=missing; '
                 f'awk \'{{print "guard_creds_entry=" $1 " [community]"}}\' {R}/nuxr/nas_snmp 2>/dev/null; '
-                f'grep -c "option-g/post-auth.unlang" {R}/sites-enabled/phpnuxbill | sed "s/^/post_auth_policy=/"'], check=False).stdout
+                f'test -x {R}/nuxr/nuxr_pppoe_session_guard && echo guard_installed=1 || echo guard_installed=0; '
+                f'test -f {R}/mods-enabled/nuxr_pppoe_session_guard && echo guard_module=1 || echo guard_module=0; '
+                f'grep -c "^[[:space:]]*nuxr_pppoe_session_guard {{" {R}/sites-enabled/phpnuxbill | sed "s/^/post_auth_policy=/"; '
+                f'grep -c "option-g" {R}/sites-enabled/phpnuxbill | sed "s/^/lab_policy_refs=/"; '
+                f'cmp -s /nuxr/install/bin/nuxr_pppoe_session_guard {R}/nuxr/nuxr_pppoe_session_guard && echo guard_is_install_copy=1 || echo guard_is_install_copy=0; '
+                f'test -f /nuxr/secrets/nas_snmp && echo persistent_creds=1 || echo persistent_creds=0'], check=False).stdout
     st['freeradius'] += [l.strip() for l in fr.splitlines() if l.strip()]
     st['nas'] = cg.sql("SELECT id, nasname, type, IF(COALESCE(community, '') = '', 'unset', 'set') FROM nas ORDER BY id").split('\n')[:3]
     st['nasb'] = 'up' if cg.sh(['docker', 'inspect', '-f', '{{.State.Running}}', NASB], check=False).stdout.strip() == 'true' else 'down'
@@ -130,6 +161,9 @@ def state():
 def off():
     nasb('down')
     cg.sh(['docker', 'exec', FR, 'sh', '-c', f'rm -f {R}/wp8-option-g {R}/nuxr/nas_snmp; chmod 755 /usr/bin/snmpget /usr/bin/snmpbulkwalk 2>/dev/null; true'])
+    f = os.path.join(SECRETS, 'nas_snmp')
+    if os.path.exists(f):
+        os.remove(f)          # no credentials -> the permanent guard rejects PPPoE logins that meet an open row
     cg.sql('DELETE FROM nas WHERE id = 3')
     return cg.off()
 

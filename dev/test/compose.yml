@@ -29,8 +29,12 @@ services:
       retries: 60
 
   # WP4 (owner decision Q1): FreeRADIUS 3.2.8 with the project configuration, one per engine, pinned by digest.
+  # WP8 A1: the pinned image + net-snmp for the PPPoE session guard (freeradius/Dockerfile), built once and reused.
   freeradius-mariadb: &freeradius
-    image: freeradius/freeradius-server:3.2.8@sha256:af6fd34a5b7826b6245008732f43fbc0432eb23d23e5de7106371b2941e70a4b
+    build:
+      context: ./freeradius
+      dockerfile: Dockerfile
+    image: nuxbill-reseller-test-freeradius:3.2.8-snmp
     environment:
       WP1_DB_ROOT_PASSWORD: ${WP1_DB_ROOT_PASSWORD:?set by run-tests.sh}
       NUXR_RADIUS_SECRET: ${NUXR_RADIUS_SECRET:?set by run-tests.sh}

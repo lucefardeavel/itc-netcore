@@ -194,7 +194,16 @@ final class RealAaaTest extends TestCase
         Wp8Lab::until(fn() => $this->acct($user), 15, 1);
         $second = Wp8Lab::agent('hs_login', ['client' => 'c4', 'user' => $user, 'password' => 'Lim-pass-1']);
         $this->assertFalse($second['ok'], 'shared_users = 1: second device refused');
-        $this->assertSame('Access-Reject', self::lastReply($user)['code'], 'by FreeRADIUS Simultaneous-Use');
+        $reply = self::lastReply($user);
+        if ((string) static::labRadius()->query('SELECT type FROM nas WHERE id = 1')->fetchColumn() === 'mikrotik_snmp') {
+            // WP8 A1 production contract (NAS type mikrotik_snmp): the stock checkrad cannot prove the first session live
+            // and defers, FreeRADIUS accepts, and the NAS enforces the Hotspot limit from the Port-Limit reply attribute
+            // (the OD-W8-16 Option G gate observation, now from the normal provisioning path)
+            $this->assertSame(['Access-Accept', '1'], [$reply['code'], $reply['attrs']['Port-Limit'] ?? null], 'FreeRADIUS accepts with Port-Limit 1; RouterOS refuses');
+            $this->assertCount(1, Wp8Lab::hotspotActive($user), 'still exactly one Hotspot session on the NAS');
+        } else {
+            $this->assertSame('Access-Reject', $reply['code'], 'by FreeRADIUS Simultaneous-Use');
+        }
         $ended = Wp8Lab::until(fn() => Wp8Lab::hotspotActive($user) === [], 110, 5);
         $this->assertTrue($ended, 'the Hotspot session ended at the expiry');
         $stop = Wp8Lab::until(fn() => ($r = $this->acct($user)) && $r[0]['acctstoptime'] ? $r[0] : null, 30, 2);

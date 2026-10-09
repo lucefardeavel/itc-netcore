@@ -93,8 +93,11 @@ final class FreeRadiusSqlClientTest extends TestCase
     public function testNasClientsComeFromTheNasTableWithoutAnyHardenedClientPolicy(): void
     {
         $added = Wp8Lab::frLog('Client "nuxr_wp8_[a-z]+" \(sql\) added');
-        $this->assertCount(1, preg_grep('/rlm_sql \(10\.88\.0\.2\): Client "nuxr_wp8_chr" \(sql\) added/', $added), 'CHR loaded from nas');
-        $this->assertCount(1, preg_grep('/rlm_sql \(10\.88\.0\.10\): Client "nuxr_wp8_app" \(sql\) added/', $added), 'application host loaded from nas');
+        // once per FreeRADIUS start (the container log keeps every start; the WP8 A1 gate switches restart FreeRADIUS)
+        $starts = count(Wp8Lab::frLog('^\\[wp8\\] TZ='));     // printed once by dev/wp8/freeradius/start.sh per start
+        $this->assertGreaterThanOrEqual(1, $starts);
+        $this->assertCount($starts, preg_grep('/rlm_sql \(10\.88\.0\.2\): Client "nuxr_wp8_chr" \(sql\) added/', $added), 'CHR loaded from nas at every start');
+        $this->assertCount($starts, preg_grep('/rlm_sql \(10\.88\.0\.10\): Client "nuxr_wp8_app" \(sql\) added/', $added), 'application host loaded from nas at every start');
         $global = implode("\n", Wp8Lab::frLog('^\[wp8\]'));
         $this->assertStringContainsString('read_clients = yes', $global);
         $this->assertStringContainsString('require_message_authenticator = auto', $global, 'the stock global policy stays as shipped: the enforcement comes from the virtual server');

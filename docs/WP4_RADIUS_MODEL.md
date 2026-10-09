@@ -42,6 +42,14 @@
 | `WISPr-Session-Terminate-Time` | radreply | Hotspot with an expiry: ISO 8601 with an offset. |
 | group `plan_<id>` | radusergroup / radgroupreply | One membership, priority 1. The group rows are `Ascend-Data-Rate` (download), `Ascend-Xmit-Rate` (upload; the legacy code wrote the download rate twice) and `Mikrotik-Rate-Limit`. |
 
+> **WP8 A1 addendum (2026-10-09, `wp8/integration-poc`; the accepted WP4 contract above is otherwise unchanged).**
+> - `Port-Limit` | radreply | **Hotspot only**: `max(1, shared_users)`, equal to `Simultaneous-Use`. RouterOS enforces it at
+>   the NAS (WP8 OD-W8-16, verified on RouterOS 7.24.5). It is still never written to `radcheck` (the legacy placement).
+>   PPPoE and VPN get no `Port-Limit`.
+> - PPPoE admission against an open `radacct` row is verified by the fail-closed PPPoE session guard in `post-auth`
+>   (`install/freeradius/README.md` "PPPoE session guard"), and `delete_stale_sessions = no`. `radacct` is still never
+>   deleted or rewritten; `AccountingService::staleSessions` stays a report only.
+
 - **RADIUS key.** PPPoE: `pppoe_username` when set (owner decision Q7), otherwise `username`. Hotspot / VPN: `username`.
 - **Managed attributes.** Applying a policy removes managed attributes the policy does not contain. That includes the legacy reply attributes the old device stored in `radcheck` (Mikrotik-Rate-Limit, Port-Limit, Mikrotik-Wireless-Comment, WISPr-Session-Terminate-Time) and `Framed-IP-Netmask`. Unmanaged attributes are left alone.
 

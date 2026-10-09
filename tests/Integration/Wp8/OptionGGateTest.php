@@ -14,11 +14,14 @@ use Reseller\Tests\Support\Wp8LabHelpers;
 use Reseller\Tests\Support\Wp8Radius;
 
 /**
- * WP8 OD-W8-16 Option G — fail-closed PPPoE post-auth session guard GATE (owner third resolution round), LAB ONLY:
- * the CANDIDATE guard (dev/wp8/freeradius/option-g: bin + named exec module + post-auth policy, a temporary copy) in
- * the pinned FreeRADIUS 3.2.8 against the real RouterOS CHR 7.24.5, Simultaneous-Use and session { sql } unchanged,
- * delete_stale_sessions = no. Gate switches: dev/wp8/option_g_gate.py (`on` restarts FreeRADIUS, so each stock-checkrad
- * variant is its own PHPUnit run; faults and the fake second NAS 10.88.0.30 are switched by the tests themselves).
+ * WP8 OD-W8-16 Option G — fail-closed PPPoE post-auth session guard GATE (owner third resolution round) against the real
+ * RouterOS CHR 7.24.5. The 2026-10-07 gate ran the CANDIDATE copy (dev/wp8/freeradius/option-g, kept as the reference);
+ * since WP8 A1 (2026-10-09) the same tests run the PERMANENT configuration from install/freeradius (bin + named exec
+ * module + post-auth policy of the project virtual server, net-snmp in the FreeRADIUS image, persistent guard credential
+ * file), Simultaneous-Use and session { sql } unchanged, delete_stale_sessions = no, and Hotspot users provisioned by
+ * the normal RadiusPolicyBuilder path (Port-Limit in radreply). Gate switches: dev/wp8/option_g_gate.py (`on` restarts
+ * FreeRADIUS, so each stock-checkrad variant is its own PHPUnit run; faults and the fake second NAS 10.88.0.30 are
+ * switched by the tests themselves).
  *
  *   testDiscriminator*   any mode     RouterOS PPPoE vs Hotspot Access-Request attributes
  *   testShipped*         on shipped   stock checkrad exactly as shipped (cannot SNMP -> defers): the guard is the backstop
@@ -98,7 +101,11 @@ final class OptionGGateTest extends TestCase
             $this->markTestSkipped("Option G gate mode {$stock} required, lab is {$now} (dev/wp8/option_g_gate.sh)");
         }
         $this->assertStringContainsString('delete_stale_sessions = no', $fr);
-        $this->assertStringContainsString('post_auth_policy=1', $fr);
+        $this->assertStringContainsString('post_auth_policy=1', $fr, 'the guard runs exactly once from the project site');
+        // WP8 A1: the permanent configuration, not the gate copy
+        foreach (['guard_installed=1', 'guard_module=1', 'lab_policy_refs=0', 'guard_is_install_copy=1', 'persistent_creds=1'] as $needle) {
+            $this->assertStringContainsString($needle, $fr, 'permanent Option G: ' . $needle);
+        }
         $this->assertStringContainsString('snmpget_exec=1', $fr, 'no fault left over');
         // the stock checkrad of the pinned image, byte-identical (sha256 recorded in the OD-W8-16 Option F gate)
         $this->assertStringContainsString('stock_checkrad_sha256=be0093605a2a032942631067fefe74ab1725f4de3b4460cc7dbfe48957cf5738', $fr);
@@ -117,7 +124,10 @@ final class OptionGGateTest extends TestCase
     private function hotspotUser(string $password, int $shared): string
     {
         $u = $this->provisionPolicy(['username' => self::ident('oghs'), 'password' => $password], ['type' => 'Hotspot', 'shared_users' => $shared], self::BW, new \DateTimeImmutable('+1 day'));
-        static::labRadius()->prepare("INSERT INTO radreply (username, attribute, op, value) VALUES (?, 'Port-Limit', ':=', ?)")->execute([$u, (string) max(1, $shared)]);
+        // WP8 A1: provisioned by the normal RadiusPolicyBuilder path (the 2026-10-07 gate injected this row by hand)
+        $this->assertSame([['Port-Limit', ':=', (string) max(1, $shared)]], $this->rows("SELECT attribute, op, value FROM radreply WHERE username = ? AND attribute = 'Port-Limit'", $u),
+            'Hotspot Port-Limit written by the builder');
+        $this->assertSame([], $this->rows("SELECT attribute FROM radcheck WHERE username = ? AND attribute = 'Port-Limit'", $u), 'never in the control list');
         return $u;
     }
 
