@@ -5,6 +5,13 @@ Status: `IMPLEMENTED_NOT_ACCEPTED` (waiting for owner review)
 Date: 2026-10-01
 Baseline: application tree identical to upstream `d3e0596`; evidence in [`BASELINE_VERIFICATION.md`](BASELINE_VERIFICATION.md)
 
+> **Note added 2026-10-09 (documentation sync; the historical WP0 content below is unchanged).**
+> This is the WP0 baseline gap analysis of 2026-10-01. The owner later accepted WP0 as `ACCEPTED_WITH_NOTES`, which is recorded in the acceptance ledger.
+> The current architecture-level gap register is a separate document:
+> [`architecture/owner-lock-2026-10-09/GAP_ANALYSIS.md`](architecture/owner-lock-2026-10-09/GAP_ANALYSIS.md), which uses the IDs GAP-01 … GAP-15.
+> That document was owner-locked on 2026-10-09 and is governed by `OWNER_ARCHITECTURE_LOCK.md`.
+> The two files share a name but are different documents.
+
 This document compares the actual baseline with the owner-approved specification (`docs/claude-development-pack/`). It covers the role and scope model, every service-granting entrypoint, finance behaviour, RADIUS/MikroTik behaviour, credential handling, pre-existing security findings, UI/PWA readiness, and the spec↔repository conflicts that need owner decisions.
 
 **Rules applied**
