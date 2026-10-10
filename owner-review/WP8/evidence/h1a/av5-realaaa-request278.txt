@@ -1,0 +1,26 @@
+2026-10-10T11:00:22.990792701Z (278) Received Access-Request Id 117 from 10.88.0.2:47415 to 10.88.0.10:1812 length 187
+2026-10-10T11:00:22.990810022Z (278)   User-Name = "nuxr_wp8_ppp_e51663"
+2026-10-10T11:00:22.990844567Z (278) # Executing section authorize from file /etc/freeradius/sites-enabled/phpnuxbill
+2026-10-10T11:00:22.991225058Z (278) sql:    --> nuxr_wp8_ppp_e51663
+2026-10-10T11:00:22.994951535Z (278) # Executing section session from file /etc/freeradius/sites-enabled/phpnuxbill
+2026-10-10T11:00:22.994960372Z (278) sql:    --> nuxr_wp8_ppp_e51663
+2026-10-10T11:00:22.996328987Z (278)   } # session = ok
+2026-10-10T11:00:22.996334558Z (278) # Executing section post-auth from file /etc/freeradius/sites-enabled/phpnuxbill
+2026-10-10T11:00:22.996408506Z (278)            --> nuxr_wp8_ppp_e51663
+2026-10-10T11:00:22.996875318Z (278)            --> 1
+2026-10-10T11:00:22.996899804Z (278)            --> 0xb439a9e97af581434595b27e93e59b98
+2026-10-10T11:00:22.996927114Z (278)              --> b439a9e97af581434595b27e93e59b98
+2026-10-10T11:00:22.996986365Z (278)            --> nuxr_wp8_ppp_e51663
+2026-10-10T11:00:22.997381653Z (278)            --> k=6E7578725F7770385F7070705F653531363633
+2026-10-10T11:00:22.997408784Z (278)              --> 6E7578725F7770385F7070705F653531363633
+2026-10-10T11:00:22.997574163Z (278)            --> nuxr_wp8_ppp_e51663
+2026-10-10T11:00:22.998519348Z (278)            --> nuxr_wp8_ppp_e51663
+2026-10-10T11:00:22.999448172Z (278)            --> nuxr_wp8_ppp_e51663
+2026-10-10T11:00:23.000978529Z (278)            --> m=0
+2026-10-10T11:00:23.001014867Z (278)         EXPAND %{expr:(%C - %M) / 1000 + (%c - %l) * 1000}
+2026-10-10T11:00:23.001018123Z (278)            --> -990
+2026-10-10T11:00:23.001021479Z (278)         &Tmp-String-6 := -990
+2026-10-10T11:00:23.001042198Z (278)           &Tmp-String-0 := "nuxr-admission=reject:late"
+2026-10-10T11:00:23.001051976Z (278) attr_filter.access_reject:    --> nuxr_wp8_ppp_e51663
+2026-10-10T11:00:23.001132967Z (278) attr_filter.access_reject:    --> nuxr_wp8_ppp_e51663
+2026-10-10T11:00:23.991056311Z (278) Sent Access-Reject Id 117 from 10.88.0.10:1812 to 10.88.0.2:47415 length 67

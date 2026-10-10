@@ -47,7 +47,12 @@ final class AdmissionSourceTest extends TestCase
         $this->assertNotFalse($guard);
         $this->assertTrue($guard < $late && $late < $insert && $insert < $lateClaim && $lateClaim < $class, 'A1 verification -> late guard -> claim -> late-claim guard -> Class');
         $this->assertSame(1, substr_count($post, '&Class := '), 'one Class, set last');
-        $tail = substr($post, $class);
+        // the PPPoE branch ends after the Class; the only code after it is the Hotspot canonical-spelling block (WP8 H-1),
+        // which a PPPoE request never enters (disjoint discriminator)
+        $hotspot = strpos($post, 'if ((&Service-Type == Login-User) && (&NAS-Port-Type == Wireless-802.11)) {');
+        $this->assertNotFalse($hotspot);
+        $this->assertGreaterThan($class, $hotspot, 'the Hotspot block follows the PPPoE branch');
+        $tail = substr($post, $class, $hotspot - $class);
         $this->assertDoesNotMatchRegularExpression('/%\{sql:/', $tail, 'no SQL after the Class: nothing can fail after the claim succeeded');
         $this->assertStringStartsWith('if ((&Service-Type == Framed-User) && (&Framed-Protocol == PPP) && (&NAS-Port-Type == Ethernet)', trim($post), 'PPPoE only');
     }
@@ -81,7 +86,10 @@ final class AdmissionSourceTest extends TestCase
         $this->assertStringContainsString('if (&Tmp-String-4 != "m=0") {', $post);
         $this->assertSame(2, substr_count($post, 'if (&Tmp-String-0 != "nuxr-admission-claim=1") {'), 'a claim succeeds only on exactly one affected row');
         $this->assertSame(2, substr_count($post, 'if ((&Tmp-String-6 !~ /^[0-9]{1,9}$/) || (<integer>&Tmp-String-6 > 5000)) {'), 'late guard before and after the claim, malformed age rejects');
-        $this->assertSame(2, substr_count($post, '&Tmp-String-6 := "%{expr:(%C - %M) / 1000 + (%c - %l) * 1000}"'), 'request age: current microseconds read BEFORE the seconds (a second boundary can only overestimate)');
+        $this->assertSame(2, substr_count($post, '&Tmp-String-6 := "%{expr:(%{time_since:us} - %l * 1000000 - %M) / 1000}"'), 'request age on ONE clock: gettimeofday() now (rlm_date time_since) minus the gettimeofday() receive time (WP8 AV-5)');
+        $this->assertSame(2, substr_count($post, '&Tmp-String-6 :='), 'no other age computation');
+        $this->assertDoesNotMatchRegularExpression('/%c(?![a-z])/', self::code(self::read('install/freeradius/sites-available/phpnuxbill')), 'never the coarse time() clock %c (WP8 AV-5: it lags gettimeofday() after a second boundary)');
+        $this->assertStringNotContainsString('%C', self::code(self::read('install/freeradius/sites-available/phpnuxbill')), 'no split microseconds / seconds reading of the current time');
         $this->assertStringContainsString('(&Tmp-String-7 !~ /^[0-9a-f]{32}$/)', $post, 'the Request Authenticator is part of the identity');
         $this->assertStringContainsString("request_authenticator = '%{Tmp-String-7}', 'same', 'other')", $post);
         $this->assertStringContainsString('if ((&control:Tmp-String-0 == "PENDING") && ((&control:Tmp-String-2 != "same") || (&control:Tmp-String-3 != "spell"))) {', $post, 'Strict Mode');

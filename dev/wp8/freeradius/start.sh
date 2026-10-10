@@ -23,6 +23,14 @@ if [ -f "$R/wp8-a2r-fault" ] && [ -f "$R/wp8-a2r-fault-site" ]; then
 	cp "$R/wp8-a2r-fault-site" "$R/sites-enabled/phpnuxbill"
 	echo "[wp8] A2-R FAULT-INJECTION site: $(sha256sum "$R/sites-enabled/phpnuxbill" | cut -c1-16)"
 fi
+# WP8 H-1 FEASIBILITY (lab only, off unless dev/wp8/h1_gate.py site h1b created BOTH files inside this disposable
+# container): a copy of the PROJECT site with ONE experimental Hotspot post-auth block (H1-B: reply User-Name = the
+# canonical radcheck.username). Not the project policy; install/freeradius is unchanged. Removed by "h1_gate.py site
+# project" and by lab.sh down (container recreated).
+if [ -f "$R/wp8-h1-site-on" ] && [ -f "$R/wp8-h1-site" ]; then
+	cp "$R/wp8-h1-site" "$R/sites-enabled/phpnuxbill"
+	echo "[wp8] H-1 FEASIBILITY site (H1-B): $(sha256sum "$R/sites-enabled/phpnuxbill" | cut -c1-16)"
+fi
 printf 'client localhost {\n\tipaddr = 127.0.0.1\n\tsecret = $ENV{NUXR_RADIUS_SECRET}\n\trequire_message_authenticator = yes\n}\n' > "$R/clients.conf"
 # OD-W8-16 Option F checkrad GATE (lab only, off unless dev/wp8/checkrad_gate.py created the marker inside this
 # disposable container): Simultaneous-Use verification by the STOCK FreeRADIUS 3.2.8 checkrad (nas.type

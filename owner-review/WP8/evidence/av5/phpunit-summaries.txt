@@ -1,0 +1,51 @@
+phpunit exit codes:
+realaaa-1 rc=0
+realaaa-2 rc=0
+realaaa-3 rc=0
+security-gates rc=0
+wp8-integration rc=1
+ALLDONE
+===== realaaa-1 (start 2026-10-10T15:44:45Z)
+Time: 06:06.457, Memory: 28.00 MB
+OK (7 tests, 79 assertions)
+===== realaaa-2 (start 2026-10-10T15:50:54Z)
+Time: 06:05.509, Memory: 28.00 MB
+OK (7 tests, 79 assertions)
+===== realaaa-3 (start 2026-10-10T15:57:04Z)
+Time: 05:56.112, Memory: 28.00 MB
+OK (7 tests, 79 assertions)
+===== wp8-security-gates (start 2026-10-10T16:03:04Z)
+Time: 36:25.090, Memory: 12.00 MB
+OK (10 tests, 216 assertions)
+===== wp8-integration (2026-10-10T16:39:31Z 2026-10-10T17:25:17Z )
+Time: 45:43.811, Memory: 16.00 MB
+
+1 test triggered 3 PHP warnings:
+
+1) /repo/system/autoload/Message.php:13
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+2) /repo/system/autoload/Message.php:14
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+3) /repo/system/autoload/Message.php:15
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+OK, but there were issues!
+Tests: 69, Assertions: 1203, Warnings: 3, Deprecations: 1, Skipped: 13.
+

@@ -14,6 +14,7 @@ It is tested with FreeRADIUS **3.2.8** (`freeradius/freeradius-server:3.2.8`) on
 | `mods-available/nuxr_counters` | `mods-enabled/nuxr_counters` | `Max-All-Session` / `Max-Data` counters for the **current billing period** |
 | `mods-available/sql.example` | adapt into `mods-available/sql`, then link it in `mods-enabled/` | SQL module on the PHPNuxBill RADIUS database (`read_groups = yes`) |
 | `sites-available/phpnuxbill` | `sites-enabled/phpnuxbill`, replacing `default` | authorize / authenticate (PAP, CHAP) / accounting / session / post-auth (PPPoE session guard) |
+| (stock) `mods-available/date` | keep `mods-enabled/date` (FreeRADIUS default) | provides `%{time_since:}`, the clock of the PPPoE late-claim guard |
 | `bin/nuxr_pppoe_session_guard` | `${confdir}/nuxr/nuxr_pppoe_session_guard`, mode 0755, owner root | fail-closed PPPoE live-session verifier (see "PPPoE session guard") |
 | `mods-available/nuxr_pppoe_session_guard` | `mods-enabled/nuxr_pppoe_session_guard` | the named exec module that runs the verifier from post-auth |
 | `nuxr_admission.sql` | run once in the RADIUS database (additive, idempotent) **before** enabling the site | PPPoE admission reservation tables (see "PPPoE admission reservation") |
@@ -120,7 +121,38 @@ A mistake during rotation produces ERROR, i.e. rejected PPPoE logins for subscri
 
 **Hotspot.** The guard never runs for Hotspot. PHPNuxBill writes `Port-Limit` = `Simultaneous-Use` (`max(1, shared_users)`)
 as a **reply** attribute for Hotspot plans, and RouterOS enforces it at the NAS, also when an accounting Stop was lost.
-PPPoE gets no `Port-Limit` (RouterOS ignores it for PPPoE).
+PPPoE gets no `Port-Limit` (RouterOS ignores it for PPPoE). RouterOS counts `Port-Limit` per **spelling** it received,
+so the Hotspot canonical-spelling check below admits only the exact stored spelling.
+
+## Hotspot canonical spelling (WP8 H-1, H1-A)
+
+**Problem (H-1).** `radcheck.username` is `utf8mb4_general_ci`, so a Hotspot login authenticates under every case or
+accent spelling of the stored name (`ALI`, `Ali`, `àli` for `ali`). RouterOS keys the Hotspot session, its accounting
+and its `Port-Limit` by the spelling it received, and it ignores a `User-Name` returned in the Access-Accept (WP8 H1-B
+gate, RouterOS 7.24.5), so each equivalent spelling got its own `Port-Limit`: two live sessions under `shared_users = 1`.
+
+**How it works.** At the end of `post-auth`, only for Hotspot requests (`Service-Type = Login-User` and
+`NAS-Port-Type = Wireless-802.11`; RouterOS sends these for http-chap, http-pap, cookie and MAC login), after a
+successful authentication: the bytes of the request `User-Name` must be identical to the bytes of the one stored
+`radcheck.username` the lookup matched. Otherwise - another spelling, two byte-distinct stored spellings of one
+subscriber (ambiguous identity), any SQL error or unexpected result - Access-Reject, exactly like a wrong password (no
+Reply-Message, `reject_delay`; the Hotspot page shows its normal "invalid username or password" text). Nothing is
+written, the request and the password check are not changed, PPPoE / VPN requests never enter it.
+
+**Compatibility.** The stored spelling is the only one that works on the Hotspot:
+- users must type the username in its stored case (vouchers: the code exactly as issued - `rand` codes are mixed case);
+- a saved browser password or a Hotspot cookie under another spelling stops working until the user logs in once with
+  the stored spelling;
+- MAC login: RouterOS sends the MAC in UPPER case with colons (`AA:BB:CC:00:11:22`); store MAC usernames in that form.
+  **A Hotspot that uses `mac-auth-mode=mac-as-username` with a MAC stored in lower case worked before this rule and
+  STOPS WORKING with it** (WP8 H1-A, measured on RouterOS 7.24.5: the same MAC, accepted before, refused after). With
+  `mac-as-username-and-password` a lower-case MAC was already refused before (the CHAP password is the upper-case MAC).
+  There is no MAC exception, and nothing changes stored usernames: find such subscribers with the read-only impact
+  queries and correct their stored MAC (or the NAS mode) before enabling the rule;
+- PPPoE is unchanged (equivalent spellings share one admission reservation, see below).
+Measure the impact before enabling it (read-only queries in the WP8 H-1 report).
+
+**Rollback:** reinstall the previous site file and restart FreeRADIUS (H-1 returns).
 
 ## PPPoE admission reservation (WP8 A2-R)
 
@@ -158,6 +190,13 @@ step before the Access-Accept is an atomic **claim** in the table `nuxr_admissio
    before FreeRADIUS reads it - see "Known limitation" - or an Accept lost on the network): those leave a `PENDING`
    claim (refused logins, never a second session). Keep `/radius timeout=3s`: a shorter NAS timeout (RouterOS default
    1100 ms gives up after about 3.3 s) is NOT covered by this budget.
+   The age is measured on ONE clock: the request receive time (`%l` / `%M`) and the current time
+   `%{time_since:us}` both come from `gettimeofday()`. `%{time_since:}` is provided by the stock `date` module
+   (`mods-enabled/date`, enabled by default): keep it enabled - without it FreeRADIUS refuses to start ("Unknown
+   module"). Before WP8 AV-5 (2026-10-10) the current time mixed `%C` (`gettimeofday()` microseconds) with `%c`
+   (`time()`, a coarse clock that can still show the previous second for a few milliseconds after a second boundary):
+   such a request got an age about 1000 ms too small, negative when the request was younger than one second (refused
+   as malformed).
 7. Fail closed: a missing table, an SQL error, an unexpected SQL result, a missing or malformed attempt identity
    (Acct-Session-Id, Calling-Station-Id, NAS-Port-Id), a guard failure: Access-Reject with only
    `Reply-Message = "Session verification failed"`. `radacct` is never written by this policy; nothing is deleted.
@@ -166,9 +205,9 @@ step before the Access-Accept is an atomic **claim** in the table `nuxr_admissio
 MS-CHAPv2) is refused by the virtual server. A `Class` attribute from `radreply` / `radgroupreply` is replaced on PPPoE
 Access-Accepts.
 
-**Not covered.** Hotspot is unchanged and NOT covered: RouterOS enforces `Port-Limit` per spelling, so two equivalent
-spellings of one Hotspot subscriber can hold two sessions (WP8 finding H-1, HIGH, open; must be closed before
-production).
+**Not covered.** Hotspot has no reservation; its equivalent spellings are refused by the Hotspot canonical-spelling
+check (above). `Port-Limit` is enforced per NAS by RouterOS: whether `shared_users` holds across several NAS of one ISP
+is open (WP8 H-2, unverified), as is the VPN behaviour (WP8 V-1, unverified).
 
 **Known limitation - FreeRADIUS stall (WP8 AV-1; accepted by the owner on 2026-10-10 as a documented Strict Mode
 availability limitation for development; an OPEN PRODUCTION AVAILABILITY RISK).** FreeRADIUS 3.2.8 timestamps a

@@ -1,0 +1,2 @@
+radiusd: FreeRADIUS Version 3.2.8 (git #032be31bb), for host x86_64-pc-linux-gnu
+config-ok

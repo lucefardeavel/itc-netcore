@@ -1607,7 +1607,7 @@ def fr_requests(since_rfc, user):
         r = reqs[n]
         if body.startswith('User-Name = '):
             users[n] = body
-        elif '(%C - %M)' in body and 'EXPAND' in body:
+        elif ('(%C - %M)' in body or '(%{time_since:us} - %l' in body) and 'EXPAND' in body:  # pre / post WP8 AV-5 formula
             want = n
         elif body.startswith('-->') and want == n:
             r['age_ms'].append(body[3:].strip())

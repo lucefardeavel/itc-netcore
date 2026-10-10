@@ -1,0 +1,266 @@
+# FreeRADIUS 3.2.8 source excerpts (WP8 AV-5). rlm_date.c fetched from
+# https://raw.githubusercontent.com/FreeRADIUS/freeradius-server/release_3_2_8/src/modules/rlm_date/rlm_date.c
+# sha256 ed82f2b7577df4985c8f9c1b9f1e175be7c259da365340a5f2e42ed36d2329c5
+
+## rlm_date.c 120-300 (time_since: ONE gettimeofday, tv_sec * base + tv_usec)
+
+/** Get time in ms since either epoch or another value
+ *
+ *  %{time_since:s} - return seconds since epoch
+ *  %{time_since:ms 0} - return milliseconds since epoch
+ *  %{time_since:us 1695745763034443} - return microseconds since Tue 26 Sep 17:29:23.034443 BST 2023
+ *  %{time_since:us &Tmp-Integer64-1} - return microseconds since value in &Tmp-Integer64-1
+ */
+
+static ssize_t xlat_time_since(UNUSED void *instance, REQUEST *request, char const *fmt, char *out, size_t outlen)
+{
+	uint64_t time_now = 0;
+	uint64_t time_delta = 0;
+	uint64_t time_since = 0;
+	struct timeval tv;
+
+	enum timebase {
+		S = 1,
+		MS = 1000,
+		US = 1000000,
+	};
+	enum timebase time_base;
+
+	while (isspace((uint8_t) *fmt)) fmt++;
+
+	/*
+	 *  Work out what time base we are using, s, ms or us.
+	 */
+	if (fmt[0] == 'm' && fmt[1] == 's') {
+		time_base = MS;
+		fmt += 2;
+	} else if (fmt[0] == 'u' && fmt[1] == 's') {
+		time_base = US;
+		fmt += 2;
+	} else if (fmt[0] == 's') {
+		time_base = S;
+		fmt++;
+	} else {
+		REDEBUG("Time base (ms, us, s) missing in time_since xlat");
+	error:
+		*out = '\0';
+		return -1;
+	}
+
+	if (fmt[0] != '\0' && fmt[0] != ' ') {
+		REDEBUG("Invalid arguments passed to time_since xlat");
+		goto error;
+	}
+
+	while (isspace((uint8_t) *fmt)) fmt++;
+
+	/*
+	 *  Handle the different formats that we can be passed
+	 */
+	if (fmt[0] == '\0') {
+		/*
+		 *  %{time_since:[mu]?s} - epoch
+		 */
+		time_since = 0;
+
+	} else if (fmt[0] == '&') {
+		/*
+		 *  We were provided with an attribute
+		 *
+		 *  %{time_since:[mu]?s &list:Attr-Name}
+		 */
+		value_data_t	outnum;
+		VALUE_PAIR	*vp;
+		vp_tmpl_t	vpt;
+		ssize_t         slen;
+
+		fmt++;
+		slen = tmpl_from_attr_substr(&vpt, fmt, REQUEST_CURRENT, PAIR_LIST_REQUEST, false, false);
+		if (slen <= 0) {
+			/* Attribute name doesn't exist */
+			REDEBUG("Unable to parse attribute in time_since xlat");
+			goto error;
+		}
+		fmt += slen;
+
+		if (tmpl_find_vp(&vp, request, &vpt) < 0) {
+			/* Attribute exists but is not in the list */
+			RWDEBUG("Can't find &%.*s", (int)vpt.len, vpt.name);
+			goto error;
+		}
+
+		if (vp->da->type == PW_TYPE_INTEGER64) {
+			/*
+			 *  Int64 is easy
+			 */
+			time_since = vp->vp_integer64;
+		} else {
+			/*
+			 *  ...but not others - try and convert, but warn it's likely nonsensical.
+			 */
+			if (value_data_cast(request, &outnum,
+					PW_TYPE_INTEGER64, NULL, vp->da->type, NULL,
+					&vp->data, vp->vp_length) < 0) {
+				REDEBUG("Unable to convert %s to integer", fmt);
+				goto error;
+			}
+			if (vp->da->type == PW_TYPE_DATE) {
+				/*
+				 *  Special case a Date - we know it's seconds
+				 */
+				RDEBUG3("Attribute \"%s\" is a date; multiplying seconds by %d", fmt, time_base);
+				time_since = outnum.integer64 * time_base;
+			} else {
+				RWDEBUG("Attribute \"%s\" is not integer, conversion may not make sense", fmt);
+				time_since = outnum.integer64;
+			}
+		}
+
+	} else if (fmt[0] == '-') {
+		REDEBUG("time_since xlat only accepts positive integers");
+		goto error;
+
+	} else {
+		/*
+		 *  Otherwise we hope we were provided with an integer value
+		 *
+		 *  %{time_since:[mu]?s 12345}
+		 */
+		if (sscanf(fmt, "%" PRIu64, &time_since) != 1) {
+			REDEBUG("Failed parsing \"%s\" as integer", fmt);
+			goto error;
+		}
+	}
+
+	/*
+	 *  Get current time and add milli/micro component if needed
+	 */
+	gettimeofday(&tv, NULL);
+
+	time_now = (uint64_t)tv.tv_sec * time_base;
+
+	if (time_base == MS) {
+		time_now += (uint64_t)tv.tv_usec / 1000;
+	} else if (time_base == US) {
+		time_now += (uint64_t)tv.tv_usec;
+	}
+
+	/*
+	 *  time_since needs to be in the past
+	 */
+	if (time_since > time_now) {
+		REDEBUG("time provided to time_since needs to be in the past");
+		goto error;
+	}
+
+	/*
+	 *  Calculate time since provided value
+	 */
+	time_delta = time_now - time_since;
+
+	/*
+	 *  Write out and return
+	 */
+	if ((size_t)snprintf(out, outlen, "%" PRIu64, time_delta) >= outlen) {
+		REDEBUG("Insufficient space to write 64-bit time value");
+		goto error;
+	}
+
+	return 0;
+}
+
+
+static int mod_bootstrap(CONF_SECTION *conf, void *instance)
+{
+	rlm_date_t *inst = instance;
+
+	inst->xlat_name = cf_section_name2(conf);
+	if (!inst->xlat_name) {
+		inst->xlat_name = cf_section_name1(conf);
+	}
+
+	xlat_register(inst->xlat_name, xlat_date_convert, NULL, inst);
+	xlat_register("time_since", xlat_time_since, NULL, inst);
+
+	return 0;
+}
+
+## src/main/xlat.c release_3_2_8 (sha256 e2e685e970ebac61175f0b43b8334326d2a6be2f20d00850f59bf746a963c75d): %l / %M = request->packet->timestamp (gettimeofday at receive); %c = time(NULL); %C = gettimeofday tv_usec
+
+		str = talloc_array(ctx, char, freespace); /* @todo do better allocation */
+		p = node->fmt;
+
+		when = request->timestamp;
+		usec = 0;
+		if (request->packet) {
+			when = request->packet->timestamp.tv_sec;
+			usec = request->packet->timestamp.tv_usec;
+		}
+
+		switch (*p) {
+		case '%':
+			str[0] = '%';
+			str[1] = '\0';
+			break;
+
+		case 'c':	/* current epoch time seconds */
+			snprintf(str, freespace, "%" PRIu64, (uint64_t) time(NULL));
+			break;
+
+			break;
+
+		case 'l': /* request timestamp */
+			snprintf(str, freespace, "%lu",
+				 (unsigned long) when);
+			break;
+
+		case 'm': /* request month */
+			if (!localtime_r(&when, &ts)) goto error;
+			strftime(str, freespace, "%m", &ts);
+			break;
+
+		case 'n': /* Request Number*/
+			snprintf(str, freespace, "%u", request->number);
+			break;
+
+		case 't': /* request timestamp */
+			CTIME_R(&when, str, freespace);
+			nl = strchr(str, '\n');
+			if (nl) *nl = '\0';
+			break;
+
+		case 'C':	/* current epoch time microseconds */
+			{
+				struct timeval tv;
+
+				gettimeofday(&tv, NULL);
+
+				snprintf(str, freespace, "%" PRIu64, (uint64_t) tv.tv_usec);
+			}
+			break;
+
+		case 'D': /* request date */
+			break;
+
+		case 'M': /* request microsecond component */
+			snprintf(str, freespace, "%06u", (unsigned int) usec);
+			break;
+
+
+## src/main/process.c release_3_2_8 request_receive (sha256 f8406cf9649cab637f009d59ab23ac9a148a7cd547667463e7155c855abe3411)
+{
+	uint32_t count;
+	RADIUS_PACKET **packet_p;
+	REQUEST *request = NULL;
+	struct timeval now;
+	listen_socket_t *sock = NULL;
+
+	VERIFY_PACKET(packet);
+
+	/*
+	 *	Set the last packet received.
+	 */
+	gettimeofday(&now, NULL);
+
+	packet->timestamp = now;
+

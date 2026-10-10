@@ -1,0 +1,5 @@
+before stop: APP
+port still accepting after stop+delete: YES
+response: '' HTTP/1.1 404 Not Found
+php -S processes left: sh: 1: ps: not found
+0

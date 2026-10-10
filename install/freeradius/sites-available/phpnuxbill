@@ -121,7 +121,8 @@ post-auth {
 	#
 	#  PPPoE discriminator (RouterOS 7.24.5, captured in WP8): Service-Type = Framed-User AND Framed-Protocol = PPP
 	#  AND NAS-Port-Type = Ethernet. Hotspot (Service-Type = Login-User, NAS-Port-Type = Wireless-802.11) is NOT handled
-	#  here: RouterOS enforces the Port-Limit reply attribute for Hotspot.
+	#  here: RouterOS enforces the Port-Limit reply attribute for Hotspot, and the Hotspot canonical-spelling check
+	#  (WP8 H-1) at the end of this section admits only the exact stored spelling.
 	#
 	#  A1 (Option G): open radacct rows of the subscriber are verified on their NAS by bin/nuxr_pppoe_session_guard over
 	#  read-only SNMP; only SAFE continues. FreeRADIUS 3.2.8 itself treats any failure of the stock checkrad verification
@@ -332,10 +333,12 @@ post-auth {
 			reject
 		}
 		# ---- A2-R 5: late-claim guard BEFORE the claim (milliseconds since FreeRADIUS received this request). %l / %M are
-		# the request time (seconds / microseconds); %C / %c the current time, read in THIS order (microseconds first): a
-		# second boundary between the two reads can only OVERestimate the age (never a negative or too small value).
+		# the request time (seconds / microseconds, one gettimeofday() at receive); %{time_since:us} (rlm_date, enabled
+		# by default) is the current time from ONE gettimeofday(), so both sides come from the same clock (WP8 AV-5:
+		# %c is time(), a coarse clock that can still show the previous second just after a second boundary - mixed
+		# with %C it gave negative or 1000 ms too small ages). Malformed, negative or > 5000 ms: refused.
 		update request {
-			&Tmp-String-6 := "%{expr:(%C - %M) / 1000 + (%c - %l) * 1000}"
+			&Tmp-String-6 := "%{expr:(%{time_since:us} - %l * 1000000 - %M) / 1000}"
 		}
 		if ((&Tmp-String-6 !~ /^[0-9]{1,9}$/) || (<integer>&Tmp-String-6 > 5000)) {
 			update request {
@@ -421,7 +424,7 @@ post-auth {
 		# Only its CREATOR releases it, and only while no request of the same attempt re-used it (attach_count = 0):
 		# such a request may already have sent an Access-Accept carrying this token. A failed release leaves it PENDING.
 		update request {
-			&Tmp-String-6 := "%{expr:(%C - %M) / 1000 + (%c - %l) * 1000}"
+			&Tmp-String-6 := "%{expr:(%{time_since:us} - %l * 1000000 - %M) / 1000}"
 		}
 		if ((&Tmp-String-6 !~ /^[0-9]{1,9}$/) || (<integer>&Tmp-String-6 > 5000)) {
 			if (&control:Tmp-String-9 == "created") {
@@ -441,6 +444,64 @@ post-auth {
 		# ---- A2-R 8: the per-attempt correlation value (any Class from radreply / radgroupreply is replaced)
 		update reply {
 			&Class := "0x6e75787231%{control:Tmp-String-5}"
+		}
+	}
+	#
+	#  HOTSPOT CANONICAL SPELLING (WP8 H-1, H1-A). FAIL CLOSED.
+	#
+	#  radcheck.username is utf8mb4_general_ci: the stock lookup authenticates every case / accent spelling of a
+	#  subscriber. RouterOS keys a Hotspot session and its Port-Limit by the spelling it received, and it ignores a
+	#  User-Name returned in the Access-Accept (WP8 H1-B gate, RouterOS 7.24.5), so two equivalent spellings each got
+	#  their own Port-Limit (H-1). A Hotspot login is therefore admitted only under the EXACT bytes of the one stored
+	#  radcheck.username; RouterOS then only ever sees that spelling and its Port-Limit applies to the subscriber.
+	#    - Hotspot = Service-Type Login-User AND NAS-Port-Type Wireless-802.11 (RouterOS 7.24.5 Hotspot: http-chap,
+	#      http-pap, cookie and MAC login). PPPoE (above) and every other request are not touched.
+	#    - The request's User-Name bytes (%{hex:&User-Name}) must equal the bytes of the stored row the lookup matched
+	#      (LOWER(HEX(...)); a byte comparison, never the collation). More than one byte-distinct stored spelling of
+	#      the subscriber is an ambiguous identity: refused - no account is picked, nothing is merged.
+	#    - Runs after authentication and Simultaneous-Use; the request, the password and the authentication policy are
+	#      not changed. Any SQL error or unexpected result: refused.
+	#    - The refusal is the same as a wrong password: Access-Reject, reply filtered by attr_filter.access_reject, no
+	#      Reply-Message (it does not tell that the account exists). The reason is only in Tmp-String-0 (debug log).
+	#
+	if ((&Service-Type == Login-User) && (&NAS-Port-Type == Wireless-802.11)) {
+		# a first trivial %{sql:} call makes rlm_sql create the stock SQL-User-Name (as in the PPPoE block)
+		update request {
+			&Tmp-String-5 := "%{sql:SELECT '1'}"
+		}
+		if (!&SQL-User-Name || (&Tmp-String-5 != "1")) {
+			update request {
+				&Tmp-String-0 := "nuxr-hotspot=reject:no-key"
+			}
+			attr_filter.access_reject
+			reject
+		}
+		# c=<number of byte-distinct stored spellings>;<lower-case hex of the stored spelling>  and the request bytes
+		update request {
+			&Tmp-String-1 := "%{sql:SELECT CONCAT('c=', COUNT(DISTINCT CAST(username AS BINARY)), ';', COALESCE(LOWER(HEX(MIN(CAST(username AS BINARY)))), '-')) FROM radcheck WHERE username = '%{SQL-User-Name}'}"
+			&Tmp-String-2 := "%{hex:&User-Name}"
+		}
+		if (&Tmp-String-1 =~ /^c=1;([0-9a-f]{2,512})$/) {
+			update request {
+				&Tmp-String-3 := "%{1}"
+			}
+		}
+		else {
+			update request {
+				&Tmp-String-0 := "nuxr-hotspot=reject:identity"
+			}
+			attr_filter.access_reject
+			reject
+		}
+		if ((&Tmp-String-2 !~ /^[0-9a-f]{2,512}$/) || (&Tmp-String-2 != &Tmp-String-3)) {
+			update request {
+				&Tmp-String-0 := "nuxr-hotspot=reject:spelling"
+			}
+			attr_filter.access_reject
+			reject
+		}
+		update request {
+			&Tmp-String-0 := "nuxr-hotspot=exact"
 		}
 	}
 	Post-Auth-Type REJECT {

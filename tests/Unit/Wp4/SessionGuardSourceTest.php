@@ -91,9 +91,11 @@ final class SessionGuardSourceTest extends TestCase
         // A1: SQL key, unparsable rows, not SAFE, module not ok (4); A2-R: identity, key, reservation read, pending of
         // another attempt, ACTIVE under another spelling, open rows under another spelling, late before the claim,
         // token, claim lost, late claim (10)
-        $this->assertSame(14, preg_match_all('/^\\s*reject$/m', $post), 'every reject branch');
-        $this->assertSame(15, substr_count($post, 'attr_filter.access_reject'), 'each reject branch filters the reply (+ Post-Auth-Type REJECT)');
-        $this->assertSame(14, substr_count($post, '&Reply-Message := "Session verification failed"'));
+        // 14 PPPoE reject branches (A1 + A2-R) + 3 Hotspot canonical-spelling branches (WP8 H-1 H1-A, which carry NO
+        // Reply-Message: their refusal looks like a wrong password - HotspotSpellingSourceTest)
+        $this->assertSame(17, preg_match_all('/^\\s*reject$/m', $post), 'every reject branch');
+        $this->assertSame(18, substr_count($post, 'attr_filter.access_reject'), 'each reject branch filters the reply (+ Post-Auth-Type REJECT)');
+        $this->assertSame(14, substr_count($post, '&Reply-Message := "Session verification failed"'), 'the PPPoE branches');
         $this->assertStringContainsString("&Exec-Program !* ANY\n", $post, 'no reply Exec-Program can run');
         $this->assertStringContainsString('sql', self::sessionSection(), 'Simultaneous-Use (session { sql }) stays the first layer');
     }

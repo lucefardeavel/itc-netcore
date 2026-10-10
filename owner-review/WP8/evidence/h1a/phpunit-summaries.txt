@@ -1,0 +1,55 @@
+===== focused harness (both engines; HotspotSpelling*, AdmissionSource, SessionGuardSource, AdmissionReservationContract, SessionGuardContract)
+================ engine: mariadb ================
+OK (37 tests, 614 assertions)
+================ engine: mysql ================
+OK (37 tests, 614 assertions)
+===== wp8-integration (full suite, production-contract lab, threaded) 2026-10-10T10:27:19Z 2026-10-10T11:09:14Z  rc=1
+There was 1 failure:
+
+1) Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeSimultaneousUseAllowsOneSession
+Failed asserting that false is true.
+
+/repo/tests/Integration/Wp8/RealAaaTest.php:105
+
+--
+
+1 test triggered 3 PHP warnings:
+
+1) /repo/system/autoload/Message.php:13
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+2) /repo/system/autoload/Message.php:14
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+3) /repo/system/autoload/Message.php:15
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+FAILURES!
+Tests: 69, Assertions: 1199, Failures: 1, Warnings: 3, Deprecations: 1, Skipped: 13.
+
+===== wp8-security-gates run 1 (11:09Z): INTERRUPTED at ~11:43Z (agent session ended) - 8 dots, no summary, no exit code - NOT COUNTED
+===== wp8-security-gates run 2 (full rerun) 2026-10-10T12:01:44Z 2026-10-10T12:39:08Z  rc=0
+OK (10 tests, 216 assertions)
+===== RealAaaTest focused rerun (additional data only; does NOT replace the suite failure) rc=0
+OK (7 tests, 79 assertions)
+===== harness WP4+WP5A+WP5B (unit + integration), both engines 2026-10-10T12:46:24Z 2026-10-10T12:58:05Z 
+================ engine: mariadb ================
+OK (283 tests, 5902 assertions)
+================ engine: mysql ================
+OK (283 tests, 5902 assertions)
+rc=0

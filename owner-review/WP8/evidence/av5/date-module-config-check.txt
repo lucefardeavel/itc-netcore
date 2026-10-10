@@ -1,0 +1,9 @@
+== stock mods-enabled/date: with (site = micro-study-site.conf)
+radiusd: FreeRADIUS Version 3.2.8 (git #032be31bb), for host x86_64-pc-linux-gnu
+freeradius -XC exit=0
+Configuration appears to be OK
+== stock mods-enabled/date: without (site = micro-study-site.conf)
+radiusd: FreeRADIUS Version 3.2.8 (git #032be31bb), for host x86_64-pc-linux-gnu
+freeradius -XC exit=1
+/etc/freeradius/sites-enabled/default[16]: %{time_since:us}
+/etc/freeradius/sites-enabled/default[16]:   ^ Unknown module

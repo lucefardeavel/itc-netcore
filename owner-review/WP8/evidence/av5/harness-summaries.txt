@@ -1,0 +1,73 @@
+# Dual-engine harness (dev/test/run-tests.sh, full default matrix, lab down)
+
+=== run 1 2026-10-10T17:28:27Z - 2026-10-10T18:31:54Z (before the HotspotEquivalenceGateTest tearDown fix)
+================ engine: mariadb ================
+Time: 27:07.728, Memory: 62.00 MB
+There were 3 errors:
+1) Reseller\Tests\Http\ErrorHandlingTest::testStaffOfEveryRoleGetsGenericErrorWithReference
+RuntimeException: no CSRF token on admin: 404  404 Not Found body { background-color: #fcfcfc; color: #333333; margin: 0; padding:0; } h1 { font-size: 1.5em; fo
+2) Reseller\Tests\Http\ErrorHandlingTest::testCustomerAndAnonymousGetGenericError
+RuntimeException: no CSRF token on login: 404  404 Not Found body { background-color: #fcfcfc; color: #333333; margin: 0; padding:0; } h1 { font-size: 1.5em; fo
+3) Reseller\Tests\Http\ErrorHandlingTest::testDisplayErrorsForcedOffEvenIfConfigEnablesIt
+RuntimeException: no CSRF token on admin: 404  404 Not Found body { background-color: #fcfcfc; color: #333333; margin: 0; padding:0; } h1 { font-size: 1.5em; fo
+There was 1 failure:
+1) Reseller\Tests\Http\ErrorHandlingTest::testApiErrorsAreGeneric
+API login sa: 404  404 Not Found body { background-color: #fcfcfc; color: #333333; margin: 0; padding:0; } h1 { font-size: 1.5em; font-weight: normal; backgroun
+1) /repo/tests/Support/Wp8Lab.php:28
+2) /repo/tests/Support/Wp8Lab.php:29
+3) /repo/tests/Support/Wp8Lab.php:30
+4) /repo/tests/Support/Wp8Lab.php:28
+5) /repo/tests/Support/Wp8Lab.php:30
+Tests: 980, Assertions: 67073, Errors: 3, Failures: 1, Warnings: 5, Incomplete: 79.
+================ engine: mysql ================
+Time: 35:29.190, Memory: 62.00 MB
+1) /repo/tests/Support/Wp8Lab.php:28
+2) /repo/tests/Support/Wp8Lab.php:29
+3) /repo/tests/Support/Wp8Lab.php:30
+4) /repo/tests/Support/Wp8Lab.php:28
+5) /repo/tests/Support/Wp8Lab.php:30
+OK, but there were issues!
+Tests: 980, Assertions: 67198, Warnings: 5, Incomplete: 79.
+
+=== focused ErrorHandlingTest|HotspotEquivalenceGateTest after the fix
+================ engine: mariadb ================
+Time: 00:04.519, Memory: 28.00 MB
+OK, but there were issues!
+Tests: 4, Assertions: 126, Incomplete: 2.
+================ engine: mysql ================
+Time: 00:08.666, Memory: 28.00 MB
+OK, but there were issues!
+Tests: 4, Assertions: 126, Incomplete: 2.
+
+=== run 2 2026-10-10T18:34:29Z - 2026-10-10T19:24:37Z (after the fix)
+================ engine: mariadb ================
+Time: 17:50.311, Memory: 62.00 MB
+OK, but there were issues!
+Tests: 980, Assertions: 67197, Incomplete: 79.
+================ engine: mysql ================
+Time: 31:38.228, Memory: 62.00 MB
+There were 5 errors:
+1) Reseller\Tests\Integration\Wp6b\FinanceCorrectionTest::testDebtLineReviewTypedDecreaseAndExposureFloor
+RuntimeException: no CSRF token on admin: 404  404 Not Found body { background-color: #fcfcfc; color: #333333; margin: 0; padding:0; } h1 { font-size: 1.5em; fo
+2) Reseller\Tests\Integration\Wp6b\FinanceCorrectionTest::testAdjustmentsAreExplicitAndNeverOpenAWallet
+RuntimeException: no CSRF token on admin: 404  404 Not Found body { background-color: #fcfcfc; color: #333333; margin: 0; padding:0; } h1 { font-size: 1.5em; fo
+3) Reseller\Tests\Integration\Wp6b\FinanceCorrectionTest::testOnlyAnExistingReversibleTransferCanBeReversed
+RuntimeException: no CSRF token on admin: 404  404 Not Found body { background-color: #fcfcfc; color: #333333; margin: 0; padding:0; } h1 { font-size: 1.5em; fo
+4) Reseller\Tests\Integration\Wp6b\FinanceCorrectionTest::testCorrectionsAreAdminOnly
+RuntimeException: no CSRF token on admin: 404  404 Not Found body { background-color: #fcfcfc; color: #333333; margin: 0; padding:0; } h1 { font-size: 1.5em; fo
+5) Reseller\Tests\Integration\Wp6b\FinanceCorrectionTest::testAStaleDebtLineReviewNeverChangesItsRiskDirection
+RuntimeException: no CSRF token on admin: 404  404 Not Found body { background-color: #fcfcfc; color: #333333; margin: 0; padding:0; } h1 { font-size: 1.5em; fo
+Tests: 980, Assertions: 67096, Errors: 5, Incomplete: 79.
+
+harness rc=1
+harness-focused rc=0
+harness2 rc=1
+
+=== focused FinanceCorrectionTest (both engines)
+================ engine: mariadb ================
+Time: 00:07.713, Memory: 28.00 MB
+OK (5 tests, 102 assertions)
+================ engine: mysql ================
+Time: 00:11.361, Memory: 28.00 MB
+OK (5 tests, 102 assertions)
+harness-focused-FinanceCorrection rc=0

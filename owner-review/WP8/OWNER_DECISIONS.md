@@ -346,3 +346,69 @@ deployment or the closure of WP8, S7 or S8.
   - `CORRECTION.AV-1.stall_timeline`.
 - **Still open:** R-WP8-CARRY-01/02/03 and R-HF-CARRY-01. S7, S8 and WP8 are NOT complete. A3 is not started; H-1 is
   planning only.
+
+## H-1 H1-A + AV-5 — Hotspot username identity and RADIUS age timing (2026-10-10) — additive record
+
+**How it got here.** Each step was owner-approved:
+1. H-1 plan, then the H1-B feasibility gate. The verdict was `H1_B_FEASIBILITY_FAILED`: RouterOS 7.24.5 ignores a
+   canonical `User-Name` in the Hotspot Access-Accept.
+2. H1-A implementation authorization (development and lab only). Verdict:
+   `H1_A_SECURITY_PASS_WITH_OPEN_FINDINGS` (AV-5 open, MAC-H1A open).
+3. H1-A + AV-5 final closure authorization: AV-5 corrected **without** the rejected "+1000 ms in the first 20 ms"
+   proposal. Verdict: `H1_A_READY_FOR_OWNER_ACCEPTANCE_WITH_NOTES`.
+
+Reports:
+- `evidence/h1-feasibility/H1B_FEASIBILITY_REPORT.md`
+- `evidence/h1a/H1A_IMPLEMENTATION_REPORT.md`
+- `evidence/av5/H1A_AV5_FINAL_ACCEPTANCE_CANDIDATE.md` (the basis of this acceptance)
+
+**Owner decision (2026-10-10): H1-A ACCEPTED WITH NOTES (development only); AV-5 FIX ACCEPTED (verified).
+Status: `H1_A_AV5_ACCEPTED_WITH_NOTES`.** Commit and push to `wp8/integration-poc` only. No merge, no production
+deployment.
+
+- **H1-A closes the Hotspot spelling bypass (H-1) in the tested CHR cases.**
+  - A Hotspot login (`Service-Type` Login-User + `NAS-Port-Type` Wireless-802.11) is admitted only when the raw
+    `User-Name` bytes equal the one stored `radcheck.username`.
+  - Equivalent spellings, an ambiguous stored identity, and any SQL error or unexpected result are refused exactly like
+    a wrong password.
+  - The request, the password check and the policy attributes are unchanged. H1-B is NOT used as policy.
+  - Real NAS: no Hotspot session above `shared_users` in any H1-A run (limits 1 and 2, concurrent, lost accounting,
+    PAP, cookie, vouchers).
+- **AV-5 is closed.** Both A2-R age blocks compute `%{expr:(%{time_since:us} - %l * 1000000 - %M) / 1000}`, one
+  `gettimeofday()` on each side (stock rlm_date; FreeRADIUS refuses to start without `mods-enabled/date`).
+  - Second-boundary evidence:
+    - 50,000-request micro-study: new formula 0 bad, old formula 28 negative ages;
+    - lab boundary gate: fixed formula 240 evaluations, 0 errors; pre-fix formula 9 false refusals and 1 underestimate
+      of 1000 ms;
+    - 5000 ms edges and retransmissions;
+    - real NAS: 3.5 / 4.5 s admitted, 5.5 / 6.5 s refused.
+- **Unchanged:** the 5000 ms budget, Strict Mode, fail-closed, `install/radius.sql`, `system/`.
+- **AV-1 remains an OPEN production availability risk.** This fix does not address a whole-process stall.
+- **MAC-H1A remains an OPEN production note.**
+  - `mac-as-username` with a MAC stored in lower case worked before H1-A and is refused with it.
+  - RouterOS sends upper case with colons; with `mac-as-username-and-password` a lower-case MAC was already refused.
+  - No MAC exception, no data change; documented in `install/freeradius/README.md`.
+  - The read-only impact queries (`evidence/h1a/PRODUCTION_IMPACT_READONLY.sql`) are prepared and NOT run.
+- **H-2 (cross-NAS Hotspot `shared_users`) and V-1 (VPN username equivalence) are NOT proven.** They must be assessed
+  later; the plans are separate and nothing is started.
+- **Test infrastructure defect (independent):** `tests/Support/AppServer.php` leaves `php -S` workers running after
+  `stop()`. A test class that draws a reused random port talks to the orphan and gets HTTP 404 (proven by a probe).
+  Not fixed.
+- **Test results with actual exit codes (not rewritten):**
+  - RealAaa ×3: OK (7 tests / 79 assertions each), exit 0.
+  - `wp8-security-gates`: 10 tests / 216 assertions, exit 0 (48 race trials, 0 double sessions).
+  - `wp8-integration`: 69 tests / 1203 assertions, 0 failures, 0 errors, 13 skipped, 3 warnings, 1 deprecation.
+    **Exit 1**, caused by the three pre-existing `system/autoload/Message.php:13-15` warnings under `failOnWarning`.
+    These warnings are **NOT resolved**.
+  - **Full dual-engine harness: not clean, exit 1 in both runs.** No exit 0 is recorded for it.
+    - Run 1 (980 tests / engine): MariaDB had 3 errors and 1 failure in `Http\ErrorHandlingTest` (AppServer defect),
+      plus 5 warnings from `HotspotEquivalenceGateTest::tearDown` with the lab down (fixed in this commit). MySQL had
+      0 errors / failures.
+    - Run 2: MariaDB clean (67197 assertions, 0 issues except 79 lab-only incomplete). MySQL had 5 errors in
+      `Wp6b\FinanceCorrectionTest` (AppServer defect).
+    - The affected classes pass in isolation on both engines (exit 0).
+  - A2-R lab cases: 18/19 pass in the main run. One `slow_guard_lost_stop` run FAILED: the A1 guard reached its 3 s
+    timeout under the TCG lab before any age check. It passed on 4 re-runs. The failure is kept as evidence and not
+    counted as a pass.
+- **Still open:** AV-1, AV-2, AV-3, MAC-H1A, H-2, V-1, the AppServer defect, the WP8 `Message.php` warnings,
+  R-WP8-CARRY-01/02/03, R-HF-CARRY-01. S7, S8 and WP8 are NOT complete. A3 is not started.
