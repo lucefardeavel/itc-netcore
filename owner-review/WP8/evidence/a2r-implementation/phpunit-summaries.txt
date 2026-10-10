@@ -1,0 +1,62 @@
+===== A2-A_.log
+OK (1 test, 27 assertions)
+===== A2-B0_.log
+OK (1 test, 22 assertions)
+===== A2-Bscan_.log
+OK (1 test, 44 assertions)
+===== A2-C_.log
+OK (1 test, 14 assertions)
+===== A2-E1_.log
+OK (1 test, 32 assertions)
+===== A2-E2_.log
+OK (1 test, 37 assertions)
+===== A2-E3_.log
+OK (1 test, 8 assertions)
+===== S1.log
+OK (1 test, 10 assertions)
+===== final-A2-B0_.log
+OK (1 test, 22 assertions)
+===== final-A2-C_.log
+OK (1 test, 14 assertions)
+===== final-A2-E3_.log
+OK (1 test, 8 assertions)
+===== final-S1.log
+OK (1 test, 10 assertions)
+===== rerun4.log
+1) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill1and6FreeRadiusUnreachableAndAuthenticationTimeout
+Failed asserting that false is true.
+2) Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeDynamicPoolRateDirectionSessionAndAccounting
+Failed asserting that two arrays are identical.
+FAILURES!
+Tests: 4, Assertions: 84, Failures: 2.
+===== wp8-integration.log
+1) Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testPppoeDisconnectAckSessionGoneStopWrittenSingleRequest
+Failed asserting that false is true.
+2) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill1and6FreeRadiusUnreachableAndAuthenticationTimeout
+Failed asserting that false is true.
+3) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateIMultipleNas
+Failed asserting that false is true.
+4) Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeDynamicPoolRateDirectionSessionAndAccounting
+Failed asserting that two arrays are identical.
+1) /repo/system/autoload/Message.php:13
+2) /repo/system/autoload/Message.php:14
+3) /repo/system/autoload/Message.php:15
+FAILURES!
+Tests: 69, Assertions: 1174, Failures: 4, Warnings: 3, Deprecations: 1, Skipped: 13.
+===== h1.log
+================ engine: mariadb ================
+OK (18 tests, 295 assertions)
+================ engine: mysql ================
+OK (18 tests, 295 assertions)
+===== h-reg.log
+================ engine: mariadb ================
+OK (274 tests, 5787 assertions)
+================ engine: mysql ================
+OK (274 tests, 5787 assertions)
+rc=0
+===== h-final.log
+================ engine: mariadb ================
+OK (274 tests, 5788 assertions)
+================ engine: mysql ================
+OK (274 tests, 5788 assertions)
+rc=0

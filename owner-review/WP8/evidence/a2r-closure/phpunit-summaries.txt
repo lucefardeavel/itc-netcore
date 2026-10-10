@@ -1,0 +1,60 @@
+===== wp8-integration (full suite, production-contract lab, threaded) 2026-10-09T21:29:58Z 2026-10-09T22:18:09Z  rc=1
+There were 2 failures:
+
+1) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill1and6FreeRadiusUnreachableAndAuthenticationTimeout
+service after FreeRADIUS returned
+Failed asserting that false is true.
+
+/repo/tests/Integration/Wp8/FailureDrillsTest.php:130
+
+2) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill7GuardLostStopReloginIsAcceptedWithoutAnyRepair
+the real re-login succeeds without any repair
+Failed asserting that false is true.
+
+/repo/tests/Integration/Wp8/FailureDrillsTest.php:385
+
+--
+
+1 test triggered 3 PHP warnings:
+
+1) /repo/system/autoload/Message.php:13
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+2) /repo/system/autoload/Message.php:14
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+3) /repo/system/autoload/Message.php:15
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+FAILURES!
+Tests: 69, Assertions: 1175, Failures: 2, Warnings: 3, Deprecations: 1, Skipped: 13.
+
+===== rerun 1: FailureDrillsTest::testDrill7GuardLostStopReloginIsAcceptedWithoutAnyRepair
+OK (1 test, 29 assertions)
+===== rerun 2: FailureDrillsTest::testDrill7GuardLostStopReloginIsAcceptedWithoutAnyRepair
+OK (1 test, 29 assertions)
+===== rerun 3: FailureDrillsTest::testDrill7GuardLostStopReloginIsAcceptedWithoutAnyRepair
+OK (1 test, 29 assertions)
+===== wp8-security-gates: UsernameEquivalenceGateTest (S-1)
+OK (1 test, 10 assertions)
+===== harness WP4+WP5A+WP5B (unit + integration), both engines
+================ engine: mariadb ================
+OK (274 tests, 5788 assertions)
+================ engine: mysql ================
+OK (274 tests, 5788 assertions)
+rc=0

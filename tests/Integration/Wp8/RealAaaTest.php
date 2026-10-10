@@ -67,7 +67,9 @@ final class RealAaaTest extends TestCase
 
         $interim = Wp8Lab::until(fn() => ($r = $this->acct($user)) && $r[0]['acctupdatetime'] > $r[0]['acctstarttime'] ? $r[0] : null, 90, 5);
         $this->assertIsArray($interim, 'Interim-Update');
-        $this->assertSame([substr($active['session-id'], 2), '10.88.0.2', $disc['ip'], 'Ethernet', 'ether3'],
+        // the RouterOS API prints the session id as upper-case hex ("0x810000E1"), RADIUS carries it lower-case
+        // ("810000e1"): the same number, compared case-insensitively on BOTH sides
+        $this->assertSame([strtolower(substr($active['session-id'], 2)), '10.88.0.2', $disc['ip'], 'Ethernet', 'ether3'],
             [strtolower($interim['acctsessionid']), $interim['nasipaddress'], $interim['framedipaddress'], $interim['nasporttype'], $interim['nasportid']],
             'session id, NAS identity (== nas.nasname), framed address, port');
         Wp8Lab::agent('pppoe_down', ['client' => 'c1']);

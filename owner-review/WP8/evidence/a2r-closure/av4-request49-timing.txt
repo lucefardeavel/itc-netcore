@@ -1,0 +1,9 @@
+2026-10-09T21:35:00.698228181Z (49) Received Access-Request Id 76 from 10.88.0.2:36561 to 10.88.0.10:1812 length 188
+2026-10-09T21:35:00.698297992Z (49) # Executing section authorize from file /etc/freeradius/sites-enabled/phpnuxbill
+2026-10-09T21:35:00.746545337Z (49) # Executing section session from file /etc/freeradius/sites-enabled/phpnuxbill
+2026-10-09T21:35:02.439775253Z (49)   } # session = ok
+2026-10-09T21:35:02.439780113Z (49) # Executing section post-auth from file /etc/freeradius/sites-enabled/phpnuxbill
+2026-10-09T21:35:05.018064386Z (49) nuxr_pppoe_session_guard: Program returned code (0) and output 'Tmp-String-7 = "SAFE",Tmp-String-6 = "10.88.0.2=SAFE; ms=2434"'
+2026-10-09T21:35:05.024306481Z (49)         &Tmp-String-6 := 4348
+2026-10-09T21:35:05.024326328Z (49)           &Tmp-String-0 := "nuxr-admission=reject:late"
+2026-10-09T21:35:05.024424501Z (49) Sent Access-Reject Id 76 from 10.88.0.10:1812 to 10.88.0.2:36561 length 67

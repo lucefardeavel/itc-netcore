@@ -50,6 +50,14 @@
 >   (`install/freeradius/README.md` "PPPoE session guard"), and `delete_stale_sessions = no`. `radacct` is still never
 >   deleted or rewritten; `AccountingService::staleSessions` stays a report only.
 
+> **WP8 A2-R addendum (2026-10-09, `wp8/integration-poc`, pending owner acceptance; the contract above is otherwise
+> unchanged).** PPPoE admission is additionally serialized by an atomic **admission reservation** in the RADIUS
+> database (`install/freeradius/nuxr_admission.sql`, additive; `install/radius.sql` unchanged): one row per canonical
+> subscriber (the exact `radcheck.username` the lookup matched, so case / accent spellings share it), claimed by
+> FreeRADIUS as the last step before the Access-Accept and correlated with accounting through a per-attempt `Class`
+> token. PHPNuxBill does not write or read it; `radacct` is still never written by the policy. Install order, readiness
+> check, recovery procedure and limits: `install/freeradius/README.md` "PPPoE admission reservation".
+
 - **RADIUS key.** PPPoE: `pppoe_username` when set (owner decision Q7), otherwise `username`. Hotspot / VPN: `username`.
 - **Managed attributes.** Applying a policy removes managed attributes the policy does not contain. That includes the legacy reply attributes the old device stored in `radcheck` (Mikrotik-Rate-Limit, Port-Limit, Mikrotik-Wireless-Comment, WISPr-Session-Terminate-Time) and `Framed-IP-Netmask`. Unmanaged attributes are left alone.
 

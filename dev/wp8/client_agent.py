@@ -16,7 +16,8 @@ STATE = os.environ['NUXR_WP8_STATE']
 CTL = f'{STATE}/ctl'
 SEC = dict(l.strip().split('=', 1) for l in open(f'{STATE}/secrets.env') if '=' in l and not l.startswith('#'))
 FR = 'nuxbill-reseller-test-freeradius-wp8-1'
-CLIENTS = {'c1': ('wp8c1', 'wp8v1c', 1), 'c3': ('wp8c3', 'wp8v3c', 3), 'c2': ('wp8c2', 'wp8v2c', 2), 'c4': ('wp8c4', 'wp8v4c', 4), 'c5': ('wp8c5', 'wp8v5c', 5)}
+CLIENTS = {'c1': ('wp8c1', 'wp8v1c', 1), 'c3': ('wp8c3', 'wp8v3c', 3), 'c2': ('wp8c2', 'wp8v2c', 2), 'c4': ('wp8c4', 'wp8v4c', 4), 'c5': ('wp8c5', 'wp8v5c', 5),
+           'c6': ('wp8c6', 'wp8v6c', 6)}     # WP8 A2-R: PPPoE client of the second CHR (lab.sh up-chr2)
 PPPD = {}
 CAPS = {}
 

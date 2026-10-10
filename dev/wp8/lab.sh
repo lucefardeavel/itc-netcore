@@ -4,6 +4,7 @@
 #
 #   dev/wp8/lab.sh fetch-image      download the pinned CHR image from MikroTik and verify both SHA-256 values
 #   dev/wp8/lab.sh up               start everything (refuses on address-space conflicts or leftovers)
+#   dev/wp8/lab.sh up-chr2          WP8 A2-R: add a second CHR (10.88.0.3) with its own PPPoE client (cross-NAS gate)
 #   dev/wp8/lab.sh test [args]      run PHPUnit (suite wp8-integration by default) in the runner
 #   dev/wp8/lab.sh php [args]       run php in the runner (same network namespace as FreeRADIUS)
 #   dev/wp8/lab.sh status           show lab state
@@ -22,8 +23,8 @@ ROS_VERSION=7.24.5
 ZIP_SHA=16f07222a3213352c9c4fbea4f4dec6a8ffb78fdc0fa5e398c23103ed357c6eb
 IMG_SHA=e4caf173aceb497433c5fc285bffee09c1e6761dfe0e658a2b178970249fc2d2
 IMG="$S/img/chr-$ROS_VERSION.img"
-LINKS=(wp8tap1 wp8tap2 wp8tap3 wp8br1 wp8br2 wp8v1h wp8v2h wp8v3h wp8v4h wp8v5h wp8vsh)
-NETNS=(wp8c1 wp8c2 wp8c3 wp8c4 wp8c5 wp8srv)
+LINKS=(wp8tap1 wp8tap2 wp8tap3 wp8br1 wp8br2 wp8v1h wp8v2h wp8v3h wp8v4h wp8v5h wp8vsh wp8tap4 wp8tap5 wp8br3 wp8v6h)
+NETNS=(wp8c1 wp8c2 wp8c3 wp8c4 wp8c5 wp8srv wp8c6)
 log() { echo "[wp8 $(date -u +%T)] $*"; }
 dc() { docker compose -f "$REPO/dev/test/compose.yml" -f "$HERE/compose.wp8.yml" --project-directory "$REPO/dev/test" "$@"; }
 secrets() {
@@ -58,6 +59,7 @@ preflight() {
   for n in "${LINKS[@]}" wp8lab0; do ip link show "$n" >/dev/null 2>&1 && { echo "REFUSED: leftover link $n (run down)"; exit 1; }; done
   for n in "${NETNS[@]}"; do ip netns list | grep -qw "$n" && { echo "REFUSED: leftover netns $n (run down)"; exit 1; }; done
   pgrep -f '[q]emu-system-x86_64 -name wp8chr' >/dev/null && { echo "REFUSED: CHR already running"; exit 1; }
+  ss -ltn | grep -q '127.0.0.1:18729 ' && { echo "REFUSED: 127.0.0.1:18729 in use"; exit 1; }
   ss -ltn | grep -q '127.0.0.1:18728 ' && { echo "REFUSED: 127.0.0.1:18728 in use"; exit 1; }
   return 0
 }
@@ -70,9 +72,11 @@ up() {
   mkdir -p "$S/radius-secrets"; chmod 700 "$S/radius-secrets"     # PPPoE session guard credentials (WP8 A1)
   log "compose: mariadb"; dc up -d mariadb >/dev/null
   for _ in $(seq 1 60); do [ "$(docker inspect -f '{{.State.Health.Status}}' nuxbill-reseller-test-mariadb-1 2>/dev/null)" = healthy ] && break; sleep 2; done
-  log "RADIUS database nuxr_radius (install/radius.sql) + NAS rows (production-style SQL clients)"
+  log "RADIUS database nuxr_radius (install/radius.sql + install/freeradius/nuxr_admission.sql) + NAS rows (production-style SQL clients)"
   echo 'DROP DATABASE IF EXISTS nuxr_radius; CREATE DATABASE nuxr_radius CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;' | mysql_root ""
   mysql_root nuxr_radius < "$REPO/install/radius.sql"
+  mysql_root nuxr_radius < "$REPO/install/freeradius/nuxr_admission.sql"      # WP8 A2-R additive upgrade
+  mysql_root nuxr_radius < "$REPO/install/freeradius/nuxr_admission_check.sql" | grep -qx "nuxr_admission=READY" || { echo "nuxr_admission NOT READY"; exit 1; }
   # 1: the CHR (CoA / Disconnect port 3799 = OD-W8-3 A); 2: the co-located application host itself, used by the
   # WP8 FreeRADIUS contract tests that send their own Access/Accounting-Requests from 10.88.0.10
   mysql_root nuxr_radius <<SQL
@@ -113,12 +117,43 @@ SQL
   log "lab up"
 }
 
+# WP8 A2-R cross-NAS gate (owner D-A2R-5 / A2-R gate 12): a SECOND disposable CHR on the same isolated lab network
+# (10.88.0.3, management forward 127.0.0.1:18729) with its own PPPoE segment (bridge wp8br3, client namespace wp8c6).
+# Requires a running lab (`up`). Removed by `down`.
+up_chr2() {
+  secrets; [ -f "$IMG" ] || { echo "no CHR image (fetch-image)"; exit 1; }
+  pgrep -f '[q]emu-system-x86_64 -name wp8chr2' >/dev/null && { echo "REFUSED: CHR2 already running"; exit 1; }
+  for n in wp8tap4 wp8tap5 wp8br3 wp8v6h; do ip link show "$n" >/dev/null 2>&1 && { echo "REFUSED: leftover link $n"; exit 1; }; done
+  ip netns list | grep -qw wp8c6 && { echo "REFUSED: leftover netns wp8c6"; exit 1; }
+  ss -ltn | grep -q '127.0.0.1:18729 ' && { echo "REFUSED: 127.0.0.1:18729 in use"; exit 1; }
+  ip tuntap add dev wp8tap4 mode tap; ip tuntap add dev wp8tap5 mode tap
+  ip link set wp8tap4 master wp8lab0 up
+  ip link add wp8br3 type bridge; ip link set wp8br3 up; ip link set wp8tap5 master wp8br3 up
+  ip netns add wp8c6; ip link add wp8v6h type veth peer name wp8v6c; ip link set wp8v6c netns wp8c6; ip link set wp8v6h master wp8br3 up
+  ip netns exec wp8c6 ip link set lo up; ip netns exec wp8c6 ip link set wp8v6c up
+  ip netns exec wp8srv ip route add 10.88.11.0/24 via 10.88.0.3
+  # explicit MACs: QEMU gives every VM the same default NIC MACs, and both CHRs share the lab bridge wp8lab0
+  log "CHR2 $ROS_VERSION: QEMU TCG, 1 vCPU, 1 GiB, fresh working disk, own MACs"
+  cp -f "$IMG" "$S/img/chr2-work.img"; : > "$S/serial2.log"; local t0; t0=$(date +%s)
+  qemu-system-x86_64 -name wp8chr2 -machine pc,accel=tcg -cpu max -smp 1 -m 1024 \
+    -drive file="$S/img/chr2-work.img",format=raw,if=virtio \
+    -netdev user,id=mgmt,restrict=on,net=10.0.3.0/24,hostfwd=tcp:127.0.0.1:18729-:8728 -device virtio-net-pci,netdev=mgmt,mac=52:54:00:a2:02:01 \
+    -netdev tap,id=lab,ifname=wp8tap4,script=no,downscript=no -device virtio-net-pci,netdev=lab,mac=52:54:00:a2:02:02 \
+    -netdev tap,id=pppoe,ifname=wp8tap5,script=no,downscript=no -device virtio-net-pci,netdev=pppoe,mac=52:54:00:a2:02:03 \
+    -display none -serial file:"$S/serial2.log" -pidfile "$S/qemu2.pid" -daemonize
+  for _ in $(seq 1 120); do python3 "$HERE/rosapi.py" 127.0.0.1 18729 admin - /system/identity/print >/dev/null 2>&1 && break; sleep 3; done
+  log "CHR2 API answered after $(( $(date +%s) - t0 ))s"
+  NUXR_WP8_CHR_ROLE=chr2 python3 "$HERE/configure_chr.py"
+  log "chr2 up"
+}
+
 down() {
   set +e
   log "down"
   [ -f "$S/agent.pid" ] && kill "$(cat "$S/agent.pid")" 2>/dev/null; rm -f "${S:?}/agent.pid"
   pkill -f '[p]ppd file /' 2>/dev/null; pkill -f '[t]cpdump -i wp8lab0' 2>/dev/null
-  [ -f "$S/qemu.pid" ] && kill "$(cat "$S/qemu.pid")" 2>/dev/null; sleep 2; pkill -9 -f '[q]emu-system-x86_64 -name wp8chr' 2>/dev/null; rm -f "${S:?}/qemu.pid"
+  [ -f "$S/qemu.pid" ] && kill "$(cat "$S/qemu.pid")" 2>/dev/null; [ -f "$S/qemu2.pid" ] && kill "$(cat "$S/qemu2.pid")" 2>/dev/null
+  sleep 2; pkill -9 -f '[q]emu-system-x86_64 -name wp8chr' 2>/dev/null; rm -f "${S:?}/qemu.pid" "${S:?}/qemu2.pid"
   local n
   for n in "${NETNS[@]}"; do ip netns list | grep -qw "$n" && { ip netns pids "$n" | xargs -r kill 2>/dev/null; ip netns del "$n"; }; done
   for n in "${LINKS[@]}"; do ip link show "$n" >/dev/null 2>&1 && ip link del "$n"; done
@@ -128,7 +163,7 @@ down() {
   dc --profile wp8 --profile wp8-runner down -v --remove-orphans >/dev/null 2>&1
   docker network rm nuxbill-reseller-test_wp8lab >/dev/null 2>&1
   [ -f "$S/ctl/evidence.jsonl" ] && { mkdir -p "$S/evidence"; mv "$S/ctl/evidence.jsonl" "$S/evidence/evidence-$(date -u +%Y%m%dT%H%M%SZ).jsonl"; }
-  rm -rf "${S:?}/ctl" "${S:?}/run"; rm -f "${S:?}/img/chr-work.img"
+  rm -rf "${S:?}/ctl" "${S:?}/run"; rm -f "${S:?}/img/chr-work.img" "${S:?}/img/chr2-work.img"
   status
   set -e
 }
@@ -142,6 +177,7 @@ runner() { secrets; dc --profile wp8 --profile wp8-runner run --rm -T php82-wp8 
 case "${1:-}" in
   fetch-image) secrets; fetch_image ;;
   up) up ;;
+  up-chr2) up_chr2 ;;
   down) down ;;
   status) status ;;
   php) shift; runner "$@" ;;

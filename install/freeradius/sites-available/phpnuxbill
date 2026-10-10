@@ -6,7 +6,9 @@
 #
 #  Needs: mods-enabled/sql (MySQL / MariaDB, read_groups = yes), mods-enabled/nuxr_counters,
 #  dictionary.phpnuxbill, and the stock chap, pap, preprocess, expiration, logintime, acct_unique,
-#  attr_filter modules. Enable it instead of "default" (or merge the sections into your own server).
+#  attr_filter, expr modules; for PPPoE also mods-enabled/nuxr_pppoe_session_guard and the admission tables of
+#  nuxr_admission.sql in the RADIUS database (see README.md). Enable it instead of "default" (or merge the sections
+#  into your own server).
 #
 #  Post-auth SQL logging (radpostauth) is not enabled here: the stock query stores the cleartext password.
 #
@@ -70,6 +72,36 @@ preacct {
 accounting {
 	# accounting history (radacct): written by FreeRADIUS only
 	sql
+	#
+	#  WP8 A2-R - PPPoE ADMISSION RESERVATION, accounting side. Only an accounting request that carries the per-attempt
+	#  Class token of this deployment (0x6e75787231 = "nuxr1" + 16 random bytes) may change a reservation, and only the
+	#  reservation of THAT attempt: token + NAS-IP-Address + Acct-Session-Id + Calling-Station-Id must all match, and the
+	#  state must allow the transition (Start / Interim-Update: PENDING|ACTIVE -> ACTIVE; Stop: PENDING|ACTIVE -> ENDED).
+	#  A late, duplicated or foreign packet matches nothing and changes nothing; an ENDED reservation is never revived.
+	#  Never a DELETE; radacct is not touched here; Accounting-On / -Off change no reservation. A failed statement
+	#  leaves the reservation as it was (more restrictive, never less): the Accounting-Response is still sent because
+	#  the stock accounting above already recorded the packet.
+	#
+	if (&Class) {
+		update request {
+			&Tmp-String-0 := "%{Class}"
+		}
+		if (&Tmp-String-0 =~ /^0x6e75787231([0-9a-f]{32})$/) {
+			update request {
+				&Tmp-String-1 := "%{1}"
+			}
+			if (&Acct-Status-Type == Stop) {
+				update request {
+					&Tmp-String-2 := "nuxr-admission-acct=%{sql:UPDATE nuxr_admission SET state = 'ENDED', ended_at = UTC_TIMESTAMP(6), last_acct_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), end_reason = 'acct_stop' WHERE token = '%{Tmp-String-1}' AND nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND state IN ('PENDING', 'ACTIVE')}"
+				}
+			}
+			elsif ((&Acct-Status-Type == Start) || (&Acct-Status-Type == Interim-Update)) {
+				update request {
+					&Tmp-String-2 := "nuxr-admission-acct=%{sql:UPDATE nuxr_admission SET state = 'ACTIVE', confirmed_at = COALESCE(confirmed_at, UTC_TIMESTAMP(6)), last_acct_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6) WHERE token = '%{Tmp-String-1}' AND nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND state IN ('PENDING', 'ACTIVE')}"
+				}
+			}
+		}
+	}
 	attr_filter.accounting_response
 }
 
@@ -80,31 +112,52 @@ session {
 
 post-auth {
 	#
-	#  WP8 OD-W8-16 Option G - FAIL-CLOSED PPPoE SESSION GUARD (backstop behind Simultaneous-Use / session { sql }).
+	#  PPPoE ADMISSION (WP8 A1 OD-W8-16 Option G session guard + WP8 A2-R atomic admission reservation). FAIL CLOSED.
 	#
 	#  Runs only here, in the normal post-auth section, i.e. for a request that authenticated AND passed the stock
-	#  Simultaneous-Use check (an already rejected request runs only Post-Auth-Type REJECT). FreeRADIUS 3.2.8 treats
-	#  any failure of the stock session verification (checkrad error / timeout / unreachable NAS) as "allow"; this
-	#  guard re-checks the real NAS and turns everything except a proven SAFE into Access-Reject.
+	#  Simultaneous-Use check (an already rejected request runs only Post-Auth-Type REJECT). Every path that cannot prove
+	#  safety ends in "reject", which strips the policy reply attributes (attr_filter.access_reject) and answers only
+	#  Reply-Message "Session verification failed" (on this path FreeRADIUS 3.2.8 does not run Post-Auth-Type REJECT).
 	#
 	#  PPPoE discriminator (RouterOS 7.24.5, captured in WP8): Service-Type = Framed-User AND Framed-Protocol = PPP
-	#  AND NAS-Port-Type = Ethernet. Hotspot (Service-Type = Login-User, NAS-Port-Type = Wireless-802.11) is NOT
-	#  guarded here: RouterOS enforces the Port-Limit reply attribute for Hotspot.
+	#  AND NAS-Port-Type = Ethernet. Hotspot (Service-Type = Login-User, NAS-Port-Type = Wireless-802.11) is NOT handled
+	#  here: RouterOS enforces the Port-Limit reply attribute for Hotspot.
 	#
-	#  The open-row query needs the SAME key as session { sql } / accounting. Two traps caught by the WP8 gate: in
-	#  post-auth SQL-User-Name does not exist yet when a nested expansion inside %{sql:...} is evaluated (it silently
-	#  became '' and found no row), and a nested %{User-Name} differs from the stock key for '"' and '\' (the stock key
-	#  backslash-escapes them) - both would have skipped the verification. See the key construction below.
+	#  A1 (Option G): open radacct rows of the subscriber are verified on their NAS by bin/nuxr_pppoe_session_guard over
+	#  read-only SNMP; only SAFE continues. FreeRADIUS 3.2.8 itself treats any failure of the stock checkrad verification
+	#  as "allow".
 	#
-	#  No open radacct row -> nothing to verify, no NAS query (first login). Open rows -> the DISTINCT NAS addresses
-	#  of those rows are verified by bin/nuxr_pppoe_session_guard: SAFE -> accept; LIVE, ERROR, timeout, missing
-	#  verdict, SQL failure or anything unexpected -> reject. radacct is only READ (history is never changed).
+	#  A2-R (admission reservation, table nuxr_admission from nuxr_admission.sql): the A1 check alone cannot see an
+	#  attempt that was accepted but has no accounting yet (Accept -> Accounting-Start window, lost Start), so two
+	#  concurrent first logins were both accepted (WP8 A2, RACE_PROVEN). Now:
+	#    - ONE reservation row per CANONICAL subscriber = the exact radcheck.username bytes the lookup matched. Every
+	#      spelling that radcheck (utf8mb4_general_ci) treats as the same subscriber - case, accents - maps to it (S-1).
+	#    - The claim is the LAST step before the Access-Accept: after authentication, Simultaneous-Use, the reservation
+	#      rules and the A1 verification. Exactly one request can create the row (PRIMARY KEY, plain INSERT) or take it
+	#      over (UPDATE conditioned on state AND previous token); every other request is refused.
+	#    - A PENDING reservation of another attempt is NEVER overridden - not by time, not by SNMP (Strict Mode). Its
+	#      operator recovery is nuxr_admission_release.sql, on NAS-side proof of invalidation only.
+	#    - The SAME attempt (an exact retransmission of the claiming Access-Request: same NAS, Acct-Session-Id,
+	#      Calling-Station-Id, NAS-Port-Id, spelling AND Request Authenticator) re-uses the claim and its token; it never
+	#      creates or releases one.
+	#    - An ACTIVE reservation (its session was proven by accounting) is taken over only after the A1 SNMP verification
+	#      of its NAS proves that session gone - the A1 lost-Stop semantics, never applied to PENDING.
+	#    - LATE-CLAIM GUARD: no claim and no Access-Accept when this request has been in FreeRADIUS longer than 5000 ms
+	#      (RouterOS 7.24.5 abandons an Access-Request about 9 s after its first transmission: 3 sends, 3 s apart, with
+	#      the A1 contract /radius timeout=3000ms). 5000 ms covers the A1 verification path (stock Simultaneous-Use
+	#      check + the guard, up to its 3 s module timeout) and leaves about 4 s for the network; the age is counted
+	#      from the moment FreeRADIUS read the packet, so time spent in the kernel queue before that is NOT covered
+	#      (WP8 A2-R AV-1). A claim that completed late is released by its creator before the reject, unless another
+	#      request of the same attempt already re-used it.
+	#    - The Access-Accept carries Class = "nuxr1" + the 128-bit token; accounting maps it back (see accounting).
+	#    - Every SQL result is checked against an exact sentinel: rlm_sql 3.2.8 expands an SQL error AND "no row
+	#      affected" to an empty string, so anything but the expected value rejects.
 	#
 	if ((&Service-Type == Framed-User) && (&Framed-Protocol == PPP) && (&NAS-Port-Type == Ethernet) && &control:Simultaneous-Use) {
 		# The radacct key must be EXACTLY the stock one: rlm_sql's SQL-User-Name (sql_set_user(): the expansion of
 		# sql_user_name = "%{User-Name}", which backslash-escapes '"' and '\'), escaped by the sql xlat like every
 		# stock query. A first, trivial %{sql:} call makes rlm_sql create that stock SQL-User-Name (sql_xlat() sets it
-		# and does not remove it); the open-row query then uses it. No SQL-User-Name -> cannot prove -> reject.
+		# and does not remove it); the queries below then use it. No SQL-User-Name -> cannot prove -> reject.
 		update request {
 			&Tmp-String-5 := "%{sql:SELECT '1'}"
 		}
@@ -115,11 +168,113 @@ post-auth {
 			}
 			reject
 		}
+		# ---- A2-R 1: the attempt identity must be complete and well formed (RouterOS sends all of it)
+		# the Request Authenticator (virtual attribute, printed as 0x + 32 hex): an exact retransmission repeats it
 		update request {
-			&Tmp-String-8 := "%{sql:SELECT CONCAT('n=', COUNT(*), ';', COALESCE(GROUP_CONCAT(DISTINCT nasipaddress ORDER BY nasipaddress SEPARATOR ','), '')) FROM radacct WHERE username = '%{SQL-User-Name}' AND acctstoptime IS NULL}"
+			&Tmp-String-7 := "%{Packet-Authentication-Vector}"
+		}
+		if (&Tmp-String-7 =~ /^0x([0-9a-f]{32})$/) {
+			update request {
+				&Tmp-String-7 := "%{1}"
+			}
+		}
+		if (!&NAS-IP-Address || !&Acct-Session-Id || !&Calling-Station-Id || !&NAS-Port-Id || (&Acct-Session-Id !~ /^[0-9A-Za-z]{1,32}$/) || (&Calling-Station-Id !~ /^[0-9A-Fa-f:.-]{1,32}$/) || (&NAS-Port-Id !~ /^[ -~]{1,64}$/) || (&Tmp-String-7 !~ /^[0-9a-f]{32}$/)) {
+			update request {
+				&Tmp-String-0 := "nuxr-admission=reject:identity"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- A2-R 2: canonical subscriber key = the exact radcheck.username bytes the lookup matched (hex)
+		update request {
+			&Tmp-String-1 := "%{sql:SELECT CONCAT('k=', COALESCE((SELECT HEX(username) FROM radcheck WHERE username = '%{SQL-User-Name}' ORDER BY CAST(username AS BINARY) LIMIT 1), '-'))}"
+		}
+		if (&Tmp-String-1 =~ /^k=([0-9A-F]{2,512})$/) {
+			update request {
+				&Tmp-String-2 := "%{1}"
+			}
+		}
+		else {
+			update request {
+				&Tmp-String-0 := "nuxr-admission=reject:key"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- A2-R 3: the current reservation: r=none | r=STATE|token|same/other|spell/respell|nas
+		update request {
+			&Tmp-String-3 := "%{sql:SELECT CONCAT('r=', COALESCE((SELECT CONCAT(state, '|', token, '|', IF(nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND nas_port_id = '%{NAS-Port-Id}' AND request_authenticator = '%{Tmp-String-7}', 'same', 'other'), '|', IF(session_user = '%{SQL-User-Name}', 'spell', 'respell'), '|', nas) FROM nuxr_admission WHERE username = UNHEX('%{Tmp-String-2}')), 'none'))}"
+		}
+		if (&Tmp-String-3 == "r=none") {
+			update control {
+				&Tmp-String-0 := "NONE"
+			}
+		}
+		elsif (&Tmp-String-3 =~ /^r=(PENDING|ACTIVE|ENDED)\|([0-9a-f]{32})\|(same|other)\|(spell|respell)\|([0-9.]{7,15})$/) {
+			update control {
+				&Tmp-String-0 := "%{1}"
+				&Tmp-String-1 := "%{2}"
+				&Tmp-String-2 := "%{3}"
+				&Tmp-String-3 := "%{4}"
+				&Tmp-String-4 := "%{5}"
+			}
+		}
+		else {
+			update request {
+				&Tmp-String-0 := "nuxr-admission=reject:read"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- A2-R 4: Strict Mode - a PENDING reservation of another attempt (or spelling) is never overridden
+		if ((&control:Tmp-String-0 == "PENDING") && ((&control:Tmp-String-2 != "same") || (&control:Tmp-String-3 != "spell"))) {
+			update request {
+				&Tmp-String-0 := "nuxr-admission=reject:pending-other"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# an ACTIVE reservation made under another spelling cannot be verified by the guard (it matches the spelling given)
+		if ((&control:Tmp-String-0 == "ACTIVE") && (&control:Tmp-String-3 != "spell")) {
+			update request {
+				&Tmp-String-0 := "nuxr-admission=reject:active-respell"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- A1 + A2-R: the NAS to verify = the NAS of the open radacct rows + the NAS of an ACTIVE reservation. Open
+		# rows recorded under ANOTHER spelling of the same subscriber cannot be verified by the guard -> reject (S-1).
+		update request {
+			&Tmp-String-8 := "%{sql:SELECT CONCAT('n=', COUNT(*), ';', COALESCE(GROUP_CONCAT(DISTINCT o.nas ORDER BY o.nas SEPARATOR ','), '')) FROM (SELECT nasipaddress AS nas FROM radacct WHERE username = '%{SQL-User-Name}' AND acctstoptime IS NULL UNION ALL SELECT nas FROM nuxr_admission WHERE username = UNHEX('%{Tmp-String-2}') AND state = 'ACTIVE') AS o}"
+			&Tmp-String-4 := "%{sql:SELECT CONCAT('m=', COUNT(*)) FROM radacct WHERE username = '%{SQL-User-Name}' AND acctstoptime IS NULL AND (username COLLATE utf8mb4_bin) <> '%{SQL-User-Name}'}"
+		}
+		if (&Tmp-String-4 != "m=0") {
+			update request {
+				&Tmp-String-0 := "nuxr-admission=reject:open-row-other-spelling"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
 		}
 		if (&Tmp-String-8 == "n=0;") {
-			# first login: no open accounting row, nothing to verify
+			# nothing open, nothing ACTIVE: no NAS verification
 		}
 		elsif (&Tmp-String-8 =~ /^n=[1-9][0-9]*;([0-9]{1,3}(\.[0-9]{1,3}){3}(,[0-9]{1,3}(\.[0-9]{1,3}){3})*)$/) {
 			update request {
@@ -136,8 +291,7 @@ post-auth {
 			}
 			# The module result never ends the section by itself (every return code continues here), so ONE explicit
 			# mapping decides: accept only for exit 0 (ok) WITH the verdict SAFE in the control list; LIVE (exit 1),
-			# ERROR (exit 2), timeout / kill (fail), a missing or unexpected verdict -> the reject block below, which
-			# also strips the policy reply attributes (on this path FreeRADIUS 3.2.8 does not run Post-Auth-Type REJECT).
+			# ERROR (exit 2), timeout / kill (fail), a missing or unexpected verdict -> reject.
 			nuxr_pppoe_session_guard {
 				reject = 1
 				fail = 1
@@ -151,7 +305,7 @@ post-auth {
 			}
 			if (ok) {
 				if (&control:Tmp-String-7 == "SAFE") {
-					# proven: every NAS answered and the live PPPoE sessions are below Simultaneous-Use
+					# proven: every NAS answered and no live PPPoE session of this spelling
 				}
 				else {
 					attr_filter.access_reject
@@ -176,6 +330,117 @@ post-auth {
 				&Reply-Message := "Session verification failed"
 			}
 			reject
+		}
+		# ---- A2-R 5: late-claim guard BEFORE the claim (milliseconds since FreeRADIUS received this request). %l / %M are
+		# the request time (seconds / microseconds); %C / %c the current time, read in THIS order (microseconds first): a
+		# second boundary between the two reads can only OVERestimate the age (never a negative or too small value).
+		update request {
+			&Tmp-String-6 := "%{expr:(%C - %M) / 1000 + (%c - %l) * 1000}"
+		}
+		if ((&Tmp-String-6 !~ /^[0-9]{1,9}$/) || (<integer>&Tmp-String-6 > 5000)) {
+			update request {
+				&Tmp-String-0 := "nuxr-admission=reject:late"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- A2-R 6: the claim - the ONLY serialization point, the last step before the Access-Accept
+		update control {
+			&Tmp-String-5 := "%{randstr:hhhhhhhhhhhhhhhh}"
+			&Tmp-String-9 := "none"
+		}
+		if (&control:Tmp-String-5 !~ /^[0-9a-f]{32}$/) {
+			update request {
+				&Tmp-String-0 := "nuxr-admission=reject:token"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		if (&control:Tmp-String-0 == "NONE") {
+			update request {
+				&Tmp-String-0 := "nuxr-admission-claim=%{sql:INSERT INTO nuxr_admission (username, state, token, nas, acct_session_id, calling_station_id, nas_port_id, request_authenticator, session_user, attach_count, created_at, updated_at) VALUES (UNHEX('%{Tmp-String-2}'), 'PENDING', '%{control:Tmp-String-5}', '%{NAS-IP-Address}', '%{Acct-Session-Id}', '%{Calling-Station-Id}', '%{NAS-Port-Id}', '%{Tmp-String-7}', '%{SQL-User-Name}', 0, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6))}"
+			}
+			update control {
+				&Tmp-String-9 := "created"
+			}
+		}
+		elsif ((&control:Tmp-String-0 == "ENDED") || (&control:Tmp-String-0 == "ACTIVE")) {
+			# ENDED: re-use the row; ACTIVE: reached only after the A1 verification proved its session gone (SAFE)
+			update request {
+				&Tmp-String-0 := "nuxr-admission-claim=%{sql:UPDATE nuxr_admission SET prev_token = token, prev_state = state, state = 'PENDING', token = '%{control:Tmp-String-5}', nas = '%{NAS-IP-Address}', acct_session_id = '%{Acct-Session-Id}', calling_station_id = '%{Calling-Station-Id}', nas_port_id = '%{NAS-Port-Id}', request_authenticator = '%{Tmp-String-7}', session_user = '%{SQL-User-Name}', attach_count = 0, created_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), confirmed_at = NULL, last_acct_at = NULL, ended_at = NULL, end_reason = NULL WHERE username = UNHEX('%{Tmp-String-2}') AND state = '%{control:Tmp-String-0}' AND token = '%{control:Tmp-String-1}'}"
+			}
+			update control {
+				&Tmp-String-9 := "created"
+			}
+		}
+		else {
+			# PENDING, same attempt and spelling: re-use the claim and its token (never create, never release)
+			update request {
+				&Tmp-String-0 := "nuxr-admission-claim=%{sql:UPDATE nuxr_admission SET attach_count = attach_count + 1, updated_at = UTC_TIMESTAMP(6) WHERE username = UNHEX('%{Tmp-String-2}') AND state = 'PENDING' AND token = '%{control:Tmp-String-1}' AND nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND nas_port_id = '%{NAS-Port-Id}' AND request_authenticator = '%{Tmp-String-7}' AND session_user = '%{SQL-User-Name}'}"
+			}
+			update control {
+				&Tmp-String-5 := "%{control:Tmp-String-1}"
+				&Tmp-String-9 := "attached"
+			}
+		}
+		if (&Tmp-String-0 != "nuxr-admission-claim=1") {
+			# lost the claim race (or a statement failed): ONE re-read; only the SAME attempt may attach, else reject
+			update request {
+				&Tmp-String-3 := "%{sql:SELECT CONCAT('r=', COALESCE((SELECT CONCAT(state, '|', token, '|', IF(nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND nas_port_id = '%{NAS-Port-Id}' AND request_authenticator = '%{Tmp-String-7}', 'same', 'other'), '|', IF(session_user = '%{SQL-User-Name}', 'spell', 'respell'), '|', nas) FROM nuxr_admission WHERE username = UNHEX('%{Tmp-String-2}')), 'none'))}"
+			}
+			if (&Tmp-String-3 =~ /^r=PENDING\|([0-9a-f]{32})\|same\|spell\|[0-9.]{7,15}$/) {
+				update control {
+					&Tmp-String-1 := "%{1}"
+				}
+				update request {
+					&Tmp-String-0 := "nuxr-admission-claim=%{sql:UPDATE nuxr_admission SET attach_count = attach_count + 1, updated_at = UTC_TIMESTAMP(6) WHERE username = UNHEX('%{Tmp-String-2}') AND state = 'PENDING' AND token = '%{control:Tmp-String-1}' AND nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND nas_port_id = '%{NAS-Port-Id}' AND request_authenticator = '%{Tmp-String-7}' AND session_user = '%{SQL-User-Name}'}"
+				}
+				update control {
+					&Tmp-String-5 := "%{control:Tmp-String-1}"
+					&Tmp-String-9 := "attached"
+				}
+			}
+			if (&Tmp-String-0 != "nuxr-admission-claim=1") {
+				update request {
+					&Tmp-String-0 := "nuxr-admission=reject:claim-lost"
+				}
+				attr_filter.access_reject
+				update reply {
+					&Reply-Message := "Session verification failed"
+				}
+				reject
+			}
+		}
+		# ---- A2-R 7: late-claim guard AFTER the claim: a claim that completed late is not followed by an Access-Accept.
+		# Only its CREATOR releases it, and only while no request of the same attempt re-used it (attach_count = 0):
+		# such a request may already have sent an Access-Accept carrying this token. A failed release leaves it PENDING.
+		update request {
+			&Tmp-String-6 := "%{expr:(%C - %M) / 1000 + (%c - %l) * 1000}"
+		}
+		if ((&Tmp-String-6 !~ /^[0-9]{1,9}$/) || (<integer>&Tmp-String-6 > 5000)) {
+			if (&control:Tmp-String-9 == "created") {
+				update request {
+					&Tmp-String-1 := "nuxr-admission-release=%{sql:UPDATE nuxr_admission SET state = 'ENDED', ended_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), end_reason = 'late_claim' WHERE username = UNHEX('%{Tmp-String-2}') AND token = '%{control:Tmp-String-5}' AND state = 'PENDING' AND attach_count = 0}"
+				}
+			}
+			update request {
+				&Tmp-String-0 := "nuxr-admission=reject:late-claim"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- A2-R 8: the per-attempt correlation value (any Class from radreply / radgroupreply is replaced)
+		update reply {
+			&Class := "0x6e75787231%{control:Tmp-String-5}"
 		}
 	}
 	Post-Auth-Type REJECT {

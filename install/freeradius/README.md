@@ -16,6 +16,9 @@ It is tested with FreeRADIUS **3.2.8** (`freeradius/freeradius-server:3.2.8`) on
 | `sites-available/phpnuxbill` | `sites-enabled/phpnuxbill`, replacing `default` | authorize / authenticate (PAP, CHAP) / accounting / session / post-auth (PPPoE session guard) |
 | `bin/nuxr_pppoe_session_guard` | `${confdir}/nuxr/nuxr_pppoe_session_guard`, mode 0755, owner root | fail-closed PPPoE live-session verifier (see "PPPoE session guard") |
 | `mods-available/nuxr_pppoe_session_guard` | `mods-enabled/nuxr_pppoe_session_guard` | the named exec module that runs the verifier from post-auth |
+| `nuxr_admission.sql` | run once in the RADIUS database (additive, idempotent) **before** enabling the site | PPPoE admission reservation tables (see "PPPoE admission reservation") |
+| `nuxr_admission_check.sql` | run in the RADIUS database | read-only readiness check: prints `nuxr_admission=READY` |
+| `nuxr_admission_release.sql` | run by the operator only, per the recovery procedure | releases ONE unresolved PENDING claim, with an audit record |
 
 ## Rules
 
@@ -118,6 +121,135 @@ A mistake during rotation produces ERROR, i.e. rejected PPPoE logins for subscri
 **Hotspot.** The guard never runs for Hotspot. PHPNuxBill writes `Port-Limit` = `Simultaneous-Use` (`max(1, shared_users)`)
 as a **reply** attribute for Hotspot plans, and RouterOS enforces it at the NAS, also when an accounting Stop was lost.
 PPPoE gets no `Port-Limit` (RouterOS ignores it for PPPoE).
+
+## PPPoE admission reservation (WP8 A2-R)
+
+**Problem.** The guard above decides from open `radacct` rows, and a session only gets a row when its Accounting-Start
+arrives (25-160 ms after the Access-Accept on RouterOS 7.24.5, or never when the Start is lost - RouterOS does not
+resend it). Two PPPoE logins of the same subscriber arriving in that window were both accepted and both stayed up
+(WP8 A2, `RACE_PROVEN`). Different spellings of one username (case, accents) that `radcheck` (`utf8mb4_general_ci`)
+treats as the same subscriber could also hold two sessions, because the guard matches the spelling it is given (S-1).
+
+**How it works** (PPPoE only; Hotspot is unchanged). After authentication, `Simultaneous-Use` and the guard, the last
+step before the Access-Accept is an atomic **claim** in the table `nuxr_admission`, one row per **canonical subscriber**
+(the exact `radcheck.username` the lookup matched, so every equivalent spelling maps to the same row):
+1. No row, or an `ENDED` row: exactly one request can create it (PRIMARY KEY, plain `INSERT`) or take it over (`UPDATE`
+   conditioned on the state and the previous token). It becomes `PENDING` with a new random 128-bit **token**, and the
+   Access-Accept carries `Class = "nuxr1" + token`. Every other request is refused.
+2. A `PENDING` row of **another** attempt: the login is refused - also when the old attempt is old, and also when SNMP
+   shows no session (it may still complete). Nothing releases it automatically (Strict Mode): see "Operator recovery".
+3. The **same** attempt (an exact retransmission of the claiming Access-Request: same NAS-IP-Address, Acct-Session-Id,
+   Calling-Station-Id, NAS-Port-Id, spelling and Request Authenticator - for example after a FreeRADIUS restart) re-uses
+   the claim and its token.
+4. An `ACTIVE` row (its session was proven by accounting): taken over only after the guard verified its NAS over SNMP and
+   found the session gone (the guard's lost-Stop rule). Under another spelling it cannot be verified: refused.
+5. Accounting with the token from the admitting NAS (token, NAS-IP-Address, Acct-Session-Id and Calling-Station-Id must
+   all match): Start / Interim-Update -> `ACTIVE`, Stop -> `ENDED`. A lost Start is confirmed by the first Interim-Update.
+   Old, duplicated or foreign packets change nothing; `ENDED` is never revived; Accounting-On changes no reservation.
+6. **Late-claim guard:** a request that has been in FreeRADIUS longer than **5000 ms** gets no claim and no Accept; a claim
+   that completed late is released by its creator (unless a retransmission of the same attempt already re-used it).
+   RouterOS 7.24.5 with `/radius timeout=3s` sends an Access-Request 3 times (0 / ~3 / ~6 s, identical id and
+   authenticator) and gives up after about 9.3 s; an Accept for the original request that arrives before that is
+   used. 5000 ms (owner decision D-AV4, 2026-10-10; was 2000 ms) covers the A1 verification path - stock
+   `Simultaneous-Use` check plus the guard up to its 3 s module timeout; with 2000 ms a legitimate reconnect after a
+   lost Stop was refused when SNMP was slow - and leaves about 4 s to the NAS deadline. Measured on the WP8 lab NAS
+   (claim delayed inside FreeRADIUS): 3.5 s and 4.5 s -> Accept used by the NAS, session up; 5.5 s and 6.5 s ->
+   refused, claim released. The guard does not cover delays FreeRADIUS cannot see (a packet waiting in the kernel
+   before FreeRADIUS reads it - see "Known limitation" - or an Accept lost on the network): those leave a `PENDING`
+   claim (refused logins, never a second session). Keep `/radius timeout=3s`: a shorter NAS timeout (RouterOS default
+   1100 ms gives up after about 3.3 s) is NOT covered by this budget.
+7. Fail closed: a missing table, an SQL error, an unexpected SQL result, a missing or malformed attempt identity
+   (Acct-Session-Id, Calling-Station-Id, NAS-Port-Id), a guard failure: Access-Reject with only
+   `Reply-Message = "Session verification failed"`. `radacct` is never written by this policy; nothing is deleted.
+
+**Authentication methods.** PAP and CHAP (the methods of this virtual server) were tested. Any other method (for example
+MS-CHAPv2) is refused by the virtual server. A `Class` attribute from `radreply` / `radgroupreply` is replaced on PPPoE
+Access-Accepts.
+
+**Not covered.** Hotspot is unchanged and NOT covered: RouterOS enforces `Port-Limit` per spelling, so two equivalent
+spellings of one Hotspot subscriber can hold two sessions (WP8 finding H-1, HIGH, open; must be closed before
+production).
+
+**Known limitation - FreeRADIUS stall (WP8 AV-1; accepted by the owner on 2026-10-10 as a documented Strict Mode
+availability limitation for development; an OPEN PRODUCTION AVAILABILITY RISK).** FreeRADIUS 3.2.8 timestamps a
+request when it reads it from the socket. If the whole process stalls (paused container or VM, SIGSTOP, debugger, host
+swap or CPU starvation, `-X` / `-s` single-thread mode under load) for longer than the NAS retry window (about 9 s),
+the NAS gives up while its packets wait in the kernel queue; after the stall FreeRADIUS reads them with an age of a few
+milliseconds, claims and sends an Accept the NAS ignores. The claim stays `PENDING` and the subscriber is refused until
+the operator recovery below. Never a second session; no time-based expiry and no SNMP-based unlock of `PENDING`.
+Operations: run FreeRADIUS threaded under the service manager (never `-X` in production), monitor host / VM stalls and
+FreeRADIUS liveness, alert on the orphan-candidate query (below), release only with NAS-side proof.
+
+**Install / upgrade** (per ISP instance, in this order):
+1. Back up the RADIUS database.
+2. Apply `nuxr_admission.sql` to the RADIUS database (the same database as `radcheck` / `radacct`), with the account that
+   owns the schema. It only creates `nuxr_admission` and `nuxr_admission_audit` (`CREATE TABLE IF NOT EXISTS`); it does
+   not touch `install/radius.sql` tables. The FreeRADIUS SQL account needs `SELECT, INSERT, UPDATE` on `nuxr_admission`
+   (no `DELETE`); the audit table is written only by the operator procedure.
+3. Run `nuxr_admission_check.sql`: it must print `nuxr_admission=READY`. Anything else: stop.
+4. Install the site file and restart FreeRADIUS.
+5. SQL pool: `pool.max` must cover the peak of concurrent authentications plus accounting. When the pool is exhausted
+   FreeRADIUS answers Access-Reject (`No connections available`), never Accept. Each FreeRADIUS worker thread holds at
+   most one connection at a time, so `pool.max` >= `thread pool { max_servers }` (32 by default) removes pool exhaustion
+   inside one instance (WP8 lab: 40 concurrent attempts, `pool.max` 8 -> 166 pool errors and 2 of 3 rounds admitted
+   nobody; `pool.max` 32 -> no pool error, 1 admitted per round). The database `max_connections` must then cover the
+   `pool.max` of every instance on it plus the application. This does not add capacity: load beyond the threads waits
+   inside FreeRADIUS and is refused by the 5000 ms late-claim guard (availability, never a second session). See
+   "Capacity sizing".
+6. NAS contract additions: RouterOS returns `Class` unchanged in Start / Interim-Update / Stop (verified on 7.24.5);
+   keep PPP accounting and Interim-Update enabled (`/ppp aaa set accounting=yes interim-update=...`); `/radius timeout=3s`.
+
+**Capacity sizing** (per ISP instance; the WP8 lab numbers are evidence, not a setting to copy):
+1. *Load.* Peak concurrent Access-Requests = the reconnect storm after the largest NAS reboots or loses its uplink
+   (its PPPoE subscribers re-dial within seconds), plus Accounting (Start / Interim-Update / Stop: every session sends
+   one Interim per `interim-update` interval). Measure on the real NAS: sessions per NAS, re-dial spread, interim
+   interval.
+2. *Per-request cost.* A PPPoE Access-Request runs about 10 SQL statements (authorize, Simultaneous-Use, the guard
+   read, the reservation read and claim); a first login took 6-300 ms in the lab; a login with an open radacct row also
+   runs stock checkrad and the A1 SNMP guard (0.7-4.3 s in the lab, guard bounded by its 3 s module timeout).
+3. *Threads.* `thread pool { max_servers }` >= peak concurrent requests that must be in progress at once; throughput is
+   about `max_servers / per-request time`. Requests beyond it queue inside FreeRADIUS (`max_queue_size`), and those that
+   wait longer than the 5000 ms budget are refused - availability, never an unsafe Accept.
+4. *SQL pool.* `pool.max` >= `max_servers` (one connection per busy thread; step 5 above). `pool.max` 8 under 40
+   concurrent requests exhausted the pool in the lab (166 errors, 2 of 3 rounds admitted nobody); `pool.max` 32 =
+   `max_servers` 32: no exhaustion observed.
+5. *Database.* `max_connections` >= Σ `pool.max` of every FreeRADIUS instance on that server + the application pool +
+   operator / backup sessions + margin; the database CPU / IO must sustain the per-request statements at the peak rate.
+6. *Limits and failure behaviour.* Open-file and process limits of the service cover `max_servers` + sockets; on any
+   exhaustion (threads, SQL pool, database) the answer is Access-Reject or no answer - never an Accept without a claim.
+   Re-measure after every change of NAS size, interim interval or hardware.
+
+**Rollback:** reinstall the previous site file and restart FreeRADIUS (the A1 behaviour returns). The tables may stay
+(nothing reads them then) or be dropped after a backup; they hold admission state only, no billing or accounting data.
+
+**Operator recovery** of an unresolved claim (`PENDING`, refused logins). An Access-Accept already sent cannot be
+cancelled from the RADIUS side, so a claim may be released only on **NAS-side proof that its attempt can no longer
+become a session**, for example: the NAS was rebooted after the claim's `created_at`, or the NAS log shows
+`authentication failed - radius timeout` for that user at that time. "No session in SNMP / `/ppp active`" alone is
+NOT proof. Status of a subscriber:
+
+    SELECT username, state, token, nas, acct_session_id, calling_station_id, created_at, attach_count,
+           TIMESTAMPDIFF(SECOND, created_at, UTC_TIMESTAMP()) AS age_s
+    FROM nuxr_admission WHERE username = (SELECT username FROM radcheck WHERE username = 'LOGIN'
+                                          ORDER BY CAST(username AS BINARY) LIMIT 1);
+
+Claims that may be orphans (an Accept the NAS never acted on: no accounting at all, older than the NAS retry window).
+Read-only, for monitoring; a row is a candidate for the NAS-side check above, never a proof:
+
+    SELECT username, nas, acct_session_id, calling_station_id, created_at,
+           TIMESTAMPDIFF(SECOND, created_at, UTC_TIMESTAMP()) AS age_s
+    FROM nuxr_admission WHERE state = 'PENDING' AND last_acct_at IS NULL
+      AND created_at < UTC_TIMESTAMP() - INTERVAL 60 SECOND ORDER BY created_at;
+
+**Operator identity.** `@nuxr_operator` is free text typed by the operator: it records who *claims* to have acted, it
+does not prove it. Before production (simplest mechanism, no UI, no new permission system): give every operator their
+own database account (no shared login) with only `SELECT` on `nuxr_admission`, `radcheck` and `nuxr_admission_audit`,
+`UPDATE` on `nuxr_admission` and `INSERT` on `nuxr_admission_audit`, and record `CURRENT_USER()` in the audit row (one
+additional audit column; not implemented in A2-R) - the database then attests the account that ran the release.
+
+Release: set `@nuxr_username`, `@nuxr_token`, `@nuxr_operator`, `@nuxr_reason`, `@nuxr_evidence` and run
+`nuxr_admission_release.sql` (see its header). It releases only that `PENDING` claim with that token and records every
+decision in `nuxr_admission_audit`. There is no automatic release by time, SNMP, `sysUpTime` or Acct-Session-Id.
 
 ## Message-Authenticator (required on every Access-Request)
 

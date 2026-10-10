@@ -6,11 +6,13 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
 require_once dirname(__DIR__, 2) . '/Support/Wp8LabHelpers.php';
 require_once dirname(__DIR__, 2) . '/Support/Wp8Radius.php';
+require_once dirname(__DIR__, 2) . '/Support/RadiusWire.php';
 
 use PHPUnit\Framework\TestCase;
 use Reseller\Radius\RadiusPacket;
 use Reseller\Tests\Support\Wp8Lab;
 use Reseller\Tests\Support\Wp8LabHelpers;
+use Reseller\Tests\Support\RadiusWire;
 use Reseller\Tests\Support\Wp8Radius;
 
 /**
@@ -88,7 +90,6 @@ final class OptionGGateTest extends TestCase
     }
     // ================================================================== helpers
 
-    private const PPPOE_ATTRS = [['Service-Type', 2], ['Framed-Protocol', 1], ['NAS-Port-Type', 15]];   // Framed-User, PPP, Ethernet
     private array $rules = [];
 
     /** the lab gate mode a test needs */
@@ -280,9 +281,31 @@ final class OptionGGateTest extends TestCase
     private function pppoeAccess(string $user, string $password): array
     {
         $t = microtime(true);
-        $r = Wp8Radius::lab()->access($user, $password, 'valid', false, self::PPPOE_ATTRS);
+        // WP8 A2-R: with the RouterOS PPPoE attempt identity (Acct-Session-Id, Calling-Station-Id, NAS-Port-Id), as every
+        // real RouterOS PPPoE Access-Request carries it; without it the site refuses the login before the guard
+        $w = RadiusWire::lab();
+        $attempt = RadiusWire::attempt('10.88.0.10');
+        $r = $w->send($w->pppoeAccess($user, $password, $attempt, 'pap'));
+        $this->lastAttempt = $r?->code === RadiusPacket::ACCESS_ACCEPT ? [$user, $attempt, RadiusWire::classHex($r)] : null;
         return ['code' => $r?->code === RadiusPacket::ACCESS_ACCEPT ? 'Access-Accept' : ($r?->code === RadiusPacket::ACCESS_REJECT ? 'Access-Reject' : 'none'),
             'reply_message' => $r?->get('Reply-Message'), 'ms' => (int) round((microtime(true) - $t) * 1000), 'decision' => $this->decision($user)];
+    }
+
+    /** WP8 A2-R: the last synthetic attempt that was ACCEPTED (user, attempt identity, Class hex) */
+    private ?array $lastAttempt = null;
+
+    /**
+     * WP8 A2-R: a synthetic Access-Accept that is never followed by accounting leaves an uncertain admission claim
+     * (PENDING) that refuses every other attempt of the subscriber (Strict Mode). A real NAS ends its session with an
+     * Accounting-Stop carrying the Class; the synthetic NAS does the same here so the next case starts clean.
+     */
+    private function endSyntheticAttempt(): void
+    {
+        if ($this->lastAttempt !== null) {
+            [$user, $attempt, $class] = $this->lastAttempt;
+            RadiusWire::lab()->pppoeAccounting($user, $attempt, 'Stop', hex2bin((string) $class));
+            $this->lastAttempt = null;
+        }
     }
 
     private function nasb(array $names): void
@@ -488,6 +511,7 @@ final class OptionGGateTest extends TestCase
         // I4: all SAFE -> SAFE / accept
         $this->nasb(['lo', 'ether1']);
         $out['I4.all-safe'] = $this->pppoeAccess($u2, 'Og-i-2');
+        $this->endSyntheticAttempt();
         // I5: real PPPoE login through the CHR with rows on both NAS, all SAFE -> the session comes up
         $c = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $u2, 'password' => 'Og-i-2']);
         $out['I5.real-login-all-safe'] = ['ok' => $c['ok'], 'decision' => $this->decision($u2), 'radacct' => $this->radacctView($u2)];

@@ -104,7 +104,20 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
         return $m === null ? null : json_decode((string) $m, true);
     }
 
-    /** drill 1 + 6: FreeRADIUS unreachable before provisioning, and the resulting authentication timeout */
+    /**
+     * drill 1 + 6 + 10: FreeRADIUS unreachable (frozen) before provisioning and during a login, then restored.
+     *
+     * WP8 A2-R Strict Mode contract - owner decision D-AV1 (2026-10-10): "ACCEPTED AS A DOCUMENTED STRICT-MODE
+     * AVAILABILITY LIMITATION", AV-1 stays an OPEN PRODUCTION AVAILABILITY RISK. Until that decision this drill
+     * expected the A1 behaviour - the service back as soon as FreeRADIUS returned - and failed under A2-R (evidence kept
+     * in owner-review/WP8/evidence/a2r-implementation and a2r-closure). What happens: RouterOS gives up the login after 3
+     * transmissions (~9 s) while the packets wait in the kernel queue; once resumed, FreeRADIUS reads the request with
+     * an age it measures from that read (milliseconds), claims and answers Accept for an attempt the NAS has already
+     * abandoned. The claim stays PENDING - no expiry by time, no unlock by SNMP - and refuses the subscriber until the
+     * audited operator release on NAS-side proof that the attempt is dead.
+     *   SECURITY (no illegal session): none during the outage, none from the late Accept, the NAS never shows one.
+     *   AVAILABILITY (AV-1, accepted limitation): refused after the restore until the audited release; then served.
+     */
     public function testDrill1and6FreeRadiusUnreachableAndAuthenticationTimeout(): void
     {
         $h = $this->hierarchy();
@@ -124,11 +137,70 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
         $timeouts1 = (int) Wp8Lab::ros('/radius/monitor', '=numbers=*1', '=once=')[0]['timeouts'];
         $this->assertGreaterThan($timeouts0, $timeouts1, 'RouterOS counted RADIUS timeouts');
         $this->assertSame($s, $this->inspect($out['reference'], $user, $h), 'no application state change during the timeout');
-        // drill 10: path restored
+
+        // drill 10: path restored - FreeRADIUS now processes the queued, already abandoned Access-Request
+        $resumed = gmdate('Y-m-d H:i:s');
         $this->assertTrue(Wp8Lab::agent('fr', ['action' => 'unpause'])['ok']);
+        $pdo = static::labRadius();
+        $claimOf = static function () use ($pdo, $user): ?array {
+            $st = $pdo->prepare('SELECT username, state, token, nas, acct_session_id, HEX(session_user) AS spelling, attach_count, created_at, last_acct_at
+                FROM nuxr_admission WHERE username = (SELECT username FROM radcheck WHERE username = ? ORDER BY CAST(username AS BINARY) LIMIT 1)');
+            $st->execute([$user]);
+            return $st->fetch(\PDO::FETCH_ASSOC) ?: null;
+        };
+        $residual = Wp8Lab::until(fn() => ($c = $claimOf()) && $c['state'] === 'PENDING' ? $c : null, 15, 0.5);
+        sleep(3);                                                   // a late Accept would have produced a session by now
+        $liveAfterLateAccept = Wp8Lab::pppActive($user);
+        $acctRows = (int) $pdo->query('SELECT COUNT(*) FROM radacct WHERE username = ' . $pdo->quote($user))->fetchColumn();
+        $nasProof = array_values(array_filter(array_column(Wp8Lab::ros('/log/print'), 'message'),
+            static fn($m) => str_contains((string) $m, "user {$user} authentication failed - radius timeout")));
+        // Strict Mode: the next login is refused while the claim is unresolved; nothing releases it by itself
+        $refused = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'D1-pass', 'wait' => 20]);
+        $refusedReason = array_slice(Wp8Lab::frLog('nuxr-admission=reject:[a-z-]+"', 50), -1);
+        $stillPending = $claimOf();
+        // audited operator release (install/freeradius/nuxr_admission_release.sql) on the NAS-side proof
+        $release = null;
+        $audit = [];
+        if ($residual !== null && $nasProof !== []) {
+            $vars = ['username' => $residual['username'], 'token' => $residual['token'], 'operator' => 'wp8-drill-operator',
+                'reason' => 'drill 6: Access-Accept sent after the NAS abandoned the attempt (FreeRADIUS stall)',
+                'evidence' => 'CHR 10.88.0.2 log: ' . $nasProof[count($nasProof) - 1] . '; /ppp active empty; claim created ' . $residual['created_at'] . ' UTC after the resume at ' . $resumed . ' UTC'];
+            foreach ($vars as $k => $v) {
+                $pdo->prepare("SET @nuxr_{$k} = ?")->execute([$v]);
+            }
+            $rs = $pdo->query((string) file_get_contents(dirname(__DIR__, 3) . '/install/freeradius/nuxr_admission_release.sql'));
+            do {
+                if ($rs->columnCount() > 0) {
+                    $release = $rs->fetchColumn();
+                }
+            } while ($rs->nextRowset());
+            $st = $pdo->prepare('SELECT action, outcome, operator, reason, evidence FROM nuxr_admission_audit WHERE token = ? ORDER BY id');
+            $st->execute([$residual['token']]);
+            $audit = $st->fetchAll(\PDO::FETCH_ASSOC);
+        }
         $back = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'D1-pass']);
-        $this->assertTrue($back['ok'], 'service after FreeRADIUS returned');
-        Wp8Lab::evidence('S6.D1+D6.freeradius-unreachable', ['activation' => $s, 'auth_during_outage' => $auth['log'], 'routeros_timeouts' => [$timeouts0, $timeouts1], 'after_restore' => $back['ip']]);
+        $served = $back['ok'] ? Wp8Lab::until(fn() => ($c = $claimOf()) && $c['state'] === 'ACTIVE' ? $c : null, 15, 0.5) : null;
+        Wp8Lab::evidence('S6.D1+D6.freeradius-unreachable', ['activation' => $s, 'auth_during_outage' => $auth['log'], 'routeros_timeouts' => [$timeouts0, $timeouts1],
+            'security' => ['nas_sessions_after_late_accept' => count($liveAfterLateAccept), 'radacct_rows' => $acctRows],
+            'availability' => ['resumed_utc' => $resumed, 'residual_claim' => $residual, 'nas_proof' => $nasProof, 'refused_before_release' => !$refused['ok'],
+                'refusal' => $refusedReason, 'still_pending' => $stillPending['state'] ?? null, 'release' => $release, 'audit' => $audit, 'served_after_release' => $back['ip'] ?? null]]);
+
+        // SECURITY: the late Accept for the abandoned attempt produced no session; no accounting, no second session
+        $this->assertSame([], $liveAfterLateAccept, 'no session from the Access-Accept sent after the NAS gave up');
+        $this->assertSame(0, $acctRows, 'no accounting for the abandoned attempt');
+        // AVAILABILITY (AV-1, accepted Strict Mode limitation): the residual claim of the abandoned attempt
+        $this->assertIsArray($residual, 'the abandoned attempt left a PENDING claim (claimed after the resume)');
+        $this->assertSame(['10.88.0.2', null, '0'], [$residual['nas'], $residual['last_acct_at'], (string) $residual['attach_count']]);
+        $this->assertGreaterThanOrEqual($resumed, substr((string) $residual['created_at'], 0, 19), 'claimed only after FreeRADIUS resumed');
+        $this->assertNotSame([], $nasProof, 'NAS-side proof: RouterOS logged the attempt as failed (radius timeout)');
+        $this->assertFalse($refused['ok'], 'Strict Mode: refused while the claim is unresolved');
+        $this->assertSame(['PENDING', $residual['token']], [$stillPending['state'] ?? null, $stillPending['token'] ?? null], 'no automatic release');
+        $this->assertSame('nuxr_admission_release=RELEASED', $release, 'audited operator release on NAS-side proof');
+        $this->assertSame([['release_pending', 'RELEASED', 'wp8-drill-operator']], array_map(static fn($a) => [$a['action'], $a['outcome'], $a['operator']], $audit));
+        $this->assertNotSame('', (string) ($audit[0]['evidence'] ?? ''), 'the audit row carries the evidence');
+        $this->assertTrue($back['ok'], 'service after the audited release');
+        $this->assertIsArray($served, 'the new login holds an ACTIVE claim');
+        Wp8Lab::agent('pppoe_down', ['client' => 'c1']);
     }
 
     /** drill 2: RADIUS database failure before COMMIT (confirmed failure, and a transient one) */

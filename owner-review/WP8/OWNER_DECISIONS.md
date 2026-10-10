@@ -272,3 +272,77 @@ Owner approved (2026-10-09, after the Architecture Lock of the same date and the
   - It runs only in the PHPUnit suite `wp8-security-gates`, which is excluded from `wp8-integration`.
   - Its assertions are unchanged.
 - Invalid first-pass trials (tooling defects) are listed in `A2_RESULTS.md` §6 and are not used in the conclusion.
+
+## A2-R — Atomic PPPoE admission reservation (2026-10-09 / 2026-10-10) — additive record
+
+**How A2-R got here.** Each step was owner-approved:
+1. Engineering decision review (Strict Mode, an atomic reservation in the per-ISP RADIUS DB, per-attempt `Class`, no
+   automatic expiry of `PENDING`).
+2. Feasibility gates G-CLASS / G-ID / G-RETX / G-SQL / G-LIFECYCLE: `A2_R_FEASIBILITY_PASS_PENDING_OWNER_REVIEW`.
+3. Implementation, including "S-1 — HIGH — VERIFIED PPPoE USERNAME-EQUIVALENCE BYPASS", fixed with a canonical
+   reservation key: `A2_R_PASS_PENDING_OWNER_ACCEPTANCE`.
+4. Closure round: `A2_R_BLOCKED_WITH_EVIDENCE`, which found AV-1 and AV-4.
+5. Owner decisions (2026-10-10):
+   - **D-AV1 = D1:** AV-1 accepted as a documented Strict Mode availability limitation.
+   - **D-AV4 = AV4-B:** a conditional 5000 ms late-claim budget.
+6. Final candidate: `A2_R_READY_FOR_OWNER_ACCEPTANCE_WITH_NOTES`.
+
+Reports:
+- `evidence/a2r-feasibility/A2R_FEASIBILITY_REPORT.md`
+- `evidence/a2r-implementation/A2R_IMPLEMENTATION_REPORT.md`
+- `evidence/a2r-closure/A2R_FINAL_CLOSURE_REPORT.md`
+- `evidence/a2r-final/A2R_OWNER_FINAL_ACCEPTANCE_CANDIDATE.md`
+
+**Owner verdict (2026-10-10): A2-R ACCEPTED WITH NOTES — DEVELOPMENT ONLY.** Official status:
+`A2_R_ACCEPTED_WITH_NOTES`. This permits committing A2-R to `wp8/integration-poc`. It does **not** authorize a production
+deployment or the closure of WP8, S7 or S8.
+
+- **A2-R ACCEPTED WITH NOTES.** Security gates passed under the tested configuration (RouterOS CHR 7.24.5,
+  `/radius timeout=3s`, FreeRADIUS 3.2.8 threaded, MariaDB 10.11 / MySQL 8.0):
+  - A2 race gates: 48 trials (B0, Bscan, C, E1, E2, E3), 0 double PPPoE sessions;
+  - S-1 gate passed;
+  - cross-NAS (2026-10-09): 13/13 single session;
+  - `ConcurrentFirstLoginGateTest` (suite `wp8-security-gates`), which failed by design under A2, now passes:
+    8 tests, 194 assertions, exit 0.
+- **AV-4: Closed within the validated 5000 ms budget.**
+  - Late-claim budget raised from 2000 to 5000 ms. It covers the A1 verification path (stock `Simultaneous-Use` check
+    plus the guard, up to its 3 s module timeout).
+  - Measured on the real NAS: a claim delayed 3.5 / 4.5 s → Accept used by the NAS; 5.5 / 6.5 s → refused, claim
+    released.
+  - A slow guard (2.5 s) on a reconnect after a lost Stop is admitted; a guard past its timeout is refused.
+- **AV-1: Accepted as a documented Strict Mode availability limitation for development only. Remains an OPEN
+  production release risk.**
+  - A whole-process FreeRADIUS stall longer than the NAS retry window (~9.3 s) leaves an orphan `PENDING` claim, and the
+    subscriber is refused until the audited operator release on NAS-side proof.
+  - No automatic expiry, no SNMP-based unlock, never a second session.
+  - The 5000 ms budget does not cover this case: the time spent in the kernel queue is invisible to FreeRADIUS.
+  - Drill 1&6 now verifies this contract. The earlier failures are kept in `evidence/a2r-implementation` and
+    `evidence/a2r-closure`.
+- **AV-2: Production capacity sizing remains open.**
+  - The method is documented in `install/freeradius/README.md` "Capacity sizing".
+  - Lab evidence only: `pool.max` 8 → exhaustion under 40 simultaneous requests; `pool.max` 32 with `max_servers` 32 →
+    none observed.
+- **AV-3: Operator identity verification remains open.**
+  - `@nuxr_operator` is free text.
+  - Proposal, not implemented: a per-operator DB account plus `CURRENT_USER()` in the audit row.
+- **H-1: HIGH security blocker, verified in Hotspot and not yet remediated.**
+  - "H-1 — HIGH — VERIFIED HOTSPOT USERNAME-EQUIVALENCE BYPASS": Port-Limit=1 → two live Hotspot sessions under two
+    equivalent spellings.
+  - Must be closed before production and before the final WP8 closure.
+  - H1-A is a candidate only.
+- **The FreeRADIUS / NAS timeout contract remains binding.**
+  - RouterOS `/radius timeout=3s` (3 transmissions, abandoned after ~9.3 s).
+  - A shorter NAS timeout is not covered by the 5000 ms budget.
+- **WP8 PHPUnit (`wp8-integration`, 2026-10-10):** 69 tests, 1203 assertions, zero failures and zero errors, 13 skips
+  (lab modes that exclude the production contract), three pre-existing warnings (`system/autoload/Message.php:13-15`
+  under `failOnWarning="true"`), one pre-existing deprecation. **Actual exit code 1.**
+  - The warnings and the deprecation are NOT resolved. They are the same as in the A1-round run before A2-R.
+- **Harness** WP4 + WP5A + WP5B: 274 tests / 5791 assertions OK on MariaDB and MySQL, exit code 0.
+- **Not changed:** `install/radius.sql` and `system/`. Hotspot is functionally unchanged. A1 historical evidence is not
+  rewritten.
+- **Invalid and corrected records** are documented in the reports and are not counted as passes:
+  - the cross-NAS run at 19:46Z (MAC collision);
+  - feasibility correction records;
+  - `CORRECTION.AV-1.stall_timeline`.
+- **Still open:** R-WP8-CARRY-01/02/03 and R-HF-CARRY-01. S7, S8 and WP8 are NOT complete. A3 is not started; H-1 is
+  planning only.

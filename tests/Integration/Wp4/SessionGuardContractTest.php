@@ -11,6 +11,7 @@ use Reseller\Radius\RadiusProvisioner;
 use Reseller\Radius\RadiusRepository;
 use Reseller\Tests\Support\FixtureBuilder;
 use Reseller\Tests\Support\RadiusClient;
+use Reseller\Tests\Support\RadiusWire;
 use Reseller\Tests\Support\TestDatabase;
 
 /**
@@ -39,6 +40,8 @@ final class SessionGuardContractTest extends TestCase
         $admin->exec('CREATE DATABASE IF NOT EXISTS `' . self::DB . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci');
         self::$pdo = FixtureBuilder::connect($host, TestDatabase::rootPassword(), self::DB);
         (new FixtureBuilder(dirname(__DIR__, 3)))->loadSqlFile(self::$pdo, dirname(__DIR__, 3) . '/install/radius.sql');
+        // WP8 A2-R: the PPPoE path of the site also needs the additive admission schema (README install order)
+        (new FixtureBuilder(dirname(__DIR__, 3)))->loadSqlFile(self::$pdo, dirname(__DIR__, 3) . '/install/freeradius/nuxr_admission.sql');
         RadiusClient::waitReady();
     }
 
@@ -80,7 +83,11 @@ final class SessionGuardContractTest extends TestCase
     private static function access(string $username, string $password, array $attrs): array
     {
         $t = microtime(true);
-        $r = RadiusClient::access($username, $password, false, $attrs);
+        // WP8 A2-R: a PPPoE Access-Request carries the RouterOS attempt identity (Acct-Session-Id, Calling-Station-Id,
+        // NAS-Port-Id), as every real RouterOS PPPoE request does; without it the site refuses the login (fail closed)
+        $r = $attrs === self::PPPOE
+            ? RadiusWire::harness()->send(RadiusWire::harness()->pppoeAccess($username, $password, RadiusWire::attempt('127.0.0.1'), 'pap'))
+            : RadiusClient::access($username, $password, false, $attrs);
         return [$r, (microtime(true) - $t) * 1000];
     }
 

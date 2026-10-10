@@ -15,15 +15,20 @@ STATE = os.environ.get('NUXR_WP8_STATE', '/var/lib/nuxr-wp8')
 sec = dict(l.strip().split('=', 1) for l in open(f'{STATE}/secrets.env') if '=' in l and not l.startswith('#'))
 pw = sec['NUXR_WP8_CHR_PASSWORD']
 
-ros = Ros('127.0.0.1', 18728)
+# WP8 A2-R cross-NAS gate: NUXR_WP8_CHR_ROLE=chr2 configures the SECOND lab CHR (lab.sh up-chr2): management forward
+# 127.0.0.1:18729, lab address 10.88.0.3, PPPoE on ether3 (bridge wp8br3), pool 10.88.11.0/24 under the SAME pool name
+# (RADIUS Framed-Pool), no Hotspot. Same RADIUS server, secret and AAA settings as the first CHR.
+CHR2 = os.environ.get('NUXR_WP8_CHR_ROLE') == 'chr2'
+PORT = 18729 if CHR2 else 18728
+ros = Ros('127.0.0.1', PORT)
 try:
     ros.login('admin', '')
     uid = [a['.id'] for a in ros.rows(['/user/print']) if a.get('name') == 'admin'][0]
     ros.rows(['/user/set', '=.id=' + uid, '=password=' + pw])
-    ros.close(); ros = Ros('127.0.0.1', 18728).login('admin', pw)
+    ros.close(); ros = Ros('127.0.0.1', PORT).login('admin', pw)
     print('admin: blank factory password replaced by the lab password')
 except PermissionError:
-    ros = Ros('127.0.0.1', 18728).login('admin', pw)
+    ros = Ros('127.0.0.1', PORT).login('admin', pw)
     print('admin: lab password already set')
 
 STEPS = [
@@ -54,14 +59,29 @@ STEPS = [
     ['/ip/hotspot/user/profile/set', '=numbers=default', '=shared-users=10'],
     ['/ip/service/set', '=numbers=api', '=address=10.88.0.0/24,10.0.2.0/24'],
 ]
+if CHR2:
+    STEPS = [
+        ['/system/identity/set', '=name=nuxr_wp8_chr2'],
+        ['/ip/address/add', '=address=10.88.0.3/24', '=interface=ether2', '=comment=nuxr_wp8'],
+        ['/ip/pool/add', '=name=nuxr_wp8_pool_dyn', '=ranges=10.88.11.100-10.88.11.149'],
+        ['/ppp/profile/add', '=name=nuxr_wp8_pppoe', '=local-address=10.88.11.1'],
+        ['/interface/pppoe-server/server/add', '=service-name=nuxr_wp8', '=interface=ether3', '=default-profile=nuxr_wp8_pppoe',
+         '=authentication=chap', '=one-session-per-host=no', '=disabled=no'],
+        ['/ppp/aaa/set', '=use-radius=yes', '=accounting=yes', '=interim-update=1m'],
+        ['/radius/add', '=address=10.88.0.10', '=secret=' + sec['NUXR_RADIUS_SECRET'], '=service=ppp',
+         '=src-address=10.88.0.3', '=timeout=3000ms', '=comment=nuxr_wp8_freeradius'],
+        ['/radius/incoming/set', '=accept=yes', '=port=3799'],
+        ['/ip/service/set', '=numbers=api', '=address=10.88.0.0/24,10.0.3.0/24'],
+    ]
 for s in STEPS:
     ros.rows(s)
     print(f'  {s[0]:40s} OK')
 # no local subscriber may mask RADIUS: no PPP secret, and the only Hotspot user is the factory "default-trial" (a
 # fixed RouterOS entry that can be neither removed nor disabled); it is inert because "trial" is not a login method
 assert ros.rows(['/ppp/secret/print']) == []
-assert [u.get('name') for u in ros.rows(['/ip/hotspot/user/print'])] == ['default-trial']
-assert 'trial' not in ros.rows(['/ip/hotspot/profile/print', '?name=nuxr_wp8_hs_prof'])[0].get('login-by', '')
+if not CHR2:
+    assert [u.get('name') for u in ros.rows(['/ip/hotspot/user/print'])] == ['default-trial']
+    assert 'trial' not in ros.rows(['/ip/hotspot/profile/print', '?name=nuxr_wp8_hs_prof'])[0].get('login-by', '')
 res = ros.rows(['/system/resource/print'])[0]
 print(json.dumps({'version': res.get('version'), 'architecture': res.get('architecture-name'), 'board': res.get('board-name'),
                   'license': ros.rows(['/system/license/print'])[0].get('level'),

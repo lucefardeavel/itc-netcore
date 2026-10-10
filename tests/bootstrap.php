@@ -23,6 +23,6 @@ require_once __DIR__ . '/Support/FixtureBuilder.php';
 require_once __DIR__ . '/Support/TestDatabase.php';
 require_once __DIR__ . '/Support/RunnerProcess.php';
 require_once __DIR__ . '/Support/IntegrationTestCase.php';
-foreach (['RouteInventory', 'DbProbe', 'HttpResponse', 'HttpClient', 'AppServer', 'Wp2Seed', 'Wp2HttpTestCase', 'FinanceSeed', 'FinanceInvariants', 'FinanceTestCase', 'FinanceWorkers', 'PricingTestCase', 'SnapshotFactory', 'RadiusTestCase', 'RadiusClient', 'StubNas', 'RadiusHttpTestCase', 'ActivationTestCase'] as $c) {
+foreach (['RouteInventory', 'DbProbe', 'HttpResponse', 'HttpClient', 'AppServer', 'Wp2Seed', 'Wp2HttpTestCase', 'FinanceSeed', 'FinanceInvariants', 'FinanceTestCase', 'FinanceWorkers', 'PricingTestCase', 'SnapshotFactory', 'RadiusTestCase', 'RadiusClient', 'RadiusWire', 'StubNas', 'RadiusHttpTestCase', 'ActivationTestCase'] as $c) {
     require_once __DIR__ . "/Support/{$c}.php";
 }
