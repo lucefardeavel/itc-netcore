@@ -1,0 +1,2 @@
+full run 1: samples 797 with a live stub 25 max live stub_nas.php 1 max live php -S 5
+full run 2: samples 766 with a live stub 23 max live stub_nas.php 1 max live php -S 5

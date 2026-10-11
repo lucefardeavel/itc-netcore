@@ -1,0 +1,21 @@
+# Full dual-engine harness (dev/test/run-tests.sh, default matrix) with the TI-02 repair
+
+=== full run 1: 2026-10-11T06:32:37Z - 2026-10-11T07:16:13Z, full1 rc=0
+================ engine: mariadb ================
+Time: 17:48.021, Memory: 62.00 MB
+OK, but there were issues!
+Tests: 994, Assertions: 67305, Incomplete: 79.
+================ engine: mysql ================
+Time: 25:04.165, Memory: 62.00 MB
+OK, but there were issues!
+Tests: 994, Assertions: 67305, Incomplete: 79.
+
+=== full run 2: 2026-10-11T07:16:14Z - 2026-10-11T07:57:37Z, full2 rc=0
+================ engine: mariadb ================
+Time: 16:33.744, Memory: 62.00 MB
+OK, but there were issues!
+Tests: 994, Assertions: 67305, Incomplete: 79.
+================ engine: mysql ================
+Time: 24:13.151, Memory: 62.00 MB
+OK, but there were issues!
+Tests: 994, Assertions: 67305, Incomplete: 79.

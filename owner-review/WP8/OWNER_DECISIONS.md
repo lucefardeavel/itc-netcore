@@ -443,3 +443,38 @@ deployment.
 - **Unchanged:** `install/`, `system/`, A2-R, H1-A, AV-5, production code.
 - **Still open:** AV-1, AV-2, AV-3, MAC-H1A, H-2, V-1, TI-02, the WP8 `Message.php` warnings, R-WP8-CARRY-01/02/03,
   R-HF-CARRY-01. H-2, V-1 and A3 are not started.
+
+## TI-02 — StubNas logging race repair (2026-10-11) — additive record
+
+**Owner decision (2026-10-11): TI-02 StubNas ACCEPTED WITH NOTES — development only. TI-02 is CLOSED with status
+`TI02_ACCEPTED_WITH_NOTES`.** Basis: `evidence/ti02/TI02_STUBNAS_REPAIR_REPORT.md`. The race finding
+`evidence/appserver/TI-02_STUBNAS_LOGGING_RACE.md` is kept unchanged. Commit and push to `wp8/integration-poc` only;
+no merge, no deployment.
+
+- **Accepted:**
+  - `stub_nas.php` publishes its log atomically (temporary file + `rename()`, same directory). The answer-then-record
+    order is unchanged.
+  - Out-of-range port → `bind`; post-bind `/proc/net/udp(6)` count ≠ 1 → `port_in_use` / `port_not_bound`.
+  - `StubNas` retries a bounded set of ports (5 random, or the explicit list), each with a bounded 10 s ready wait,
+    after cleaning the failed attempt, and throws when all fail.
+  - `received()` waits (bounded) for the stub to exit on its own, validates the complete JSON list, throws on timeout,
+    error or malformed log, and is idempotent.
+  - Only the instance's own child is stopped, through its `proc_open` handle. The temporary, ready and log files are
+    removed.
+- **Results (unchanged from the report):**
+  - race probe: before 6 / 7,000 lost after ACK, after 0 / 7,000 (0 exceptions);
+  - 20 focused repetitions OK (29 tests / 305 assertions per engine, exit 0);
+  - full harness ×2: 994 tests / 67305 assertions per engine, 0 failures / errors / warnings, 79 incomplete (CHR lab
+    absent), **exit 0 and 0**;
+  - two development focused runs failed (an undetected UDP collision, then an out-of-range port). Both are kept as
+    evidence.
+- **Unchanged:** `CoAClientTest`, `ActivationFailureTest` and every protocol assertion (ACK, NAK 502 / 503, silence
+  with 3 identical packets, forged reply); production `CoAClient`; `install/`, `system/`; FreeRADIUS policies.
+- **Remaining note (port check):** the `/proc/net/udp(6)` check is post-bind detection, **not an atomic exclusivity
+  guarantee**.
+  - It excludes collisions between stubs (each binds before counting).
+  - It does not detect a non-stub process that binds the same port with `SO_REUSEADDR` after the check.
+  - It requires `/proc/net/udp`; without it the stub refuses to start.
+  - Clarified in the report addendum; §10.2 "never a shared port" is too strong.
+- **Still open:** N-1 / N-2 cleanup notes, AV-1, AV-2, AV-3, MAC-H1A, H-2, V-1, the WP8 `Message.php` warnings,
+  R-WP8-CARRY-01/02/03, R-HF-CARRY-01. H-2, V-1 and A3 are not started.

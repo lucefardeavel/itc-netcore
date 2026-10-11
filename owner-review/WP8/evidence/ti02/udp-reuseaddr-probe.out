@@ -1,0 +1,2 @@
+# udp-reuseaddr-probe.php in nuxbill-reseller-test-php82 (network none); ext/sockets is not installed in the image
+stream + stream on same UDP port: second bind SUCCEEDS (SO_REUSEADDR)

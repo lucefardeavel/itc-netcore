@@ -1,0 +1,69 @@
+=== focused run 'first' (StubNasReliabilityTest|CoAClientTest|ActivationFailureTest), both engines
+================ engine: mariadb ================
+ ✘ A bind failure is retried on another port and the failed attempt is cleaned
+   │
+   │ Failed asserting that 34977 is not identical to 34977.
+   │
+   │ /repo/tests/Integration/Wp4/StubNasReliabilityTest.php:101
+   │
+ ✘ No usable port fails loudly and leaves nothing
+   │
+   │ Failed asserting that 'must not start' [ASCII](length: 14) contains "stub NAS did not start" [ASCII](length: 22).
+   │
+   │ /repo/tests/Integration/Wp4/StubNasReliabilityTest.php:121
+   │
+Tests: 29, Assertions: 298, Failures: 2.
+================ engine: mysql ================
+ ✘ A bind failure is retried on another port and the failed attempt is cleaned
+   │
+   │ Failed asserting that 33337 is not identical to 33337.
+   │
+   │ /repo/tests/Integration/Wp4/StubNasReliabilityTest.php:101
+   │
+ ✘ No usable port fails loudly and leaves nothing
+   │
+   │ Failed asserting that 'must not start' [ASCII](length: 14) contains "stub NAS did not start" [ASCII](length: 22).
+   │
+   │ /repo/tests/Integration/Wp4/StubNasReliabilityTest.php:121
+   │
+Tests: 29, Assertions: 298, Failures: 2.
+=== focused run 'second' (StubNasReliabilityTest|CoAClientTest|ActivationFailureTest), both engines
+================ engine: mariadb ================
+ ✘ A bind failure and a port in use are retried on another port and cleaned
+   │
+   │ both failures detected, not waited out
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    0 => '70000:bind',
+   │ +    0 => '70000:port_in_use',
+   │      1 => '32774:port_in_use',
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp4/StubNasReliabilityTest.php:104
+   │
+Tests: 29, Assertions: 301, Failures: 1.
+================ engine: mysql ================
+ ✘ A bind failure and a port in use are retried on another port and cleaned
+   │
+   │ both failures detected, not waited out
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    0 => '70000:bind',
+   │ +    0 => '70000:port_in_use',
+   │      1 => '30683:port_in_use',
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp4/StubNasReliabilityTest.php:104
+   │
+Tests: 29, Assertions: 301, Failures: 1.
+=== focused run 'third' (StubNasReliabilityTest|CoAClientTest|ActivationFailureTest), both engines
+================ engine: mariadb ================
+OK (29 tests, 305 assertions)
+================ engine: mysql ================
+OK (29 tests, 305 assertions)

@@ -1,0 +1,7 @@
+# AFTER the fix: 3 x 1000 runs, StubNas.php sha256 5b640c01e075b899, stub_nas.php b690ffbd06cc24f6
+# AFTER batch 1, 2026-10-11T05:43:31Z
+{"runs":1000,"ok":1000,"lost_after_ack":0,"exceptions":0,"no_reply":0,"exception_samples":[]}
+# AFTER batch 2, 2026-10-11T05:44:20Z
+{"runs":1000,"ok":1000,"lost_after_ack":0,"exceptions":0,"no_reply":0,"exception_samples":[]}
+# AFTER batch 3, 2026-10-11T05:45:11Z
+{"runs":1000,"ok":1000,"lost_after_ack":0,"exceptions":0,"no_reply":0,"exception_samples":[]}

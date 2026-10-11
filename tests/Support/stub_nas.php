@@ -1,6 +1,8 @@
 <?php
 // CLI-only WP4 test NAS (development/test only; never part of a deployment). Listens on a UDP port for one
 // RADIUS Disconnect / CoA request and answers per mode, then logs what it received (JSON) and exits.
+// The log is PUBLISHED ATOMICALLY (temporary file + rename() in the same directory, WP8 TI-02): a reader sees either
+// no log or the complete JSON document, never a partial one. The protocol order is unchanged: answer, then record.
 //   php stub_nas.php <port> <secret> <mode: ack|nak|nak503|silent|badauth> <logfile>
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 define('NUXR_RUNTIME', true);
@@ -9,9 +11,44 @@ require dirname(__DIR__, 2) . '/system/autoload/Reseller/Radius/RadiusPacket.php
 use Reseller\Radius\RadiusPacket;
 
 [, $port, $secret, $mode, $log] = $argv;
-$server = stream_socket_server('udp://127.0.0.1:' . (int) $port, $errno, $errstr, STREAM_SERVER_BIND);
+function publish(string $log, mixed $doc): void
+{
+    $tmp = $log . '.tmp.' . getmypid();
+    file_put_contents($tmp, json_encode($doc));
+    rename($tmp, $log);
+}
+/** UDP sockets bound to $port in this network namespace (/proc/net/udp + udp6), -1 if that cannot be read */
+function udpSocketsOn(int $port): int
+{
+    $n = 0;
+    foreach (['/proc/net/udp', '/proc/net/udp6'] as $i => $f) {
+        $lines = @file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if ($lines === false) {
+            if ($i === 0) {
+                return -1;
+            }
+            continue;
+        }
+        foreach (array_slice($lines, 1) as $l) {
+            $local = preg_split('/\s+/', trim($l))[1] ?? '';
+            if (hexdec(substr($local, strrpos($local, ':') + 1)) === $port) {
+                $n++;
+            }
+        }
+    }
+    return $n;
+}
+// PHP does not reject an out-of-range port (it binds another one): refuse it as a bind failure
+$server = (int) $port >= 1 && (int) $port <= 65535 ? @stream_socket_server('udp://127.0.0.1:' . (int) $port, $errno, $errstr, STREAM_SERVER_BIND) : false;
 if ($server === false) {
-    file_put_contents($log, json_encode(['error' => 'bind']));
+    publish($log, ['error' => 'bind', 'errno' => $errno ?? 0]);
+    exit(1);
+}
+// PHP sets SO_REUSEADDR on every stream socket, so a UDP port already bound by another such socket does NOT make the
+// bind fail; require that this stub's socket is the only one on the port (WP8 TI-02), otherwise refuse it
+if (($n = udpSocketsOn((int) $port)) !== 1) {
+    fclose($server);
+    publish($log, ['error' => $n < 0 ? 'cannot verify port' : ($n === 0 ? 'port_not_bound' : 'port_in_use'), 'sockets' => $n]);
     exit(1);
 }
 file_put_contents($log . '.ready', '1');
@@ -44,4 +81,4 @@ while (microtime(true) < $deadline) {
     stream_socket_sendto($server, $head . $auth . $attrs, 0, $peer);
     break;
 }
-file_put_contents($log, json_encode($received));
+publish($log, $received);
