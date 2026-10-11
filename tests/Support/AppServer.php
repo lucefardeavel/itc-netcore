@@ -14,13 +14,29 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
  *    registers probe plugin menu functions (OD-9) and failure endpoints (OD-14)
  *  - system/devices/Probe.php: a device that records every call (no network)
  * Outbound calls are therefore impossible: no Telegram/SMS/WhatsApp configuration, Probe device only.
+ *
+ * Server process lifecycle (WP8 AppServer repair): `php -S` runs with PHP_CLI_SERVER_WORKERS=4, i.e. a master and
+ * four forked workers that all hold the listening socket. Signalling only the master left the workers listening on
+ * the port after stop(); a later instance that drew the same port then talked to that orphan (HTTP 404 from a deleted
+ * docroot). The server is therefore started through setsid(1) in its OWN session / process group (pgid = sid = the
+ * child pid), stopped by signalling that group only (never a process outside it, never by name), and accepted only
+ * when its master and all 4 workers exist and it serves a per-start random sentinel file from THIS copy. A port that
+ * is busy is never reused.
  */
 final class AppServer
 {
     public readonly string $dir;
-    public readonly int $port;
+    private int $port = 0;
     /** @var resource|null */
     private $proc = null;
+    /** the server's process group = session id = the pid of the setsid child (0 when not running) */
+    private int $pgid = 0;
+    private string $sentinel = '';
+
+    private const WORKERS = 4;
+    private const SETSID = '/usr/bin/setsid';
+    private const SIGKILL = 9;
+    private const SIGTERM = 15;
 
     private const PROBE_PLUGIN = <<<'PHP'
 <?php
@@ -80,10 +96,18 @@ require __DIR__ . '/init.php';
 $result = null;
 PHP;
 
-    private function __construct(public readonly TestDatabase $db, string $dir, int $port)
+    private function __construct(public readonly TestDatabase $db, string $dir)
     {
         $this->dir = $dir;
-        $this->port = $port;
+    }
+
+    public function __destruct()
+    {
+        try {
+            $this->stop();
+        } catch (\Throwable) {
+            // best effort only; stop() reports a surviving server when called explicitly
+        }
     }
 
     /** @param array{api_secret?:string|null,extra_config?:string} $opts */
@@ -117,8 +141,7 @@ PHP;
         file_put_contents($dir . '/system/devices/Probe.php', self::PROBE_DEVICE);
         // an unmapped controller (must be denied for every role by RouteGuard)
         file_put_contents($dir . '/system/controllers/wp2probe.php', "<?php\n@file_put_contents(__DIR__ . '/../../wp2_probe/controller.log', \"ran\\n\", FILE_APPEND);\necho 'WP2PROBE_CONTROLLER';\n");
-        $port = 20000 + random_int(0, 9999);
-        $app = new self($db, $dir, $port);
+        $app = new self($db, $dir);
         $app->writeConfig(array_key_exists('api_secret', $opts) ? $opts['api_secret'] : bin2hex(random_bytes(32)), $opts['extra_config'] ?? '');
         return $app;
     }
@@ -139,42 +162,211 @@ PHP;
         return preg_match("/\\\$api_secret = '([^']*)'/", $cfg, $m) ? $m[1] : null;
     }
 
-    public function start(): void
+    /**
+     * Starts the server on a free port (the $candidatePorts first, then random ports 20000-29999) and returns only when
+     * THIS copy answers its sentinel. Idempotent. On any failure (busy port, early exit, timeout, wrong answer) the
+     * launched process group is stopped before the next attempt; after the last attempt it throws.
+     *
+     * @param list<int> $candidatePorts
+     */
+    public function start(array $candidatePorts = [], float $timeout = 10.0): void
     {
         if ($this->proc !== null) {
             return;
         }
-        $cmd = [PHP_BINARY, '-d', 'session.save_path=' . $this->dir . '/wp2_sessions', '-d', 'error_log=' . $this->dir . '/wp2_probe/php_error.log',
-            '-d', 'log_errors=1', '-S', '127.0.0.1:' . $this->port, '-t', $this->dir];
-        $this->proc = proc_open($cmd, [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', $this->dir . '/wp2_probe/server.log', 'a']], $pipes, $this->dir, ['PHP_CLI_SERVER_WORKERS' => '4'] + getenv());
-        for ($i = 0; $i < 100; $i++) {
-            $s = @fsockopen('127.0.0.1', $this->port);
-            if ($s !== false) {
-                fclose($s);
+        if (!function_exists('posix_kill') || !is_executable(self::SETSID) || !is_dir('/proc/self')) {
+            throw new \RuntimeException('app server needs ext-posix, ' . self::SETSID . ' and /proc');
+        }
+        $tried = [];
+        for ($i = 0; $i < max(8, count($candidatePorts)); $i++) {
+            $port = $candidatePorts[$i] ?? 20000 + random_int(0, 9999);
+            if (!self::portFree($port)) {
+                $tried[] = $port . ':busy';
+                continue;
+            }
+            $why = $this->launch($port, $timeout);
+            if ($why === null) {
                 return;
             }
-            usleep(100000);
+            $tried[] = $port . ':' . $why;
         }
-        throw new \RuntimeException('app server did not start');
+        throw new \RuntimeException('app server did not start (' . implode('; ', $tried) . ')');
     }
 
+    /** @return string|null null = started and verified, otherwise the reason (the attempt is already cleaned up) */
+    private function launch(int $port, float $timeout): ?string
+    {
+        $token = bin2hex(random_bytes(16));
+        $this->sentinel = 'wp2_probe/server-' . $token . '.txt';
+        file_put_contents($this->dir . '/' . $this->sentinel, $token);
+        $cmd = [self::SETSID, PHP_BINARY, '-d', 'session.save_path=' . $this->dir . '/wp2_sessions', '-d', 'error_log=' . $this->dir . '/wp2_probe/php_error.log',
+            '-d', 'log_errors=1', '-S', '127.0.0.1:' . $port, '-t', $this->dir];
+        $proc = proc_open($cmd, [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', $this->dir . '/wp2_probe/server.log', 'a']], $pipes, $this->dir, ['PHP_CLI_SERVER_WORKERS' => (string) self::WORKERS] + getenv());
+        if (!is_resource($proc)) {
+            @unlink($this->dir . '/' . $this->sentinel);
+            return 'proc_open failed';
+        }
+        $this->proc = $proc;
+        $this->pgid = (int) proc_get_status($proc)['pid'];
+        $this->port = $port;
+        $deadline = microtime(true) + $timeout;
+        $why = 'timeout';
+        while (true) {
+            $st = self::procStat($this->pgid);
+            if ($st === null || $st['state'] === 'Z') {
+                $why = 'exited (' . trim(substr((string) @file_get_contents($this->dir . '/wp2_probe/server.log'), -200)) . ')';
+                break;
+            }
+            // ready only once setsid() made the child the leader of its own group, the master and ALL its workers exist,
+            // and the port answers with THIS start's token
+            if ($st['pgrp'] === $this->pgid && $st['sid'] === $this->pgid && count(self::members($this->pgid)) === 1 + self::WORKERS
+                && $this->answersSentinel($token)) {
+                return null;
+            }
+            if (microtime(true) >= $deadline) {
+                break;
+            }
+            usleep(50000);
+        }
+        $this->stop();
+        return $why;
+    }
+
+    /**
+     * Stops the master and every worker: SIGTERM to the server's own process group, SIGKILL after 3 s. Signals go
+     * only to processes in the session the setsid child created (checked in /proc); before setsid() took effect only
+     * the direct child is signalled. Idempotent. Throws if a group member survives or the server still answers.
+     */
     public function stop(): void
     {
-        if ($this->proc !== null) {
-            proc_terminate($this->proc);
-            proc_close($this->proc);
-            $this->proc = null;
+        if ($this->proc === null) {
+            return;
+        }
+        $pgid = $this->pgid;
+        if (self::members($pgid) !== []) {
+            posix_kill(-$pgid, self::SIGTERM);
+            if (!self::waitGone($pgid, 3.0)) {
+                posix_kill(-$pgid, self::SIGKILL);
+                self::waitGone($pgid, 2.0);
+            }
+        } else {
+            $st = proc_get_status($this->proc);
+            if ($st['running']) {
+                posix_kill((int) $st['pid'], self::SIGKILL);
+            }
+        }
+        // a child that ran setsid() and forked between the checks above: its group is ours (its pid is not reaped yet)
+        if (self::members($pgid) !== []) {
+            posix_kill(-$pgid, self::SIGKILL);
+            self::waitGone($pgid, 2.0);
+        }
+        proc_close($this->proc);
+        $this->proc = null;
+        $left = self::members($pgid);
+        $answers = $this->sentinel !== '' && $this->answersSentinel((string) @file_get_contents($this->dir . '/' . $this->sentinel));
+        @unlink($this->dir . '/' . $this->sentinel);
+        $this->sentinel = '';
+        $this->pgid = 0;
+        if ($left !== [] || $answers) {
+            throw new \RuntimeException('app server not fully stopped: ' . count($left) . ' process(es) of group ' . $pgid . ' left'
+                . ($answers ? ', port ' . $this->port . ' still answers' : ''));
         }
     }
 
     public function destroy(): void
     {
-        $this->stop();
-        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->dir, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
-        foreach ($it as $f) {
-            $f->isDir() ? @rmdir($f->getPathname()) : @unlink($f->getPathname());
+        try {
+            $this->stop();
+        } finally {
+            if (is_dir($this->dir)) {
+                $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->dir, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
+                foreach ($it as $f) {
+                    $f->isDir() ? @rmdir($f->getPathname()) : @unlink($f->getPathname());
+                }
+                @rmdir($this->dir);
+            }
         }
-        @rmdir($this->dir);
+    }
+
+    public function port(): int
+    {
+        return $this->port;
+    }
+
+    /** the server's process group id (= master pid), 0 when not running */
+    public function processGroup(): int
+    {
+        return $this->proc !== null ? $this->pgid : 0;
+    }
+
+    /** @return array<int,int> live (non-zombie) processes of the server's own group: pid => parent pid */
+    public function processes(): array
+    {
+        return $this->proc !== null ? array_map(static fn(array $s): int => $s['ppid'], self::members($this->pgid)) : [];
+    }
+
+    private function answersSentinel(string $token): bool
+    {
+        if ($token === '' || $this->port === 0) {
+            return false;
+        }
+        $ctx = stream_context_create(['http' => ['timeout' => 1.0, 'ignore_errors' => true, 'header' => "Connection: close\r\n"]]);
+        return @file_get_contents('http://127.0.0.1:' . $this->port . '/' . $this->sentinel, false, $ctx) === $token;
+    }
+
+    /** nothing accepts on the port and it can be bound (no other listener, ours or foreign) */
+    private static function portFree(int $port): bool
+    {
+        $c = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.5);
+        if ($c !== false) {
+            fclose($c);
+            return false;
+        }
+        $s = @stream_socket_server('tcp://127.0.0.1:' . $port, $errno, $errstr);
+        if ($s === false) {
+            return false;
+        }
+        fclose($s);
+        return true;
+    }
+
+    /** @return array{state:string,ppid:int,pgrp:int,sid:int}|null */
+    private static function procStat(int $pid): ?array
+    {
+        $raw = @file_get_contents('/proc/' . $pid . '/stat');
+        if ($raw === false || ($p = strrpos($raw, ')')) === false) {
+            return null;
+        }
+        $f = explode(' ', substr($raw, $p + 2));
+        return ['state' => $f[0], 'ppid' => (int) $f[1], 'pgrp' => (int) $f[2], 'sid' => (int) $f[3]];
+    }
+
+    /** @return array<int,array{state:string,ppid:int,pgrp:int,sid:int}> live processes whose group AND session are $pgid */
+    private static function members(int $pgid): array
+    {
+        $out = [];
+        if ($pgid <= 1) {
+            return $out;
+        }
+        foreach (glob('/proc/[0-9]*', GLOB_NOSORT) ?: [] as $d) {
+            $st = self::procStat((int) basename($d));
+            if ($st !== null && $st['pgrp'] === $pgid && $st['sid'] === $pgid && $st['state'] !== 'Z') {
+                $out[(int) basename($d)] = $st;
+            }
+        }
+        return $out;
+    }
+
+    private static function waitGone(int $pgid, float $seconds): bool
+    {
+        $deadline = microtime(true) + $seconds;
+        do {
+            if (self::members($pgid) === []) {
+                return true;
+            }
+            usleep(50000);
+        } while (microtime(true) < $deadline);
+        return self::members($pgid) === [];
     }
 
     public function baseUrl(): string

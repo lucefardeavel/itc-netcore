@@ -1,0 +1,5 @@
+# stubnas-race-probe.php, harness image nuxbill-reseller-test-php82, docker run --network none, repo mounted read-only; 2026-10-10T21:06:42Z
+# StubNas.php / stub_nas.php diff against fcf54a7a: 0 lines (unchanged since e39f6f11, WP4)
+# run 1 (console output, ~21:0xZ, not captured to file): {"runs":300,"ok":298,"lost_after_ack":2,"bind_fail":0,"no_reply":0}
+# run 2 (captured below):
+{"runs":600,"ok":595,"lost_after_ack":5,"bind_fail":0,"no_reply":0}

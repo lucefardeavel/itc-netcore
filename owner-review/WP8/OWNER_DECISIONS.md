@@ -412,3 +412,34 @@ deployment.
     counted as a pass.
 - **Still open:** AV-1, AV-2, AV-3, MAC-H1A, H-2, V-1, the AppServer defect, the WP8 `Message.php` warnings,
   R-WP8-CARRY-01/02/03, R-HF-CARRY-01. S7, S8 and WP8 are NOT complete. A3 is not started.
+
+## AppServer test-infrastructure repair (2026-10-10 / 2026-10-11) — additive record
+
+**Owner decision (2026-10-11): APPSERVER FIX ACCEPTED WITH NOTES — development only.** Basis:
+`evidence/appserver/APPSERVER_REPAIR_REPORT.md`. Commit and push to `wp8/integration-poc` only. No merge, no
+deployment.
+
+- **Accepted:**
+  - `php -S` keeps its 4 workers and runs in its own process group / session (`setsid`).
+  - `stop()` signals only that group after a `/proc` ownership check (group AND session), then sweeps and reaps.
+  - A busy port is never reused.
+  - The server is ready only when 1 master + 4 workers are alive and it answers a per-start random sentinel from this
+    copy.
+  - `stop()` and `destroy()` are idempotent.
+  - 6 lifecycle and concurrency tests (`tests/Http/AppServerLifecycleTest.php`).
+- **Results (unchanged from the report):**
+  - focused run 1 had **1 failure** (the first version did not wait for all 4 workers); runs 2–4 OK (6 / 64), exit 0;
+  - `wp2-http` 110 / 6192 OK;
+  - full harness run 1: MariaDB 986 / 67263 OK; **MySQL 1 failure + 2 warnings (TI-02), exit 1** — kept, not a pass;
+  - full harness run 2: **986 / 67263 on both engines, 0 failures / errors / warnings, exit 0**;
+  - no AppServer (HTTP 404) failure in either full run;
+  - at most 5 live `php -S` processes and 1 docroot at any time.
+- **TI-02 — StubNas logging race: OPEN (test infrastructure, not a production CoA defect).** The ACK arrives, but the
+  stub's request record can be read or killed before it is complete. Reproduced 5 / 600 (and 2 / 300), 0 bind
+  failures. Recorded in `evidence/appserver/TI-02_STUBNAS_LOGGING_RACE.md`. Fix: plan only, needs approval.
+- **Kept cleanup notes (no scope extension):**
+  - N-1: a SIGKILLed PHPUnit cannot stop its server group (bounded by the harness container removal);
+  - N-2: a failed start in `Wp2HttpTestCase::setUpBeforeClass()` leaves the app copy and the test database.
+- **Unchanged:** `install/`, `system/`, A2-R, H1-A, AV-5, production code.
+- **Still open:** AV-1, AV-2, AV-3, MAC-H1A, H-2, V-1, TI-02, the WP8 `Message.php` warnings, R-WP8-CARRY-01/02/03,
+  R-HF-CARRY-01. H-2, V-1 and A3 are not started.

@@ -1,0 +1,27 @@
+# Full dual-engine harness (dev/test/run-tests.sh, default matrix) with the AppServer repair
+
+=== full run 1: 2026-10-10T20:10:59Z - 2026-10-10T21:05:16Z, full1 rc=1
+================ engine: mariadb ================
+Time: 19:56.677, Memory: 62.00 MB
+OK, but there were issues!
+Tests: 986, Assertions: 67263, Incomplete: 79.
+================ engine: mysql ================
+Time: 33:27.142, Memory: 62.00 MB
+There was 1 failure:
+1) Reseller\Tests\Integration\Wp4\CoAClientTest::testCoaRequestChangesTheRate
+Failed asserting that null is identical to 43.
+1) /repo/tests/Integration/Wp4/CoAClientTest.php:121
+Undefined array key 0
+2) /repo/tests/Integration/Wp4/CoAClientTest.php:121
+Trying to access array offset on value of type null
+Tests: 986, Assertions: 67262, Failures: 1, Warnings: 2, Incomplete: 79.
+
+=== full run 2: 2026-10-10T21:05:18Z - 2026-10-10T21:56:54Z, full2 rc=0
+================ engine: mariadb ================
+Time: 19:32.907, Memory: 62.00 MB
+OK, but there were issues!
+Tests: 986, Assertions: 67263, Incomplete: 79.
+================ engine: mysql ================
+Time: 31:11.591, Memory: 62.00 MB
+OK, but there were issues!
+Tests: 986, Assertions: 67263, Incomplete: 79.

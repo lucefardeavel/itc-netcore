@@ -1,0 +1,86 @@
+=== focused run 1: dev/test/run-tests.sh --filter AppServerLifecycleTest --testdox  (BEFORE the all-workers readiness condition and the post-kill sweep)
+================ engine: mariadb ================
+ ✔ Starts a master and four workers in its own group and stop removes them all
+ ✘ Restart serves the same copy from a new process group
+   │
+   │ Failed asserting that actual size 3 matches expected size 5.
+   │
+   │ /repo/tests/Http/AppServerLifecycleTest.php:120
+   │
+ ✔ A busy port is never reused and a foreign listener is never touched
+ ✔ Orphaned workers of an earlier server are neither reused nor left behind
+ ✔ A failed start leaves no process and no listener
+ ✔ Four workers serve requests in parallel
+Tests: 6, Assertions: 56, Failures: 1.
+================ engine: mysql ================
+ ✔ Starts a master and four workers in its own group and stop removes them all
+ ✔ Restart serves the same copy from a new process group
+ ✔ A busy port is never reused and a foreign listener is never touched
+ ✔ Orphaned workers of an earlier server are neither reused nor left behind
+ ✔ A failed start leaves no process and no listener
+ ✔ Four workers serve requests in parallel
+OK (6 tests, 64 assertions)
+=== focused run 2: dev/test/run-tests.sh --filter AppServerLifecycleTest --testdox
+================ engine: mariadb ================
+ ✔ Starts a master and four workers in its own group and stop removes them all
+ ✔ Restart serves the same copy from a new process group
+ ✔ A busy port is never reused and a foreign listener is never touched
+ ✔ Orphaned workers of an earlier server are neither reused nor left behind
+ ✔ A failed start leaves no process and no listener
+ ✔ Four workers serve requests in parallel
+OK (6 tests, 64 assertions)
+================ engine: mysql ================
+ ✔ Starts a master and four workers in its own group and stop removes them all
+ ✔ Restart serves the same copy from a new process group
+ ✔ A busy port is never reused and a foreign listener is never touched
+ ✔ Orphaned workers of an earlier server are neither reused nor left behind
+ ✔ A failed start leaves no process and no listener
+ ✔ Four workers serve requests in parallel
+OK (6 tests, 64 assertions)
+=== focused run 3: dev/test/run-tests.sh --filter AppServerLifecycleTest --testdox
+================ engine: mariadb ================
+ ✔ Starts a master and four workers in its own group and stop removes them all
+ ✔ Restart serves the same copy from a new process group
+ ✔ A busy port is never reused and a foreign listener is never touched
+ ✔ Orphaned workers of an earlier server are neither reused nor left behind
+ ✔ A failed start leaves no process and no listener
+ ✔ Four workers serve requests in parallel
+OK (6 tests, 64 assertions)
+================ engine: mysql ================
+ ✔ Starts a master and four workers in its own group and stop removes them all
+ ✔ Restart serves the same copy from a new process group
+ ✔ A busy port is never reused and a foreign listener is never touched
+ ✔ Orphaned workers of an earlier server are neither reused nor left behind
+ ✔ A failed start leaves no process and no listener
+ ✔ Four workers serve requests in parallel
+OK (6 tests, 64 assertions)
+=== focused run 4: dev/test/run-tests.sh --filter AppServerLifecycleTest --testdox
+================ engine: mariadb ================
+ ✔ Starts a master and four workers in its own group and stop removes them all
+ ✔ Restart serves the same copy from a new process group
+ ✔ A busy port is never reused and a foreign listener is never touched
+ ✔ Orphaned workers of an earlier server are neither reused nor left behind
+ ✔ A failed start leaves no process and no listener
+ ✔ Four workers serve requests in parallel
+OK (6 tests, 64 assertions)
+================ engine: mysql ================
+ ✔ Starts a master and four workers in its own group and stop removes them all
+ ✔ Restart serves the same copy from a new process group
+ ✔ A busy port is never reused and a foreign listener is never touched
+ ✔ Orphaned workers of an earlier server are neither reused nor left behind
+ ✔ A failed start leaves no process and no listener
+ ✔ Four workers serve requests in parallel
+OK (6 tests, 64 assertions)
+=== wp2-http suite + affected classes
+wp2-http rc=0
+================ engine: mariadb ================
+OK (110 tests, 6192 assertions)
+================ engine: mysql ================
+OK (110 tests, 6192 assertions)
+affected rc=0
+================ engine: mariadb ================
+OK (16 tests, 300 assertions)
+================ engine: mysql ================
+OK (16 tests, 300 assertions)
+
+[exited with code 0]

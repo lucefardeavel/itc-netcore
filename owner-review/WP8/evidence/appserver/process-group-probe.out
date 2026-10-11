@@ -1,0 +1,9 @@
+# output of process-group-probe.php in the harness image nuxbill-reseller-test-php82 (docker run --network none), 2026-10-10
+me pid=1 pgrp=1
+child pid=7 stat={"state":"S","ppid":1,"pgrp":7,"sid":7}
+group members (non-zombie): 5 {"10":7,"11":7,"7":1,"8":7,"9":7}
+served: TOKEN
+after 15 to group: members=0 port accepting=no
+proc_close=15
+control 15 master only: members left=4 port accepting=YES
+control cleanup: members=0

@@ -1,0 +1,2 @@
+# sampler run 1: INVALID (pattern '/php -S 127.0.0.1/' never matched: the real command line has -d options between php and -S); fixed before run 2
+# sampler run 2 (valid): samples 928 with a live server 316 max live php -S processes 5 max distinct docroots 1
