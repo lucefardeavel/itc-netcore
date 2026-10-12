@@ -7,8 +7,9 @@
 #  Needs: mods-enabled/sql (MySQL / MariaDB, read_groups = yes), mods-enabled/nuxr_counters,
 #  dictionary.phpnuxbill, and the stock chap, pap, preprocess, expiration, logintime, acct_unique,
 #  attr_filter, expr modules; for PPPoE also mods-enabled/nuxr_pppoe_session_guard and the admission tables of
-#  nuxr_admission.sql in the RADIUS database (see README.md). Enable it instead of "default" (or merge the sections
-#  into your own server).
+#  nuxr_admission.sql in the RADIUS database; for Hotspot also mods-enabled/nuxr_hotspot_slot_verifier and the slot
+#  tables of nuxr_hs_admission.sql (see README.md). Enable it instead of "default" (or merge the sections into your own
+#  server).
 #
 #  Post-auth SQL logging (radpostauth) is not enabled here: the stock query stores the cleartext password.
 #
@@ -102,12 +103,57 @@ accounting {
 			}
 		}
 	}
+	#
+	#  WP8 H-2B - HOTSPOT ADMISSION SLOTS, accounting side. Only an accounting request that carries the per-claim Class token
+	#  of the Hotspot slots (0x6e75786831 = "nuxh1" + 16 random bytes; PPPoE uses "nuxr1" above) may change a slot, and only
+	#  the slot of THAT claim: token + NAS-IP-Address + Acct-Session-Id + Calling-Station-Id must all match, and the state
+	#  must allow the transition (Start / Interim-Update: PENDING|ACTIVE -> ACTIVE; Stop: PENDING|ACTIVE -> ENDED). A late,
+	#  duplicated, re-ordered or foreign packet matches nothing and changes nothing; an ENDED slot is never revived, and a
+	#  slot taken by a newer claim (new token) is never touched by the packets of an older claim. A Start / Interim-Update
+	#  whose token holds no live slot is a session the slots do not count: an "orphan_accounting" audit row (an alarm,
+	#  install/freeradius/nuxr_hs_admission_report.sql). A failed statement leaves the slot as it was (more restrictive).
+	#
+	if (&Class) {
+		update request {
+			&Tmp-String-3 := "%{Class}"
+		}
+		if (&Tmp-String-3 =~ /^0x6e75786831([0-9a-f]{32})$/) {
+			update request {
+				&Tmp-String-4 := "%{1}"
+			}
+			if (&Acct-Status-Type == Stop) {
+				update request {
+					&Tmp-String-5 := "nuxr-hs-acct=%{sql:UPDATE nuxr_hs_admission SET state = 'ENDED', ended_at = UTC_TIMESTAMP(6), last_acct_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), end_reason = 'acct_stop' WHERE token = '%{Tmp-String-4}' AND nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND state IN ('PENDING', 'ACTIVE')}"
+				}
+			}
+			elsif ((&Acct-Status-Type == Start) || (&Acct-Status-Type == Interim-Update)) {
+				update request {
+					&Tmp-String-5 := "nuxr-hs-acct=%{sql:UPDATE nuxr_hs_admission SET state = 'ACTIVE', confirmed_at = COALESCE(confirmed_at, UTC_TIMESTAMP(6)), last_acct_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6) WHERE token = '%{Tmp-String-4}' AND nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND state IN ('PENDING', 'ACTIVE')}"
+				}
+				# rlm_sql expands "no row affected" (and an error) to "": not one live slot of this claim
+				if (&Tmp-String-5 != "nuxr-hs-acct=1") {
+					update request {
+						&Tmp-String-6 := "%{sql:INSERT INTO nuxr_hs_admission_audit (at, action, outcome, username, slot, token, actor, evidence) VALUES (UTC_TIMESTAMP(6), 'orphan_accounting', '%{Acct-Status-Type}', '%{User-Name}', 0, '%{Tmp-String-4}', 'freeradius', 'nas %{NAS-IP-Address} acct_session_id %{Acct-Session-Id} calling_station_id %{Calling-Station-Id}')}"
+					}
+				}
+			}
+		}
+	}
 	attr_filter.accounting_response
 }
 
 session {
-	# Simultaneous-Use: open sessions in radacct
-	sql
+	# Simultaneous-Use: open sessions in radacct (stock rlm_sql + checkrad) - for every request EXCEPT Hotspot.
+	# WP8 H-2B: a Hotspot login (Service-Type Login-User AND NAS-Port-Type Wireless-802.11, as in H1-A) is limited by the
+	# admission slots in post-auth. The stock check cannot see Hotspot sessions at all (checkrad looks for PPPoE
+	# interfaces - WP8 H-2) and, with a checkrad build that runs SNMP, a NAS that does not answer held it 10 s and the
+	# late-claim guard then refused a legitimate login (WP8 H2-B PENDING gate F4). PPPoE and every other request: unchanged.
+	if ((&Service-Type == Login-User) && (&NAS-Port-Type == Wireless-802.11)) {
+		ok
+	}
+	else {
+		sql
+	}
 }
 
 post-auth {
@@ -502,6 +548,294 @@ post-auth {
 		}
 		update request {
 			&Tmp-String-0 := "nuxr-hotspot=exact"
+		}
+		#
+		#  WP8 H-2B - HOTSPOT ADMISSION SLOTS: shared_users is the TOTAL over every NAS of the ISP. FAIL CLOSED. STRICT MODE.
+		#
+		#  RouterOS enforces Port-Limit per NAS only (WP8 H-2: the same subscriber was admitted once on EACH NAS), so the
+		#  global limit is a set of slots in nuxr_hs_admission (nuxr_hs_admission.sql): one row per (canonical subscriber,
+		#  slot), slots 1..Simultaneous-Use. Runs only here, for a Hotspot request that authenticated and passed H1-A, so the
+		#  key is the exact stored radcheck.username bytes (Tmp-String-3, lower-case hex, from H1-A above). The stock
+		#  radacct Simultaneous-Use check is not run for Hotspot (session { }). Port-Limit stays in the reply as an
+		#  additional per-NAS limit. PPPoE (A2-R above) and every other request never enter this block.
+		#    - The attempt identity (NAS-IP-Address, Acct-Session-Id, Calling-Station-Id, Request Authenticator) must be
+		#      complete and well formed, and the request younger than 5000 ms (AV-5 clock), before anything is written.
+		#    - Slots 1..limit are counted; missing ones are created (INSERT IGNORE) and counted again: rlm_sql 3.2.8
+		#      expands an SQL error AND "no row affected" to "", so every result is checked against an exact sentinel.
+		#    - An exact retransmission of the claiming request (same NAS, Acct-Session-Id, Calling-Station-Id, Request
+		#      Authenticator) re-uses its PENDING claim and token; it never creates or releases one.
+		#    - Claim v2 (WP8 H2-B Gate C, MariaDB 10.11 + MySQL 8.0, 0 deadlocks): a non-locking pre-check that fewer than
+		#      `limit` slots are in use AND none above the limit is live (a limit decrease: only then do the slot row
+		#      locks alone bound the total - WP8 H-2B review M1), then ONE conditional UPDATE of the lowest ENDED slot
+		#      <= limit (ORDER BY slot LIMIT 1). The InnoDB row lock serialises concurrent claims from any NAS. No COUNT
+		#      subquery inside the UPDATE (it took shared locks on MySQL 8 and deadlocked 347 of 500 claims).
+		#    - No free slot: the Hotspot slot verifier (mods-available/nuxr_hotspot_slot_verifier) checks the ACTIVE slots
+		#      of the subscriber - and ONLY ACTIVE ones - on their NAS over read-only SNMP (Hotspot active table, user AND
+		#      MAC). The first slot whose session is proven gone is ENDED (conditional on its token and state ACTIVE, audit
+		#      row), then the claim runs ONCE more. Any verifier error, timeout or doubt: nothing is released, refused.
+		#    - STRICT MODE: a PENDING slot is NEVER released by time, by SNMP or by another request. Its Access-Accept may
+		#      still be in flight: FreeRADIUS 3.2.8 sends a stalled reply even after max_request_time, and RouterOS takes
+		#      it until its own RADIUS window ends (3 x /radius timeout) - with the window longer than a release horizon,
+		#      a time+SNMP release admitted two sessions under shared_users = 1 (WP8 H2-B PENDING gate, run b).
+		#    - LATE-CLAIM GUARD: a claim that completed later than 5000 ms after the request arrived is not followed by an
+		#      Access-Accept; its CREATOR ends it (only its own token, only while still PENDING and not re-used by a
+		#      retransmission), before any reply exists. The same creator release runs when a claim result was not the
+		#      exact sentinel (a committed claim whose result was lost). A failed release leaves it PENDING.
+		#    - The Access-Accept carries Class = "nuxh1" + the 128-bit token (any Class from radreply is replaced);
+		#      accounting maps it back to the slot (see accounting).
+		#    - FreeRADIUS 3.2.8 rlm_sql escapes each %{...} of a %{sql:...} statement on its own pool connection and turns
+		#      it into an EMPTY string when the pool is exhausted (the statement still runs). So no decision trusts an
+		#      expansion blindly: the pre-check reads key and limit from ONE parameter row and echoes them (verified
+		#      here), and CHECK constraints in nuxr_hs_admission.sql refuse an empty token or attempt identity (the
+		#      write fails -> refused); a token '' can therefore never exist or be matched by any statement.
+		#    - Every refusal: Access-Reject with only Reply-Message "Session verification failed" (policy attributes
+		#      stripped); the reason is in Tmp-String-0 (debug log).
+		#
+		# ---- H-2B 1: the limit and the attempt identity
+		if (!&control:Simultaneous-Use || (&control:Simultaneous-Use !~ /^[1-9][0-9]?$/)) {
+			update request {
+				&Tmp-String-0 := "nuxr-hs-admission=reject:limit"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		update request {
+			&Tmp-String-7 := "%{Packet-Authentication-Vector}"
+		}
+		if (&Tmp-String-7 =~ /^0x([0-9a-f]{32})$/) {
+			update request {
+				&Tmp-String-7 := "%{1}"
+			}
+		}
+		if (!&NAS-IP-Address || !&Acct-Session-Id || !&Calling-Station-Id || (&Acct-Session-Id !~ /^[0-9A-Za-z]{1,32}$/) || (&Calling-Station-Id !~ /^[0-9A-Fa-f]{2}([:-][0-9A-Fa-f]{2}){5}$/) || (&Tmp-String-7 !~ /^[0-9a-f]{32}$/) || (&Tmp-String-3 !~ /^[0-9a-f]{2,512}$/)) {
+			update request {
+				&Tmp-String-0 := "nuxr-hs-admission=reject:identity"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- H-2B 2: late guard BEFORE anything is written (same one-clock age as A2-R / AV-5)
+		update request {
+			&Tmp-String-6 := "%{expr:(%{time_since:us} - %l * 1000000 - %M) / 1000}"
+		}
+		if ((&Tmp-String-6 !~ /^[0-9]{1,9}$/) || (<integer>&Tmp-String-6 > 5000)) {
+			update request {
+				&Tmp-String-0 := "nuxr-hs-admission=reject:late"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- H-2B 3: slots 1..limit exist: counted first; only when some are missing, created (INSERT IGNORE, in slot
+		# order) and counted again. The count - never the INSERT IGNORE result - must equal the limit.
+		update request {
+			&Tmp-String-8 := "hs-slots=%{sql:SELECT COUNT(*) FROM nuxr_hs_admission WHERE username = UNHEX('%{Tmp-String-3}') AND slot <= %{control:Simultaneous-Use}}"
+		}
+		if (&Tmp-String-8 != "hs-slots=%{control:Simultaneous-Use}") {
+			update request {
+				&Tmp-String-8 := "%{sql:INSERT IGNORE INTO nuxr_hs_admission (username, slot, state, token, nas, acct_session_id, calling_station_id, request_authenticator, session_user, created_at, updated_at) SELECT UNHEX('%{Tmp-String-3}'), t.n, 'ENDED', MD5(CONCAT(UUID(), RAND(), t.n)), '', '', '', '', '', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6) FROM (SELECT a.d * 10 + b.d + 1 AS n FROM (SELECT 0 AS d UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) a CROSS JOIN (SELECT 0 AS d UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) b) t WHERE t.n <= %{control:Simultaneous-Use} ORDER BY t.n}"
+			}
+			update request {
+				&Tmp-String-8 := "hs-slots=%{sql:SELECT COUNT(*) FROM nuxr_hs_admission WHERE username = UNHEX('%{Tmp-String-3}') AND slot <= %{control:Simultaneous-Use}}"
+			}
+		}
+		if (&Tmp-String-8 != "hs-slots=%{control:Simultaneous-Use}") {
+			update request {
+				&Tmp-String-0 := "nuxr-hs-admission=reject:slots"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- H-2B 4: the token of this claim
+		update control {
+			&Tmp-String-5 := "%{randstr:hhhhhhhhhhhhhhhh}"
+			&Tmp-String-9 := "none"
+		}
+		if (&control:Tmp-String-5 !~ /^[0-9a-f]{32}$/) {
+			update request {
+				&Tmp-String-0 := "nuxr-hs-admission=reject:token"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- H-2B 5: an exact retransmission of the claiming request re-uses its PENDING claim (a=<token> | a=-)
+		update control {
+			&Tmp-String-6 := "%{sql:SELECT CONCAT('a=', COALESCE((SELECT token FROM nuxr_hs_admission WHERE username = UNHEX('%{Tmp-String-3}') AND state = 'PENDING' AND nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND request_authenticator = '%{Tmp-String-7}' LIMIT 1), '-'))}"
+		}
+		if (&control:Tmp-String-6 =~ /^a=([0-9a-f]{32})$/) {
+			update control {
+				&Tmp-String-5 := "%{1}"
+				&Tmp-String-9 := "attached"
+			}
+			update request {
+				&Tmp-String-9 := "hs-claim=%{sql:UPDATE nuxr_hs_admission SET attach_count = attach_count + 1, updated_at = UTC_TIMESTAMP(6) WHERE username = UNHEX('%{Tmp-String-3}') AND token = '%{control:Tmp-String-5}' AND state = 'PENDING' AND nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND request_authenticator = '%{Tmp-String-7}'}"
+			}
+		}
+		elsif (&control:Tmp-String-6 == "a=-") {
+			update control {
+				&Tmp-String-9 := "created"
+			}
+			# ---- H-2B 6: claim v2 (pre-check + ONE conditional UPDATE)
+			update request {
+				&Tmp-String-4 := "%{sql:SELECT CONCAT(IF(COUNT(a.slot) < p.l AND COALESCE(SUM(a.slot > p.l), 0) = 0, 'free', 'full'), '/', LOWER(HEX(p.k)), '/', p.l) FROM (SELECT UNHEX('%{Tmp-String-3}') AS k, %{control:Simultaneous-Use} AS l) AS p LEFT JOIN nuxr_hs_admission AS a ON a.username = p.k AND a.state <> 'ENDED' GROUP BY p.k, p.l}"
+			}
+			if (&Tmp-String-4 == "free/%{Tmp-String-3}/%{control:Simultaneous-Use}") {
+				update request {
+					&Tmp-String-9 := "hs-claim=%{sql:UPDATE nuxr_hs_admission SET prev_token = token, prev_state = state, state = 'PENDING', token = '%{control:Tmp-String-5}', nas = '%{NAS-IP-Address}', acct_session_id = '%{Acct-Session-Id}', calling_station_id = '%{Calling-Station-Id}', request_authenticator = '%{Tmp-String-7}', session_user = '%{SQL-User-Name}', attach_count = 0, created_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), confirmed_at = NULL, last_acct_at = NULL, ended_at = NULL, end_reason = NULL WHERE username = UNHEX('%{Tmp-String-3}') AND slot <= %{control:Simultaneous-Use} AND state = 'ENDED' ORDER BY slot LIMIT 1}"
+				}
+			}
+			else {
+				update request {
+					&Tmp-String-9 := "hs-claim=full"
+				}
+			}
+			# ---- H-2B 6a: no free slot - verify the ACTIVE slots on their NAS (never a PENDING one), release ONE proven gone,
+			# claim once more. Candidates (at most 12, least recent accounting first): token/nas/calling_station_id.
+			if (&Tmp-String-9 != "hs-claim=1") {
+				update request {
+					&Tmp-String-1 := "%{sql:SELECT CONCAT('v=', COUNT(*), ';', COALESCE(GROUP_CONCAT(CONCAT(x.token, '/', x.nas, '/', x.calling_station_id) ORDER BY x.o, x.slot SEPARATOR ','), '')) FROM (SELECT token, nas, calling_station_id, slot, COALESCE(last_acct_at, created_at) AS o FROM nuxr_hs_admission WHERE username = UNHEX('%{Tmp-String-3}') AND state = 'ACTIVE' ORDER BY o, slot LIMIT 12) AS x}"
+				}
+				if (&Tmp-String-1 =~ /^v=([1-9][0-9]?);([0-9a-f]{32}\/[0-9]{1,3}(\.[0-9]{1,3}){3}\/[0-9A-Fa-f:.-]{1,32}(,[0-9a-f]{32}\/[0-9]{1,3}(\.[0-9]{1,3}){3}\/[0-9A-Fa-f:.-]{1,32}){0,11})$/) {
+					update request {
+						&Tmp-String-1 := "%{2}"
+					}
+					update control {
+						&Tmp-String-7 !* ANY
+						&Tmp-String-8 !* ANY
+						&Tmp-String-4 !* ANY
+					}
+					# a reply Exec-Program / Exec-Program-Wait would make rlm_exec run THAT program instead
+					update reply {
+						&Exec-Program !* ANY
+						&Exec-Program-Wait !* ANY
+					}
+					# ONE explicit mapping decides: release only for exit 0 (ok) WITH the verdict GONE and a token in the
+					# control list; LIVE (exit 1), ERROR (exit 2), timeout / kill (fail), anything unexpected: refused.
+					nuxr_hotspot_slot_verifier {
+						reject = 1
+						fail = 1
+						ok = 1
+						handled = 1
+						invalid = 1
+						userlock = 1
+						notfound = 1
+						noop = 1
+						updated = 1
+					}
+					if (ok && (&control:Tmp-String-7 == "GONE") && (&control:Tmp-String-8 =~ /^[0-9a-f]{32}$/)) {
+						# audit FIRST (never an unaudited automatic release), then the release - both conditional on the slot still
+						# being ACTIVE with exactly that token; either failing: nothing more happens, refused
+						update request {
+							&Tmp-String-8 := "hs-audit=%{sql:INSERT INTO nuxr_hs_admission_audit (at, action, outcome, username, slot, token, actor, evidence) SELECT UTC_TIMESTAMP(6), 'verified_release', 'proven_gone', username, slot, token, 'nuxr_hotspot_slot_verifier', LEFT(CONCAT('nas ', nas, ' calling_station_id ', calling_station_id, ' acct_session_id ', acct_session_id, ' verifier %{control:Tmp-String-4} requested_by_claim %{control:Tmp-String-5}'), 1024) FROM nuxr_hs_admission WHERE username = UNHEX('%{Tmp-String-3}') AND token = '%{control:Tmp-String-8}' AND state = 'ACTIVE'}"
+						}
+						if (&Tmp-String-8 != "hs-audit=1") {
+							update request {
+								&Tmp-String-0 := "nuxr-hs-admission=reject:verified-audit"
+							}
+							attr_filter.access_reject
+							update reply {
+								&Reply-Message := "Session verification failed"
+							}
+							reject
+						}
+						update request {
+							&Tmp-String-8 := "hs-release=%{sql:UPDATE nuxr_hs_admission SET state = 'ENDED', ended_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), end_reason = 'verified_gone' WHERE username = UNHEX('%{Tmp-String-3}') AND token = '%{control:Tmp-String-8}' AND state = 'ACTIVE'}"
+						}
+						if (&Tmp-String-8 != "hs-release=1") {
+							update request {
+								&Tmp-String-0 := "nuxr-hs-admission=reject:verified-release"
+							}
+							attr_filter.access_reject
+							update reply {
+								&Reply-Message := "Session verification failed"
+							}
+							reject
+						}
+						update request {
+							&Tmp-String-4 := "%{sql:SELECT CONCAT(IF(COUNT(a.slot) < p.l AND COALESCE(SUM(a.slot > p.l), 0) = 0, 'free', 'full'), '/', LOWER(HEX(p.k)), '/', p.l) FROM (SELECT UNHEX('%{Tmp-String-3}') AS k, %{control:Simultaneous-Use} AS l) AS p LEFT JOIN nuxr_hs_admission AS a ON a.username = p.k AND a.state <> 'ENDED' GROUP BY p.k, p.l}"
+						}
+						if (&Tmp-String-4 == "free/%{Tmp-String-3}/%{control:Simultaneous-Use}") {
+							update request {
+								&Tmp-String-9 := "hs-claim=%{sql:UPDATE nuxr_hs_admission SET prev_token = token, prev_state = state, state = 'PENDING', token = '%{control:Tmp-String-5}', nas = '%{NAS-IP-Address}', acct_session_id = '%{Acct-Session-Id}', calling_station_id = '%{Calling-Station-Id}', request_authenticator = '%{Tmp-String-7}', session_user = '%{SQL-User-Name}', attach_count = 0, created_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), confirmed_at = NULL, last_acct_at = NULL, ended_at = NULL, end_reason = NULL WHERE username = UNHEX('%{Tmp-String-3}') AND slot <= %{control:Simultaneous-Use} AND state = 'ENDED' ORDER BY slot LIMIT 1}"
+							}
+						}
+						else {
+							update request {
+								&Tmp-String-9 := "hs-claim=full"
+							}
+						}
+					}
+				}
+			}
+		}
+		else {
+			update request {
+				&Tmp-String-0 := "nuxr-hs-admission=reject:attach-read"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		if (&Tmp-String-9 != "hs-claim=1") {
+			# a claim UPDATE that committed but whose result was lost (connection drop, rlm_sql retry): this request never
+			# sends an Access-Accept with its token, so it ends its own claim - only its token, only PENDING, only while no
+			# retransmission re-used it. Usually matches nothing (no claim was made).
+			if (&control:Tmp-String-9 == "created") {
+				update request {
+					&Tmp-String-8 := "hs-release=%{sql:UPDATE nuxr_hs_admission SET state = 'ENDED', ended_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), end_reason = 'claim_failed' WHERE username = UNHEX('%{Tmp-String-3}') AND token = '%{control:Tmp-String-5}' AND state = 'PENDING' AND attach_count = 0}"
+				}
+			}
+			update request {
+				&Tmp-String-0 := "nuxr-hs-admission=reject:full"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- H-2B 7: late-claim guard AFTER the claim: a late claim gets no Access-Accept; only its CREATOR releases it,
+		# only its own token, only while PENDING and not re-used by a retransmission (that request may have sent an Accept)
+		update request {
+			&Tmp-String-6 := "%{expr:(%{time_since:us} - %l * 1000000 - %M) / 1000}"
+		}
+		if ((&Tmp-String-6 !~ /^[0-9]{1,9}$/) || (<integer>&Tmp-String-6 > 5000)) {
+			if (&control:Tmp-String-9 == "created") {
+				update request {
+					&Tmp-String-8 := "hs-release=%{sql:UPDATE nuxr_hs_admission SET state = 'ENDED', ended_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), end_reason = 'late_claim' WHERE username = UNHEX('%{Tmp-String-3}') AND token = '%{control:Tmp-String-5}' AND state = 'PENDING' AND attach_count = 0}"
+				}
+			}
+			update request {
+				&Tmp-String-0 := "nuxr-hs-admission=reject:late-claim"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- H-2B 8: the per-claim correlation value (any Class from radreply / radgroupreply is replaced)
+		update reply {
+			&Class := "0x6e75786831%{control:Tmp-String-5}"
+		}
+		update request {
+			&Tmp-String-0 := "nuxr-hs-admission=claim:%{control:Tmp-String-9}"
 		}
 	}
 	Post-Auth-Type REJECT {

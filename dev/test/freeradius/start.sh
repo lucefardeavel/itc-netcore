@@ -14,6 +14,9 @@ cp /nuxr/test/clients.conf "$R/clients.conf"
 mkdir -p "$R/nuxr"; chmod 0755 "$R/nuxr"
 install -m 0755 /nuxr/install/bin/nuxr_pppoe_session_guard "$R/nuxr/nuxr_pppoe_session_guard"
 cp /nuxr/install/mods-available/nuxr_pppoe_session_guard "$R/mods-enabled/nuxr_pppoe_session_guard"
+# WP8 H-2B - Hotspot slot verifier, installed exactly as install/freeradius/README.md describes (same credential file)
+install -m 0755 /nuxr/install/bin/nuxr_hotspot_slot_verifier "$R/nuxr/nuxr_hotspot_slot_verifier"
+cp /nuxr/install/mods-available/nuxr_hotspot_slot_verifier "$R/mods-enabled/nuxr_hotspot_slot_verifier"
 # Test credential file: one entry for the TEST-NET NAS 192.0.2.10 (never reachable, see clients.conf) with a random
 # per-start community (not a secret: nothing answers it). 192.0.2.11 deliberately has no entry.
 (umask 077; printf '192.0.2.10 nuxrtest%s\n' "$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')" > "$R/nuxr/nas_snmp")
@@ -23,5 +26,7 @@ test -x "$R/nuxr/nuxr_pppoe_session_guard"
 test -x /usr/bin/snmpget
 test -x /usr/bin/snmpbulkwalk
 grep -q '^[[:space:]]*nuxr_pppoe_session_guard {' "$R/sites-enabled/phpnuxbill"
+test -x "$R/nuxr/nuxr_hotspot_slot_verifier"
+grep -q '^[[:space:]]*nuxr_hotspot_slot_verifier {' "$R/sites-enabled/phpnuxbill"
 grep -q 'delete_stale_sessions = no' "$R/mods-enabled/sql"
 exec freeradius -f -l stdout

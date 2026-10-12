@@ -83,7 +83,10 @@ final class SessionGuardSourceTest extends TestCase
             'the stock-escaped key, open rows only - plus the NAS of an ACTIVE admission reservation (WP8 A2-R)');
         $this->assertStringNotContainsString("'%{User-Name}'", $post, 'never the raw User-Name inside SQL');
         $this->assertDoesNotMatchRegularExpression('/\\b(DELETE\\s+FROM|UPDATE\\s+radacct|INSERT\\s+INTO\\s+radacct|REPLACE\\s+INTO|TRUNCATE)\\b/i', $post, 'no accounting write, no delete');
-        $this->assertSame(1, preg_match_all('/\\bINSERT\\s+INTO\\b/i', $post), 'the only INSERT is the admission claim (WP8 A2-R)');
+        $hotspot = strpos($post, 'if ((&Service-Type == Login-User) && (&NAS-Port-Type == Wireless-802.11)) {');
+        $this->assertSame(1, preg_match_all('/\\bINSERT\\s+INTO\\b/i', substr($post, 0, $hotspot)), 'the only PPPoE INSERT is the admission claim (WP8 A2-R)');
+        // WP8 H-2B (Hotspot only): slot creation (INSERT IGNORE INTO) + the audit row of a verified release
+        $this->assertSame(2, preg_match_all('/\\bINSERT\\s+(IGNORE\\s+)?INTO\\b/i', substr($post, $hotspot)), 'Hotspot: slot creation + verified-release audit only');
         foreach (['reject', 'fail', 'ok', 'handled', 'invalid', 'userlock', 'notfound', 'noop', 'updated'] as $rc) {
             $this->assertMatchesRegularExpression('/^\\s*' . $rc . ' = 1$/m', $post, "module result {$rc} is mapped explicitly");
         }
@@ -92,10 +95,13 @@ final class SessionGuardSourceTest extends TestCase
         // another attempt, ACTIVE under another spelling, open rows under another spelling, late before the claim,
         // token, claim lost, late claim (10)
         // 14 PPPoE reject branches (A1 + A2-R) + 3 Hotspot canonical-spelling branches (WP8 H-1 H1-A, which carry NO
-        // Reply-Message: their refusal looks like a wrong password - HotspotSpellingSourceTest)
-        $this->assertSame(17, preg_match_all('/^\\s*reject$/m', $post), 'every reject branch');
-        $this->assertSame(18, substr_count($post, 'attr_filter.access_reject'), 'each reject branch filters the reply (+ Post-Auth-Type REJECT)');
-        $this->assertSame(14, substr_count($post, '&Reply-Message := "Session verification failed"'), 'the PPPoE branches');
+        // Reply-Message: their refusal looks like a wrong password - HotspotSpellingSourceTest) + 10 Hotspot admission
+        // slot branches (WP8 H-2B: limit, identity, late, slots, token, verified-audit, verified-release, attach-read,
+        // full, late-claim - with the same Reply-Message as the PPPoE refusals; HotspotAdmissionSourceTest)
+        $this->assertSame(27, preg_match_all('/^\\s*reject$/m', $post), 'every reject branch');
+        $this->assertSame(28, substr_count($post, 'attr_filter.access_reject'), 'each reject branch filters the reply (+ Post-Auth-Type REJECT)');
+        $this->assertSame(24, substr_count($post, '&Reply-Message := "Session verification failed"'), 'the PPPoE + Hotspot admission branches');
+        $this->assertSame(14, substr_count(substr($post, 0, $hotspot), '&Reply-Message := "Session verification failed"'), 'the PPPoE branches');
         $this->assertStringContainsString("&Exec-Program !* ANY\n", $post, 'no reply Exec-Program can run');
         $this->assertStringContainsString('sql', self::sessionSection(), 'Simultaneous-Use (session { sql }) stays the first layer');
     }

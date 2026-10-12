@@ -1,0 +1,264 @@
+#!/bin/sh
+# nuxr_hotspot_slot_verifier - PHPNuxBill project-owned, FAIL-CLOSED Hotspot session verifier (WP8 H-2B).
+#
+# Called ONLY by the FreeRADIUS exec module "nuxr_hotspot_slot_verifier" from the Hotspot post-auth policy of the
+# phpnuxbill virtual server, when a Hotspot login finds every admission slot of the subscriber in use and some of those
+# slots are ACTIVE (their session was proven by accounting). It asks the NAS of each such slot, over read-only SNMP,
+# whether that slot's session (same username bytes AND same client MAC) is still in the RouterOS Hotspot active table.
+# It never sees PENDING slots (Strict Mode: a PENDING slot is never released by SNMP) and it never writes anything.
+#
+#   nuxr_hotspot_slot_verifier USERNAME_HEX CANDIDATES
+#
+#   USERNAME_HEX  the raw bytes of the canonical username in hex (H1-A: the request User-Name bytes equal them)
+#   CANDIDATES    1..12 ACTIVE slots, least recent accounting first: TOKEN/NAS_IP/CALLING_STATION_ID[,...]
+#                 TOKEN = 32 lower-case hex, NAS_IP = dotted IPv4, CALLING_STATION_ID = the client MAC (12 hex digits,
+#                 any of the separators : - . ; RouterOS sends AA:BB:CC:DD:EE:FF)
+#
+# Result (stdout, parsed by FreeRADIUS into the control list) and exit status - EXACT tri-state:
+#   Tmp-String-7 = "GONE"   exit 0   Tmp-String-8 = the token of the FIRST candidate whose NAS answered (health probe
+#                                    OK, validated agent) and whose Hotspot active table has NO session with this username
+#                                    and this MAC. One proven slot is enough to admit one login.
+#   Tmp-String-7 = "LIVE"   exit 1   every candidate's NAS answered and every candidate's session is still there
+#   Tmp-String-7 = "ERROR"  exit 2   no candidate proven gone and at least one could not be proven: bad input, missing
+#                                    credentials, SNMP health failure, not a validated agent, timeout, missing tool,
+#                                    malformed or inconsistent SNMP output
+#   Tmp-String-4 = per-NAS detail "NAS_IP:RESULT ... ms:N" (characters the SQL audit stores unescaped; never the
+#                  community, never the username)
+# The FreeRADIUS policy releases a slot ONLY on GONE (and only that slot, conditional on its token and state ACTIVE).
+#
+# SNMP: v2c, read-only, community from the protected credential file nas_snmp NEXT TO THIS PROGRAM - the SAME file as
+# the PPPoE session guard (one "NAS_IP COMMUNITY" per line, mode 0600, FreeRADIUS user) - NEVER on a command line: it is
+# written to a private per-run net-snmp configuration (SNMPCONFPATH) that is deleted on exit. Per NAS:
+#   1. health probe FIRST: sysUpTime.0, sysObjectID.0 and MIKROTIK-MIB mtxrLicVersion.0 in one GET. The agent must be
+#      MikroTik RouterOS (sysObjectID .1.3.6.1.4.1.14988.1) of major version 7 - the version whose Hotspot active table
+#      was validated (WP8 H2-B Gate A, RouterOS 7.24.5). RouterOS answers "No Such Object" both for an EMPTY Hotspot
+#      table and for a table it does not implement, so an empty answer counts as "no session" ONLY on a validated agent.
+#   2. two walks of the MIKROTIK-MIB Hotspot active table (1.3.6.1.4.1.14988.1.1.5.1.1): column 3 (user) and column 6
+#      (MAC address), in hex (-Ox), joined by the session index. Both columns must list exactly the same indexes (a
+#      session that appears or ends between the two walks makes the answer inconsistent: ERROR).
+#   A session "is the slot's session" when its user bytes equal USERNAME_HEX AND its MAC equals the slot's MAC.
+# NAS queries run in parallel; 1 s SNMP timeout, no retries, hard total deadline 1.5 s of wall clock (module timeout 3 s).
+set -uf
+umask 077
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+LC_ALL=C
+export LC_ALL
+
+CREDS="${0%/*}/nas_snmp"         # next to this program (installed under ${confdir}/nuxr/), mode 0600, FreeRADIUS user
+OID_UPTIME=.1.3.6.1.2.1.1.3.0
+OID_OBJID=.1.3.6.1.2.1.1.2.0
+OID_ROSVER=.1.3.6.1.4.1.14988.1.1.4.4.0
+OID_HS=.1.3.6.1.4.1.14988.1.1.5.1.1
+DEADLINE_MS=1500           # wall clock from the start, for all NAS together (module timeout 3 s)
+T0=$(date +%s%N)
+WORK=''
+
+verdict() {
+	printf 'Tmp-String-7 = "%s"\nTmp-String-8 = "%s"\nTmp-String-4 = "%s ms:%s"\n' "$1" "$2" "$3" "$(( ($(date +%s%N) - T0) / 1000000 ))"
+	case $1 in
+	GONE) exit 0 ;;
+	LIVE) exit 1 ;;
+	*) exit 2 ;;
+	esac
+}
+
+cleanup() {
+	if [ -n "$WORK" ] && [ -d "$WORK" ]; then
+		rm -rf -- "$WORK"
+	fi
+}
+trap cleanup EXIT
+trap 'exit 2' HUP INT TERM
+
+valid_ip() {
+	case $1 in
+	*[!0-9.]* | .* | *. | *..*) return 1 ;;
+	esac
+	old_ifs=$IFS; IFS=.
+	# shellcheck disable=SC2086
+	set -- $1
+	IFS=$old_ifs
+	[ $# -eq 4 ] || return 1
+	for o in "$@"; do
+		case $o in
+		'' | ????*) return 1 ;;
+		0?*) return 1 ;;
+		esac
+		[ "$o" -le 255 ] || return 1
+	done
+	return 0
+}
+
+# ---------------------------------------------------------------- input
+[ $# -eq 2 ] || verdict ERROR "" "argc"
+USER_HEX=$1
+CANDS=$2
+case $USER_HEX in
+'' | *[!0-9A-Fa-f]*) verdict ERROR "" "username-hex" ;;
+esac
+USER_HEX=$(printf '%s' "$USER_HEX" | tr 'a-f' 'A-F')
+len=${#USER_HEX}
+[ $((len % 2)) -eq 0 ] && [ "$len" -le 512 ] || verdict ERROR "" "username-length"
+printf '%s' "$USER_HEX" | fold -w2 | grep -qE '^(0[0-9A-F]|1[0-9A-F]|7F)$' && verdict ERROR "" "username-control-char"
+[ -n "$CANDS" ] || verdict ERROR "" "no-candidates"
+# candidate list -> "TOKEN NAS MACHEX" lines (validated); distinct NAS list
+LIST=''
+NAS=''
+nc=0
+nn=0
+old_ifs=$IFS; IFS=,
+for c in $CANDS; do
+	IFS=$old_ifs
+	tok=${c%%/*}; rest=${c#*/}; ip=${rest%%/*}; mac=${rest#*/}
+	[ "$c" != "$tok" ] && [ "$rest" != "$ip" ] || verdict ERROR "" "malformed-candidate"
+	case $tok in
+	????????????????????????????????) ;;
+	*) verdict ERROR "" "token-length" ;;
+	esac
+	case $tok in
+	*[!0-9a-f]*) verdict ERROR "" "token" ;;
+	esac
+	valid_ip "$ip" || verdict ERROR "" "malformed-nas"
+	case $mac in
+	'' | *[!0-9A-Fa-f:.-]*) verdict ERROR "" "mac" ;;
+	esac
+	m=$(printf '%s' "$mac" | tr -d ':.-' | tr 'a-f' 'A-F')
+	[ ${#m} -eq 12 ] || verdict ERROR "" "mac-length"
+	LIST="$LIST$tok $ip $m
+"
+	nc=$((nc + 1))
+	case " $NAS " in *" $ip "*) ;; *) NAS="$NAS $ip"; nn=$((nn + 1)) ;; esac
+done
+IFS=$old_ifs
+[ "$nc" -ge 1 ] && [ "$nc" -le 12 ] || verdict ERROR "" "candidate-count"
+[ -r "$CREDS" ] || verdict ERROR "" "no-credential-file"
+WORK=$(mktemp -d /tmp/nuxr-hsver.XXXXXXXX) || verdict ERROR "" "tmp"
+
+# ---------------------------------------------------------------- one NAS (background job)
+# result file: first line OK or ERROR:<why>; after OK, one line per MAC (12 upper-case hex) of a session of USER_HEX
+walk_col() {
+	# $1 ip, $2 column, $3 config dir -> stdout "INDEX HEX" lines, or the single line EMPTY; non-zero on any doubt
+	w=$(SNMPCONFPATH=$3 SNMP_PERSISTENT_DIR=$3 MIBS= snmpbulkwalk -r0 -t1 -On -Ox -Cr50 "$1" "$OID_HS.$2" 2>/dev/null) || return 1
+	printf '%s\n' "$w" | awk -v base="$OID_HS.$2" '
+		BEGIN { rows = 0; bad = 0; empty = 0; pfx = base "." }
+		$0 == "" { next }
+		$0 == base " = No Such Object available on this agent at this OID" { empty++; next }
+		{
+			if (index($0, pfx) != 1) { bad = 1; next }
+			rest = substr($0, length(pfx) + 1)
+			if (match(rest, /^[0-9]+ = /) == 0) { bad = 1; next }
+			idx = substr(rest, 1, RLENGTH - 3)
+			val = substr(rest, RLENGTH + 1)
+			if (val == "\"\"") { h = "" }
+			else if (substr(val, 1, 12) == "Hex-STRING: ") { h = substr(val, 13); gsub(/ /, "", h) }
+			else { bad = 1; next }
+			if (h !~ /^([0-9A-F][0-9A-F])*$/) { bad = 1; next }
+			print idx " " h
+			rows++
+		}
+		END {
+			if (bad || (empty && rows) || empty > 1) exit 1
+			if (!rows && empty != 1) exit 1          # no output at all is never "empty"
+			if (!rows) print "EMPTY"
+		}'
+}
+
+check_nas() {
+	ip=$1; out=$2; d=$3
+	comm=$(awk -v ip="$ip" '$1 == ip { print $2; exit }' "$CREDS")
+	case $comm in
+	'' | *[!A-Za-z0-9._-]*) echo "ERROR:credentials" > "$out"; return ;;
+	esac
+	mkdir "$d" || { echo "ERROR:tmp" > "$out"; return; }
+	printf 'defCommunity %s\ndefVersion 2c\nhexOutputLength 0\nmibs :\n' "$comm" > "$d/snmp.conf" || { echo "ERROR:tmp" > "$out"; return; }
+	h=$(SNMPCONFPATH=$d SNMP_PERSISTENT_DIR=$d MIBS= snmpget -r0 -t1 -On "$ip" "$OID_UPTIME" "$OID_OBJID" "$OID_ROSVER" 2>/dev/null) || { echo "ERROR:health" > "$out"; return; }
+	printf '%s\n' "$h" | grep -q "^$OID_UPTIME = Timeticks: ([0-9]*)" || { echo "ERROR:health-format" > "$out"; return; }
+	printf '%s\n' "$h" | grep -qxF "$OID_OBJID = OID: .1.3.6.1.4.1.14988.1" || { echo "ERROR:not-routeros" > "$out"; return; }
+	printf '%s\n' "$h" | grep -q "^$OID_ROSVER = STRING: \"7\.[0-9][0-9.]*\"" || { echo "ERROR:routeros-version" > "$out"; return; }
+	u=$(walk_col "$ip" 3 "$d") || { echo "ERROR:walk-user" > "$out"; return; }
+	m=$(walk_col "$ip" 6 "$d") || { echo "ERROR:walk-mac" > "$out"; return; }
+	if [ "$u" = EMPTY ] && [ "$m" = EMPTY ]; then
+		echo OK > "$out.tmp" && mv "$out.tmp" "$out" || echo "ERROR:tmp" > "$out"
+		return
+	fi
+	[ "$u" != EMPTY ] && [ "$m" != EMPTY ] || { echo "ERROR:walk-inconsistent" > "$out"; return; }
+	printf '%s\n' "$u" > "$d/u"; printf '%s\n' "$m" > "$d/m"
+	awk -v user="$USER_HEX" '
+		FNR == NR { if (NF != 2 && NF != 1) bad = 1; usr[$1] = $2; nu++; next }
+		{
+			if (NF != 2 || length($2) != 12) { bad = 1; next }
+			if (!($1 in usr)) { bad = 1; next }
+			seen[$1] = 1; nm++
+			if ((usr[$1] "") == (user "")) print $2       # string comparison (hex can look numeric)
+		}
+		END {
+			if (nu != nm) bad = 1
+			for (i in usr) if (!(i in seen)) bad = 1
+			if (bad) { print "BAD"; exit 1 }
+		}' "$d/u" "$d/m" > "$d/macs" || { echo "ERROR:walk-inconsistent" > "$out"; return; }
+	{ echo OK; cat "$d/macs"; } > "$out.tmp" && mv "$out.tmp" "$out" || echo "ERROR:tmp" > "$out"
+}
+
+i=0
+PIDS=''
+for ip in $NAS; do
+	i=$((i + 1))
+	check_nas "$ip" "$WORK/r$i" "$WORK/c$i" &
+	PIDS="$PIDS $!"
+done
+
+while :; do
+	done_n=0
+	k=0
+	for ip in $NAS; do
+		k=$((k + 1))
+		[ -s "$WORK/r$k" ] && done_n=$((done_n + 1))
+	done
+	[ "$done_n" -eq "$nn" ] && break
+	if [ $(( ($(date +%s%N) - T0) / 1000000 )) -ge "$DEADLINE_MS" ]; then
+		for p in $PIDS; do kill -9 "$p" 2>/dev/null; done
+		break
+	fi
+	sleep 0.05
+done
+
+# ---------------------------------------------------------------- decision (candidates in the given order)
+detail=''
+k=0
+for ip in $NAS; do
+	k=$((k + 1))
+	r=$(head -n1 "$WORK/r$k" 2>/dev/null)
+	case $r in
+	OK) r="OK:$(($(wc -l < "$WORK/r$k") - 1))" ;;
+	ERROR:*) ;;
+	'') r="ERROR:timeout" ;;
+	*) r="ERROR:result" ;;
+	esac
+	detail="$detail$ip:$r "
+done
+gone=''
+errors=0
+while read -r tok ip mac; do
+	[ -n "$tok" ] || continue
+	k=0
+	for n in $NAS; do
+		k=$((k + 1))
+		[ "$n" = "$ip" ] && break
+	done
+	r=$(head -n1 "$WORK/r$k" 2>/dev/null)
+	if [ "$r" != OK ]; then
+		errors=$((errors + 1))
+		continue
+	fi
+	if tail -n +2 "$WORK/r$k" | grep -qx "$mac"; then
+		continue
+	fi
+	gone=$tok
+	break
+done <<EOF
+$LIST
+EOF
+[ -n "$gone" ] && verdict GONE "$gone" "$detail"
+[ "$errors" -eq 0 ] || verdict ERROR "" "$detail"
+verdict LIVE "" "$detail"

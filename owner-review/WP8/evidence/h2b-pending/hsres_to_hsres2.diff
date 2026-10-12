@@ -1,0 +1,42 @@
+--- /dev/fd/63	2026-10-11 10:45:35.609026001 +0000
++++ /dev/fd/62	2026-10-11 10:45:35.610025992 +0000
+@@ -115,11 +115,24 @@
+ 				update request {
+ 					&Tmp-String-5 := "hs-acct=%{sql:UPDATE nuxr_hs_admission SET state = 'ENDED', ended_at = UTC_TIMESTAMP(6), last_acct_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), end_reason = 'acct_stop' WHERE token = '%{Tmp-String-4}' AND nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND state IN ('PENDING', 'ACTIVE')}"
+ 				}
++				if (&Tmp-String-5 != "hs-acct=1") {
++					update request {
++						&Tmp-String-0 := "nuxr-hsres-acct=orphan:%{Acct-Status-Type}"
++					}
++				}
+ 			}
+ 			elsif ((&Acct-Status-Type == Start) || (&Acct-Status-Type == Interim-Update)) {
+ 				update request {
+ 					&Tmp-String-5 := "hs-acct=%{sql:UPDATE nuxr_hs_admission SET state = 'ACTIVE', confirmed_at = COALESCE(confirmed_at, UTC_TIMESTAMP(6)), last_acct_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6) WHERE token = '%{Tmp-String-4}' AND nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND state IN ('PENDING', 'ACTIVE')}"
+ 				}
++				if (&Tmp-String-5 != "hs-acct=1") {
++					update request {
++						&Tmp-String-0 := "nuxr-hsres-acct=orphan:%{Acct-Status-Type}"
++					}
++					update request {
++						&Tmp-String-6 := "%{sql:INSERT INTO nuxr_hs_admission_audit (at, action, outcome, username, slot, token, actor, evidence) VALUES (UTC_TIMESTAMP(6), 'orphan_accounting', '%{Acct-Status-Type}', '%{User-Name}', 0, '%{Tmp-String-4}', 'freeradius', CONCAT('nas %{NAS-IP-Address} asid %{Acct-Session-Id} mac %{Calling-Station-Id}'))}"
++					}
++				}
+ 			}
+ 		}
+ 	}
+@@ -128,7 +141,13 @@
+ 
+ session {
+ 	# Simultaneous-Use: open sessions in radacct
+-	sql
++	# LAB PROTOTYPE R-H2-B: a Hotspot login is limited by the admission slots (post-auth), not by radacct + checkrad
++	if ((&Service-Type == Login-User) && (&NAS-Port-Type == Wireless-802.11)) {
++		ok
++	}
++	else {
++		sql
++	}
+ }
+ 
+ post-auth {

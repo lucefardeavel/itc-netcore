@@ -71,6 +71,43 @@ final class RadiusWire
         return $this->accessBytes($attrs, $password, $method);
     }
 
+    /**
+     * Access-Request bytes for a RouterOS 7.24.5-shaped HOTSPOT login (WP8 H-2B: Login-User + Wireless-802.11 with the
+     * attempt identity the Hotspot admission slots require - NAS-IP-Address, Acct-Session-Id, Calling-Station-Id; no
+     * NAS-Port-Id, as RouterOS Hotspot sends none).
+     * @param array{nas:string,sid:string,mac:string,port:string} $a
+     * @param list<string> $drop attribute names to leave out (identity probes)
+     * @param list<array{0:string|int,1:string|int}> $extra
+     */
+    public function hotspotAccess(string $user, string $password, array $a, string $method = 'chap', array $drop = [], array $extra = []): string
+    {
+        $attrs = [['User-Name', $user], ['NAS-IP-Address', $a['nas']], ['NAS-Port', 2147483700], ...self::HOTSPOT,
+            ['Acct-Session-Id', $a['sid']], ['Calling-Station-Id', $a['mac']], ['Called-Station-Id', 'nuxr_wp8_hs'], ...$extra];
+        $attrs = array_values(array_filter($attrs, static fn($x) => !in_array($x[0], $drop, true)));
+        return $this->accessBytes($attrs, $password, $method);
+    }
+
+    /**
+     * Hotspot accounting of an attempt (WP8 H-2B), RouterOS-shaped.
+     * @param array{nas:string,sid:string,mac:string,port:string} $a
+     * @param 'Start'|'Interim-Update'|'Stop' $status
+     */
+    public function hotspotAccounting(string $user, array $a, string $status, ?string $class = null, ?string $nas = null): ?RadiusPacket
+    {
+        $code = ['Start' => 1, 'Stop' => 2, 'Interim-Update' => 3][$status];
+        $attrs = [['User-Name', $user], ['NAS-IP-Address', $nas ?? $a['nas']], ['Acct-Status-Type', $code], ['Acct-Delay-Time', 0], ['Event-Timestamp', time()],
+            ['Acct-Session-Id', $a['sid']], ['Calling-Station-Id', $a['mac']], ['NAS-Port-Type', 19], ['Service-Type', 1],
+            ['Framed-IP-Address', '10.78.' . random_int(0, 255) . '.' . random_int(2, 250)]];
+        if ($status === 'Stop') {
+            $attrs[] = ['Acct-Session-Time', 5];
+            $attrs[] = ['Acct-Terminate-Cause', 1];
+        }
+        if ($class !== null) {
+            $attrs[] = ['Class', $class];
+        }
+        return $this->send($this->accountingBytes($attrs), 1813);
+    }
+
     /** @param list<array{0:string|int,1:string|int}> $attrs */
     public function accessBytes(array $attrs, string $password, string $method = 'pap'): string
     {
@@ -249,6 +286,13 @@ final class RadiusWire
     {
         $c = self::classHex($p);
         return $c !== null && preg_match('/^6e75787231([0-9a-f]{32})$/', $c, $m) ? $m[1] : null;
+    }
+
+    /** the 32-hex Hotspot slot token carried by a reply's Class ("nuxh1" + 16 bytes, WP8 H-2B), or null */
+    public static function hotspotToken(?RadiusPacket $p): ?string
+    {
+        $c = self::classHex($p);
+        return $c !== null && preg_match('/^6e75786831([0-9a-f]{32})$/', $c, $m) ? $m[1] : null;
     }
 
     /** @param resource $socket */

@@ -42,6 +42,8 @@ final class SessionGuardContractTest extends TestCase
         (new FixtureBuilder(dirname(__DIR__, 3)))->loadSqlFile(self::$pdo, dirname(__DIR__, 3) . '/install/radius.sql');
         // WP8 A2-R: the PPPoE path of the site also needs the additive admission schema (README install order)
         (new FixtureBuilder(dirname(__DIR__, 3)))->loadSqlFile(self::$pdo, dirname(__DIR__, 3) . '/install/freeradius/nuxr_admission.sql');
+        // WP8 H-2B: the Hotspot path needs the additive admission slot schema
+        (new FixtureBuilder(dirname(__DIR__, 3)))->loadSqlFile(self::$pdo, dirname(__DIR__, 3) . '/install/freeradius/nuxr_hs_admission.sql');
         RadiusClient::waitReady();
     }
 
@@ -85,9 +87,12 @@ final class SessionGuardContractTest extends TestCase
         $t = microtime(true);
         // WP8 A2-R: a PPPoE Access-Request carries the RouterOS attempt identity (Acct-Session-Id, Calling-Station-Id,
         // NAS-Port-Id), as every real RouterOS PPPoE request does; without it the site refuses the login (fail closed)
-        $r = $attrs === self::PPPOE
-            ? RadiusWire::harness()->send(RadiusWire::harness()->pppoeAccess($username, $password, RadiusWire::attempt('127.0.0.1'), 'pap'))
-            : RadiusClient::access($username, $password, false, $attrs);
+        // WP8 H-2B: likewise a Hotspot Access-Request (Acct-Session-Id, Calling-Station-Id)
+        $r = match ($attrs) {
+            self::PPPOE => RadiusWire::harness()->send(RadiusWire::harness()->pppoeAccess($username, $password, RadiusWire::attempt('127.0.0.1'), 'pap')),
+            self::HOTSPOT => RadiusWire::harness()->send(RadiusWire::harness()->hotspotAccess($username, $password, RadiusWire::attempt('127.0.0.1'), 'pap')),
+            default => RadiusClient::access($username, $password, false, $attrs),
+        };
         return [$r, (microtime(true) - $t) * 1000];
     }
 
@@ -154,7 +159,7 @@ final class SessionGuardContractTest extends TestCase
         $u = $this->provision('Hotspot', self::user('g-hs'), 'G-hs-1', 2);
         self::openRow($u, self::UNREACHABLE);
         [$r, $ms] = self::access($u, 'G-hs-1', self::HOTSPOT);
-        $this->assertSame(RadiusPacket::ACCESS_ACCEPT, $r?->code, 'Simultaneous-Use 2 with one stale row: the guard does not run for Hotspot');
+        $this->assertSame(RadiusPacket::ACCESS_ACCEPT, $r?->code, 'one stale row: the guard does not run for Hotspot (WP8 H-2B: the stock Simultaneous-Use check neither - the slots decide)');
         $this->assertSame(2, $r->get('Port-Limit'), 'the NAS enforces the Hotspot limit (Port-Limit in radreply)');
         $this->assertLessThan(900, $ms, 'no SNMP probe was made');
     }

@@ -148,7 +148,8 @@ def site_text(mode):
         i = s.index(old)
         return s[:i] + probe + s[i + len(old):].replace(old, AV5_AGE, 1)
     assert mode == 'fault'
-    head, block = s.split(HS_DISC, 1)
+    # the post-auth Hotspot block = the LAST occurrence (WP8 H-2B: session { } carries the same discriminator)
+    head, block = s.rsplit(HS_DISC, 1)
     prime = """\t\tupdate request {\n\t\t\t&Tmp-String-5 := "%{sql:SELECT '1'}"\n\t\t}\n"""
     query = """\t\tupdate request {\n\t\t\t&Tmp-String-1 := "%{sql:SELECT CONCAT('c=', COUNT(DISTINCT CAST(username AS BINARY)), ';', COALESCE(LOWER(HEX(MIN(CAST(username AS BINARY)))), '-')) FROM radcheck WHERE username = '%{SQL-User-Name}'}"\n\t\t\t&Tmp-String-2 := "%{hex:&User-Name}"\n\t\t}\n"""
     assert block.count(prime) == 1 and block.count(query) == 1
@@ -181,7 +182,14 @@ def site(mode):
 def state():
     run = cg.sh(['docker', 'exec', FR, 'sha256sum', f'{R}/sites-enabled/phpnuxbill']).stdout.split()[0][:16]
     sha = lambda t: hashlib.sha256(t.encode()).hexdigest()[:16]
-    mode = {sha(site_text(m)): m for m in MODES}.get(run, 'other')
+    def _sha_or_none(m):
+        # WP8 H-2B: modes built for the pre-H-2B site text (e.g. the AV-5 probes expect exactly 2 age blocks) may not
+        # apply any more; such a mode simply cannot be the running site
+        try:
+            return sha(site_text(m))
+        except AssertionError:
+            return None
+    mode = {k: m for m in MODES if (k := _sha_or_none(m))}.get(run, 'other')
     prof = ros_rows(['/ip/hotspot/profile/print', '?name=nuxr_wp8_hs_prof'])[0]
     return {'site_mode': mode, 'site_sha16': run, 'hotspot_profile': {k: prof.get(k) for k in ('login-by', 'mac-auth-mode', 'http-cookie-lifetime')},
             'a2r': g.state()['readiness']}

@@ -1,0 +1,24 @@
+# PHPNuxBill - WP8 H-2B: the fail-closed Hotspot slot verifier as a NAMED exec module. Called only from the Hotspot
+# post-auth policy of sites-available/phpnuxbill, only when every admission slot of the subscriber is in use. Install
+# bin/nuxr_hotspot_slot_verifier as ${confdir}/nuxr/nuxr_hotspot_slot_verifier (0755) - see README.md "Hotspot
+# admission slots".
+#
+#   wait = yes            the result is needed before the reply is sent
+#   program               fixed path; each %{...} becomes exactly ONE argv element (FreeRADIUS splits the program
+#                         line BEFORE expanding, then execve()s it - no shell). Only the canonical username AS HEX
+#                         (Tmp-String-3 of the H1-A check: [0-9a-f] only) and the candidate ACTIVE slots
+#                         (TOKEN/NAS/MAC list, pre-validated by the policy) are passed; never a secret or the community.
+#   shell_escape = no     values are passed byte-for-byte
+#   input_pairs           not set: the program gets an EMPTY environment (no request attributes, no passwords)
+#   output_pairs = control  the verdict (Tmp-String-7), the proven-gone token (Tmp-String-8) and the detail
+#                         (Tmp-String-4) land in the control list, where no NAS or radreply data can forge them
+#   timeout = 3           hard upper bound (the program's own wall-clock deadline is 1.5 s, then its decision); a
+#                         timeout is a module FAIL -> nothing is released, Access-Reject. With the 5000 ms late-claim
+#                         budget of the policy, a full verification still leaves time for the claim.
+exec nuxr_hotspot_slot_verifier {
+	wait = yes
+	program = "${confdir}/nuxr/nuxr_hotspot_slot_verifier %{request:Tmp-String-3} %{request:Tmp-String-1}"
+	shell_escape = no
+	output_pairs = control
+	timeout = 3
+}

@@ -1,0 +1,174 @@
+===== labup.log
+[wp8 08:17:02] RADIUS database nuxr_radius (install/radius.sql + install/freeradius/nuxr_admission.sql) + NAS rows (production-style SQL clients)
+[wp8 08:18:19] lab up
+optg rc=0
+ "threaded": true,
+ "site_is": "project",
+ "readiness": "nuxr_admission=READY",
+[wp8 08:19:20] CHR2 API answered after 52s
+[wp8 08:19:23] chr2 up
+ "guard_credential_entries": 3,
+ "threaded": true,
+ "site_is": "project",
+h2 setup rc=0
+===== setup.json
+{
+ "nas_rows": [
+  {
+   "id": "1",
+   "nasname": "10.88.0.2",
+   "shortname": "nuxr_wp8_chr",
+   "type": "mikrotik_snmp",
+   "ports": "3799",
+   "community_set": true
+  },
+  {
+   "id": "2",
+   "nasname": "10.88.0.10",
+   "shortname": "nuxr_wp8_app",
+   "type": "other",
+   "ports": "NULL",
+   "community_set": false
+  },
+  {
+   "id": "3",
+   "nasname": "10.88.0.30",
+   "shortname": "nuxr_wp8_nasb",
+   "type": "mikrotik_snmp",
+   "ports": "3799",
+   "community_set": true
+  },
+  {
+   "id": "4",
+   "nasname": "10.88.0.3",
+   "shortname": "nuxr_wp8_chr2",
+   "type": "mikrotik_snmp",
+   "ports": "3799",
+   "community_set": true
+  }
+ ],
+ "freeradius_clients_loaded": [
+  "nuxr_wp8_app",
+  "nuxr_wp8_chr",
+  "nuxr_wp8_chr2",
+  "nuxr_wp8_nasb"
+ ],
+ "radius_chr1": {
+  "address": "10.88.0.10",
+  "service": "ppp,hotspot",
+  "src-address": "10.88.0.2",
+  "timeout": "3s"
+ },
+ "radius_chr2": {
+  "address": "10.88.0.10",
+  "service": "ppp,hotspot",
+  "src-address": "10.88.0.3",
+  "timeout": "3s"
+ },
+ "hotspot_chr1": [
+  {
+   "name": "nuxr_wp8_hs",
+   "interface": "ether4",
+   "profile": "nuxr_wp8_hs_prof",
+   "disabled": "false"
+  }
+ ],
+ "hotspot_chr2": [
+  {
+   "name": "nuxr_wp8_hs",
+   "interface": "ether3",
+   "profile": "nuxr_wp8_hs_prof",
+   "disabled": "false"
+  }
+ ],
+ "profile_chr1": [
+  {
+   "name": "nuxr_wp8_hs_prof",
+   "login-by": "http-chap",
+   "use-radius": "true",
+   "radius-accounting": "true",
+   "radius-interim-update": "1m",
+   "hotspot-address": "10.88.2.1"
+  }
+ ],
+ "profile_chr2": [
+  {
+   "name": "nuxr_wp8_hs_prof",
+   "login-by": "http-chap",
+   "use-radius": "true",
+   "radius-accounting": "true",
+   "radius-interim-update": "1m",
+   "hotspot-address": "10.88.12.1"
+  }
+ ],
+ "client_macs": {
+  "c2": "6E:59:58:28:E8:37",
+  "c4": "12:49:49:C8:A0:79",
+  "c5": "42:91:E2:74:42:5E",
+  "c7": "02:48:32:00:00:07",
+  "c8": "02:48:32:00:00:08"
+ },
+ "client_macs_unique": true,
+ "chr_nic_macs_disjoint": true,
+ "hotspot_active": {
+  "chr1": 0,
+  "chr2": 0
+ },
+ "open_radacct_rows_h2": "0",
+ "nas_mode": "?",
+ "site": "project"
+}
+===== run1.out
+[h2] shipped H2.precheck: {"two_nas_rows_production_type": ["mikrotik_snmp", "mikrotik_snmp"], "both_nas_clients_loaded": true, "both_radius_service_hotspot": true, "same_profile": true, "client_macs_unique": true, "chr_nic_macs_disjoint": true, "no_live_sessions": true, "no_open_rows": true, "site": "project", "pass": true}
+{"precheck": {"two_nas_rows_production_type": ["mikrotik_snmp", "mikrotik_snmp"], "both_nas_clients_loaded": true, "both_radius_service_hotspot": true, "same_profile": true, "client_macs_unique": true, "chr_nic_macs_disjoint": true, "no_live_sessions": true, "no_open_rows": true, "site": "project", "pass": true}}
+[h2] shipped H2.ctl: {"user_tag": "ctl", "limit": 1, "trials": {"chr1_c2_c4": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c4", "CHR1", "REFUSED"]]}, "chr2_c7_c8": {"class": "ENFORCED", "live_max": {"chr1": 0, "chr2": 1, "total": 1}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c8", "CHR2", "REFUSED"]]}}, "exceeded": 0, "n": 2}
+{"control_same_nas": {"user_tag": "ctl", "limit": 1, "trials": {"chr1_c2_c4": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c4", "CHR1", "REFUSED"]]}, "chr2_c7_c8": {"class": "ENFORCED", "live_max": {"chr1": 0, "chr2": 1, "total": 1}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c8", "CHR2", "REFUSED"]]}}, "exceeded": 0, "n": 2}}
+[h2] shipped H2.su1seq: {"user_tag": "su1seq", "limit": 1, "trials": {"chr1_then_chr2_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "chr1_then_chr2_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "chr1_then_chr2_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}}, "exceeded": 3, "n": 3}
+{"su1_sequential": {"user_tag": "su1seq", "limit": 1, "trials": {"chr1_then_chr2_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "chr1_then_chr2_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "chr1_then_chr2_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}}, "exceeded": 3, "n": 3}}
+===== run2.out
+[h2] shipped H2.su1rev: {"user_tag": "su1rev", "limit": 1, "trials": {"chr2_then_chr1_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}, "chr2_then_chr1_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}, "chr2_then_chr1_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}}, "exceeded": 3, "n": 3}
+{"su1_reverse": {"user_tag": "su1rev", "limit": 1, "trials": {"chr2_then_chr1_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}, "chr2_then_chr1_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}, "chr2_then_chr1_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}}, "exceeded": 3, "n": 3}}
+[h2] shipped H2.su1conc: {"user_tag": "su1conc", "limit": 1, "trials": {"together_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_3": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "log
+{"su1_concurrent": {"user_tag": "su1conc", "limit": 1, "trials": {"together_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_3": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_4": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_5": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_6": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_7": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_8": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_9": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}}, "exceeded": 10, "n": 10}}
+[h2] shipped H2.su2: {"user_tag": "su2", "limit": 2, "trials": {"chr1_chr2_then_chr1": {"class": "EXCEEDED", "live_max": {"chr1": 2, "chr2": 1, "total": 3}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"], ["c4", "CHR1", "LOGGED_IN"]]}, "chr1_chr2_then_chr2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 2, "total": 3}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"], ["c8", "CHR2", "LOGGED_IN"]]}, "chr1x2_then_chr2": {"class": "EXCEEDED", "live_max": {"chr1": 2, "chr2": 1, "total": 3}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c4", "CHR1", "LOGGED_IN"], ["c7", "CHR2
+{"su2_split": {"user_tag": "su2", "limit": 2, "trials": {"chr1_chr2_then_chr1": {"class": "EXCEEDED", "live_max": {"chr1": 2, "chr2": 1, "total": 3}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"], ["c4", "CHR1", "LOGGED_IN"]]}, "chr1_chr2_then_chr2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 2, "total": 3}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"], ["c8", "CHR2", "LOGGED_IN"]]}, "chr1x2_then_chr2": {"class": "EXCEEDED", "live_max": {"chr1": 2, "chr2": 1, "total": 3}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c4", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "chr1x2_then_chr2x2": {"class": "EXCEEDED", "live_max": {"chr1": 2, "chr2": 2, "total": 4}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c4", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"], ["c8", "CHR2", "LOGGED_IN"]]}, "together_2plus2_0": {"class": "EXCEEDED", "live_max": {"chr1": 2, "chr2": 2, "total": 4}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c4", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"], ["c8", "CHR2", "LOGGED_IN"]]}, "together_2plus2_1": {"class": "EXCEEDED", "live_max": {"chr1": 2, "chr2": 2, "total": 4}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c4", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"], ["c8", "CHR2", "LOGGED_IN"]]}, "together_2plus2_2": {"class": "EXCEEDED", "live_max": {"chr1": 2, "chr2": 2, "total": 4}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c4", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"], ["c8", "CHR2", "LOGGED_IN"]]}, "together_2plus2_3": {"class": "EXCEEDED", "live_max": {"chr1": 2, "chr2": 2, "total": 4}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c4", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"], ["c8", "CHR2", "LOGGED_IN"]]}, "together_2plus2_4": {"class": "EXCEEDED", "live_max": {"chr1": 2, "chr2": 2, "total": 4}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c4", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"], ["c8", "CHR2", "LOGGED_IN"]]}}, "exceeded": 9, "n": 9}}
+[h2] shipped H2.lost1: {"user_tag": "lost1", "limit": 1, "trials": {"chr1_nostart_then_chr2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}}, "exceeded": 1, "n": 1}
+[h2] shipped H2.lost2: {"user_tag": "lost2", "limit": 1, "trials": {"chr2_nostart_then_chr1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}}, "exceeded": 1, "n": 1}
+{"lost_start": {"chr1_start_lost": {"user_tag": "lost1", "limit": 1, "trials": {"chr1_nostart_then_chr2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}}, "exceeded": 1, "n": 1}, "chr2_start_lost": {"user_tag": "lost2", "limit": 1, "trials": {"chr2_nostart_then_chr1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}}, "exceeded": 1, "n": 1}}}
+[h2] shipped H2.late_accounting: {"chr1_login": "LOGGED_IN", "radacct_while_held": [], "chr2_login_in_window": "LOGGED_IN", "live_in_window": {"chr1": 1, "chr2": 1, "total": 2}, "chr1_start_arrived_after_release": false, "live_after": {"chr1": 1, "chr2": 1, "total": 2}, "radacct_after": [{"nas": "10.88.0.3", "acctsessionid": "80000024", "start": "2026-10-11 08:28:26", "stop": "-", "callingstationid": "02:48:32:00:00:07"}], "third_login_chr2": "REFUSED", "live_after_third": {"chr1": 1, "chr2": 1, "total": 2}, "dhcp_ok": true, "classification": "EXCEEDED"}
+{"late_accounting": {"chr1_login": "LOGGED_IN", "radacct_while_held": [], "chr2_login_in_window": "LOGGED_IN", "live_in_window": {"chr1": 1, "chr2": 1, "total": 2}, "chr1_start_arrived_after_release": false, "live_after": {"chr1": 1, "chr2": 1, "total": 2}, "radacct_after": [{"nas": "10.88.0.3", "acctsessionid": "80000024", "start": "2026-10-11 08:28:26", "stop": "-", "callingstationid": "02:48:32:00:00:07"}], "third_login_chr2": "REFUSED", "live_after_third": {"chr1": 1, "chr2": 1, "total": 2}, "dhcp_ok": true, "classification": "EXCEEDED"}}
+rc=0
+===== run3.out
+[h2] shipped H2.lost_stop: {"chr1_login": "LOGGED_IN", "start_seen": true, "chr1_session_gone": true, "radacct_stale": [{"nas": "10.88.0.2", "acctsessionid": "80000026", "start": "2026-10-11 08:30:11", "stop": "-", "callingstationid": "6E:59:58:28:E8:37"}], "chr2_login_after_lost_stop": "LOGGED_IN", "live": {"chr1": 0, "chr2": 1, "total": 1}, "dhcp_ok": true, "classification": "ADMITTED_STALE_ROW_IGNORED"}
+{"lost_stop": {"chr1_login": "LOGGED_IN", "start_seen": true, "chr1_session_gone": true, "radacct_stale": [{"nas": "10.88.0.2", "acctsessionid": "80000026", "start": "2026-10-11 08:30:11", "stop": "-", "callingstationid": "6E:59:58:28:E8:37"}], "chr2_login_after_lost_stop": "LOGGED_IN", "live": {"chr1": 0, "chr2": 1, "total": 1}, "dhcp_ok": true, "classification": "ADMITTED_STALE_ROW_IGNORED"}}
+== switch: option_g on functional
+ "stock_checkrad": "functional",
+  "[wp8] checkrad gate: checkrad = /etc/freeradius/wp8-checkrad-trace  delete_stale_sessions = no checkrad-diff-lines=4 naspasswd=600 freerad",
+  "[wp8] session guard: guard=54c2d5855b041db8  delete_stale_sessions = no checkrad = /etc/freeradius/wp8-checkrad-trace stock-checkrad=stock creds=600 freerad gate_marker=1",
+  "checkrad = /etc/freeradius/wp8-checkrad-trace",
+  "naspasswd_entry=10.88.0.2 SNMP [community]",
+[h2] functional H2.precheck: {"two_nas_rows_production_type": ["mikrotik_snmp", "mikrotik_snmp"], "both_nas_clients_loaded": true, "both_radius_service_hotspot": true, "same_profile": true, "client_macs_unique": true, "chr_nic_macs_disjoint": true, "no_live_sessions": true, "no_open_rows": false, "site": "project", "pass": false}
+{"precheck": {"two_nas_rows_production_type": ["mikrotik_snmp", "mikrotik_snmp"], "both_nas_clients_loaded": true, "both_radius_service_hotspot": true, "same_profile": true, "client_macs_unique": true, "chr_nic_macs_disjoint": true, "no_live_sessions": true, "no_open_rows": false, "site": "project", "pass": false}}
+[h2] functional H2.su1seq: {"user_tag": "su1seq", "limit": 1, "trials": {"chr1_then_chr2_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "chr1_then_chr2_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "chr1_then_chr2_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}}, "exceeded": 3, "n": 3}
+{"su1_sequential": {"user_tag": "su1seq", "limit": 1, "trials": {"chr1_then_chr2_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "chr1_then_chr2_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "chr1_then_chr2_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}}, "exceeded": 3, "n": 3}}
+[h2] functional H2.su1rev: {"user_tag": "su1rev", "limit": 1, "trials": {"chr2_then_chr1_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}, "chr2_then_chr1_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}, "chr2_then_chr1_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}}, "exceeded": 3, "n": 3}
+{"su1_reverse": {"user_tag": "su1rev", "limit": 1, "trials": {"chr2_then_chr1_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}, "chr2_then_chr1_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}, "chr2_then_chr1_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}}, "exceeded": 3, "n": 3}}
+[h2] functional H2.snmpblk: {"user_tag": "snmpblk", "limit": 1, "trials": {"chr1_then_chr2_snmp_blocked_0": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "REFUSED"]]}, "chr1_then_chr2_snmp_blocked_1": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "REFUSED"]]}}, "exceeded": 0, "n": 2}
+{"snmp_blocked": {"user_tag": "snmpblk", "limit": 1, "trials": {"chr1_then_chr2_snmp_blocked_0": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "REFUSED"]]}, "chr1_then_chr2_snmp_blocked_1": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "REFUSED"]]}}, "exceeded": 0, "n": 2}}
+[h2] functional H2.lost_stop: {"chr1_login": "LOGGED_IN", "start_seen": true, "chr1_session_gone": true, "radacct_stale": [{"nas": "10.88.0.2", "acctsessionid": "8000002f", "start": "2026-10-11 08:33:32", "stop": "-", "callingstationid": "6E:59:58:28:E8:37"}], "chr2_login_after_lost_stop": "LOGGED_IN", "live": {"chr1": 0, "chr2": 1, "total": 1}, "dhcp_ok": true, "classification": "ADMITTED_STALE_ROW_IGNORED"}
+{"lost_stop": {"chr1_login": "LOGGED_IN", "start_seen": true, "chr1_session_gone": true, "radacct_stale": [{"nas": "10.88.0.2", "acctsessionid": "8000002f", "start": "2026-10-11 08:33:32", "stop": "-", "callingstationid": "6E:59:58:28:E8:37"}], "chr2_login_after_lost_stop": "LOGGED_IN", "live": {"chr1": 0, "chr2": 1, "total": 1}, "dhcp_ok": true, "classification": "ADMITTED_STALE_ROW_IGNORED"}}
+rc=0
+===== run4.out
+[['1', '10.88.0.2', 'other'], ['2', '10.88.0.10', 'other'], ['3', '10.88.0.30', 'mikrotik_snmp'], ['4', '10.88.0.3', 'other']]
+[h2] nas_type_other H2.su1seq: {"user_tag": "su1seq", "limit": 1, "trials": {"chr1_then_chr2_0": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "REFUSED"]]}, "chr1_then_chr2_1": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "REFUSED"]]}, "chr1_then_chr2_2": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "REFUSED"]]}}, "exceeded": 0, "n": 3}
+{"su1_sequential": {"user_tag": "su1seq", "limit": 1, "trials": {"chr1_then_chr2_0": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "REFUSED"]]}, "chr1_then_chr2_1": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "REFUSED"]]}, "chr1_then_chr2_2": {"class": "ENFORCED", "live_max": {"chr1": 1, "chr2": 0, "total": 1}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "REFUSED"]]}}, "exceeded": 0, "n": 3}}
+[h2] nas_type_other H2.su1rev: {"user_tag": "su1rev", "limit": 1, "trials": {"chr2_then_chr1_0": {"class": "ENFORCED", "live_max": {"chr1": 0, "chr2": 1, "total": 1}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "REFUSED"]]}, "chr2_then_chr1_1": {"class": "ENFORCED", "live_max": {"chr1": 0, "chr2": 1, "total": 1}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "REFUSED"]]}, "chr2_then_chr1_2": {"class": "ENFORCED", "live_max": {"chr1": 0, "chr2": 1, "total": 1}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "REFUSED"]]}}, "exceeded": 0, "n": 3}
+{"su1_reverse": {"user_tag": "su1rev", "limit": 1, "trials": {"chr2_then_chr1_0": {"class": "ENFORCED", "live_max": {"chr1": 0, "chr2": 1, "total": 1}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "REFUSED"]]}, "chr2_then_chr1_1": {"class": "ENFORCED", "live_max": {"chr1": 0, "chr2": 1, "total": 1}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "REFUSED"]]}, "chr2_then_chr1_2": {"class": "ENFORCED", "live_max": {"chr1": 0, "chr2": 1, "total": 1}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "REFUSED"]]}}, "exceeded": 0, "n": 3}}
+[h2] nas_type_other H2.su1conc: {"user_tag": "su1conc", "limit": 1, "trials": {"together_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_3": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "log
+{"su1_concurrent": {"user_tag": "su1conc", "limit": 1, "trials": {"together_0": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_3": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_4": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_5": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_6": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_7": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_8": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}, "together_9": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}}, "exceeded": 10, "n": 10}}
+[h2] nas_type_other H2.lost1: {"user_tag": "lost1", "limit": 1, "trials": {"chr1_nostart_then_chr2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}}, "exceeded": 1, "n": 1}
+[h2] nas_type_other H2.lost2: {"user_tag": "lost2", "limit": 1, "trials": {"chr2_nostart_then_chr1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}}, "exceeded": 1, "n": 1}
+{"lost_start": {"chr1_start_lost": {"user_tag": "lost1", "limit": 1, "trials": {"chr1_nostart_then_chr2": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c2", "CHR1", "LOGGED_IN"], ["c7", "CHR2", "LOGGED_IN"]]}}, "exceeded": 1, "n": 1}, "chr2_start_lost": {"user_tag": "lost2", "limit": 1, "trials": {"chr2_nostart_then_chr1": {"class": "EXCEEDED", "live_max": {"chr1": 1, "chr2": 1, "total": 2}, "logins": [["c7", "CHR2", "LOGGED_IN"], ["c2", "CHR1", "LOGGED_IN"]]}}, "exceeded": 1, "n": 1}}}
+[h2] nas_type_other H2.lost_stop: {"chr1_login": "LOGGED_IN", "start_seen": true, "chr1_session_gone": true, "radacct_stale": [{"nas": "10.88.0.2", "acctsessionid": "80000042", "start": "2026-10-11 08:39:47", "stop": "-", "callingstationid": "6E:59:58:28:E8:37"}], "chr2_login_after_lost_stop": "REFUSED", "live": {"chr1": 0, "chr2": 0, "total": 0}, "dhcp_ok": true, "classification": "AVAILABILITY_FAILURE"}
+{"lost_stop": {"chr1_login": "LOGGED_IN", "start_seen": true, "chr1_session_gone": true, "radacct_stale": [{"nas": "10.88.0.2", "acctsessionid": "80000042", "start": "2026-10-11 08:39:47", "stop": "-", "callingstationid": "6E:59:58:28:E8:37"}], "chr2_login_after_lost_stop": "REFUSED", "live": {"chr1": 0, "chr2": 0, "total": 0}, "dhcp_ok": true, "classification": "AVAILABILITY_FAILURE"}}
+rc=0

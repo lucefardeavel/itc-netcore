@@ -20,6 +20,11 @@ It is tested with FreeRADIUS **3.2.8** (`freeradius/freeradius-server:3.2.8`) on
 | `nuxr_admission.sql` | run once in the RADIUS database (additive, idempotent) **before** enabling the site | PPPoE admission reservation tables (see "PPPoE admission reservation") |
 | `nuxr_admission_check.sql` | run in the RADIUS database | read-only readiness check: prints `nuxr_admission=READY` |
 | `nuxr_admission_release.sql` | run by the operator only, per the recovery procedure | releases ONE unresolved PENDING claim, with an audit record |
+| `nuxr_hs_admission.sql` | run once in the RADIUS database (additive, idempotent) **before** enabling the site | Hotspot admission slot tables (see "Hotspot admission slots") |
+| `nuxr_hs_admission_check.sql` | run in the RADIUS database | read-only readiness check: prints `nuxr_hs_admission=READY` |
+| `nuxr_hs_admission_report.sql` | run by monitoring (every minute) | read-only report: `ALERT` lines for stuck PENDING slots (> 1 minute) and orphan accounting |
+| `bin/nuxr_hotspot_slot_verifier` | `${confdir}/nuxr/nuxr_hotspot_slot_verifier`, mode 0755, owner root | fail-closed Hotspot session verifier (read-only SNMP), ACTIVE slots only |
+| `mods-available/nuxr_hotspot_slot_verifier` | `mods-enabled/nuxr_hotspot_slot_verifier` | the named exec module that runs the verifier from the Hotspot post-auth |
 
 ## Rules
 
@@ -122,7 +127,8 @@ A mistake during rotation produces ERROR, i.e. rejected PPPoE logins for subscri
 **Hotspot.** The guard never runs for Hotspot. PHPNuxBill writes `Port-Limit` = `Simultaneous-Use` (`max(1, shared_users)`)
 as a **reply** attribute for Hotspot plans, and RouterOS enforces it at the NAS, also when an accounting Stop was lost.
 PPPoE gets no `Port-Limit` (RouterOS ignores it for PPPoE). RouterOS counts `Port-Limit` per **spelling** it received,
-so the Hotspot canonical-spelling check below admits only the exact stored spelling.
+so the Hotspot canonical-spelling check below admits only the exact stored spelling, and per **NAS**, so the global
+limit across NAS is enforced by the Hotspot admission slots (below); `Port-Limit` stays as an additional local limit.
 
 ## Hotspot canonical spelling (WP8 H-1, H1-A)
 
@@ -205,9 +211,8 @@ step before the Access-Accept is an atomic **claim** in the table `nuxr_admissio
 MS-CHAPv2) is refused by the virtual server. A `Class` attribute from `radreply` / `radgroupreply` is replaced on PPPoE
 Access-Accepts.
 
-**Not covered.** Hotspot has no reservation; its equivalent spellings are refused by the Hotspot canonical-spelling
-check (above). `Port-Limit` is enforced per NAS by RouterOS: whether `shared_users` holds across several NAS of one ISP
-is open (WP8 H-2, unverified), as is the VPN behaviour (WP8 V-1, unverified).
+**Not covered here.** Hotspot is not part of this PPPoE reservation: it has its own admission slots ("Hotspot admission
+slots" below; WP8 H-2B). The VPN behaviour is open (WP8 V-1, unverified).
 
 **Known limitation - FreeRADIUS stall (WP8 AV-1; accepted by the owner on 2026-10-10 as a documented Strict Mode
 availability limitation for development; an OPEN PRODUCTION AVAILABILITY RISK).** FreeRADIUS 3.2.8 timestamps a
@@ -289,6 +294,115 @@ additional audit column; not implemented in A2-R) - the database then attests th
 Release: set `@nuxr_username`, `@nuxr_token`, `@nuxr_operator`, `@nuxr_reason`, `@nuxr_evidence` and run
 `nuxr_admission_release.sql` (see its header). It releases only that `PENDING` claim with that token and records every
 decision in `nuxr_admission_audit`. There is no automatic release by time, SNMP, `sysUpTime` or Acct-Session-Id.
+
+## Hotspot admission slots (WP8 H-2B)
+
+**Problem (WP8 H-2, `H2_GAP_CONFIRMED`).** `shared_users` is the limit of the subscriber across **every** NAS of the ISP.
+RouterOS enforces `Port-Limit` per NAS only, and the stock `Simultaneous-Use` check cannot see Hotspot sessions (checkrad
+looks for PPPoE interfaces), so the same Hotspot subscriber was admitted once on **each** NAS (28 of 29 cross-NAS trials
+exceeded the limit in the WP8 lab).
+
+**How it works** (Hotspot only: `Service-Type = Login-User` AND `NAS-Port-Type = Wireless-802.11`; PPPoE, VPN and every
+other request are unchanged). At the end of `post-auth`, after authentication and the canonical-spelling check:
+1. **Slots.** One row per (canonical subscriber, slot) in `nuxr_hs_admission`, slots `1..Simultaneous-Use`. The canonical
+   subscriber is the exact stored `radcheck.username` (H1-A guarantees the request used exactly those bytes). Missing slots
+   are created on demand (counted first; `INSERT IGNORE` only when some are missing) and counted again.
+2. **Claim (v2).** A non-locking pre-check that fewer than `limit` slots are in use and that no slot above the limit
+   is live, then ONE conditional `UPDATE ... WHERE slot <= limit AND state = 'ENDED' ORDER BY slot LIMIT 1`. InnoDB
+   serialises concurrent claims from every NAS on the slot rows, so the number of slots in use never exceeds the limit
+   (MariaDB 10.11 and MySQL 8.0: 25 concurrent sessions, limits 1/2/3/5, 0 deadlocks). The slot becomes `PENDING` with a new random 128-bit token, and the
+   Access-Accept carries `Class = "nuxh1" + token` (PPPoE uses `"nuxr1"`; any `Class` from `radreply` is replaced).
+3. **Retransmission.** An exact retransmission of the claiming Access-Request (same NAS-IP-Address, Acct-Session-Id,
+   Calling-Station-Id and Request Authenticator) re-uses its `PENDING` claim and token.
+4. **Accounting.** Only packets with the slot's token, NAS-IP-Address, Acct-Session-Id **and** Calling-Station-Id change
+   it: Start / Interim-Update -> `ACTIVE` (a lost Start is confirmed by the next Interim-Update), Stop -> `ENDED`. Old,
+   duplicated, re-ordered or foreign packets change nothing; `ENDED` is never revived; a slot taken by a newer claim is
+   never touched by an older claim's packets (same Acct-Session-Id or MAC included). A Start / Interim-Update whose
+   token holds no live slot writes an `orphan_accounting` audit row - a session the slots do not count (alarm).
+5. **No free slot.** The **Hotspot slot verifier** checks the subscriber's `ACTIVE` slots - never a `PENDING` one - on
+   their NAS over read-only SNMP (wall-clock deadline 1.5 s, module timeout 3 s): health probe (`sysUpTime`,
+   `sysObjectID` = MikroTik, RouterOS major version 7), then the
+   MIKROTIK-MIB Hotspot active table (columns user and MAC). The first slot whose session (same username bytes AND same
+   MAC) is proven absent is ended (audit row first, then the release, both conditional on its token and state `ACTIVE`),
+   and the claim runs once more. NAS unreachable, wrong or missing community, timeout, unexpected answer, missing program:
+   nothing is released, the login is refused. The verifier never uses `checkrad`.
+6. **STRICT MODE.** A `PENDING` slot is **never** released by time, by SNMP or by another request. An Access-Accept that
+   stalled inside FreeRADIUS after its last check can still be taken by the NAS until the NAS gives up (RouterOS: about
+   3 x `/radius timeout`), and FreeRADIUS 3.2.8 still sends such a reply after `max_request_time` - so "old and not in
+   SNMP" proves nothing (WP8 H2-B PENDING gate: a time + SNMP release admitted two sessions under `shared_users = 1`
+   with `/radius timeout=10s`). A `PENDING` slot ends only by its own accounting, or by the late-claim guard below.
+7. **Late-claim guard** (same one-clock age as A2-R, 5000 ms): no claim for an older request; a claim that completed
+   late gets no Access-Accept and is released by its creator (only its own token, only while `PENDING` and not re-used by
+   a retransmission) before any reply exists. The same creator release runs when a claim result is not the exact
+   success sentinel (a claim that committed but whose result was lost), so no slot is held by a token never sent.
+8. **Fail closed.** A missing table, an SQL error or unexpected SQL result, a missing or malformed attempt identity
+   (Acct-Session-Id; Calling-Station-Id must be a MAC `AA:BB:CC:DD:EE:FF` or `AA-BB-...`), a missing or malformed
+   `Simultaneous-Use` (1..99): Access-Reject with only
+   `Reply-Message = "Session verification failed"`. `radacct` is never written by this policy; nothing is deleted.
+9. **`session { }`.** The stock radacct `Simultaneous-Use` check is **not run for Hotspot** (the slots are the limit; the
+   stock check cannot see Hotspot sessions, and a checkrad build that runs SNMP held a request 10 s for an unreachable
+   NAS, after which the late-claim guard refused a legitimate login). It is unchanged for every other request.
+
+**Limit changes** (`shared_users` edited while sessions are live). A decrease does not end live sessions (no CoA): new
+Hotspot logins are refused while fewer than the new limit are free OR any slot above the new limit is still live (it
+ends by its own Stop, or the verifier proves its session gone); only then do the slot row locks alone bound concurrent
+logins again. A login that was already in flight with the old, higher limit at the moment of the decrease can still
+take one slot above the new limit (a window of one request duration). An increase takes effect at the next login
+(missing slots are created).
+
+**Availability limitation (Strict Mode, accepted 2026-10-11).** A `PENDING` slot whose Access-Accept never produced
+accounting - every reply lost or later than the NAS window, a FreeRADIUS stall of more than ~9 s after its last check, a
+NAS failure between the Accept and the Start, or accounting lost for the whole session - blocks that slot until resolved.
+With `shared_users = 1` the subscriber is refused on every NAS. There is **no executable manual release** (owner decision
+2026-10-11): monitor with `nuxr_hs_admission_report.sql` (alert `pending_over_1_minute`) and follow the runbook below.
+
+**Prerequisites** (per ISP instance):
+- The NAS identity of a slot is the `NAS-IP-Address` of the claiming request, as for the PPPoE reservation: it must be the
+  NAS's own address, equal to its RADIUS source address and to `nas.nasname` (see "NAS clients"). Two NAS that send the
+  same `NAS-IP-Address` (NAT, copied configuration) would be verified at one address: a session on the other could be
+  taken for gone. Check that every Hotspot NAS sends a unique `NAS-IP-Address` before enabling.
+- Every Hotspot NAS answers read-only SNMP v2c from FreeRADIUS, with an entry in `${confdir}/nuxr/nas_snmp` - the same
+  0600 credential file as the PPPoE session guard ("PPPoE session guard" above: format, rotation, never on a command
+  line). A NAS without it cannot be verified: after a lost Stop on it, the subscriber's next login is refused until a
+  Stop or the NAS proves the session gone.
+- RouterOS 7 (validated: 7.24.5): Hotspot accounting on (`radius-accounting=yes`, `radius-interim-update` set), `Class`
+  returned unchanged in Start / Interim-Update / Stop (verified for http-chap, http-pap, cookie and MAC login),
+  `/radius timeout=3s`. A RouterOS major version other than 7 is refused by the verifier until it has passed the WP8 H-2B
+  gates again (the Hotspot active table and its "No Such Object" answer for an empty table must be re-validated).
+- Every Hotspot subscriber has `Simultaneous-Use` in `radcheck` (RadiusPolicyBuilder always writes `max(1, shared_users)`);
+  a Hotspot login without it is refused. Find exceptions before enabling (read-only):
+  `SELECT DISTINCT username FROM radcheck WHERE attribute = 'Cleartext-Password' AND username NOT IN (SELECT username FROM radcheck WHERE attribute = 'Simultaneous-Use');`
+
+**Install / upgrade** (per ISP instance, in this order; never on production without the owner's release decision):
+1. Back up the RADIUS database.
+2. Apply `nuxr_hs_admission.sql` (additive, idempotent: `CREATE TABLE IF NOT EXISTS` only). The FreeRADIUS SQL account
+   needs `SELECT, INSERT, UPDATE` on `nuxr_hs_admission` and `SELECT, INSERT` on `nuxr_hs_admission_audit` (no `DELETE`).
+3. Run `nuxr_hs_admission_check.sql`: it must print `nuxr_hs_admission=READY`. Anything else: stop.
+4. Install `bin/nuxr_hotspot_slot_verifier` (0755, root) and `mods-available/nuxr_hotspot_slot_verifier` (into
+   `mods-enabled/`), then the site file, then restart FreeRADIUS (`freeradius -C` first). Without the module the site
+   does not load.
+5. Watch `nuxr_hs_admission_report.sql` and the first logins (Access-Accept with `Class` starting `0x6e75786831`).
+Sessions that are already live when the site is enabled hold no slot; they are not counted until they end (the limit
+applies to new logins from then on). Enable outside peak hours or after a Hotspot session reset.
+
+**Rollback:** reinstall the previous site file (and remove the module from `mods-enabled/`), restart FreeRADIUS (H-2
+returns: the limit is per NAS again). The tables may stay (nothing reads them then) or be dropped after a backup; they
+hold admission state only, no billing or accounting data.
+
+**Recovery runbook (design only - NO executable release; owner decision 2026-10-11).**
+- *Detect.* `nuxr_hs_admission_report.sql` every minute; `ALERT pending_over_1_minute` names the subscriber, slot, NAS,
+  Acct-Session-Id, MAC and age; `ALERT orphan_accounting` means a live session holds no slot (investigate at once).
+- *Investigate (read-only).* On the slot's NAS: `/ip hotspot active print where user=...`, `/log print where
+  message~"..."` (an `authentication failed - radius timeout` for that user at `created_at` shows the NAS gave up),
+  `/system resource print` (uptime: a reboot after `created_at`), and `/radius print` (the NAS window = 3 x timeout).
+- *Proof that the old request can never become a session* - all of: (a) the NAS rebooted after `created_at`, or the NAS
+  window (3 x its configured `/radius timeout`) plus a margin has passed since `created_at` AND the NAS log shows the
+  attempt failed; (b) no Hotspot session of the user with that MAC on that NAS; (c) no Accept for that request can still
+  be in flight inside FreeRADIUS (FreeRADIUS restarted since, or the request is older than any possible stall).
+- *Release.* Not available. A future release procedure needs its own owner decision and safety gate (it must name the
+  claim by its full token, end it only if it is still `PENDING` with that token, record the operator account and the
+  evidence, and handle a resumed old request). Until then the slot stays blocked: record the case (subscriber, slot,
+  NAS, age, evidence collected above) and escalate it to the owner; never edit `nuxr_hs_admission` by hand.
 
 ## Message-Authenticator (required on every Access-Request)
 

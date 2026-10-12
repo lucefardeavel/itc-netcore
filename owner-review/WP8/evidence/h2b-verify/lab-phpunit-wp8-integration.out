@@ -1,0 +1,136 @@
+# 2026-10-12T09:33:53Z dev/wp8/lab.sh test --testsuite wp8-integration (lab: CHR1+CHR2, Option G shipped, project site)
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-dca9c3209750 Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-dca9c3209750 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+SSSSSSSSSS...........S.D..........{
+    "pppoe": {
+        "Service-Type": "Framed-User",
+        "Framed-Protocol": "PPP",
+        "NAS-Port": "15728664",
+        "NAS-Port-Type": "Ethernet",
+        "User-Name": "nuxr_wp8_gd_052927",
+        "Calling-Station-Id": "CA:80:7E:17:26:BB",
+        "Called-Station-Id": "nuxr_wp8",
+        "NAS-Port-Id": "ether3",
+        "Acct-Session-Id": "81000018",
+        "CHAP-Challenge": "[omitted]",
+        "CHAP-Password": "[omitted]",
+        "NAS-Identifier": "nuxr_wp8_chr",
+        "NAS-IP-Address": "10.88.0.2",
+        "Message-Authenticator": "[omitted]"
+    },
+    "hotspot": {
+        "NAS-Port-Type": "Wireless-802.11",
+        "Calling-Station-Id": "52:28:53:F2:3F:B5",
+        "Called-Station-Id": "nuxr_wp8_hs",
+        "NAS-Port-Id": "ether4",
+        "User-Name": "nuxr_wp8_gdhs_089cd6",
+        "NAS-Port": "2147483649",
+        "Acct-Session-Id": "80000001",
+        "Framed-IP-Address": "10.88.2.199",
+        "Mikrotik-Host-IP": "10.88.2.199",
+        "CHAP-Challenge": "[omitted]",
+        "CHAP-Password": "[omitted]",
+        "Service-Type": "Login-User",
+        "WISPr-Logoff-URL": "http://10.88.2.1/logout",
+        "NAS-Identifier": "nuxr_wp8_chr",
+        "NAS-IP-Address": "10.88.0.2",
+        "Message-Authenticator": "[omitted]"
+    }
+}
+...............SS.............. 65 / 69 ( 94%)
+.W..                                                              69 / 69 (100%)
+
+Time: 42:59.671, Memory: 18.00 MB
+
+There were 13 skipped tests:
+
+1) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateAHealthyLiveSessionDuplicateIsRejectedByCheckrad
+checkrad gate mode mikrotik_snmp/none required, lab is mikrotik_snmp/gate-off (dev/wp8/checkrad_gate.sh)
+
+2) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateBLostStopGoneSessionAllowsLoginAndKeepsHistory
+checkrad gate mode mikrotik_snmp/none required, lab is mikrotik_snmp/gate-off (dev/wp8/checkrad_gate.sh)
+
+3) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateCAccountingLostLiveSessionStillProtected
+checkrad gate mode mikrotik_snmp/none required, lab is mikrotik_snmp/gate-off (dev/wp8/checkrad_gate.sh)
+
+4) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateDRouterSnmpUnreachableDecisionFailsOpen
+checkrad gate mode mikrotik_snmp/none required, lab is mikrotik_snmp/gate-off (dev/wp8/checkrad_gate.sh)
+
+5) Reseller\Tests\Integration\Wp8\CheckradGateTest::testFaultWalkGateDSnmpClientUnavailableFailsOpen
+checkrad gate mode mikrotik_snmp/walk required, lab is mikrotik_snmp/gate-off (dev/wp8/checkrad_gate.sh)
+
+6) Reseller\Tests\Integration\Wp8\CheckradGateTest::testFaultErrorGateDCheckradErrorFailsOpen
+checkrad gate mode mikrotik_snmp/error required, lab is mikrotik_snmp/gate-off (dev/wp8/checkrad_gate.sh)
+
+7) Reseller\Tests\Integration\Wp8\CheckradGateTest::testOtherGateENoNasVerificationLostStopLocksOut
+checkrad gate mode other/none required, lab is mikrotik_snmp/gate-off (dev/wp8/checkrad_gate.sh)
+
+8) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpHotspotShared1
+checkrad gate mode mikrotik_snmp/none required, lab is mikrotik_snmp/gate-off (dev/wp8/checkrad_gate.sh)
+
+9) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpHotspotShared2
+checkrad gate mode mikrotik_snmp/none required, lab is mikrotik_snmp/gate-off (dev/wp8/checkrad_gate.sh)
+
+10) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpHotspotShared1AccountingLost
+checkrad gate mode mikrotik_snmp/none required, lab is mikrotik_snmp/gate-off (dev/wp8/checkrad_gate.sh)
+
+11) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill7LostAccountingStopAndSimultaneousUse
+S6 drill 7 baseline needs the CHR NAS row of type "other" (lab without dev/wp8/option_g_gate.sh on); the production-contract variant is testDrill7GuardLostStopReloginIsAcceptedWithoutAnyRepair
+
+12) Reseller\Tests\Integration\Wp8\OptionGGateTest::testFunctionalGateBStockLayerRejectsFirst
+Option G gate mode functional required, lab is shipped (dev/wp8/option_g_gate.sh)
+
+13) Reseller\Tests\Integration\Wp8\OptionGGateTest::testFunctionalSnmpUnreachableStockFailsOpenGuardRejects
+Option G gate mode functional required, lab is shipped (dev/wp8/option_g_gate.sh)
+
+--
+
+1 test triggered 3 PHP warnings:
+
+1) /repo/system/autoload/Message.php:13
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+2) /repo/system/autoload/Message.php:14
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+3) /repo/system/autoload/Message.php:15
+Undefined variable $root_path
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+  /repo/tests/Integration/Wp8/RealLifecycleTest.php:173
+
+--
+
+1 test triggered 1 PHP deprecation:
+
+1) /repo/system/autoload/PEAR2/Autoload.php:206
+is_file(): Passing null to parameter #1 ($filename) of type string is deprecated
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill8RouterOsApiUnavailable
+  /repo/tests/Integration/Wp8/FailureDrillsTest.php:471
+
+OK, but there were issues!
+Tests: 69, Assertions: 1203, Warnings: 3, Deprecations: 1, Skipped: 13.
+
+exit=1
+# end 2026-10-12T10:16:57Z

@@ -215,7 +215,9 @@ final class OptionGGateTest extends TestCase
         $runs = array_values(array_filter($lines, static fn($l) => str_starts_with($l, '[wp8-checkrad]') && str_contains($l, 'user=' . $user . ' ')));
         return ['request' => $req, 'reply' => $sent ? preg_replace('/.*Sent (Access-\w+).*/', '$1', end($sent)) : null, 'reply_attrs' => $replyAttrs,
             'open_rows' => (static function () use ($own) { foreach ($own as $l) { if (preg_match('/Tmp-String-8 := "?([^"]*?)"?$/', $l, $m)) { return $m[1]; } } return null; })(),
-            'guard_ran' => (bool) array_filter($own, static fn($l) => str_contains($l, 'Program returned code') || str_contains($l, 'Program executed') || str_contains($l, 'nuxr_pppoe_session_guard (')),
+            // the PPPoE guard by name: since WP8 H-2B a refused Hotspot login may run the (different) Hotspot slot verifier
+            'guard_ran' => (bool) array_filter($own, static fn($l) => str_contains($l, 'nuxr_pppoe_session_guard') && (str_contains($l, 'Program returned code') || str_contains($l, 'Program executed') || str_contains($l, 'nuxr_pppoe_session_guard ('))),
+            'hotspot_verifier_ran' => (bool) array_filter($own, static fn($l) => str_contains($l, 'nuxr_hotspot_slot_verifier') && (str_contains($l, 'Program returned code') || str_contains($l, 'Program executed'))),
             'guard_verdict' => $verdict, 'guard_detail' => $detail,
             'stock_checkrad_exits' => array_map(static fn($l) => (int) preg_replace('/.* exit=(\d+) .*/', '$1', $l), array_slice($runs, -4)),
             'trace' => array_slice($own, -40)];
@@ -640,7 +642,7 @@ final class OptionGGateTest extends TestCase
         $d = $this->decision($user);
         $r = ['second' => ['ok' => $l['ok']], 'freeradius' => $d['reply'], 'guard_ran' => $d['guard_ran'], 'watch' => ['max' => $watch['max']], 'radacct' => $this->radacctView($user)];
         Wp8Lab::evidence('OD16G.hotspot.shared-1-accounting-lost', $r);
-        $this->assertFalse($l['ok'], 'second device refused by RouterOS Port-Limit');
+        $this->assertFalse($l['ok'], 'second device refused (WP8 H-2B: by the Hotspot admission slots; RouterOS Port-Limit stays the per-NAS layer)');
         $this->assertLessThanOrEqual(1, $watch['max']);
     }
 

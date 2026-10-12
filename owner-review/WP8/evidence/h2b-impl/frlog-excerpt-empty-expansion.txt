@@ -1,0 +1,21 @@
+# FreeRADIUS 3.2.8 lab log excerpt (request 61, 2026-10-11 ~12:29Z, lab sql pool max 8, 32 threads, 16 simultaneous requests):
+# the claim token, the claim statement template, rlm_sql pool exhaustion, the executed statement with two EMPTY expansions, its result, and the Access-Accept carrying the real token
+(61)         &Tmp-String-5 := 5c91326f3adbaafa8cb75908992445f4
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+(61)             Executing query: UPDATE nuxr_hs_admission SET prev_token = token, prev_state = state, state = 'PENDING', token = '', nas = '', acct_session_id = '82100004', calling_station_id = '02:5B:01:02:04:07', request_authenticator = 'c63132dae523c260f654ac476581547f', session_user = 'nuxr_h2_sb_df7b71', attach_count = 0, created_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), confirmed_at = NULL, last_acct_at = NULL, ended_at = NULL, end_reason = NULL WHERE username = UNHEX('6e7578725f68325f73625f64663
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+rlm_sql (sql): No connections available and at max connection limit
+(61)             EXPAND hs-claim=%{sql:UPDATE nuxr_hs_admission SET prev_token = token, prev_state = state, state = 'PENDING', token = '%{control:Tmp-String-5}', nas = '%{NAS-IP-Address}', acct_session_id = '%{Acct-Session-Id}', calling_station_id = '%{Calling-Station-Id}', request_authenticator = '%{Tmp-String-7}', session_user = '%{SQL-User-Name}', attach_count = 0, created_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), confirmed_at = NULL, last_acct_at = NULL, ended_at = NULL, end_reason = NULL WHERE user
+(61)                --> hs-claim=1
+(61) Sent Access-Accept Id 39 from 10.88.0.10:1812 to 10.88.0.10:39515 length 123

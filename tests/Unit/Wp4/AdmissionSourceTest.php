@@ -36,6 +36,16 @@ final class AdmissionSourceTest extends TestCase
         return $m[1];
     }
 
+    /** the PPPoE branch of post-auth: everything before the Hotspot block (WP8 H-1 H1-A + WP8 H-2B slots, which a PPPoE
+     *  request never enters - disjoint discriminator; the Hotspot slots have their own HotspotAdmissionSourceTest) */
+    private static function pppoe(): string
+    {
+        $post = self::section('post-auth');
+        $hotspot = strpos($post, 'if ((&Service-Type == Login-User) && (&NAS-Port-Type == Wireless-802.11)) {');
+        self::assertNotFalse($hotspot);
+        return substr($post, 0, $hotspot);
+    }
+
     public function testClaimIsTheLastStepBeforeTheAcceptAndOnlyAfterTheVerification(): void
     {
         $post = self::section('post-auth');
@@ -46,7 +56,7 @@ final class AdmissionSourceTest extends TestCase
         $class = strpos($post, '&Class := "0x6e75787231%{control:Tmp-String-5}"');
         $this->assertNotFalse($guard);
         $this->assertTrue($guard < $late && $late < $insert && $insert < $lateClaim && $lateClaim < $class, 'A1 verification -> late guard -> claim -> late-claim guard -> Class');
-        $this->assertSame(1, substr_count($post, '&Class := '), 'one Class, set last');
+        $this->assertSame(1, substr_count(self::pppoe(), '&Class := '), 'one Class in the PPPoE branch, set last');
         // the PPPoE branch ends after the Class; the only code after it is the Hotspot canonical-spelling block (WP8 H-1),
         // which a PPPoE request never enters (disjoint discriminator)
         $hotspot = strpos($post, 'if ((&Service-Type == Login-User) && (&NAS-Port-Type == Wireless-802.11)) {');
@@ -60,9 +70,13 @@ final class AdmissionSourceTest extends TestCase
     public function testOnlyAtomicStatementsAndNoDestructiveSql(): void
     {
         $site = self::code(self::read('install/freeradius/sites-available/phpnuxbill'));
-        $this->assertDoesNotMatchRegularExpression('/INSERT\s+IGNORE|ON\s+DUPLICATE|REPLACE\s+INTO|DELETE\s+FROM|TRUNCATE|DROP\s/i', $site);
+        // WP8 H-2B: the Hotspot slots create missing slot rows with ONE INSERT IGNORE (verified by a SELECT - see
+        // HotspotAdmissionSourceTest); the A2-R PPPoE reservation uses only plain INSERT / conditional UPDATE
+        $this->assertDoesNotMatchRegularExpression('/INSERT\s+IGNORE|ON\s+DUPLICATE|REPLACE\s+INTO|DELETE\s+FROM|TRUNCATE|DROP\s/i', self::pppoe() . self::section('accounting'));
+        $this->assertDoesNotMatchRegularExpression('/ON\s+DUPLICATE|REPLACE\s+INTO|DELETE\s+FROM|TRUNCATE|DROP\s/i', $site);
+        $this->assertSame(1, preg_match_all('/INSERT\s+IGNORE/i', $site), 'the only INSERT IGNORE: the Hotspot slot creation (WP8 H-2B)');
         $this->assertDoesNotMatchRegularExpression('/(UPDATE|INSERT\s+INTO)\s+radacct/i', self::section('post-auth') . self::section('accounting'), 'the policy never writes radacct');
-        $post = self::section('post-auth');
+        $post = self::pppoe();
         // creation: plain INSERT on the primary key; take-over: conditioned on state AND the previous token
         $this->assertStringContainsString("INSERT INTO nuxr_admission (username, state, token, nas, acct_session_id, calling_station_id, nas_port_id, request_authenticator, session_user, attach_count, created_at, updated_at) VALUES (UNHEX('%{Tmp-String-2}'), 'PENDING', '%{control:Tmp-String-5}'", $post);
         $this->assertStringContainsString("WHERE username = UNHEX('%{Tmp-String-2}') AND state = '%{control:Tmp-String-0}' AND token = '%{control:Tmp-String-1}'}", $post);
@@ -78,7 +92,7 @@ final class AdmissionSourceTest extends TestCase
 
     public function testEverySqlResultIsCheckedAgainstASentinel(): void
     {
-        $post = self::section('post-auth');
+        $post = self::pppoe();
         $this->assertStringContainsString("SELECT CONCAT('k=', COALESCE((SELECT HEX(username) FROM radcheck WHERE username = '%{SQL-User-Name}' ORDER BY CAST(username AS BINARY) LIMIT 1), '-'))", $post, 'canonical key = exact radcheck.username bytes');
         $this->assertStringContainsString('if (&Tmp-String-1 =~ /^k=([0-9A-F]{2,512})$/) {', $post);
         $this->assertSame(2, substr_count($post, "SELECT CONCAT('r=', COALESCE((SELECT CONCAT(state, '|', token, '|', IF("), 'reservation read + one re-read');

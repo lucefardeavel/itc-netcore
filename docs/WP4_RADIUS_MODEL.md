@@ -58,6 +58,16 @@
 > token. PHPNuxBill does not write or read it; `radacct` is still never written by the policy. Install order, readiness
 > check, recovery procedure and limits: `install/freeradius/README.md` "PPPoE admission reservation".
 
+> **WP8 H-2B addendum (2026-10-11, `wp8/integration-poc`, implementation pending owner acceptance; the contract above is
+> otherwise unchanged).** `shared_users` of a Hotspot plan is the limit across **every** NAS of the ISP. RouterOS enforces
+> `Port-Limit` per NAS only (WP8 H-2), so Hotspot admission is additionally serialized by **admission slots** in the
+> RADIUS database (`install/freeradius/nuxr_hs_admission.sql`, additive; `install/radius.sql` unchanged): one row per
+> (canonical subscriber, slot), slots `1..Simultaneous-Use`, claimed by FreeRADIUS after the H1-A spelling check and
+> correlated with accounting through a per-claim `Class` token ("nuxh1"). `Port-Limit` stays as an additional per-NAS
+> limit. Strict Mode: a claimed slot whose session is unconfirmed (`PENDING`) is never released by time or SNMP; an
+> `ACTIVE` one is released only on read-only SNMP proof from its NAS. PHPNuxBill does not write or read the slots;
+> `radacct` is still never written by the policy. Details: `install/freeradius/README.md` "Hotspot admission slots".
+
 - **RADIUS key.** PPPoE: `pppoe_username` when set (owner decision Q7), otherwise `username`. Hotspot / VPN: `username`.
 - **Managed attributes.** Applying a policy removes managed attributes the policy does not contain. That includes the legacy reply attributes the old device stored in `radcheck` (Mikrotik-Rate-Limit, Port-Limit, Mikrotik-Wireless-Comment, WISPr-Session-Terminate-Time) and `Framed-IP-Netmask`. Unmanaged attributes are left alone.
 

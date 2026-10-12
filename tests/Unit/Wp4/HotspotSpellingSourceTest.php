@@ -34,12 +34,13 @@ final class HotspotSpellingSourceTest extends TestCase
         return $m[1];
     }
 
-    /** the Hotspot block: from its discriminator to Post-Auth-Type REJECT */
+    /** the H1-A canonical-spelling check: from the Hotspot discriminator to the WP8 H-2B admission slots that follow it
+     *  in the same Hotspot block (their own source guards: HotspotAdmissionSourceTest) */
     private static function block(): string
     {
         $post = self::section('post-auth');
         $a = strpos($post, self::DISCRIMINATOR);
-        $b = strpos($post, 'Post-Auth-Type REJECT {');
+        $b = strpos($post, 'if (!&control:Simultaneous-Use || (&control:Simultaneous-Use !~ /^[1-9][0-9]?$/)) {');
         self::assertNotFalse($a, 'the Hotspot block exists');
         self::assertNotFalse($b);
         self::assertLessThan($b, $a);

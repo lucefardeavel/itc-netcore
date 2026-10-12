@@ -23,8 +23,8 @@ ROS_VERSION=7.24.5
 ZIP_SHA=16f07222a3213352c9c4fbea4f4dec6a8ffb78fdc0fa5e398c23103ed357c6eb
 IMG_SHA=e4caf173aceb497433c5fc285bffee09c1e6761dfe0e658a2b178970249fc2d2
 IMG="$S/img/chr-$ROS_VERSION.img"
-LINKS=(wp8tap1 wp8tap2 wp8tap3 wp8br1 wp8br2 wp8v1h wp8v2h wp8v3h wp8v4h wp8v5h wp8vsh wp8tap4 wp8tap5 wp8br3 wp8v6h)
-NETNS=(wp8c1 wp8c2 wp8c3 wp8c4 wp8c5 wp8srv wp8c6)
+LINKS=(wp8tap1 wp8tap2 wp8tap3 wp8br1 wp8br2 wp8v1h wp8v2h wp8v3h wp8v4h wp8v5h wp8vsh wp8tap4 wp8tap5 wp8br3 wp8v6h wp8v7h wp8v8h)
+NETNS=(wp8c1 wp8c2 wp8c3 wp8c4 wp8c5 wp8srv wp8c6 wp8c7 wp8c8)   # wp8c7 / wp8c8: WP8 H-2 Hotspot clients of CHR2 (dev/wp8/h2_gate.py)
 log() { echo "[wp8 $(date -u +%T)] $*"; }
 dc() { docker compose -f "$REPO/dev/test/compose.yml" -f "$HERE/compose.wp8.yml" --project-directory "$REPO/dev/test" "$@"; }
 secrets() {
@@ -72,11 +72,13 @@ up() {
   mkdir -p "$S/radius-secrets"; chmod 700 "$S/radius-secrets"     # PPPoE session guard credentials (WP8 A1)
   log "compose: mariadb"; dc up -d mariadb >/dev/null
   for _ in $(seq 1 60); do [ "$(docker inspect -f '{{.State.Health.Status}}' nuxbill-reseller-test-mariadb-1 2>/dev/null)" = healthy ] && break; sleep 2; done
-  log "RADIUS database nuxr_radius (install/radius.sql + install/freeradius/nuxr_admission.sql) + NAS rows (production-style SQL clients)"
+  log "RADIUS database nuxr_radius (install/radius.sql + install/freeradius/nuxr_admission.sql + nuxr_hs_admission.sql) + NAS rows (production-style SQL clients)"
   echo 'DROP DATABASE IF EXISTS nuxr_radius; CREATE DATABASE nuxr_radius CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;' | mysql_root ""
   mysql_root nuxr_radius < "$REPO/install/radius.sql"
   mysql_root nuxr_radius < "$REPO/install/freeradius/nuxr_admission.sql"      # WP8 A2-R additive upgrade
   mysql_root nuxr_radius < "$REPO/install/freeradius/nuxr_admission_check.sql" | grep -qx "nuxr_admission=READY" || { echo "nuxr_admission NOT READY"; exit 1; }
+  mysql_root nuxr_radius < "$REPO/install/freeradius/nuxr_hs_admission.sql"   # WP8 H-2B additive upgrade (Hotspot slots)
+  mysql_root nuxr_radius < "$REPO/install/freeradius/nuxr_hs_admission_check.sql" | grep -qx "nuxr_hs_admission=READY" || { echo "nuxr_hs_admission NOT READY"; exit 1; }
   # 1: the CHR (CoA / Disconnect port 3799 = OD-W8-3 A); 2: the co-located application host itself, used by the
   # WP8 FreeRADIUS contract tests that send their own Access/Accounting-Requests from 10.88.0.10
   mysql_root nuxr_radius <<SQL

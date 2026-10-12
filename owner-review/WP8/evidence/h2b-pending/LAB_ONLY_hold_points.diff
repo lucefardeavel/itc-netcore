@@ -1,0 +1,34 @@
+--- /dev/fd/63	2026-10-11 10:45:35.344028250 +0000
++++ /dev/fd/62	2026-10-11 10:45:35.344028250 +0000
+@@ -645,6 +645,15 @@
+ 			attr_filter.access_reject
+ 			reject
+ 		}
++		# LAB HOLD POINT post_claim (dev/wp8/h2b_gate.py PENDING gate) - never in a real policy
++		update control {
++			&Tmp-String-1 := "%{sql:UPDATE nuxr_h2b_lab_hold SET uses = uses - 1, fired_at = UTC_TIMESTAMP(6) WHERE mac = '%{Calling-Station-Id}' AND point = 'post_claim' AND uses > 0}"
++		}
++		if (&control:Tmp-String-1 == "1") {
++			update control {
++				&Tmp-String-1 := "held=%{sql:SELECT SLEEP(ms / 1000) FROM nuxr_h2b_lab_hold WHERE mac = '%{Calling-Station-Id}' AND point = 'post_claim'}"
++			}
++		}
+ 		update request {
+ 			&Tmp-String-6 := "%{expr:(%{time_since:us} - %l * 1000000 - %M) / 1000}"
+ 		}
+@@ -666,6 +675,15 @@
+ 		update request {
+ 			&Tmp-String-0 := "nuxr-hsres=claim:%{control:Tmp-String-9}"
+ 		}
++		# LAB HOLD POINT pre_reply (dev/wp8/h2b_gate.py PENDING gate) - never in a real policy
++		update control {
++			&Tmp-String-1 := "%{sql:UPDATE nuxr_h2b_lab_hold SET uses = uses - 1, fired_at = UTC_TIMESTAMP(6) WHERE mac = '%{Calling-Station-Id}' AND point = 'pre_reply' AND uses > 0}"
++		}
++		if (&control:Tmp-String-1 == "1") {
++			update control {
++				&Tmp-String-1 := "held=%{sql:SELECT SLEEP(ms / 1000) FROM nuxr_h2b_lab_hold WHERE mac = '%{Calling-Station-Id}' AND point = 'pre_reply'}"
++			}
++		}
+ 	}
+ 	Post-Auth-Type REJECT {
+ 		attr_filter.access_reject

@@ -39,6 +39,8 @@ final class HotspotSpellingContractTest extends TestCase
         $fx = new FixtureBuilder(dirname(__DIR__, 3));
         $fx->loadSqlFile(self::$pdo, dirname(__DIR__, 3) . '/install/radius.sql');
         $fx->loadSqlFile(self::$pdo, dirname(__DIR__, 3) . '/install/freeradius/nuxr_admission.sql');
+        // WP8 H-2B: an admitted Hotspot login claims an admission slot (README install order)
+        $fx->loadSqlFile(self::$pdo, dirname(__DIR__, 3) . '/install/freeradius/nuxr_hs_admission.sql');
         RadiusClient::waitReady();
         self::$w = RadiusWire::harness();
     }
@@ -57,12 +59,16 @@ final class HotspotSpellingContractTest extends TestCase
         return 'nuxr_h1_' . $tag . '_cafes_' . bin2hex(random_bytes(2));
     }
 
-    /** @return array{0:?RadiusPacket,1:int} reply and elapsed ms */
+    /**
+     * A RouterOS-shaped Hotspot login (WP8 H-2B: with the attempt identity the admission slots require).
+     * @return array{0:?RadiusPacket,1:int,2:array} reply, elapsed ms, the attempt identity
+     */
     private static function hotspot(string $user, string $pw, bool $chap = true): array
     {
+        $a = RadiusWire::attempt(self::NAS);
         $t = microtime(true);
-        $r = RadiusClient::access($user, $pw, $chap, RadiusWire::HOTSPOT);
-        return [$r, (int) round((microtime(true) - $t) * 1000)];
+        $r = self::$w->send(self::$w->hotspotAccess($user, $pw, $a, $chap ? 'chap' : 'pap'));
+        return [$r, (int) round((microtime(true) - $t) * 1000), $a];
     }
 
     /** the reply attributes a client can see (the Message-Authenticator differs per packet) */
@@ -75,14 +81,17 @@ final class HotspotSpellingContractTest extends TestCase
     {
         $u = $this->provision(self::base('ok'), 'H1a-ok-1');
         foreach ([true, false] as $chap) {
-            [$r] = self::hotspot($u, 'H1a-ok-1', $chap);
+            [$r, , $a] = self::hotspot($u, 'H1a-ok-1', $chap);
             $this->assertSame(RadiusPacket::ACCESS_ACCEPT, $r?->code, ($chap ? 'CHAP' : 'PAP') . ': exact spelling admitted');
             $this->assertSame(1, (int) $r->get('Port-Limit'), 'Port-Limit = shared_users');
             $this->assertNotNull($r->get('Mikrotik-Rate-Limit'), 'rate limit unchanged');
             $this->assertNotNull($r->get('Session-Timeout'), 'expiry -> Session-Timeout unchanged');
             $this->assertNull($r->get('User-Name'), 'no User-Name in the reply (H1-B is not used)');
-            $this->assertNull($r->get('Class'), 'no admission Class for Hotspot');
+            $this->assertNull(RadiusWire::token($r), 'no PPPoE admission Class for Hotspot');
+            $this->assertNotNull(RadiusWire::hotspotToken($r), 'WP8 H-2B: the Hotspot slot Class ("nuxh1" + token)');
             $this->assertNull($r->get('Reply-Message'));
+            // limit 1: end this admission (its own Stop) before the next method is tried
+            self::$w->hotspotAccounting($u, $a, 'Stop', (string) hex2bin((string) RadiusWire::classHex($r)));
         }
         $st = self::$pdo->prepare('SELECT COUNT(*) FROM nuxr_admission WHERE username = ?');
         $st->execute([$u]);

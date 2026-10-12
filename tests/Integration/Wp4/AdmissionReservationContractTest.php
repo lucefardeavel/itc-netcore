@@ -39,6 +39,7 @@ final class AdmissionReservationContractTest extends TestCase
         $fx = new FixtureBuilder(dirname(__DIR__, 3));
         $fx->loadSqlFile(self::$pdo, dirname(__DIR__, 3) . '/install/radius.sql');
         $fx->loadSqlFile(self::$pdo, dirname(__DIR__, 3) . '/install/freeradius/nuxr_admission.sql');
+        $fx->loadSqlFile(self::$pdo, dirname(__DIR__, 3) . '/install/freeradius/nuxr_hs_admission.sql');      // WP8 H-2B (Hotspot logins)
         RadiusClient::waitReady();
         self::$w = RadiusWire::harness();
     }
@@ -406,10 +407,13 @@ final class AdmissionReservationContractTest extends TestCase
 
     public function testHotspotIsNotTouchedByTheAdmission(): void
     {
+        // WP8 H-2B: a Hotspot login gets its OWN admission slot ("nuxh1" Class, nuxr_hs_admission) - never the PPPoE
+        // reservation ("nuxr1" Class, nuxr_admission)
         $u = $this->provision(self::uname('hs'), 'A2r-hs-1', 'Hotspot');
-        $r = RadiusClient::access($u, 'A2r-hs-1', false, RadiusWire::HOTSPOT);
+        $r = self::$w->send(self::$w->hotspotAccess($u, 'A2r-hs-1', RadiusWire::attempt(self::NAS), 'pap'));
         $this->assertSame(RadiusPacket::ACCESS_ACCEPT, $r?->code);
-        $this->assertNull(RadiusWire::classHex($r), 'no Class');
-        $this->assertNull(self::claim($u), 'no reservation');
+        $this->assertNull(RadiusWire::token($r), 'no PPPoE admission Class');
+        $this->assertNotNull(RadiusWire::hotspotToken($r), 'the Hotspot slot Class');
+        $this->assertNull(self::claim($u), 'no PPPoE reservation');
     }
 }

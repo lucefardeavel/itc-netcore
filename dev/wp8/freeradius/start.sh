@@ -59,6 +59,9 @@ fi
 mkdir -p "$R/nuxr"; chmod 0755 "$R/nuxr"
 install -m 0755 /nuxr/install/bin/nuxr_pppoe_session_guard "$R/nuxr/nuxr_pppoe_session_guard"
 cp /nuxr/install/mods-available/nuxr_pppoe_session_guard "$R/mods-enabled/nuxr_pppoe_session_guard"
+# WP8 H-2B - Hotspot slot verifier (same credential file $R/nuxr/nas_snmp), installed as install/freeradius/README.md says
+install -m 0755 /nuxr/install/bin/nuxr_hotspot_slot_verifier "$R/nuxr/nuxr_hotspot_slot_verifier"
+cp /nuxr/install/mods-available/nuxr_hotspot_slot_verifier "$R/mods-enabled/nuxr_hotspot_slot_verifier"
 if [ -f /nuxr/secrets/nas_snmp ]; then
 	install -m 0600 -o freerad -g freerad /nuxr/secrets/nas_snmp "$R/nuxr/nas_snmp"
 else
@@ -68,6 +71,8 @@ test -x "$R/nuxr/nuxr_pppoe_session_guard"
 test -x /usr/bin/snmpget
 test -x /usr/bin/snmpbulkwalk
 test "$(grep -c '^[[:space:]]*nuxr_pppoe_session_guard {' "$R/sites-enabled/phpnuxbill")" = 1
+test -x "$R/nuxr/nuxr_hotspot_slot_verifier"
+test "$(grep -c '^[[:space:]]*nuxr_hotspot_slot_verifier {' "$R/sites-enabled/phpnuxbill")" = 1
 if grep -q 'option-g' "$R/sites-enabled/phpnuxbill"; then echo "[wp8] lab option-g policy referenced by the site"; exit 1; fi
 grep -q 'delete_stale_sessions = no' "$R/mods-enabled/sql"
 # Gate tooling marker (dev/wp8/option_g_gate.py on): the stock checkrad AS SHIPPED (/usr/sbin/checkrad, unmodified,

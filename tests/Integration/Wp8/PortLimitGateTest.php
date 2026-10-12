@@ -48,10 +48,16 @@ final class PortLimitGateTest extends TestCase
     }
 
     /** lab-only policy edit of a disposable subscriber: Port-Limit reply on, Simultaneous-Use check off */
-    private function portLimitOnly(string $user, int $limit): void
+    private function portLimitOnly(string $user, int $limit, bool $hotspot = false): void
     {
         $pdo = static::labRadius();
         $pdo->prepare("DELETE FROM radcheck WHERE username = ? AND attribute = 'Simultaneous-Use'")->execute([$user]);
+        if ($hotspot) {
+            // WP8 H-2B: a Hotspot login without Simultaneous-Use is refused (the admission slots need a limit; fail
+            // closed). 99 = the largest limit: the slots never bind for 2-3 clients, so the NAS (Port-Limit) remains the
+            // only possible enforcer, as this gate requires.
+            $pdo->prepare("INSERT INTO radcheck (username, attribute, op, value) VALUES (?, 'Simultaneous-Use', ':=', '99')")->execute([$user]);
+        }
         $pdo->prepare("DELETE FROM radreply WHERE username = ? AND attribute = 'Port-Limit'")->execute([$user]);
         $pdo->prepare("INSERT INTO radreply (username, attribute, op, value) VALUES (?, 'Port-Limit', ':=', ?)")->execute([$user, (string) $limit]);
     }
@@ -185,7 +191,7 @@ final class PortLimitGateTest extends TestCase
     public function testGateHotspotPortLimit1(): void
     {
         $user = $this->hotspotUser('Pl-hs-1', 1);
-        $this->portLimitOnly($user, 1);
+        $this->portLimitOnly($user, 1, true);
         $r = $this->hotspotContest($user, 'Pl-hs-1', ['c2', 'c4']);
         Wp8Lab::evidence('OD16.gate.hotspot-port-limit-1', $r);
         $this->assertTrue($r['logins']['c2']['ok'], 'first client allowed');
@@ -196,7 +202,7 @@ final class PortLimitGateTest extends TestCase
     public function testGateHotspotPortLimit2(): void
     {
         $user = $this->hotspotUser('Pl-hs-2', 2);
-        $this->portLimitOnly($user, 2);
+        $this->portLimitOnly($user, 2, true);
         $r = $this->hotspotContest($user, 'Pl-hs-2', ['c2', 'c4', 'c5']);
         Wp8Lab::evidence('OD16.gate.hotspot-port-limit-2', $r);
         $this->assertTrue($r['logins']['c2']['ok'] && $r['logins']['c4']['ok'], 'first two sessions allowed');
@@ -214,7 +220,7 @@ final class PortLimitGateTest extends TestCase
         Wp8Lab::until(fn() => $this->acct($user) ?: null, 20, 1);
         $this->blockAccounting();
         sleep(190);
-        $this->portLimitOnly($user, 1);
+        $this->portLimitOnly($user, 1, true);
         $this->assertCount(1, Wp8Lab::hotspotActive($user), 'C1 genuinely live');
         $l = Wp8Lab::agent('hs_login', ['client' => 'c4', 'user' => $user, 'password' => 'Pl-hs-3']);
         $watch = Wp8Lab::agent('watch_active', ['kind' => 'hotspot', 'user' => $user, 'seconds' => 15], 60);
