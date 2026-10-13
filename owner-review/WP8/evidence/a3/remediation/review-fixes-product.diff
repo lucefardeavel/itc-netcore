@@ -1,0 +1,142 @@
+--- intermediate/system/autoload/Reseller/Domain/LegacyReprovisionService.php
++++ final/system/autoload/Reseller/Domain/LegacyReprovisionService.php
+@@ -71,7 +71,7 @@
+     public const RENAME_REFUSALS = [
+         'AMBIGUOUS_IDENTITY' => 'Another RADIUS identity is equivalent to the old or the new name; nothing was changed.',
+         'IDENTITY_TAKEN' => 'The new name already holds a RADIUS policy that is not this customer\'s; nothing was changed.',
+-        'CHECK_UNAVAILABLE' => 'The RADIUS database could not be checked; nothing was changed.',
++        'CHECK_UNAVAILABLE' => 'The identity check could not be completed (database unavailable); nothing was changed.',
+     ];
+     /**
+      * WP8 A3 (owner D-3): the exact RADIUS keys the customer being renamed may replace (its own old keys, then each
+@@ -80,6 +80,8 @@
+      * @var list<string>|null
+      */
+     private static ?array $renameOwn = null;
++    /** @var array<int,true> radacctids already sent a Disconnect inside the current rename scope (legacy path) */
++    private static array $scopeSent = [];
+ 
+     /**
+      * WP8 A3: `old_session` is reported separately from the re-provision status and never changes it:
+@@ -231,8 +233,9 @@
+     /**
+      * WP8 A3 (OD-A3R-9, owner D-1 / D-3): the pre-check of the RADIUS renames an identity edit implies on its
+      * Radius-device plans, BEFORE any write, in run order (each old key once):
+-     *  - AMBIGUOUS_IDENTITY: another exact key that the collation treats as equal to a source or a target (every
+-     *    source and target of this edit counts as the customer's own: chained pairs are not ambiguous);
++     *  - AMBIGUOUS_IDENTITY: another exact key that the collation treats as equal to a source or a target (the
++     *    sources and targets of the EARLIER pairs of this edit count as the customer's own: chained pairs are not
++     *    ambiguous, and the pre-check sees exactly what the write transaction of each pair will see);
+      *  - IDENTITY_TAKEN: the exact target already holds RADIUS rows and is neither an old key of this customer nor a
+      *    key this edit renames into first (another subscriber's policy, or an orphan one, is never replaced);
+      *  - CHECK_UNAVAILABLE: the RADIUS database could not be read (fail closed, reported separately).
+@@ -243,30 +246,34 @@
+     public static function renameCheck(array $billing, array $old, array $new): string
+     {
+         try {
++            // every pair in run order, also one whose old key the run renames only once: its target is still
++            // written by the plan's re-provisioning
+             $pairs = [];
+             foreach ($billing as $b) {
+                 $plan = \ORM::for_table('tbl_plans')->find_one((int) $b['plan_id']);
+                 if (!$plan || $plan['device'] !== 'Radius') {
+                     continue;
+                 }
+-                foreach (self::renamePairs($old, $new, (string) $b['type']) as [$from, $to]) {
+-                    $pairs[$from] ??= [$from, $to];
++                foreach (self::renamePairs($old, $new, (string) $b['type']) as $pair) {
++                    $pairs[] = $pair;
+                 }
+             }
+             if ($pairs === []) {
+                 return self::RENAME_OK;
+             }
+             $repo = \Reseller\Radius\RadiusRepository::connection();
+-            $names = array_merge(...array_values($pairs));
+             $own = self::ownKeys($old);
++            $earlier = [];   // the sources and targets of the earlier pairs of this edit (as the write will see them)
+             foreach ($pairs as [$from, $to]) {
+-                if ($repo->equivalentKeys($from, $to, false, $names) !== []) {
++                if ($repo->equivalentKeys($from, $to, false, $earlier) !== []) {
+                     return 'AMBIGUOUS_IDENTITY';
+                 }
+                 if (!in_array($to, $own, true) && $repo->exactRows($to) > 0) {
+                     return 'IDENTITY_TAKEN';
+                 }
+                 $own[] = $to;
++                $earlier[] = $from;
++                $earlier[] = $to;
+             }
+             return self::RENAME_OK;
+         } catch (\Throwable $e) {
+@@ -292,6 +299,7 @@
+     public static function renameScope(?array $oldIdentity): void
+     {
+         self::$renameOwn = $oldIdentity === null ? null : self::ownKeys($oldIdentity);
++        self::$scopeSent = [];
+     }
+ 
+     public static function targetReplaceable(string $to): bool
+@@ -349,6 +357,14 @@
+             ErrorReporter::report($e, 'rename-old-session');
+         }
+         foreach ($capture['targets'] as $row) {
++            // WP8 A3 (FIX-4): inside one rename scope (legacy path: sent at once) a session is sent one Disconnect
++            $rid = (int) ($row['radacctid'] ?? 0);
++            if (self::$renameOwn !== null) {
++                if (isset(self::$scopeSent[$rid])) {
++                    continue;
++                }
++                self::$scopeSent[$rid] = true;
++            }
+             try {
+                 $r = $coa !== null ? $coa->disconnectSession($row)
+                     : ProvisionResult::unknown('COA_EXCEPTION', 'The Disconnect could not be sent; the session state is unknown.');
+--- intermediate/system/autoload/Reseller/Radius/RadiusRepository.php
++++ final/system/autoload/Reseller/Radius/RadiusRepository.php
+@@ -189,7 +189,12 @@
+             }
+             $n = 0;
+             foreach (['radcheck', 'radreply', 'radusergroup'] as $t) {
+-                $this->exec("DELETE FROM {$t} WHERE username = ? AND CAST(username AS BINARY) = CAST(? AS BINARY)", [$to, $to]);
++                $deleted = $this->exec("DELETE FROM {$t} WHERE username = ? AND CAST(username AS BINARY) = CAST(? AS BINARY)", [$to, $to]);
++                // owner D-3: also under READ COMMITTED (no gap locks), a target row that appeared after the check
++                // above is never deleted for a caller that does not own the target (rolled back)
++                if (!$replaceTarget && $deleted > 0) {
++                    throw new ProvisionFailure(ProvisionResult::failed('RADIUS_IDENTITY_TAKEN', 'The new RADIUS identity already holds a policy that is not this subscriber\'s; nothing was changed.', false));
++                }
+                 $n += $this->exec("UPDATE {$t} SET username = ? WHERE username = ? AND CAST(username AS BINARY) = CAST(? AS BINARY)", [$to, $from, $from]);
+             }
+             return $n;
+--- intermediate/system/controllers/customers.php
++++ final/system/controllers/customers.php
+@@ -710,7 +710,9 @@
+             }
+             $userDiff = true;
+         }
+-        if ($oldPppoeUsername != $pppoe_username) {
++        // WP8 A3 (owner D-3): strict comparison; the PPPoE username is always saved, so a loose "equal" (numeric
++        // strings, e.g. 100 and 1e2) would skip every collision check and the RADIUS rename
++        if ((string) $oldPppoeUsername !== (string) $pppoe_username) {
+             // if(!empty($pppoe_username)){
+             //     if(ORM::for_table('tbl_customers')->where('pppoe_username', $pppoe_username)->find_one()){
+             //         $msg.= Lang::T('PPPoE Username already used by another customer') . '<br>';
+@@ -762,7 +764,7 @@
+             $msg .= Lang::T('PPPoE username already used by another customer') . '<br>';
+         }
+         if ($c && $msg == '' && ($userDiff || $pppoeDiff)) {
+-            $nuxrCheck = \Reseller\Domain\LegacyReprovisionService::renameCheck(ORM::for_table('tbl_user_recharges')->where('customer_id', $c['id'])->where('status', 'on')->find_array(), $nuxrOld, $nuxrNew);
++            $nuxrCheck = \Reseller\Domain\LegacyReprovisionService::renameCheck(ORM::for_table('tbl_user_recharges')->where('customer_id', $c['id'])->where('status', 'on')->order_by_asc('id')->find_array(), $nuxrOld, $nuxrNew);
+             if ($nuxrCheck !== \Reseller\Domain\LegacyReprovisionService::RENAME_OK) {
+                 $msg .= Lang::T(\Reseller\Domain\LegacyReprovisionService::RENAME_REFUSALS[$nuxrCheck]) . '<br>';
+             }
+@@ -889,7 +891,8 @@
+             }
+ 
+             if ($userDiff || $pppoeDiff || $pppoeIpDiff || $passDiff) {
+-                $turs = ORM::for_table('tbl_user_recharges')->where('customer_id', $c['id'])->findMany();
++                // WP8 A3: in id order, as the rename pre-check saw them
++                $turs = ORM::for_table('tbl_user_recharges')->where('customer_id', $c['id'])->order_by_asc('id')->findMany();
+                 // WP8 A3 (owner D-3): the Radius device may replace an existing exact target only when it is this
+                 // customer's own key (its old keys, or a key this edit renamed into first)
+                 \Reseller\Domain\LegacyReprovisionService::renameScope($nuxrOld);

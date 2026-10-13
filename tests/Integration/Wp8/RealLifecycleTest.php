@@ -193,17 +193,19 @@ final class RealLifecycleTest extends Wp8ActivationLabCase
         $new = self::ident('renamed');
         $r = R::run($this->ctx('ad'), $cust, R::IDENTITY_EDIT, ['username' => $new]);
         $this->customersChanged();
-        $this->assertSame('DONE', $r['status']);
+        $this->assertSame(['DONE', 'CONFIRMED'], [$r['status'], $r['old_session']]);
         $this->assertSame(['check' => [], 'reply' => [], 'groups' => []], $this->policy($old), 'no stale policy under the old identity');
         $this->assertSame('S5-new-pass', $this->policy($new)['check']['Cleartext-Password']);
         $this->assertSame(1, (int) static::labRadius()->query("SELECT COUNT(DISTINCT username) FROM radcheck WHERE username IN (" . static::labRadius()->quote($old) . ',' . static::labRadius()->quote($new) . ')')->fetchColumn(), 'exactly one RADIUS identity');
+        // WP8 A3 (R-WP8-CARRY-02, formerly the OD-W8-15 finding that the old-identity session survived the rename): the
+        // rename ends the live session of the OLD identity (one Disconnect per captured accounting row, after the tree
+        // lock), so the customer never holds a second session under the new name
+        $this->assertTrue(Wp8Lab::until(fn() => Wp8Lab::pppActive($old) === [] ? true : null, 20, 0.5), 'the old-identity session ended after the rename');
         $liveOld = Wp8Lab::pppActive($old);
-        // FINDING (OD-W8-15): the re-provision disconnects only the NEW key, so the live session of the OLD identity
-        // survives the rename; the customer can then hold a second session under the new name (Simultaneous-Use is
-        // counted per username). Observed and recorded, not changed (would need a runtime change).
-        $this->assertCount(1, $liveOld, 'observed: the old-identity session is still up after the rename');
         $parallel = Wp8Lab::agent('pppoe_up', ['client' => 'c3', 'user' => $new, 'password' => 'S5-new-pass', 'wait' => 30]);
         $both = ['old' => Wp8Lab::pppActive($old), 'new' => Wp8Lab::pppActive($new)];
+        $this->assertTrue($parallel['ok'], 'the new name logs in');
+        $this->assertSame([0, 1], [count($both['old']), count($both['new'])], 'never an old-identity session next to the new one');
         Wp8Lab::agent('pppoe_down', ['client' => 'c3']);
         Wp8Lab::agent('pppoe_down', ['client' => 'c1']);
         Wp8Lab::until(fn() => Wp8Lab::pppActive($old) === [], 20, 1);
@@ -236,7 +238,7 @@ final class RealLifecycleTest extends Wp8ActivationLabCase
         Wp8Lab::until(fn() => Wp8Lab::pppActive($new) === [], 20, 1);
         $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $new, 'password' => 'S5-third-pass'])['ok'], 'the kept value works on the NAS');
         Wp8Lab::evidence('S5.reprovision', ['password_change' => 'DONE; old password rejected; new accepted; session disconnected by the device provision',
-            'username_change' => ['old_policy' => 'empty', 'new_policy' => 'present', 'distinct_identities' => 1, 'old_identity_live_session_after_rename' => $liveOld,
+            'username_change' => ['old_policy' => 'empty', 'new_policy' => 'present', 'distinct_identities' => 1, 'old_session' => $r['old_session'], 'old_identity_live_session_after_rename' => $liveOld,
                 'parallel_new_identity_session' => ['ok' => $parallel['ok'], 'ip' => $parallel['ip'], 'nas_old' => count($both['old']), 'nas_new' => count($both['new'])]],
             'uncertain_commit' => 'REPROVISION_UNCONFIRMED; value kept in billing and RADIUS; works on the NAS']);
     }

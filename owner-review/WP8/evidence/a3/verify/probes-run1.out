@@ -1,0 +1,102 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+## 2026-10-13T14:05:49Z A3 SameKeyAdminSyncProbeTest engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"admin_sync":{"status":"DomainError","reason":"REPROVISION_UNCONFIRMED","audit_outcome":"REPROVISION_UNCONFIRMED","audit_verified":false,"audit_device":"SUCCESS"},"identity_edit":{"status":"DomainError","reason":"REPROVISION_UNCONFIRMED","audit_outcome":"REPROVISION_UNCONFIRMED","audit_verified":false,"rows_old_exact":0,"rows_new_exact":5,"old_session_event":"NO_ACCOUNTING_EVIDENCE"}}
+.                                                                   1 / 1 (100%)
+Time: 00:03.562, Memory: 10.00 MB
+OK (1 test, 13 assertions)
+exit=0
+## 2026-10-13T14:05:54Z BASELINE(HEAD product files) SameKeyAdminSyncProbeTest engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"admin_sync":{"status":"DomainError","reason":"REPROVISION_UNCONFIRMED","audit_outcome":"REPROVISION_UNCONFIRMED","audit_verified":false,"audit_device":"SUCCESS"},"identity_edit":{"status":"DomainError","reason":"REPROVISION_UNCONFIRMED","audit_outcome":"REPROVISION_UNCONFIRMED","audit_verified":false,"rows_old_exact":0,"rows_new_exact":5,"old_session_event":null}}
+.                                                                   1 / 1 (100%)
+Time: 00:02.096, Memory: 10.00 MB
+OK (1 test, 13 assertions)
+exit=0
+## 2026-10-13T14:05:58Z A3 ReviewFindingsProbeTest engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1","first":{"status":"DomainError","old_session":null,"reason":"FORBIDDEN"},"drift_before":[],"refusal":{"status":"DomainError","old_session":null,"reason":"RENAME_AMBIGUOUS_IDENTITY"},"drift_after":[]}
+FPROBE {"case":"F3","together":{"status":"DomainError","old_session":null,"reason":"RENAME_AMBIGUOUS_IDENTITY"},"separately":[{"status":"DONE","old_session":"NO_ACCOUNTING_EVIDENCE","reason":null},{"status":"DONE","old_session":"NO_ACCOUNTING_EVIDENCE","reason":null}]}
+.PROBE {"case":"F4","result":{"status":"DONE","old_session":"UNCONFIRMED","reason":null},"confirmation":{"old_session":"UNCONFIRMED","operation":"IDENTITY_EDIT","reprovision_outcome":"DONE","identities":[{"from":"pf4f4e65101","to":"pf4f4e65101","equivalent":null,"state":"UNCONFIRMED","reason":"rename_not_confirmed","sessions":[]}]},"drift":["PERIOD_NOT_BACKED","OLD_SESSION_UNCONFIRMED:UNCONFIRMED"]}
+.PROBE {"case":"F5","result":{"status":"DONE","old_session":"UNCONFIRMED","reason":null},"run_seconds":6.2,"stub_received":1,"targets":[["pf5a1e23b6e","pf5be808e231",1,"COA_ACK"],["pf5a1e23b6e","pf5cf452a39b",1,"COA_NO_RESPONSE"]],"rows_under_new_username":5,"rows_under_new_pppoe":5}
+.                                                                4 / 4 (100%)
+Time: 00:12.507, Memory: 12.00 MB
+There was 1 failure:
+1) Reseller\Tests\Integration\Wp5b\ReviewFindingsProbeTest::testF1RefusalMasksAnEarlierUnconfirmedInTheDrift
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'REPROVISION_UNCONFIRMED'
++'FORBIDDEN'
+/probe/ReviewFindingsProbeTest.php:106
+FAILURES!
+Tests: 4, Assertions: 55, Failures: 1.
+exit=1
+## 2026-10-13T14:06:13Z A3 SameKeyAdminSyncProbeTest engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"admin_sync":{"status":"DomainError","reason":"REPROVISION_UNCONFIRMED","audit_outcome":"REPROVISION_UNCONFIRMED","audit_verified":false,"audit_device":"SUCCESS"},"identity_edit":{"status":"DomainError","reason":"REPROVISION_UNCONFIRMED","audit_outcome":"REPROVISION_UNCONFIRMED","audit_verified":false,"rows_old_exact":0,"rows_new_exact":5,"old_session_event":"NO_ACCOUNTING_EVIDENCE"}}
+.                                                                   1 / 1 (100%)
+Time: 00:06.209, Memory: 10.00 MB
+OK (1 test, 13 assertions)
+exit=0
+## 2026-10-13T14:06:21Z BASELINE(HEAD product files) SameKeyAdminSyncProbeTest engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"admin_sync":{"status":"DomainError","reason":"REPROVISION_UNCONFIRMED","audit_outcome":"REPROVISION_UNCONFIRMED","audit_verified":false,"audit_device":"SUCCESS"},"identity_edit":{"status":"DomainError","reason":"REPROVISION_UNCONFIRMED","audit_outcome":"REPROVISION_UNCONFIRMED","audit_verified":false,"rows_old_exact":0,"rows_new_exact":5,"old_session_event":null}}
+.                                                                   1 / 1 (100%)
+Time: 00:05.725, Memory: 10.00 MB
+OK (1 test, 13 assertions)
+exit=0
+## 2026-10-13T14:06:28Z A3 ReviewFindingsProbeTest engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1","first":{"status":"DomainError","old_session":null,"reason":"FORBIDDEN"},"drift_before":[],"refusal":{"status":"DomainError","old_session":null,"reason":"RENAME_AMBIGUOUS_IDENTITY"},"drift_after":[]}
+FPROBE {"case":"F3","together":{"status":"DomainError","old_session":null,"reason":"RENAME_AMBIGUOUS_IDENTITY"},"separately":[{"status":"DONE","old_session":"NO_ACCOUNTING_EVIDENCE","reason":null},{"status":"DONE","old_session":"NO_ACCOUNTING_EVIDENCE","reason":null}]}
+.PROBE {"case":"F4","result":{"status":"DONE","old_session":"UNCONFIRMED","reason":null},"confirmation":{"old_session":"UNCONFIRMED","operation":"IDENTITY_EDIT","reprovision_outcome":"DONE","identities":[{"from":"pf4155a86ca","to":"pf4155a86ca","equivalent":null,"state":"UNCONFIRMED","reason":"rename_not_confirmed","sessions":[]}]},"drift":["PERIOD_NOT_BACKED","OLD_SESSION_UNCONFIRMED:UNCONFIRMED"]}
+.PROBE {"case":"F5","result":{"status":"DONE","old_session":"UNCONFIRMED","reason":null},"run_seconds":6.2,"stub_received":1,"targets":[["pf5df8e6fd2","pf5b8ac7fa27",1,"COA_ACK"],["pf5df8e6fd2","pf5c05e857c0",1,"COA_NO_RESPONSE"]],"rows_under_new_username":5,"rows_under_new_pppoe":5}
+.                                                                4 / 4 (100%)
+Time: 00:11.869, Memory: 12.00 MB
+There was 1 failure:
+1) Reseller\Tests\Integration\Wp5b\ReviewFindingsProbeTest::testF1RefusalMasksAnEarlierUnconfirmedInTheDrift
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'REPROVISION_UNCONFIRMED'
++'FORBIDDEN'
+/probe/ReviewFindingsProbeTest.php:106
+FAILURES!
+Tests: 4, Assertions: 55, Failures: 1.
+exit=1
+script_rc=0
+# NOTE: F1 failed in run1 because of a probe fixture error (PASSWORD_CHANGE by an admin context -> FORBIDDEN); fixed in run2 (IDENTITY_EDIT).

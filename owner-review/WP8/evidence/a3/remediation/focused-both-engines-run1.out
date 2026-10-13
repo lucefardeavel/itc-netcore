@@ -1,0 +1,544 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+## 2026-10-13T15:08:38Z tests/Unit/Wp5b/RenameOldSessionUnitTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.................                                                 17 / 17 (100%)
+Time: 00:00.039, Memory: 12.00 MB
+OK (17 tests, 66 assertions)
+exit=0
+## 2026-10-13T15:08:41Z tests/Unit/Wp5b/Wp5bSourceGuardTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........                                                           9 / 9 (100%)
+Time: 00:00.333, Memory: 16.00 MB
+OK (9 tests, 570 assertions)
+exit=0
+## 2026-10-13T15:08:44Z tests/Integration/Wp4/RadiusRenameIntegrityTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+WW..FW                                                              6 / 6 (100%)
+Time: 00:00.757, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testTheExactTargetKeyIsStillReplacedAsBefore
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'SUCCESS'
++'FAILED'
+/repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:118
+--
+4 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testAnExistingExactTargetIsRefusedWhenTheCallerDoesNotOwnIt (2 times)
+  /repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:126
+* Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testEquivalentRenameUpdatesInPlaceAndNeverDeletesTheSource
+  /repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:80
+* Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testOrdinaryRenameMovesExactlyTheSourceRows
+  /repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:68
+* Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testTheExactTargetKeyIsStillReplacedAsBefore
+  /repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:112
+FAILURES!
+Tests: 6, Assertions: 18, Failures: 1, Warnings: 1.
+exit=1
+## 2026-10-13T15:08:47Z tests/Integration/Wp4/RadiusLegacyRenameTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+....                                                                4 / 4 (100%)
+Time: 00:07.663, Memory: 10.00 MB
+OK (4 tests, 41 assertions)
+exit=0
+## 2026-10-13T15:08:57Z tests/Integration/Wp4/RadiusRepositoryTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..F..W..                                                            8 / 8 (100%)
+Time: 00:03.042, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Integration\Wp4\RadiusRepositoryTest::testRenameMovesAllThreeTablesAndKeepsHistory
+Failed asserting that false is true.
+/repo/tests/Integration/Wp4/RadiusRepositoryTest.php:90
+--
+2 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp4\RadiusRepositoryTest::testFailureBeforeCommitIsFailedAndRolledBack
+  /repo/tests/Integration/Wp4/RadiusRepositoryTest.php:134
+* Reseller\Tests\Integration\Wp4\RadiusRepositoryTest::testRenameMovesAllThreeTablesAndKeepsHistory
+  /repo/tests/Integration/Wp4/RadiusRepositoryTest.php:81
+FAILURES!
+Tests: 8, Assertions: 50, Failures: 1, Warnings: 1.
+exit=1
+## 2026-10-13T15:09:06Z tests/Integration/Wp4/RadiusDeviceLifecycleTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..W.W.                                                              6 / 6 (100%)
+Time: 00:01.293, Memory: 10.00 MB
+2 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp4\RadiusDeviceLifecycleTest::testNoLifecyclePathTouchesAccountingHistory (2 times)
+  /repo/tests/Integration/Wp4/RadiusDeviceLifecycleTest.php:96
+* Reseller\Tests\Integration\Wp4\RadiusDeviceLifecycleTest::testPppoeKeyAndRenameAcrossAllTables
+  /repo/tests/Integration/Wp4/RadiusDeviceLifecycleTest.php:153
+OK, but there were issues!
+Tests: 6, Assertions: 32, Warnings: 1.
+exit=1
+## 2026-10-13T15:09:15Z tests/Integration/Wp5b/RenameRemediationTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+WEE.WWW..EWW                                                      12 / 12 (100%)
+Time: 00:07.727, Memory: 12.00 MB
+There were 3 errors:
+1) Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF3ChainedPairsOfOneEditAreNotAmbiguous
+Reseller\Domain\DomainError: The change was saved but the device result could not be confirmed. It was not retried; an administrator must synchronize this customer. (ref 80ad773be7ef)
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:165
+/repo/system/autoload/Reseller/Domain/TreeSerialization.php:43
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:102
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:79
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:220
+2) Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF3AForeignEquivalentKeyIsStillRefusedInAChainedEdit
+Reseller\Domain\DomainError: The change was saved but the device result could not be confirmed. It was not retried; an administrator must synchronize this customer. (ref 80ad773be7ef)
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:165
+/repo/system/autoload/Reseller/Domain/TreeSerialization.php:43
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:102
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:79
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:239
+3) Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testD3TheCustomersOwnOldKeyMayStillBeReplaced
+Reseller\Domain\DomainError: The device rejected the change; nothing was changed.
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:155
+/repo/system/autoload/Reseller/Domain/TreeSerialization.php:43
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:102
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:391
+--
+7 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testD3RaceBetweenThePreCheckAndTheWriteIsClosedR1
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:401
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testD3RaceBetweenThePreCheckAndTheWriteIsClosedR2Device
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:426
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testD3TheCustomersOwnOldKeyMayStillBeReplaced
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:384
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF1ARefusalNeverHidesAnEarlierUnconfirmed
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:197
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF5OneDisconnectPerSessionWhenTwoPairsShareTheOldKey
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:273
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF7AnUnreadableRadiusDatabaseIsReportedAsSuchAndRefused
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:303
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF8AnOldIdentityThatCannotBeTargetedIsLogged (2 times)
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:320
+ERRORS!
+Tests: 12, Assertions: 177, Errors: 3, Warnings: 1.
+exit=2
+## 2026-10-13T15:09:26Z tests/Integration/Wp5b/RenameIntegrityTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+WW..                                                                4 / 4 (100%)
+Time: 00:05.580, Memory: 12.00 MB
+2 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testEquivalentRenameKeepsThePolicy
+  /repo/tests/Integration/Wp5b/RenameIntegrityTest.php:108
+* Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testUsernameRenameAcrossSeveralPlansRunsOnceAndEqualsAFreshSync
+  /repo/tests/Integration/Wp5b/RenameIntegrityTest.php:89
+OK, but there were issues!
+Tests: 4, Assertions: 67, Warnings: 1.
+exit=1
+## 2026-10-13T15:09:35Z tests/Integration/Wp5b/RenameOldSessionTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+WWWWWWWWWWW.WWWWWWW.                                              20 / 20 (100%)
+Time: 02:07.936, Memory: 12.00 MB
+18 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAMissingConfirmationEventIsReportedByTheDriftReport
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:477
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAckWithStopIsConfirmedAndOnlyTheOldRowIsTargeted
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:133
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAckWithoutStopIsUnconfirmedAfterTheBoundAndStatusStaysDone
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:164
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAnotherCustomerHoldingTheOldNameMeansNothingIsSent
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:412
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testDisconnectsRunWithoutTheTreeLockOrATransactionAndKeepTheCapturedIdentity
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:501
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testEquivalentRenameTargetsOnlyTheSessionsOpenBeforeTheRename
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:353
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testLegacyUnassignedRenameAlsoEndsTheOldSession
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:541
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNak503IsConfirmedForThatSessionAndNak406IsNot (2 times)
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:183
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNoAnswerAndUnknownNasAreUnconfirmedWithoutRetryOrRevert
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:204
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNoOpenRowIsNoAccountingEvidenceAndNothingIsSent
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:223
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNonEquivalentRenameTargetsEveryRecordedSpellingOfTheOldNameOnly
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:378
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testPppoeUsernameEmptyToSetAndSetToEmptyTargetTheFormerPppoeKey (2 times)
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:267
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testPppoeUsernameOldToNewTargetsTheOldPppoeKey
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:250
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testRenameAppliedThenAddFailedStillRecordsTheOldSession
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:440
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testRenameFailedIsRevertedAndNothingIsSent
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:427
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testTheSameOldKeyIsDisconnectedOnceAcrossPlans
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:322
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testUnconfirmedRenameIsAnUnconfirmedOldSession
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:458
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testUsernameAndPppoeTogetherGivePerIdentityResultsAndTheWorstWins (2 times)
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:298
+OK, but there were issues!
+Tests: 20, Assertions: 325, Warnings: 1.
+exit=1
+## 2026-10-13T15:11:46Z tests/Integration/Wp5b/LegacyReprovisionTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......W.....WW                                                    14 / 14 (100%)
+Time: 00:16.482, Memory: 12.00 MB
+3 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp5b\LegacyReprovisionTest::testFirstOperationFailedIsStillReverted
+  /repo/tests/Integration/Wp5b/LegacyReprovisionTest.php:322
+* Reseller\Tests\Integration\Wp5b\LegacyReprovisionTest::testIdentityEditRenamesTheSubscriberAndNeverActivates
+  /repo/tests/Integration/Wp5b/LegacyReprovisionTest.php:183
+* Reseller\Tests\Integration\Wp5b\LegacyReprovisionTest::testRenameAppliedThenAddFailedIsUnconfirmedAndNeverReverted
+  /repo/tests/Integration/Wp5b/LegacyReprovisionTest.php:307
+OK, but there were issues!
+Tests: 14, Assertions: 260, Warnings: 1.
+exit=1
+## 2026-10-13T15:12:05Z tests/Integration/Wp5b/DriftReportTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.                                                                   1 / 1 (100%)
+Time: 00:05.788, Memory: 12.00 MB
+OK (1 test, 19 assertions)
+exit=0
+## 2026-10-13T15:12:14Z tests/Integration/Wp5b/MikrotikDeviceTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...                                                                 3 / 3 (100%)
+Time: 00:04.131, Memory: 10.00 MB
+OK (3 tests, 13 assertions)
+exit=0
+## 2026-10-13T15:12:21Z tests/Integration/Wp5b/PluginBypassTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.                                                                   1 / 1 (100%)
+Time: 00:03.620, Memory: 8.00 MB
+OK (1 test, 20 assertions)
+exit=0
+## 2026-10-13T15:12:26Z tests/Integration/Wp5b/LegacyEntrypointClosureTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......                                                              6 / 6 (100%)
+Time: 00:08.260, Memory: 10.00 MB
+OK (6 tests, 62 assertions)
+exit=0
+## 2026-10-13T15:12:36Z tests/Unit/Wp5b/RenameOldSessionUnitTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.................                                                 17 / 17 (100%)
+Time: 00:00.041, Memory: 12.00 MB
+OK (17 tests, 66 assertions)
+exit=0
+## 2026-10-13T15:12:38Z tests/Unit/Wp5b/Wp5bSourceGuardTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........                                                           9 / 9 (100%)
+Time: 00:00.290, Memory: 16.00 MB
+OK (9 tests, 570 assertions)
+exit=0
+## 2026-10-13T15:12:40Z tests/Integration/Wp4/RadiusRenameIntegrityTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+WW..FW                                                              6 / 6 (100%)
+Time: 00:03.074, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testTheExactTargetKeyIsStillReplacedAsBefore
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'SUCCESS'
++'FAILED'
+/repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:118
+--
+4 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testAnExistingExactTargetIsRefusedWhenTheCallerDoesNotOwnIt (2 times)
+  /repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:126
+* Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testEquivalentRenameUpdatesInPlaceAndNeverDeletesTheSource
+  /repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:80
+* Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testOrdinaryRenameMovesExactlyTheSourceRows
+  /repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:68
+* Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testTheExactTargetKeyIsStillReplacedAsBefore
+  /repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:112
+FAILURES!
+Tests: 6, Assertions: 18, Failures: 1, Warnings: 1.
+exit=1
+## 2026-10-13T15:12:45Z tests/Integration/Wp4/RadiusLegacyRenameTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+....                                                                4 / 4 (100%)
+Time: 00:15.158, Memory: 10.00 MB
+OK (4 tests, 41 assertions)
+exit=0
+## 2026-10-13T15:13:03Z tests/Integration/Wp4/RadiusRepositoryTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..F..W..                                                            8 / 8 (100%)
+Time: 00:04.054, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Integration\Wp4\RadiusRepositoryTest::testRenameMovesAllThreeTablesAndKeepsHistory
+Failed asserting that false is true.
+/repo/tests/Integration/Wp4/RadiusRepositoryTest.php:90
+--
+2 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp4\RadiusRepositoryTest::testFailureBeforeCommitIsFailedAndRolledBack
+  /repo/tests/Integration/Wp4/RadiusRepositoryTest.php:134
+* Reseller\Tests\Integration\Wp4\RadiusRepositoryTest::testRenameMovesAllThreeTablesAndKeepsHistory
+  /repo/tests/Integration/Wp4/RadiusRepositoryTest.php:81
+FAILURES!
+Tests: 8, Assertions: 50, Failures: 1, Warnings: 1.
+exit=1
+## 2026-10-13T15:13:14Z tests/Integration/Wp4/RadiusDeviceLifecycleTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..W.W.                                                              6 / 6 (100%)
+Time: 00:03.470, Memory: 10.00 MB
+2 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp4\RadiusDeviceLifecycleTest::testNoLifecyclePathTouchesAccountingHistory (2 times)
+  /repo/tests/Integration/Wp4/RadiusDeviceLifecycleTest.php:96
+* Reseller\Tests\Integration\Wp4\RadiusDeviceLifecycleTest::testPppoeKeyAndRenameAcrossAllTables
+  /repo/tests/Integration/Wp4/RadiusDeviceLifecycleTest.php:153
+OK, but there were issues!
+Tests: 6, Assertions: 32, Warnings: 1.
+exit=1
+## 2026-10-13T15:13:20Z tests/Integration/Wp5b/RenameRemediationTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+WEE.WWW..EWW                                                      12 / 12 (100%)
+Time: 00:14.294, Memory: 12.00 MB
+There were 3 errors:
+1) Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF3ChainedPairsOfOneEditAreNotAmbiguous
+Reseller\Domain\DomainError: The change was saved but the device result could not be confirmed. It was not retried; an administrator must synchronize this customer. (ref ec8c7e54553c)
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:165
+/repo/system/autoload/Reseller/Domain/TreeSerialization.php:43
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:102
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:79
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:220
+2) Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF3AForeignEquivalentKeyIsStillRefusedInAChainedEdit
+Reseller\Domain\DomainError: The change was saved but the device result could not be confirmed. It was not retried; an administrator must synchronize this customer. (ref ec8c7e54553c)
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:165
+/repo/system/autoload/Reseller/Domain/TreeSerialization.php:43
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:102
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:79
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:239
+3) Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testD3TheCustomersOwnOldKeyMayStillBeReplaced
+Reseller\Domain\DomainError: The device rejected the change; nothing was changed.
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:155
+/repo/system/autoload/Reseller/Domain/TreeSerialization.php:43
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:102
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:391
+--
+7 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testD3RaceBetweenThePreCheckAndTheWriteIsClosedR1
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:401
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testD3RaceBetweenThePreCheckAndTheWriteIsClosedR2Device
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:426
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testD3TheCustomersOwnOldKeyMayStillBeReplaced
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:384
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF1ARefusalNeverHidesAnEarlierUnconfirmed
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:197
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF5OneDisconnectPerSessionWhenTwoPairsShareTheOldKey
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:273
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF7AnUnreadableRadiusDatabaseIsReportedAsSuchAndRefused
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:303
+* Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testF8AnOldIdentityThatCannotBeTargetedIsLogged (2 times)
+  /repo/tests/Integration/Wp5b/RenameRemediationTest.php:320
+ERRORS!
+Tests: 12, Assertions: 177, Errors: 3, Warnings: 1.
+exit=2
+## 2026-10-13T15:13:37Z tests/Integration/Wp5b/RenameIntegrityTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+WW..                                                                4 / 4 (100%)
+Time: 00:09.187, Memory: 12.00 MB
+2 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testEquivalentRenameKeepsThePolicy
+  /repo/tests/Integration/Wp5b/RenameIntegrityTest.php:108
+* Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testUsernameRenameAcrossSeveralPlansRunsOnceAndEqualsAFreshSync
+  /repo/tests/Integration/Wp5b/RenameIntegrityTest.php:89
+OK, but there were issues!
+Tests: 4, Assertions: 67, Warnings: 1.
+exit=1
+## 2026-10-13T15:13:48Z tests/Integration/Wp5b/RenameOldSessionTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+WWWWWWWWWWW.WWWWWWW.                                              20 / 20 (100%)
+Time: 02:14.996, Memory: 12.00 MB
+18 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAMissingConfirmationEventIsReportedByTheDriftReport
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:477
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAckWithStopIsConfirmedAndOnlyTheOldRowIsTargeted
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:133
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAckWithoutStopIsUnconfirmedAfterTheBoundAndStatusStaysDone
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:164
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAnotherCustomerHoldingTheOldNameMeansNothingIsSent
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:412
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testDisconnectsRunWithoutTheTreeLockOrATransactionAndKeepTheCapturedIdentity
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:501
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testEquivalentRenameTargetsOnlyTheSessionsOpenBeforeTheRename
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:353
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testLegacyUnassignedRenameAlsoEndsTheOldSession
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:541
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNak503IsConfirmedForThatSessionAndNak406IsNot (2 times)
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:183
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNoAnswerAndUnknownNasAreUnconfirmedWithoutRetryOrRevert
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:204
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNoOpenRowIsNoAccountingEvidenceAndNothingIsSent
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:223
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNonEquivalentRenameTargetsEveryRecordedSpellingOfTheOldNameOnly
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:378
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testPppoeUsernameEmptyToSetAndSetToEmptyTargetTheFormerPppoeKey (2 times)
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:267
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testPppoeUsernameOldToNewTargetsTheOldPppoeKey
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:250
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testRenameAppliedThenAddFailedStillRecordsTheOldSession
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:440
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testRenameFailedIsRevertedAndNothingIsSent
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:427
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testTheSameOldKeyIsDisconnectedOnceAcrossPlans
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:322
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testUnconfirmedRenameIsAnUnconfirmedOldSession
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:458
+* Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testUsernameAndPppoeTogetherGivePerIdentityResultsAndTheWorstWins (2 times)
+  /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:298
+OK, but there were issues!
+Tests: 20, Assertions: 325, Warnings: 1.
+exit=1
+## 2026-10-13T15:16:06Z tests/Integration/Wp5b/LegacyReprovisionTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......W.....WW                                                    14 / 14 (100%)
+Time: 00:20.665, Memory: 12.00 MB
+3 tests triggered 1 PHP warning:
+1) /repo/system/autoload/Reseller/Radius/RadiusRepository.php:187
+Undefined variable $replaceTarget
+Triggered by:
+* Reseller\Tests\Integration\Wp5b\LegacyReprovisionTest::testFirstOperationFailedIsStillReverted
+  /repo/tests/Integration/Wp5b/LegacyReprovisionTest.php:322
+* Reseller\Tests\Integration\Wp5b\LegacyReprovisionTest::testIdentityEditRenamesTheSubscriberAndNeverActivates
+  /repo/tests/Integration/Wp5b/LegacyReprovisionTest.php:183
+* Reseller\Tests\Integration\Wp5b\LegacyReprovisionTest::testRenameAppliedThenAddFailedIsUnconfirmedAndNeverReverted
+  /repo/tests/Integration/Wp5b/LegacyReprovisionTest.php:307
+OK, but there were issues!
+Tests: 14, Assertions: 260, Warnings: 1.
+exit=1
+## 2026-10-13T15:16:29Z tests/Integration/Wp5b/DriftReportTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.                                                                   1 / 1 (100%)
+Time: 00:09.494, Memory: 12.00 MB
+OK (1 test, 19 assertions)
+exit=0
+## 2026-10-13T15:16:40Z tests/Integration/Wp5b/MikrotikDeviceTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...                                                                 3 / 3 (100%)
+Time: 00:06.583, Memory: 10.00 MB
+OK (3 tests, 13 assertions)
+exit=0
+## 2026-10-13T15:16:48Z tests/Integration/Wp5b/PluginBypassTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.                                                                   1 / 1 (100%)
+Time: 00:07.555, Memory: 8.00 MB
+OK (1 test, 20 assertions)
+exit=0
+## 2026-10-13T15:16:58Z tests/Integration/Wp5b/LegacyEntrypointClosureTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......                                                              6 / 6 (100%)
+Time: 01:27.688, Memory: 10.00 MB
+OK (6 tests, 62 assertions)
+exit=0
+script_rc=0
+# NOTE run1: RadiusRepository closure did not capture $replaceTarget (undefined -> every existing target refused; warning + 2 failures); RenameRemediationTest F3 fixture put two Radius plans on one key (B-2) and the helper name; fixed before run2.

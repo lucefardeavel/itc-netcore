@@ -1,0 +1,42 @@
+# 2026-10-13T15:28:38Z dev/test/run-tests.sh (A3 remediated working tree, frozen: tree-before.sha256)
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+================ engine: mariadb ================
+ Container nuxbill-reseller-test-php82-run-50b2591ae2f0 Creating 
+ Container nuxbill-reseller-test-php82-run-50b2591ae2f0 Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-2f1cee7e8563 Creating 
+ Container nuxbill-reseller-test-php82-run-2f1cee7e8563 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1163 (  5%)
+.............................................................  122 / 1163 ( 10%)
+.............................................................  183 / 1163 ( 15%)
+.............................................................  244 / 1163 ( 20%)
+.............................................................  305 / 1163 ( 26%)
+.............................................................  366 / 1163 ( 31%)
+..................................................
+# ABORTED 2026-10-13T15:40:59Z at MariaDB 31%: the remediation review (R-1..R-4) required product changes; a frozen run of an outdated tree would not be valid. Process group stopped by PID; containers removed.

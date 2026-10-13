@@ -1,0 +1,275 @@
+=== dev/wp8/lab.sh up (17:05:44)
+[wp8 17:05:48] CHR 7.24.5 image verified (/srv/phpnuxbill/wp8state/img/chr-7.24.5.img)
+[wp8 17:05:48] compose: mariadb
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+[wp8 17:06:13] RADIUS database nuxr_radius (install/radius.sql + install/freeradius/nuxr_admission.sql + nuxr_hs_admission.sql) + NAS rows (production-style SQL clients)
+[wp8 17:06:16] compose: freeradius-wp8 (read_clients = yes)
+ Network nuxbill-reseller-test_wp8lab Creating 
+ Network nuxbill-reseller-test_wp8lab Creating 
+ Network nuxbill-reseller-test_wp8lab Created 
+ Network nuxbill-reseller-test_wp8lab Created 
+ Container nuxbill-reseller-test-freeradius-wp8-1 Creating 
+ Container nuxbill-reseller-test-freeradius-wp8-1 Created 
+ Container nuxbill-reseller-test-freeradius-wp8-1 Starting 
+ Container nuxbill-reseller-test-freeradius-wp8-1 Started 
+[wp8] session guard: guard=54c2d5855b041db8  delete_stale_sessions = no checkrad = ${sbindir}/checkrad stock-checkrad=stock creds=600 freerad gate_marker=0
+[wp8] TZ=Asia/Baghdad sql:  read_clients = yes  client_table = "nas" 
+[wp8] global:  require_message_authenticator = auto
+rlm_sql (10.88.0.2): Client "nuxr_wp8_chr" (sql) added
+rlm_sql (10.88.0.10): Client "nuxr_wp8_app" (sql) added
+[wp8 17:06:20] links: TAPs, Linux bridges, client namespaces (no uplink, no IP on the segment bridges)
+[wp8 17:06:21] CHR 7.24.5: QEMU TCG, 1 vCPU, 1 GiB, fresh working disk
+[wp8 17:07:30] CHR API answered after 68s
+admin: blank factory password replaced by the lab password
+  /system/identity/set                     OK
+  /ip/address/add                          OK
+  /ip/address/add                          OK
+  /ip/pool/add                             OK
+  /ip/pool/add                             OK
+  /ip/pool/add                             OK
+  /ppp/profile/add                         OK
+  /interface/pppoe-server/server/add       OK
+  /ppp/aaa/set                             OK
+  /radius/add                              OK
+  /radius/incoming/set                     OK
+  /ip/dhcp-server/network/add              OK
+  /ip/dhcp-server/add                      OK
+  /ip/hotspot/profile/add                  OK
+  /ip/hotspot/add                          OK
+  /ip/hotspot/user/profile/set             OK
+  /ip/service/set                          OK
+{"version": "7.24.5 (stable)", "architecture": "x86_64", "board": "CHR QEMU Standard PC (i440FX + PIIX, 1996)", "license": "free", "radius": {"address": "10.88.0.10", "service": "ppp,hotspot", "src-address": "10.88.0.2", "require-message-auth": "yes-for-request-resp"}, "incoming": {"accept": "true", "port": "3799", "vrf": "main"}}
+[wp8 17:07:37] client agent
+[wp8 17:07:37] lab up
+=== rc=0 (17:07:37)
+=== python3 dev/wp8/option_g_gate.py on shipped (17:07:37)
+{
+ "stock_checkrad": "shipped",
+ "guard_credential_entries": 2,
+ "start": [
+  "[wp8] session guard: guard=54c2d5855b041db8  delete_stale_sessions = no checkrad = /etc/freeradius/wp8-checkrad-trace stock-checkrad=/usr/sbin/checkrad creds=600 freerad gate_marker=1",
+  "[wp8] TZ=Asia/Baghdad sql:  read_clients = yes  client_table = \"nas\" ",
+  "[wp8] global:  require_message_authenticator = auto"
+ ],
+ "nas": [
+  "1\t10.88.0.2\tmikrotik_snmp\tset",
+  "2\t10.88.0.10\tother\tunset",
+  "3\t10.88.0.30\tmikrotik_snmp\tset"
+ ],
+ "routeros_snmp": {
+  "enabled": "true"
+ },
+ "routeros_communities": [
+  {
+   "addresses": "::/0",
+   "read-access": "true",
+   "write-access": "false",
+   "disabled": "true",
+   "default": "true",
+   "name": "public"
+  },
+  {
+   "addresses": "10.88.0.10/32",
+   "read-access": "true",
+   "write-access": "false",
+   "disabled": "false",
+   "default": "false",
+   "name": "[test-only]"
+  }
+ ],
+ "routeros_snmp_firewall": [
+  "!10.88.0.10 drop"
+ ],
+ "freeradius": [
+  "marker=0",
+  "snmpwalk_exec=1",
+  "checkrad = /etc/freeradius/wp8-checkrad-trace",
+  "delete_stale_sessions = no",
+  "naspasswd=missing",
+  "snmp_pkg=5.9.1+dfsg-1ubuntu2.9",
+  "option_g=1",
+  "snmpget_exec=1",
+  "snmpbulkwalk_exec=1",
+  "stock_checkrad_sha256=be0093605a2a032942631067fefe74ab1725f4de3b4460cc7dbfe48957cf5738",
+  "guard_creds=600 freerad",
+  "guard_creds_entry=10.88.0.2 [community]",
+  "guard_creds_entry=10.88.0.30 [community]",
+  "guard_installed=1",
+  "guard_module=1",
+  "post_auth_policy=1",
+  "lab_policy_refs=0",
+  "guard_is_install_copy=1",
+  "persistent_creds=1"
+ ],
+ "nasb": "down"
+}
+=== rc=0 (17:07:42)
+=== dev/wp8/lab.sh up-chr2 (17:07:42)
+[wp8 17:07:42] CHR2 7.24.5: QEMU TCG, 1 vCPU, 1 GiB, fresh working disk, own MACs
+[wp8 17:08:50] CHR2 API answered after 67s
+admin: blank factory password replaced by the lab password
+  /system/identity/set                     OK
+  /ip/address/add                          OK
+  /ip/pool/add                             OK
+  /ppp/profile/add                         OK
+  /interface/pppoe-server/server/add       OK
+  /ppp/aaa/set                             OK
+  /radius/add                              OK
+  /radius/incoming/set                     OK
+  /ip/service/set                          OK
+{"version": "7.24.5 (stable)", "architecture": "x86_64", "board": "CHR QEMU Standard PC (i440FX + PIIX, 1996)", "license": "free", "radius": {"address": "10.88.0.10", "service": "ppp", "src-address": "10.88.0.3", "require-message-auth": "yes-for-request-resp"}, "incoming": {"accept": "true", "port": "3799", "vrf": "main"}}
+[wp8 17:08:54] chr2 up
+=== rc=0 (17:08:54)
+=== python3 dev/wp8/h2_gate.py setup (17:08:54)
+{
+ "nas_rows": [
+  {
+   "id": "1",
+   "nasname": "10.88.0.2",
+   "shortname": "nuxr_wp8_chr",
+   "type": "mikrotik_snmp",
+   "ports": "3799",
+   "community_set": true
+  },
+  {
+   "id": "2",
+   "nasname": "10.88.0.10",
+   "shortname": "nuxr_wp8_app",
+   "type": "other",
+   "ports": "NULL",
+   "community_set": false
+  },
+  {
+   "id": "3",
+   "nasname": "10.88.0.30",
+   "shortname": "nuxr_wp8_nasb",
+   "type": "mikrotik_snmp",
+   "ports": "3799",
+   "community_set": true
+  }
+ ],
+ "freeradius_clients_loaded": [
+  "nuxr_wp8_app",
+  "nuxr_wp8_chr",
+  "nuxr_wp8_nasb"
+ ],
+ "radius_chr1": {
+  "address": "10.88.0.10",
+  "service": "ppp,hotspot",
+  "src-address": "10.88.0.2",
+  "timeout": "3s"
+ },
+ "radius_chr2": {
+  "address": "10.88.0.10",
+  "service": "ppp,hotspot",
+  "src-address": "10.88.0.3",
+  "timeout": "3s"
+ },
+ "hotspot_chr1": [
+  {
+   "name": "nuxr_wp8_hs",
+   "interface": "ether4",
+   "profile": "nuxr_wp8_hs_prof",
+   "disabled": "false"
+  }
+ ],
+ "hotspot_chr2": [
+  {
+   "name": "nuxr_wp8_hs",
+   "interface": "ether3",
+   "profile": "nuxr_wp8_hs_prof",
+   "disabled": "false"
+  }
+ ],
+ "profile_chr1": [
+  {
+   "name": "nuxr_wp8_hs_prof",
+   "login-by": "http-chap",
+   "use-radius": "true",
+   "radius-accounting": "true",
+   "radius-interim-update": "1m",
+   "hotspot-address": "10.88.2.1"
+  }
+ ],
+ "profile_chr2": [
+  {
+   "name": "nuxr_wp8_hs_prof",
+   "login-by": "http-chap",
+   "use-radius": "true",
+   "radius-accounting": "true",
+   "radius-interim-update": "1m",
+   "hotspot-address": "10.88.12.1"
+  }
+ ],
+ "client_macs": {
+  "c2": "6E:59:58:28:E8:37",
+  "c4": "12:49:49:C8:A0:79",
+  "c5": "42:91:E2:74:42:5E",
+  "c7": "02:48:32:00:00:07",
+  "c8": "02:48:32:00:00:08"
+ },
+ "client_macs_unique": true,
+ "chr_nic_macs_disjoint": true,
+ "hotspot_active": {
+  "chr1": 0,
+  "chr2": 0
+ },
+ "open_radacct_rows_h2": "0",
+ "nas_mode": "?",
+ "site": "project"
+}
+=== rc=0 (17:09:13)
+=== python3 dev/wp8/a2r_gate.py chr2 setup (17:09:13)
+{
+ "guard_credential_entries": 3,
+ "threaded": false,
+ "freeradius_cmdline": "freeradius -X",
+ "site_sha16": "5737ecbd36a59e0a",
+ "site_is": "project",
+ "readiness": "nuxr_admission=READY",
+ "nas": [
+  [
+   "1",
+   "10.88.0.2",
+   "mikrotik_snmp"
+  ],
+  [
+   "2",
+   "10.88.0.10",
+   "other"
+  ],
+  [
+   "3",
+   "10.88.0.30",
+   "mikrotik_snmp"
+  ],
+  [
+   "4",
+   "10.88.0.3",
+   "mikrotik_snmp"
+  ]
+ ]
+}
+=== rc=0 (17:09:20)
+=== python3 dev/wp8/h2b_gate.py site project (17:09:20)
+{
+ "site": "project",
+ "config_errors": 0
+}
+=== rc=0 (17:09:23)
+=== python3 dev/wp8/h2_gate.py teardown (17:14:23)
+{
+ "netns_left": []
+}
+=== rc=0 (17:14:23)
+=== dev/wp8/lab.sh down (17:14:23)
+[wp8 17:14:23] down
+links: 0 netns: 0 qemu: 0 agent: 0 containers: 0 networks: 0
+=== rc=0 (17:14:29)

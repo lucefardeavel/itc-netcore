@@ -1,0 +1,247 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+## 2026-10-13T15:06:09Z PRE-REMEDIATION RenameRemediationTest engine=mariadb
+Fatal error: Cannot override final method PHPUnit\Framework\TestCase::name() in /repo/tests/Integration/Wp5b/RenameRemediationTest.php on line 125
+exit=255
+## 2026-10-13T15:06:13Z PRE-REMEDIATION unit (new tests) engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+EFFF                                                                4 / 4 (100%)
+Time: 00:00.035, Memory: 10.00 MB
+There was 1 error:
+1) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testOldSessionNoticeType
+TypeError: array_map(): Argument #1 ($callback) must be a valid callback or null, class Reseller\Domain\LegacyReprovisionService does not have a method "oldSessionNoticeType"
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:128
+--
+There were 3 failures:
+1) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testRenamePairsDropPairsThatKeepTheKey
+cleared: [a -> a]
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => Array &1 [
++        0 => 'a',
++        1 => 'a',
++    ],
++]
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:138
+2) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testTheTargetCheckIsInsideTheRenameTransaction
+Failed asserting that false is not false.
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:153
+3) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testTheDriftIgnoresRefusals
+Failed asserting that '<?php\n
+namespace Reseller\Activation;\n
+\n
+\n
+if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }\n
+\n
+use Reseller\Domain\LegacyCustomerBalanceService;\n
+use Reseller\Domain\LegacyReprovisionService;\n
+use Reseller\Domain\Tx;\n
+use Reseller\Domain\VoucherRedemptionService;\n
+use Reseller\Finance\FinanceTx;\n
+\n
+\n
+final class DriftReport\n
+{\n
+    \n
+    public static function collect(bool $radius = true): array\n
+    {\n
+        $pdo = FinanceTx::pdo();\n
+        $out = [];\n
+        $owned = Tx::rows($pdo, 'SELECT id, username FROM tbl_customers WHERE manager_id IS NOT NULL ORDER BY id');\n
+        foreach ($owned as $c) {\n
+            $cid = (int) $c['id'];\n
+            foreach (Tx::rows($pdo, "SELECT id, method FROM tbl_user_recharges WHERE customer_id = ? AND status = 'on' ORDER BY id", [$cid]) as $r) {\n
+                $ref = str_starts_with((string) $r['method'], 'Reseller - ') ? substr((string) $r['method'], 11) : '';\n
+                $act = $ref !== '' ? ActivationStore::byReference($pdo, $ref) : null;\n
+                if ($act === null || $act['status'] !== ActivationState::COMPLETED || (int) $act['customer_id'] !== $cid || (int) $act['legacy_recharge_id'] !== (int) $r['id']) {\n
+                    $out[] = ['kind' => 'PERIOD_NOT_BACKED', 'customer_id' => $cid, 'recharge_id' => (int) $r['id']];\n
+                }\n
+            }\n
+            if ($radius) {\n
+                $latest = ActivationStore::latest($pdo, $cid, ActivationState::COMPLETED);\n
+                if ($latest !== null) {\n
+                    $target = ActivationStore::radius($pdo, (int) $latest['id'])['target'];\n
+                    try {\n
+                        $current = is_array($target) ? RadiusState::read((string) $target['username'], (int) $latest['plan_id'], (string) $latest['reference']) : null;\n
+                        if ($current === null || !RadiusState::sameSubscriber($current, $target)) {\n
+                            $out[] = ['kind' => 'RADIUS_DRIFT', 'customer_id' => $cid, 'activation' => (string) $latest['reference'],\n
+                                'differs' => $current === null ? ['not_captured'] : RadiusState::diff($current, $target)];\n
+                        }\n
+                    } catch (\Throwable $e) {\n
+                        $out[] = ['kind' => 'RADIUS_DRIFT', 'customer_id' => $cid, 'activation' => (string) $latest['reference'], 'differs' => ['radius_unreadable']];\n
+                    }\n
+                }\n
+            }\n
+        }\n
+        foreach (Tx::rows($pdo, 'SELECT p.id, p.user_id FROM tbl_payment_gateway p JOIN tbl_customers c ON c.id = p.user_id WHERE c.manager_id IS NOT NULL AND p.status = 2 ORDER BY p.id') as $p) {\n
+            $out[] = ['kind' => 'PAYMENT_FOR_RESELLER_OWNED', 'payment_id' => (int) $p['id'], 'customer_id' => (int) $p['user_id']];\n
+        }\n
+        foreach (Tx::rows($pdo, 'SELECT id, id_plan, routers FROM tbl_voucher WHERE status = ? ORDER BY id', [VoucherRedemptionService::CLAIMED]) as $v) {\n
+            $out[] = ['kind' => 'VOUCHER_CLAIMED', 'voucher_id' => (int) $v['id'], 'plan_id' => (int) $v['id_plan']];\n
+        }\n
+        $last = [];\n
+        foreach (Tx::rows($pdo, "SELECT id, target_customer_id, after_json FROM tbl_reseller_audit_events WHERE event_type LIKE 'reprovision.%' ORDER BY id") as $a) {\n
+            $after = json_decode((string) $a['after_json'], true);\n
+            $last[(int) $a['target_customer_id']] = is_array($after) ? ($after['outcome'] ?? null) : null;\n
+        }\n
+        foreach ($last as $cid => $outcome) {\n
+            if ($outcome === LegacyReprovisionService::UNCONFIRMED) {\n
+                $out[] = ['kind' => 'REPROVISION_UNCONFIRMED', 'customer_id' => $cid];\n
+            }\n
+        }\n
+        \n
+        \n
+        $old = [];\n
+        foreach (Tx::rows($pdo, "SELECT target_customer_id, event_type, after_json FROM tbl_reseller_audit_events WHERE event_type LIKE 'reprovision.%' OR event_type = 'rename.old_session' ORDER BY id") as $a) {\n
+            $after = json_decode((string) $a['after_json'], true);\n
+            $state = is_array($after) ? ($after['old_session'] ?? null) : null;\n
+            if ($a['event_type'] === 'rename.old_session') {\n
+                $old[(int) $a['target_customer_id']] = $state;\n
+            } elseif ($state === 'PENDING') {\n
+                $old[(int) $a['target_customer_id']] = 'PENDING';\n
+            }\n
+        }\n
+        foreach ($old as $cid => $state) {\n
+            if ($state === 'PENDING' || $state === 'UNCONFIRMED') {\n
+                $out[] = ['kind' => 'OLD_SESSION_UNCONFIRMED', 'customer_id' => $cid, 'state' => $state === 'PENDING' ? 'CONFIRMATION_MISSING' : 'UNCONFIRMED'];\n
+            }\n
+        }\n
+        foreach (LegacyCustomerBalanceService::held() as $h) {\n
+            $out[] = ['kind' => 'BALANCE_HELD', 'journal_id' => (int) $h['id'], 'customer_id' => (int) $h['user_id'], 'channel' => (string) $h['payment_channel']];\n
+        }\n
+        return $out;\n
+    }\n
+\n
+    \n
+    public static function autoRenewUnavailable(): array\n
+    {\n
+        return array_map(static function (array $a): array {\n
+            $after = json_decode((string) $a['after_json'], true);\n
+            return ['customer_id' => (int) $a['target_customer_id'], 'obligation' => is_array($after) ? ($after['obligation'] ?? null) : null, 'at' => (string) $a['created_at']];\n
+        }, Tx::rows(FinanceTx::pdo(), "SELECT target_customer_id, after_json, created_at FROM tbl_reseller_audit_events WHERE event_type = 'service.auto_renew_unavailable' ORDER BY id"));\n
+    }\n
+}\n
+' [ASCII](length: 5438) contains "str_starts_with((string) ($after['outcome'] ?? ''), 'REFUSED_')" [ASCII](length: 63).
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:175
+ERRORS!
+Tests: 4, Assertions: 6, Errors: 1, Failures: 3.
+exit=2
+## 2026-10-13T15:06:15Z PRE-REMEDIATION R2 (new tests) engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF                                                                  2 / 2 (100%)
+Time: 00:09.936, Memory: 10.00 MB
+There were 2 failures:
+1) Reseller\Tests\Integration\Wp4\RadiusLegacyRenameTest::testPppoeUsernameHeldByAnotherCustomerIsRefusedBeforeTheSave
+rva83da00a: refused before the save; the other customer's identity, password and policy are unchanged
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+     1 => Array &2 [
+         'username' => 'rwfc1c1471',
+         'password' => 'pw-rwfc1c1471',
+-        'pppoe_username' => 'prwfc1c1471',
++        'pppoe_username' => 'rva83da00a',
+         'pppoe_password' => '',
+     ],
+-    2 => 'd3692a0ead6fca2659bfe415cf564af745d7f7761a794b525ee81db1078e0da8',
++    2 => '34199ff85d5f15dd2cda60662d12041e9dbc55a88129fb146bda2bea8eb95741',
+     3 => Array &3 [
+-        0 => 'radcheck|Cleartext-Password|:=|pw-rva83da00a',
++        0 => 'radcheck|Cleartext-Password|:=|pw-rwfc1c1471',
+         1 => 'radcheck|Expiration|:=|01 Jan 2031 10:00:00',
+         2 => 'radcheck|Simultaneous-Use|:=|1',
+-        3 => 'radreply|Mikrotik-Rate-Limit|:=|2M/4M',
+-        4 => 'radreply|Port-Limit|:=|1',
+-        5 => 'radreply|WISPr-Session-Terminate-Time|:=|2031-01-01T10:00:00+07:00',
+-        6 => 'radusergroup|plan_2|1',
++        3 => 'radreply|Framed-Pool|:=|nuxr-pool',
++        4 => 'radreply|Mikrotik-Rate-Limit|:=|2M/4M',
++        5 => 'radusergroup|plan_3|1',
+     ],
+     4 => Array &4 [
+         0 => 'radcheck|Cleartext-Password|:=|pw-rva83da00a',
+/repo/tests/Integration/Wp4/RadiusLegacyRenameTest.php:151
+2) Reseller\Tests\Integration\Wp4\RadiusLegacyRenameTest::testAPolicyUnderTheNewNameThatIsNotTheCustomersIsRefusedBeforeTheSave
+refused before the save; the existing policy is byte-identical
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     0 => Array &1 [
+-        'username' => 'rua5d4e1b2',
++        'username' => 'rta236dce1',
+         'password' => 'pw-rua5d4e1b2',
+         'pppoe_username' => 'prua5d4e1b2',
+         'pppoe_password' => '',
+     ],
+-    1 => 'a0fca675fcd177a063872f46754b7262caef33c285681b56ef8b0c11391cfa3e',
++    1 => '2ed953b5f8c3dc84a01d503a8744c6f72adab33b3dfb4cbe4c351672706149e2',
+     2 => Array &2 [
+-        0 => 'radcheck|Cleartext-Password|:=|orphan',
++        0 => 'radcheck|Cleartext-Password|:=|pw-rua5d4e1b2',
++        1 => 'radcheck|Expiration|:=|01 Jan 2031 10:00:00',
++        2 => 'radcheck|Simultaneous-Use|:=|1',
++        3 => 'radreply|Mikrotik-Rate-Limit|:=|2M/4M',
++        4 => 'radreply|Port-Limit|:=|1',
++        5 => 'radreply|WISPr-Session-Terminate-Time|:=|2031-01-01T10:00:00+07:00',
++        6 => 'radusergroup|plan_2|1',
+     ],
+ ]
+/repo/tests/Integration/Wp4/RadiusLegacyRenameTest.php:165
+FAILURES!
+Tests: 2, Assertions: 12, Failures: 2.
+exit=1
+## 2026-10-13T15:06:27Z PRE-REMEDIATION repository (new test) engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F                                                                   1 / 1 (100%)
+Time: 00:01.112, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testAnExistingExactTargetIsRefusedWhenTheCallerDoesNotOwnIt
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    0 => 'FAILED',
+-    1 => 'RADIUS_IDENTITY_TAKEN',
++    0 => 'SUCCESS',
++    1 => 'OK',
+ ]
+/repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:132
+FAILURES!
+Tests: 1, Assertions: 1, Failures: 1.
+exit=1
+script_rc=0
+# NOTE: RenameRemediationTest fatal = a test bug (helper name() clashes with the final PHPUnit TestCase::name()); renamed userOf(); see run2.

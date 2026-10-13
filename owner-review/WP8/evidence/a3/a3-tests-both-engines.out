@@ -1,0 +1,140 @@
+## 2026-10-13T10:33:30Z engine=mariadb tests/Unit/Wp5b/RenameOldSessionUnitTest.php
+ Container nuxbill-reseller-test-php82-run-715fae3630e4 Creating 
+ Container nuxbill-reseller-test-php82-run-715fae3630e4 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............                                                     13 / 13 (100%)
+
+Time: 00:00.024, Memory: 10.00 MB
+
+OK (13 tests, 43 assertions)
+exit=0
+## 2026-10-13T10:33:31Z engine=mariadb tests/Integration/Wp4/RadiusRenameIntegrityTest.php
+ Container nuxbill-reseller-test-php82-run-501998708eb9 Creating 
+ Container nuxbill-reseller-test-php82-run-501998708eb9 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:00.592, Memory: 10.00 MB
+
+OK (5 tests, 17 assertions)
+exit=0
+## 2026-10-13T10:33:33Z engine=mariadb tests/Integration/Wp5b/RenameIntegrityTest.php
+ Container nuxbill-reseller-test-php82-run-8d150362832f Creating 
+ Container nuxbill-reseller-test-php82-run-8d150362832f Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....                                                                4 / 4 (100%)
+
+Time: 00:02.232, Memory: 12.00 MB
+
+OK (4 tests, 67 assertions)
+exit=0
+## 2026-10-13T10:33:37Z engine=mariadb tests/Integration/Wp4/RadiusLegacyRenameTest.php
+ Container nuxbill-reseller-test-php82-run-8e87ac07cb96 Creating 
+ Container nuxbill-reseller-test-php82-run-8e87ac07cb96 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:05.716, Memory: 10.00 MB
+
+OK (2 tests, 23 assertions)
+exit=0
+## 2026-10-13T10:33:45Z engine=mariadb tests/Integration/Wp5b/RenameOldSessionTest.php
+ Container nuxbill-reseller-test-php82-run-34c77c58cfea Creating 
+ Container nuxbill-reseller-test-php82-run-34c77c58cfea Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....................                                              20 / 20 (100%)
+
+Time: 02:01.454, Memory: 12.00 MB
+
+OK (20 tests, 325 assertions)
+exit=0
+## 2026-10-13T10:35:48Z engine=mysql tests/Unit/Wp5b/RenameOldSessionUnitTest.php
+ Container nuxbill-reseller-test-php82-run-66e39e670332 Creating 
+ Container nuxbill-reseller-test-php82-run-66e39e670332 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............                                                     13 / 13 (100%)
+
+Time: 00:00.051, Memory: 10.00 MB
+
+OK (13 tests, 43 assertions)
+exit=0
+## 2026-10-13T10:35:52Z engine=mysql tests/Integration/Wp4/RadiusRenameIntegrityTest.php
+ Container nuxbill-reseller-test-php82-run-d27c0e6f2246 Creating 
+ Container nuxbill-reseller-test-php82-run-d27c0e6f2246 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:03.863, Memory: 10.00 MB
+
+OK (5 tests, 17 assertions)
+exit=0
+## 2026-10-13T10:35:59Z engine=mysql tests/Integration/Wp5b/RenameIntegrityTest.php
+ Container nuxbill-reseller-test-php82-run-f12200acab3a Creating 
+ Container nuxbill-reseller-test-php82-run-f12200acab3a Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....                                                                4 / 4 (100%)
+
+Time: 00:11.228, Memory: 12.00 MB
+
+OK (4 tests, 67 assertions)
+exit=0
+## 2026-10-13T10:36:16Z engine=mysql tests/Integration/Wp4/RadiusLegacyRenameTest.php
+ Container nuxbill-reseller-test-php82-run-ba17559caafd Creating 
+ Container nuxbill-reseller-test-php82-run-ba17559caafd Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:15.521, Memory: 10.00 MB
+
+OK (2 tests, 23 assertions)
+exit=0
+## 2026-10-13T10:36:35Z engine=mysql tests/Integration/Wp5b/RenameOldSessionTest.php
+ Container nuxbill-reseller-test-php82-run-f278b45d1b48 Creating 
+ Container nuxbill-reseller-test-php82-run-f278b45d1b48 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....................                                              20 / 20 (100%)
+
+Time: 02:08.572, Memory: 12.00 MB
+
+OK (20 tests, 325 assertions)
+exit=0

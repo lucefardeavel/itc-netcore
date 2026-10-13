@@ -1,0 +1,357 @@
+# 2026-10-12T13:10:38Z BASELINE (production code unchanged, 32a162d6): the new A3 tests must fail
+ Container nuxbill-reseller-test-php82-run-15ca1cc14129 Creating 
+ Container nuxbill-reseller-test-php82-run-15ca1cc14129 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+EEEEEEEEEEFFF                                                     13 / 13 (100%)
+
+Time: 00:00.033, Memory: 10.00 MB
+
+There were 10 errors:
+
+1) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testSessionState with data set "ACK + Stop" ('SUCCESS', 'COA_ACK', true, 'CONFIRMED')
+Error: Call to undefined method Reseller\Domain\LegacyReprovisionService::sessionState()
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:37
+
+2) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testSessionState with data set "ACK, no Stop" ('SUCCESS', 'COA_ACK', false, 'ack_without_stop')
+Error: Call to undefined method Reseller\Domain\LegacyReprovisionService::sessionState()
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:37
+
+3) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testSessionState with data set "NAK 503" ('SUCCESS', 'SESSION_NOT_FOUND', false, 'CONFIRMED')
+Error: Call to undefined method Reseller\Domain\LegacyReprovisionService::sessionState()
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:37
+
+4) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testSessionState with data set "NAK 406 / other" ('FAILED', 'COA_NAK', false, 'COA_NAK')
+Error: Call to undefined method Reseller\Domain\LegacyReprovisionService::sessionState()
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:37
+
+5) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testSessionState with data set "no answer" ('UNKNOWN', 'COA_NO_RESPONSE', false, 'COA_NO_RESPONSE')
+Error: Call to undefined method Reseller\Domain\LegacyReprovisionService::sessionState()
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:37
+
+6) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testSessionState with data set "NAS unknown" ('FAILED', 'NAS_UNKNOWN', false, 'NAS_UNKNOWN')
+Error: Call to undefined method Reseller\Domain\LegacyReprovisionService::sessionState()
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:37
+
+7) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testSessionState with data set "unexpected reply" ('UNKNOWN', 'COA_UNEXPECTED_REPLY', false, 'COA_UNEXPECTED_REPLY')
+Error: Call to undefined method Reseller\Domain\LegacyReprovisionService::sessionState()
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:37
+
+8) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testSessionState with data set "exception" ('UNKNOWN', 'COA_EXCEPTION', false, 'COA_EXCEPTION')
+Error: Call to undefined method Reseller\Domain\LegacyReprovisionService::sessionState()
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:37
+
+9) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testSessionState with data set "a Stop never turns a NAK into proof" ('FAILED', 'COA_NAK', true, 'COA_NAK')
+Error: Call to undefined method Reseller\Domain\LegacyReprovisionService::sessionState()
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:37
+
+10) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testIdentityStateAndWorstOf
+Error: Call to undefined method Reseller\Domain\LegacyReprovisionService::identityState()
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:42
+
+--
+
+There were 3 failures:
+
+1) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testTheRadiusRenameCapturesBeforeAndAfterAndDefersTheDisconnect
+before
+Failed asserting that false is not false.
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:89
+
+2) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testTheServiceContactsTheNasOnlyAfterTheTreeLockIsReleased
+Failed asserting that false is not false.
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:102
+
+3) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testTheDisconnectTargetsACapturedRowAndTheDriftKindExists
+disconnectSession
+Failed asserting that false is not false.
+
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:72
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:115
+
+ERRORS!
+Tests: 13, Assertions: 6, Errors: 10, Failures: 3.
+
+exit=2
+ Container nuxbill-reseller-test-php82-run-13004c68c7dc Creating 
+ Container nuxbill-reseller-test-php82-run-13004c68c7dc Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FFFFFFEEEFFFFFFFFFFF                                              20 / 20 (100%)
+
+Time: 03:14.163, Memory: 12.00 MB
+
+There were 3 errors:
+
+1) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testPppoeUsernameEmptyToSetAndSetToEmptyTargetTheFormerPppoeKey
+TypeError: array_map(): Argument #2 ($array) must be of type array, null given
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:273
+
+2) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testUsernameAndPppoeTogetherGivePerIdentityResultsAndTheWorstWins
+Reseller\Domain\DomainError: The change was saved but the device result could not be confirmed. It was not retried; an administrator must synchronize this customer. (ref cedd792900aa)
+
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:108
+/repo/system/autoload/Reseller/Domain/TreeSerialization.php:43
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:67
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:297
+
+3) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testTheSameOldKeyIsDisconnectedOnceAcrossPlans
+Reseller\Domain\DomainError: The change was saved but the device result could not be confirmed. It was not retried; an administrator must synchronize this customer. (ref cedd792900aa)
+
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:108
+/repo/system/autoload/Reseller/Domain/TreeSerialization.php:43
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:67
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:243
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:312
+
+--
+
+There were 17 failures:
+
+1) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAckWithStopIsConfirmedAndOnlyTheOldRowIsTargeted
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     0 => 'DONE',
+-    1 => 'CONFIRMED',
++    1 => null,
+ ]
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:143
+
+2) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAckWithoutStopIsUnconfirmedAfterTheBoundAndStatusStaysDone
+an ACK alone is not proof
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     0 => 'DONE',
+-    1 => 'UNCONFIRMED',
++    1 => null,
+ ]
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:171
+
+3) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNak503IsConfirmedForThatSessionAndNak406IsNot
+NAK 503: the NAS has no such session
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     0 => 'DONE',
+-    1 => 'CONFIRMED',
++    1 => null,
+ ]
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:187
+
+4) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNoAnswerAndUnknownNasAreUnconfirmedWithoutRetryOrRevert
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     0 => 'DONE',
+-    1 => 'UNCONFIRMED',
++    1 => null,
+ ]
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:211
+
+5) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNoOpenRowIsNoAccountingEvidenceAndNothingIsSent
+not CONFIRMED: no proof that it is offline
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     0 => 'DONE',
+-    1 => 'NO_ACCOUNTING_EVIDENCE',
++    1 => null,
+ ]
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:226
+
+6) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testPppoeUsernameOldToNewTargetsTheOldPppoeKey
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     0 => 'DONE',
+-    1 => 'CONFIRMED',
++    1 => null,
+ ]
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:258
+
+7) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testEquivalentRenameTargetsOnlyTheSessionsOpenBeforeTheRename
+Failed asserting that null is true.
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:347
+
+8) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testNonEquivalentRenameTargetsEveryRecordedSpellingOfTheOldNameOnly
+Failed asserting that null is false.
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:363
+
+9) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAnotherSubscriberWithAnEquivalentNameMeansNothingIsSent
+Failed asserting that null is identical to 'UNCONFIRMED'.
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:386
+
+10) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAnotherCustomerHoldingTheOldNameMeansNothingIsSent
+Failed asserting that null is identical to 'UNCONFIRMED'.
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:402
+
+11) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testRenameFailedIsRevertedAndNothingIsSent
+Failed asserting that null is identical to 'NOT_APPLICABLE'.
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:418
+
+12) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testRenameAppliedThenAddFailedStillRecordsTheOldSession
+Failed asserting that actual size 0 matches expected size 1.
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:430
+
+13) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testUnconfirmedRenameIsAnUnconfirmedOldSession
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    0 => 'UNCONFIRMED',
+-    1 => 'rename_not_confirmed',
++    0 => null,
++    1 => null,
+ ]
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:453
+
+14) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testAMissingConfirmationEventIsReportedByTheDriftReport
+Failed asserting that null is identical to 'PENDING'.
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:475
+
+15) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testDisconnectsRunWithoutTheTreeLockOrATransactionAndKeepTheCapturedIdentity
+no tree lock and no transaction while the NAS is contacted
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 [
+-    'tree_lock_free' => true,
+-    'in_transaction' => false,
+-]
++Array &0 []
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:511
+
+16) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testLegacyUnassignedRenameAlsoEndsTheOldSession
+the old session was targeted (no answer: identical retransmissions only)
+Failed asserting that actual size 0 matches expected size 3.
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:538
+
+17) Reseller\Tests\Integration\Wp5b\RenameOldSessionTest::testPasswordChangeIsNotApplicable
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     0 => 'DONE',
+-    1 => 'NOT_APPLICABLE',
++    1 => null,
+ ]
+
+/repo/tests/Integration/Wp5b/RenameOldSessionTest.php:550
+
+--
+
+15 tests triggered 19 PHP warnings:
+
+1) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:143
+Undefined array key "old_session"
+
+2) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:171
+Undefined array key "old_session"
+
+3) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:187
+Undefined array key "old_session"
+
+4) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:211
+Undefined array key "old_session"
+
+5) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:226
+Undefined array key "old_session"
+
+6) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:258
+Undefined array key "old_session"
+
+7) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:273
+Trying to access array offset on value of type bool
+
+8) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:346
+Undefined array key 0
+
+9) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:347
+Trying to access array offset on value of type null
+
+10) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:362
+Undefined array key 0
+
+11) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:363
+Trying to access array offset on value of type null
+
+12) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:385
+Undefined array key 0
+
+13) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:386
+Trying to access array offset on value of type null
+
+14) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:402
+Undefined array key "old_session"
+
+15) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:418
+Undefined array key "old_session"
+
+16) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:453
+Undefined array key 0
+
+17) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:453
+Trying to access array offset on value of type null
+
+18) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:475
+Undefined array key "old_session"
+
+19) /repo/tests/Integration/Wp5b/RenameOldSessionTest.php:550
+Undefined array key "old_session"
+
+ERRORS!
+Tests: 20, Assertions: 199, Errors: 3, Failures: 17, Warnings: 19.
+
+exit=2

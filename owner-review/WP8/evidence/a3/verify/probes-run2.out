@@ -1,0 +1,84 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+## 2026-10-13T14:07:52Z A3 ReviewFindingsProbeTest engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1","first":{"status":"DomainError","old_session":null,"reason":"REPROVISION_UNCONFIRMED"},"drift_before":["REPROVISION_UNCONFIRMED","OLD_SESSION_UNCONFIRMED:UNCONFIRMED"],"refusal":{"status":"DomainError","old_session":null,"reason":"RENAME_AMBIGUOUS_IDENTITY"},"drift_after":["OLD_SESSION_UNCONFIRMED:UNCONFIRMED"]}
+.PROBE {"case":"F3","together":{"status":"DomainError","old_session":null,"reason":"RENAME_AMBIGUOUS_IDENTITY"},"separately":[{"status":"DONE","old_session":"NO_ACCOUNTING_EVIDENCE","reason":null},{"status":"DONE","old_session":"NO_ACCOUNTING_EVIDENCE","reason":null}]}
+.PROBE {"case":"F4","result":{"status":"DONE","old_session":"UNCONFIRMED","reason":null},"confirmation":{"old_session":"UNCONFIRMED","operation":"IDENTITY_EDIT","reprovision_outcome":"DONE","identities":[{"from":"pf44ba00aa9","to":"pf44ba00aa9","equivalent":null,"state":"UNCONFIRMED","reason":"rename_not_confirmed","sessions":[]}]},"drift":["PERIOD_NOT_BACKED","OLD_SESSION_UNCONFIRMED:UNCONFIRMED"]}
+..                                                                4 / 4 (100%)PROBE {"case":"F5","result":{"status":"DONE","old_session":"UNCONFIRMED","reason":null},"run_seconds":6.3,"stub_received":1,"targets":[["pf55931911a","pf5b04b27d51",1,"COA_ACK"],["pf55931911a","pf5c3b93ef76",1,"COA_NO_RESPONSE"]],"rows_under_new_username":5,"rows_under_new_pppoe":5}
+Time: 00:09.416, Memory: 12.00 MB
+OK (4 tests, 61 assertions)
+exit=0
+## 2026-10-13T14:08:05Z A3 BaselineComparableProbeTest engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1-context","first":"DomainError:REPROVISION_UNCONFIRMED","unconfirmed_listed_before":true,"second":"DomainError:REPROVISION_FAILED","unconfirmed_listed_after":false}
+.PROBE {"case":"F5-keys","sync":"DONE","rename":"DONE","rows_old":0,"rows_new_username":5,"rows_new_pppoe":5}
+.                                                                  2 / 2 (100%)
+Time: 00:02.592, Memory: 12.00 MB
+OK (2 tests, 26 assertions)
+exit=0
+## 2026-10-13T14:08:10Z BASELINE(HEAD product files) BaselineComparableProbeTest engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1-context","first":"DomainError:REPROVISION_UNCONFIRMED","unconfirmed_listed_before":true,"second":"DomainError:REPROVISION_FAILED","unconfirmed_listed_after":false}
+.PROBE {"case":"F5-keys","sync":"DONE","rename":"DONE","rows_old":0,"rows_new_username":5,"rows_new_pppoe":5}
+.                                                                  2 / 2 (100%)
+Time: 00:01.910, Memory: 12.00 MB
+OK (2 tests, 26 assertions)
+exit=0
+## 2026-10-13T14:08:14Z A3 ReviewFindingsProbeTest engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1","first":{"status":"DomainError","old_session":null,"reason":"REPROVISION_UNCONFIRMED"},"drift_before":["REPROVISION_UNCONFIRMED","OLD_SESSION_UNCONFIRMED:UNCONFIRMED"],"refusal":{"status":"DomainError","old_session":null,"reason":"RENAME_AMBIGUOUS_IDENTITY"},"drift_after":["OLD_SESSION_UNCONFIRMED:UNCONFIRMED"]}
+.PROBE {"case":"F3","together":{"status":"DomainError","old_session":null,"reason":"RENAME_AMBIGUOUS_IDENTITY"},"separately":[{"status":"DONE","old_session":"NO_ACCOUNTING_EVIDENCE","reason":null},{"status":"DONE","old_session":"NO_ACCOUNTING_EVIDENCE","reason":null}]}
+.PROBE {"case":"F4","result":{"status":"DONE","old_session":"UNCONFIRMED","reason":null},"confirmation":{"old_session":"UNCONFIRMED","operation":"IDENTITY_EDIT","reprovision_outcome":"DONE","identities":[{"from":"pf468679458","to":"pf468679458","equivalent":null,"state":"UNCONFIRMED","reason":"rename_not_confirmed","sessions":[]}]},"drift":["PERIOD_NOT_BACKED","OLD_SESSION_UNCONFIRMED:UNCONFIRMED"]}
+.PROBE {"case":"F5","result":{"status":"DONE","old_session":"UNCONFIRMED","reason":null},"run_seconds":6.2,"stub_received":1,"targets":[["pf5d681f5c1","pf5bc3189d4b",1,"COA_ACK"],["pf5d681f5c1","pf5c19703c1c",1,"COA_NO_RESPONSE"]],"rows_under_new_username":5,"rows_under_new_pppoe":5}
+.                                                                4 / 4 (100%)
+Time: 00:13.094, Memory: 12.00 MB
+OK (4 tests, 61 assertions)
+exit=0
+## 2026-10-13T14:08:29Z A3 BaselineComparableProbeTest engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1-context","first":"DomainError:REPROVISION_UNCONFIRMED","unconfirmed_listed_before":true,"second":"DomainError:REPROVISION_FAILED","unconfirmed_listed_after":false}
+.PROBE {"case":"F5-keys","sync":"DONE","rename":"DONE","rows_old":0,"rows_new_username":5,"rows_new_pppoe":5}
+.                                                                  2 / 2 (100%)
+Time: 00:05.911, Memory: 12.00 MB
+OK (2 tests, 26 assertions)
+exit=0
+## 2026-10-13T14:08:36Z BASELINE(HEAD product files) BaselineComparableProbeTest engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1-context","first":"DomainError:REPROVISION_UNCONFIRMED","unconfirmed_listed_before":true,"second":"DomainError:REPROVISION_FAILED","unconfirmed_listed_after":false}
+.PROBE {"case":"F5-keys","sync":"DONE","rename":"DONE","rows_old":0,"rows_new_username":5,"rows_new_pppoe":5}
+.                                                                  2 / 2 (100%)
+Time: 00:06.343, Memory: 12.00 MB
+OK (2 tests, 26 assertions)
+exit=0
+script_rc=0

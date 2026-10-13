@@ -166,20 +166,70 @@ final class RadiusRepository
     /**
      * Renames a subscriber in all three policy tables (the legacy device skipped radreply). Rows already held
      * by the target name are replaced, so the renamed subscriber never ends up with two policies.
+     *
+     * WP8 A3 (rename integrity): the username columns compare with utf8mb4_general_ci, so the rename works on EXACT
+     * bytes. An equivalent rename (case / accent only) updates the subscriber's own rows in place; another exact key
+     * that the collation treats as equal to the source or the target refuses the whole rename before any write
+     * (FAILED RADIUS_IDENTITY_AMBIGUOUS, rolled back). With $replaceTarget false (owner D-3), rows already held by the
+     * exact target refuse the rename too (FAILED RADIUS_IDENTITY_TAKEN): another subscriber's policy is never replaced.
      */
-    public function renameUser(string $from, string $to): int
+    public function renameUser(string $from, string $to, bool $replaceTarget = true): int
     {
         if ($from === $to) {
             return 0;
         }
-        return $this->tx(function () use ($from, $to): int {
+        return $this->tx(function () use ($from, $to, $replaceTarget): int {
+            if ($this->equivalentKeys($from, $to, true) !== []) {
+                throw new ProvisionFailure(ProvisionResult::failed('RADIUS_IDENTITY_AMBIGUOUS', 'Another RADIUS identity is equivalent to this name; nothing was changed.', false));
+            }
+            // WP8 A3 (owner D-3): an existing exact target is replaced only when the caller owns it; checked on the
+            // rows locked above, in the write transaction itself (no window between the check and the write)
+            if (!$replaceTarget && $this->exactRows($to) > 0) {
+                throw new ProvisionFailure(ProvisionResult::failed('RADIUS_IDENTITY_TAKEN', 'The new RADIUS identity already holds a policy that is not this subscriber\'s; nothing was changed.', false));
+            }
             $n = 0;
             foreach (['radcheck', 'radreply', 'radusergroup'] as $t) {
-                $this->exec("DELETE FROM {$t} WHERE username = ?", [$to]);
-                $n += $this->exec("UPDATE {$t} SET username = ? WHERE username = ?", [$to, $from]);
+                $deleted = $this->exec("DELETE FROM {$t} WHERE username = ? AND CAST(username AS BINARY) = CAST(? AS BINARY)", [$to, $to]);
+                // owner D-3: also under READ COMMITTED (no gap locks), a target row that appeared after the check
+                // above is never deleted for a caller that does not own the target (rolled back)
+                if (!$replaceTarget && $deleted > 0) {
+                    throw new ProvisionFailure(ProvisionResult::failed('RADIUS_IDENTITY_TAKEN', 'The new RADIUS identity already holds a policy that is not this subscriber\'s; nothing was changed.', false));
+                }
+                $n += $this->exec("UPDATE {$t} SET username = ? WHERE username = ? AND CAST(username AS BINARY) = CAST(? AS BINARY)", [$to, $from, $from]);
             }
             return $n;
         });
+    }
+
+    /**
+     * WP8 A3: the exact keys (lowercase hex of the bytes) in radcheck / radreply / radusergroup that the column
+     * collation treats as equal to $from or $to, other than $from, $to and $alsoOwn. Non-empty = an ambiguous rename.
+     *
+     * @return list<string>
+     */
+    public function equivalentKeys(string $from, string $to, bool $lock = false, array $alsoOwn = []): array
+    {
+        $own = array_map('bin2hex', array_merge([$from, $to], $alsoOwn));
+        $other = [];
+        foreach (['radcheck', 'radreply', 'radusergroup'] as $t) {
+            foreach ($this->rows("SELECT HEX(username) AS h FROM {$t} WHERE username = ? OR username = ?" . ($lock ? ' FOR UPDATE' : ''), [$from, $to]) as $r) {
+                $h = strtolower((string) $r['h']);
+                if (!in_array($h, $own, true)) {
+                    $other[$h] = true;
+                }
+            }
+        }
+        return array_keys($other);
+    }
+
+    /** WP8 A3: the number of policy rows held by exactly these bytes (radcheck + radreply + radusergroup). */
+    public function exactRows(string $username): int
+    {
+        $n = 0;
+        foreach (['radcheck', 'radreply', 'radusergroup'] as $t) {
+            $n += (int) $this->rows("SELECT COUNT(*) AS n FROM {$t} WHERE username = ? AND CAST(username AS BINARY) = CAST(? AS BINARY)", [$username, $username])[0]['n'];
+        }
+        return $n;
     }
 
     /**

@@ -710,7 +710,9 @@ switch ($action) {
             }
             $userDiff = true;
         }
-        if ($oldPppoeUsername != $pppoe_username) {
+        // WP8 A3 (owner D-3): strict comparison; the PPPoE username is always saved, so a loose "equal" (numeric
+        // strings, e.g. 100 and 1e2) would skip every collision check and the RADIUS rename
+        if ((string) $oldPppoeUsername !== (string) $pppoe_username) {
             // if(!empty($pppoe_username)){
             //     if(ORM::for_table('tbl_customers')->where('pppoe_username', $pppoe_username)->find_one()){
             //         $msg.= Lang::T('PPPoE Username already used by another customer') . '<br>';
@@ -741,7 +743,7 @@ switch ($action) {
         }
         if ($resellerOwned && $msg == '' && ($userDiff || $pppoeDiff || $pppoeIpDiff || $passDiff)) {
             try {
-                \Reseller\Domain\LegacyReprovisionService::run(\Reseller\Security\ActorContext::current(), (int) $c['id'], \Reseller\Domain\LegacyReprovisionService::IDENTITY_EDIT, [
+                $nuxrReprovision = \Reseller\Domain\LegacyReprovisionService::run(\Reseller\Security\ActorContext::current(), (int) $c['id'], \Reseller\Domain\LegacyReprovisionService::IDENTITY_EDIT, [
                     'username' => $username, 'password' => $password, 'pppoe_username' => $pppoe_username, 'pppoe_password' => $pppoe_password, 'pppoe_ip' => $pppoe_ip,
                 ]);
             } catch (\Reseller\Domain\DomainError $e) {
@@ -751,6 +753,21 @@ switch ($action) {
         }
         if ($resellerOwned) {
             $userDiff = $pppoeDiff = $pppoeIpDiff = $passDiff = false;
+        }
+        // WP8 A3 (OD-A3R-9, owner D-3): a PPPoE username never takes another customer's name, and a RADIUS rename that
+        // would meet another identity (equivalent key, a policy that is not this customer's, RADIUS unreadable) is
+        // refused before the customer row is saved (nothing is written, nothing to revert)
+        $nuxrOld = ['username' => $oldusername, 'pppoe_username' => $oldPppoeUsername];
+        $nuxrNew = ['username' => $userDiff ? $username : $oldusername, 'pppoe_username' => $pppoeDiff ? $pppoe_username : $oldPppoeUsername];
+        if ($c && $msg == '' && $pppoeDiff && (string) $pppoe_username !== ''
+            && \Reseller\Domain\LegacyReprovisionService::nameTakenByOther((string) $pppoe_username, (int) $c['id'])) {
+            $msg .= Lang::T('PPPoE username already used by another customer') . '<br>';
+        }
+        if ($c && $msg == '' && ($userDiff || $pppoeDiff)) {
+            $nuxrCheck = \Reseller\Domain\LegacyReprovisionService::renameCheck(ORM::for_table('tbl_user_recharges')->where('customer_id', $c['id'])->where('status', 'on')->order_by_asc('id')->find_array(), $nuxrOld, $nuxrNew);
+            if ($nuxrCheck !== \Reseller\Domain\LegacyReprovisionService::RENAME_OK) {
+                $msg .= Lang::T(\Reseller\Domain\LegacyReprovisionService::RENAME_REFUSALS[$nuxrCheck]) . '<br>';
+            }
         }
 
         if ($msg == '') {
@@ -874,7 +891,12 @@ switch ($action) {
             }
 
             if ($userDiff || $pppoeDiff || $pppoeIpDiff || $passDiff) {
-                $turs = ORM::for_table('tbl_user_recharges')->where('customer_id', $c['id'])->findMany();
+                // WP8 A3: in id order, as the rename pre-check saw them
+                $turs = ORM::for_table('tbl_user_recharges')->where('customer_id', $c['id'])->order_by_asc('id')->findMany();
+                // WP8 A3 (owner D-3): the Radius device may replace an existing exact target only when it is this
+                // customer's own key (its old keys, or a key this edit renamed into first)
+                \Reseller\Domain\LegacyReprovisionService::renameScope($nuxrOld);
+                try {
                 foreach ($turs as $tur) {
                     $p = ORM::for_table('tbl_plans')->find_one($tur['plan_id']);
                     $dvc = Package::getDevice($p);
@@ -883,20 +905,17 @@ switch ($action) {
                         if ($tur['status'] == 'on') {
                             if (file_exists($dvc)) {
                                 require_once $dvc;
-                                if ($userDiff) {
-                                    (new $p['device'])->change_username($p, $oldusername, $username);
-                                }
-                                if ($pppoeDiff && $tur['type'] == 'PPPOE') {
-                                    if (empty($oldPppoeUsername) && !empty($pppoe_username)) {
-                                        // admin just add pppoe username
-                                        (new $p['device'])->change_username($p, $username, $pppoe_username);
-                                    } else if (empty($pppoe_username) && !empty($oldPppoeUsername)) {
-                                        // admin want to use customer username
-                                        (new $p['device'])->change_username($p, $oldPppoeUsername, $username);
-                                    } else {
-                                        // regular change pppoe username
-                                        (new $p['device'])->change_username($p, $oldPppoeUsername, $pppoe_username);
+                                // username, then the PPPoE key (added: new username -> PPPoE username; cleared: back to
+                                // the username; changed: old -> new). WP8 A3 (F-4, FIX-4): the shared RADIUS database
+                                // renames each old key once; a second plan on the same key is only re-provisioned
+                                foreach (\Reseller\Domain\LegacyReprovisionService::renamePairs($nuxrOld, $nuxrNew, (string) $tur['type']) as [$nuxrFrom, $nuxrTo]) {
+                                    if ($p['device'] === 'Radius') {
+                                        if (isset($nuxrRenamed[$nuxrFrom])) {
+                                            continue;
+                                        }
+                                        $nuxrRenamed[$nuxrFrom] = true;
                                     }
+                                    (new $p['device'])->change_username($p, $nuxrFrom, $nuxrTo);
                                 }
                                 (new $p['device'])->add_customer($c, $p);
                             } else {
@@ -907,8 +926,14 @@ switch ($action) {
                     $tur->username = $username;
                     $tur->save();
                 }
+                } finally {
+                    \Reseller\Domain\LegacyReprovisionService::renameScope(null);
+                }
             }
-            r2(getUrl('customers/view/') . $id, 's', 'User Updated Successfully');
+            // WP8 A3 (FIX-5): the old-identity session state of a reseller-owned rename; UNCONFIRMED and
+            // NO_ACCOUNTING_EVIDENCE are shown as warnings, never as success
+            $nuxrOldSession = isset($nuxrReprovision) ? ($nuxrReprovision['old_session'] ?? null) : null;
+            r2(getUrl('customers/view/') . $id, \Reseller\Domain\LegacyReprovisionService::oldSessionNoticeType($nuxrOldSession), 'User Updated Successfully' . \Reseller\Domain\LegacyReprovisionService::oldSessionNote($nuxrOldSession));
         } else {
             r2(getUrl('customers/edit/') . $id, 'e', $msg);
         }

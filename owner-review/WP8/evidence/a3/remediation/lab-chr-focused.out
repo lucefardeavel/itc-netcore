@@ -1,0 +1,15 @@
+# 2026-10-13T17:09:34Z dev/wp8/lab.sh test --testsuite wp8-integration --filter 'RenameOldSessionLabTest|RealLifecycleTest' (remediated tree = harness tree-before.sha256)
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-5004881302bc Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-5004881302bc Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.........                                                           9 / 9 (100%)
+
+Time: 04:28.967, Memory: 14.00 MB
+
+OK (9 tests, 269 assertions)
+exit=0

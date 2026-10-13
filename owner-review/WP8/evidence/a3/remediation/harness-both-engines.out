@@ -1,0 +1,104 @@
+# 2026-10-13T15:53:17Z dev/test/run-tests.sh (A3 remediated working tree incl. review fixes R-1..R-8, frozen: tree-before.sha256)
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+================ engine: mariadb ================
+ Container nuxbill-reseller-test-php82-run-6560736468c3 Creating 
+ Container nuxbill-reseller-test-php82-run-6560736468c3 Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-40dda639f87b Creating 
+ Container nuxbill-reseller-test-php82-run-40dda639f87b Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1167 (  5%)
+.............................................................  122 / 1167 ( 10%)
+.............................................................  183 / 1167 ( 15%)
+.............................................................  244 / 1167 ( 20%)
+.............................................................  305 / 1167 ( 26%)
+.............................................................  366 / 1167 ( 31%)
+.............................................................  427 / 1167 ( 36%)
+.............................................................  488 / 1167 ( 41%)
+.............................................................  549 / 1167 ( 47%)
+.............................................................  610 / 1167 ( 52%)
+.............................................................  671 / 1167 ( 57%)
+.............................................................  732 / 1167 ( 62%)
+.............................................................  793 / 1167 ( 67%)
+.............................................................  854 / 1167 ( 73%)
+.............................................................  915 / 1167 ( 78%)
+.............................................................  976 / 1167 ( 83%)
+............................................................. 1037 / 1167 ( 88%)
+......................................I......
+
+Time: 32:09.956, Memory: 64.00 MB
+
+OK, but there were issues!
+Tests: 1082, Assertions: 68517, Incomplete: 85.
+================ engine: mysql ================
+ Container nuxbill-reseller-test-php82-run-4bf3ea505619 Creating 
+ Container nuxbill-reseller-test-php82-run-4bf3ea505619 Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-c7a47c977b72 Creating 
+ Container nuxbill-reseller-test-php82-run-c7a47c977b72 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1167 (  5%)
+.............................................................  122 / 1167 ( 10%)
+.............................................................  183 / 1167 ( 15%)
+.............................................................  244 / 1167 ( 20%)
+.............................................................  305 / 1167 ( 26%)
+.............................................................  366 / 1167 ( 31%)
+.............................................................  427 / 1167 ( 36%)
+.............................................................  488 / 1167 ( 41%)
+.............................................................  549 / 1167 ( 47%)
+.............................................................  610 / 1167 ( 52%)
+.............................................................  671 / 1167 ( 57%)
+.............................................................  732 / 1167 ( 62%)
+.............................................................  793 / 1167 ( 67%)
+.............................................................  854 / 1167 ( 73%)
+.............................................................  915 / 1167 ( 78%)
+.............................................................  976 / 1167 ( 83%)
+............................................................. 1037 / 1167 ( 88%)
+......................................I......
+
+Time: 38:36.493, Memory: 64.00 MB
+
+OK, but there were issues!
+Tests: 1082, Assertions: 68517, Incomplete: 85.
+================ variant registry reproducibility ================
+ Container nuxbill-reseller-test-php82-run-e89e20fc5e7e Creating 
+ Container nuxbill-reseller-test-php82-run-e89e20fc5e7e Created 
+variant registry matches freshly built fixtures
+  mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mariadb V2_FRESH_INSTALL_UPDATED on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mariadb V3_LONGLIVED_2023_UPDATED on 10.11.19-MariaDB-ubu2204: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+  mysql V1_FRESH_INSTALL on 8.0.46: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mysql V2_FRESH_INSTALL_UPDATED on 8.0.46: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mysql V3_LONGLIVED_2023_UPDATED on 8.0.46: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+exit=0
+# end 2026-10-13T17:05:16Z
+TREE_UNCHANGED

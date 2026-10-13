@@ -1,0 +1,24 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-cf5068a3596b Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-cf5068a3596b Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.F....                                                              6 / 6 (100%)
+
+Time: 01:18.162, Memory: 32.00 MB
+
+There was 1 failure:
+
+1) Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testHotspotOldSessionsOnTwoNasAreBothEnded
+c7: RADIUS server is not responding
+Failed asserting that false is true.
+
+/repo/tests/Integration/Wp8/RenameOldSessionLabTest.php:123
+
+FAILURES!
+Tests: 6, Assertions: 131, Failures: 1.
+
+exit=1

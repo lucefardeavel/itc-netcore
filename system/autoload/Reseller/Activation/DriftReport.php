@@ -23,6 +23,8 @@ use Reseller\Finance\FinanceTx;
  *  - VOUCHER_CLAIMED: a voucher whose redemption is in progress or under review;
  *  - REPROVISION_UNCONFIRMED: a re-provision whose device outcome was not confirmed and that no later successful
  *    re-provision of the customer superseded;
+ *  - OLD_SESSION_UNCONFIRMED (WP8 A3): a rename whose old-identity sessions are not confirmed ended (state UNCONFIRMED),
+ *    or whose confirmation was never recorded (state CONFIRMATION_MISSING);
  *  - BALANCE_HELD: a legacy balance operation HELD for review.
  */
 final class DriftReport
@@ -67,11 +69,32 @@ final class DriftReport
         $last = [];
         foreach (Tx::rows($pdo, "SELECT id, target_customer_id, after_json FROM tbl_reseller_audit_events WHERE event_type LIKE 'reprovision.%' ORDER BY id") as $a) {
             $after = json_decode((string) $a['after_json'], true);
+            // WP8 A3 (FIX-1): a refusal changed nothing, so it never supersedes an earlier unresolved outcome
+            if (is_array($after) && str_starts_with((string) ($after['outcome'] ?? ''), 'REFUSED_')) {
+                continue;
+            }
             $last[(int) $a['target_customer_id']] = is_array($after) ? ($after['outcome'] ?? null) : null;
         }
         foreach ($last as $cid => $outcome) {
             if ($outcome === LegacyReprovisionService::UNCONFIRMED) {
                 $out[] = ['kind' => 'REPROVISION_UNCONFIRMED', 'customer_id' => $cid];
+            }
+        }
+        // WP8 A3 (OD-A3R-5): a rename whose old-identity sessions are not confirmed ended, or whose confirmation event
+        // was never written (the main re-provision audit announced it as PENDING)
+        $old = [];
+        foreach (Tx::rows($pdo, "SELECT target_customer_id, event_type, after_json FROM tbl_reseller_audit_events WHERE event_type LIKE 'reprovision.%' OR event_type = 'rename.old_session' ORDER BY id") as $a) {
+            $after = json_decode((string) $a['after_json'], true);
+            $state = is_array($after) ? ($after['old_session'] ?? null) : null;
+            if ($a['event_type'] === 'rename.old_session') {
+                $old[(int) $a['target_customer_id']] = $state;
+            } elseif ($state === 'PENDING') {
+                $old[(int) $a['target_customer_id']] = 'PENDING';
+            }
+        }
+        foreach ($old as $cid => $state) {
+            if ($state === 'PENDING' || $state === 'UNCONFIRMED') {
+                $out[] = ['kind' => 'OLD_SESSION_UNCONFIRMED', 'customer_id' => $cid, 'state' => $state === 'PENDING' ? 'CONFIRMATION_MISSING' : 'UNCONFIRMED'];
             }
         }
         foreach (LegacyCustomerBalanceService::held() as $h) {

@@ -1,0 +1,115 @@
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+## 2026-10-13T15:43:52Z INTERMEDIATE (first remediation) RenameRemediationTest R-1/R-2/R-5 engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FFF                                                                 3 / 3 (100%)
+Time: 00:02.890, Memory: 12.00 MB
+There were 3 failures:
+1) Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testR1TheTargetOfAPairRenamedOnlyOnceIsStillChecked
+expected RENAME_IDENTITY_TAKEN
+/repo/tests/Support/ActivationTestCase.php:210
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:468
+2) Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testR2AKeyOfALaterPairIsNotExemptForAnEarlierPair
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'RENAME_AMBIGUOUS_IDENTITY'
++'REPROVISION_FAILED'
+/repo/tests/Support/ActivationTestCase.php:212
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:481
+3) Reseller\Tests\Integration\Wp5b\RenameRemediationTest::testR5OneDisconnectPerSessionInsideALegacyRenameScope
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     0 => 1,
+-    1 => 0,
++    1 => 1,
+ ]
+/repo/tests/Integration/Wp5b/RenameRemediationTest.php:502
+FAILURES!
+Tests: 3, Assertions: 22, Failures: 3.
+exit=1
+## 2026-10-13T15:43:58Z INTERMEDIATE unit R-3 guard engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F                                                                   1 / 1 (100%)
+Time: 00:00.019, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testTheTargetCheckIsInsideTheRenameTransaction
+Failed asserting that 'function renameUser(string $from, string $to, bool $replaceTarget = true): int\n
+    {\n
+        if ($from === $to) {\n
+            return 0;\n
+        }\n
+        return $this->tx(function () use ($from, $to, $replaceTarget): int {\n
+            if ($this->equivalentKeys($from, $to, true) !== []) {\n
+                throw new ProvisionFailure(ProvisionResult::failed('RADIUS_IDENTITY_AMBIGUOUS', 'Another RADIUS identity is equivalent to this name; nothing was changed.', false));\n
+            }\n
+            \n
+            \n
+            if (!$replaceTarget && $this->exactRows($to) > 0) {\n
+                throw new ProvisionFailure(ProvisionResult::failed('RADIUS_IDENTITY_TAKEN', 'The new RADIUS identity already holds a policy that is not this subscriber\'s; nothing was changed.', false));\n
+            }\n
+            $n = 0;\n
+            foreach (['radcheck', 'radreply', 'radusergroup'] as $t) {\n
+                $this->exec("DELETE FROM {$t} WHERE username = ? AND CAST(username AS BINARY) = CAST(? AS BINARY)", [$to, $to]);\n
+                $n += $this->exec("UPDATE {$t} SET username = ? WHERE username = ? AND CAST(username AS BINARY) = CAST(? AS BINARY)", [$to, $from, $from]);\n
+            }\n
+            return $n;\n
+        });\n
+    }\n
+\n
+    ' [ASCII](length: 1228) contains "!$replaceTarget && $deleted > 0" [ASCII](length: 31).
+/repo/tests/Unit/Wp5b/RenameOldSessionUnitTest.php:157
+FAILURES!
+Tests: 1, Assertions: 7, Failures: 1.
+exit=1
+## 2026-10-13T15:43:59Z INTERMEDIATE R2 R-4 engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F                                                                   1 / 1 (100%)
+Time: 00:08.740, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Integration\Wp4\RadiusLegacyRenameTest::testANumericLookingPppoeUsernameIsComparedStrictly
+refused: "133900" -> "1339e2" is a change, and the name is taken
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+     1 => Array &2 [
+         'username' => 'rmda1df74b',
+         'password' => 'pw-rmda1df74b',
+-        'pppoe_username' => '133900',
++        'pppoe_username' => '1339e2',
+         'pppoe_password' => '',
+     ],
+     2 => 'eb4e67cfeccef2d7436efa02d6e5b508d7716c3ea0361af7abcb87c5dbfdc8ce',
+ ]
+/repo/tests/Integration/Wp4/RadiusLegacyRenameTest.php:181
+FAILURES!
+Tests: 1, Assertions: 7, Failures: 1.
+exit=1
+script_rc=0

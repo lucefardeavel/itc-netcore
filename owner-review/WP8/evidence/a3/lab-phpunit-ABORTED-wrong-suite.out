@@ -1,0 +1,13 @@
+# 2026-10-13T11:56:59Z dev/wp8/lab.sh test (wp8-integration, A3 working tree, lab: up + optg shipped + up-chr2 + h2 setup + a2r chr2 setup + site project)
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-c3d1ee08fdca Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-c3d1ee08fdca Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1144 (  5%)
+.............................................................  122 / 1144 ( 10%)
+.............................................
+# ABORTED 2026-10-13T12:00:00Z: lab.sh test only defaults to --testsuite wp8-integration without arguments; the display flags made it run the full matrix in the lab runner. Stopped (task + runner container); rerun with --testsuite wp8-integration.

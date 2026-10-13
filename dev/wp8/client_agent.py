@@ -17,7 +17,10 @@ CTL = f'{STATE}/ctl'
 SEC = dict(l.strip().split('=', 1) for l in open(f'{STATE}/secrets.env') if '=' in l and not l.startswith('#'))
 FR = 'nuxbill-reseller-test-freeradius-wp8-1'
 CLIENTS = {'c1': ('wp8c1', 'wp8v1c', 1), 'c3': ('wp8c3', 'wp8v3c', 3), 'c2': ('wp8c2', 'wp8v2c', 2), 'c4': ('wp8c4', 'wp8v4c', 4), 'c5': ('wp8c5', 'wp8v5c', 5),
-           'c6': ('wp8c6', 'wp8v6c', 6)}     # WP8 A2-R: PPPoE client of the second CHR (lab.sh up-chr2)
+           'c6': ('wp8c6', 'wp8v6c', 6),     # WP8 A2-R: PPPoE client of the second CHR (lab.sh up-chr2)
+           # WP8 A3: Hotspot clients of the second CHR (namespaces created by dev/wp8/h2_gate.py setup)
+           'c7': ('wp8c7', 'wp8v7c', 7), 'c8': ('wp8c8', 'wp8v8c', 8)}
+HS_GW = {'c7': '10.88.12.1', 'c8': '10.88.12.1'}   # Hotspot gateway per client (default: CHR1 10.88.2.1)
 PPPD = {}
 CAPS = {}
 
@@ -141,7 +144,7 @@ def hs_dhcp(client):
     m = re.search(r'lease of (\S+) obtained', p.stdout + p.stderr)
     if not m: return {'ok': False, 'out': (p.stdout + p.stderr)[-300:]}
     nsx(ns, 'ip', 'addr', 'add', m.group(1) + '/24', 'dev', nic)
-    nsx(ns, 'ip', 'route', 'replace', 'default', 'via', '10.88.2.1')
+    nsx(ns, 'ip', 'route', 'replace', 'default', 'via', HS_GW.get(client, '10.88.2.1'))
     return {'ok': True, 'ip': m.group(1)}
 
 
@@ -163,12 +166,13 @@ def _octal(s):
 
 def hs_login(client, user, password):
     ns = CLIENTS[client][0]
-    page, _ = _curl(ns, 'http://10.88.2.1/login')
+    gw = HS_GW.get(client, '10.88.2.1')
+    page, _ = _curl(ns, f'http://{gw}/login')
     m = re.search(r"hexMD5\('((?:\\\d{3})+)' \+ document\.login\.password\.value \+ '((?:\\\d{3})+)'\)", page)
     if not m: return {'ok': False, 'state': 'NO_CHAP_FORM', 'page': re.sub(r'<[^>]+>', ' ', page)[:200]}
     resp = hashlib.md5(_octal(m.group(1)) + password.encode() + _octal(m.group(2))).hexdigest()
     body, _ = _curl(ns, '--data-urlencode', f'username={user}', '--data-urlencode', f'password={resp}',
-                    '--data-urlencode', 'dst=', '--data-urlencode', 'popup=false', 'http://10.88.2.1/login')
+                    '--data-urlencode', 'dst=', '--data-urlencode', 'popup=false', f'http://{gw}/login')
     text = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', body))
     err = re.search(r'(RADIUS server is not responding|invalid username or password|[^.!]{0,40}(?:denied|reject|limit|expired|not allowed)[^.!]{0,60})', text, re.I)
     # success only on RouterOS' own success page; a RADIUS Reply-Message such as "You are already logged in - access
@@ -178,7 +182,7 @@ def hs_login(client, user, password):
 
 
 def hs_logout(client):
-    _curl(CLIENTS[client][0], '-o', '/dev/null', 'http://10.88.2.1/logout')
+    _curl(CLIENTS[client][0], '-o', '/dev/null', f"http://{HS_GW.get(client, '10.88.2.1')}/logout")
     return {'ok': True}
 
 

@@ -56,15 +56,52 @@ final class LegacyReprovisionService
     private static ?array $permit = null;
 
     /**
+     * WP8 A3 (R-WP8-CARRY-02): the old-identity captures the Radius device hands over inside run() (deferOldSessions)
+     * and the Radius rename steps attempted; read and cleared by run().
+     *
+     * @var list<array<string,mixed>>|null
+     */
+    private static ?array $oldSessions = null;
+    /** @var list<array{0:string,1:string}> */
+    private static array $renameAttempts = [];
+    /** WP8 A3 (OD-A3R-6): total bound for the Accounting-Stop confirmation of the Disconnects, outside every lock */
+    private const OLD_SESSION_STOP_BOUND = 6.0;
+    /** WP8 A3 rename pre-check (renameCheck): OK, or the refusal and its operator message (nothing is changed) */
+    public const RENAME_OK = 'OK';
+    public const RENAME_REFUSALS = [
+        'AMBIGUOUS_IDENTITY' => 'Another RADIUS identity is equivalent to the old or the new name; nothing was changed.',
+        'IDENTITY_TAKEN' => 'The new name already holds a RADIUS policy that is not this customer\'s; nothing was changed.',
+        'CHECK_UNAVAILABLE' => 'The identity check could not be completed (database unavailable); nothing was changed.',
+    ];
+    /**
+     * WP8 A3 (owner D-3): the exact RADIUS keys the customer being renamed may replace (its own old keys, then each
+     * key this run has renamed into); null outside a rename scope, where an existing target is never replaced.
+     *
+     * @var list<string>|null
+     */
+    private static ?array $renameOwn = null;
+    /** @var array<int,true> radacctids already sent a Disconnect inside the current rename scope (legacy path) */
+    private static array $scopeSent = [];
+
+    /**
+     * WP8 A3: `old_session` is reported separately from the re-provision status and never changes it:
+     * NOT_APPLICABLE (no RADIUS key renamed), CONFIRMED (every targeted session: Disconnect-ACK + its Accounting-Stop
+     * within the bound, or Disconnect-NAK 503), UNCONFIRMED (anything else), NO_ACCOUNTING_EVIDENCE (no open accounting
+     * row of the old identity: NOT proof that it is offline). The Disconnects are sent after the tree lock is released.
+     *
      * @param array<string,mixed> $requested the requested values of the approved fields (IDENTITY_EDIT / PASSWORD_CHANGE)
-     * @return array{status:string,routers:list<string>,reference:?string}
+     * @return array{status:string,routers:list<string>,reference:?string,old_session:string}
      */
     public static function run(ActorContext $a, int $customerId, string $op, array $requested = []): array
     {
         if (!array_key_exists($op, self::OPS)) {
             throw new \LogicException('unknown re-provision operation');
         }
-        return TreeSerialization::hold(static function (\PDO $pdo) use ($a, $customerId, $op, $requested): array {
+        $handover = null;
+        $error = null;
+        $result = null;
+        try {
+            $result = TreeSerialization::hold(static function (\PDO $pdo) use ($a, $customerId, $op, $requested, &$handover): array {
             $customer = Tx::row($pdo, 'SELECT * FROM tbl_customers WHERE id = ?', [$customerId]) ?? throw new DomainError('NOT_FOUND');
             self::authorize($a, $customer, $op);
             if (self::inFlight($pdo, $customerId)) {
@@ -75,6 +112,12 @@ final class LegacyReprovisionService
             $new = $old;
             if ($op === self::PASSWORD_CHANGE || $op === self::IDENTITY_EDIT) {
                 $new = self::validate($pdo, $customer, $op, $requested);
+                // WP8 A3 (OD-A3R-9, owner D-3): a RADIUS rename that meets another identity (equivalent key, a policy
+                // that is not this customer's, or an unreadable RADIUS database) is refused BEFORE any write
+                if ($op === self::IDENTITY_EDIT && ($check = self::renameCheck($billing, $old, $new)) !== self::RENAME_OK) {
+                    self::audit($a, $customer, $op, ['outcome' => 'REFUSED_' . $check, 'changed' => array_keys(array_diff_assoc($new, $old))]);
+                    throw new DomainError('RENAME_' . $check, self::RENAME_REFUSALS[$check]);
+                }
                 if ($new !== $old) {
                     Tx::run(static function (\PDO $pdo) use ($customerId, $old, $new): void {
                         self::write($pdo, $customerId, $old, $new);
@@ -86,27 +129,58 @@ final class LegacyReprovisionService
                 return ['status' => 'NO_ACTIVE_PLAN', 'routers' => [], 'reference' => null];
             }
             $fresh = Tx::row($pdo, 'SELECT * FROM tbl_customers WHERE id = ?', [$customerId]);
+            // test seam (no-op unless a test hook is set): between the pre-check / identity write and the device steps
+            \Reseller\Activation\ActivationFaults::hit('reprovision.before_devices');
+            self::$oldSessions = [];
+            self::$renameAttempts = [];
             [$outcome, $routers, $verified] = self::devices($fresh, $old, $new, $op, $billing);
+            // WP8 A3: the old-identity captures leave the lock with the outcome; the main audit announces them (PENDING)
+            $handover = ['customer' => $customer, 'captures' => self::$oldSessions ?? [], 'attempts' => self::$renameAttempts, 'outcome' => 'ERROR'];
+            $handover['pending'] = $handover['captures'] !== [] || $handover['attempts'] !== [];
+            self::$oldSessions = null;
+            self::$renameAttempts = [];
+            $mark = $handover['pending'] ? 'PENDING' : 'NOT_APPLICABLE';
             $billingSame = self::billing($pdo, $customerId) === $billing;
             $changed = array_keys(array_diff_assoc($new, $old));
             if ($outcome === ProvisionResult::SUCCESS && $verified !== false && $billingSame) {
-                self::audit($a, $customer, $op, ['outcome' => 'DONE', 'changed' => $changed, 'verified' => $verified]);
+                $handover['outcome'] = 'DONE';
+                self::audit($a, $customer, $op, ['outcome' => 'DONE', 'changed' => $changed, 'verified' => $verified, 'old_session' => $mark]);
                 return ['status' => 'DONE', 'routers' => $routers, 'reference' => null];
             }
             if ($outcome === ProvisionResult::FAILED && $billingSame) {
                 $reverted = $new === $old || Tx::run(static fn(\PDO $pdo): bool => self::write($pdo, $customerId, $new, $old, false));
                 if ($reverted) {
-                    self::audit($a, $customer, $op, ['outcome' => 'FAILED_REVERTED', 'changed' => $changed]);
+                    // nothing was applied on any device and the identity is back: the old identity is current again
+                    $handover['pending'] = false;
+                    $handover['outcome'] = 'FAILED_REVERTED';
+                    self::audit($a, $customer, $op, ['outcome' => 'FAILED_REVERTED', 'changed' => $changed, 'old_session' => 'NOT_APPLICABLE']);
                     throw new DomainError('REPROVISION_FAILED');
                 }
             }
+            $handover['outcome'] = self::UNCONFIRMED;
             $ref = substr(ErrorReporter::requestId(), 0, 12);
             ErrorReporter::log('reprovision.unconfirmed', 'op=' . $op . ' customer=' . $customerId . ' outcome=' . $outcome
                 . ' verified=' . var_export($verified, true) . ' billing_unchanged=' . var_export($billingSame, true));
             self::audit($a, $customer, $op, ['outcome' => self::UNCONFIRMED, 'changed' => $changed, 'device' => $outcome,
-                'verified' => $verified, 'billing_unchanged' => $billingSame, 'old_name_may_remain' => in_array('username', $changed, true) || in_array('pppoe_username', $changed, true)]);
+                'verified' => $verified, 'billing_unchanged' => $billingSame, 'old_name_may_remain' => in_array('username', $changed, true) || in_array('pppoe_username', $changed, true),
+                'old_session' => $mark]);
             throw new DomainError(self::UNCONFIRMED, DomainError::MESSAGES[self::UNCONFIRMED] . ' (ref ' . $ref . ')');
-        });
+            });
+        } catch (\Throwable $e) {
+            $error = $e;
+        } finally {
+            self::$oldSessions = null;
+            self::$renameAttempts = [];
+        }
+        $oldSession = 'NOT_APPLICABLE';
+        if ($handover !== null && $handover['pending']) {
+            // after the tree lock is released, outside any transaction (also when the re-provision ended UNCONFIRMED)
+            $oldSession = self::confirmOldSessions($a, $handover['customer'], $op, $handover['captures'], $handover['attempts'], $handover['outcome']);
+        }
+        if ($error !== null) {
+            throw $error;
+        }
+        return $result + ['old_session' => $oldSession];
     }
 
     /**
@@ -126,6 +200,342 @@ final class LegacyReprovisionService
             ServiceGate::refused('deviceGrant', $id > 0 ? $id : null, $names[0] ?? null);
             throw new ProvisionFailure(ProvisionResult::failed('RESELLER_OWNED_REFUSED', 'Device changes for reseller-managed customers go through the reseller activation or re-provision service.', false));
         }
+    }
+
+    /**
+     * WP8 A3: the RADIUS identity renames an identity edit implies for one plan type, in order: the username, then
+     * (PPPoE plans) the PPPoE key: set -> the new username becomes the old key, cleared -> back to the username.
+     *
+     * @param array<string,mixed> $old the old identity fields (username, pppoe_username)
+     * @param array<string,mixed> $new the new identity fields
+     * @return list<array{0:string,1:string}> [from, to]
+     */
+    public static function renamePairs(array $old, array $new, string $planType): array
+    {
+        $pairs = [];
+        if ((string) $new['username'] !== (string) $old['username']) {
+            $pairs[] = [(string) $old['username'], (string) $new['username']];
+        }
+        if ((string) $new['pppoe_username'] !== (string) $old['pppoe_username'] && $planType === 'PPPOE') {
+            if (empty($old['pppoe_username']) && !empty($new['pppoe_username'])) {
+                $pairs[] = [(string) $new['username'], (string) $new['pppoe_username']];
+            } elseif (empty($new['pppoe_username']) && !empty($old['pppoe_username'])) {
+                $pairs[] = [(string) $old['pppoe_username'], (string) $new['username']];
+            } else {
+                $pairs[] = [(string) $old['pppoe_username'], (string) $new['pppoe_username']];
+            }
+        }
+        // WP8 A3 (FIX-3): a pair that does not change the key (e.g. a PPPoE username equal to the username, set or
+        // cleared) is not a rename; the plan is still re-provisioned by the run
+        return array_values(array_filter($pairs, static fn(array $p): bool => $p[0] !== $p[1]));
+    }
+
+    /**
+     * WP8 A3 (OD-A3R-9, owner D-1 / D-3): the pre-check of the RADIUS renames an identity edit implies on its
+     * Radius-device plans, BEFORE any write, in run order (each old key once):
+     *  - AMBIGUOUS_IDENTITY: another exact key that the collation treats as equal to a source or a target (the
+     *    sources and targets of the EARLIER pairs of this edit count as the customer's own: chained pairs are not
+     *    ambiguous, and the pre-check sees exactly what the write transaction of each pair will see);
+     *  - IDENTITY_TAKEN: the exact target already holds RADIUS rows and is neither an old key of this customer nor a
+     *    key this edit renames into first (another subscriber's policy, or an orphan one, is never replaced);
+     *  - CHECK_UNAVAILABLE: the RADIUS database could not be read (fail closed, reported separately).
+     * The rename re-checks both conditions inside its own write transaction (RadiusRepository::renameUser).
+     *
+     * @param list<array<string,?string>> $billing
+     */
+    public static function renameCheck(array $billing, array $old, array $new): string
+    {
+        try {
+            // every pair in run order, also one whose old key the run renames only once: its target is still
+            // written by the plan's re-provisioning
+            $pairs = [];
+            foreach ($billing as $b) {
+                $plan = \ORM::for_table('tbl_plans')->find_one((int) $b['plan_id']);
+                if (!$plan || $plan['device'] !== 'Radius') {
+                    continue;
+                }
+                foreach (self::renamePairs($old, $new, (string) $b['type']) as $pair) {
+                    $pairs[] = $pair;
+                }
+            }
+            if ($pairs === []) {
+                return self::RENAME_OK;
+            }
+            $repo = \Reseller\Radius\RadiusRepository::connection();
+            $own = self::ownKeys($old);
+            $earlier = [];   // the sources and targets of the earlier pairs of this edit (as the write will see them)
+            foreach ($pairs as [$from, $to]) {
+                if ($repo->equivalentKeys($from, $to, false, $earlier) !== []) {
+                    return 'AMBIGUOUS_IDENTITY';
+                }
+                if (!in_array($to, $own, true) && $repo->exactRows($to) > 0) {
+                    return 'IDENTITY_TAKEN';
+                }
+                $own[] = $to;
+                $earlier[] = $from;
+                $earlier[] = $to;
+            }
+            return self::RENAME_OK;
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'rename-check');
+            return 'CHECK_UNAVAILABLE';
+        }
+    }
+
+    /** WP8 A3 (owner D-3): true when another customer holds $name as its username or PPPoE username (collation). */
+    public static function nameTakenByOther(string $name, int $customerId, ?\PDO $pdo = null): bool
+    {
+        $pdo ??= \ORM::get_db();
+        return Tx::row($pdo, 'SELECT id FROM tbl_customers WHERE (username = ? OR pppoe_username = ?) AND id <> ? LIMIT 1', [$name, $name, $customerId]) !== null;
+    }
+
+    /**
+     * WP8 A3 (owner D-3): opens (old identity) or closes (null) the rename scope of one customer. Inside it the Radius
+     * device may replace an existing exact target only when it is an old key of that customer or a key this scope has
+     * already renamed into (targetReplaceable); outside it never.
+     *
+     * @param array<string,mixed>|null $oldIdentity
+     */
+    public static function renameScope(?array $oldIdentity): void
+    {
+        self::$renameOwn = $oldIdentity === null ? null : self::ownKeys($oldIdentity);
+        self::$scopeSent = [];
+    }
+
+    public static function targetReplaceable(string $to): bool
+    {
+        return self::$renameOwn !== null && in_array($to, self::$renameOwn, true);
+    }
+
+    public static function renameApplied(string $to): void
+    {
+        if (self::$renameOwn !== null) {
+            self::$renameOwn[] = $to;
+        }
+    }
+
+    /** @return list<string> the non-empty exact keys of an identity (username, PPPoE username) */
+    private static function ownKeys(array $identity): array
+    {
+        return array_values(array_filter([(string) ($identity['username'] ?? ''), (string) ($identity['pppoe_username'] ?? '')], static fn(string $k): bool => $k !== ''));
+    }
+
+    /**
+     * WP8 A3: called by the Radius device after a rename. Inside run() (the per-call permit is set) the capture is kept
+     * for the confirmation after the tree lock; returns false elsewhere (legacy path: the device sends at once).
+     *
+     * @param array<string,mixed> $capture
+     */
+    public static function deferOldSessions(array $capture): bool
+    {
+        if (self::$permit === null || self::$oldSessions === null) {
+            return false;
+        }
+        self::$oldSessions[] = $capture;
+        return true;
+    }
+
+    /**
+     * WP8 A3: one Disconnect-Request per captured accounting row, to that row's NAS (CoAClient: 1 + 2 identical sends,
+     * never a new request). Never throws; a non-success is logged without secrets.
+     *
+     * @param array<string,mixed> $capture
+     * @return list<array{row:array<string,mixed>,result:ProvisionResult}>
+     */
+    public static function disconnectCaptured(array $capture): array
+    {
+        if (($capture['state'] ?? '') !== 'TARGETED' || ($capture['targets'] ?? []) === []) {
+            // WP8 A3 (FIX-6): nothing can be targeted; never silent (the state only: no name, no secret)
+            ErrorReporter::log('radius.old_session', 'capture=' . (($capture['state'] ?? '') === 'TARGETED' ? 'NO_ACCOUNTING_EVIDENCE' : (string) ($capture['state'] ?? 'UNKNOWN')));
+            return [];
+        }
+        $out = [];
+        $coa = null;
+        try {
+            $coa = \Reseller\Radius\CoAClient::connection();
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'rename-old-session');
+        }
+        foreach ($capture['targets'] as $row) {
+            // WP8 A3 (FIX-4): inside one rename scope (legacy path: sent at once) a session is sent one Disconnect
+            $rid = (int) ($row['radacctid'] ?? 0);
+            if (self::$renameOwn !== null) {
+                if (isset(self::$scopeSent[$rid])) {
+                    continue;
+                }
+                self::$scopeSent[$rid] = true;
+            }
+            try {
+                $r = $coa !== null ? $coa->disconnectSession($row)
+                    : ProvisionResult::unknown('COA_EXCEPTION', 'The Disconnect could not be sent; the session state is unknown.');
+            } catch (\Throwable $e) {
+                ErrorReporter::report($e, 'rename-old-session');
+                $r = ProvisionResult::unknown('COA_EXCEPTION', 'The Disconnect could not be sent; the session state is unknown.');
+            }
+            if (!$r->isSuccess()) {
+                ErrorReporter::log('radius.old_session', 'status=' . $r->status . ' code=' . $r->code);
+            }
+            $out[] = ['row' => $row, 'result' => $r];
+        }
+        return $out;
+    }
+
+    /**
+     * WP8 A3: the state of one targeted session. CONFIRMED only on NAS-side evidence of its end: Disconnect-ACK with its
+     * Accounting-Stop seen, or Disconnect-NAK 503 (no such session); otherwise the reason (an ACK alone is not proof).
+     */
+    public static function sessionState(string $status, string $code, bool $stopSeen): string
+    {
+        if ($status === ProvisionResult::SUCCESS && $code === 'SESSION_NOT_FOUND') {
+            return 'CONFIRMED';
+        }
+        if ($status === ProvisionResult::SUCCESS && $code === 'COA_ACK') {
+            return $stopSeen ? 'CONFIRMED' : 'ack_without_stop';
+        }
+        return $code;
+    }
+
+    /**
+     * WP8 A3: the state of one renamed identity from its capture state and its session states.
+     *
+     * @param list<string> $sessionStates
+     * @return array{0:string,1:?string} [state, reason]
+     */
+    public static function identityState(string $capture, array $sessionStates): array
+    {
+        $reasons = ['AMBIGUOUS' => 'ambiguous_identity', 'CAPTURE_FAILED' => 'capture_failed', 'RENAME_NOT_CONFIRMED' => 'rename_not_confirmed'];
+        if (isset($reasons[$capture])) {
+            return ['UNCONFIRMED', $reasons[$capture]];
+        }
+        if ($sessionStates === []) {
+            return ['NO_ACCOUNTING_EVIDENCE', null];
+        }
+        foreach ($sessionStates as $s) {
+            if ($s !== 'CONFIRMED') {
+                return ['UNCONFIRMED', $s];
+            }
+        }
+        return ['CONFIRMED', null];
+    }
+
+    /** @param list<string> $states WP8 A3: the run value is the worst identity state */
+    public static function worstOldSession(array $states): string
+    {
+        $rank = ['NOT_APPLICABLE' => 0, 'CONFIRMED' => 1, 'NO_ACCOUNTING_EVIDENCE' => 2, 'UNCONFIRMED' => 3];
+        $worst = 'NOT_APPLICABLE';
+        foreach ($states as $s) {
+            if (($rank[$s] ?? 3) > $rank[$worst]) {
+                $worst = isset($rank[$s]) ? $s : 'UNCONFIRMED';
+            }
+        }
+        return $worst;
+    }
+
+    /** WP8 A3 (FIX-5, plan §4.4): UNCONFIRMED and NO_ACCOUNTING_EVIDENCE are shown as warnings, never as success. */
+    public static function oldSessionNoticeType(?string $state): string
+    {
+        return in_array($state, ['UNCONFIRMED', 'NO_ACCOUNTING_EVIDENCE'], true) ? 'w' : 's';
+    }
+
+    /** WP8 A3: the operator sentence for an old_session value ('' when nothing to say). */
+    public static function oldSessionNote(?string $state): string
+    {
+        return match ($state) {
+            'CONFIRMED' => ' The sessions of the old name were ended.',
+            'NO_ACCOUNTING_EVIDENCE' => ' No session of the old name is recorded; this does not prove that it is offline.',
+            'UNCONFIRMED' => ' The end of the old name\'s sessions could not be confirmed (see the drift report).',
+            default => '',
+        };
+    }
+
+    /**
+     * WP8 A3: after the tree lock is released and outside any transaction: the Disconnects of the captured rows, the
+     * Accounting-Stop confirmation (OLD_SESSION_STOP_BOUND in total), the classification and the 'rename.old_session'
+     * audit (its own event type: the REPROVISION_UNCONFIRMED drift reads 'reprovision.%').
+     *
+     * @param array<string,mixed> $customer
+     * @param list<array<string,mixed>> $captures
+     * @param list<array{0:string,1:string}> $attempts
+     */
+    private static function confirmOldSessions(ActorContext $a, array $customer, string $op, array $captures, array $attempts, string $reprovision): string
+    {
+        $identities = [];
+        foreach ($captures as $c) {
+            $identities[$c['from'] . "\0" . $c['to']] ??= $c;
+        }
+        foreach ($attempts as [$from, $to]) {
+            $identities[$from . "\0" . $to] ??= ['from' => $from, 'to' => $to, 'equivalent' => null, 'state' => 'RENAME_NOT_CONFIRMED', 'targets' => []];
+        }
+        \Reseller\Activation\ActivationFaults::hit('reprovision.old_session_before_send');
+        // WP8 A3 (FIX-4): one Disconnect per accounting row per run; a row captured again reuses the first result
+        $sent = [];
+        $byRow = [];
+        foreach ($identities as $k => $c) {
+            $todo = $c;
+            $todo['targets'] = array_values(array_filter($c['targets'] ?? [], static fn(array $r): bool => !isset($byRow[(int) $r['radacctid']])));
+            if ($todo['targets'] !== [] || ($c['targets'] ?? []) === []) {
+                foreach (self::disconnectCaptured($todo) as $s) {
+                    $byRow[(int) $s['row']['radacctid']] = $s;
+                }
+            }
+            $sent[$k] = ($c['state'] ?? '') === 'TARGETED' ? array_map(static fn(array $r): array => $byRow[(int) $r['radacctid']], $c['targets'] ?? []) : [];
+        }
+        \Reseller\Activation\ActivationFaults::hit('reprovision.old_session_after_send');
+        // Accounting-Stop of the ACKed sessions, polled by radacctid (never by name), bounded in total
+        $pending = [];
+        foreach ($sent as $k => $list) {
+            foreach ($list as $s) {
+                if ($s['result']->isSuccess() && $s['result']->code === 'COA_ACK') {
+                    $pending[$k][(int) $s['row']['radacctid']] = true;
+                }
+            }
+        }
+        $deadline = microtime(true) + self::OLD_SESSION_STOP_BOUND;
+        while ($pending !== []) {
+            try {
+                $acct = \Reseller\Radius\AccountingService::connection();
+                foreach ($pending as $k => $ids) {
+                    $open = array_map(static fn(array $r): int => (int) $r['radacctid'], $acct->openSessions((string) $identities[$k]['from']));
+                    $pending[$k] = array_intersect_key($ids, array_flip($open));
+                    if ($pending[$k] === []) {
+                        unset($pending[$k]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                ErrorReporter::report($e, 'rename-old-session');
+                break;
+            }
+            if ($pending === [] || microtime(true) >= $deadline) {
+                break;
+            }
+            usleep(250000);
+        }
+        $out = [];
+        $states = [];
+        foreach ($identities as $k => $c) {
+            $sessions = [];
+            foreach ($sent[$k] as $s) {
+                $stop = !isset($pending[$k][(int) $s['row']['radacctid']]);
+                $sessions[] = ['radacctid' => (int) $s['row']['radacctid'], 'acct_session_id' => (string) ($s['row']['acctsessionid'] ?? ''),
+                    'nas' => (string) ($s['row']['nasipaddress'] ?? ''), 'nas_id' => $s['result']->nasId, 'result' => $s['result']->code,
+                    'stop_seen' => $s['result']->code === 'COA_ACK' ? $stop : null, 'state' => self::sessionState($s['result']->status, $s['result']->code, $stop)];
+            }
+            [$state, $reason] = self::identityState((string) $c['state'], array_column($sessions, 'state'));
+            $states[] = $state;
+            $out[] = ['from' => (string) $c['from'], 'to' => (string) $c['to'], 'equivalent' => $c['equivalent'], 'state' => $state, 'reason' => $reason, 'sessions' => $sessions];
+        }
+        $overall = self::worstOldSession($states);
+        try {
+            AuditLog::record('rename.old_session', $a, [
+                'target_type' => 'customer', 'target_customer_id' => (int) $customer['id'],
+                'target_user_id' => $customer['manager_id'] !== null ? (int) $customer['manager_id'] : null,
+                'target_snapshot' => ['username' => $customer['username']],
+                'after' => ['old_session' => $overall, 'operation' => $op, 'reprovision_outcome' => $reprovision, 'identities' => $out],
+            ]);
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'rename-old-session-audit');
+        }
+        return $overall;
     }
 
     /** True when the customer is reseller-owned (schema ready and manager_id set, read fresh); false otherwise. */
@@ -252,6 +662,11 @@ final class LegacyReprovisionService
                 $new[$k] = trim($requested[$k]);
             }
         }
+        // WP8 A3 (owner D-3): a PPPoE username is a RADIUS key too; it never takes another customer's name
+        if ((string) $new['pppoe_username'] !== '' && (string) $new['pppoe_username'] !== (string) $customer['pppoe_username']
+            && self::nameTakenByOther((string) $new['pppoe_username'], (int) $customer['id'], $pdo)) {
+            throw new DomainError('PPPOE_USERNAME_TAKEN', 'PPPoE username already used by another customer');
+        }
         if (($requested['password'] ?? '') !== '') {
             $new['password'] = trim($requested['password']);
         }
@@ -290,6 +705,7 @@ final class LegacyReprovisionService
         global $_app_stage;
         $names = array_values(array_unique(array_filter([(string) $old['username'], (string) $new['username'], (string) $old['pppoe_username'], (string) $new['pppoe_username']])));
         self::$permit = ['id' => (int) $customer['id'], 'names' => $names];
+        self::renameScope($old);
         $outcome = ProvisionResult::SUCCESS;
         $routers = [];
         $radius = [];
@@ -298,6 +714,7 @@ final class LegacyReprovisionService
         // external state, a later failure is promoted to UNKNOWN (REPROVISION_UNCONFIRMED: no DB revert, no retry).
         // The first non-success stops every further step (no blind continuation).
         $applied = 0;
+        $renamed = [];
         $step = static function (callable $call) use (&$applied, &$outcome): bool {
             try {
                 $call();
@@ -327,17 +744,23 @@ final class LegacyReprovisionService
                 $device = new $plan['device']();
                 $steps = [];
                 if ($op === self::IDENTITY_EDIT) {
-                    if ($new['username'] !== $old['username']) {
-                        $steps[] = static fn() => $device->change_username($plan, $old['username'], $new['username']);
-                    }
-                    if ($new['pppoe_username'] !== $old['pppoe_username'] && $b['type'] === 'PPPOE') {
-                        if (empty($old['pppoe_username']) && !empty($new['pppoe_username'])) {
-                            $steps[] = static fn() => $device->change_username($plan, $new['username'], $new['pppoe_username']);
-                        } elseif (empty($new['pppoe_username']) && !empty($old['pppoe_username'])) {
-                            $steps[] = static fn() => $device->change_username($plan, $old['pppoe_username'], $new['username']);
-                        } else {
-                            $steps[] = static fn() => $device->change_username($plan, $old['pppoe_username'], $new['pppoe_username']);
+                    foreach (self::renamePairs($old, $new, (string) $b['type']) as [$from, $to]) {
+                        // WP8 A3 (F-4, FIX-4): the shared RADIUS database renames each old key once per run; a second
+                        // plan on the same key is only re-provisioned (a repeated rename deleted the rows the first plan
+                        // wrote; after the first rename the old exact key holds nothing, so a second target is a no-op)
+                        if ($plan['device'] === 'Radius') {
+                            if (isset($renamed[$from])) {
+                                continue;
+                            }
+                            $renamed[$from] = true;
+                            // WP8 A3: an attempted rename without a capture (failed / unknown) is an unconfirmed old session
+                            $steps[] = static function () use ($device, $plan, $from, $to): void {
+                                self::$renameAttempts[] = [$from, $to];
+                                $device->change_username($plan, $from, $to);
+                            };
+                            continue;
                         }
+                        $steps[] = static fn() => $device->change_username($plan, $from, $to);
                     }
                     $steps[] = static fn() => $device->add_customer(\ORM::for_table('tbl_customers')->find_one((int) $customer['id']), $plan);
                 } elseif ($op === self::PASSWORD_CHANGE || !method_exists($device, 'sync_customer')) {
@@ -356,6 +779,7 @@ final class LegacyReprovisionService
             }
         } finally {
             self::$permit = null;
+            self::renameScope(null);
         }
         $verified = null;
         if ($outcome === ProvisionResult::SUCCESS && $radius !== []) {

@@ -1,0 +1,65 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+## 2026-10-13T14:10:56Z A3 BaselineComparableProbeTest engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1-context","first":"DomainError:REPROVISION_UNCONFIRMED","unconfirmed_listed_before":true,"second":"DomainError:REPROVISION_FAILED","unconfirmed_listed_after":false}
+.PROBE {"case":"F5-keys","sync":"DONE","rename":"DONE","rows_old":0,"rows_new_username":5,"rows_new_pppoe":5}
+.PROBE {"case":"I1-exact-target","sync":"DONE","rename":"DONE","x_rows_before":7,"x_rows_after":5,"x_key_password_is_x":false}
+.                                                                 3 / 3 (100%)
+Time: 00:02.277, Memory: 12.00 MB
+OK (3 tests, 40 assertions)
+exit=0
+## 2026-10-13T14:11:00Z BASELINE(HEAD product files) BaselineComparableProbeTest engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1-context","first":"DomainError:REPROVISION_UNCONFIRMED","unconfirmed_listed_before":true,"second":"DomainError:REPROVISION_FAILED","unconfirmed_listed_after":false}
+.PROBE {"case":"F5-keys","sync":"DONE","rename":"DONE","rows_old":0,"rows_new_username":5,"rows_new_pppoe":5}
+.PROBE {"case":"I1-exact-target","sync":"DONE","rename":"DONE","x_rows_before":7,"x_rows_after":5,"x_key_password_is_x":false}
+.                                                                 3 / 3 (100%)
+Time: 00:03.887, Memory: 12.00 MB
+OK (3 tests, 40 assertions)
+exit=0
+## 2026-10-13T14:11:07Z A3 BaselineComparableProbeTest engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1-context","first":"DomainError:REPROVISION_UNCONFIRMED","unconfirmed_listed_before":true,"second":"DomainError:REPROVISION_FAILED","unconfirmed_listed_after":false}
+.PROBE {"case":"F5-keys","sync":"DONE","rename":"DONE","rows_old":0,"rows_new_username":5,"rows_new_pppoe":5}
+.PROBE {"case":"I1-exact-target","sync":"DONE","rename":"DONE","x_rows_before":7,"x_rows_after":5,"x_key_password_is_x":false}
+.                                                                 3 / 3 (100%)
+Time: 00:06.540, Memory: 12.00 MB
+OK (3 tests, 40 assertions)
+exit=0
+## 2026-10-13T14:11:16Z BASELINE(HEAD product files) BaselineComparableProbeTest engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+PROBE {"case":"F1-context","first":"DomainError:REPROVISION_UNCONFIRMED","unconfirmed_listed_before":true,"second":"DomainError:REPROVISION_FAILED","unconfirmed_listed_after":false}
+.PROBE {"case":"F5-keys","sync":"DONE","rename":"DONE","rows_old":0,"rows_new_username":5,"rows_new_pppoe":5}
+.PROBE {"case":"I1-exact-target","sync":"DONE","rename":"DONE","x_rows_before":7,"x_rows_after":5,"x_key_password_is_x":false}
+.                                                                 3 / 3 (100%)
+Time: 00:06.414, Memory: 12.00 MB
+OK (3 tests, 40 assertions)
+exit=0
+script_rc=0

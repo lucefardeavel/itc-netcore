@@ -80,12 +80,10 @@ final class RadiusProvisioner
         });
     }
 
-    public function rename(string $from, string $to): ProvisionResult
+    public function rename(string $from, string $to, bool $replaceTarget = true): ProvisionResult
     {
-        return $this->run('rename', fn(): int => $this->repo->renameUser($from, $to), function () use ($from, $to): bool {
-            $s = $this->repo->readUser($from);
-            return $from === $to || ($s['check'] === [] && $s['reply'] === [] && $s['groups'] === []);
-        });
+        // WP8 A3: verified by exact bytes (an equivalent rename leaves rows that the collation still matches to $from)
+        return $this->run('rename', fn(): int => $this->repo->renameUser($from, $to, $replaceTarget), fn(): bool => $from === $to || $this->repo->exactRows($from) === 0);
     }
 
     /** Plan group rows (radgroupreply); a plan without a usable rate removes its managed rows. */
@@ -111,6 +109,9 @@ final class RadiusProvisioner
         } catch (RadiusCommitUncertain $e) {
             ErrorReporter::report($e, 'radius-provision');
             return ProvisionResult::unknown('RADIUS_COMMIT_UNKNOWN', 'The RADIUS database did not confirm the change.', null, ['operation' => $operation]);
+        } catch (ProvisionFailure $e) {
+            // a refusal decided inside the write transaction (rolled back), e.g. WP8 A3 RADIUS_IDENTITY_AMBIGUOUS
+            return $e->result;
         } catch (\PDOException $e) {
             ErrorReporter::report($e, 'radius-provision');
             $code = (int) ($e->errorInfo[1] ?? 0);

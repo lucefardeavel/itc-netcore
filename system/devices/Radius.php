@@ -8,6 +8,7 @@
  * better create new plugin
  **/
 
+use Reseller\Radius\AccountingService;
 use Reseller\Radius\CoAClient;
 use Reseller\Radius\ProvisionFailure;
 use Reseller\Radius\ProvisionResult;
@@ -82,11 +83,102 @@ class Radius
         }
     }
 
+    /**
+     * Renames the subscriber's RADIUS key (exact bytes: RadiusRepository::renameUser, WP8 A3 rename integrity).
+     *
+     * WP8 A3 (R-WP8-CARRY-02): the live sessions of the OLD key are then ended, targeted per captured accounting row:
+     *  - before the rename: for an equivalent rename (case / accent only) a snapshot of the old key's open rows, because
+     *    accounting rows of the old and the new name cannot be told apart by name;
+     *  - after the rename: the targets (non-equivalent: every open row of the old name; equivalent: the snapshot rows
+     *    still open). Another customer holding the old name means nothing is targeted;
+     *  - inside LegacyReprovisionService::run() the capture is handed over and the service sends the Disconnects after
+     *    the tree lock is released; on the legacy path they are sent here. A NAS problem never fails the rename.
+     *
+     * @return array<string,mixed>|null the capture (null when nothing was renamed)
+     */
     public function change_username($plan, $from, $to)
     {
         // WP5B §4.3: device default deny for reseller-managed customers (only LegacyReprovisionService may call)
         \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed(null, $from, $to);
-        self::check((new RadiusProvisioner(self::repository()))->rename((string) $from, (string) $to));
+        $snapshot = self::oldIdentityBefore((string) $from, (string) $to);
+        // owner D-3: an existing exact target is replaced only inside the customer's own rename scope
+        $replace = \Reseller\Domain\LegacyReprovisionService::targetReplaceable((string) $to);
+        self::check((new RadiusProvisioner(self::repository()))->rename((string) $from, (string) $to, $replace));
+        \Reseller\Domain\LegacyReprovisionService::renameApplied((string) $to);
+        if ((string) $from === (string) $to) {
+            return null;
+        }
+        $capture = self::oldIdentityAfter($snapshot);
+        if (!\Reseller\Domain\LegacyReprovisionService::deferOldSessions($capture)) {
+            \Reseller\Domain\LegacyReprovisionService::disconnectCaptured($capture);
+        }
+        return $capture;
+    }
+
+    /**
+     * WP8 A3, before the rename (never throws): whether the names are equivalent for radacct.username, the open-row
+     * snapshot of an equivalent rename, and whether another customer holds the old name.
+     *
+     * @return array<string,mixed>
+     */
+    private static function oldIdentityBefore(string $from, string $to): array
+    {
+        $s = ['from' => $from, 'to' => $to, 'equivalent' => null, 'snapshot' => [], 'holder' => null];
+        if ($from === $to) {
+            return $s;
+        }
+        try {
+            $pdo = ORM::get_db('radius');
+            $collation = (string) $pdo->query("SELECT COLLATION_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'radacct' AND COLUMN_NAME = 'username'")->fetchColumn();
+            if (!preg_match('/^[a-z0-9]+_[a-z0-9_]+$/', $collation)) {
+                throw new RuntimeException('radacct.username collation unknown');
+            }
+            $st = $pdo->prepare("SELECT CONVERT(? USING utf8mb4) COLLATE {$collation} = CONVERT(? USING utf8mb4) COLLATE {$collation}");
+            $st->execute([$from, $to]);
+            $equivalent = (string) $st->fetchColumn() === '1';
+            if ($equivalent) {
+                $s['snapshot'] = array_map(static fn(array $r): int => (int) $r['radacctid'], (new AccountingService($pdo))->openSessions($from));
+            }
+            // a customer that holds the old name (username or PPPoE username) but not the new one is somebody else
+            $holder = false;
+            foreach (ORM::for_table('tbl_customers')->where_raw('(username = ? OR pppoe_username = ?)', [$from, $from])->find_array() as $c) {
+                $holder = $holder || ((string) $c['username'] !== $to && (string) $c['pppoe_username'] !== $to);
+            }
+            $s['holder'] = $holder;
+            $s['equivalent'] = $equivalent;
+        } catch (Throwable $e) {
+            ErrorReporter::report($e, 'rename-old-identity');
+        }
+        return $s;
+    }
+
+    /**
+     * WP8 A3, after the rename (never throws): the captured old-identity accounting rows.
+     *
+     * @param array<string,mixed> $s
+     * @return array{from:string,to:string,equivalent:?bool,state:string,targets:list<array<string,mixed>>}
+     */
+    private static function oldIdentityAfter(array $s): array
+    {
+        $capture = ['from' => $s['from'], 'to' => $s['to'], 'equivalent' => $s['equivalent'], 'state' => 'CAPTURE_FAILED', 'targets' => []];
+        if ($s['equivalent'] === null) {
+            return $capture;
+        }
+        if ($s['holder'] === true) {
+            $capture['state'] = 'AMBIGUOUS';
+            return $capture;
+        }
+        try {
+            $rows = (new AccountingService(ORM::get_db('radius')))->openSessions($s['from']);
+            if ($s['equivalent']) {
+                $rows = array_values(array_filter($rows, static fn(array $r): bool => in_array((int) $r['radacctid'], $s['snapshot'], true)));
+            }
+            $capture['targets'] = $rows;
+            $capture['state'] = 'TARGETED';
+        } catch (Throwable $e) {
+            ErrorReporter::report($e, 'rename-old-identity');
+        }
+        return $capture;
     }
 
     function add_plan($plan)

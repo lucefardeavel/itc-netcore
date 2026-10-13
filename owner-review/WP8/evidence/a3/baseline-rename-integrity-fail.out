@@ -1,0 +1,220 @@
+# 2026-10-13T10:16:11Z BASELINE (production code unchanged, 32a162d6): the rename-integrity tests must fail
+## tests/Integration/Wp4/RadiusRenameIntegrityTest.php
+ Container nuxbill-reseller-test-php82-run-9871835cacb7 Creating 
+ Container nuxbill-reseller-test-php82-run-9871835cacb7 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.FFF.                                                               5 / 5 (100%)
+
+Time: 00:03.130, Memory: 10.00 MB
+
+There were 3 failures:
+
+1) Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testEquivalentRenameUpdatesInPlaceAndNeverDeletesTheSource
+the policy survived the rename (no gap, no loss)
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 [
+-    0 => 'radcheck|52495f43415345|Cleartext-Password|pw-c',
+-    1 => 'radcheck|52495f43415345|Simultaneous-Use|1',
+-    2 => 'radreply|52495f43415345|Mikrotik-Rate-Limit|1M/c',
+-    3 => 'radusergroup|52495f43415345|plan_c|1',
+-]
++Array &0 []
+
+/repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:88
+
+2) Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testAnotherKeyEquivalentToTheSourceRefusesBeforeAnyWrite
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    0 => 'FAILED',
+-    1 => 'RADIUS_IDENTITY_AMBIGUOUS',
++    0 => 'SUCCESS',
++    1 => 'OK',
+     2 => false,
+ ]
+
+/repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:98
+
+3) Reseller\Tests\Integration\Wp4\RadiusRenameIntegrityTest::testAnotherKeyEquivalentToTheTargetRefusesBeforeAnyWrite
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    0 => 'FAILED',
+-    1 => 'RADIUS_IDENTITY_AMBIGUOUS',
++    0 => 'SUCCESS',
++    1 => 'OK',
+ ]
+
+/repo/tests/Integration/Wp4/RadiusRenameIntegrityTest.php:108
+
+FAILURES!
+Tests: 5, Assertions: 14, Failures: 3.
+
+exit=1
+## tests/Integration/Wp5b/RenameIntegrityTest.php
+ Container nuxbill-reseller-test-php82-run-8506f68125d5 Creating 
+ Container nuxbill-reseller-test-php82-run-8506f68125d5 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+E.FF                                                                4 / 4 (100%)
+
+Time: 00:07.781, Memory: 12.00 MB
+
+There was 1 error:
+
+1) Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testSharedKeyAcrossPlansIsRenamedOnceAndEqualsAFreshSync
+Reseller\Domain\DomainError: The change was saved but the device result could not be confirmed. It was not retried; an administrator must synchronize this customer. (ref 66aae5a97911)
+
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:108
+/repo/system/autoload/Reseller/Domain/TreeSerialization.php:43
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:67
+/repo/tests/Integration/Wp5b/RenameIntegrityTest.php:81
+/repo/tests/Integration/Wp5b/RenameIntegrityTest.php:87
+
+--
+
+There were 2 failures:
+
+1) Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testAmbiguousRenameIsRefusedBeforeAnyWrite with data set "equivalent to the old name" ('old', true)
+expected RENAME_AMBIGUOUS_IDENTITY
+
+/repo/tests/Support/ActivationTestCase.php:210
+/repo/tests/Integration/Wp5b/RenameIntegrityTest.php:133
+
+2) Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testAmbiguousRenameIsRefusedBeforeAnyWrite with data set "equivalent to the new name" ('new', false)
+expected RENAME_AMBIGUOUS_IDENTITY
+
+/repo/tests/Support/ActivationTestCase.php:210
+/repo/tests/Integration/Wp5b/RenameIntegrityTest.php:133
+
+ERRORS!
+Tests: 4, Assertions: 43, Errors: 1, Failures: 2.
+
+exit=2
+## tests/Integration/Wp4/RadiusLegacyRenameTest.php
+ Container nuxbill-reseller-test-php82-run-793cd7aabc1f Creating 
+ Container nuxbill-reseller-test-php82-run-793cd7aabc1f Created 
+
+Fatal error: Access level to Reseller\Tests\Integration\Wp4\RadiusLegacyRenameTest::customer() must be protected (as in class Reseller\Tests\Support\Wp2HttpTestCase) or weaker in /repo/tests/Integration/Wp4/RadiusLegacyRenameTest.php on line 36
+
+exit=255
+# 2026-10-13T10:17:12Z BASELINE re-run of RadiusLegacyRenameTest after a test-construction fix (helper renamed: it clashed with Wp2HttpTestCase::customer())
+ Container nuxbill-reseller-test-php82-run-88e4ffad85bb Creating 
+ Container nuxbill-reseller-test-php82-run-88e4ffad85bb Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.F                                                                  2 / 2 (100%)
+
+Time: 01:16.737, Memory: 10.00 MB
+
+There was 1 failure:
+
+1) Reseller\Tests\Integration\Wp4\RadiusLegacyRenameTest::testAmbiguousRenameIsRefusedBeforeTheCustomerIsSaved
+old: refused before the save
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'rxae558d41'
++'ry6f5c58e0'
+
+/repo/tests/Integration/Wp4/RadiusLegacyRenameTest.php:125
+
+FAILURES!
+Tests: 2, Assertions: 16, Failures: 1.
+
+exit=1
+# 2026-10-13T10:22:52Z BASELINE re-run of the CORRECTED case-C tests: the 4 changed production files are bind-mounted read-only from the baseline backup /srv/phpnuxbill/wp8-a3-scope2-backup-20261013T101117Z over the working tree
+## tests/Integration/Wp5b/RenameIntegrityTest.php
+ Container nuxbill-reseller-test-php82-run-043753bb94cd Creating 
+ Container nuxbill-reseller-test-php82-run-043753bb94cd Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+E.FF                                                                4 / 4 (100%)
+
+Time: 00:03.021, Memory: 12.00 MB
+
+There was 1 error:
+
+1) Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testUsernameRenameAcrossSeveralPlansRunsOnceAndEqualsAFreshSync
+Reseller\Domain\DomainError: The change was saved but the device result could not be confirmed. It was not retried; an administrator must synchronize this customer. (ref d1b40e7323dd)
+
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:108
+/repo/system/autoload/Reseller/Domain/TreeSerialization.php:43
+/repo/system/autoload/Reseller/Domain/LegacyReprovisionService.php:67
+/repo/tests/Integration/Wp5b/RenameIntegrityTest.php:97
+
+--
+
+There were 2 failures:
+
+1) Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testAmbiguousRenameIsRefusedBeforeAnyWrite with data set "equivalent to the old name" ('old', true)
+expected RENAME_AMBIGUOUS_IDENTITY
+
+/repo/tests/Support/ActivationTestCase.php:210
+/repo/tests/Integration/Wp5b/RenameIntegrityTest.php:141
+
+2) Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testAmbiguousRenameIsRefusedBeforeAnyWrite with data set "equivalent to the new name" ('new', false)
+expected RENAME_AMBIGUOUS_IDENTITY
+
+/repo/tests/Support/ActivationTestCase.php:210
+/repo/tests/Integration/Wp5b/RenameIntegrityTest.php:141
+
+ERRORS!
+Tests: 4, Assertions: 45, Errors: 1, Failures: 2.
+
+exit=2
+## tests/Integration/Wp4/RadiusLegacyRenameTest.php
+ Container nuxbill-reseller-test-php82-run-0c334b00c1ce Creating 
+ Container nuxbill-reseller-test-php82-run-0c334b00c1ce Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FF                                                                  2 / 2 (100%)
+
+Time: 00:09.117, Memory: 10.00 MB
+
+There were 2 failures:
+
+1) Reseller\Tests\Integration\Wp4\RadiusLegacyRenameTest::testUsernameRenameAcrossSeveralPlansRunsOnceAndEqualsAFreshSync
+Failed asserting that two arrays are not identical.
+
+/repo/tests/Integration/Wp4/RadiusLegacyRenameTest.php:111
+
+2) Reseller\Tests\Integration\Wp4\RadiusLegacyRenameTest::testAmbiguousRenameIsRefusedBeforeTheCustomerIsSaved
+old: refused before the save
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'rx050f2d39'
++'rya60ddbf0'
+
+/repo/tests/Integration/Wp4/RadiusLegacyRenameTest.php:126
+
+FAILURES!
+Tests: 2, Assertions: 13, Failures: 2.
+
+exit=1

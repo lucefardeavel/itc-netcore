@@ -478,3 +478,48 @@ no merge, no deployment.
   - Clarified in the report addendum; §10.2 "never a shared port" is too strong.
 - **Still open:** N-1 / N-2 cleanup notes, AV-1, AV-2, AV-3, MAC-H1A, H-2, V-1, the WP8 `Message.php` warnings,
   R-WP8-CARRY-01/02/03, R-HF-CARRY-01. H-2, V-1 and A3 are not started.
+
+## A3 — R-WP8-CARRY-02 old-identity session and RADIUS rename integrity (2026-10-12 / 2026-10-13) — additive record
+
+**Owner decision (2026-10-13): `A3_ACCEPTED_WITH_NOTES — DEVELOPMENT ONLY`.** GitHub finalization is authorized on
+`wp8/integration-poc` only, from baseline `32a162d6e91012ca2638b13332b129ece29331c7`. No merge to `feat` or `main`,
+no force push, no deployment. Basis: `WP8_A3_FINAL_REMEDIATION_REPORT.md`, after:
+- `WP8_A3_IMPLEMENTATION_ACCEPTANCE_CANDIDATE.md`;
+- `A3_FINAL_PRE_ACCEPTANCE_VERIFICATION_REPORT.md` (`BLOCKED_WITH_EVIDENCE`, leading to the owner decision
+  `A3_REMEDIATION_APPROVED — FINAL_VERIFICATION_REQUIRED`: D-1 approved, D-2 approved with documented residual, D-3
+  mandatory security fix).
+
+Plan: `WP8_A3_PREFLIGHT_AND_IMPLEMENTATION_PLAN.md` rev. 3 + OD-A3R-1 … 14; handoff `WP8_A3_HANDOFF.md`. Both have
+dated 2026-10-13 corrections: D-2 wording, and the event name `rename.old_session`.
+
+- **Accepted:**
+  - FIX-1 … FIX-7.
+  - D-3 within the limits of its proof (§4 of the remediation report): PPPoE-username collisions and foreign / orphan
+    RADIUS policies under the new name are refused before any write in R1 and R2, and the write transaction re-checks
+    them (`replaceTarget`, `DELETE`-count guard).
+  - The final MariaDB, MySQL and CHR tests.
+  - The second independent review and its fixes R-1 … R-8.
+  - Lock safety, failure audit and drift, within the scope of the tests.
+  - **Case C (a rename repeated across several plans) is closed.**
+- **Results:**
+  - focused suites: 14 per engine, 28 runs, exit 0;
+  - frozen full harness: 1167 collected / Tests 1082 / Assertions 68517 / Incomplete 85 / Skipped 0 per engine, exit 0,
+    tree unchanged;
+  - CHR `RenameOldSessionLabTest` + `RealLifecycleTest`: 9 tests / 269 assertions, exit 0, on the same tree.
+  - Incomplete and skipped tests are not counted as passes.
+- **R-WP8-CARRY-02:** closed for development by A3, with the notes below. It is not a production release.
+- **Open notes (not closed by this acceptance):**
+  - **OBS-1 — production blocker, independent of the development acceptance of A3.** Customer creation
+    (`customers.php` add-post) does not fully check PPPoE-username / username collisions between customers. Not fixed
+    in this round; no schema change.
+  - ADMIN_SYNC (and any rename) with two Radius plans on the **same** RADIUS key ends `REPROVISION_UNCONFIRMED`.
+    Pre-existing, unchanged by A3, it needs separate treatment before production. `REPROVISION_UNCONFIRMED` is never a
+    success.
+  - RadiusRest / L-4 (open before production); L-1 … L-5.
+  - R2 (unassigned legacy path) has no `old_session` audit and no warning UI; non-success is logged only.
+  - Not every real interleaving inside the write transaction under READ COMMITTED is proven (covered by the
+    `DELETE`-count guard; the deployment default is REPEATABLE READ).
+  - The pre-existing PHP warnings (`system/autoload/Message.php:13-15`, `$root_path`) are **not closed**.
+    `failOnWarning` is unchanged.
+  - Still open from earlier records: R-WP8-CARRY-01 / 03, R-HF-CARRY-01, H-2 follow-ups, V-1. A4, A5 and V-1 are not
+    started.

@@ -47,6 +47,17 @@ final class CoAClient
     }
 
     /**
+     * WP8 A3: Disconnect-Request for ONE accounting session exactly as captured (a radacct row), to that row's NAS.
+     * The row is never re-read by name, so a later session of the same or an equivalent name is never targeted.
+     *
+     * @param array<string,mixed> $session
+     */
+    public function disconnectSession(array $session): ProvisionResult
+    {
+        return $this->toSessionNas($session, RadiusPacket::DISCONNECT_REQUEST, []);
+    }
+
+    /**
      * Changes the authorization of every open session (CoA-Request), e.g. a new Mikrotik-Rate-Limit.
      *
      * @param list<array{0:string,1:string|int}> $attributes
