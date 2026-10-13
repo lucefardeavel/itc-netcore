@@ -1,0 +1,2 @@
+{"t":"2026-10-13T18:12:00+00:00","engine":"mariadb","case":"tz-tables","time_zone_names":1793,"version":"10.11.19-MariaDB-ubu2204"}
+{"t":"2026-10-13T18:12:01+00:00","engine":"mariadb","case":"outage","session":{"acctstarttime":"2026-10-13 17:05:20","acctupdatetime":"2026-10-13 18:11:55","acctstoptime":"2026-10-13 18:12:01","acctinterval":3935,"acctsessiontime":600}}

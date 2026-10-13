@@ -94,6 +94,46 @@ A failed device call therefore leaves the billing row saved: the legacy "billed,
   - the cron reaper marks silent sessions stopped (the legacy `OR` precedence bug is fixed).
 - **Stale and open sessions are reported only** (`AccountingService::staleSessions`, owner decision Q8). Reconciliation actions belong to WP5A.
 
+### 4.1 Accounting time contract (WP8 A4, R-WP8-CARRY-03; owner decision 2026-10-13)
+
+- **Writer.** FreeRADIUS writes `acctstarttime`, `acctupdatetime` and `acctstoptime` as `FROM_UNIXTIME(epoch)` (stock queries). The epoch is `Event-Timestamp` when the NAS sends it (then the **NAS clock**), else the FreeRADIUS receive time (`%l`). The value is a wall clock in the writer's **SQL session zone**, and `DATETIME` stores no zone.
+  - **Proven on RouterOS 7.24.5 (PPPoE, CHR lab):** `Event-Timestamp` is present in Start, Interim-Update and Stop; it was 1 s behind the capture time.
+  - **Absent in Accounting-On.** For Accounting-On FreeRADIUS uses `%l`: the stock accounting-on query closes the NAS's open rows with `acctstoptime = FROM_UNIXTIME(%l)` and `acctsessiontime = %l - UNIX_TIMESTAMP(acctstarttime)`. This mixes the FreeRADIUS clock with the NAS clock, which is why both need NTP.
+  - **Not captured:** Hotspot accounting and other NAS models or firmware. Verify them in the operational preflight.
+- **Reader.** The application never parses these columns as PHP-local strings. `AccountingService` reads them as epochs, `UNIX_TIMESTAMP(col) AS acctstart_epoch / acctupdate_epoch / acctstop_epoch` (additive columns; the `DATETIME` columns are unchanged). Every comparison and display uses the epochs:
+  - `staleSessions($now, $s)` compares with the instant `$now->getTimestamp() - max(60, $s)`; the zone of `$now` does not matter;
+  - `Reseller\Ui\Subscriber::session()` computes the state from `time()` and the epoch, and shows the times in the application zone with their UTC offset (`2026-10-13 12:35:13 UTC+03:00`).
+- **Same session zone on both sides.** The conversion is lossless only when the writer and the reader use the same session zone. Neither FreeRADIUS (`sql` module) nor `init.php` sets `time_zone`, so both use the RADIUS database server zone (source-guarded). **Never set `time_zone` on one side only**, and do not change the server zone while sessions are open: rows written before a change keep the old wall clock and read off by the difference. They are never rewritten.
+- **The unified UTC contract is about the effective SESSION zone, not `@@global.time_zone` alone.**
+  - **What counts:** the zone each connection actually uses. That is `@@session.time_zone`; when it is `SYSTEM`, it is `@@system_time_zone`, and the effective offset is `TIMESTAMPDIFF(SECOND, UTC_TIMESTAMP(), NOW())` in that session.
+  - **Why global is not enough:** a session can override the global value (an `init_command`, a driver option, a connection pool opened before a global change).
+  - **Verified (development only):** the harness (both engines) and the WP8 lab show `@@global` = `@@session` = `SYSTEM`, `@@system_time_zone` = `UTC` and a session offset of 0 on the application connection.
+  - **How the writer was verified:** FreeRADIUS's own session variables cannot be read from outside without a configuration change. Its session zone was proven by round trip: the text it stored for a known epoch equals the application session's `FROM_UNIXTIME` of that epoch, and in the lab a real start at 18:48:18 UTC was stored as `18:48:18`.
+  - **Not verified:** production.
+- **Production requirement: the RADIUS database zone is UTC** (no DST). In a DST zone the repeated autumn hour maps two instants to one `DATETIME`, and this is characterised by test:
+  - freshness, `acctinterval` and the accounting-on `acctsessiontime` can be wrong by 3600 s;
+  - the quota period edge (`acctstarttime >= FROM_UNIXTIME(period)`) can count a session from before the period.
+- **Operational preflight before production (later stage, production blocker).** A4 changes no production setting. The preflight must:
+  1. check the effective session zone of the FreeRADIUS `sql` connections **and** of the application `radius` connection (UTC, offset 0, no DST);
+  2. check NTP on every NAS and on the FreeRADIUS, application and database hosts;
+  3. survey the existing `radacct` history for rows written under another zone.
+
+  Such rows need a separate, owner-approved compatibility or migration plan. A4 authorises no data migration, no change of an existing database zone and no change of historical `radacct` rows.
+- **Not the FreeRADIUS process zone.** The FreeRADIUS process `TZ` serves `Expiration` only and stays equal to the application zone (WP4 residual 4). It is independent of the SQL session zone. The WP8 lab runs exactly this split: FreeRADIUS `TZ=Asia/Baghdad` for `Expiration`, SQL session UTC for accounting. Do not "fix" one by changing the other.
+- **Clocks.** The PHP, FreeRADIUS, database and **every NAS** clock must be NTP-synchronised. A last update more than 300 s in the future (`AccountingService::CLOCK_TOLERANCE_SECONDS`) breaks the contract.
+- **Fail-safe.** A missing, invalid (zero / out-of-range) or future time is never a confirmed "online":
+  - `Subscriber::session()` shows "Status unknown";
+  - `staleSessions()` reports the row for review.
+- **A writer / reader zone mismatch voids the freshness guarantee.** Every epoch read is off by exactly the zone difference Δ (characterised by test):
+  - **Writer ahead of the reader:** a freshly written row reads as a future time ("Status unknown", reported). But a session whose accounting went silent about Δ ago reads as just updated, so it can show "online" for up to 1800 s (display) or the report threshold (`staleSessions`).
+  - **Writer behind the reader:** sessions look older by Δ. A Δ smaller than 1800 s (a 15 / 30 / 45 min zone pair) can still show "online", with every time shifted by Δ.
+
+  This is why the same session zone (UTC) on both sides is a deployment requirement, not a code guarantee.
+- **Unchanged contracts:**
+  - `Expiration` is parsed in the FreeRADIUS process zone; run FreeRADIUS in the application zone (residual 4; a separate policy contract, OD-A4-3);
+  - the rlm_rest `rad_acct` reaper uses the PHP clock on both sides (RadiusRest, OD-A4-4);
+  - A2-R / H-2B use `UTC_TIMESTAMP` only.
+
 ## 5. Results and failure semantics
 
 | Situation | Result |
@@ -176,9 +216,14 @@ Nothing retries by itself. `UNKNOWN` is never `retryable`.
    - They are not deleted automatically, because a customer may also have a Hotspot plan under `username`.
 2. **History lost before WP4.** Deployments that ran the legacy device may already have lost `radacct` history (WP0 risk I.2). WP4 stops further loss.
 3. **rlm_rest deployments must configure the secret.** The endpoint is off by default. This is a deliberate breaking change (SEC-01).
-4. **Expiration and FreeRADIUS time zone.** `Expiration` is interpreted in FreeRADIUS local time; run FreeRADIUS in the application time zone.
+4. **Expiration and FreeRADIUS time zone.** `Expiration` is interpreted in FreeRADIUS local time; run FreeRADIUS in the application time zone. This is independent of the accounting time contract (§4.1), which depends on the database session zone, not the FreeRADIUS process zone.
 5. **Sessions across a period boundary.** A session that started before the period start is not counted in the new period.
 6. **No real-NAS verification.** CoA and Disconnect are verified against a stub NAS only. MikroTik verification is WP8.
 7. **Device errors are now explicit.** Device-level failures raise `ProvisionFailure`. Legacy controllers without try/catch show the generic error page (as they did for PDO errors before). `Package::rechargeUser` reports them and notifies the operator.
 8. **Plaintext secrets.** The NAS secret is plaintext at rest (Q10). The customer password is plaintext because Cleartext-Password / CHAP needs it (WP0 §12).
 9. **Unchanged by WP4:** the legacy MikroTik device methods (WP8), the `.htaccess_firewall` default (SEC-20, WP10), and the `logs/radius` export of `radpostauth` passwords (WP2 R11). The project site does not enable post-auth logging.
+10. **Accounting time (WP8 A4).** The §4.1 contract fixes the application side. The remaining conditions are deployment requirements, not code:
+    - a UTC (non-DST) RADIUS database zone;
+    - the same session zone for the writer and the reader;
+    - NTP on every host and the NAS.
+    Rows written under a former database zone are read shifted and never corrected in place.

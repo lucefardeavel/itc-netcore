@@ -1,0 +1,1 @@
+{"t": "2026-10-13T18:55:22+00:00", "stale_reported": [2], "obs_w8_8_app_clock": {"app_now": "2026-10-13 21:55:22 +03", "db_now": "2026-10-13 18:55:22", "stale_reported_with_app_clock": [2]}, "old_row_age_s": 129, "old_row_unchanged_after_login": true, "old_row_unchanged_after_stale_check": true}

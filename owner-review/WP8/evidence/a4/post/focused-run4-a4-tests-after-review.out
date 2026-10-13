@@ -1,0 +1,70 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+## 2026-10-13T18:44:56Z tests/Unit/Wp4/AccountingTimeUnitTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......                                                              6 / 6 (100%)
+Time: 00:00.018, Memory: 10.00 MB
+OK (6 tests, 79 assertions)
+exit=0
+## 2026-10-13T18:44:58Z tests/Integration/Wp4/AccountingTimeContractTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:12.674, Memory: 12.00 MB
+OK (11 tests, 666 assertions)
+exit=0
+## 2026-10-13T18:45:13Z tests/Integration/Wp6a/Subscriber360Test.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+....                                                                4 / 4 (100%)
+Time: 00:07.886, Memory: 10.00 MB
+OK (4 tests, 137 assertions)
+exit=0
+## 2026-10-13T18:45:22Z tests/Unit/Wp4/AccountingTimeUnitTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......                                                              6 / 6 (100%)
+Time: 00:00.012, Memory: 10.00 MB
+OK (6 tests, 79 assertions)
+exit=0
+## 2026-10-13T18:45:24Z tests/Integration/Wp4/AccountingTimeContractTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:44.687, Memory: 12.00 MB
+OK (11 tests, 666 assertions)
+exit=0
+## 2026-10-13T18:46:11Z tests/Integration/Wp6a/Subscriber360Test.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+....                                                                4 / 4 (100%)
+Time: 00:11.101, Memory: 10.00 MB
+OK (4 tests, 137 assertions)
+exit=0

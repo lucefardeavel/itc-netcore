@@ -1,0 +1,2 @@
+{"t":"2026-10-13T18:12:26+00:00","engine":"mysql","case":"tz-tables","time_zone_names":1795,"version":"8.0.46"}
+{"t":"2026-10-13T18:12:26+00:00","engine":"mysql","case":"outage","session":{"acctstarttime":"2026-10-13 17:05:46","acctupdatetime":"2026-10-13 18:12:21","acctstoptime":"2026-10-13 18:12:26","acctinterval":3935,"acctsessiontime":600}}

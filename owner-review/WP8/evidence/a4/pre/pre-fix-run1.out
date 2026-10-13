@@ -1,0 +1,792 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+## 2026-10-13T18:11:38Z tests/Unit/Wp4/AccountingTimeUnitTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+EEEEEF                                                              6 / 6 (100%)
+Time: 00:00.025, Memory: 10.00 MB
+There were 5 errors:
+1) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testStateBoundariesAroundTheStaleThreshold
+Error: Call to undefined method Reseller\Ui\Subscriber::sessionState()
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:53
+2) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testMissingInvalidOrFutureTimesAreNeverAConfirmedOnline
+Error: Undefined constant Reseller\Radius\AccountingService::CLOCK_TOLERANCE_SECONDS
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:65
+3) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testEpochNormalisation
+Error: Call to undefined method Reseller\Radius\AccountingService::epoch()
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:80
+4) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testDisplayIsTheApplicationZoneWithItsOffsetAcrossDstChanges
+Error: Call to undefined method Reseller\Ui\Subscriber::displayTime()
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:114
+5) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testTheSameInstantIsShownConsistentlyInEveryApplicationZone
+Error: Call to undefined method Reseller\Ui\Subscriber::displayTime()
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:128
+--
+There was 1 failure:
+1) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testSourceGuardsOfTheTimeContract
+no PHP-local parsing of radacct strings
+Failed asserting that 'function session(array $customer, bool $nas): array\n
+    {\n
+        global $config;\n
+        if (empty($config['radius_enable'])) {\n
+            return ['state' => 'unavailable'];\n
+        }\n
+        $names = array_values(array_unique(array_filter([(string) ($customer['username'] ?? ''), (string) ($customer['pppoe_username'] ?? '')])));\n
+        try {\n
+            $acc = AccountingService::connection();\n
+            $open = [];\n
+            foreach ($names as $n) {\n
+                $open = array_merge($open, $acc->openSessions($n));\n
+            }\n
+            usort($open, static fn(array $a, array $b): int => (int) $b['radacctid'] <=> (int) $a['radacctid']);\n
+            $row = $open[0] ?? $acc->lastSession($names);\n
+        } catch (\Throwable $e) {\n
+            \Reseller\Security\ErrorReporter::report($e, 'subscriber-session');\n
+            return ['state' => 'unavailable'];\n
+        }\n
+        if ($row === null) {\n
+            return ['state' => 'never'];\n
+        }\n
+        $seen = (string) ($row['acctupdatetime'] ?? '') !== '' ? (string) $row['acctupdatetime'] : (string) $row['acctstarttime'];\n
+        $state = 'offline';\n
+        if ($open !== []) {\n
+            $age = time() - (int) strtotime($seen);\n
+            $state = $age > self::STALE_SECONDS ? 'stale' : 'online';\n
+        }\n
+        $out = [\n
+            'state' => $state, 'open_sessions' => count($open), 'username' => (string) $row['username'],\n
+            'started' => (string) $row['acctstarttime'], 'last_update' => $seen, 'stopped' => $row['acctstoptime'] !== null ? (string) $row['acctstoptime'] : null,\n
+            'framed_ip' => (string) $row['framedipaddress'], 'mac' => (string) ($row['callingstationid'] ?? ''),\n
+            'session_seconds' => (int) $row['acctsessiontime'], 'download' => (int) $row['acctoutputoctets'], 'upload' => (int) $row['acctinputoctets'],\n
+        ];\n
+        if ($nas) {\n
+            $out['nas'] = (string) $row['nasipaddress'];\n
+        }\n
+        return $out;\n
+    }\n
+\n
+    /**\n
+     * Activation customer picker: reseller-owned customers matching the term within customer.read scope that the\n
+     * actor may activate (ActivationService::payerOf: Agent own customers, Sales assigned, Admin any), at most 20.\n
+     *\n
+     * @return list<array<string,mixed>>\n
+     */' [ASCII](length: 2254) does not contain "strtotime(" [ASCII](length: 10).
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:138
+ERRORS!
+Tests: 6, Assertions: 3, Errors: 5, Failures: 1.
+exit=2
+## 2026-10-13T18:11:42Z tests/Integration/Wp4/AccountingTimeContractTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.E.FFF.FFFE                                                       11 / 11 (100%)
+Time: 00:19.916, Memory: 10.00 MB
+There were 2 errors:
+1) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testTheFreeRadiusWriterAndTheApplicationReaderShareOneTimeReference
+Error: Call to undefined method Reseller\Radius\AccountingService::epoch()
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:209
+2) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testTheStaleQueryKeepsTheAccessPathOfThePreviousQuery
+PDOException: SQLSTATE[HY000]: General error: 2014 Cannot execute queries while other unbuffered queries are active.  Consider using PDOStatement::fetchAll().  Alternatively, if your code is only ever going to run against mysql, you may enable query buffering by setting the PDO::MYSQL_ATTR_USE_BUFFERED_QUERY attribute.
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:81
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:547
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:549
+--
+There were 6 failures:
+1) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testStaleSessionsIsTheSameForEveryDatabaseZoneAndApplicationZone
+db +00:00 / php UTC / now UTC: threshold 120 s
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     0 => 'a4f63d19-mcut-1-21c3',
+-    1 => 'a4f63d19-mfuture-3h-18f4',
+-    2 => 'a4f63d19-mfuture-tol+1-96f6',
+-    3 => 'a4f63d19-mno-times-1e2d',
+-    4 => 'a4f63d19-mnoupd-old-664a',
+-    5 => 'a4f63d19-mold-694b',
+-    6 => 'a4f63d19-mpre1970-7738',
+-    7 => 'a4f63d19-mzero-9253',
++    1 => 'a4f63d19-mnoupd-old-664a',
++    2 => 'a4f63d19-mold-694b',
++    3 => 'a4f63d19-mpre1970-7738',
++    4 => 'a4f63d19-mzero-9253',
+ ]
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:289
+2) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testSubscriberSessionStateAndDisplayAreTheSameInstantInEveryZoneCombination
+db +00:00 / php UTC / fresh: started in the application zone with its offset
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'2026-10-13 18:02:00 UTC+00:00'
++'2026-10-13 18:02:00'
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:326
+3) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testChangingTheApplicationZoneBetweenWriteAndReadChangesNothing
+Asia/Baghdad
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'online'
++'stale'
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:354
+4) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testAZoneMismatchBetweenWriterAndReaderIsNeverAFreshSession
+reader +03:00: reported for review (threshold 120 s), never fresh
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 [
+-    0 => 'a4f63d19-mismatch-0a52',
+-]
++Array &0 []
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:411
+5) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testMixedHistoryWrittenBeforeAndAfterADatabaseZoneChangeIsReadNeverRewritten
+rows written before the change read 3 h off (documented, never corrected in place)
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    0 => 1780318800,
+-    1 => 1788256800,
+-    2 => 1791925891,
++    0 => 0,
++    1 => 0,
++    2 => 0,
+ ]
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:451
+6) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testDstTransitionsAreCharacterisedAndUtcHasNoAmbiguity
+America/New_York: 60 s old across the spring gap is fresh
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'a4f63d19-dsts-6022',
++]
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:513
+--
+1 test triggered 1 PHP warning:
+1) /repo/tests/Integration/Wp4/AccountingTimeContractTest.php:448
+Undefined array key "acctstart_epoch"
+ERRORS!
+Tests: 11, Assertions: 165, Errors: 2, Failures: 6, Warnings: 1.
+exit=2
+## 2026-10-13T18:12:04Z tests/Integration/Wp6a/Subscriber360Test.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..F.                                                                4 / 4 (100%)
+Time: 00:09.887, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Integration\Wp6a\Subscriber360Test::testSessionStateComesFromAccountingOnly
+a session updated just now is Online whatever the application zone
+Failed asserting that '\n
+                                \n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+<div class="nuxr-has-actionbar">\n
+\n
+\n
+<div class="nuxr-grid nuxr-grid-360">\n
+        <div>\n
+        <section class="nuxr-card" aria-labelledby="nuxr-identity">\n
+            <div class="nuxr-card-body" style="display:flex;gap:14px;align-items:center">\n
+                <span class="nuxr-avatar-initial" aria-hidden="true">&lt;</span>\n
+                <div style="min-width:0">\n
+                    <h2 id="nuxr-identity" style="margin:0;font-size:18px;font-weight:700;overflow-wrap:anywhere">&lt;img src=x onerror=alert(1)&gt; سارة</h2>\n
+                    <div><bdi dir="ltr" class="nuxr-mono">cA1</bdi> <span class="nuxr-muted">· #<bdi dir="ltr">1</bdi></span></div>\n
+                    <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">\n
+    <span class="nuxr-badge is-success"><i class="fa fa-check-circle" aria-hidden="true"></i>Active</span>\n
+    \n
+                        <span class="nuxr-badge is-neutral"><i class="fa fa-wifi" aria-hidden="true"></i>Hotspot</span></div>\n
+                </div>\n
+            </div>\n
+            <div class="nuxr-card-body" style="border-top:1px solid var(--nx-border)">\n
+                <dl class="nuxr-kv">\n
+                    <div><dt>Phone</dt><dd><a href="tel:07003"><bdi dir="ltr">07003</bdi></a></dd></div>                    <div><dt>Email</dt><dd><bdi dir="ltr">ca1@example.invalid</bdi></dd></div>                    <div><dt>PPPoE username</dt><dd><bdi dir="ltr" class="nuxr-mono">sara-pppoe</bdi></dd></div>                    <div><dt>Static IP</dt><dd><bdi dir="ltr" class="nuxr-mono">10.9.8.7</bdi></dd></div>                                        <div><dt>Account type</dt><dd>Personal</dd></div>\n
+                    <div><dt>Created</dt><dd><bdi dir="ltr">2026-10-13 18:12:09</bdi></dd></div>\n
+                    <div><dt>Created by</dt><dd><bdi dir="ltr">ad</bdi></dd></div>                                        <div><dt>Auto Renewal</dt><dd>Yes</dd></div>\n
+                                                        </dl>\n
+                                    <details style="margin-top:8px">\n
+                        <summary class="nuxr-btn">Show credentials</summary>\n
+                        <dl class="nuxr-kv" style="margin-top:8px">\n
+                            <div><dt>Password</dt><dd><input type="password" value="cpw-cA1" readonly class="form-control nuxr-input ltr" dir="ltr"\n
+                                onclick="this.type = this.type === 'password' ? 'text' : 'password'" aria-label="Password"></dd></div>\n
+                                                    </dl>\n
+                    </details>\n
+                            </div>\n
+        </section>\n
+\n
+                <section class="nuxr-card" aria-labelledby="nuxr-ownership">\n
+            <div class="nuxr-card-head"><h3 id="nuxr-ownership">Ownership</h3></div>\n
+            <div class="nuxr-card-body">\n
+                <dl class="nuxr-kv">\n
+                    <div><dt>Owner (reseller)</dt><dd><bdi dir="ltr">A</bdi></dd></div>\n
+                    <div><dt>Sales</dt><dd><bdi dir="ltr">A1</bdi></dd></div>\n
+                </dl>\n
+                                    <form method="post" action="http://127.0.0.1:21482/?_route=reseller/customer-assign-sales" class="nuxr-filters nuxr-form" style="margin:12px 0 0">\n
+                        <input type="hidden" name="csrf_token" value="46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0">\n
+                        <input type="hidden" name="customer_id" value="1">\n
+                        <label class="sr-only" for="nuxr-sales-select">Sales</label>\n
+                        <select id="nuxr-sales-select" name="sales_id" class="form-control nuxr-input" style="flex:1 1 140px">\n
+                            <option value="8" selected>A1</option><option value="9" >A2</option>                        </select>\n
+                        <button class="nuxr-btn" type="submit">Assign Sales</button>\n
+                    </form>\n
+                                            <form method="post" action="http://127.0.0.1:21482/?_route=reseller/customer-clear-sales" style="margin-top:8px">\n
+                            <input type="hidden" name="csrf_token" value="46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0">\n
+                            <input type="hidden" name="customer_id" value="1">\n
+                            <button class="nuxr-btn" type="submit">Clear Sales</button>\n
+                        </form>\n
+                                                                        <button type="button" class="nuxr-btn" style="margin-top:8px" data-nuxr-open="nuxr-transfer-dialog">Transfer owner</button>\n
+                                            </div>\n
+        </section>\n
+    </div>\n
+\n
+        <div class="nuxr-360-main">\n
+        <section class="nuxr-card" aria-labelledby="nuxr-service">\n
+            <div class="nuxr-card-head">\n
+                <h3 id="nuxr-service">Service</h3>\n
+                                    <a class="nuxr-btn nuxr-btn-primary nuxr-hide-phone" href="http://127.0.0.1:21482/?_route=activation/create&customer=1">\n
+                        <i class="fa fa-bolt" aria-hidden="true"></i>Renew / change plan</a>\n
+                            </div>\n
+            <div class="nuxr-card-body">\n
+                                                                                    <div style="">\n
+                            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">\n
+                                <strong style="font-size:16px">wp2_plan</strong>\n
+                                <span class="nuxr-badge is-success"><i class="fa fa-check-circle" aria-hidden="true"></i>Active</span>                            </div>\n
+                            <dl class="nuxr-kv" style="margin-top:6px">\n
+                                <div><dt>Expires</dt><dd><bdi dir="ltr">2026-10-23 23:59:59</bdi>\n
+                                    <span class="nuxr-muted"> · 9 days left</span></dd></div>\n
+                                <div><dt>Speed</dt><dd>wp2_bw</dd></div>\n
+                                <div><dt>Type</dt><dd>Hotspot · Prepaid</dd></div>\n
+                            </dl>\n
+                                                            <button type="button" class="nuxr-btn nuxr-btn-danger" style="margin-top:8px" data-nuxr-open="nuxr-deactivate-1">Deactivate plan</button>\n
+                                <dialog id="nuxr-deactivate-1" class="nuxr-sheet" aria-labelledby="nuxr-deact-t-1">\n
+                                    <div class="nuxr-sheet-head"><h2 id="nuxr-deact-t-1">Deactivate plan</h2>\n
+                                        <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button></div>\n
+                                    <form method="post" action="http://127.0.0.1:21482/?_route=customers/deactivate/1/1&token=46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0">\n
+                                        <input type="hidden" name="csrf_token" value="46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0">\n
+                                        <div class="nuxr-dialog-body"><div class="nuxr-alert is-danger"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>\n
+                                            <div>This ends the plan now and makes it expired. Internet access stops for this plan.<br><strong>wp2_plan</strong></div></div></div>\n
+                                        <div class="nuxr-dialog-foot"><button type="button" class="nuxr-btn" data-nuxr-close autofocus>Cancel</button>\n
+                                            <button type="submit" class="nuxr-btn nuxr-btn-danger-solid">Deactivate plan</button></div>\n
+                                    </form>\n
+                                </dialog>\n
+                                                    </div>\n
+                                                                </div>\n
+        </section>\n
+\n
+                <section class="nuxr-card" aria-labelledby="nuxr-session">\n
+            <div class="nuxr-card-head"><h3 id="nuxr-session">Connection</h3>\n
+                <span class="nuxr-badge is-warning"><i class="fa fa-question-circle" aria-hidden="true"></i>Status unknown</span>\n
+                            </div>\n
+            <div class="nuxr-card-body">\n
+                                    <p class="nuxr-muted" style="margin:0 0 6px">A session is open but has not been updated recently; the subscriber may be offline.</p>                    <dl class="nuxr-kv">\n
+                        <div><dt>Online since</dt><dd><bdi dir="ltr">2026-10-13 18:12:13</bdi></dd></div>                        <div><dt>Last seen</dt><dd><bdi dir="ltr">2026-10-13 18:12:13</bdi></dd></div>\n
+                        <div><dt>IP address</dt><dd><bdi dir="ltr" class="nuxr-mono">100.70.1.2</bdi></dd></div>                        <div><dt>MAC</dt><dd><bdi dir="ltr" class="nuxr-mono">AA:BB:CC:00:11:22</bdi></dd></div>                        <div><dt>NAS</dt><dd><bdi dir="ltr" class="nuxr-mono">192.0.2.77</bdi></dd></div>                        <div><dt>Session time</dt><dd><bdi dir="ltr">1h 00m</bdi></dd></div>\n
+                        <div><dt>Download / upload</dt><dd><bdi dir="ltr">10.0 MB / 1.0 MB</bdi></dd></div>\n
+                    </dl>\n
+                            </div>\n
+        </section>\n
+\n
+        <nav class="nuxr-tabs" aria-label="Subscriber sections">\n
+            <a href="http://127.0.0.1:21482/?_route=customers/view/1/overview" aria-current="page">Overview</a>\n
+            <a href="http://127.0.0.1:21482/?_route=customers/view/1/activations">Activations</a>            <a href="http://127.0.0.1:21482/?_route=customers/view/1/invoices">Invoices</a>\n
+            <a href="http://127.0.0.1:21482/?_route=customers/view/1/order">Orders</a>\n
+        </nav>\n
+\n
+        <section class="nuxr-card">\n
+                            <div class="nuxr-card-head"><h3>Recent activations</h3>\n
+                    <a href="http://127.0.0.1:21482/?_route=customers/view/1/activations">All activations</a></div>\n
+                                    <div class="nuxr-empty"><i class="fa fa-bolt" aria-hidden="true"></i><span>No reseller activations for this subscriber.</span></div>\n
+                                                    </section>\n
+\n
+                            <section class="nuxr-card" aria-labelledby="nuxr-actions-t">\n
+                <div class="nuxr-card-head"><h3 id="nuxr-actions-t">More actions</h3></div>\n
+                <div class="nuxr-card-body nuxr-actions">\n
+                    <a class="nuxr-btn" href="http://127.0.0.1:21482/?_route=message/send/1"><i class="fa fa-comment" aria-hidden="true"></i>Send message</a>                    <a class="nuxr-btn" href="http://127.0.0.1:21482/?_route=customers/edit/1&token=46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0"><i class="fa fa-pencil" aria-hidden="true"></i>Edit</a>                    <button type="button" class="nuxr-btn" data-nuxr-open="nuxr-sync-dialog"><i class="fa fa-refresh" aria-hidden="true"></i>Synchronize</button>                                            <form method="post" action="http://127.0.0.1:21482/?_route=customers/login/1&token=46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0" target="_blank" style="display:inline">\n
+                            <input type="hidden" name="csrf_token" value="46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0">\n
+                            <button type="submit" class="nuxr-btn"><i class="fa fa-sign-in" aria-hidden="true"></i>Login as Customer</button>\n
+                        </form>\n
+                                    </div>\n
+                                    <div class="nuxr-card-body" style="border-top:1px solid var(--nx-border)">\n
+                        <h4 class="nuxr-section-title" style="margin-top:0;color:var(--nx-danger)">Danger zone</h4>\n
+                        <button type="button" class="nuxr-btn nuxr-btn-danger" data-nuxr-open="nuxr-delete-dialog"><i class="fa fa-trash" aria-hidden="true"></i>Delete subscriber</button>\n
+                    </div>\n
+                            </section>\n
+            </div>\n
+</div>\n
+\n
+    <div class="nuxr-actionbar nuxr-only-phone">\n
+        <a class="nuxr-btn nuxr-btn-primary" href="http://127.0.0.1:21482/?_route=activation/create&customer=1">\n
+            <i class="fa fa-bolt" aria-hidden="true"></i>Renew / change plan</a>\n
+    </div>\n
+</div>\n
+\n
+    <dialog id="nuxr-sync-dialog" class="nuxr-sheet" aria-labelledby="nuxr-sync-t">\n
+        <div class="nuxr-sheet-head"><h2 id="nuxr-sync-t">Synchronize</h2>\n
+            <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button></div>\n
+        <form method="post" action="http://127.0.0.1:21482/?_route=customers/sync/1&token=46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0">\n
+            <input type="hidden" name="csrf_token" value="46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0">\n
+            <div class="nuxr-dialog-body"><p>Write this subscriber's current service to the network again. The result is shown when it finishes; if it cannot be confirmed it is not retried automatically.</p></div>\n
+            <div class="nuxr-dialog-foot"><button type="button" class="nuxr-btn" data-nuxr-close>Cancel</button>\n
+                <button type="submit" class="nuxr-btn nuxr-btn-primary">Synchronize</button></div>\n
+        </form>\n
+    </dialog>\n
+    <dialog id="nuxr-delete-dialog" class="nuxr-sheet" aria-labelledby="nuxr-delete-t">\n
+        <div class="nuxr-sheet-head"><h2 id="nuxr-delete-t">Delete subscriber</h2>\n
+            <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button></div>\n
+        <form method="post" action="http://127.0.0.1:21482/?_route=customers/delete/1&token=46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0">\n
+            <input type="hidden" name="csrf_token" value="46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0">\n
+            <div class="nuxr-dialog-body">\n
+                <div class="nuxr-alert is-danger"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>\n
+                    <div><strong>This permanently deletes the subscriber and removes the service from the network.</strong>\n
+                        It is refused while financial or activation history references the subscriber.</div></div>\n
+                <label for="nuxr-delete-confirm">Type the username to confirm: <bdi dir="ltr" class="nuxr-mono">cA1</bdi></label>\n
+                <input id="nuxr-delete-confirm" class="form-control nuxr-input ltr" dir="ltr" autocomplete="off" data-nuxr-match="cA1">\n
+            </div>\n
+            <div class="nuxr-dialog-foot"><button type="button" class="nuxr-btn" data-nuxr-close autofocus>Cancel</button>\n
+                <button type="submit" class="nuxr-btn nuxr-btn-danger-solid" data-nuxr-match-submit disabled>Delete subscriber</button></div>\n
+        </form>\n
+    </dialog>\n
+    <dialog id="nuxr-transfer-dialog" class="nuxr-sheet" aria-labelledby="nuxr-transfer-t">\n
+        <div class="nuxr-sheet-head"><h2 id="nuxr-transfer-t">Transfer owner</h2>\n
+            <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button></div>\n
+        <form method="post" action="http://127.0.0.1:21482/?_route=reseller/customer-transfer" class="nuxr-form">\n
+            <input type="hidden" name="csrf_token" value="46f320c033a2d64087609bfa5438439f4a46025de96dce517bbf57e0aecc50e0">\n
+            <input type="hidden" name="customer_id" value="1">\n
+            <div class="nuxr-dialog-body">\n
+                <p>Future operations use the new owner's wallet and prices. History stays with the original owner. A Sales that does not belong to the new owner is cleared.</p>\n
+                <label for="nuxr-transfer-owner">New owner (reseller)</label>\n
+                <select id="nuxr-transfer-owner" name="manager_id" class="form-control nuxr-input">\n
+                    <option value="6">B | Staff B</option><option value="7">C | Staff C</option><option value="12">F | Staff F</option>                </select>\n
+            </div>\n
+            <div class="nuxr-dialog-foot"><button type="button" class="nuxr-btn" data-nuxr-close>Cancel</button>\n
+                <button type="submit" class="nuxr-btn nuxr-btn-primary">Transfer owner</button></div>\n
+        </form>\n
+    </dialog>\n
+            </section>\n
+        </div>\n
+        ' [UTF-8](length: 16588) does not contain "Status unknown" [ASCII](length: 14).
+/repo/tests/Integration/Wp6a/Subscriber360Test.php:106
+FAILURES!
+Tests: 4, Assertions: 115, Failures: 1.
+exit=1
+## 2026-10-13T18:12:17Z tests/Unit/Wp4/AccountingTimeUnitTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+EEEEEF                                                              6 / 6 (100%)
+Time: 00:00.020, Memory: 10.00 MB
+There were 5 errors:
+1) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testStateBoundariesAroundTheStaleThreshold
+Error: Call to undefined method Reseller\Ui\Subscriber::sessionState()
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:53
+2) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testMissingInvalidOrFutureTimesAreNeverAConfirmedOnline
+Error: Undefined constant Reseller\Radius\AccountingService::CLOCK_TOLERANCE_SECONDS
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:65
+3) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testEpochNormalisation
+Error: Call to undefined method Reseller\Radius\AccountingService::epoch()
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:80
+4) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testDisplayIsTheApplicationZoneWithItsOffsetAcrossDstChanges
+Error: Call to undefined method Reseller\Ui\Subscriber::displayTime()
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:114
+5) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testTheSameInstantIsShownConsistentlyInEveryApplicationZone
+Error: Call to undefined method Reseller\Ui\Subscriber::displayTime()
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:128
+--
+There was 1 failure:
+1) Reseller\Tests\Unit\Wp4\AccountingTimeUnitTest::testSourceGuardsOfTheTimeContract
+no PHP-local parsing of radacct strings
+Failed asserting that 'function session(array $customer, bool $nas): array\n
+    {\n
+        global $config;\n
+        if (empty($config['radius_enable'])) {\n
+            return ['state' => 'unavailable'];\n
+        }\n
+        $names = array_values(array_unique(array_filter([(string) ($customer['username'] ?? ''), (string) ($customer['pppoe_username'] ?? '')])));\n
+        try {\n
+            $acc = AccountingService::connection();\n
+            $open = [];\n
+            foreach ($names as $n) {\n
+                $open = array_merge($open, $acc->openSessions($n));\n
+            }\n
+            usort($open, static fn(array $a, array $b): int => (int) $b['radacctid'] <=> (int) $a['radacctid']);\n
+            $row = $open[0] ?? $acc->lastSession($names);\n
+        } catch (\Throwable $e) {\n
+            \Reseller\Security\ErrorReporter::report($e, 'subscriber-session');\n
+            return ['state' => 'unavailable'];\n
+        }\n
+        if ($row === null) {\n
+            return ['state' => 'never'];\n
+        }\n
+        $seen = (string) ($row['acctupdatetime'] ?? '') !== '' ? (string) $row['acctupdatetime'] : (string) $row['acctstarttime'];\n
+        $state = 'offline';\n
+        if ($open !== []) {\n
+            $age = time() - (int) strtotime($seen);\n
+            $state = $age > self::STALE_SECONDS ? 'stale' : 'online';\n
+        }\n
+        $out = [\n
+            'state' => $state, 'open_sessions' => count($open), 'username' => (string) $row['username'],\n
+            'started' => (string) $row['acctstarttime'], 'last_update' => $seen, 'stopped' => $row['acctstoptime'] !== null ? (string) $row['acctstoptime'] : null,\n
+            'framed_ip' => (string) $row['framedipaddress'], 'mac' => (string) ($row['callingstationid'] ?? ''),\n
+            'session_seconds' => (int) $row['acctsessiontime'], 'download' => (int) $row['acctoutputoctets'], 'upload' => (int) $row['acctinputoctets'],\n
+        ];\n
+        if ($nas) {\n
+            $out['nas'] = (string) $row['nasipaddress'];\n
+        }\n
+        return $out;\n
+    }\n
+\n
+    /**\n
+     * Activation customer picker: reseller-owned customers matching the term within customer.read scope that the\n
+     * actor may activate (ActivationService::payerOf: Agent own customers, Sales assigned, Admin any), at most 20.\n
+     *\n
+     * @return list<array<string,mixed>>\n
+     */' [ASCII](length: 2254) does not contain "strtotime(" [ASCII](length: 10).
+/repo/tests/Unit/Wp4/AccountingTimeUnitTest.php:138
+ERRORS!
+Tests: 6, Assertions: 3, Errors: 5, Failures: 1.
+exit=2
+## 2026-10-13T18:12:18Z tests/Integration/Wp4/AccountingTimeContractTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.E.FFF.FFFE                                                       11 / 11 (100%)
+Time: 00:08.700, Memory: 10.00 MB
+There were 2 errors:
+1) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testTheFreeRadiusWriterAndTheApplicationReaderShareOneTimeReference
+Error: Call to undefined method Reseller\Radius\AccountingService::epoch()
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:209
+2) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testTheStaleQueryKeepsTheAccessPathOfThePreviousQuery
+PDOException: SQLSTATE[HY000]: General error: 2014 Cannot execute queries while other unbuffered queries are active.  Consider using PDOStatement::fetchAll().  Alternatively, if your code is only ever going to run against mysql, you may enable query buffering by setting the PDO::MYSQL_ATTR_USE_BUFFERED_QUERY attribute.
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:81
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:547
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:549
+--
+There were 6 failures:
+1) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testStaleSessionsIsTheSameForEveryDatabaseZoneAndApplicationZone
+db +00:00 / php UTC / now UTC: threshold 120 s
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     0 => 'a4e46070-mcut-1-5363',
+-    1 => 'a4e46070-mfuture-3h-d801',
+-    2 => 'a4e46070-mfuture-tol+1-6bee',
+-    3 => 'a4e46070-mno-times-58c7',
+-    4 => 'a4e46070-mnoupd-old-befd',
+-    5 => 'a4e46070-mold-ac46',
+-    6 => 'a4e46070-mpre1970-95da',
+-    7 => 'a4e46070-mzero-287f',
++    1 => 'a4e46070-mnoupd-old-befd',
++    2 => 'a4e46070-mold-ac46',
++    3 => 'a4e46070-mpre1970-95da',
++    4 => 'a4e46070-mzero-287f',
+ ]
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:289
+2) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testSubscriberSessionStateAndDisplayAreTheSameInstantInEveryZoneCombination
+db +00:00 / php UTC / fresh: started in the application zone with its offset
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'2026-10-13 18:02:26 UTC+00:00'
++'2026-10-13 18:02:26'
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:326
+3) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testChangingTheApplicationZoneBetweenWriteAndReadChangesNothing
+Asia/Baghdad
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'online'
++'stale'
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:354
+4) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testAZoneMismatchBetweenWriterAndReaderIsNeverAFreshSession
+reader +03:00: reported for review (threshold 120 s), never fresh
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 [
+-    0 => 'a4e46070-mismatch-e10b',
+-]
++Array &0 []
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:411
+5) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testMixedHistoryWrittenBeforeAndAfterADatabaseZoneChangeIsReadNeverRewritten
+rows written before the change read 3 h off (documented, never corrected in place)
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    0 => 1780318800,
+-    1 => 1788256800,
+-    2 => 1791925916,
++    0 => 0,
++    1 => 0,
++    2 => 0,
+ ]
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:451
+6) Reseller\Tests\Integration\Wp4\AccountingTimeContractTest::testDstTransitionsAreCharacterisedAndUtcHasNoAmbiguity
+America/New_York: 60 s old across the spring gap is fresh
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'a4e46070-dsts-b152',
++]
+/repo/tests/Integration/Wp4/AccountingTimeContractTest.php:513
+--
+1 test triggered 1 PHP warning:
+1) /repo/tests/Integration/Wp4/AccountingTimeContractTest.php:448
+Undefined array key "acctstart_epoch"
+ERRORS!
+Tests: 11, Assertions: 165, Errors: 2, Failures: 6, Warnings: 1.
+exit=2
+## 2026-10-13T18:12:29Z tests/Integration/Wp6a/Subscriber360Test.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..F.                                                                4 / 4 (100%)
+Time: 00:12.617, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Integration\Wp6a\Subscriber360Test::testSessionStateComesFromAccountingOnly
+a session updated just now is Online whatever the application zone
+Failed asserting that '\n
+                                \n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+<div class="nuxr-has-actionbar">\n
+\n
+\n
+<div class="nuxr-grid nuxr-grid-360">\n
+        <div>\n
+        <section class="nuxr-card" aria-labelledby="nuxr-identity">\n
+            <div class="nuxr-card-body" style="display:flex;gap:14px;align-items:center">\n
+                <span class="nuxr-avatar-initial" aria-hidden="true">&lt;</span>\n
+                <div style="min-width:0">\n
+                    <h2 id="nuxr-identity" style="margin:0;font-size:18px;font-weight:700;overflow-wrap:anywhere">&lt;img src=x onerror=alert(1)&gt; سارة</h2>\n
+                    <div><bdi dir="ltr" class="nuxr-mono">cA1</bdi> <span class="nuxr-muted">· #<bdi dir="ltr">1</bdi></span></div>\n
+                    <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">\n
+    <span class="nuxr-badge is-success"><i class="fa fa-check-circle" aria-hidden="true"></i>Active</span>\n
+    \n
+                        <span class="nuxr-badge is-neutral"><i class="fa fa-wifi" aria-hidden="true"></i>Hotspot</span></div>\n
+                </div>\n
+            </div>\n
+            <div class="nuxr-card-body" style="border-top:1px solid var(--nx-border)">\n
+                <dl class="nuxr-kv">\n
+                    <div><dt>Phone</dt><dd><a href="tel:07003"><bdi dir="ltr">07003</bdi></a></dd></div>                    <div><dt>Email</dt><dd><bdi dir="ltr">ca1@example.invalid</bdi></dd></div>                    <div><dt>PPPoE username</dt><dd><bdi dir="ltr" class="nuxr-mono">sara-pppoe</bdi></dd></div>                    <div><dt>Static IP</dt><dd><bdi dir="ltr" class="nuxr-mono">10.9.8.7</bdi></dd></div>                                        <div><dt>Account type</dt><dd>Personal</dd></div>\n
+                    <div><dt>Created</dt><dd><bdi dir="ltr">2026-10-13 18:12:36</bdi></dd></div>\n
+                    <div><dt>Created by</dt><dd><bdi dir="ltr">ad</bdi></dd></div>                                        <div><dt>Auto Renewal</dt><dd>Yes</dd></div>\n
+                                                        </dl>\n
+                                    <details style="margin-top:8px">\n
+                        <summary class="nuxr-btn">Show credentials</summary>\n
+                        <dl class="nuxr-kv" style="margin-top:8px">\n
+                            <div><dt>Password</dt><dd><input type="password" value="cpw-cA1" readonly class="form-control nuxr-input ltr" dir="ltr"\n
+                                onclick="this.type = this.type === 'password' ? 'text' : 'password'" aria-label="Password"></dd></div>\n
+                                                    </dl>\n
+                    </details>\n
+                            </div>\n
+        </section>\n
+\n
+                <section class="nuxr-card" aria-labelledby="nuxr-ownership">\n
+            <div class="nuxr-card-head"><h3 id="nuxr-ownership">Ownership</h3></div>\n
+            <div class="nuxr-card-body">\n
+                <dl class="nuxr-kv">\n
+                    <div><dt>Owner (reseller)</dt><dd><bdi dir="ltr">A</bdi></dd></div>\n
+                    <div><dt>Sales</dt><dd><bdi dir="ltr">A1</bdi></dd></div>\n
+                </dl>\n
+                                    <form method="post" action="http://127.0.0.1:26705/?_route=reseller/customer-assign-sales" class="nuxr-filters nuxr-form" style="margin:12px 0 0">\n
+                        <input type="hidden" name="csrf_token" value="f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde">\n
+                        <input type="hidden" name="customer_id" value="1">\n
+                        <label class="sr-only" for="nuxr-sales-select">Sales</label>\n
+                        <select id="nuxr-sales-select" name="sales_id" class="form-control nuxr-input" style="flex:1 1 140px">\n
+                            <option value="8" selected>A1</option><option value="9" >A2</option>                        </select>\n
+                        <button class="nuxr-btn" type="submit">Assign Sales</button>\n
+                    </form>\n
+                                            <form method="post" action="http://127.0.0.1:26705/?_route=reseller/customer-clear-sales" style="margin-top:8px">\n
+                            <input type="hidden" name="csrf_token" value="f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde">\n
+                            <input type="hidden" name="customer_id" value="1">\n
+                            <button class="nuxr-btn" type="submit">Clear Sales</button>\n
+                        </form>\n
+                                                                        <button type="button" class="nuxr-btn" style="margin-top:8px" data-nuxr-open="nuxr-transfer-dialog">Transfer owner</button>\n
+                                            </div>\n
+        </section>\n
+    </div>\n
+\n
+        <div class="nuxr-360-main">\n
+        <section class="nuxr-card" aria-labelledby="nuxr-service">\n
+            <div class="nuxr-card-head">\n
+                <h3 id="nuxr-service">Service</h3>\n
+                                    <a class="nuxr-btn nuxr-btn-primary nuxr-hide-phone" href="http://127.0.0.1:26705/?_route=activation/create&customer=1">\n
+                        <i class="fa fa-bolt" aria-hidden="true"></i>Renew / change plan</a>\n
+                            </div>\n
+            <div class="nuxr-card-body">\n
+                                                                                    <div style="">\n
+                            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">\n
+                                <strong style="font-size:16px">wp2_plan</strong>\n
+                                <span class="nuxr-badge is-success"><i class="fa fa-check-circle" aria-hidden="true"></i>Active</span>                            </div>\n
+                            <dl class="nuxr-kv" style="margin-top:6px">\n
+                                <div><dt>Expires</dt><dd><bdi dir="ltr">2026-10-23 23:59:59</bdi>\n
+                                    <span class="nuxr-muted"> · 9 days left</span></dd></div>\n
+                                <div><dt>Speed</dt><dd>wp2_bw</dd></div>\n
+                                <div><dt>Type</dt><dd>Hotspot · Prepaid</dd></div>\n
+                            </dl>\n
+                                                            <button type="button" class="nuxr-btn nuxr-btn-danger" style="margin-top:8px" data-nuxr-open="nuxr-deactivate-1">Deactivate plan</button>\n
+                                <dialog id="nuxr-deactivate-1" class="nuxr-sheet" aria-labelledby="nuxr-deact-t-1">\n
+                                    <div class="nuxr-sheet-head"><h2 id="nuxr-deact-t-1">Deactivate plan</h2>\n
+                                        <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button></div>\n
+                                    <form method="post" action="http://127.0.0.1:26705/?_route=customers/deactivate/1/1&token=f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde">\n
+                                        <input type="hidden" name="csrf_token" value="f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde">\n
+                                        <div class="nuxr-dialog-body"><div class="nuxr-alert is-danger"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>\n
+                                            <div>This ends the plan now and makes it expired. Internet access stops for this plan.<br><strong>wp2_plan</strong></div></div></div>\n
+                                        <div class="nuxr-dialog-foot"><button type="button" class="nuxr-btn" data-nuxr-close autofocus>Cancel</button>\n
+                                            <button type="submit" class="nuxr-btn nuxr-btn-danger-solid">Deactivate plan</button></div>\n
+                                    </form>\n
+                                </dialog>\n
+                                                    </div>\n
+                                                                </div>\n
+        </section>\n
+\n
+                <section class="nuxr-card" aria-labelledby="nuxr-session">\n
+            <div class="nuxr-card-head"><h3 id="nuxr-session">Connection</h3>\n
+                <span class="nuxr-badge is-warning"><i class="fa fa-question-circle" aria-hidden="true"></i>Status unknown</span>\n
+                            </div>\n
+            <div class="nuxr-card-body">\n
+                                    <p class="nuxr-muted" style="margin:0 0 6px">A session is open but has not been updated recently; the subscriber may be offline.</p>                    <dl class="nuxr-kv">\n
+                        <div><dt>Online since</dt><dd><bdi dir="ltr">2026-10-13 18:12:38</bdi></dd></div>                        <div><dt>Last seen</dt><dd><bdi dir="ltr">2026-10-13 18:12:38</bdi></dd></div>\n
+                        <div><dt>IP address</dt><dd><bdi dir="ltr" class="nuxr-mono">100.70.1.2</bdi></dd></div>                        <div><dt>MAC</dt><dd><bdi dir="ltr" class="nuxr-mono">AA:BB:CC:00:11:22</bdi></dd></div>                        <div><dt>NAS</dt><dd><bdi dir="ltr" class="nuxr-mono">192.0.2.77</bdi></dd></div>                        <div><dt>Session time</dt><dd><bdi dir="ltr">1h 00m</bdi></dd></div>\n
+                        <div><dt>Download / upload</dt><dd><bdi dir="ltr">10.0 MB / 1.0 MB</bdi></dd></div>\n
+                    </dl>\n
+                            </div>\n
+        </section>\n
+\n
+        <nav class="nuxr-tabs" aria-label="Subscriber sections">\n
+            <a href="http://127.0.0.1:26705/?_route=customers/view/1/overview" aria-current="page">Overview</a>\n
+            <a href="http://127.0.0.1:26705/?_route=customers/view/1/activations">Activations</a>            <a href="http://127.0.0.1:26705/?_route=customers/view/1/invoices">Invoices</a>\n
+            <a href="http://127.0.0.1:26705/?_route=customers/view/1/order">Orders</a>\n
+        </nav>\n
+\n
+        <section class="nuxr-card">\n
+                            <div class="nuxr-card-head"><h3>Recent activations</h3>\n
+                    <a href="http://127.0.0.1:26705/?_route=customers/view/1/activations">All activations</a></div>\n
+                                    <div class="nuxr-empty"><i class="fa fa-bolt" aria-hidden="true"></i><span>No reseller activations for this subscriber.</span></div>\n
+                                                    </section>\n
+\n
+                            <section class="nuxr-card" aria-labelledby="nuxr-actions-t">\n
+                <div class="nuxr-card-head"><h3 id="nuxr-actions-t">More actions</h3></div>\n
+                <div class="nuxr-card-body nuxr-actions">\n
+                    <a class="nuxr-btn" href="http://127.0.0.1:26705/?_route=message/send/1"><i class="fa fa-comment" aria-hidden="true"></i>Send message</a>                    <a class="nuxr-btn" href="http://127.0.0.1:26705/?_route=customers/edit/1&token=f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde"><i class="fa fa-pencil" aria-hidden="true"></i>Edit</a>                    <button type="button" class="nuxr-btn" data-nuxr-open="nuxr-sync-dialog"><i class="fa fa-refresh" aria-hidden="true"></i>Synchronize</button>                                            <form method="post" action="http://127.0.0.1:26705/?_route=customers/login/1&token=f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde" target="_blank" style="display:inline">\n
+                            <input type="hidden" name="csrf_token" value="f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde">\n
+                            <button type="submit" class="nuxr-btn"><i class="fa fa-sign-in" aria-hidden="true"></i>Login as Customer</button>\n
+                        </form>\n
+                                    </div>\n
+                                    <div class="nuxr-card-body" style="border-top:1px solid var(--nx-border)">\n
+                        <h4 class="nuxr-section-title" style="margin-top:0;color:var(--nx-danger)">Danger zone</h4>\n
+                        <button type="button" class="nuxr-btn nuxr-btn-danger" data-nuxr-open="nuxr-delete-dialog"><i class="fa fa-trash" aria-hidden="true"></i>Delete subscriber</button>\n
+                    </div>\n
+                            </section>\n
+            </div>\n
+</div>\n
+\n
+    <div class="nuxr-actionbar nuxr-only-phone">\n
+        <a class="nuxr-btn nuxr-btn-primary" href="http://127.0.0.1:26705/?_route=activation/create&customer=1">\n
+            <i class="fa fa-bolt" aria-hidden="true"></i>Renew / change plan</a>\n
+    </div>\n
+</div>\n
+\n
+    <dialog id="nuxr-sync-dialog" class="nuxr-sheet" aria-labelledby="nuxr-sync-t">\n
+        <div class="nuxr-sheet-head"><h2 id="nuxr-sync-t">Synchronize</h2>\n
+            <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button></div>\n
+        <form method="post" action="http://127.0.0.1:26705/?_route=customers/sync/1&token=f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde">\n
+            <input type="hidden" name="csrf_token" value="f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde">\n
+            <div class="nuxr-dialog-body"><p>Write this subscriber's current service to the network again. The result is shown when it finishes; if it cannot be confirmed it is not retried automatically.</p></div>\n
+            <div class="nuxr-dialog-foot"><button type="button" class="nuxr-btn" data-nuxr-close>Cancel</button>\n
+                <button type="submit" class="nuxr-btn nuxr-btn-primary">Synchronize</button></div>\n
+        </form>\n
+    </dialog>\n
+    <dialog id="nuxr-delete-dialog" class="nuxr-sheet" aria-labelledby="nuxr-delete-t">\n
+        <div class="nuxr-sheet-head"><h2 id="nuxr-delete-t">Delete subscriber</h2>\n
+            <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button></div>\n
+        <form method="post" action="http://127.0.0.1:26705/?_route=customers/delete/1&token=f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde">\n
+            <input type="hidden" name="csrf_token" value="f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde">\n
+            <div class="nuxr-dialog-body">\n
+                <div class="nuxr-alert is-danger"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>\n
+                    <div><strong>This permanently deletes the subscriber and removes the service from the network.</strong>\n
+                        It is refused while financial or activation history references the subscriber.</div></div>\n
+                <label for="nuxr-delete-confirm">Type the username to confirm: <bdi dir="ltr" class="nuxr-mono">cA1</bdi></label>\n
+                <input id="nuxr-delete-confirm" class="form-control nuxr-input ltr" dir="ltr" autocomplete="off" data-nuxr-match="cA1">\n
+            </div>\n
+            <div class="nuxr-dialog-foot"><button type="button" class="nuxr-btn" data-nuxr-close autofocus>Cancel</button>\n
+                <button type="submit" class="nuxr-btn nuxr-btn-danger-solid" data-nuxr-match-submit disabled>Delete subscriber</button></div>\n
+        </form>\n
+    </dialog>\n
+    <dialog id="nuxr-transfer-dialog" class="nuxr-sheet" aria-labelledby="nuxr-transfer-t">\n
+        <div class="nuxr-sheet-head"><h2 id="nuxr-transfer-t">Transfer owner</h2>\n
+            <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button></div>\n
+        <form method="post" action="http://127.0.0.1:26705/?_route=reseller/customer-transfer" class="nuxr-form">\n
+            <input type="hidden" name="csrf_token" value="f3087f547e4d36735fb209871fa78048b0aa03898afbc354478797c62bd56cde">\n
+            <input type="hidden" name="customer_id" value="1">\n
+            <div class="nuxr-dialog-body">\n
+                <p>Future operations use the new owner's wallet and prices. History stays with the original owner. A Sales that does not belong to the new owner is cleared.</p>\n
+                <label for="nuxr-transfer-owner">New owner (reseller)</label>\n
+                <select id="nuxr-transfer-owner" name="manager_id" class="form-control nuxr-input">\n
+                    <option value="6">B | Staff B</option><option value="7">C | Staff C</option><option value="12">F | Staff F</option>                </select>\n
+            </div>\n
+            <div class="nuxr-dialog-foot"><button type="button" class="nuxr-btn" data-nuxr-close>Cancel</button>\n
+                <button type="submit" class="nuxr-btn nuxr-btn-primary">Transfer owner</button></div>\n
+        </form>\n
+    </dialog>\n
+            </section>\n
+        </div>\n
+        ' [UTF-8](length: 16588) does not contain "Status unknown" [ASCII](length: 14).
+/repo/tests/Integration/Wp6a/Subscriber360Test.php:106
+FAILURES!
+Tests: 4, Assertions: 115, Failures: 1.
+exit=1

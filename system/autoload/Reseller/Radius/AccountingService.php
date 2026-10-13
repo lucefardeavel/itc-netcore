@@ -15,7 +15,18 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  */
 final class AccountingService
 {
-    private const COLUMNS = 'radacctid, acctsessionid, acctuniqueid, username, nasipaddress, framedipaddress, acctstarttime, acctupdatetime, acctstoptime, acctsessiontime, acctinputoctets, acctoutputoctets, callingstationid';
+    /**
+     * WP8 A4 accounting time contract (R-WP8-CARRY-03): FreeRADIUS writes acctstarttime / acctupdatetime / acctstoptime with
+     * FROM_UNIXTIME() in its SQL session zone, and DATETIME keeps no zone. They are therefore read only as epoch seconds,
+     * UNIX_TIMESTAMP() in this connection's session (same zone: neither side sets one, so both use the RADIUS database
+     * server zone; UTC by the deployment contract), and never parsed as PHP-local strings. The *_epoch columns are
+     * additive; the DATETIME columns stay as they were.
+     */
+    private const COLUMNS = 'radacctid, acctsessionid, acctuniqueid, username, nasipaddress, framedipaddress, acctstarttime, acctupdatetime, acctstoptime, acctsessiontime, acctinputoctets, acctoutputoctets, callingstationid, '
+        . 'UNIX_TIMESTAMP(acctstarttime) AS acctstart_epoch, UNIX_TIMESTAMP(acctupdatetime) AS acctupdate_epoch, UNIX_TIMESTAMP(acctstoptime) AS acctstop_epoch';
+
+    /** A last update further in the future than this breaks the time contract (zone mismatch, clock skew): never fresh. */
+    public const CLOCK_TOLERANCE_SECONDS = 300;
 
     public function __construct(private readonly \PDO $pdo)
     {
@@ -84,22 +95,41 @@ final class AccountingService
     }
 
     /**
-     * Open sessions whose last update (or start) is older than $staleAfterSeconds before $now: candidates for
-     * operator review or WP5A reconciliation. Report only.
+     * Open sessions whose last update (or start) is older than $staleAfterSeconds before the instant $now (its zone does
+     * not matter): candidates for operator review or WP5A reconciliation. Report only. A missing or invalid time, or one
+     * more than CLOCK_TOLERANCE_SECONDS in the future, is reported too (never treated as fresh).
      *
      * @return list<array<string,mixed>>
      */
     public function staleSessions(\DateTimeImmutable $now, int $staleAfterSeconds): array
     {
-        $cutoff = $now->modify('-' . max(60, $staleAfterSeconds) . ' seconds')->format('Y-m-d H:i:s');
-        return $this->rows('SELECT ' . self::COLUMNS . ' FROM radacct WHERE acctstoptime IS NULL AND COALESCE(acctupdatetime, acctstarttime) < ? ORDER BY radacctid', [$cutoff]);
+        $at = $now->getTimestamp();
+        return $this->rows('SELECT ' . self::COLUMNS . ' FROM radacct WHERE acctstoptime IS NULL'
+            . ' AND COALESCE(UNIX_TIMESTAMP(COALESCE(acctupdatetime, acctstarttime)), 0) NOT BETWEEN ? AND ? ORDER BY radacctid',
+            [$at - max(60, $staleAfterSeconds), $at + self::CLOCK_TOLERANCE_SECONDS]);
+    }
+
+    /** a UNIX_TIMESTAMP() result as epoch seconds, or null when missing / invalid (NULL, 0 for a zero or out-of-range date) */
+    public static function epoch(mixed $value): ?int
+    {
+        if (is_int($value)) {
+            return $value > 0 ? $value : null;
+        }
+        if (!is_string($value) || !preg_match('/^\d+(\.\d+)?$/D', $value)) {
+            return null;
+        }
+        $e = (int) $value;
+        return $e > 0 ? $e : null;
     }
 
     /** @return list<array<string,mixed>> */
     private function rows(string $sql, array $params): array
     {
         $st = $this->pdo->prepare($sql);
-        $st->execute($params);
+        foreach (array_values($params) as $i => $v) {
+            $st->bindValue($i + 1, $v, is_int($v) ? \PDO::PARAM_INT : \PDO::PARAM_STR);
+        }
+        $st->execute();
         return $st->fetchAll(\PDO::FETCH_ASSOC);
     }
 }

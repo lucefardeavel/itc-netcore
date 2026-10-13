@@ -1,0 +1,13 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-eea958d836de Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-eea958d836de Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 04:09.585, Memory: 12.00 MB
+
+OK (1 test, 30 assertions)

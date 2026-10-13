@@ -92,15 +92,15 @@ final class Subscriber
         if ($row === null) {
             return ['state' => 'never'];
         }
-        $seen = (string) ($row['acctupdatetime'] ?? '') !== '' ? (string) $row['acctupdatetime'] : (string) $row['acctstarttime'];
-        $state = 'offline';
-        if ($open !== []) {
-            $age = time() - (int) strtotime($seen);
-            $state = $age > self::STALE_SECONDS ? 'stale' : 'online';
-        }
+        // WP8 A4 time contract: epochs from the RADIUS database session (AccountingService), never PHP-local parsing
+        $start = AccountingService::epoch($row['acctstart_epoch'] ?? null);
+        $seen = ($row['acctupdatetime'] ?? null) !== null ? AccountingService::epoch($row['acctupdate_epoch'] ?? null) : $start;
+        $stop = ($row['acctstoptime'] ?? null) !== null ? AccountingService::epoch($row['acctstop_epoch'] ?? null) : null;
         $out = [
-            'state' => $state, 'open_sessions' => count($open), 'username' => (string) $row['username'],
-            'started' => (string) $row['acctstarttime'], 'last_update' => $seen, 'stopped' => $row['acctstoptime'] !== null ? (string) $row['acctstoptime'] : null,
+            'state' => self::sessionState($open !== [], $seen, time()), 'open_sessions' => count($open), 'username' => (string) $row['username'],
+            'started' => self::displayTime($start) ?? '', 'last_update' => self::displayTime($seen) ?? '',
+            'stopped' => ($row['acctstoptime'] ?? null) !== null ? (self::displayTime($stop) ?? '') : null,
+            'started_epoch' => $start, 'last_update_epoch' => $seen, 'stopped_epoch' => $stop,
             'framed_ip' => (string) $row['framedipaddress'], 'mac' => (string) ($row['callingstationid'] ?? ''),
             'session_seconds' => (int) $row['acctsessiontime'], 'download' => (int) $row['acctoutputoctets'], 'upload' => (int) $row['acctinputoctets'],
         ];
@@ -108,6 +108,28 @@ final class Subscriber
             $out['nas'] = (string) $row['nasipaddress'];
         }
         return $out;
+    }
+
+    /**
+     * State of the newest session from its last accounting instant ($seen: epoch of the latest Interim, else the start):
+     * offline when closed; otherwise online only when the time is valid, not older than STALE_SECONDS and not further in
+     * the future than the clock tolerance. A missing, invalid or future time is "stale" (shown as status unknown).
+     */
+    public static function sessionState(bool $open, ?int $seen, int $now): string
+    {
+        if (!$open) {
+            return 'offline';
+        }
+        if ($seen === null || $seen <= 0 || $seen - $now > AccountingService::CLOCK_TOLERANCE_SECONDS) {
+            return 'stale';
+        }
+        return $now - $seen > self::STALE_SECONDS ? 'stale' : 'online';
+    }
+
+    /** an accounting instant in the application zone with its UTC offset ("2026-10-13 12:35:13 UTC+03:00"), or null */
+    public static function displayTime(?int $epoch): ?string
+    {
+        return $epoch === null || $epoch <= 0 ? null : date('Y-m-d H:i:s \U\T\CP', $epoch);
     }
 
     /**

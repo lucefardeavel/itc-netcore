@@ -1,0 +1,18 @@
+## gate on
+gate_on_exit=0
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 02:10.087, Memory: 12.00 MB
+
+OK (1 test, 20 assertions)
+phpunit_exit=0
+## gate off
+gate_off_exit=0
+  "enabled": "false"
+  "marker=0",
+  "delete_stale_sessions = no",

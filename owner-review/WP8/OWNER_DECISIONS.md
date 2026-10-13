@@ -523,3 +523,50 @@ dated 2026-10-13 corrections: D-2 wording, and the event name `rename.old_sessio
     `failOnWarning` is unchanged.
   - Still open from earlier records: R-WP8-CARRY-01 / 03, R-HF-CARRY-01, H-2 follow-ups, V-1. A4, A5 and V-1 are not
     started.
+
+## A4 — R-WP8-CARRY-03 accounting time interpretation (2026-10-13) — additive record
+
+**Owner decision (2026-10-13): `A4_ACCEPTED_WITH_NOTES — DEVELOPMENT ONLY`.** It follows the earlier decision
+`A4_PLAN_APPROVED_WITH_AMENDMENTS — DEVELOPMENT_IMPLEMENTATION_AUTHORIZED` (OD-A4-1 … 6 approved with conditions).
+- **Authorized:** one commit and one push to `wp8/integration-poc` only, from baseline
+  `2628c632123b65578ce29908aa33f27d7ccaae93`, after the final pre-commit audit.
+- **Not authorized:** a merge to `feat` or `main`, a force push, a deployment or production SQL access.
+- **Not part of the commit:** the local A5 plan.
+
+Basis: `WP8_A4_PREFLIGHT_AND_IMPLEMENTATION_PLAN.md`, `WP8_A4_IMPLEMENTATION_AND_TEST_REPORT.md` and
+`evidence/a4/`.
+
+- **Accepted:**
+  - **The fix:** radacct times are read as epochs (`UNIX_TIMESTAMP` in the RADIUS database session). Every comparison and
+    display uses the epochs:
+    - `AccountingService::staleSessions()` takes an instant cutoff and reports missing, invalid or future times;
+    - `Subscriber::session()` derives the state from epochs and shows the time in the application zone with its UTC offset.
+  - **The contract**, `docs/WP4_RADIUS_MODEL.md` §4.1: the same effective **session** zone (UTC) for the FreeRADIUS writer
+    and the PHP reader, NTP on every NAS and server, and the FreeRADIUS process `TZ` kept separate for `Expiration`.
+  - **The test update:** F-5 changed `CheckradGateTest` gate B after the lab proof, and the assertion is strengthened.
+- **Results:**
+  - **Before the fix:** the new tests fail on the old code on both engines.
+  - **Focused runs:** run 3 passed 38 / 38 runs, exit 0; run 4, after the review, passed 6 / 6, exit 0.
+  - **Frozen full harness:** 1185 collected / Tests 1099 / Assertions 69266 / Incomplete 86 / Skipped 0 per engine,
+    exit 0, `TREE_UNCHANGED`.
+  - **CHR:** the A4 lab test passed 1 / 30; gate B in checkrad gate mode passed 1 / 20; the A4 + A3 + S5 lab tests passed
+    10 / 299, all exit 0.
+  - Manifest 42 / 42; secret scan 0 hits; no protected file changed.
+- **R-WP8-CARRY-03 / OBS-W8-8:** closed for development by A4. This is not a production release.
+- **Production blockers (kept; A4 acceptance authorizes no data migration and no change to an existing database zone):**
+  - **P-A4-1:** the effective SQL **session** zone of the FreeRADIUS `sql` connections and of the application `radius`
+    connection must be UTC (offset 0, no DST). Verified in development only. It needs an operational preflight before
+    production; A4 changes no production setting.
+  - **P-A4-2:** NTP on every NAS and on the FreeRADIUS, application and database hosts. RouterOS 7.24.5 sends
+    `Event-Timestamp` (NAS clock) in Start / Interim / Stop but not in Accounting-On (FreeRADIUS clock `%l`). Hotspot
+    accounting and other NAS models or firmware were not captured.
+  - **P-A4-3:** existing `radacct` history written under another database zone needs a preflight survey and a separate
+    owner-approved compatibility or migration plan before production. Historical rows are never changed in place.
+  - L-A4-1 … L-A4-5 (report §10): DST database zone, writer / reader zone mismatch, NAS clock, the "Status unknown"
+    wording and the 1800 s display threshold.
+- **Still open:**
+  - From earlier records: OBS-1 (production blocker), same-key ADMIN_SYNC, RadiusRest / L-4, L-1 … L-5, R2 audit / UI,
+    the READ COMMITTED interleaving and the pre-existing PHP warnings (unchanged).
+  - R-WP8-CARRY-01, R-HF-CARRY-01, H-2 follow-ups and V-1.
+  - `Expiration` (FreeRADIUS process zone = application zone, WP4 residual 4) is unchanged.
+  - A5, S7 and S8 are not started.

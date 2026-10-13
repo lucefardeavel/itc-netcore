@@ -19,11 +19,11 @@ final class Subscriber360Test extends RadiusHttpTestCase
         $c = static::$seed->customers;
         static::$db->pdo->prepare('UPDATE tbl_customers SET fullname = ?, pppoe_username = ?, pppoe_ip = ? WHERE id = ?')
             ->execute(['<img src=x onerror=alert(1)> سارة', 'sara-pppoe', '10.9.8.7', $c['cA1']]);
-        $now = date('Y-m-d H:i:s');
+        // radacct times as FreeRADIUS writes them: the database session wall clock (WP8 A4 time contract)
+        [$now, $old] = static::$db->pdo->query('SELECT NOW(), NOW() - INTERVAL 7200 SECOND')->fetch(\PDO::FETCH_NUM);
         static::$db->insertRow('radacct', ['acctsessionid' => 'L1', 'acctuniqueid' => bin2hex(random_bytes(8)), 'username' => 'sara-pppoe', 'nasipaddress' => '192.0.2.77',
             'framedipaddress' => '100.70.1.2', 'callingstationid' => 'AA:BB:CC:00:11:22', 'acctstarttime' => $now, 'acctupdatetime' => $now, 'acctstoptime' => null,
             'acctsessiontime' => 3600, 'acctinputoctets' => 1048576, 'acctoutputoctets' => 10485760]);
-        $old = date('Y-m-d H:i:s', time() - 7200);
         static::$db->insertRow('radacct', ['acctsessionid' => 'L2', 'acctuniqueid' => bin2hex(random_bytes(8)), 'username' => 'cA2', 'nasipaddress' => '192.0.2.77',
             'framedipaddress' => '100.70.1.3', 'acctstarttime' => $old, 'acctupdatetime' => $old, 'acctstoptime' => null]);
         static::$db->insertRow('radacct', ['acctsessionid' => 'L3', 'acctuniqueid' => bin2hex(random_bytes(8)), 'username' => 'cA0', 'nasipaddress' => '192.0.2.77',
@@ -101,11 +101,21 @@ final class Subscriber360Test extends RadiusHttpTestCase
     {
         $admin = self::content($this->view('ad', 'cA1'));
         $this->assertStringContainsString('Online', $admin);
+        // WP8 A4: the harness application zone (tbl_appconfig) differs from the database zone; a session updated just now
+        // is "Online" (not "Status unknown") and its times are shown in the application zone with their UTC offset
+        $this->assertStringNotContainsString('Status unknown', $admin, 'a session updated just now is Online whatever the application zone');
+        $zone = (string) static::$db->pdo->query("SELECT value FROM tbl_appconfig WHERE setting = 'timezone'")->fetchColumn();
+        $at = static::$db->pdo->query("SELECT UNIX_TIMESTAMP(acctstarttime) AS s, UNIX_TIMESTAMP(acctupdatetime) AS u FROM radacct WHERE acctsessionid = 'L1'")->fetch(\PDO::FETCH_ASSOC);
+        foreach (['s' => 'Online since', 'u' => 'Last seen'] as $k => $what) {
+            $local = (new \DateTimeImmutable('@' . $at[$k]))->setTimezone(new \DateTimeZone($zone))->format('Y-m-d H:i:s \U\T\CP');
+            $this->assertStringContainsString($local, $admin, "{$what}: the accounting instant in the application zone ({$zone})");
+        }
         $this->assertStringContainsString('100.70.1.2', $admin);
         $this->assertStringContainsString('AA:BB:CC:00:11:22', $admin);
         $this->assertStringContainsString('192.0.2.77', $admin, 'Admin sees the NAS');
         $agent = self::content($this->view('A', 'cA1'));
         $this->assertStringContainsString('Online', $agent);
+        $this->assertStringNotContainsString('Status unknown', $agent);
         $this->assertStringNotContainsString('192.0.2.77', $agent, 'no NAS identity for Agent');
         $this->assertStringNotContainsString('192.0.2.77', self::content($this->view('A1', 'cA1')), 'no NAS identity for Sales');
         $this->assertStringContainsString('Status unknown', self::content($this->view('A', 'cA2')), 'an open session not updated for 2 hours is never "Online"');

@@ -219,14 +219,16 @@ final class CheckradGateTest extends TestCase
         while ($this->ageSeconds($old) < 125) {
             sleep(5);
         }
-        // FreeRADIUS writes radacct times with FROM_UNIXTIME() in the DATABASE session time zone (lab MariaDB: UTC) while
-        // the application clock is Asia/Baghdad: staleSessions() is therefore given the database clock here (OBS-W8-8)
-        $dbNow = new \DateTimeImmutable($this->rows('SELECT NOW()')[0][0]);
+        // WP8 A4 (R-WP8-CARRY-03 / OBS-W8-8 fixed): staleSessions() compares epochs (UNIX_TIMESTAMP in the database session),
+        // so it is given the APPLICATION clock (Asia/Baghdad) while the lab database is UTC; the former database-clock
+        // workaround (OD-A4-5) is gone and the application clock must report the historical row only, never the live one
+        $dbNow = $this->rows('SELECT NOW()')[0][0];
+        $appNow = new \DateTimeImmutable('now');
+        $this->assertNotSame(0, $appNow->getOffset(), 'discriminating: the application zone is not the database zone (UTC)');
         $svc = new AccountingService(static::labRadius());
-        $staleIds = array_map('intval', array_column(array_filter($svc->staleSessions($dbNow, 120), static fn($s) => $s['username'] === $user), 'radacctid'));
-        $appClockIds = array_map('intval', array_column(array_filter($svc->staleSessions(new \DateTimeImmutable('now'), 120), static fn($s) => $s['username'] === $user), 'radacctid'));
+        $staleIds = array_map('intval', array_column(array_filter($svc->staleSessions($appNow, 120), static fn($s) => $s['username'] === $user), 'radacctid'));
         $afterStale = $this->fullRow($old);
-        $r += ['radacct' => $this->radacctView($user), 'stale_reported' => $staleIds, 'obs_w8_8_app_clock' => ['app_now' => (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s T'), 'db_now' => $dbNow->format('Y-m-d H:i:s'), 'stale_reported_with_app_clock' => $appClockIds], 'old_row_age_s' => $this->ageSeconds($old),
+        $r += ['radacct' => $this->radacctView($user), 'stale_reported' => $staleIds, 'obs_w8_8_app_clock' => ['app_now' => $appNow->format('Y-m-d H:i:s T'), 'db_now' => $dbNow, 'stale_reported_with_app_clock' => $staleIds], 'old_row_age_s' => $this->ageSeconds($old),
             'old_row_unchanged_after_login' => $before === $afterLogin, 'old_row_unchanged_after_stale_check' => $before === $afterStale,
             'old_row_truth' => array_intersect_key($before, array_flip(['radacctid', 'acctsessionid', 'acctuniqueid', 'acctstarttime', 'acctupdatetime', 'acctstoptime', 'acctsessiontime', 'acctinputoctets', 'acctoutputoctets', 'acctterminatecause']))];
         Wp8Lab::evidence('OD16F.gateB.lost-stop-session-gone', $r);
@@ -238,7 +240,7 @@ final class CheckradGateTest extends TestCase
         $this->assertSame($before, $afterStale);
         $this->assertNull($afterStale['acctstoptime']);
         $this->assertSame('', (string) $afterStale['acctterminatecause']);
-        $this->assertSame([$old], $staleIds, 'staleSessions() reports the historical row, not the live one');
+        $this->assertSame([$old], $staleIds, 'staleSessions() with the application clock reports the historical row, not the live one (OBS-W8-8 fixed)');
     }
 
     // ------------------------------------------------------------------ Gate C: accounting lost, session still live

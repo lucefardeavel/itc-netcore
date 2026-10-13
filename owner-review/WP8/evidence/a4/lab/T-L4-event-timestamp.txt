@@ -1,0 +1,9 @@
+WP8 A4 T-L4 - RouterOS CHR 7.24.5 Accounting-Requests (capture a4-acct-e13e6e.pcap, decoded locally; the pcap stays in
+$NUXR_WP8_STATE/pcap, not committed). Attribute 55 = Event-Timestamp; capture_ts = host capture second (UTC epoch).
+Acct-On  event_ts= None        capture_ts= 1791917299 delta= None delay= 0
+Start    event_ts= 1791917298  capture_ts= 1791917299 delta= -1   delay= 0
+Interim  event_ts= 1791917358  capture_ts= 1791917359 delta= -1   delay= 0
+Interim  event_ts= 1791917538  capture_ts= 1791917539 delta= -1   delay= 0   (Interims during the UDP/1813 cut were dropped on the NAS and never resent)
+Stop     event_ts= 1791917540  capture_ts= 1791917541 delta= -1   delay= 0
+Result: H-4 PROVEN - RouterOS sends Event-Timestamp in Start / Interim-Update / Stop (not in Accounting-On), so radacct
+times are the NAS clock (FROM_UNIXTIME(Event-Timestamp)); CHR clock gmt-offset +00:00, dst-active false, 1 s from the host.
