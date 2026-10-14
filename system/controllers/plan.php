@@ -433,9 +433,21 @@ switch ($action) {
         $id = $routes['2'];
         $d = ORM::for_table('tbl_user_recharges')->find_one($id);
         if ($d) {
+            // WP8 A5 (R-WP8-CARRY-01): a reseller-owned service ends only by reversal or expiry, never here
+            \Reseller\Domain\ServiceGate::guardCustomer($d['customer_id'], 'planDelete', 'plan/list');
+            // WP8 A5 (D-A5-1): a zero / missing customer id would make User::_info() fall back to the session customer
+            // (Admin "login as customer"); the device target must be exactly the row's existing customer
+            if ((int) $d['customer_id'] <= 0 || !ORM::for_table('tbl_customers')->find_one((int) $d['customer_id'])) {
+                \Reseller\Domain\ServiceGate::refused('planDeleteIdentity', $d['customer_id']);
+                r2(getUrl('plan/list'), 'e', Lang::T('Account Not Found'));
+            }
             run_hook('delete_customer_active_plan'); #HOOK
             $p = ORM::for_table('tbl_plans')->find_one($d['plan_id']);
             $c = User::_info($d['customer_id']);
+            if (!$c || (int) $c['id'] !== (int) $d['customer_id']) {
+                \Reseller\Domain\ServiceGate::refused('planDeleteIdentity', $d['customer_id']);
+                r2(getUrl('plan/list'), 'e', Lang::T('Account Not Found'));
+            }
             $dvc = Package::getDevice($p);
             if ($_app_stage != 'demo') {
                 if (file_exists($dvc)) {

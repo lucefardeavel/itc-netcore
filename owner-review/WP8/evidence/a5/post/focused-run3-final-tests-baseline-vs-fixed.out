@@ -1,0 +1,352 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+## 2026-10-13T21:42:35Z BASELINE controllers (backup, read-only) tests/Unit/Wp8/LegacyRemovalSourceTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FFF                                                                 3 / 3 (100%)
+Time: 00:00.034, Memory: 10.00 MB
+There were 3 failures:
+1) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testEveryControllerRemovalIsGatedBeforeAnyEffect
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'system/controllers/customers.php:286 remove_customer without an ownership gate in its branch',
++    1 => 'system/controllers/home.php:206 remove_customer without an ownership gate in its branch',
++    2 => 'system/controllers/plan.php:443 remove_customer without an ownership gate in its branch',
++]
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:123
+2) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheThreeA5GatesAreExactlyWhereThePlanSays
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'P1: gate on the recharge row customer, after the row lookup, before the hook',
++    1 => 'P2: gate on the route customer, after CSRF, before the recharge lookup',
++    2 => 'P3: gates on the logged-in customer and on the matched row customer, after the row lookup, before the device',
++]
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:128
+3) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheCheckersDetectMutations
+clean before the mutations
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'P1: gate on the recharge row customer, after the row lookup, before the hook',
++    1 => 'P2: gate on the route customer, after CSRF, before the recharge lookup',
++    2 => 'P3: gates on the logged-in customer and on the matched row customer, after the row lookup, before the device',
++]
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:151
+FAILURES!
+Tests: 3, Assertions: 4, Failures: 3.
+exit=1
+## 2026-10-13T21:42:36Z BASELINE controllers (backup, read-only) tests/Http/LegacyRemovalGateTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FFFF.F.FFF.                                                       11 / 11 (100%)
+Time: 00:34.506, Memory: 10.00 MB
+There were 8 failures:
+1) Reseller\Tests\Http\LegacyRemovalGateTest::testP1PlanDeleteIsRefusedForAResellerCustomerBeforeAnyEffect
+database changed: P1
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:151
+/repo/tests/Http/LegacyRemovalGateTest.php:174
+2) Reseller\Tests\Http\LegacyRemovalGateTest::testP2CustomerDeactivateIsRefusedForAResellerCustomerBeforeAnyEffect
+database changed: P2
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:151
+/repo/tests/Http/LegacyRemovalGateTest.php:189
+3) Reseller\Tests\Http\LegacyRemovalGateTest::testP3PortalSelfDeactivationIsRefusedForAResellerCustomerBeforeAnyEffect
+database changed: P3
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:151
+/repo/tests/Http/LegacyRemovalGateTest.php:205
+4) Reseller\Tests\Http\LegacyRemovalGateTest::testP3IsRefusedWhenTheMatchedRechargeBelongsToAResellerCustomer
+database changed: P3 matched row of a reseller customer
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:151
+/repo/tests/Http/LegacyRemovalGateTest.php:232
+5) Reseller\Tests\Http\LegacyRemovalGateTest::testTheActivationStaysReversibleAfterTheRefusals
+reversal succeeds (no external-state refusal)
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'REVERSED'
++'COMPLETED'
+/repo/tests/Http/LegacyRemovalGateTest.php:271
+6) Reseller\Tests\Http\LegacyRemovalGateTest::testSchemaNotReadyRefusesForEveryCustomer
+planDelete: refused by the A5 gate (logged; no audit while not ready)
+Failed asserting that '' [ASCII](length: 0) contains "op=planDelete" [ASCII](length: 13).
+/repo/tests/Http/LegacyRemovalGateTest.php:337
+7) Reseller\Tests\Http\LegacyRemovalGateTest::testTheApiIsRefusedAndAgentAndSalesStayForbidden
+expected denial: API P1 got 200  {"success":true,"message":"Data Deleted Successfully","result":[],"meta":[]}
+Failed asserting that false is true.
+/repo/tests/Support/Wp2HttpTestCase.php:121
+/repo/tests/Http/LegacyRemovalGateTest.php:361
+8) Reseller\Tests\Http\LegacyRemovalGateTest::testAnOwnershipTransferKeepsTheRefusal
+database changed: after the transfer
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:398
+FAILURES!
+Tests: 11, Assertions: 105, Failures: 8.
+exit=1
+## 2026-10-13T21:43:12Z FIXED tests/Unit/Wp8/LegacyRemovalSourceTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..F                                                                 3 / 3 (100%)
+Time: 00:00.021, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheCheckersDetectMutations
+P2 after the lookup: mutation applied
+Failed asserting that 0 is equal to 1 or is greater than 1.
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:155
+FAILURES!
+Tests: 3, Assertions: 17, Failures: 1.
+exit=1
+## 2026-10-13T21:43:14Z FIXED tests/Http/LegacyRemovalGateTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:39.502, Memory: 10.00 MB
+OK (11 tests, 167 assertions)
+exit=0
+## 2026-10-13T21:43:56Z BASELINE controllers (backup, read-only) tests/Unit/Wp8/LegacyRemovalSourceTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FFF                                                                 3 / 3 (100%)
+Time: 00:00.024, Memory: 10.00 MB
+There were 3 failures:
+1) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testEveryControllerRemovalIsGatedBeforeAnyEffect
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'system/controllers/customers.php:286 remove_customer without an ownership gate in its branch',
++    1 => 'system/controllers/home.php:206 remove_customer without an ownership gate in its branch',
++    2 => 'system/controllers/plan.php:443 remove_customer without an ownership gate in its branch',
++]
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:123
+2) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheThreeA5GatesAreExactlyWhereThePlanSays
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'P1: gate on the recharge row customer, after the row lookup, before the hook',
++    1 => 'P2: gate on the route customer, after CSRF, before the recharge lookup',
++    2 => 'P3: gates on the logged-in customer and on the matched row customer, after the row lookup, before the device',
++]
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:128
+3) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheCheckersDetectMutations
+clean before the mutations
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'P1: gate on the recharge row customer, after the row lookup, before the hook',
++    1 => 'P2: gate on the route customer, after CSRF, before the recharge lookup',
++    2 => 'P3: gates on the logged-in customer and on the matched row customer, after the row lookup, before the device',
++]
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:151
+FAILURES!
+Tests: 3, Assertions: 4, Failures: 3.
+exit=1
+## 2026-10-13T21:43:57Z BASELINE controllers (backup, read-only) tests/Http/LegacyRemovalGateTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FFFF.F.FFF.                                                       11 / 11 (100%)
+Time: 00:43.264, Memory: 10.00 MB
+There were 8 failures:
+1) Reseller\Tests\Http\LegacyRemovalGateTest::testP1PlanDeleteIsRefusedForAResellerCustomerBeforeAnyEffect
+database changed: P1
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:151
+/repo/tests/Http/LegacyRemovalGateTest.php:174
+2) Reseller\Tests\Http\LegacyRemovalGateTest::testP2CustomerDeactivateIsRefusedForAResellerCustomerBeforeAnyEffect
+database changed: P2
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:151
+/repo/tests/Http/LegacyRemovalGateTest.php:189
+3) Reseller\Tests\Http\LegacyRemovalGateTest::testP3PortalSelfDeactivationIsRefusedForAResellerCustomerBeforeAnyEffect
+database changed: P3
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:151
+/repo/tests/Http/LegacyRemovalGateTest.php:205
+4) Reseller\Tests\Http\LegacyRemovalGateTest::testP3IsRefusedWhenTheMatchedRechargeBelongsToAResellerCustomer
+database changed: P3 matched row of a reseller customer
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:151
+/repo/tests/Http/LegacyRemovalGateTest.php:232
+5) Reseller\Tests\Http\LegacyRemovalGateTest::testTheActivationStaysReversibleAfterTheRefusals
+reversal succeeds (no external-state refusal)
+Failed asserting that two strings are identical.
+--- Expected
++++ Actual
+@@ @@
+-'REVERSED'
++'COMPLETED'
+/repo/tests/Http/LegacyRemovalGateTest.php:271
+6) Reseller\Tests\Http\LegacyRemovalGateTest::testSchemaNotReadyRefusesForEveryCustomer
+planDelete: refused by the A5 gate (logged; no audit while not ready)
+Failed asserting that '' [ASCII](length: 0) contains "op=planDelete" [ASCII](length: 13).
+/repo/tests/Http/LegacyRemovalGateTest.php:337
+7) Reseller\Tests\Http\LegacyRemovalGateTest::testTheApiIsRefusedAndAgentAndSalesStayForbidden
+expected denial: API P1 got 200  {"success":true,"message":"Data Deleted Successfully","result":[],"meta":[]}
+Failed asserting that false is true.
+/repo/tests/Support/Wp2HttpTestCase.php:121
+/repo/tests/Http/LegacyRemovalGateTest.php:361
+8) Reseller\Tests\Http\LegacyRemovalGateTest::testAnOwnershipTransferKeepsTheRefusal
+database changed: after the transfer
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:398
+FAILURES!
+Tests: 11, Assertions: 105, Failures: 8.
+exit=1
+## 2026-10-13T21:44:43Z FIXED tests/Unit/Wp8/LegacyRemovalSourceTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..F                                                                 3 / 3 (100%)
+Time: 00:00.023, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheCheckersDetectMutations
+P2 after the lookup: mutation applied
+Failed asserting that 0 is equal to 1 or is greater than 1.
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:155
+FAILURES!
+Tests: 3, Assertions: 17, Failures: 1.
+exit=1
+## 2026-10-13T21:44:44Z FIXED tests/Http/LegacyRemovalGateTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:47.827, Memory: 10.00 MB
+OK (11 tests, 167 assertions)
+exit=0

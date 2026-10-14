@@ -1,0 +1,70 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+## 2026-10-13T22:51:09Z A4 AccountingTimeContractTest (fixture fix) repeat 1 engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 01:00.671, Memory: 12.00 MB
+OK (11 tests, 666 assertions)
+exit=0
+## 2026-10-13T22:52:12Z A4 AccountingTimeContractTest (fixture fix) repeat 2 engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:21.179, Memory: 12.00 MB
+OK (11 tests, 666 assertions)
+exit=0
+## 2026-10-13T22:52:35Z A4 AccountingTimeContractTest (fixture fix) repeat 3 engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:31, Memory: 12.00 MB
+OK (11 tests, 666 assertions)
+exit=0
+## 2026-10-13T22:53:08Z A4 AccountingTimeContractTest (fixture fix) repeat 1 engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:07.209, Memory: 12.00 MB
+OK (11 tests, 666 assertions)
+exit=0
+## 2026-10-13T22:53:16Z A4 AccountingTimeContractTest (fixture fix) repeat 2 engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:13.175, Memory: 12.00 MB
+OK (11 tests, 666 assertions)
+exit=0
+## 2026-10-13T22:53:31Z A4 AccountingTimeContractTest (fixture fix) repeat 3 engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:24.091, Memory: 12.00 MB
+OK (11 tests, 666 assertions)
+exit=0

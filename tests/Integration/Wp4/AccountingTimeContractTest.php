@@ -534,9 +534,10 @@ final class AccountingTimeContractTest extends TestCase
     {
         $pdo = self::conn(null);
         $prefix = self::user('perf');
-        self::q($pdo, "INSERT INTO radacct (acctsessionid, acctuniqueid, username, acctstarttime, acctupdatetime, acctstoptime) VALUES ('p', MD5(RAND()), ?, NOW() - INTERVAL 2 DAY, NOW() - INTERVAL 2 DAY, NOW() - INTERVAL 1 DAY)", [$prefix]);
+        self::q($pdo, "INSERT INTO radacct (acctsessionid, acctuniqueid, username, acctstarttime, acctupdatetime, acctstoptime) VALUES ('p', MD5(CONCAT(?, '-seed')), ?, NOW() - INTERVAL 2 DAY, NOW() - INTERVAL 2 DAY, NOW() - INTERVAL 1 DAY)", [$prefix, $prefix]);
+        // unique keys without randomness (row id + doubling step): MySQL RAND() can repeat a value for the same row
         for ($i = 0; $i < 15; $i++) {      // 32768 closed rows
-            self::q($pdo, "INSERT INTO radacct (acctsessionid, acctuniqueid, username, acctstarttime, acctupdatetime, acctstoptime) SELECT 'p', MD5(CONCAT(radacctid, '-', RAND())), username, acctstarttime, acctupdatetime, acctstoptime FROM radacct WHERE username = ?", [$prefix]);
+            self::q($pdo, "INSERT INTO radacct (acctsessionid, acctuniqueid, username, acctstarttime, acctupdatetime, acctstoptime) SELECT 'p', MD5(CONCAT(radacctid, '-', ?)), username, acctstarttime, acctupdatetime, acctstoptime FROM radacct WHERE username = ?", [$prefix . '-' . $i, $prefix]);
         }
         self::q($pdo, 'UPDATE radacct SET acctstoptime = NULL WHERE username = ? ORDER BY radacctid LIMIT 200', [$prefix]);
         self::q($pdo, 'ANALYZE TABLE radacct');

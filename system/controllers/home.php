@@ -198,6 +198,9 @@ if (isset($_GET['recharge']) && !empty($_GET['recharge'])) {
 } else if (isset($_GET['deactivate']) && !empty($_GET['deactivate'])) {
     $bill = ORM::for_table('tbl_user_recharges')->where('id', $_GET['deactivate'])->where('username', $user['username'])->findOne();
     if ($bill) {
+        // WP8 A5 (R-WP8-CARRY-01): never ends a reseller-owned service; the row is matched by username, so both owners
+        \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'portalDeactivate', 'home');
+        \Reseller\Domain\ServiceGate::guardCustomer($bill['customer_id'], 'portalDeactivate', 'home');
         $p = ORM::for_table('tbl_plans')->where('id', $bill['plan_id'])->find_one();
         $dvc = Package::getDevice($p);
         if ($_app_stage != 'demo') {

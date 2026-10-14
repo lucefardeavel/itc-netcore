@@ -1,0 +1,370 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+## 2026-10-14T05:07:56Z tests/Unit/Wp8/LegacyRemovalSourceTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..F                                                                 3 / 3 (100%)
+Time: 00:00.025, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheCheckersDetectMutations
+P1 after the hook: mutation applied
+Failed asserting that 0 is equal to 1 or is greater than 1.
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:177
+FAILURES!
+Tests: 3, Assertions: 11, Failures: 1.
+exit=1
+## 2026-10-14T05:07:59Z tests/Http/LegacyRemovalGateTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.............                                                     13 / 13 (100%)
+Time: 01:04.585, Memory: 10.00 MB
+OK (13 tests, 215 assertions)
+exit=0
+## 2026-10-14T05:09:06Z tests/Unit/Wp3a/SourceGuardTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..........                                                        10 / 10 (100%)
+Time: 00:00.480, Memory: 18.00 MB
+OK (10 tests, 37057 assertions)
+exit=0
+## 2026-10-14T05:09:13Z tests/Unit/Wp5b/Wp5bSourceGuardTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........                                                           9 / 9 (100%)
+Time: 00:00.232, Memory: 16.00 MB
+OK (9 tests, 570 assertions)
+exit=0
+## 2026-10-14T05:09:16Z tests/Unit/Wp4/AccountingTimeUnitTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......                                                              6 / 6 (100%)
+Time: 00:00.020, Memory: 10.00 MB
+OK (6 tests, 79 assertions)
+exit=0
+## 2026-10-14T05:09:17Z tests/Http/ServiceGateTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..........                                                        10 / 10 (100%)
+Time: 00:11.258, Memory: 10.00 MB
+OK (10 tests, 264 assertions)
+exit=0
+## 2026-10-14T05:09:30Z tests/Http/CsrfTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........                                                           9 / 9 (100%)
+Time: 00:06.290, Memory: 10.00 MB
+OK (9 tests, 75 assertions)
+exit=0
+## 2026-10-14T05:09:38Z tests/Http/RouteMatrixTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...                                                                 3 / 3 (100%)
+Time: 01:57.151, Memory: 10.00 MB
+OK (3 tests, 3638 assertions)
+exit=0
+## 2026-10-14T05:11:37Z tests/Http/SecurityRoutesTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:12.357, Memory: 10.00 MB
+OK (11 tests, 203 assertions)
+exit=0
+## 2026-10-14T05:11:51Z tests/Http/SchemaNotMigratedTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..                                                                  2 / 2 (100%)
+Time: 00:04.195, Memory: 10.00 MB
+OK (2 tests, 29 assertions)
+exit=0
+## 2026-10-14T05:11:58Z tests/Http/ApiTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.....                                                               5 / 5 (100%)
+Time: 00:09.687, Memory: 10.00 MB
+OK (5 tests, 177 assertions)
+exit=0
+## 2026-10-14T05:12:09Z tests/Http/CustomerOwnershipTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........                                                           9 / 9 (100%)
+Time: 00:07.856, Memory: 10.00 MB
+OK (9 tests, 75 assertions)
+exit=0
+## 2026-10-14T05:12:20Z tests/Integration/Wp5b/ActivationReversalTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..............                                                    14 / 14 (100%)
+Time: 00:06.205, Memory: 12.00 MB
+OK (14 tests, 305 assertions)
+exit=0
+## 2026-10-14T05:12:28Z tests/Integration/Wp5b/LegacyEntrypointClosureTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......                                                              6 / 6 (100%)
+Time: 00:07.388, Memory: 10.00 MB
+OK (6 tests, 62 assertions)
+exit=0
+## 2026-10-14T05:12:37Z tests/Integration/Wp5b/DriftReportTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.                                                                   1 / 1 (100%)
+Time: 00:02.718, Memory: 12.00 MB
+OK (1 test, 19 assertions)
+exit=0
+## 2026-10-14T05:12:41Z tests/Integration/Wp5b/PluginBypassTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.                                                                   1 / 1 (100%)
+Time: 00:03.388, Memory: 8.00 MB
+OK (1 test, 20 assertions)
+exit=0
+## 2026-10-14T05:12:46Z tests/Integration/Wp6a/Subscriber360Test.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+....                                                                4 / 4 (100%)
+Time: 00:07.273, Memory: 10.00 MB
+OK (4 tests, 137 assertions)
+exit=0
+## 2026-10-14T05:12:55Z tests/Integration/Wp4/RadiusAdminFlowTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...                                                                 3 / 3 (100%)
+Time: 00:09.287, Memory: 10.00 MB
+OK (3 tests, 24 assertions)
+exit=0
+## 2026-10-14T05:13:07Z tests/Integration/Wp5b/RenameRemediationTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...............                                                   15 / 15 (100%)
+Time: 00:07.523, Memory: 12.00 MB
+OK (15 tests, 242 assertions)
+exit=0
+## 2026-10-14T05:13:16Z tests/Integration/Wp5b/RenameOldSessionTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+....................                                              20 / 20 (100%)
+Time: 02:00.710, Memory: 12.00 MB
+OK (20 tests, 325 assertions)
+exit=0
+## 2026-10-14T05:15:19Z tests/Integration/Wp4/AccountingTimeContractTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:25.487, Memory: 12.00 MB
+OK (11 tests, 666 assertions)
+exit=0
+## 2026-10-14T05:15:47Z tests/Unit/Wp8/LegacyRemovalSourceTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..F                                                                 3 / 3 (100%)
+Time: 00:00.024, Memory: 10.00 MB
+There was 1 failure:
+1) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheCheckersDetectMutations
+P1 after the hook: mutation applied
+Failed asserting that 0 is equal to 1 or is greater than 1.
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:177
+FAILURES!
+Tests: 3, Assertions: 11, Failures: 1.
+exit=1
+## 2026-10-14T05:15:48Z tests/Http/LegacyRemovalGateTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.............                                                     13 / 13 (100%)
+Time: 01:03.484, Memory: 10.00 MB
+OK (13 tests, 215 assertions)
+exit=0
+## 2026-10-14T05:16:54Z tests/Unit/Wp3a/SourceGuardTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..........                                                        10 / 10 (100%)
+Time: 00:00.361, Memory: 18.00 MB
+OK (10 tests, 37057 assertions)
+exit=0
+## 2026-10-14T05:16:56Z tests/Unit/Wp5b/Wp5bSourceGuardTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........                                                           9 / 9 (100%)
+Time: 00:00.220, Memory: 16.00 MB
+OK (9 tests, 570 assertions)
+exit=0
+## 2026-10-14T05:16:57Z tests/Unit/Wp4/AccountingTimeUnitTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......                                                              6 / 6 (100%)
+Time: 00:00.013, Memory: 10.00 MB
+OK (6 tests, 79 assertions)
+exit=0
+## 2026-10-14T05:16:58Z tests/Http/ServiceGateTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..........                                                        10 / 10 (100%)
+Time: 00:42.165, Memory: 10.00 MB
+OK (10 tests, 264 assertions)
+exit=0
+## 2026-10-14T05:17:42Z tests/Http/CsrfTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........                                                           9 / 9 (100%)
+Time: 00:08.884, Memory: 10.00 MB
+OK (9 tests, 75 assertions)
+exit=0
+## 2026-10-14T05:17:53Z tests/Http/RouteMatrixTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...                                                                 3 / 3 (100%)
+Time: 02:04.135, Memory: 10.00 MB
+OK (3 tests, 3638 assertions)
+exit=0
+## 2026-10-14T05:19:59Z tests/Http/SecurityRoutesTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:25.561, Memory: 10.00 MB
+OK (11 tests, 203 assertions)
+exit=0
+## 2026-10-14T05:20:29Z tests/Http/SchemaNotMigratedTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..                                                                  2 / 2 (100%)
+Time: 00:06.132, Memory: 10.00 MB
+OK (2 tests, 29 assertions)
+exit=0
+## 2026-10-14T05:20:37Z tests/Http/ApiTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.....                                                               5 / 5 (100%)
+Time: 00:08.825, Memory: 10.00 MB
+OK (5 tests, 177 assertions)
+exit=0
+## 2026-10-14T05:20:48Z tests/Http/CustomerOwnershipTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........                                                           9 / 9 (100%)
+Time: 00:13.787, Memory: 10.00 MB
+OK (9 tests, 75 assertions)
+exit=0
+## 2026-10-14T05:21:04Z tests/Integration/Wp5b/ActivationReversalTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..............                                                    14 / 14 (100%)
+Time: 00:12.714, Memory: 12.00 MB
+OK (14 tests, 305 assertions)
+exit=0
+## 2026-10-14T05:21:21Z tests/Integration/Wp5b/LegacyEntrypointClosureTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+......                                                              6 / 6 (100%)
+Time: 00:09.041, Memory: 10.00 MB
+OK (6 tests, 62 assertions)
+exit=0
+## 2026-10-14T05:21:31Z tests/Integration/Wp5b/DriftReportTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.                                                                   1 / 1 (100%)
+Time: 00:06.268, Memory: 12.00 MB
+OK (1 test, 19 assertions)
+exit=0
+## 2026-10-14T05:21:39Z tests/Integration/Wp5b/PluginBypassTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.                                                                   1 / 1 (100%)
+Time: 00:06.047, Memory: 8.00 MB
+OK (1 test, 20 assertions)
+exit=0
+## 2026-10-14T05:21:47Z tests/Integration/Wp6a/Subscriber360Test.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+....                                                                4 / 4 (100%)
+Time: 00:10.354, Memory: 10.00 MB
+OK (4 tests, 137 assertions)
+exit=0
+## 2026-10-14T05:21:59Z tests/Integration/Wp4/RadiusAdminFlowTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...                                                                 3 / 3 (100%)
+Time: 00:11.533, Memory: 10.00 MB
+OK (3 tests, 24 assertions)
+exit=0
+## 2026-10-14T05:22:14Z tests/Integration/Wp5b/RenameRemediationTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...............                                                   15 / 15 (100%)
+Time: 00:07.058, Memory: 12.00 MB
+OK (15 tests, 242 assertions)
+exit=0
+## 2026-10-14T05:22:22Z tests/Integration/Wp5b/RenameOldSessionTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+....................                                              20 / 20 (100%)
+Time: 02:02.459, Memory: 12.00 MB
+OK (20 tests, 325 assertions)
+exit=0
+## 2026-10-14T05:24:26Z tests/Integration/Wp4/AccountingTimeContractTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...........                                                       11 / 11 (100%)
+Time: 00:12.452, Memory: 12.00 MB
+OK (11 tests, 666 assertions)
+exit=0

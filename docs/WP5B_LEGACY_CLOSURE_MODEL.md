@@ -106,3 +106,55 @@ Unassigned customers only; strict minor units (DECIMAL(15,2)), no float arithmet
 ## 12. Residual risks
 
 R-1 … R-14 of the plan (§13), with R-11 closed by the approved `Balance.php` change. See the report §I.
+
+## 13. Addendum — WP8 A5 (`R-WP8-CARRY-01`): legacy removal / deactivation of reseller-owned service
+
+**Owner decisions (2026-10-12, implementation authorised 2026-10-13).** A reseller-owned customer (`manager_id IS NOT NULL`) loses an active service only through:
+- the reversal (`ActivationReversalService`, §5);
+- expiry (cron, §10).
+
+The three direct legacy paths are refused through the existing OD-11 gate (`ServiceGate::guardCustomer`). The gate runs before any hook, device call (RADIUS suspend, CoA / Disconnect, router removal), database write, notification or financial effect:
+
+| Path | Code | Gate (operation) | Placement |
+|---|---|---|---|
+| P1 Admin "delete active plan" `plan/delete/<recharge>` | `system/controllers/plan.php` `case 'delete'` | the recharge row's customer (`planDelete`) | after the row is found, before `run_hook('delete_customer_active_plan')` |
+| P2 Admin "deactivate" `customers/deactivate/<customer>/<plan>` | `system/controllers/customers.php` `case 'deactivate'` | the route customer (`customerDeactivate`) | after the CSRF check, before the recharge lookup |
+| P3 portal self-deactivation (POST `home?deactivate=<recharge>`, CSRF) | `system/controllers/home.php` | the logged-in customer **and** the matched row's customer (`portalDeactivate`); the row is matched by username | after the row is found, before the device |
+
+**Device-target identity (owner decision D-A5-1, 2026-10-14).** `User::_info($id)` falls back to the session customer (`$_SESSION['uid']` / the signed `uid` cookie, set by the Admin "login as customer") when `$id` is falsy. So a recharge row with `customer_id = 0` (P1), or a route customer id `0` / malformed (P2), used to end the **impersonated** customer's service.
+- **P1:** refuses a recharge row whose `customer_id` is not a positive, existing customer, **before the hook**.
+- **P2:** refuses a route customer id that is not canonical (digits only), positive and existing, **before the recharge lookup**.
+- **Before the device call**, both re-check that the resolved device target **is** that customer (P2 also checks the row's `customer_id`).
+- **Refusals:** `service.refused` with operation `planDeleteIdentity` / `customerDeactivateIdentity`, a redirect, and nothing else.
+- **Legitimate `customer_id = 0` rows:** legacy voucher-only subscribers (`Package::rechargeUser` voucher mode, `login.php` voucher login). P1 never handled them correctly (no customer to resolve); they now stay until cron expiry, which handles them correctly (unchanged; the device target is the recharge row).
+- **Unchanged:** `ServiceGate.php` and `RouteMap.php`.
+
+**Refusal behaviour:**
+- **What is recorded:** one `service.refused` audit (operation, target customer), one sanitized `service.refused` log line and the generic `ServiceGate` message. Nothing else changes. When the schema is not ready, only the log line is written (no audit) and the message is the not-ready message.
+- **Reversal:** the activation stays reversible.
+- **Schema not ready:** the gate refuses these paths for every customer, as every OD-11 gate does.
+- **Ownership read fails:** the gate refuses (fail closed).
+- **Unchanged rules:** the API follows the same rule, and Agent / Sales never reach P1 / P2 (RouteMap).
+
+**Unchanged:**
+- unassigned legacy customers (device removal, hook, recharge row, notification as before);
+- cron expiry (P4);
+- the plan edit gate (P5, `planEditPost`);
+- customer delete (P6, `CustomerService::assertDeletable`);
+- `ServiceGate.php` and `RouteMap.php` (both SHA-pinned, untouched).
+
+There is no emergency stop outside the reversal (owner decision 2), and the UI buttons are unchanged (decision 6).
+
+**Tests:**
+- `tests/Unit/Wp8/LegacyRemovalSourceTest.php`: every `remove_customer(` in `system/controllers` is gated in its branch before any effect; mutation-checked.
+- `tests/Http/LegacyRemovalGateTest.php`, real HTTP, both engines:
+  - refusals with byte-identical data (RADIUS tables included), no hook, device, Disconnect or notification. An open session on a stub NAS would receive the Disconnect: a positive control proves this wiring sees it when the device removal really runs;
+  - the reversal still works afterwards;
+  - unassigned behaviour is unchanged;
+  - schema not ready, the API, Agent / Sales and an ownership transfer are covered.
+- **Failed ownership read:** the same file checks the shared gate in the app runtime, not over HTTP. With the ownership read failing, the gate blocks (fail closed). That every A5 path calls the gate before any effect is proven by the source guard.
+
+**Open (separate):**
+- R-4: cron expiry vs. a RENEW in flight (owner decision 7);
+- plugin / direct-device authority (Phase B);
+- the generic refusal text still reads "(pending WP5B)" (pinned file, wording only).

@@ -273,12 +273,24 @@ switch ($action) {
         if (!Csrf::check($csrf_token)) {
             r2(getUrl('customers/view/') . $id_customer, 'e', Lang::T('Invalid or Expired CSRF Token') . ".");
         }
+        // WP8 A5 (R-WP8-CARRY-01): a reseller-owned service ends only by reversal or expiry, never here
+        \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'customerDeactivate', 'customers/view/' . (int) $id_customer);
+        // WP8 A5 (D-A5-1): a zero / missing / malformed id would match legacy customer_id 0 rows and make User::_info()
+        // fall back to the session customer (Admin "login as customer"): only a canonical, existing customer id
+        if (!ctype_digit((string) $id_customer) || (int) $id_customer <= 0 || !ORM::for_table('tbl_customers')->find_one((int) $id_customer)) {
+            \Reseller\Domain\ServiceGate::refused('customerDeactivateIdentity', $id_customer);
+            r2(getUrl('customers/list'), 'e', Lang::T('Account Not Found'));
+        }
         $b = ORM::for_table('tbl_user_recharges')->where('customer_id', $id_customer)->where('plan_id', $plan_id)->find_one();
         if ($b) {
             $p = ORM::for_table('tbl_plans')->where('id', $b['plan_id'])->find_one();
             if ($p) {
                 $p = ORM::for_table('tbl_plans')->where('id', $b['plan_id'])->find_one();
                 $c = User::_info($id_customer);
+                if (!$c || (int) $c['id'] !== (int) $id_customer || (int) $b['customer_id'] !== (int) $id_customer) {
+                    \Reseller\Domain\ServiceGate::refused('customerDeactivateIdentity', $id_customer);
+                    r2(getUrl('customers/list'), 'e', Lang::T('Account Not Found'));
+                }
                 $dvc = Package::getDevice($p);
                 if ($_app_stage != 'demo') {
                     if (file_exists($dvc)) {

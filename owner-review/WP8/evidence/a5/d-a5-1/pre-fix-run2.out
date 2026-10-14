@@ -1,0 +1,168 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+## 2026-10-14T05:04:51Z tests/Unit/Wp8/LegacyRemovalSourceTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.FF                                                                 3 / 3 (100%)
+Time: 00:00.023, Memory: 10.00 MB
+There were 2 failures:
+1) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheThreeA5GatesAreExactlyWhereThePlanSays
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'P1: customer id must be positive and existing, before the hook',
++    1 => 'P1: the resolved device target is the row customer, before the device',
++    2 => 'P2: canonical, positive, existing customer id, before the recharge lookup',
++    3 => 'P2: the resolved device target and the recharge row are the route customer, before the device',
++]
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:146
+2) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheCheckersDetectMutations
+clean before the mutations
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'P1: customer id must be positive and existing, before the hook',
++    1 => 'P1: the resolved device target is the row customer, before the device',
++    2 => 'P2: canonical, positive, existing customer id, before the recharge lookup',
++    3 => 'P2: the resolved device target and the recharge row are the route customer, before the device',
++]
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:173
+FAILURES!
+Tests: 3, Assertions: 4, Failures: 2.
+exit=1
+## 2026-10-14T05:04:53Z tests/Http/LegacyRemovalGateTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..........FF.                                                     13 / 13 (100%)
+Time: 00:56.200, Memory: 10.00 MB
+There were 2 failures:
+1) Reseller\Tests\Http\LegacyRemovalGateTest::testP1NeverFallsBackToTheImpersonatedCustomer
+database changed: P1 on a customer_id 0 row with an impersonation session
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:449
+2) Reseller\Tests\Http\LegacyRemovalGateTest::testP2NeverFallsBackToTheImpersonatedCustomer
+database changed: P2 with customer id '0' and an impersonation session
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:474
+FAILURES!
+Tests: 13, Assertions: 191, Failures: 2.
+exit=1
+## 2026-10-14T05:05:51Z tests/Unit/Wp8/LegacyRemovalSourceTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.FF                                                                 3 / 3 (100%)
+Time: 00:00.024, Memory: 10.00 MB
+There were 2 failures:
+1) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheThreeA5GatesAreExactlyWhereThePlanSays
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'P1: customer id must be positive and existing, before the hook',
++    1 => 'P1: the resolved device target is the row customer, before the device',
++    2 => 'P2: canonical, positive, existing customer id, before the recharge lookup',
++    3 => 'P2: the resolved device target and the recharge row are the route customer, before the device',
++]
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:146
+2) Reseller\Tests\Unit\Wp8\LegacyRemovalSourceTest::testTheCheckersDetectMutations
+clean before the mutations
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'P1: customer id must be positive and existing, before the hook',
++    1 => 'P1: the resolved device target is the row customer, before the device',
++    2 => 'P2: canonical, positive, existing customer id, before the recharge lookup',
++    3 => 'P2: the resolved device target and the recharge row are the route customer, before the device',
++]
+/repo/tests/Unit/Wp8/LegacyRemovalSourceTest.php:173
+FAILURES!
+Tests: 3, Assertions: 4, Failures: 2.
+exit=1
+## 2026-10-14T05:05:53Z tests/Http/LegacyRemovalGateTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..........FF.                                                     13 / 13 (100%)
+Time: 01:02.975, Memory: 10.00 MB
+There were 2 failures:
+1) Reseller\Tests\Http\LegacyRemovalGateTest::testP1NeverFallsBackToTheImpersonatedCustomer
+database changed: P1 on a customer_id 0 row with an impersonation session
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:449
+2) Reseller\Tests\Http\LegacyRemovalGateTest::testP2NeverFallsBackToTheImpersonatedCustomer
+database changed: P2 with customer id '0' and an impersonation session
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'radcheck',
++    1 => 'tbl_user_recharges',
++]
+/repo/tests/Support/Wp2HttpTestCase.php:113
+/repo/tests/Http/LegacyRemovalGateTest.php:474
+FAILURES!
+Tests: 13, Assertions: 191, Failures: 2.
+exit=1

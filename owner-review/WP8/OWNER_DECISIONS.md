@@ -570,3 +570,60 @@ Basis: `WP8_A4_PREFLIGHT_AND_IMPLEMENTATION_PLAN.md`, `WP8_A4_IMPLEMENTATION_AND
   - R-WP8-CARRY-01, R-HF-CARRY-01, H-2 follow-ups and V-1.
   - `Expiration` (FreeRADIUS process zone = application zone, WP4 residual 4) is unchanged.
   - A5, S7 and S8 are not started.
+
+## A5 — R-WP8-CARRY-01 legacy removal / deactivation authority (2026-10-13 / 2026-10-14) — additive record
+
+**Owner decision (2026-10-14): `A5_ACCEPTED_WITH_NOTES — DEVELOPMENT ONLY`.**
+- **Authorized:** one commit and one push to `wp8/integration-poc` only, from baseline
+  `8ed4cb3da4e125ad017393d3bb70a1d5ab0120a3`, after the final pre-commit audit.
+- **Not authorized:** a merge to `feat` or `main`, a force push, a deployment or production access.
+
+Decision trail:
+- `A5_PLAN_APPROVED — IMPLEMENTATION_AUTHORIZED`: plan `WP8_A5_PREFLIGHT_AND_IMPLEMENTATION_PLAN.md` §0–§10 plus addendum §11.
+  C4 cancelled (`ServiceGate.php` / `RouteMap.php` are SHA-pinned); T7 (cron) not part of A5.
+- `A5_IMPLEMENTATION_REVIEWED — FINAL_SAFETY_FIX_AUTHORIZED`:
+  - D-A5-1 mandatory;
+  - D-A5-2 test-only correction approved;
+  - L-A5-2 documented as a production blocker.
+
+Basis: `WP8_A5_IMPLEMENTATION_AND_SECURITY_ACCEPTANCE_REPORT.md` and `evidence/a5/`.
+
+- **Accepted:**
+  - **C1–C3.** P1 `plan.php` delete, P2 `customers.php` deactivate and P3 `home.php` self-deactivation are refused for
+    reseller-owned customers (`ServiceGate::guardCustomer`) before any hook, device call, Disconnect, database write
+    or financial effect. P3 checks both the logged-in customer and the matched row's customer.
+  - **D-A5-1, closing L-A5-1.** P1 and P2 never fall back to the session customer (`User::_info()` on a zero / missing /
+    malformed id after an Admin "login as customer"). The plan owner in the database must be exactly the customer
+    passed to the device. This is checked before the hook (P1) / the recharge lookup (P2) and again before the device
+    call, fail closed.
+  - **D-A5-2, a test-only correction, not a change of A4 code.** `tests/Integration/Wp4/AccountingTimeContractTest.php`
+    builds its performance-fixture keys deterministically instead of with `RAND()` (a MySQL duplicate-key flake).
+    No assertion and no A4 product code changed; the original failure is kept.
+  - **The independent review** and its test-evidence corrections (stub NAS address, positive control T1c, T4 and T8
+    accuracy, mutation-checked source guard).
+  - **No CHR run:** the refusals provably never reach a device.
+- **Results:**
+  - **Before the fixes:** the new tests fail on the code before each fix (both engines).
+  - **Final A5 tests:** source guard 3 / 39 and HTTP 13 / 215, exit 0 on MariaDB and MySQL.
+  - **Frozen full harness:** 1201 collected / Tests 1115 / Assertions 69521 / Incomplete 86 / Skipped 0 per engine,
+    exit 0, tree unchanged.
+  - Manifest 42 / 42; secret sweep 0 hits; `ServiceGate.php`, `RouteMap.php` and the protected files unchanged.
+- **R-WP8-CARRY-01: CLOSED FOR DEVELOPMENT.** Not production ready.
+- **Accepted limits (A5 is not extended to these):**
+  - **Voucher-only rows:** deleting a voucher-only active plan (`customer_id = 0`, legacy voucher mode) through P1 is
+    now refused, fail closed.
+  - **Cron expiry:** the existing path is unchanged and still ends voucher-only rows.
+  - **Manual voucher cancellation:** any safe manual cancellation of a voucher-only plan needs a separate study.
+  - **Schema not ready:** P1–P3 are refused for every customer (the existing OD-11 rule).
+  - **Incomplete tests:** the lab-only incomplete tests are not passes.
+- **Production blockers (still open; A5 acceptance closes none of them):**
+  - **L-A5-2:** a RADIUS-key collision between an unassigned and a reseller-owned customer can suspend the shared key.
+    It is kept under **OBS-1**.
+  - **OBS-1:** customer-creation collisions.
+  - **The A4 contract checks:** P-A4-1 (SQL session zone UTC), P-A4-2 (NTP, Hotspot / other NAS Event-Timestamp) and
+    P-A4-3 (history zone preflight).
+  - Same-key ADMIN_SYNC; RadiusRest / L-4; L-1 … L-5.
+  - R2 audit / UI; the READ COMMITTED interleaving; the pre-existing PHP warnings.
+  - R-4 (cron vs RENEW); plugin / direct-device authority (Phase B).
+  - R-HF-CARRY-01; H-2 follow-ups; V-1.
+  - S7 and S8 are not started.
