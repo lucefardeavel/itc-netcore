@@ -113,6 +113,19 @@ class Package
             return self::rechargeCustomBalance($c, $p, $gateway, $channel);
         }
 
+        // WP8 S7-FC (OD-S7-FC-1): the device default deny is judged before the recharge cycle. A grant the device would
+        // refuse (the customer's username or PPPoE username is a reseller-owned customer's key) returns false with
+        // nothing written: no hook, recharge row, transaction, device call or notification; the guard records the
+        // refusal. An allowed grant keeps the WP4 order (recharge saved, then the device; a device failure there is
+        // unchanged). Voucher-only grants are judged by the WP2 gate above (the same username / PPPoE username lookup).
+        if (!$isVoucher) {
+            try {
+                \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed($c);
+            } catch (\Reseller\Radius\ProvisionFailure $e) {
+                return false;
+            }
+        }
+
         /**
          * 1 Customer only can have 1 PPPOE and 1 Hotspot Plan, 1 prepaid and 1 postpaid
          */

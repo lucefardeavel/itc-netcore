@@ -1,0 +1,67 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+================ engine: mariadb ================
+ Container nuxbill-reseller-test-php82-run-ff77fe46871c Creating 
+ Container nuxbill-reseller-test-php82-run-ff77fe46871c Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-f0c1153ade9c Creating 
+ Container nuxbill-reseller-test-php82-run-f0c1153ade9c Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+................................................................. 65 / 91 ( 71%)
+..........................                                        91 / 91 (100%)
+
+Time: 00:00.638, Memory: 24.00 MB
+
+OK (91 tests, 38041 assertions)
+================ engine: mysql ================
+ Container nuxbill-reseller-test-php82-run-b2ea701b06f6 Creating 
+ Container nuxbill-reseller-test-php82-run-b2ea701b06f6 Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-0a876fbdfc98 Creating 
+ Container nuxbill-reseller-test-php82-run-0a876fbdfc98 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+................................................................. 65 / 91 ( 71%)
+..........................                                        91 / 91 (100%)
+
+Time: 00:00.734, Memory: 24.00 MB
+
+OK (91 tests, 38041 assertions)
+================ variant registry reproducibility ================
+ Container nuxbill-reseller-test-php82-run-17593d355ed3 Creating 
+ Container nuxbill-reseller-test-php82-run-17593d355ed3 Created 
+variant registry matches freshly built fixtures
+  mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mariadb V2_FRESH_INSTALL_UPDATED on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mariadb V3_LONGLIVED_2023_UPDATED on 10.11.19-MariaDB-ubu2204: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+  mysql V1_FRESH_INSTALL on 8.0.46: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mysql V2_FRESH_INSTALL_UPDATED on 8.0.46: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mysql V3_LONGLIVED_2023_UPDATED on 8.0.46: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+exit=0

@@ -1,0 +1,28 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-fdb0310f2f9b Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-fdb0310f2f9b Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.FF.....                                                            8 / 8 (100%)
+
+Time: 02:47.685, Memory: 12.00 MB
+
+There were 2 failures:
+
+1) Reseller\Tests\Integration\Wp8\DriverContractLabTest::testHotspotPlanAndUserContracts
+Failed asserting that actual size 0 matches expected size 1.
+
+/repo/tests/Integration/Wp8/DriverContractLabTest.php:100
+
+2) Reseller\Tests\Integration\Wp8\DriverContractLabTest::testHotspotLocalLoginIsNotRadiusAndTheSessionMethodsWork
+local Hotspot user logs in: {"ok":false,"state":"REFUSED","message":"invalid username or password","auth":"http-chap"}
+Failed asserting that false is true.
+
+/repo/tests/Integration/Wp8/DriverContractLabTest.php:134
+
+FAILURES!
+Tests: 8, Assertions: 149, Failures: 2.
+

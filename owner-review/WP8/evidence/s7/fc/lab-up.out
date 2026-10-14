@@ -1,0 +1,50 @@
+[wp8 10:57:36] CHR 7.24.5 image verified (/srv/phpnuxbill/wp8state/img/chr-7.24.5.img)
+[wp8 10:57:36] compose: mariadb
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+[wp8 10:57:48] RADIUS database nuxr_radius (install/radius.sql + install/freeradius/nuxr_admission.sql + nuxr_hs_admission.sql) + NAS rows (production-style SQL clients)
+[wp8 10:57:49] compose: freeradius-wp8 (read_clients = yes)
+ Network nuxbill-reseller-test_wp8lab Creating 
+ Network nuxbill-reseller-test_wp8lab Creating 
+ Network nuxbill-reseller-test_wp8lab Created 
+ Network nuxbill-reseller-test_wp8lab Created 
+ Container nuxbill-reseller-test-freeradius-wp8-1 Creating 
+ Container nuxbill-reseller-test-freeradius-wp8-1 Created 
+ Container nuxbill-reseller-test-freeradius-wp8-1 Starting 
+ Container nuxbill-reseller-test-freeradius-wp8-1 Started 
+[wp8] session guard: guard=54c2d5855b041db8  delete_stale_sessions = no checkrad = ${sbindir}/checkrad stock-checkrad=stock creds=600 freerad gate_marker=0
+[wp8] TZ=Asia/Baghdad sql:  read_clients = yes  client_table = "nas" 
+[wp8] global:  require_message_authenticator = auto
+rlm_sql (10.88.0.2): Client "nuxr_wp8_chr" (sql) added
+rlm_sql (10.88.0.10): Client "nuxr_wp8_app" (sql) added
+[wp8 10:57:52] links: TAPs, Linux bridges, client namespaces (no uplink, no IP on the segment bridges)
+[wp8 10:57:53] CHR 7.24.5: QEMU TCG, 1 vCPU, 1 GiB, fresh working disk
+[wp8 10:58:45] CHR API answered after 52s
+admin: blank factory password replaced by the lab password
+  /system/identity/set                     OK
+  /ip/address/add                          OK
+  /ip/address/add                          OK
+  /ip/pool/add                             OK
+  /ip/pool/add                             OK
+  /ip/pool/add                             OK
+  /ppp/profile/add                         OK
+  /interface/pppoe-server/server/add       OK
+  /ppp/aaa/set                             OK
+  /radius/add                              OK
+  /radius/incoming/set                     OK
+  /ip/dhcp-server/network/add              OK
+  /ip/dhcp-server/add                      OK
+  /ip/hotspot/profile/add                  OK
+  /ip/hotspot/add                          OK
+  /ip/hotspot/user/profile/set             OK
+  /ip/service/set                          OK
+{"version": "7.24.5 (stable)", "architecture": "x86_64", "board": "CHR QEMU Standard PC (i440FX + PIIX, 1996)", "license": "free", "radius": {"address": "10.88.0.10", "service": "ppp,hotspot", "src-address": "10.88.0.2", "require-message-auth": "yes-for-request-resp"}, "incoming": {"accept": "true", "port": "3799", "vrf": "main"}}
+[wp8 10:58:51] client agent
+[wp8 10:58:51] lab up
+exit=0

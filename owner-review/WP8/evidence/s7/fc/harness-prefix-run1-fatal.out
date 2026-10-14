@@ -1,0 +1,51 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+================ engine: mariadb ================
+ Container nuxbill-reseller-test-php82-run-8f8fcf14bd90 Creating 
+ Container nuxbill-reseller-test-php82-run-8f8fcf14bd90 Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-8c04e4a3d0ff Creating 
+ Container nuxbill-reseller-test-php82-run-8c04e4a3d0ff Created 
+
+Fatal error: Access level to Reseller\Tests\Integration\Wp8\RechargePreWriteRefusalTest::customer() must be protected (as in class Reseller\Tests\Support\Wp2HttpTestCase) or weaker in /repo/tests/Integration/Wp8/RechargePreWriteRefusalTest.php on line 51
+
+================ engine: mysql ================
+ Container nuxbill-reseller-test-php82-run-3e7d34e20675 Creating 
+ Container nuxbill-reseller-test-php82-run-3e7d34e20675 Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-a52c8f4202b2 Creating 
+ Container nuxbill-reseller-test-php82-run-a52c8f4202b2 Created 
+
+Fatal error: Access level to Reseller\Tests\Integration\Wp8\RechargePreWriteRefusalTest::customer() must be protected (as in class Reseller\Tests\Support\Wp2HttpTestCase) or weaker in /repo/tests/Integration/Wp8/RechargePreWriteRefusalTest.php on line 51
+
+================ variant registry reproducibility ================
+ Container nuxbill-reseller-test-php82-run-d99ff88287db Creating 
+ Container nuxbill-reseller-test-php82-run-d99ff88287db Created 
+variant registry matches freshly built fixtures
+  mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mariadb V2_FRESH_INSTALL_UPDATED on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mariadb V3_LONGLIVED_2023_UPDATED on 10.11.19-MariaDB-ubu2204: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+  mysql V1_FRESH_INSTALL on 8.0.46: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mysql V2_FRESH_INSTALL_UPDATED on 8.0.46: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mysql V3_LONGLIVED_2023_UPDATED on 8.0.46: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+exit=1

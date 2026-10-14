@@ -1,0 +1,11 @@
+=== s7_cleanup.py delete (08:38:00)
+{
+ "listed": [],
+ "deleted": [],
+ "remaining": []
+}
+rc=0
+=== API user / group present?
+users: ['admin']
+groups: ['read', 'write', 'full']
+filter rules nuxr: []

@@ -1,0 +1,32 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-05ec5e77c3cd Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-05ec5e77c3cd Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.F.....                                                             7 / 7 (100%)
+
+Time: 02:31.544, Memory: 12.00 MB
+
+There was 1 failure:
+
+1) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testNameCollisionsWithTheOwnedCustomersKey
+(b) an unassigned row carrying the owned customer's key as PPPoE username must be refused
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    0 => false,
+-    1 => 'RESELLER_OWNED_REFUSED',
++    0 => true,
++    1 => null,
+ ]
+
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:138
+
+FAILURES!
+Tests: 7, Assertions: 94, Failures: 1.
+

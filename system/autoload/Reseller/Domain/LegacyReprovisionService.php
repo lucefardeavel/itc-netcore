@@ -187,12 +187,14 @@ final class LegacyReprovisionService
      * Device default deny (§4.3), called first by every legacy device grant method: a reseller-owned customer
      * (or one whose ownership cannot be evaluated) is refused unless the call is made inside run() for that
      * same customer. Refusals are recorded (ServiceGate) and raised as a confirmed, non-retryable failure.
+     * WP8 S7-F1: the row's PPPoE username is part of the identity the device is given (the PPPoE / VPN secret name and
+     * the RADIUS key of a PPPoE plan), so it is judged like the username.
      */
     public static function assertDeviceAllowed(mixed $customer = null, ?string ...$usernames): void
     {
         $row = is_object($customer) && method_exists($customer, 'as_array') ? $customer->as_array() : (is_array($customer) ? $customer : []);
         $id = (int) ($row['id'] ?? 0);
-        $names = array_values(array_filter(array_merge([(string) ($row['username'] ?? '')], array_map('strval', $usernames)), static fn(string $n): bool => $n !== ''));
+        $names = array_values(array_filter(array_merge([(string) ($row['username'] ?? ''), (string) ($row['pppoe_username'] ?? '')], array_map('strval', $usernames)), static fn(string $n): bool => $n !== ''));
         if (self::$permit !== null && ($id === 0 || $id === self::$permit['id']) && array_diff($names, self::$permit['names']) === []) {
             return;
         }

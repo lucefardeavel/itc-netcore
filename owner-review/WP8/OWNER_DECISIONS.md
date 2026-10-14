@@ -627,3 +627,79 @@ Basis: `WP8_A5_IMPLEMENTATION_AND_SECURITY_ACCEPTANCE_REPORT.md` and `evidence/a
   - R-4 (cron vs RENEW); plugin / direct-device authority (Phase B).
   - R-HF-CARRY-01; H-2 follow-ups; V-1.
   - S7 and S8 are not started.
+
+## S7 — Direct MikroTik driver classification, fail-closed contracts, S7-F1 and S7-FC (2026-10-14) — additive record
+
+**Owner decision (2026-10-14): `S7_ACCEPTED_WITH_NOTES — DEVELOPMENT ONLY`.**
+- **Authorized:** one commit and one push to `wp8/integration-poc` only, from baseline
+  `f07917e9f976d2ec4cbd0b32fcb875a72be8d979`, after the final pre-commit audit.
+- **Not authorized:** a merge to `feat` or `main`, a force push, a deployment or production access. This is not
+  production acceptance.
+
+Decision trail:
+- `S7_PLAN_APPROVED_WITH_AMENDMENTS — IMPLEMENTATION_AUTHORIZED`:
+  - plan `WP8_S7_PREFLIGHT_AND_CONTRACT_TEST_PLAN.md`;
+  - OD-S7-1 = A (a temporary least-privilege lab API user) and OD-S7-2 = A (VPN tested at API / object / NAT level);
+  - AM-S7-1 … AM-S7-4.
+- Round 1 → `S7_BLOCKED_WITH_EVIDENCE`: **S7-F1**, a proven authority bypass on the isolated CHR.
+- `S7_F1_TARGETED_REMEDIATION_APPROVED — S7_REMAINS_BLOCKED` (option C): one limited guard change in
+  `LegacyReprovisionService.php`. Round 2 → `S7_BLOCKED_WITH_EVIDENCE`, blocked by the residue of the legacy recharge
+  funnel (OBS-S7-3).
+- `OD-S7-FC-1 = APPROVED` / `S7_FC_PREWRITE_REFUSAL_APPROVED — IMPLEMENTATION_AUTHORIZED` (F-C):
+  - one limited pre-write refusal in `Package::rechargeUser()`;
+  - a limited exception that updates **only** the `Package.php` SHA-256 pin in `tests/Unit/Wp3a/SourceGuardTest.php`.
+  - Round 3 → `S7_READY_FOR_OWNER_ACCEPTANCE`.
+
+Basis: `WP8_S7_IMPLEMENTATION_AND_TEST_REPORT.md` (rounds 1–3) and `evidence/s7/` (`source/`, `lab/`, `f1/`, `fc/`).
+Every failed, aborted and diagnostic run is kept.
+
+- **Accepted:**
+  - **Classification:**
+    - T-S1 … T-S4: Class A is empty; every MikroTik grant method starts with the default deny; 47 call sites are
+      pinned with their gates; the static `Mikrotik` class has no caller.
+    - The new pre-write source pin (mutation-checked).
+  - **Real-router contracts:**
+    - DC on RouterOS CHR 7.24.5, using a temporary least-privilege API user that was removed and verified;
+    - local vs RADIUS separation (AM-S7-1);
+    - VPN NAT isolation (AM-S7-3).
+  - **Fail-closed:** FC-1 … FC-8 with positive controls, and the permit of the permitted path ending after both success
+    and failure (AM-S7-4).
+  - **S7-F1: CLOSED FOR DEVELOPMENT.**
+    - The fix: `LegacyReprovisionService::assertDeviceAllowed()` also checks the row's own `pppoe_username`.
+    - Proven test-first: on the CHR and on both engines, the PPPoE secret, live session, RADIUS policy (legacy Radius
+      device) and RADIUS-masking collisions are refused, including database-equal spellings (case, trailing space,
+      accent).
+  - **OBS-S7-3: CLOSED ONLY for the ownership-collision refusal.** `Package::rechargeUser()` runs the same guard before
+    the recharge cycle for non-voucher grants and returns `false`. It leaves no hook, recharge insert or update,
+    transaction / invoice, device call, RouterOS / RADIUS change, disconnect or notification. Only one refusal record
+    is written (`op=deviceGrant`).
+    - **Callers:** all three remaining callers already treat `false` as "not granted" (admin error, exactly-once
+      refund, voucher release).
+    - **Unchanged:** the WP4 save-before-device order for allowed grants. `docs/WP4_RADIUS_MODEL.md` §3 is clarified.
+  - **`Package.php` SHA pin:** `e4225dd06c4e4b5e555f141f8319f9a2575c4d7461f96ff30dc52b35f1f36346` →
+    `d4567f663193e16b6db7397ff94ed37c268274ebc5f6ce8a645af3c79fca2b85`. The value matches the file. No other pin
+    changed, and no source guard was removed or weakened.
+- **Results (final):**
+  - **Frozen full harness:** Tests 1129 / Assertions 69661 / Incomplete 104 / 0 failures per engine (MariaDB 10.11,
+    MySQL 8.0), exit 0. The tree fingerprints before and after the run are identical. Lab-only incomplete tests are
+    not passes.
+  - **CHR:** FC 10 / 177, DC 8 / 200, focused router regression (production-contract configuration as in A4) 18 / 418,
+    each exit 0. The inventory is identical after every S7 class run, and the lab was cleaned and stopped.
+  - **Integrity:** manifest 42 / 42; secret sweep 0 hits; protected files unchanged apart from the authorized
+    `Package.php` change and its pin.
+- **Accepted limits (S7 is not extended to these):**
+  - **L-S7-FC-1:** an ordinary device failure after the authority check (for example an unreachable API) keeps the
+    legacy result: the customer is billed, the recharge row and invoice stay, and the operator syncs manually.
+  - **OBS-S7-4** (LOW, Phase B, analysis only): whitespace keys that `RadiusPolicyBuilder::key()` trims fall outside the
+    database comparison. Product inputs cannot store them.
+- **Still open (S7 acceptance closes none of them):**
+  - **Production blocker:** **OBS-1 / L-A5-2**, identity collisions at customer creation. After S7 a colliding customer
+    is refused without any write, but it cannot be served either.
+  - **OBS-S7-1** (MEDIUM): drivers ignore RouterOS `!trap`. This gates the legacy MikroTik-API device in production.
+  - **OBS-S7-2** (MEDIUM): VPN `rmNat()` removes NAT rules by address, and renames leave stale NAT comments. This gates
+    the legacy VPN device on shared routers.
+  - **OBS-W8-2 … OBS-W8-5:** as classified in the S7 report §13 (OBS-W8-4 MEDIUM, a private API path or API-SSL is
+    required).
+  - **P-A4-1 … P-A4-3:** the A4 contract checks.
+  - **Previously recorded blockers:** see the A5 record above.
+  - **S8** is not started; it waits for the owner's transition order.

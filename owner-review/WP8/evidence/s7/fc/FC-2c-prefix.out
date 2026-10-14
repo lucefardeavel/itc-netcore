@@ -1,0 +1,92 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-6a40d2e86337 Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-6a40d2e86337 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F                                                                   1 / 1 (100%)
+
+Time: 00:39.133, Memory: 30.00 MB
+
+There was 1 failure:
+
+1) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testTheLegacyRechargeFunnelCollisionLeavesTheOwnedCustomerUntouched
+refused before the recharge cycle: no hook, recharge, invoice or device call; one safe refusal record
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     'pppoe_new' => Array &1 [
+         'ok' => true,
+-        'value' => false,
+-        'hooks' => Array &2 [],
+-        'unassigned_records_unchanged' => true,
+-        'data_unchanged' => Array &3 [],
++        'value' => 'INV-6',
++        'hooks' => Array &2 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'unassigned_records_unchanged' => false,
++        'data_unchanged' => Array &3 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
+         'refusals_logged' => 1,
+-        'device_failure_reported' => 0,
++        'device_failure_reported' => 1,
+         'log_has_no_secret' => true,
+     ],
+     'pppoe_renewal' => Array &4 [
+         'ok' => true,
+-        'value' => false,
+-        'hooks' => Array &5 [],
+-        'unassigned_records_unchanged' => true,
+-        'data_unchanged' => Array &6 [],
++        'value' => 'INV-7',
++        'hooks' => Array &5 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'unassigned_records_unchanged' => false,
++        'data_unchanged' => Array &6 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
+         'refusals_logged' => 1,
+-        'device_failure_reported' => 0,
++        'device_failure_reported' => 1,
+         'log_has_no_secret' => true,
+     ],
+     'vpn_new' => Array &7 [
+         'ok' => true,
+-        'value' => false,
+-        'hooks' => Array &8 [],
+-        'unassigned_records_unchanged' => true,
+-        'data_unchanged' => Array &9 [],
++        'value' => 'INV-8',
++        'hooks' => Array &8 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'unassigned_records_unchanged' => false,
++        'data_unchanged' => Array &9 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
+         'refusals_logged' => 1,
+-        'device_failure_reported' => 0,
++        'device_failure_reported' => 1,
+         'log_has_no_secret' => true,
+     ],
+ ]
+
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:296
+
+FAILURES!
+Tests: 1, Assertions: 8, Failures: 1.
+
+exit=1

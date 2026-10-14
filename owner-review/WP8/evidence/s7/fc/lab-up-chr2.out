@@ -1,0 +1,15 @@
+[wp8 11:20:48] CHR2 7.24.5: QEMU TCG, 1 vCPU, 1 GiB, fresh working disk, own MACs
+[wp8 11:21:57] CHR2 API answered after 68s
+admin: blank factory password replaced by the lab password
+  /system/identity/set                     OK
+  /ip/address/add                          OK
+  /ip/pool/add                             OK
+  /ppp/profile/add                         OK
+  /interface/pppoe-server/server/add       OK
+  /ppp/aaa/set                             OK
+  /radius/add                              OK
+  /radius/incoming/set                     OK
+  /ip/service/set                          OK
+{"version": "7.24.5 (stable)", "architecture": "x86_64", "board": "CHR QEMU Standard PC (i440FX + PIIX, 1996)", "license": "free", "radius": {"address": "10.88.0.10", "service": "ppp", "src-address": "10.88.0.3", "require-message-auth": "yes-for-request-resp"}, "incoming": {"accept": "true", "port": "3799", "vrf": "main"}}
+[wp8 11:22:02] chr2 up
+exit=0

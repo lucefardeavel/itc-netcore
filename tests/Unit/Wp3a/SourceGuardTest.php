@@ -30,8 +30,10 @@ final class SourceGuardTest extends TestCase
         'system/autoload/Reseller/Security/RouteMap.php' => '3af52d3bacb588373ea109acba8da91c7f6eaf7cac4aed48aea28447c2005867',
         'system/autoload/Reseller/Domain/Tx.php' => '223cfb618ee7372c615bb93f37c86db4da739d47e2da03692f976bf3b2cbccc6',
         'system/autoload/Balance.php' => '9652370fcc1d7ca370ff9061c4631fa34531f2049a5da9c0b9b8601ab00c57ae',
-        // WP4 (owner decision Q5): the device calls in rechargeUser run after the recharge row is saved
-        'system/autoload/Package.php' => 'e4225dd06c4e4b5e555f141f8319f9a2575c4d7461f96ff30dc52b35f1f36346',
+        // WP4 (owner decision Q5): the device calls in rechargeUser run after the recharge row is saved;
+        // WP8 S7-FC (owner decision OD-S7-FC-1, limited exception): + the pre-write device-guard refusal in rechargeUser
+        // (previous pin e4225dd06c4e4b5e555f141f8319f9a2575c4d7461f96ff30dc52b35f1f36346)
+        'system/autoload/Package.php' => 'd4567f663193e16b6db7397ff94ed37c268274ebc5f6ce8a645af3c79fca2b85',
         // accepted WP1 migration runner
         'system/reseller/migrate.php' => '8420e021293260ae01f097e5d202221003a172e14e116933831e0087f44803fa',
         'system/reseller/Migration/Db.php' => 'd5123172de0d8bda244c3c8081f8c156e454766d50c3af49958b4f30048c1c51',

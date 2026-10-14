@@ -1,0 +1,52 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-7d0c9cc766e5 Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-7d0c9cc766e5 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FE.FEF.                                                             7 / 7 (100%)
+
+Time: 02:45.598, Memory: 12.00 MB
+
+There were 2 errors:
+
+1) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testNameCollisionsWithTheOwnedCustomersKey
+RuntimeException: exec failed: 
+
+/repo/tests/Support/AppServer.php:397
+/repo/tests/Support/Wp8DriverLabCase.php:194
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:129
+
+2) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testAVoucherOnlyGrantWithTheOwnedUsernameIsRefused
+RuntimeException: exec failed: 
+
+/repo/tests/Support/AppServer.php:397
+/repo/tests/Support/Wp8DriverLabCase.php:194
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:247
+
+--
+
+There were 3 failures:
+
+1) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testDirectDriverGrantsAreRefusedForTheResellerOwnedCustomer
+every refusal audited
+Failed asserting that 0 is identical to 9.
+
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:87
+
+2) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testTheLegacyRechargeFunnelRefusesTheOwnedCustomer
+Failed asserting that 0 is identical to 1.
+
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:213
+
+3) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testA5RemovalPathsKeepTheLiveLocalSessionOfTheOwnedCustomer
+the owned customer's LOCAL PPPoE session is live
+Failed asserting that false is true.
+
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:262
+
+ERRORS!
+Tests: 7, Assertions: 62, Errors: 2, Failures: 3.
+

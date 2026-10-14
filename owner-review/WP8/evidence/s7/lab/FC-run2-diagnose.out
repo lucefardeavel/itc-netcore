@@ -1,0 +1,52 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-70fc8ef82b93 Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-70fc8ef82b93 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+EE                                                                  2 / 2 (100%)
+
+Time: 00:34.319, Memory: 12.00 MB
+
+There were 2 errors:
+
+1) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testNameCollisionsWithTheOwnedCustomersKey
+RuntimeException: exec failed:  | app error log: [14-Oct-2026 15:29:33 Asia/Jakarta] PHP Fatal error:  Uncaught TypeError: Unsupported operand types: float - ORM in /tmp/wp2_app_d371c35836/wp2_exec_9da4fb8c.php:27
+Stack trace:
+#0 {main}
+  thrown in /tmp/wp2_app_d371c35836/wp2_exec_9da4fb8c.php on line 27
+
+
+/repo/tests/Support/Wp8DriverLabCase.php:201
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:125
+
+Caused by
+RuntimeException: exec failed: 
+
+/repo/tests/Support/AppServer.php:397
+/repo/tests/Support/Wp8DriverLabCase.php:196
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:125
+
+2) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testAVoucherOnlyGrantWithTheOwnedUsernameIsRefused
+RuntimeException: exec failed:  | app error log: [14-Oct-2026 15:29:36 Asia/Jakarta] [nuxr] event=voucher.redeem request=f05eb7e1836c17bc9885c8dd79cd8435 source=PUBLIC voucher=c6dc2c9cc51364ba target=nuxr_wp8_local_v_112c2b outcome=GRANTED
+[14-Oct-2026 15:29:36 Asia/Jakarta] PHP Fatal error:  Uncaught TypeError: Unsupported operand types: float - ORM in /tmp/wp2_app_d371c35836/wp2_exec_a8cbfd35.php:28
+Stack trace:
+#0 {main}
+  thrown in /tmp/wp2_app_d371c35836/wp2_exec_a8cbfd35.php on line 28
+
+
+/repo/tests/Support/Wp8DriverLabCase.php:201
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:243
+
+Caused by
+RuntimeException: exec failed: 
+
+/repo/tests/Support/AppServer.php:397
+/repo/tests/Support/Wp8DriverLabCase.php:196
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:243
+
+ERRORS!
+Tests: 2, Assertions: 14, Errors: 2.
+

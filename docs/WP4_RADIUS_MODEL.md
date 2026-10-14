@@ -82,6 +82,13 @@ For that to hold on every path, the callers now **save the recharge row before c
 
 A failed device call therefore leaves the billing row saved: the legacy "billed, sync manually" semantics, now with an explicit failure.
 
+**WP8 S7-FC clarification (owner decision OD-S7-FC-1, 2026-10-14).**
+- **A confirmed ownership refusal happens before any billing write.** Before its recharge cycle, `Package::rechargeUser` runs the device default deny (`LegacyReprovisionService::assertDeviceAllowed`, which checks `username` and `pppoe_username`). It does this for a non-voucher grant, after the customer and plan are loaded and after the balance branches.
+- **What a refusal leaves behind.** The refused case is a customer whose identity collides with a reseller-owned customer's key. The function returns `false` with nothing written: no `recharge_user` hook, no recharge insert or update, no transaction or invoice, no device call and no notification. Only the refusal is recorded (`op=deviceGrant`).
+- **Voucher-only grants are unchanged.** The WP2 gate at the top already judges them by the same username / PPPoE-username lookup.
+- **The order above is unchanged for every allowed grant:** the recharge is saved, then the device runs.
+- **Later device failures behave as before.** Examples are an unreachable API or a device error unrelated to ownership. They keep the billing row and the "sync manually" path.
+
 ## 4. Accounting
 
 - **`radacct`** (FreeRADIUS, `radius` connection) is the authoritative history. FreeRADIUS writes it; PHPNuxBill only reads it (`AccountingService`). **No lifecycle path deletes or rewrites it** (C17, D018; source-guarded and tested for every device operation and the admin flows).
@@ -199,7 +206,7 @@ Nothing retries by itself. `UNKNOWN` is never `retryable`.
 | Q2 | C16 option **a**: project dictionary and counters |
 | Q3 | rlm_rest endpoint: shared secret plus source allowlist, parameterized SQL, **off by default** |
 | Q4 | CHAP bypass fixed after a test proved it |
-| Q5 | RADIUS expiry follows the saved billing expiry. **Pinned `Package.php` change approved**: the device runs after the save. |
+| Q5 | RADIUS expiry follows the saved billing expiry. **Pinned `Package.php` change approved**: the device runs after the save. WP8 S7-FC (OD-S7-FC-1): a confirmed ownership refusal is judged before any billing write (§3); the order for allowed grants and later device failures is unchanged |
 | Q6 | Native Disconnect + CoA-Request; UNKNOWN surfaced |
 | Q7 | PPPoE key = `pppoe_username` when set; rename covers all three tables |
 | Q8 | Stale / open sessions reported only (WP5A reconciles) |

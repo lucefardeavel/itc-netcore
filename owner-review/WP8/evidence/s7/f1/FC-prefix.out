@@ -1,0 +1,71 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-03d4f418d5fc Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-03d4f418d5fc Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FFF.                                                                4 / 4 (100%)
+
+Time: 02:36.191, Memory: 32.00 MB
+
+There were 3 failures:
+
+1) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testNameCollisionsWithTheOwnedCustomersKey
+b_pppoe_username MikrotikPppoe::add_customer must be refused
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    0 => false,
+-    1 => 'RESELLER_OWNED_REFUSED',
++    0 => true,
++    1 => null,
+ ]
+
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:218
+
+2) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testTheLegacyRechargeFunnelCollisionLeavesTheOwnedCustomerUntouched
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    'secret_unchanged' => true,
++    'secret_unchanged' => false,
+     'hotspot_unchanged' => true,
+     'session_survived' => true,
+     'owned_records_unchanged' => true,
+     'radius_unchanged' => true,
+ ]
+
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:275
+
+3) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testALocalSecretNeverMasksAnOwnedRadiusSubscriber
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     'add_customer' => Array &1 [
+-        0 => false,
+-        1 => 'RESELLER_OWNED_REFUSED',
++        0 => true,
++        1 => null,
+     ],
+     'sync_customer' => Array &2 [
+-        0 => false,
+-        1 => 'RESELLER_OWNED_REFUSED',
++        0 => true,
++        1 => null,
+     ],
+ ]
+
+/repo/tests/Integration/Wp8/DriverFailClosedLabTest.php:316
+
+FAILURES!
+Tests: 4, Assertions: 72, Failures: 3.
+
+exit=1

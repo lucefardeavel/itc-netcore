@@ -1,0 +1,102 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+## 2026-10-14T08:08:41Z tests/Unit/Wp8/DriverClassificationSourceTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.....                                                               5 / 5 (100%)
+Time: 00:00.232, Memory: 12.00 MB
+OK (5 tests, 34 assertions)
+exit=0
+## 2026-10-14T08:08:43Z tests/Unit/Wp8/LegacyRemovalSourceTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...                                                                 3 / 3 (100%)
+Time: 00:00.024, Memory: 10.00 MB
+OK (3 tests, 39 assertions)
+exit=0
+## 2026-10-14T08:08:45Z tests/Unit/Wp5b/Wp5bSourceGuardTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........                                                           9 / 9 (100%)
+Time: 00:00.548, Memory: 16.00 MB
+OK (9 tests, 570 assertions)
+exit=0
+## 2026-10-14T08:08:47Z tests/Unit/Wp3a/SourceGuardTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..........                                                        10 / 10 (100%)
+Time: 00:00.416, Memory: 18.00 MB
+OK (10 tests, 37057 assertions)
+exit=0
+## 2026-10-14T08:08:49Z tests/Integration/Wp5b/MikrotikDeviceTest.php engine=mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...                                                                 3 / 3 (100%)
+Time: 00:08.217, Memory: 10.00 MB
+OK (3 tests, 13 assertions)
+exit=0
+## 2026-10-14T08:08:58Z tests/Unit/Wp8/DriverClassificationSourceTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.....                                                               5 / 5 (100%)
+Time: 00:00.145, Memory: 12.00 MB
+OK (5 tests, 34 assertions)
+exit=0
+## 2026-10-14T08:09:00Z tests/Unit/Wp8/LegacyRemovalSourceTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...                                                                 3 / 3 (100%)
+Time: 00:00.029, Memory: 10.00 MB
+OK (3 tests, 39 assertions)
+exit=0
+## 2026-10-14T08:09:07Z tests/Unit/Wp5b/Wp5bSourceGuardTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........                                                           9 / 9 (100%)
+Time: 00:00.257, Memory: 16.00 MB
+OK (9 tests, 570 assertions)
+exit=0
+## 2026-10-14T08:09:10Z tests/Unit/Wp3a/SourceGuardTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..........                                                        10 / 10 (100%)
+Time: 00:00.483, Memory: 18.00 MB
+OK (10 tests, 37057 assertions)
+exit=0
+## 2026-10-14T08:09:12Z tests/Integration/Wp5b/MikrotikDeviceTest.php engine=mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...                                                                 3 / 3 (100%)
+Time: 00:06.167, Memory: 10.00 MB
+OK (3 tests, 13 assertions)
+exit=0

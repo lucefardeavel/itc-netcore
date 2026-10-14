@@ -1,0 +1,1925 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+================ engine: mariadb ================
+ Container nuxbill-reseller-test-php82-run-f1156e8b486f Creating 
+ Container nuxbill-reseller-test-php82-run-f1156e8b486f Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-2f47ef503188 Creating 
+ Container nuxbill-reseller-test-php82-run-2f47ef503188 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F..                                                                 3 / 3 (100%)
+
+Time: 00:09.236, Memory: 30.00 MB
+
+There was 1 failure:
+
+1) Reseller\Tests\Integration\Wp8\RechargePreWriteRefusalTest::testACollidingLegacyRechargeIsRefusedBeforeAnyWrite
+no hook, recharge, transaction, device call, RADIUS write or notification; one safe refusal record
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     'A pppoe=owned username | radius_pppoe | recharge none' => Array &1 [
+-        'value' => false,
+-        'changed' => Array &2 [],
+-        'hooks' => Array &3 [],
++        'value' => 'INV-6',
++        'changed' => Array &2 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &3 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &4 [],
+-        'telegram' => Array &5 [],
++        'telegram' => Array &5 [
++            0 => 'System error ref=b0f122c838ab-5273bc class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fcec70ae\n
++Plan: ps7fc_radius_pppoe\n
++ref=b0f122c838ab-5273bc',
++            2 => '#us7fcec70ae S7FC s7fcec70ae #buy #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &6 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | radius_pppoe | recharge on' => Array &7 [
+-        'value' => false,
+-        'changed' => Array &8 [],
+-        'hooks' => Array &9 [],
++        'value' => 'INV-7',
++        'changed' => Array &8 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &9 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &10 [],
+-        'telegram' => Array &11 [],
++        'telegram' => Array &11 [
++            0 => 'System error ref=f863832ad0e1-69e643 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fcc3fa21\n
++Plan: ps7fc_radius_pppoe\n
++ref=f863832ad0e1-69e643',
++            2 => '#us7fcc3fa21 S7FC s7fcc3fa21 #recharge #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &12 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | radius_pppoe | recharge off' => Array &13 [
+-        'value' => false,
+-        'changed' => Array &14 [],
+-        'hooks' => Array &15 [],
++        'value' => 'INV-8',
++        'changed' => Array &14 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &15 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &16 [],
+-        'telegram' => Array &17 [],
++        'telegram' => Array &17 [
++            0 => 'System error ref=11e86e3201e7-7f3822 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fcd93a09\n
++Plan: ps7fc_radius_pppoe\n
++ref=11e86e3201e7-7f3822',
++            2 => '#us7fcd93a09 S7FC s7fcd93a09 #recharge #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Feb 2026 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &18 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_pppoe | recharge none' => Array &19 [
+-        'value' => false,
+-        'changed' => Array &20 [],
+-        'hooks' => Array &21 [],
++        'value' => 'INV-9',
++        'changed' => Array &20 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &21 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &22 [],
+-        'telegram' => Array &23 [],
++        'telegram' => Array &23 [
++            0 => 'System error ref=434be0ff2d24-190f06 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fcddc1be\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=434be0ff2d24-190f06',
++            2 => '#us7fcddc1be S7FC s7fcddc1be #buy #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &24 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_pppoe | recharge on' => Array &25 [
+-        'value' => false,
+-        'changed' => Array &26 [],
+-        'hooks' => Array &27 [],
++        'value' => 'INV-10',
++        'changed' => Array &26 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &27 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &28 [],
+-        'telegram' => Array &29 [],
++        'telegram' => Array &29 [
++            0 => 'System error ref=314119983585-a0b61a class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fc1c8773\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=314119983585-a0b61a',
++            2 => '#us7fc1c8773 S7FC s7fc1c8773 #recharge #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &30 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_pppoe | recharge off' => Array &31 [
+-        'value' => false,
+-        'changed' => Array &32 [],
+-        'hooks' => Array &33 [],
++        'value' => 'INV-11',
++        'changed' => Array &32 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &33 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &34 [],
+-        'telegram' => Array &35 [],
++        'telegram' => Array &35 [
++            0 => 'System error ref=271af198e038-f570a9 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fce2af3f\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=271af198e038-f570a9',
++            2 => '#us7fce2af3f S7FC s7fce2af3f #recharge #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Feb 2026 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &36 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_vpn | recharge none' => Array &37 [
+-        'value' => false,
+-        'changed' => Array &38 [],
+-        'hooks' => Array &39 [],
++        'value' => 'INV-12',
++        'changed' => Array &38 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &39 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &40 [],
+-        'telegram' => Array &41 [],
++        'telegram' => Array &41 [
++            0 => 'System error ref=b9327f71809e-b08f97 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fc866fd6\n
++Plan: ps7fc_mikrotik_vpn\n
++ref=b9327f71809e-b08f97',
++            2 => '#us7fc866fd6 S7FC s7fc866fd6 #buy #VPN \n
++s7fc_mikrotik_vpn\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &42 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_vpn | recharge on' => Array &43 [
+-        'value' => false,
+-        'changed' => Array &44 [],
+-        'hooks' => Array &45 [],
++        'value' => 'INV-13',
++        'changed' => Array &44 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &45 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &46 [],
+-        'telegram' => Array &47 [],
++        'telegram' => Array &47 [
++            0 => 'System error ref=9920a46474ce-c704eb class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fcbad14d\n
++Plan: ps7fc_mikrotik_vpn\n
++ref=9920a46474ce-c704eb',
++            2 => '#us7fcbad14d S7FC s7fcbad14d #recharge #VPN \n
++s7fc_mikrotik_vpn\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &48 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_vpn | recharge off' => Array &49 [
+-        'value' => false,
+-        'changed' => Array &50 [],
+-        'hooks' => Array &51 [],
++        'value' => 'INV-14',
++        'changed' => Array &50 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &51 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &52 [],
+-        'telegram' => Array &53 [],
++        'telegram' => Array &53 [
++            0 => 'System error ref=215dd2164a41-943028 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fc8d369b\n
++Plan: ps7fc_mikrotik_vpn\n
++ref=215dd2164a41-943028',
++            2 => '#us7fc8d369b S7FC s7fc8d369b #recharge #VPN \n
++s7fc_mikrotik_vpn\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Feb 2026 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &54 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | probe_pppoe | recharge none' => Array &55 [
+-        'value' => false,
+-        'changed' => Array &56 [],
+-        'hooks' => Array &57 [],
+-        'device' => Array &58 [],
+-        'telegram' => Array &59 [],
+-        'sms' => Array &60 [],
+-        'refusals' => 1,
++        'value' => 'INV-15',
++        'changed' => Array &56 [
++            0 => 'tbl_transactions',
++        ],
++        'hooks' => Array &57 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &58 [
++            0 => Array &59 [
++                'call' => 'add_customer',
++                'username' => 's7fc2286a4',
++            ],
++        ],
++        'telegram' => Array &60 [
++            0 => '#us7fc2286a4 S7FC s7fc2286a4 #buy #PPPOE \n
++s7fc_probe_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &61 [],
++        'refusals' => 0,
+         'leak' => false,
+     ],
+-    'A pppoe=owned username | probe_pppoe | recharge on' => Array &61 [
+-        'value' => false,
+-        'changed' => Array &62 [],
+-        'hooks' => Array &63 [],
+-        'device' => Array &64 [],
+-        'telegram' => Array &65 [],
+-        'sms' => Array &66 [],
+-        'refusals' => 1,
++    'A pppoe=owned username | probe_pppoe | recharge on' => Array &62 [
++        'value' => 'INV-16',
++        'changed' => Array &63 [
++            0 => 'tbl_transactions',
++        ],
++        'hooks' => Array &64 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &65 [
++            0 => Array &66 [
++                'call' => 'add_customer',
++                'username' => 's7fca74c89',
++            ],
++        ],
++        'telegram' => Array &67 [
++            0 => '#us7fca74c89 S7FC s7fca74c89 #recharge #PPPOE \n
++s7fc_probe_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &68 [],
++        'refusals' => 0,
+         'leak' => false,
+     ],
+-    'A pppoe=owned username | probe_pppoe | recharge off' => Array &67 [
+-        'value' => false,
+-        'changed' => Array &68 [],
+-        'hooks' => Array &69 [],
+-        'device' => Array &70 [],
+-        'telegram' => Array &71 [],
+-        'sms' => Array &72 [],
+-        'refusals' => 1,
++    'A pppoe=owned username | probe_pppoe | recharge off' => Array &69 [
++        'value' => 'INV-17',
++        'changed' => Array &70 [
++            0 => 'tbl_transactions',
++        ],
++        'hooks' => Array &71 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &72 [
++            0 => Array &73 [
++                'call' => 'add_customer',
++                'username' => 's7fcd4ed65',
++            ],
++        ],
++        'telegram' => Array &74 [
++            0 => '#us7fcd4ed65 S7FC s7fcd4ed65 #recharge #PPPOE \n
++s7fc_probe_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Feb 2026 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &75 [],
++        'refusals' => 0,
+         'leak' => false,
+     ],
+-    'B pppoe=upper case | radius_pppoe' => Array &73 [
+-        'value' => false,
+-        'changed' => Array &74 [],
+-        'hooks' => Array &75 [],
+-        'device' => Array &76 [],
+-        'telegram' => Array &77 [],
+-        'sms' => Array &78 [],
++    'B pppoe=upper case | radius_pppoe' => Array &76 [
++        'value' => 'INV-18',
++        'changed' => Array &77 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &78 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &79 [],
++        'telegram' => Array &80 [
++            0 => 'System error ref=c6206b287f2d-0026ef class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fc25d08d\n
++Plan: ps7fc_radius_pppoe\n
++ref=c6206b287f2d-0026ef',
++            2 => '#us7fc25d08d S7FC s7fc25d08d #buy #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &81 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=upper case | mikrotik_pppoe' => Array &79 [
+-        'value' => false,
+-        'changed' => Array &80 [],
+-        'hooks' => Array &81 [],
+-        'device' => Array &82 [],
+-        'telegram' => Array &83 [],
+-        'sms' => Array &84 [],
++    'B pppoe=upper case | mikrotik_pppoe' => Array &82 [
++        'value' => 'INV-19',
++        'changed' => Array &83 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &84 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &85 [],
++        'telegram' => Array &86 [
++            0 => 'System error ref=6e070d090dfd-9771fa class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fc6ec220\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=6e070d090dfd-9771fa',
++            2 => '#us7fc6ec220 S7FC s7fc6ec220 #buy #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &87 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=trailing space | radius_pppoe' => Array &85 [
+-        'value' => false,
+-        'changed' => Array &86 [],
+-        'hooks' => Array &87 [],
+-        'device' => Array &88 [],
+-        'telegram' => Array &89 [],
+-        'sms' => Array &90 [],
++    'B pppoe=trailing space | radius_pppoe' => Array &88 [
++        'value' => 'INV-20',
++        'changed' => Array &89 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &90 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &91 [],
++        'telegram' => Array &92 [
++            0 => 'System error ref=a85563c7fd6c-561be7 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fc71bba9\n
++Plan: ps7fc_radius_pppoe\n
++ref=a85563c7fd6c-561be7',
++            2 => '#us7fc71bba9 S7FC s7fc71bba9 #buy #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &93 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=trailing space | mikrotik_pppoe' => Array &91 [
+-        'value' => false,
+-        'changed' => Array &92 [],
+-        'hooks' => Array &93 [],
+-        'device' => Array &94 [],
+-        'telegram' => Array &95 [],
+-        'sms' => Array &96 [],
++    'B pppoe=trailing space | mikrotik_pppoe' => Array &94 [
++        'value' => 'INV-21',
++        'changed' => Array &95 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &96 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &97 [],
++        'telegram' => Array &98 [
++            0 => 'System error ref=e0e1e17e1f9c-87a081 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fc4c66a5\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=e0e1e17e1f9c-87a081',
++            2 => '#us7fc4c66a5 S7FC s7fc4c66a5 #buy #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &99 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=accent | radius_pppoe' => Array &97 [
+-        'value' => false,
+-        'changed' => Array &98 [],
+-        'hooks' => Array &99 [],
+-        'device' => Array &100 [],
+-        'telegram' => Array &101 [],
+-        'sms' => Array &102 [],
++    'B pppoe=accent | radius_pppoe' => Array &100 [
++        'value' => 'INV-22',
++        'changed' => Array &101 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &102 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &103 [],
++        'telegram' => Array &104 [
++            0 => 'System error ref=7a462065b17d-30c7c9 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fc3ab436\n
++Plan: ps7fc_radius_pppoe\n
++ref=7a462065b17d-30c7c9',
++            2 => '#us7fc3ab436 S7FC s7fc3ab436 #buy #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &105 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=accent | mikrotik_pppoe' => Array &103 [
+-        'value' => false,
+-        'changed' => Array &104 [],
+-        'hooks' => Array &105 [],
+-        'device' => Array &106 [],
+-        'telegram' => Array &107 [],
+-        'sms' => Array &108 [],
++    'B pppoe=accent | mikrotik_pppoe' => Array &106 [
++        'value' => 'INV-23',
++        'changed' => Array &107 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &108 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &109 [],
++        'telegram' => Array &110 [
++            0 => 'System error ref=c23663a531a4-80f099 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fcbafdff\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=c23663a531a4-80f099',
++            2 => '#us7fcbafdff S7FC s7fcbafdff #buy #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &111 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=owned pppoe username | radius_pppoe' => Array &109 [
+-        'value' => false,
+-        'changed' => Array &110 [],
+-        'hooks' => Array &111 [],
+-        'device' => Array &112 [],
+-        'telegram' => Array &113 [],
+-        'sms' => Array &114 [],
++    'B pppoe=owned pppoe username | radius_pppoe' => Array &112 [
++        'value' => 'INV-24',
++        'changed' => Array &113 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &114 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &115 [],
++        'telegram' => Array &116 [
++            0 => 'System error ref=9185608d6f8e-f4ef83 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fc74b7ad\n
++Plan: ps7fc_radius_pppoe\n
++ref=9185608d6f8e-f4ef83',
++            2 => '#us7fc74b7ad S7FC s7fc74b7ad #buy #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &117 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=owned pppoe username | mikrotik_pppoe' => Array &115 [
+-        'value' => false,
+-        'changed' => Array &116 [],
+-        'hooks' => Array &117 [],
+-        'device' => Array &118 [],
+-        'telegram' => Array &119 [],
+-        'sms' => Array &120 [],
++    'B pppoe=owned pppoe username | mikrotik_pppoe' => Array &118 [
++        'value' => 'INV-25',
++        'changed' => Array &119 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &120 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &121 [],
++        'telegram' => Array &122 [
++            0 => 'System error ref=abb13842f03a-90fa3c class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fc25809d\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=abb13842f03a-90fa3c',
++            2 => '#us7fc25809d S7FC s7fc25809d #buy #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &123 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'C username=owned username | mikrotik_hotspot | recharge on' => Array &121 [
+-        'value' => false,
+-        'changed' => Array &122 [],
+-        'hooks' => Array &123 [],
+-        'device' => Array &124 [],
+-        'telegram' => Array &125 [],
+-        'sms' => Array &126 [],
++    'C username=owned username | mikrotik_hotspot | recharge on' => Array &124 [
++        'value' => 'INV-26',
++        'changed' => Array &125 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &126 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &127 [],
++        'telegram' => Array &128 [
++            0 => 'System error ref=4f969d12b348-9a3186 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fce026b66\n
++Plan: ps7fc_mikrotik_hotspot\n
++ref=4f969d12b348-9a3186',
++            2 => '#us7fce026b66 S7FC s7fcbc0b56 #recharge #Hotspot \n
++s7fc_mikrotik_hotspot\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &129 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'C username=owned username | probe_hotspot | recharge on' => Array &127 [
+-        'value' => false,
+-        'changed' => Array &128 [],
+-        'hooks' => Array &129 [],
+-        'device' => Array &130 [],
+-        'telegram' => Array &131 [],
+-        'sms' => Array &132 [],
+-        'refusals' => 1,
++    'C username=owned username | probe_hotspot | recharge on' => Array &130 [
++        'value' => 'INV-27',
++        'changed' => Array &131 [
++            0 => 'tbl_transactions',
++        ],
++        'hooks' => Array &132 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &133 [
++            0 => Array &134 [
++                'call' => 'add_customer',
++                'username' => 's7fce026b66',
++            ],
++        ],
++        'telegram' => Array &135 [
++            0 => '#us7fce026b66 S7FC s7fc8738b6 #recharge #Hotspot \n
++s7fc_probe_hotspot\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &136 [],
++        'refusals' => 0,
+         'leak' => false,
+     ],
+-    'C username=owned pppoe username (upper case) | mikrotik_hotspot | recharge on' => Array &133 [
+-        'value' => false,
+-        'changed' => Array &134 [],
+-        'hooks' => Array &135 [],
+-        'device' => Array &136 [],
+-        'telegram' => Array &137 [],
+-        'sms' => Array &138 [],
++    'C username=owned pppoe username (upper case) | mikrotik_hotspot | recharge on' => Array &137 [
++        'value' => 'INV-28',
++        'changed' => Array &138 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &139 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &140 [],
++        'telegram' => Array &141 [
++            0 => 'System error ref=b4366ba2ba61-8a140a class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: uS7FCPF185BA\n
++Plan: ps7fc_mikrotik_hotspot\n
++ref=b4366ba2ba61-8a140a',
++            2 => '#uS7FCPF185BA S7FC s7fc736e37 #recharge #Hotspot \n
++s7fc_mikrotik_hotspot\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &142 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'C username=owned pppoe username (upper case) | probe_hotspot | recharge on' => Array &139 [
+-        'value' => false,
+-        'changed' => Array &140 [],
+-        'hooks' => Array &141 [],
+-        'device' => Array &142 [],
+-        'telegram' => Array &143 [],
+-        'sms' => Array &144 [],
+-        'refusals' => 1,
++    'C username=owned pppoe username (upper case) | probe_hotspot | recharge on' => Array &143 [
++        'value' => 'INV-29',
++        'changed' => Array &144 [
++            0 => 'tbl_transactions',
++        ],
++        'hooks' => Array &145 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &146 [
++            0 => Array &147 [
++                'call' => 'add_customer',
++                'username' => 'S7FCPF185BA',
++            ],
++        ],
++        'telegram' => Array &148 [
++            0 => '#uS7FCPF185BA S7FC s7fcd93080 #recharge #Hotspot \n
++s7fc_probe_hotspot\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &149 [],
++        'refusals' => 0,
+         'leak' => false,
+     ],
+ ]
+
+/repo/tests/Integration/Wp8/RechargePreWriteRefusalTest.php:130
+
+FAILURES!
+Tests: 3, Assertions: 28, Failures: 1.
+
+================ engine: mysql ================
+ Container nuxbill-reseller-test-php82-run-a72c7c56094b Creating 
+ Container nuxbill-reseller-test-php82-run-a72c7c56094b Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-8b5cc700343b Creating 
+ Container nuxbill-reseller-test-php82-run-8b5cc700343b Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F..                                                                 3 / 3 (100%)
+
+Time: 00:12.773, Memory: 30.00 MB
+
+There was 1 failure:
+
+1) Reseller\Tests\Integration\Wp8\RechargePreWriteRefusalTest::testACollidingLegacyRechargeIsRefusedBeforeAnyWrite
+no hook, recharge, transaction, device call, RADIUS write or notification; one safe refusal record
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     'A pppoe=owned username | radius_pppoe | recharge none' => Array &1 [
+-        'value' => false,
+-        'changed' => Array &2 [],
+-        'hooks' => Array &3 [],
++        'value' => 'INV-6',
++        'changed' => Array &2 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &3 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &4 [],
+-        'telegram' => Array &5 [],
++        'telegram' => Array &5 [
++            0 => 'System error ref=4eef76483cec-ce40d9 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fca8116f\n
++Plan: ps7fc_radius_pppoe\n
++ref=4eef76483cec-ce40d9',
++            2 => '#us7fca8116f S7FC s7fca8116f #buy #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &6 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | radius_pppoe | recharge on' => Array &7 [
+-        'value' => false,
+-        'changed' => Array &8 [],
+-        'hooks' => Array &9 [],
++        'value' => 'INV-7',
++        'changed' => Array &8 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &9 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &10 [],
+-        'telegram' => Array &11 [],
++        'telegram' => Array &11 [
++            0 => 'System error ref=ddcc437d2ca2-87115c class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fc6544a2\n
++Plan: ps7fc_radius_pppoe\n
++ref=ddcc437d2ca2-87115c',
++            2 => '#us7fc6544a2 S7FC s7fc6544a2 #recharge #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &12 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | radius_pppoe | recharge off' => Array &13 [
+-        'value' => false,
+-        'changed' => Array &14 [],
+-        'hooks' => Array &15 [],
++        'value' => 'INV-8',
++        'changed' => Array &14 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &15 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &16 [],
+-        'telegram' => Array &17 [],
++        'telegram' => Array &17 [
++            0 => 'System error ref=63ac0735a90c-7e40af class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fcc84475\n
++Plan: ps7fc_radius_pppoe\n
++ref=63ac0735a90c-7e40af',
++            2 => '#us7fcc84475 S7FC s7fcc84475 #recharge #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Feb 2026 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &18 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_pppoe | recharge none' => Array &19 [
+-        'value' => false,
+-        'changed' => Array &20 [],
+-        'hooks' => Array &21 [],
++        'value' => 'INV-9',
++        'changed' => Array &20 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &21 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &22 [],
+-        'telegram' => Array &23 [],
++        'telegram' => Array &23 [
++            0 => 'System error ref=ad1d19f8bbb0-430b0c class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fca2e079\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=ad1d19f8bbb0-430b0c',
++            2 => '#us7fca2e079 S7FC s7fca2e079 #buy #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &24 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_pppoe | recharge on' => Array &25 [
+-        'value' => false,
+-        'changed' => Array &26 [],
+-        'hooks' => Array &27 [],
++        'value' => 'INV-10',
++        'changed' => Array &26 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &27 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &28 [],
+-        'telegram' => Array &29 [],
++        'telegram' => Array &29 [
++            0 => 'System error ref=5bc3941a0046-358443 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fcc19c19\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=5bc3941a0046-358443',
++            2 => '#us7fcc19c19 S7FC s7fcc19c19 #recharge #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &30 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_pppoe | recharge off' => Array &31 [
+-        'value' => false,
+-        'changed' => Array &32 [],
+-        'hooks' => Array &33 [],
++        'value' => 'INV-11',
++        'changed' => Array &32 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &33 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &34 [],
+-        'telegram' => Array &35 [],
++        'telegram' => Array &35 [
++            0 => 'System error ref=abe9625acc4b-8bdafe class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fc96daf1\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=abe9625acc4b-8bdafe',
++            2 => '#us7fc96daf1 S7FC s7fc96daf1 #recharge #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Feb 2026 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &36 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_vpn | recharge none' => Array &37 [
+-        'value' => false,
+-        'changed' => Array &38 [],
+-        'hooks' => Array &39 [],
++        'value' => 'INV-12',
++        'changed' => Array &38 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &39 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &40 [],
+-        'telegram' => Array &41 [],
++        'telegram' => Array &41 [
++            0 => 'System error ref=7606af390c87-8758be class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fcc788fb\n
++Plan: ps7fc_mikrotik_vpn\n
++ref=7606af390c87-8758be',
++            2 => '#us7fcc788fb S7FC s7fcc788fb #buy #VPN \n
++s7fc_mikrotik_vpn\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &42 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_vpn | recharge on' => Array &43 [
+-        'value' => false,
+-        'changed' => Array &44 [],
+-        'hooks' => Array &45 [],
++        'value' => 'INV-13',
++        'changed' => Array &44 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &45 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &46 [],
+-        'telegram' => Array &47 [],
++        'telegram' => Array &47 [
++            0 => 'System error ref=0054e246537d-2be628 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fc5bbd75\n
++Plan: ps7fc_mikrotik_vpn\n
++ref=0054e246537d-2be628',
++            2 => '#us7fc5bbd75 S7FC s7fc5bbd75 #recharge #VPN \n
++s7fc_mikrotik_vpn\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &48 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | mikrotik_vpn | recharge off' => Array &49 [
+-        'value' => false,
+-        'changed' => Array &50 [],
+-        'hooks' => Array &51 [],
++        'value' => 'INV-14',
++        'changed' => Array &50 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &51 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
+         'device' => Array &52 [],
+-        'telegram' => Array &53 [],
++        'telegram' => Array &53 [
++            0 => 'System error ref=b3ab792e6805-d9e8ab class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fce6c0c9\n
++Plan: ps7fc_mikrotik_vpn\n
++ref=b3ab792e6805-d9e8ab',
++            2 => '#us7fce6c0c9 S7FC s7fce6c0c9 #recharge #VPN \n
++s7fc_mikrotik_vpn\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Feb 2026 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
+         'sms' => Array &54 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+     'A pppoe=owned username | probe_pppoe | recharge none' => Array &55 [
+-        'value' => false,
+-        'changed' => Array &56 [],
+-        'hooks' => Array &57 [],
+-        'device' => Array &58 [],
+-        'telegram' => Array &59 [],
+-        'sms' => Array &60 [],
+-        'refusals' => 1,
++        'value' => 'INV-15',
++        'changed' => Array &56 [
++            0 => 'tbl_transactions',
++        ],
++        'hooks' => Array &57 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &58 [
++            0 => Array &59 [
++                'call' => 'add_customer',
++                'username' => 's7fc7a5025',
++            ],
++        ],
++        'telegram' => Array &60 [
++            0 => '#us7fc7a5025 S7FC s7fc7a5025 #buy #PPPOE \n
++s7fc_probe_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &61 [],
++        'refusals' => 0,
+         'leak' => false,
+     ],
+-    'A pppoe=owned username | probe_pppoe | recharge on' => Array &61 [
+-        'value' => false,
+-        'changed' => Array &62 [],
+-        'hooks' => Array &63 [],
+-        'device' => Array &64 [],
+-        'telegram' => Array &65 [],
+-        'sms' => Array &66 [],
+-        'refusals' => 1,
++    'A pppoe=owned username | probe_pppoe | recharge on' => Array &62 [
++        'value' => 'INV-16',
++        'changed' => Array &63 [
++            0 => 'tbl_transactions',
++        ],
++        'hooks' => Array &64 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &65 [
++            0 => Array &66 [
++                'call' => 'add_customer',
++                'username' => 's7fce04395',
++            ],
++        ],
++        'telegram' => Array &67 [
++            0 => '#us7fce04395 S7FC s7fce04395 #recharge #PPPOE \n
++s7fc_probe_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &68 [],
++        'refusals' => 0,
+         'leak' => false,
+     ],
+-    'A pppoe=owned username | probe_pppoe | recharge off' => Array &67 [
+-        'value' => false,
+-        'changed' => Array &68 [],
+-        'hooks' => Array &69 [],
+-        'device' => Array &70 [],
+-        'telegram' => Array &71 [],
+-        'sms' => Array &72 [],
+-        'refusals' => 1,
++    'A pppoe=owned username | probe_pppoe | recharge off' => Array &69 [
++        'value' => 'INV-17',
++        'changed' => Array &70 [
++            0 => 'tbl_transactions',
++        ],
++        'hooks' => Array &71 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &72 [
++            0 => Array &73 [
++                'call' => 'add_customer',
++                'username' => 's7fc4a975a',
++            ],
++        ],
++        'telegram' => Array &74 [
++            0 => '#us7fc4a975a S7FC s7fc4a975a #recharge #PPPOE \n
++s7fc_probe_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Feb 2026 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &75 [],
++        'refusals' => 0,
+         'leak' => false,
+     ],
+-    'B pppoe=upper case | radius_pppoe' => Array &73 [
+-        'value' => false,
+-        'changed' => Array &74 [],
+-        'hooks' => Array &75 [],
+-        'device' => Array &76 [],
+-        'telegram' => Array &77 [],
+-        'sms' => Array &78 [],
++    'B pppoe=upper case | radius_pppoe' => Array &76 [
++        'value' => 'INV-18',
++        'changed' => Array &77 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &78 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &79 [],
++        'telegram' => Array &80 [
++            0 => 'System error ref=6841f37cf1b2-12806a class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fcec6be2\n
++Plan: ps7fc_radius_pppoe\n
++ref=6841f37cf1b2-12806a',
++            2 => '#us7fcec6be2 S7FC s7fcec6be2 #buy #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &81 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=upper case | mikrotik_pppoe' => Array &79 [
+-        'value' => false,
+-        'changed' => Array &80 [],
+-        'hooks' => Array &81 [],
+-        'device' => Array &82 [],
+-        'telegram' => Array &83 [],
+-        'sms' => Array &84 [],
++    'B pppoe=upper case | mikrotik_pppoe' => Array &82 [
++        'value' => 'INV-19',
++        'changed' => Array &83 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &84 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &85 [],
++        'telegram' => Array &86 [
++            0 => 'System error ref=96bbcc3186dd-c6d5f0 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fca46a68\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=96bbcc3186dd-c6d5f0',
++            2 => '#us7fca46a68 S7FC s7fca46a68 #buy #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &87 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=trailing space | radius_pppoe' => Array &85 [
+-        'value' => false,
+-        'changed' => Array &86 [],
+-        'hooks' => Array &87 [],
+-        'device' => Array &88 [],
+-        'telegram' => Array &89 [],
+-        'sms' => Array &90 [],
++    'B pppoe=trailing space | radius_pppoe' => Array &88 [
++        'value' => 'INV-20',
++        'changed' => Array &89 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &90 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &91 [],
++        'telegram' => Array &92 [
++            0 => 'System error ref=9b2906bb4b0b-572d20 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fc1294d9\n
++Plan: ps7fc_radius_pppoe\n
++ref=9b2906bb4b0b-572d20',
++            2 => '#us7fc1294d9 S7FC s7fc1294d9 #buy #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &93 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=trailing space | mikrotik_pppoe' => Array &91 [
+-        'value' => false,
+-        'changed' => Array &92 [],
+-        'hooks' => Array &93 [],
+-        'device' => Array &94 [],
+-        'telegram' => Array &95 [],
+-        'sms' => Array &96 [],
++    'B pppoe=trailing space | mikrotik_pppoe' => Array &94 [
++        'value' => 'INV-21',
++        'changed' => Array &95 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &96 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &97 [],
++        'telegram' => Array &98 [
++            0 => 'System error ref=d55d07291745-aaac7f class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fc91fac6\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=d55d07291745-aaac7f',
++            2 => '#us7fc91fac6 S7FC s7fc91fac6 #buy #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &99 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=accent | radius_pppoe' => Array &97 [
+-        'value' => false,
+-        'changed' => Array &98 [],
+-        'hooks' => Array &99 [],
+-        'device' => Array &100 [],
+-        'telegram' => Array &101 [],
+-        'sms' => Array &102 [],
++    'B pppoe=accent | radius_pppoe' => Array &100 [
++        'value' => 'INV-22',
++        'changed' => Array &101 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &102 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &103 [],
++        'telegram' => Array &104 [
++            0 => 'System error ref=c456881c6a05-aadfef class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fcf67f2d\n
++Plan: ps7fc_radius_pppoe\n
++ref=c456881c6a05-aadfef',
++            2 => '#us7fcf67f2d S7FC s7fcf67f2d #buy #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &105 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=accent | mikrotik_pppoe' => Array &103 [
+-        'value' => false,
+-        'changed' => Array &104 [],
+-        'hooks' => Array &105 [],
+-        'device' => Array &106 [],
+-        'telegram' => Array &107 [],
+-        'sms' => Array &108 [],
++    'B pppoe=accent | mikrotik_pppoe' => Array &106 [
++        'value' => 'INV-23',
++        'changed' => Array &107 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &108 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &109 [],
++        'telegram' => Array &110 [
++            0 => 'System error ref=da4981a0256f-190601 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fc03fdd0\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=da4981a0256f-190601',
++            2 => '#us7fc03fdd0 S7FC s7fc03fdd0 #buy #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &111 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=owned pppoe username | radius_pppoe' => Array &109 [
+-        'value' => false,
+-        'changed' => Array &110 [],
+-        'hooks' => Array &111 [],
+-        'device' => Array &112 [],
+-        'telegram' => Array &113 [],
+-        'sms' => Array &114 [],
++    'B pppoe=owned pppoe username | radius_pppoe' => Array &112 [
++        'value' => 'INV-24',
++        'changed' => Array &113 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &114 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &115 [],
++        'telegram' => Array &116 [
++            0 => 'System error ref=3ecd689c1323-95413c class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: radius\n
++Customer: us7fc31236b\n
++Plan: ps7fc_radius_pppoe\n
++ref=3ecd689c1323-95413c',
++            2 => '#us7fc31236b S7FC s7fc31236b #buy #PPPOE \n
++s7fc_radius_pppoe\n
++Router: radius\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &117 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'B pppoe=owned pppoe username | mikrotik_pppoe' => Array &115 [
+-        'value' => false,
+-        'changed' => Array &116 [],
+-        'hooks' => Array &117 [],
+-        'device' => Array &118 [],
+-        'telegram' => Array &119 [],
+-        'sms' => Array &120 [],
++    'B pppoe=owned pppoe username | mikrotik_pppoe' => Array &118 [
++        'value' => 'INV-25',
++        'changed' => Array &119 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &120 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &121 [],
++        'telegram' => Array &122 [
++            0 => 'System error ref=6d8bd7cdc121-537f6a class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fc218510\n
++Plan: ps7fc_mikrotik_pppoe\n
++ref=6d8bd7cdc121-537f6a',
++            2 => '#us7fc218510 S7FC s7fc218510 #buy #PPPOE \n
++s7fc_mikrotik_pppoe\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &123 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'C username=owned username | mikrotik_hotspot | recharge on' => Array &121 [
+-        'value' => false,
+-        'changed' => Array &122 [],
+-        'hooks' => Array &123 [],
+-        'device' => Array &124 [],
+-        'telegram' => Array &125 [],
+-        'sms' => Array &126 [],
++    'C username=owned username | mikrotik_hotspot | recharge on' => Array &124 [
++        'value' => 'INV-26',
++        'changed' => Array &125 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &126 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &127 [],
++        'telegram' => Array &128 [
++            0 => 'System error ref=befd201e5f48-b557b6 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: us7fce407509\n
++Plan: ps7fc_mikrotik_hotspot\n
++ref=befd201e5f48-b557b6',
++            2 => '#us7fce407509 S7FC s7fc4ea520 #recharge #Hotspot \n
++s7fc_mikrotik_hotspot\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &129 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'C username=owned username | probe_hotspot | recharge on' => Array &127 [
+-        'value' => false,
+-        'changed' => Array &128 [],
+-        'hooks' => Array &129 [],
+-        'device' => Array &130 [],
+-        'telegram' => Array &131 [],
+-        'sms' => Array &132 [],
+-        'refusals' => 1,
++    'C username=owned username | probe_hotspot | recharge on' => Array &130 [
++        'value' => 'INV-27',
++        'changed' => Array &131 [
++            0 => 'tbl_transactions',
++        ],
++        'hooks' => Array &132 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &133 [
++            0 => Array &134 [
++                'call' => 'add_customer',
++                'username' => 's7fce407509',
++            ],
++        ],
++        'telegram' => Array &135 [
++            0 => '#us7fce407509 S7FC s7fca55b52 #recharge #Hotspot \n
++s7fc_probe_hotspot\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &136 [],
++        'refusals' => 0,
+         'leak' => false,
+     ],
+-    'C username=owned pppoe username (upper case) | mikrotik_hotspot | recharge on' => Array &133 [
+-        'value' => false,
+-        'changed' => Array &134 [],
+-        'hooks' => Array &135 [],
+-        'device' => Array &136 [],
+-        'telegram' => Array &137 [],
+-        'sms' => Array &138 [],
++    'C username=owned pppoe username (upper case) | mikrotik_hotspot | recharge on' => Array &137 [
++        'value' => 'INV-28',
++        'changed' => Array &138 [
++            0 => 'tbl_transactions',
++            1 => 'tbl_user_recharges',
++        ],
++        'hooks' => Array &139 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &140 [],
++        'telegram' => Array &141 [
++            0 => 'System error ref=79025ef6acf8-cc8ba0 class=Reseller\Radius\ProvisionFailure route=cli',
++            1 => 'System Error. When activate Package. You need to sync manually\n
++Router: wp2_router\n
++Customer: uS7FCP67929A\n
++Plan: ps7fc_mikrotik_hotspot\n
++ref=79025ef6acf8-cc8ba0',
++            2 => '#uS7FCP67929A S7FC s7fc2c3980 #recharge #Hotspot \n
++s7fc_mikrotik_hotspot\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &142 [],
+         'refusals' => 1,
+         'leak' => false,
+     ],
+-    'C username=owned pppoe username (upper case) | probe_hotspot | recharge on' => Array &139 [
+-        'value' => false,
+-        'changed' => Array &140 [],
+-        'hooks' => Array &141 [],
+-        'device' => Array &142 [],
+-        'telegram' => Array &143 [],
+-        'sms' => Array &144 [],
+-        'refusals' => 1,
++    'C username=owned pppoe username (upper case) | probe_hotspot | recharge on' => Array &143 [
++        'value' => 'INV-29',
++        'changed' => Array &144 [
++            0 => 'tbl_transactions',
++        ],
++        'hooks' => Array &145 [
++            0 => 'recharge_user',
++            1 => 'recharge_user_finish',
++        ],
++        'device' => Array &146 [
++            0 => Array &147 [
++                'call' => 'add_customer',
++                'username' => 'S7FCP67929A',
++            ],
++        ],
++        'telegram' => Array &148 [
++            0 => '#uS7FCP67929A S7FC s7fc178126 #recharge #Hotspot \n
++s7fc_probe_hotspot\n
++Router: wp2_router\n
++Gateway: Recharge\n
++Channel: S7FC\n
++Last Expired: 01 Jan 2031 10:00\n
++New Expired: 13 Nov 2026 17:56\n
++Price: Rp. 1.000\n
++Note:\n
++',
++        ],
++        'sms' => Array &149 [],
++        'refusals' => 0,
+         'leak' => false,
+     ],
+ ]
+
+/repo/tests/Integration/Wp8/RechargePreWriteRefusalTest.php:130
+
+FAILURES!
+Tests: 3, Assertions: 28, Failures: 1.
+
+================ variant registry reproducibility ================
+ Container nuxbill-reseller-test-php82-run-2fe9f7914826 Creating 
+ Container nuxbill-reseller-test-php82-run-2fe9f7914826 Created 
+variant registry matches freshly built fixtures
+  mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mariadb V2_FRESH_INSTALL_UPDATED on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mariadb V3_LONGLIVED_2023_UPDATED on 10.11.19-MariaDB-ubu2204: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+  mysql V1_FRESH_INSTALL on 8.0.46: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mysql V2_FRESH_INSTALL_UPDATED on 8.0.46: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mysql V3_LONGLIVED_2023_UPDATED on 8.0.46: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+exit=1
