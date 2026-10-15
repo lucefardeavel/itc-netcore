@@ -9,7 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../test"
 STATE=/tmp/claude-0/-root-Downloads/ccd890f1-0769-4fe7-b94c-4fb60f2282e1/scratchpad/t1a.env
-EVID=owner-review/WP9/evidence/t1a
+EVID="${WP9_EVID_DIR:-owner-review/WP9/evidence/t1a}"   # WP9-A1 sets owner-review/WP9/evidence/a1
 case "${1:-}" in
   up)
     umask 077

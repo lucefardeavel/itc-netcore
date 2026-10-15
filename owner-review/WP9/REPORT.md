@@ -289,3 +289,83 @@ No refusal in these cases changed business state; expected audit writes were onl
 - Git: branch `wp9/red-team-rc`, HEAD `143c4cd1` (unchanged), no upstream; nothing committed in this round; protected remote refs unchanged (`feat` / `wp8` `704031c6`, `main` `500d3a2d`, `wp7` `8e7f0e1c`, `wp6c` `757d8de9`, `hotfix` `6d4f3f96`); no remote `wp9` branch.
 
 **`WP9_T1A_BLOCKED_WITH_EVIDENCE`** — `PRODUCTION_NOT_AUTHORIZED` — `STOPPED_WAITING_OWNER_REVIEW`.
+
+---
+
+## A1 — WP9-A1 bounded remediation of OBS-W9-V1 (2026-10-15)
+
+Owner decision: `WP9_A1_V1_BOUNDED_REMEDIATION_AUTHORIZED` (with `OBS_W9_V1_HIGH_PRODUCTION_BLOCKER`). **Result: `WP9_A1_V1_REMEDIATION_READY_FOR_OWNER_REVIEW` — V1 is LOCALLY MITIGATED; the security invariant is NOT fully demonstrated** (a check-to-grant window remains, §A1.6).
+
+### A1.1 Evidence checkpoint (before any product change)
+Local commit **`c9469f9ef938d79aef8e67c6e025d01b5c83c9a5`** ("test(wp9): record T0, T0+ and T1-A characterisation evidence"; parent `143c4cd1`; 32 files: report, plan / handoff status notes, WP9 tests, `dev/wp9` tooling, `evidence/{t0,t0plus,t1a}` including the kept failed / invalid runs). Audit before it: no unexpected file; no product path; secret sweep 0 hits (32 files); manifest 42/42; 23 SourceGuard pins match; raw console evidence kept byte-for-byte (its trailing whitespace is the captured output). Not pushed.
+
+### A1.2 Confirmed BEFORE the fix
+| Evidence | Engine | Result |
+|---|---|---|
+| T1-A file 3 (V1), 2026-10-15 16:34Z | MariaDB 10.11 | voucher-only `GRANTED`; the unassigned customer's `Cleartext-Password` replaced by the code (T1-A §T1-A.5) |
+| **Authorized one-time reproduction**, `T1aVoucherV1Test` | **MySQL 8.0** | **`GRANTED`; customer RADIUS policy changed** (business delta `radcheck`, `tbl_transactions`, `tbl_user_recharges`, `tbl_voucher`) — `evidence/a1/console-mysql-T1aVoucherV1Test-20261015T164944Z.out`. V1 is therefore TEST-PROVEN on **both** engines (RADIUS-table effect; **no real NAS login demonstrated**) |
+| Test-first run of the new regression `A1VoucherIdentityGuardTest` (before the fix) | MariaDB | 16 tests / 47 assertions, **12 failures**, exit 1: all 10 collision variants `GRANTED` with the customer policy overwritten (exact, case, stored leading / trailing space, stored TAB, accent, code with trailing space, PPPoE cross-field exact / case / stored leading space); replay test and generation test failed (a colliding voucher was issued); the 3 controls passed; the race characterisation showed RACE_REMAINS — `console-mariadb-A1VoucherIdentityGuardTest-20261015T165010Z.out` |
+| First attempt of that run | MariaDB | fatal before any test (`customer()` helper name clashed with the base class — test-design defect, renamed `person()`), kept: `…T164958Z.out` |
+
+### A1.3 What the fix changed (only the authorized files)
+`system/autoload/Reseller/Domain/VoucherRedemptionService.php` (+83 lines) and `system/controllers/plan.php` (+25 lines); diff in `evidence/a1/a1-fix.diff`.
+1. **Redemption guard** (`redeem()`): for a **voucher-only** target (`customerId === 0`), after the existing reseller-owned check and **before the claim**, `identityInUse()` refuses (`REFUSED`, logged as `REFUSED:IDENTITY_IN_USE`) when the code's RADIUS identity is in use. The voucher is never claimed, so it stays redeemable; no recharge, invoice, RADIUS or device write happens. Existing-customer redemptions (`customerId > 0`), `redeemForNewUsername()`, the claim / grant / `CLAIMED_REVIEW` / release semantics and the single-path guards are unchanged.
+2. **`customerIdentityCollisions(array $names): ?array`** (public, new): the canonical RADIUS identity rule — PHP `trim()` (space, TAB, LF, CR, NUL, VT; exactly `RadiusPolicyBuilder::key()`) compared under `utf8mb4_general_ci` (the `radcheck.username` collation), against **both** `username` and `pppoe_username` of **every** customer (owned or unassigned). Two statements, no schema change: one scan of `tbl_customers` returning (as HEX, so no value crosses the connection character set) the canonical form of rows whose column equals a name under the RADIUS collation or starts / ends with a trimmed character; then a collation comparison of the names with those canonical forms. **Fails closed** (returns null → refusal) on any error, an empty canonical name, or more than 1000 candidate rows.
+3. **Voucher generation** (`plan/voucher-post`): after the existing CSPRNG uniqueness loop, the batch is checked in one call; colliding codes are regenerated with the same CSPRNG expressions (unique within the batch and among vouchers, bounded: 20 rounds × 20 tries); if a collision remains or the check cannot run, **no voucher of the batch is created** (error redirect). CSPRNG, batch uniqueness and the existing bounded retry are kept.
+- **Not changed:** `ServiceGate.php`, `Package.php`, `Tx.php`, every SHA-pinned file, schema / migrations, `phpunit.xml`, the Architecture Lock.
+- **Performance justification (for review):** `tbl_customers` has no index on `username` / `pppoe_username` (`install/phpnuxbill.sql`), so the existing `ServiceGate::isBlockedUsername()` already scans the table on every voucher-only redemption; the fix adds **one more scan** per voucher-only redemption (plus a small comparison over the matched candidates) and one scan per generation round. No load test was run (WP10, OD-W9-11).
+
+### A1.4 What was tested after the fix, per engine
+| Test | MariaDB 10.11 | MySQL 8.0 | Evidence |
+|---|---|---|---|
+| `A1VoucherIdentityGuardTest` (16 tests) | **16 / 78, exit 0** | **16 / 78, exit 0** | `console-*-A1VoucherIdentityGuardTest-20261015T1651{24,33}Z.out`, `obs-*.jsonl` |
+| — 10 collision variants (listed in §A1.2) | all `REFUSED`, voucher `0`, **no business / finance / identity / RADIUS delta**, customer policy unchanged (CONTRACT_MET) | same | |
+| — legitimate voucher-only grant | `GRANTED`, voucher `1`, RADIUS rows written (CONTROL_PASS) | same | |
+| — existing-customer voucher path with a code equal to **another** customer's name | `GRANTED` to the target; the other customer's policy unchanged (CONTROL_PASS, no over-blocking) | same | |
+| — reseller-owned V3 refusal | `REFUSED`, no business delta (CONTROL_PASS) | same | |
+| — refused voucher stays redeemable; replay | `REFUSED`, `REFUSED`, then `GRANTED` once the colliding name is renamed away, then `NOT_VALID` (CONTRACT_MET) | same | |
+| — voucher generation | control batch of 3 unique codes created; a batch whose every possible code equals a customer username → **0 vouchers** (CONTRACT_MET) | same | |
+| — check-to-grant window (barrier inside `Package::rechargeUser`, hook `recharge_user`) | **RACE_REMAINS**: a customer + RADIUS password committed after the check is overwritten by the voucher grant | same | |
+| `T1aVoucherV1Test` (the original V1 reproduction) | `REFUSED`, policy unchanged, no business / audit delta (exit 0) | same | `console-*-T1aVoucherV1Test-20261015T1652*.out` |
+| Existing suites via the standard harness `dev/test/run-tests.sh --do-not-cache-result --testsuite unit,wp3a-unit,wp4-unit,wp5b-unit,regression,wp2-http,wp4-integration,wp5b-integration,wp8-integration` (incl. `VoucherRedemptionTest`, `Wp5bSourceGuardTest`, `ServiceGateTest`, the WP4 RADIUS suites, `RechargePreWriteRefusalTest`, `DeviceGuardKeyCollisionTest`, SourceGuard pins) | **603 tests / 49 703 assertions, 0 failures / errors, 0 warnings, 94 incomplete** | **603 / 49 703, same** | `evidence/a1/regression-run-tests.out` (exit 0; variant registry reproducible) |
+- The 94 incomplete tests per engine are **not passes**; they are consistent with the lab-gated WP8 real-NAS tests, but this non-testdox run does not list them individually.
+- Not run (not warranted by the two-file change, or not authorized): the other WP suites (`wp2/3a-integration`, `wp3b`, `wp5a`, `wp6*`, `wp7`), the full harness, `wp8-security-gates`, CHR, browser lab, load.
+- The WP8 guarantees for reseller-owned customers remain intact (V3 control; `ServiceGateTest`, `RechargePreWriteRefusalTest`, `DeviceGuardKeyCollisionTest` green on both engines).
+- Images: the A1 runner runs used `nuxbill-reseller-test-php82` `sha256:2fa4fbfe…6ade`; the standard harness rebuilt it during the regression run (`sha256:888a6ebc6c04…84a`; `dev/test` unchanged, PHP 8.2.34 in both).
+
+### A1.5 Fingerprints and SHA
+| Item | Value |
+|---|---|
+| Product fingerprint before the fix (`system`, `install`, `ui`, `docs/claude-development-pack`, `dev/test`, root `*.php`) | `c37ad1f85c3b87966738e0e0f1c22d56912f2278da1132bc0e279c25a360372e` (1633 files) |
+| Product fingerprint after the fix | `6ff47e19aa406375d9d8c600501878d8470f68e4f777ad3f9715a28143f74828` (1633 files; differs only by the two files below) |
+| `VoucherRedemptionService.php` before → after | `a2f342b392ceda4fefa1a35fdf6fd01bfc97e188064f20dbe9464ac56b8ef0aa` → `58d49940f9a76029b8675695bca2e146408177a0aadb8c4f06768816a75fbd14` |
+| `plan.php` before → after | `2a7e99df97de8a05865d3604af3765be126574bace6d1f2adaf59b81069e54bc` → `c431414c0ddf1402089da49a0f922c396f4f4818dcee2cb53fee99e622dd4ed5` |
+| Manifest / SourceGuard | 42/42; 23 pins all match (no re-pin) |
+
+### A1.6 What remains unresolved
+- **Check-to-grant window (TOCTOU) — V1 is only locally mitigated.** The identity check runs before the claim and grant without a lock shared with customer creation (P1–P5 take the tree lock, the voucher user lock or none). A customer that is created **and** provisioned between the check and the voucher grant is still overwritten (RACE_REMAINS on both engines, deterministic barrier). Closing it needs the shared identity lock of AM-W9-1 (U0, not authorized here) taken by both the voucher-only grant and every customer writer — a wider change than this wave, so it was not implemented.
+- **V2** (a customer created over a live voucher-only identity) is unchanged: creation paths are not part of this wave (U0).
+- **Voucher codes in logs (pre-existing, LOW):** for PUBLIC / RADIUS sources the existing `record()` log line includes `target=<username>`, which for voucher-only targets is the code in clear (the `voucher=` field is hashed); the new refusal uses the same line. Recorded, not changed.
+- **Fail-closed operational notes:** more than 1000 customers with leading / trailing whitespace in their names, or a database without `REGEXP_REPLACE`, would refuse every voucher-only redemption and every voucher batch (MariaDB 10.11 / MySQL 8.0 support it).
+- Deferred as instructed: V4, the reverse-direction overwrite, U0 across P1–P5; OBS-1 stays a **PRODUCTION BLOCKER**; the 4 csvCell defects join N-07; A2-R stays `UNVERIFIED_SECURITY_RISK — PRODUCTION BLOCKER`; P1–P5 policies, NEW-7, NEW-8, plugins, WP1-CHECK unchanged; T1-B, T2, T3, T4, WP10 not authorized.
+
+### A1.7 Cleanup, secret sweep, Git
+- Teardown: 0 containers / networks / volumes of `nuxbill-reseller-test`, no QEMU; the A1 runner credential file deleted; the standard harness removed its own containers.
+- Secret sweep over all new / changed files (18): 0 hits; no generated credential in any evidence file.
+- Git: branch `wp9/red-team-rc`, HEAD **`c9469f9e`** (the evidence checkpoint); the A1 fix, the new regression test, the runner change and `evidence/a1/` are **uncommitted** (no commit authorized for them); no upstream; nothing pushed; protected remote refs unchanged (`feat` / `wp8` `704031c6`, `main` `500d3a2d`, `wp7` `8e7f0e1c`, `wp6c` `757d8de9`, `hotfix` `6d4f3f96`); no remote `wp9` branch.
+
+**`WP9_A1_V1_REMEDIATION_READY_FOR_OWNER_REVIEW`** — V1 locally mitigated, invariant not fully demonstrated — `PRODUCTION_NOT_AUTHORIZED` — `STOPPED_WAITING_OWNER_REVIEW`.
+
+
+### A1.8 Owner interim decision and final pre-commit audit (2026-10-15)
+Owner decisions: **OD-W9-A1-1 `V1_INTERIM_MITIGATION_ACCEPTED — RACE_OPEN`** (one local commit of the fix and its evidence after a final diff audit); **OD-W9-A1-2 `U0_SHARED_IDENTITY_LOCK_DESIGN_AUTHORIZED — IMPLEMENTATION_BLOCKED`**; **OD-W9-A1-3** voucher-code logging recorded under N-07 (severity to be re-assessed against log read access and voucher state; logging unchanged); **OD-W9-A1-4** V4, the reverse direction and T1-B…T4 stay deferred (read-only path analysis for U0 allowed).
+
+Final audit (from HEAD `c9469f9e`, before the commit):
+- **Diff identity:** `git diff system/` is byte-identical to the tested `evidence/a1/a1-fix.diff`; working-tree SHA-256 of the two product files equal `changed-files-sha256-after.txt` (`58d49940…`, `c431414c…`). Only the authorized files changed (two product files, `dev/wp9/t1a_run.sh` evidence-directory override, the new test, the report, `evidence/a1/`).
+- **Unchanged paths (code read):** the guard is conditional on `customerId === 0` and runs after the unchanged reseller-owned check (V3) and before `claim()`; existing-customer redemption (`customerId > 0`) does not reach it; `redeemForNewUsername()` does not call `redeem()` and is unchanged; `claim()` / `grant()` / `CLAIMED_REVIEW` / release are unchanged.
+- **Refusal semantics:** refusal returns before `claim()` (voucher stays `0`, test-proven with replay `REFUSED, REFUSED, GRANTED, NOT_VALID`); only the existing redemption log line is written; every error / empty name / bound overflow → `null` → refusal (fail closed); generation: `null` or a remaining collision → no voucher of the batch is inserted (the check precedes the first insert).
+- **Availability limit (OPEN, not a solution):** the 1000-candidate-row bound is an availability limit, not a performance or concurrency solution; both lookups scan the unindexed `tbl_customers.username` / `pppoe_username`; no performance figure is claimed (no measurement).
+- **Pre-existing, not introduced (recorded):** after 20 regeneration tries a code may keep a batch / table duplicate — identical to the WP5B (E6) loop it follows; the regenerated codes use the upper-case / numeric expressions also for `low` / `rand` formats — identical to WP5B.
+- **Results:** MariaDB and MySQL A1 16 / 78 exit 0; `T1aVoucherV1Test` refused on both; harness 603 / 49 703 / 0 failures / **94 incomplete per engine — not counted as passes**.
+- **Integrity:** `docs/claude-development-pack/MANIFEST.sha256` 42/42 OK; SourceGuard pins 23/23 match (neither changed file is pinned); no re-pin.
+- **Secrets / artifacts:** secret sweep over the 20 files to be committed (known lab secret values from the WP8 state files + private-key markers): 0 hits; no fixture password in the evidence; all evidence files are text (96 KiB); no credential file, pcap, image or lab artifact staged.

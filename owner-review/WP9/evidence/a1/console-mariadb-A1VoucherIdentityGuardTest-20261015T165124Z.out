@@ -1,0 +1,33 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/a1/obs-mariadb.jsonl php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox tests/Integration/Wp9/A1VoucherIdentityGuardTest.php
+start: 2026-10-15T16:51:24Z
+ Container nuxbill-reseller-test-php82-run-637657621500 Creating 
+ Container nuxbill-reseller-test-php82-run-637657621500 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+................                                                  16 / 16 (100%)
+
+Time: 00:07.473, Memory: 10.00 MB
+
+A1Voucher Identity Guard (Reseller\Tests\Integration\Wp9\A1VoucherIdentityGuard)
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "V1 reproduced: code = username (exact)"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "code = username (upper case)"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "stored username with a leading space"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "stored username with a trailing space"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "stored username with a trailing TAB"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "accent (stored é, code e)"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "code with a trailing space = username"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "cross-field: code = PPPoE username"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "cross-field: code = PPPoE username (upper case)"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "cross-field: stored PPPoE username with a leading space"
+ ✔ Legitimate voucher only grant is unchanged
+ ✔ Existing customer voucher path is unchanged even when the code equals another customers name
+ ✔ Reseller owned refusal is unchanged
+ ✔ A refused voucher stays redeemable and is granted once the identity is free
+ ✔ Voucher generation never issues a code equal to a customer identity
+ ✔ Remaining check to grant window is characterised
+
+OK (16 tests, 78 assertions)
+exit=0 end: 2026-10-15T16:51:32Z

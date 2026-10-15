@@ -879,6 +879,31 @@ switch ($action) {
                     $vouchers[$i] = $code;
                 }
             }
+            // WP9-A1 (OBS-W9-V1): a voucher code is also a RADIUS identity (voucher-only redemption), so a code never equals
+            // a customer's username / PPPoE username (canonical RADIUS key, any customer). Colliding codes are regenerated
+            // with the CSPRNG (bounded, unique within the batch and among vouchers); when a collision remains or the check
+            // cannot run, no voucher of the batch is created.
+            for ($round = 0; ; $round++) {
+                $taken = \Reseller\Domain\VoucherRedemptionService::customerIdentityCollisions(array_map(static fn($c): string => $prefix . $c, $vouchers));
+                if ($taken === null || $taken === [] || $round >= 20) {
+                    break;
+                }
+                foreach ($vouchers as $i => $code) {
+                    if (!in_array(trim($prefix . $code), $taken, true)) {
+                        continue;
+                    }
+                    for ($try = 0; $try < 20 && ($try === 0 || count(array_keys($vouchers, $code, true)) > 1
+                        || ORM::for_table('tbl_voucher')->where_raw('BINARY code = ?', [$prefix . $code])->count() > 0); $try++) {
+                        $code = $voucher_format == 'numbers'
+                            ? implode('', array_map(static fn(): string => (string) random_int(0, 9), range(1, max(1, (int) $lengthcode))))
+                            : strtoupper(substr(bin2hex(random_bytes(16)), 0, $lengthcode));
+                        $vouchers[$i] = $code;
+                    }
+                }
+            }
+            if ($taken !== []) {
+                r2(getUrl('plan/add-voucher/'), 'e', 'Voucher codes could not be generated without matching a customer username; no voucher was created');
+            }
 
             foreach ($vouchers as $code) {
                 $d = ORM::for_table('tbl_voucher')->create();

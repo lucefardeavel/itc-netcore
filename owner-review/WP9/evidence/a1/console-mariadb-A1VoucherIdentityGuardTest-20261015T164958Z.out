@@ -1,0 +1,8 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/a1/obs-mariadb.jsonl php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox tests/Integration/Wp9/A1VoucherIdentityGuardTest.php
+start: 2026-10-15T16:49:58Z
+ Container nuxbill-reseller-test-php82-run-f695a504e752 Creating 
+ Container nuxbill-reseller-test-php82-run-f695a504e752 Created 
+
+Fatal error: Access level to Reseller\Tests\Integration\Wp9\A1VoucherIdentityGuardTest::customer() must be protected (as in class Reseller\Tests\Support\Wp2HttpTestCase) or weaker in /repo/tests/Integration/Wp9/A1VoucherIdentityGuardTest.php on line 68
+
+exit=255 end: 2026-10-15T16:50:00Z
