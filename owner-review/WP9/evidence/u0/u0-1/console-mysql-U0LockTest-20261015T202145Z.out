@@ -1,0 +1,22 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-1/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox --filter Transaction|MutualExclusion|Nested|Exception|ProcessExit tests/Integration/Wp9/U0LockTest.php
+start: 2026-10-15T20:21:45Z
+ Container nuxbill-reseller-test-php82-run-b7782c7aa16c Creating 
+ Container nuxbill-reseller-test-php82-run-b7782c7aa16c Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:09.184, Memory: 10.00 MB
+
+U0Lock (Reseller\Tests\Integration\Wp9\U0Lock)
+ ✔ Hold refuses inside a transaction and assert outside the lock
+ ✔ Mutual exclusion across processes
+ ✔ Nested reentrant hold under the tree lock is released
+ ✔ Release on exception and rollback of an open transaction
+ ✔ Release on process exit and fatal error
+
+OK (5 tests, 18 assertions)
+exit=0 end: 2026-10-15T20:21:56Z

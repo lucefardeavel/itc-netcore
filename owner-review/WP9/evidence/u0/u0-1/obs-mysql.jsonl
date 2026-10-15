@@ -1,0 +1,5 @@
+{"engine":"mysql","test":"Reseller\\Tests\\Integration\\Wp9\\U0LockTest","case":"U0 lock transaction boundary","classification":"CONTRACT_MET","hold_in_tx":"LOGIC","assert_without_lock":"LOGIC"}
+{"engine":"mysql","test":"Reseller\\Tests\\Integration\\Wp9\\U0LockTest","case":"U0 lock mutual exclusion","classification":"CONTRACT_MET","a":["a",1792095712.223825,1792095712.228327,1792095713.728945,"1"],"b":["b",1792095712.273767,1792095713.730729,1792095715.231765,"1"]}
+{"engine":"mysql","test":"Reseller\\Tests\\Integration\\Wp9\\U0LockTest","case":"U0 lock nested (L-1 -> L-3 -> L-3)","classification":"CONTRACT_MET","inner_holder_is_me":"1","free_after":true}
+{"engine":"mysql","test":"Reseller\\Tests\\Integration\\Wp9\\U0LockTest","case":"U0 lock exception safety / rollback at release","classification":"CONTRACT_MET","exception":"THROWN","free_after_exception":true,"transaction_after":"CLOSED","uncommitted_rows_after":0}
+{"engine":"mysql","test":"Reseller\\Tests\\Integration\\Wp9\\U0LockTest","case":"U0 lock release on process exit / fatal error","classification":"CONTRACT_MET","free_after":{"exit":true,"fatal":true}}

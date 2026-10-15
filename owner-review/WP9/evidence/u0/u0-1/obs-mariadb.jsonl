@@ -1,0 +1,5 @@
+{"engine":"mariadb","test":"Reseller\\Tests\\Integration\\Wp9\\U0LockTest","case":"U0 lock transaction boundary","classification":"CONTRACT_MET","hold_in_tx":"LOGIC","assert_without_lock":"LOGIC"}
+{"engine":"mariadb","test":"Reseller\\Tests\\Integration\\Wp9\\U0LockTest","case":"U0 lock mutual exclusion","classification":"CONTRACT_MET","a":["a",1792095701.700894,1792095701.705252,1792095703.205764,"1"],"b":["b",1792095701.77553,1792095703.207201,1792095704.708064,"1"]}
+{"engine":"mariadb","test":"Reseller\\Tests\\Integration\\Wp9\\U0LockTest","case":"U0 lock nested (L-1 -> L-3 -> L-3)","classification":"CONTRACT_MET","inner_holder_is_me":"1","free_after":true}
+{"engine":"mariadb","test":"Reseller\\Tests\\Integration\\Wp9\\U0LockTest","case":"U0 lock exception safety / rollback at release","classification":"CONTRACT_MET","exception":"THROWN","free_after_exception":true,"transaction_after":"CLOSED","uncommitted_rows_after":0}
+{"engine":"mariadb","test":"Reseller\\Tests\\Integration\\Wp9\\U0LockTest","case":"U0 lock release on process exit / fatal error","classification":"CONTRACT_MET","free_after":{"exit":true,"fatal":true}}
