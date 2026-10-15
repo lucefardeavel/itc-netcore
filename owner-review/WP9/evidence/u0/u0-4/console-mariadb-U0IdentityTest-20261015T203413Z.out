@@ -1,0 +1,47 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-4/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox --filter P4|P5|Case|Same|Grandfathered|Revert tests/Integration/Wp9/U0IdentityTest.php
+start: 2026-10-15T20:34:13Z
+ Container nuxbill-reseller-test-php82-run-98430ab89f7f Creating 
+ Container nuxbill-reseller-test-php82-run-98430ab89f7f Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..............................                                    30 / 30 (100%)
+
+Time: 00:10.871, Memory: 10.00 MB
+
+U0Identity (Reseller\Tests\Integration\Wp9\U0Identity)
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs customer username (other case)"
+ ✔ A fresh name is accepted with data set "P4"
+ ✔ A fresh name is accepted with data set "P5"
+ ✔ An unused voucher code is not an identity with data set "P4"
+ ✔ An unused voucher code is not an identity with data set "P5"
+ ✔ Case only self rename is accepted
+ ✔ Same customer username equals pppoe is accepted
+ ✔ Grandfathered duplicates stay editable
+ ✔ P 5 revert never restores a name taken meanwhile
+
+OK (30 tests, 97 assertions)
+exit=0 end: 2026-10-15T20:34:25Z

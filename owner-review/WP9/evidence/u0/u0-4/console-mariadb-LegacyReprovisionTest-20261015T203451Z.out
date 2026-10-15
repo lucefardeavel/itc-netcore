@@ -1,0 +1,31 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-4/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5b/LegacyReprovisionTest.php
+start: 2026-10-15T20:34:51Z
+ Container nuxbill-reseller-test-php82-run-239cd25b26fd Creating 
+ Container nuxbill-reseller-test-php82-run-239cd25b26fd Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..............                                                    14 / 14 (100%)
+
+Time: 00:08.777, Memory: 12.00 MB
+
+Legacy Reprovision (Reseller\Tests\Integration\Wp5b\LegacyReprovision)
+ ✔ Tree serialization is the same lock as the finance tree lock
+ ✔ Admin sync reprovisions without touching billing
+ ✔ Refused while an activation is in flight without any device call
+ ✔ Password change by the customer is applied and verified
+ ✔ Confirmed device failure reverts the database
+ ✔ Unknown device outcome keeps the new values and is reported
+ ✔ Identity edit renames the subscriber and never activates
+ ✔ Authorization and ownership
+ ✔ Device default deny for reseller owned customers
+ ✔ Activation open and admin sync are serialized
+ ✔ Activation open and password change are serialized
+ ✔ Partial success across targets is unconfirmed and never reverted
+ ✔ Rename applied then add failed is unconfirmed and never reverted
+ ✔ First operation failed is still reverted
+
+OK (14 tests, 260 assertions)
+exit=0 end: 2026-10-15T20:35:05Z

@@ -714,10 +714,11 @@ switch ($action) {
         $passDiff = false;
         $pppoeIpDiff = false;
         if ($oldusername != $username) {
-            if (ORM::for_table('tbl_customers')->where('username', $username)->find_one()) {
+            // WP9 U0 (I-4): the customer itself is excluded (a case-only rename of its own name is not a collision)
+            if (ORM::for_table('tbl_customers')->where('username', $username)->where_not_equal('id', $id)->find_one()) {
                 $msg .= Lang::T('Username already used by another customer') . '<br>';
             }
-            if (ORM::for_table('tbl_customers')->where('pppoe_username', $username)->find_one()) {
+            if (ORM::for_table('tbl_customers')->where('pppoe_username', $username)->where_not_equal('id', $id)->find_one()) {
                 $msg .= Lang::T('Username already used by another pppoe username customer') . '<br>';
             }
             $userDiff = true;
@@ -736,6 +737,13 @@ switch ($action) {
             $pppoeDiff = true;
         }
 
+        // WP9 U0 (I-5): a changed name fits its column (username 45, PPPoE username 32, no control character), never truncated
+        if ($userDiff && mb_strlen((string) $username) > 45) {
+            $msg .= 'Username should be at most 45 characters<br>';
+        }
+        if ($pppoeDiff && (mb_strlen((string) $pppoe_username) > 32 || preg_match('/[\x00-\x1F\x7F]/', (string) $pppoe_username))) {
+            $msg .= 'PPPoE username should be at most 32 characters, without control characters<br>';
+        }
         if ($oldPppoeIp != $pppoe_ip) {
             $pppoeIpDiff = true;
         }
@@ -854,7 +862,23 @@ switch ($action) {
             $c->district = $district;
             $c->state = $state;
             $c->zip = $zip;
-            $c->save();
+            // WP9 U0 (P4): a name this edit acquires is checked and saved under the shared identity lock (customers, live
+            // voucher identities, RADIUS keys; the customer itself and its own RADIUS keys excluded); the device steps
+            // below run after the lock is released
+            $nuxrAcquired = $resellerOwned ? [] : \Reseller\Domain\CustomerIdentity::acquired($nuxrOld, $nuxrNew);
+            if ($nuxrAcquired === []) {
+                $c->save();
+            } else {
+                try {
+                    \Reseller\Domain\CustomerIdentity::hold(static function (\PDO $pdo) use ($c, $nuxrAcquired, $nuxrOld): void {
+                        \Reseller\Domain\CustomerIdentity::assertAvailable($pdo, $nuxrAcquired, (int) $c['id'],
+                            \Reseller\Domain\CustomerIdentity::keysOf((string) $nuxrOld['username'], (string) $nuxrOld['pppoe_username']));
+                        $c->save();
+                    });
+                } catch (\Reseller\Domain\DomainError $e) {
+                    r2(getUrl('customers/edit/') . (int) $id, 'e', Lang::T($e->getMessage()));
+                }
+            }
 
 
             // Update Customers Attributes values in tbl_customers_fields table

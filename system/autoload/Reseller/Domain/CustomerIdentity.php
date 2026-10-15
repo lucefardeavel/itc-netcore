@@ -212,6 +212,45 @@ final class CustomerIdentity
         }
     }
 
+    /**
+     * The exact RADIUS keys an identity already holds (its current names, as stored and as RadiusPolicyBuilder::key()
+     * trims them): the acquirer's own policy rows never block its own rename.
+     *
+     * @return list<string>
+     */
+    public static function keysOf(string ...$names): array
+    {
+        $out = [];
+        foreach ($names as $n) {
+            foreach ([$n, trim($n)] as $k) {
+                if ($k !== '') {
+                    $out[$k] = true;
+                }
+            }
+        }
+        return array_map('strval', array_keys($out));
+    }
+
+    /**
+     * The names an identity change ACQUIRES: each new non-empty name that differs (exact bytes) from the old value of
+     * the same field. A cleared PPPoE username or an unchanged name acquires nothing.
+     *
+     * @param array<string,mixed> $old
+     * @param array<string,mixed> $new
+     * @return list<string>
+     */
+    public static function acquired(array $old, array $new): array
+    {
+        $out = [];
+        foreach (['username', 'pppoe_username'] as $f) {
+            $n = (string) ($new[$f] ?? '');
+            if (trim($n) !== '' && $n !== (string) ($old[$f] ?? '')) {
+                $out[] = $n;
+            }
+        }
+        return $out;
+    }
+
     private static function rad(string $expr): string
     {
         return "CONVERT({$expr} USING utf8mb4) COLLATE utf8mb4_general_ci";

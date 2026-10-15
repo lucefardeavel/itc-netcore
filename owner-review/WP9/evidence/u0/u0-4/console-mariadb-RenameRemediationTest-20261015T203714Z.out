@@ -1,0 +1,32 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-4/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5b/RenameRemediationTest.php
+start: 2026-10-15T20:37:14Z
+ Container nuxbill-reseller-test-php82-run-1029b2b8214a Creating 
+ Container nuxbill-reseller-test-php82-run-1029b2b8214a Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............                                                   15 / 15 (100%)
+
+Time: 00:04.197, Memory: 12.00 MB
+
+Rename Remediation (Reseller\Tests\Integration\Wp5b\RenameRemediation)
+ ✔ F 1 a refusal never hides an earlier unconfirmed
+ ✔ F 3 chained pairs of one edit are not ambiguous
+ ✔ F 3 a foreign equivalent key is still refused in a chained edit
+ ✔ F 4 a pair that keeps the key is not a rename
+ ✔ F 5 one disconnect per session when two pairs share the old key
+ ✔ F 7 an unreadable radius database is reported as such and refused
+ ✔ F 8 an old identity that cannot be targeted is logged
+ ✔ D 3 a pppoe username held by another customer is refused before any write
+ ✔ D 3 a foreign or orphan policy under the new name is refused before any write
+ ✔ D 3 the customers own old key may still be replaced
+ ✔ D 3 race between the pre check and the write is closed r 1
+ ✔ D 3 race between the pre check and the write is closed r 2 device
+ ✔ R 1 the target of a pair renamed only once is still checked
+ ✔ R 2 a key of a later pair is not exempt for an earlier pair
+ ✔ R 5 one disconnect per session inside a legacy rename scope
+
+OK (15 tests, 242 assertions)
+exit=0 end: 2026-10-15T20:37:19Z

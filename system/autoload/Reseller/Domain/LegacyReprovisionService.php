@@ -119,9 +119,22 @@ final class LegacyReprovisionService
                     throw new DomainError('RENAME_' . $check, self::RENAME_REFUSALS[$check]);
                 }
                 if ($new !== $old) {
-                    Tx::run(static function (\PDO $pdo) use ($customerId, $old, $new): void {
-                        self::write($pdo, $customerId, $old, $new);
-                    });
+                    $write = static function () use ($customerId, $old, $new): void {
+                        Tx::run(static function (\PDO $pdo) use ($customerId, $old, $new): void {
+                            self::write($pdo, $customerId, $old, $new);
+                        });
+                    };
+                    // WP9 U0 (P5, AM-W9-1): an acquired name is checked and written under the identity lock (L-1 -> L-3 ->
+                    // BEGIN); the RADIUS reads above and the device steps below stay outside it
+                    $acquired = CustomerIdentity::acquired($old, $new);
+                    if ($acquired === []) {
+                        $write();
+                    } else {
+                        CustomerIdentity::hold(static function (\PDO $pdo) use ($acquired, $customerId, $old, $write): void {
+                            CustomerIdentity::assertAvailable($pdo, $acquired, $customerId, CustomerIdentity::keysOf((string) $old['username'], (string) $old['pppoe_username']));
+                            $write();
+                        });
+                    }
                 }
             }
             if ($billing === []) {
@@ -148,7 +161,7 @@ final class LegacyReprovisionService
                 return ['status' => 'DONE', 'routers' => $routers, 'reference' => null];
             }
             if ($outcome === ProvisionResult::FAILED && $billingSame) {
-                $reverted = $new === $old || Tx::run(static fn(\PDO $pdo): bool => self::write($pdo, $customerId, $new, $old, false));
+                $reverted = $new === $old || self::revert($customerId, $old, $new);
                 if ($reverted) {
                     // nothing was applied on any device and the identity is back: the old identity is current again
                     $handover['pending'] = false;
@@ -654,6 +667,10 @@ final class LegacyReprovisionService
         if ($username !== \Text::alphanumeric($username, ':+_.@-') || strlen($username) < 2 || strlen($username) > 54) {
             throw new DomainError('INVALID_INPUT', 'Username should be between 3 to 54 characters');
         }
+        // WP9 U0 (I-5): a changed name fits its column (username 45, PPPoE username 32), never truncated
+        if ($username !== $customer['username'] && strlen($username) > 45) {
+            throw new DomainError('INVALID_INPUT', 'Username should be at most 45 characters');
+        }
         if ($username !== $customer['username']
             && Tx::row($pdo, 'SELECT id FROM tbl_customers WHERE (username = ? OR pppoe_username = ?) AND id <> ? LIMIT 1', [$username, $username, (int) $customer['id']]) !== null) {
             throw new DomainError('USERNAME_TAKEN', 'Username already used by another customer');
@@ -663,6 +680,10 @@ final class LegacyReprovisionService
             if (array_key_exists($k, $requested)) {
                 $new[$k] = trim($requested[$k]);
             }
+        }
+        if ((string) $new['pppoe_username'] !== (string) $customer['pppoe_username']
+            && (mb_strlen((string) $new['pppoe_username']) > 32 || preg_match('/[\x00-\x1F\x7F]/', (string) $new['pppoe_username']))) {
+            throw new DomainError('INVALID_INPUT', 'PPPoE username should be at most 32 characters, without control characters');
         }
         // WP8 A3 (owner D-3): a PPPoE username is a RADIUS key too; it never takes another customer's name
         if ((string) $new['pppoe_username'] !== '' && (string) $new['pppoe_username'] !== (string) $customer['pppoe_username']
@@ -694,6 +715,34 @@ final class LegacyReprovisionService
             Tx::exec($pdo, 'UPDATE tbl_user_recharges SET username = ? WHERE customer_id = ?', [$to['username'], $customerId]);
         }
         return true;
+    }
+
+    /**
+     * WP9 U0 (P5r): the identity write-back after a CONFIRMED device failure. A name the revert would re-acquire is
+     * checked under the identity lock first; when it was taken in the meantime (or the check cannot run) nothing is
+     * written and the caller reports REPROVISION_UNCONFIRMED for an operator (no blind revert).
+     */
+    private static function revert(int $customerId, array $old, array $new): bool
+    {
+        $write = static fn(): bool => Tx::run(static fn(\PDO $pdo): bool => self::write($pdo, $customerId, $new, $old, false));
+        $back = CustomerIdentity::acquired($new, $old);
+        if ($back === []) {
+            return $write();
+        }
+        try {
+            return CustomerIdentity::hold(static function (\PDO $pdo) use ($back, $customerId, $old, $new, $write): bool {
+                $taken = CustomerIdentity::conflicts($pdo, $back, $customerId, CustomerIdentity::keysOf((string) $old['username'], (string) $old['pppoe_username'],
+                    (string) $new['username'], (string) $new['pppoe_username']));
+                if ($taken !== []) {
+                    ErrorReporter::log('reprovision.revert_refused', 'customer=' . $customerId . ' reason=' . ($taken === null ? 'CHECK_UNAVAILABLE' : 'IDENTITY_TAKEN'));
+                    return false;
+                }
+                return $write();
+            });
+        } catch (DomainError $e) {
+            ErrorReporter::log('reprovision.revert_refused', 'customer=' . $customerId . ' reason=' . $e->reason);
+            return false;
+        }
     }
 
     /**

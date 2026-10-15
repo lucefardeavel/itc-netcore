@@ -1,0 +1,21 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-4/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp8/DeviceGuardKeyCollisionTest.php
+start: 2026-10-15T20:37:28Z
+ Container nuxbill-reseller-test-php82-run-68077f108bad Creating 
+ Container nuxbill-reseller-test-php82-run-68077f108bad Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....                                                                4 / 4 (100%)
+
+Time: 00:02.274, Memory: 12.00 MB
+
+Device Guard Key Collision (Reseller\Tests\Integration\Wp8\DeviceGuardKeyCollision)
+ ✔ An unassigned row carrying the owned username as pppoe username is refused
+ ✔ An unassigned row carrying the owned pppoe username as pppoe username is refused
+ ✔ A non colliding unassigned customer keeps the legacy device behaviour
+ ✔ The permitted reprovision of an owned pppoe identity still works and the permit ends
+
+OK (4 tests, 67 assertions)
+exit=0 end: 2026-10-15T20:37:32Z

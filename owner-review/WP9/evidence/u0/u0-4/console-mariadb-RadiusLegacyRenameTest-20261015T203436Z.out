@@ -1,0 +1,22 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-4/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp4/RadiusLegacyRenameTest.php
+start: 2026-10-15T20:34:36Z
+ Container nuxbill-reseller-test-php82-run-2b169459f1a1 Creating 
+ Container nuxbill-reseller-test-php82-run-2b169459f1a1 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:04.890, Memory: 10.00 MB
+
+Radius Legacy Rename (Reseller\Tests\Integration\Wp4\RadiusLegacyRename)
+ ✔ Username rename across several plans runs once and equals a fresh sync
+ ✔ Ambiguous rename is refused before the customer is saved
+ ✔ Pppoe username held by another customer is refused before the save
+ ✔ A policy under the new name that is not the customers is refused before the save
+ ✔ A numeric looking pppoe username is compared strictly
+
+OK (5 tests, 48 assertions)
+exit=0 end: 2026-10-15T20:34:42Z

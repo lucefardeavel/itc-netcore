@@ -1,0 +1,26 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-4/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox --filter A4|A5|B4|B5|D4|D5|G1|G2|G3 tests/Integration/Wp9/U0RaceTest.php
+start: 2026-10-15T20:34:05Z
+ Container nuxbill-reseller-test-php82-run-07e39615620d Creating 
+ Container nuxbill-reseller-test-php82-run-07e39615620d Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.........                                                           9 / 9 (100%)
+
+Time: 00:06.151, Memory: 10.00 MB
+
+U0Race (Reseller\Tests\Integration\Wp9\U0Race)
+ ✔ A 4 voucher in flight versus p 4 rename into the name
+ ✔ A 5 voucher in flight versus p 5 owned rename into the name
+ ✔ B 4 p4 before save versus voucher
+ ✔ B 5 p5 before write versus voucher
+ ✔ D 4 p4 before save versus p 1 cross field
+ ✔ D 5 p5 before write versus p 1 cross field
+ ✔ G 1 p4 rename away versus voucher of the old name
+ ✔ G 2 p5 rename away versus voucher of the old name
+ ✔ G 3 p4 rename away versus p 1 creation of the old name
+
+OK (9 tests, 44 assertions)
+exit=0 end: 2026-10-15T20:34:13Z

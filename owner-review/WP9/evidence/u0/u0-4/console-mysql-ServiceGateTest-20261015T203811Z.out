@@ -1,0 +1,27 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-4/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/ServiceGateTest.php
+start: 2026-10-15T20:38:11Z
+ Container nuxbill-reseller-test-php82-run-4eda086e9aa4 Creating 
+ Container nuxbill-reseller-test-php82-run-4eda086e9aa4 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..........                                                        10 / 10 (100%)
+
+Time: 00:13.347, Memory: 10.00 MB
+
+Service Gate (Reseller\Tests\Http\ServiceGate)
+ ✔ Agent and sales cannot grant service to their own in scope customer
+ ✔ Agent and sales cannot grant service through the api
+ ✔ Super admin and admin are refused on reseller owned customers
+ ✔ Core guards refuse direct calls for reseller owned customers
+ ✔ Cron skips reseller owned auto renewal and renews unassigned
+ ✔ Customer portal refuses service for reseller owned customer
+ ✔ Public voucher activation refused and password unchanged
+ ✔ Customer edit refuses reprovisioning changes for reseller owned
+ ✔ Bulk plan sync skips reseller owned customers
+ ✔ Unassigned customers keep admin service compatibility
+
+OK (10 tests, 264 assertions)
+exit=0 end: 2026-10-15T20:38:26Z
