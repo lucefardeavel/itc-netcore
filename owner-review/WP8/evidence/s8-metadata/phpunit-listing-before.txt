@@ -1,0 +1,147 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Available test suites:
+ - hotfix-pace-unit (7 tests)
+ - integration (81 tests)
+ - regression (1 test)
+ - unit (71 tests)
+ - wp2-http (123 tests)
+ - wp2-integration (7 tests)
+ - wp2-unit (22 tests)
+ - wp3a-integration (99 tests)
+ - wp3a-unit (65 tests)
+ - wp3b-integration (64 tests)
+ - wp3b-unit (35 tests)
+ - wp4-integration (113 tests)
+ - wp4-unit (53 tests)
+ - wp5a-integration (58 tests)
+ - wp5a-unit (25 tests)
+ - wp5b-integration (121 tests)
+ - wp5b-unit (26 tests)
+ - wp6a-integration (45 tests)
+ - wp6a-unit (5 tests)
+ - wp6b-integration (38 tests)
+ - wp6b-unit (9 tests)
+ - wp6c-integration (18 tests)
+ - wp6c-unit (10 tests)
+ - wp7-integration (9 tests)
+ - wp7-unit (17 tests)
+ - wp8-integration (101 tests)
+ - wp8-security-gates (10 tests)
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Available tests:
+ - Reseller\Tests\Integration\Wp8\AccountingTimeLabTest::testTheLiveChrSessionFollowsTheTimeContract
+ - Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateAHealthyLiveSessionDuplicateIsRejectedByCheckrad
+ - Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateBLostStopGoneSessionAllowsLoginAndKeepsHistory
+ - Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateCAccountingLostLiveSessionStillProtected
+ - Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateDRouterSnmpUnreachableDecisionFailsOpen
+ - Reseller\Tests\Integration\Wp8\CheckradGateTest::testFaultWalkGateDSnmpClientUnavailableFailsOpen
+ - Reseller\Tests\Integration\Wp8\CheckradGateTest::testFaultErrorGateDCheckradErrorFailsOpen
+ - Reseller\Tests\Integration\Wp8\CheckradGateTest::testOtherGateENoNasVerificationLostStopLocksOut
+ - Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpHotspotShared1
+ - Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpHotspotShared2
+ - Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpHotspotShared1AccountingLost
+ - Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testPppoeDisconnectAckSessionGoneStopWrittenSingleRequest
+ - Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testHotspotDisconnectAckAndReinterception
+ - Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testRateLimitCoaChangesTheEffectiveSessionRate
+ - Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testAddressAndPoolChangesNeedDisconnectAndReauthentication
+ - Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testNoResponseGivesUnknownAfterIdenticalRetransmissionsAndNoSuccess
+ - Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testErrorCause406Investigation
+ - Reseller\Tests\Integration\Wp8\DeviceGuardKeyCollisionTest::testAnUnassignedRowCarryingTheOwnedUsernameAsPppoeUsernameIsRefused
+ - Reseller\Tests\Integration\Wp8\DeviceGuardKeyCollisionTest::testAnUnassignedRowCarryingTheOwnedPppoeUsernameAsPppoeUsernameIsRefused
+ - Reseller\Tests\Integration\Wp8\DeviceGuardKeyCollisionTest::testANonCollidingUnassignedCustomerKeepsTheLegacyDeviceBehaviour
+ - Reseller\Tests\Integration\Wp8\DeviceGuardKeyCollisionTest::testThePermittedReprovisionOfAnOwnedPppoeIdentityStillWorksAndThePermitEnds
+ - Reseller\Tests\Integration\Wp8\DriverContractLabTest::testTheTemporaryApiCredentialIsLeastPrivilegeAndSufficient
+ - Reseller\Tests\Integration\Wp8\DriverContractLabTest::testHotspotPlanAndUserContracts
+ - Reseller\Tests\Integration\Wp8\DriverContractLabTest::testHotspotLocalLoginIsNotRadiusAndTheSessionMethodsWork
+ - Reseller\Tests\Integration\Wp8\DriverContractLabTest::testPppoeProfilePoolAndSecretContracts
+ - Reseller\Tests\Integration\Wp8\DriverContractLabTest::testPppoeLocalDialIsNotRadiusAndRemovalAndExpiryWork
+ - Reseller\Tests\Integration\Wp8\DriverContractLabTest::testARadiusSubscriberStillAuthenticatesThroughRadiusWithItsOwnAccountingRow
+ - Reseller\Tests\Integration\Wp8\DriverContractLabTest::testVpnApiObjectsAndNatContractsStayInsideTheTestRules
+ - Reseller\Tests\Integration\Wp8\DriverContractLabTest::testApiUnavailableAndRouterAddressWithoutPort
+ - Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testDirectDriverGrantsAreRefusedForTheResellerOwnedCustomer
+ - Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testNameCollisionsWithTheOwnedCustomersKey
+ - Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testTheLegacyRechargeFunnelCollisionLeavesTheOwnedCustomerUntouched
+ - Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testALocalSecretNeverMasksAnOwnedRadiusSubscriber
+ - Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testThePermittedPathWorksAndThePermitEndsAfterSuccessAndFailure
+ - Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testThePermittedPathOnAnOwnedPppoeIdentityAndThePermitEnds
+ - Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testTheLegacyRechargeFunnelRefusesTheOwnedCustomer
+ - Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testAVoucherOnlyGrantWithTheOwnedUsernameIsRefused
+ - Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testA5RemovalPathsKeepTheLiveLocalSessionOfTheOwnedCustomer
+ - Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testCanonicalCronExpiryOfTheOwnedCustomerIsAllowed
+ - Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill1and6FreeRadiusUnreachableAndAuthenticationTimeout
+ - Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill2RadiusDatabaseFailureBeforeCommit
+ - Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill3UncertainRadiusCommitGoesToReconciliation
+ - Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill4NasUnavailableForDisconnect
+ - Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill5CoaIncomingBlocked
+ - Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill7LostAccountingStopAndSimultaneousUse
+ - Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill7GuardLostStopReloginIsAcceptedWithoutAnyRepair
+ - Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill8RouterOsApiUnavailable
+ - Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill9DisconnectProcessedButResponseLost
+ - Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill10PathRecoveryLeavesNoDrillResidue
+ - Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testNasClientsComeFromTheNasTableWithoutAnyHardenedClientPolicy
+ - Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testMa1MissingMessageAuthenticatorGetsNoResponse
+ - Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testMa2InvalidMessageAuthenticatorIsDiscardedBeforeAuthorization
+ - Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testMa3ValidMessageAuthenticatorKeepsNormalPapAndChapBehaviour
+ - Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testAccountingWithoutMessageAuthenticatorStillWritesStartInterimStop
+ - Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testPppoePoolStaticAddressRateAndSimultaneousUseOnTheSqlClient
+ - Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testExpirationIsEvaluatedInTheApplicationTimeZone
+ - Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testTimeAndDataQuotasPerPeriodKeepTheAccountingHistory
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testDiscriminatorPppoeVersusHotspot
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateAFirstLoginNoVerification
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateBDuplicateRejectedByTheGuardBackstop
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateCLostStopGoneSessionAllowedHistoryUnchanged
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateDAccountingLostLiveSessionRejected
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateESnmpUnreachableRejects
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateFSnmpClientUnavailableRejects
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateGWrongCommunityRejects
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateHMissingCredentialsRejects
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateHUnknownNasAndMalformedInput
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateIMultipleNas
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedHostileUsernames
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedHotspotShared1
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedHotspotShared2
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedHotspotShared1AccountingLost
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testFunctionalGateBStockLayerRejectsFirst
+ - Reseller\Tests\Integration\Wp8\OptionGGateTest::testFunctionalSnmpUnreachableStockFailsOpenGuardRejects
+ - Reseller\Tests\Integration\Wp8\PortLimitGateTest::testGatePppoePortLimit1IsNotEnforcedByRouterOs
+ - Reseller\Tests\Integration\Wp8\PortLimitGateTest::testGatePppoePortLimit1WithAccountingLostIsNotEnforcedByRouterOs
+ - Reseller\Tests\Integration\Wp8\PortLimitGateTest::testObservationPppProfileOnlyOne
+ - Reseller\Tests\Integration\Wp8\PortLimitGateTest::testGateHotspotPortLimit1
+ - Reseller\Tests\Integration\Wp8\PortLimitGateTest::testGateHotspotPortLimit2
+ - Reseller\Tests\Integration\Wp8\PortLimitGateTest::testGateHotspotPortLimit1WithAccountingLost
+ - Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeDynamicPoolRateDirectionSessionAndAccounting
+ - Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeStaticAddressIsAssignedExactlyAndNoPoolIsUsed
+ - Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeSimultaneousUseAllowsOneSession
+ - Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeNegativeCases
+ - Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeSessionEndsAtExpirationAndReauthenticationIsRefused
+ - Reseller\Tests\Integration\Wp8\RealAaaTest::testHotspotHttpChapLoginRateAccountingLogoutAndReinterception
+ - Reseller\Tests\Integration\Wp8\RealAaaTest::testHotspotSessionLimitAndExpiration
+ - Reseller\Tests\Integration\Wp8\RealLifecycleTest::testRenewThenChangePlanRateThenChangePlanPool
+ - Reseller\Tests\Integration\Wp8\RealLifecycleTest::testExpiryOnTheNasThenReactivate
+ - Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+ - Reseller\Tests\Integration\Wp8\RechargePreWriteRefusalTest::testACollidingLegacyRechargeIsRefusedBeforeAnyWrite
+ - Reseller\Tests\Integration\Wp8\RechargePreWriteRefusalTest::testAllowedRechargesKeepTheWp4OrderAndTheLegacyBehaviour
+ - Reseller\Tests\Integration\Wp8\RechargePreWriteRefusalTest::testVoucherOnlyAndOwnedCustomerPathsAreUnchanged
+ - Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testPppoeRenameEndsTheOldSessionAndTheNewNameWorks
+ - Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testHotspotOldSessionsOnTwoNasAreBothEnded
+ - Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testPppoeUsernameSetAndClearedEndTheFormerKeySession
+ - Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testCaseOnlyRenameEndsThePreRenameSessionAndKeepsThePolicy
+ - Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testCoaNotAcceptedIsUnconfirmedAndVisibleInDrift
+ - Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testLostAccountingStartIsNoAccountingEvidenceNotConfirmed
+ - Reseller\Tests\Integration\Wp8\ResellerBusinessFlowTest::testAToBToCToSalesCustomerActivationOnTheRealNasConservesValue
+ - Reseller\Tests\Integration\Wp8\RouterOsClosureTest::testRouterOs7245AuthenticatesAccountsAndDisconnectsUnderTheHardenedPolicy
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Available tests:
+ - Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testA_FirstLoginBaselineWindow
+ - Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testB0_ConcurrentSameNas
+ - Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testBscan_StaggeredSecondLogin
+ - Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testC_LostAccountingStartWindow
+ - Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testE1_StaleRowAndSnmpFailureConcurrent
+ - Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testE2_StaleRowAndHealthySnmpConcurrent
+ - Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testE3_MissingAccountingAndSnmpFailureConcurrent
+ - Reseller\Tests\Integration\Wp8\UsernameEquivalenceGateTest::testEquivalentSpellingsNeverHoldTwoSessions
+ - Reseller\Tests\Integration\Wp8\HotspotEquivalenceGateTest::testEquivalentSpellingsNeverOpenAnExtraHotspotSession
+ - Reseller\Tests\Integration\Wp8\HotspotEquivalenceGateTest::testSharedUsersTwoAdmitsTwoStoredSpellingSessionsAndNoVariant

@@ -1,0 +1,43 @@
+== WP8 post-acceptance metadata audit 2026-10-15T14:45:35Z
+HEAD 44ea45d48fa5212617cb879958b50c6baa32635b origin 44ea45d48fa5212617cb879958b50c6baa32635b branch wp8/integration-poc
+protected origin/main 500d3a2d15003efeed6e0aad639c13d08101c3b1
+protected origin/feat/reseller-system-v1 5bdc57459a64dd53e32e5abb2ef6efa3815e387a
+protected origin/wp7/staff-pwa 8e7f0e1c024e6c319b5088896e001555d6c4f079
+protected origin/wp6c/mobile-adaptive-ux 757d8de969e98787a270facb956a4c543fec7eaa
+protected origin/hotfix/pace-xhr-csrf 6d4f3f962482b6e125429da7ae459ae8dfd4214c
+lock branch 8b0ee33672c7bbb06c75a56336ed229a8f9328a8; docs-sync changes: 0
+== changed files
+ M docs/claude-development-pack/review/ACCEPTANCE_LEDGER.md
+ M owner-review/WP8/OWNER_DECISIONS.md
+ M owner-review/WP8/REPORT.md
+ M tests/phpunit.xml
+?? owner-review/WP8/evidence/s8-metadata/phpunit-listing-after.txt
+?? owner-review/WP8/evidence/s8-metadata/phpunit-listing-before.txt
+ .../review/ACCEPTANCE_LEDGER.md                       |  2 +-
+ owner-review/WP8/OWNER_DECISIONS.md                   | 19 +++++++++++++++++++
+ owner-review/WP8/REPORT.md                            | 15 +++++++++++++++
+ tests/phpunit.xml                                     | 12 ++++++++----
+ 4 files changed, 43 insertions(+), 5 deletions(-)
+== nothing outside documentation / XML comments
+tracked changes outside {docs/,owner-review/,tests/phpunit.xml}: []
+untracked outside owner-review/: []
+== ledger: only the WP8 row changed
+-| WP8 | PENDING |  |  |
++| WP8 | ACCEPTED_WITH_NOTES | `44ea45d48fa5212617cb879958b50c6baa32635b` | Owne
+== phpunit.xml
+phpunit.before.xml well-formed; comments 3 ; illegal -- : 0 ; c14n-no-comments a175944a36661074f7a16174e57bd4a5ca5d66a5212af190f32d84d840264cd2
+tests/phpunit.xml (after) well-formed; comments 3 ; illegal -- : 0 ; c14n-no-comments a175944a36661074f7a16174e57bd4a5ca5d66a5212af190f32d84d840264cd2
+EXECUTION CONFIG IDENTICAL (comments excluded)
+10:failOnRisky="true"
+11:failOnWarning="true"
+testsuite/exclude/file/directory element lines HEAD vs now: ea3085d268df4f50 / ea3085d268df4f50
+PHPUnit --list-suites / --list-tests (wp8-integration, wp8-security-gates): BYTE-IDENTICAL before/after
+ - wp8-integration (101 tests)
+ - wp8-security-gates (10 tests)
+== code
+diff over system init.php ui install dev tests (phpunit.xml excluded): []
+manifest 42/42 OK
+values_checked=7 files=6 hits=0
+== blocker register rows: 31 ; register text changed vs HEAD: 0 lines
+== earlier records unchanged: OWNER_DECISIONS removed lines 0, REPORT removed lines 0
+== lab: qemu 0, lab containers 0

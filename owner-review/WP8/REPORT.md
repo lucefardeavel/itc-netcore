@@ -580,3 +580,18 @@ owner's condition for not re-running the hour-long suite.
 | Operational readiness | **Not ready** |
 | Production | **`PRODUCTION_NOT_AUTHORIZED`**. The §5 blockers are all open; the lock release gates are PENDING; WP9 and WP10 have not started |
 
+
+---
+
+## 13. Post-acceptance metadata closure (2026-10-15, added)
+
+Owner verdict **`WP8_FINAL_DEVELOPMENT_ACCEPTED_WITH_BLOCKERS`** / **`PRODUCTION_NOT_AUTHORIZED`** on the accepted
+implementation SHA `44ea45d48fa5212617cb879958b50c6baa32635b`. This section updates two items of §12.1; that text stays as
+recorded.
+
+- **D-S8-7:** the ledger row is now recorded on `wp8/integration-poc` as `ACCEPTED_WITH_NOTES` at `44ea45d4` (development
+  only). §5 (31 rows), WP9, WP10 and the lock release gates stay open. The ledger on `feat` is not changed.
+- **D-S8-6:** the stale `tests/phpunit.xml` comments (`:111`, `:116-118`) are corrected, comment-only, with the A2 failure
+  history kept. Execution settings are unchanged: the canonical XML without comments is identical, and the PHPUnit listing
+  is identical (`evidence/s8-metadata/`).
+- No code, test logic, suite, `failOnWarning` or production-blocker change, so no lab run.

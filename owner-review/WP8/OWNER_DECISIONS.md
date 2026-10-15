@@ -758,3 +758,22 @@ Basis: `REPORT.md` (§10–§12), `WP8_S8_FINAL_EVIDENCE_REGATE.md` (§10–§11
   - the Architecture-Lock release gates (Q1–Q4, P1–P3, N6–N7, REL-01 / 04 / 05, ISO-01) and lock risk R-021.
   - Also still open: the CoA wrong-source case on 7.24.5, and the production-init PEAR2 `is_file(null)` deprecation (LOW).
 - **Not authorized:** a merge into `feat` or `main`, deployment, WP9 or WP10.
+
+## WP8 post-acceptance metadata closure (2026-10-15) — additive record
+
+Owner message "WP8 — Owner Post-Acceptance Metadata Closure". Official verdict: **`WP8_FINAL_DEVELOPMENT_ACCEPTED_WITH_BLOCKERS`** /
+**`PRODUCTION_NOT_AUTHORIZED`**. Accepted implementation SHA: `44ea45d48fa5212617cb879958b50c6baa32635b`.
+
+- **Ledger:** `docs/claude-development-pack/review/ACCEPTANCE_LEDGER.md`, WP8 row only, now reads `ACCEPTED_WITH_NOTES` at
+  `44ea45d4`. It records the acceptance as development only and lists the open items:
+  - the 31 production-blocker rows;
+  - WP9 and WP10;
+  - the lock release gates.
+  Not changed: WP0–WP7 and WP9 / WP10 rows, and the ledger on `feat`.
+- **`tests/phpunit.xml`:** comment-only correction of the two A2 "FAILS by design / EXPECTED TO FAIL" comments (lines
+  111 and 116–118).
+  - They now record the A2 failure history (`RACE_PROVEN`, 2026-10-09) and the A2-R pass (10 / 216, exit 0, 2026-10-14).
+  - Suites, exclusions, `failOnWarning` and every other setting are unchanged. Proof (`evidence/s8-metadata/`): the canonical
+    XML without comments is identical, and PHPUnit's suite and test listing is byte-identical before and after.
+- **Unchanged:** every production blocker, the Architecture Lock and every other branch. Nothing was deployed. WP9 / WP10
+  have not started.

@@ -108,14 +108,18 @@
         </testsuite>
         <testsuite name="wp8-integration">
             <directory>Integration/Wp8</directory>
-            <!-- WP8 A2 security gate: FAILS by design while the race is open (A2_RACE_PROVEN) - its own suite below -->
+            <!-- WP8 security gates: run only in their own suite below (wp8-security-gates). History: the A2 gate failed
+                 by design while the race was open (A2_RACE_PROVEN, 2026-10-09); it passes since A2-R (see below) -->
             <exclude>Integration/Wp8/ConcurrentFirstLoginGateTest.php</exclude>
             <exclude>Integration/Wp8/UsernameEquivalenceGateTest.php</exclude>
             <exclude>Integration/Wp8/HotspotEquivalenceGateTest.php</exclude>
         </testsuite>
-        <!-- WP8 A2 concurrent first-login race gate (real NAS lab, production contract). Owner 2026-10-09: evidence
-             ACCEPTED, SECURITY GATE FAILED - RACE_PROVEN. The suite is EXPECTED TO FAIL until the A2-R remediation is
-             implemented and re-gated; it is never part of a "green" regression run and its failure is never waived. -->
+        <!-- WP8 A2 concurrent first-login race gate (real NAS lab, production contract). History: owner 2026-10-09,
+             evidence ACCEPTED, SECURITY GATE FAILED - RACE_PROVEN; the suite failed by design until A2-R. A2-R was
+             accepted for development (owner 2026-10-10) and the gate passes: re-gate on b96747b5 (2026-10-14)
+             10 tests / 216 assertions, exit 0, 0 double sessions (owner-review/WP8/WP8_S8_FINAL_EVIDENCE_REGATE.md).
+             The suite still runs only on its own, in the production-contract lab; it is never part of a "green"
+             regression run and a failure is never waived. -->
         <testsuite name="wp8-security-gates">
             <file>Integration/Wp8/ConcurrentFirstLoginGateTest.php</file>
             <file>Integration/Wp8/UsernameEquivalenceGateTest.php</file>
