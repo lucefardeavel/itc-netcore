@@ -3,6 +3,7 @@
 | Item | Value |
 |---|---|
 | **Status of this report** | **Opened for the T0 section only.** WP9 is **not complete**. T1–T4, every remediation wave, U0, the A2-R hardening, the P1–P5 policies, NEW-7 and NEW-8 are **not started**. Nothing below claims more than T0 |
+| **Status update (2026-10-15, cumulative)** | The row above is the T0-time status, kept. Since then: T0+ / T1-A (§T0+, §T1-A), WP9-A1 V1 interim fix (§A1, `V1_MITIGATED_NOT_CLOSED` at that time) and the **U0 shared identity lock, implemented and verified end-to-end (§U0)**. WP9 as a whole is **not complete** (A2-R, P1–P5 policies, NEW-7, NEW-8, plugins, WP1-CHECK and the other T1-B…T4 rows remain); `PRODUCTION_NOT_AUTHORIZED` |
 | Owner decision | `WP9_PLAN_REV2_ACCEPTED_WITH_AMENDMENTS`, `WP9_T0_STATIC_TESTING_AUTHORIZED`, `PRODUCTION_NOT_AUTHORIZED` (2026-10-15) |
 | Canonical baseline | `feat/reseller-system-v1@704031c61296f4975f1d4e51531973d67e5f0a9b` |
 | Branch | `wp9/red-team-rc` (local only, no upstream). HEAD `143c4cd10ae7cc93d42e150b5641f6976e3342a9`: the plan documents' commit, whose parent is the baseline |
@@ -389,3 +390,154 @@ Final audit (from HEAD `c9469f9e`, before the commit):
 **U0 (OD-W9-A1-2, design only):** `owner-review/WP9/U0_DESIGN.md` — identity writer / authority matrix (P1–P5, P5r, **P6 voucher-only redemption**, P7 generation; releasers; key writers; non-coverable writers), gaps G1–G8 of the approved AM-W9-1 design, the `CustomerIdentity` contract (L-3 global identity lock, canonical `assertAvailable` over customers + live voucher identities + RADIUS presence), interleaving argument for races A / B / C, timeout / deadlock / rollback rules, option comparison, phased test-first plan U0-0…U0-5 with stop points, impact (no protected file, schema or finance change) and decisions D-U0-1…8. **U0 is not implemented; no test was run in this round.**
 
 **`WP9_U0_DESIGN_READY_FOR_OWNER_REVIEW`** — `PRODUCTION_NOT_AUTHORIZED` — `STOPPED_WAITING_OWNER_REVIEW`.
+
+---
+
+## U0 — Shared identity lock: end-to-end implementation and security verification (2026-10-15)
+
+Owner decision: `WP9_U0_FULL_IMPLEMENTATION_AND_TESTING_AUTHORIZED` (autonomous plan → implement → test → fix → regression → final audit), D-U0-1 … D-U0-8 **APPROVED**. Branch `wp9/red-team-rc`, local commits only; nothing pushed, merged or deployed. **Result label: see §U0.14.** `PRODUCTION_NOT_AUTHORIZED`.
+
+### U0.1 Architecture consistency matrix (mandatory pre-implementation audit)
+Read before any code change: PLAN rev 3 (§7.1 I-1…I-5, §7.3 AM-W9-1, §7.7 AM-W9-3, §13, §16), `U0_DESIGN.md`, WP8 `OWNER_DECISIONS.md` / `REPORT.md` / `docs/WP8_INTEGRATION_MODEL.md` §8–§9, the Architecture Lock (`OWNER_ARCHITECTURE_LOCK.md`, `ARCHITECTURE_DECISIONS.md` AD-14, `TARGET_ARCHITECTURE.md` §8), `ACCEPTANCE_LEDGER.md`, the SourceGuard pins and the code of every identity / voucher / RADIUS path.
+
+| Check | Finding | Resolution |
+|---|---|---|
+| Lock vs transaction rules | `Tx.php` pinned; `TreeSerialization::hold` refuses an open transaction; P1 used `Tx::withTreeLock` (lock → BEGIN) | `CustomerIdentity::hold` enforces R2 in code (`LogicException`), R4 by rolling back anything left open; P1 moved to `TreeSerialization::hold → CustomerIdentity::hold → Tx::run` (same tree lock, `Tx.php` unchanged) |
+| Lock order vs tree lock, voucher claim, rename | L-1 tree (activation, finance, P1, P5 incl. device steps), L-2 `nuxr_user_*` (P3), pre-existing `nuxr_bop_` / `nuxr_mig_` | order L-1 → L-2 → L-3 → BEGIN; P6 takes L-3 only; `nuxr_bop_` / `nuxr_mig_` never call an acquirer (static guard) |
+| Writer matrix completeness | P1–P6 + P5r acquirers; P7 generation; releasers; key writers; plugins / direct DB not coverable | unchanged from the approved matrix (§U0.5) |
+| Grant outside the lock + durable reservation | the claim (`0 → CLAIMED`) is autocommitted inside L-3; `CLAIMED` / voucher-only `1` / `customer_id = 0` recharge rows are identities for every acquirer (D-U0-1 / -3) | as designed; refinement: no redeemable voucher → `NOT_VALID` without a check (WP5B contract) |
+| RADIUS reads inside the lock (D-U0-2 bounds) | separate ORM `radius` connection | connection opened before `GET_LOCK`; indexed joins only; per-statement time bound 2 s; unreachable when configured → fail closed |
+| Bypass inside the application | none found besides plugins / direct DB (out of reach of application locks) | documented residual |
+| Schema / protected files / finance | U0 needs no schema; pinned files untouched | confirmed by the final diff (§U0.11) |
+| Engines / isolation | named locks, `REGEXP_REPLACE`, `MAX_EXECUTION_TIME` / `max_statement_time` differ by engine | every test on MariaDB 10.11 and MySQL 8.0; the race matrix also under READ COMMITTED |
+| Architecture Lock | Option A per-ISP isolation; "finer hierarchy lock restructuring" not approved; a global lock is acceptable until metrics show contention (TARGET §236) | one global per-database identity lock (LG); no per-key locks |
+
+No locked decision was changed. The Owner's "MASTER FINAL SYSTEM ACCEPTANCE AUDIT PROTOCOL v1.0" was **not found** in any available source (as in WP8 C-26); §U0.13 applies the pack's `DEFINITION_OF_DONE.md` and PLAN §16 gates instead.
+
+### U0.2 Phases, results and local commits
+| Phase | Commit | Result |
+|---|---|---|
+| Baseline docs (V1 interim acceptance, N-07 note, U0 design) | `85a5d4efaecf4eb738a451f9e45f48b22a81fdd3` | — |
+| U0-0 test-first characterisation | `61f164870f83a6818fe24506a66c603470163c42` | **22/22 race scenarios reproduced on both engines under RR and RC**; identity matrix 47 defects per engine (18 cases already refused by existing guards / A1; 1 control failure = the known P4 case-only false refusal) |
+| U0-1 lock primitive | `8cbe61e793193310b2fe708f33329e8faae7dd61` | primitive tests 5/18 per engine |
+| U0-2 P6 + P7 | `31bf8d2a5e3445018409cb830e4899f9d7e61fbd` | A1 16/78, T1aVoucherV1 1/3, WP5B VoucherRedemption 10/66, race C/G 6/26, matrix P6 16/42 per engine |
+| U0-3 P1 / P2 / P3 | `55c56126e057b967ede17ac7aa547e9228e49f26` | race A1–A3/B1–B3/D1–D3 10/37, matrix 44/117, CustomerOwnership 9/75, Audit 2/391, Csrf 9/75, CreateFlow 3/53, Hierarchy 7/72 per engine |
+| U0-4 P4 / P5 / P5r | `ececbdf549a891956ebea6fe1e1e3e3e92e956c0` | race 9/44, matrix 30/97, ServiceGate 10/264, RadiusLegacyRename 5/48, LegacyEntrypointClosure 6/62, LegacyReprovision 14/260, RenameIntegrity 4/67, RenameOldSession 20/325, RenameRemediation 15/242, LegacyAdaptive 5/266, DeviceGuardKeyCollision 4/67, RechargePreWriteRefusal 3/28 per engine |
+| U0-5 closure + related (V4, reverse, survey) | `773b77d840fffb53d473d0c22a2c21bcfb98ea32` | §U0.6 |
+| EOL restoration (final diff audit) | `d64cb359a70858f5f3f5d0abcb0ccd96363a8f05` | §U0.4 #10 |
+
+### U0.3 What changed (product)
+`system/autoload/Reseller/Domain/CustomerIdentity.php` (new), `VoucherRedemptionService.php` (P3, P6; the A1 helper moved into `CustomerIdentity`), `CustomerService.php` (P1, I-5), `LegacyReprovisionService.php` (P5, P5r, I-5), `DomainError.php` (2 messages), `system/controllers/customers.php` (P4, I-4 self-exclusion, I-5), `register.php` (P2), `plan.php` (P7 call site). Implementation record: `U0_DESIGN.md` §9. No schema, migration, SourceGuard pin, `Tx.php`, `ServiceGate.php`, `Package.php`, `RouteMap.php`, `Balance.php`, finance / pricing / activation / RADIUS-write code, UI template or route change.
+
+### U0.4 Problems found and how they were fixed
+| # | Problem | Found by | Fix |
+|---|---|---|---|
+| 1 | P6 check-to-grant race (A1 residual) | U0-0 A-family, both engines | check + claim under L-3; claim = reservation (U0-2) |
+| 2 | V2: creation / rename over a live voucher identity | U0-0 matrix | (b) in every acquirer |
+| 3 | G3 rename-away: an acquirer writes the old key before the pending RADIUS rename moves it to the renamed customer (TEST-PROVEN: G1 overwrote the renamed customer; G2 / G3 destroyed the other identity's rows) | U0-0 G-family | (c) RADIUS presence inside L-3 (D-U0-2) |
+| 4 | P1 / P2 / P3 / P4 / P5 cross-field, canonical (leading space / TAB) and concurrent collisions | U0-0 D-family + matrix | shared canonical check under L-3 |
+| 5 | P5r revert wrote the old name back over a customer created meanwhile (two holders) | U0-0 P5r | revert re-checks under L-3, else `REPROVISION_UNCONFIRMED` |
+| 6 | P2 refusal of a voucher identity differed from a customer refusal (302 vs form) | U0-0 generic-message test | same form, "Account already exists" (D-U0-4) |
+| 7 | P4 false refusal of a case-only self-rename | T1-A, U0-0 control | I-4 self-exclusion |
+| 8 | Names longer than their column could be truncated on a non-strict server after being checked (I-5) | code reading | refused, never truncated (P1, P4, P5) |
+| 9 | First P6 wiring answered `REFUSED` for the code's own `CLAIMED` row (WP5B test failed) | U0-2 regression | candidate-first; `NOT_VALID` kept |
+| 10 | The edit tool normalised CRLF line endings of `customers.php` / `register.php` (whole-file diff) | final diff audit | separate restoration commit; harness re-run on the final bytes |
+| — | Test-side defects (kept runs): base-class `customer()` clash; G2/G3 judged one side only; staff login inside the snapshot; array-to-string warning; missing `Text` in the in-process test; perf timer clobbered by the `Package::rechargeUser` global `$t`; PHPUnit final `run()`; SQL-literal regex escapes in the survey | own runs | fixed in the tests; every failed run kept under `evidence/u0/**/run1-*` or similar |
+
+### U0.5 Identity writers — final protection
+| Writer | Lock | Check (under the lock) | Refusal |
+|---|---|---|---|
+| P1 `CustomerService::create` (Admin / Agent / Sales, web / API / PWA) | L-1 → L-3 → BEGIN | username + PPPoE, canonical, (a)(b)(c) | `IDENTITY_TAKEN` / `USERNAME_TAKEN` / `LOCK_TIMEOUT`, rolled back |
+| P2 `register.php` | L-3 | username | generic form message, no row |
+| P3 voucher + new username | L-2 → L-3 | username; then claim + insert | `USERNAME_TAKEN` / `REFUSED`, voucher untouched |
+| P4 legacy edit (unassigned) | L-3 around the save of an acquiring edit | changed names, self + own keys excluded | message, nothing saved |
+| P5 reseller-owned rename | L-1 → L-3 → BEGIN | changed names, self + own keys excluded | `IDENTITY_TAKEN`, nothing written |
+| P5r revert | L-1 → L-3 | old names | no revert → `REPROVISION_UNCONFIRMED` |
+| P6 voucher-only redemption (E12 public, E15 RADIUS) | L-3 (10 s / 3 s) | code; then claim (= reservation) | `REFUSED`, voucher stays `0`; grant outside |
+| P7 voucher generation | none (unused codes are not identities) | best-effort (a)(b)(c) | regenerate or no batch |
+| Key writers (recharge, activation, voucher grant) | unchanged | — | — |
+| Plugins / direct DB | **not coverable** by application locks | — | residual (U3 / U4) |
+
+### U0.6 Results per engine (final U0-5 runs; `evidence/u0/u0-5/`, `evidence/u0/related/`)
+| Suite | MariaDB 10.11 | MySQL 8.0 |
+|---|---|---|
+| U0RaceTest, REPEATABLE READ | 23 tests / 96 assertions, exit 0 | 23 / 96, exit 0 |
+| U0RaceTest, READ COMMITTED (isolation proven per session) | 23 / 96, exit 0 | 23 / 96, exit 0 |
+| U0IdentityTest (9 acquirers × 9 identity classes + controls) | 86 / 244, exit 0 | 86 / 244, exit 0 |
+| U0LockTest (exclusion, nesting, exceptions, exit / fatal release, timeouts, inverted order, parallel, bounds) | 9 / 46, exit 0 | 9 / 46, exit 0 |
+| U0PerfTest (observation) | 1 / 4, exit 0 | 1 / 4, exit 0 |
+| A1VoucherIdentityGuardTest | 16 / 78 | 16 / 78 |
+| T1aVoucherV1 / T1aLegacyPaths / T1aIdentityCharacterization | 1/3, 6/35, 7/66 | same |
+| Unit/Wp9 (U0SourceGuardTest 5 + CsvCell characterisation) | 28 / 280 | 28 / 280 |
+| U0V4Test / U0ReverseDirectionTest / U0SurveyTest | 7/37, 2/29, 1/6 | same |
+
+Race closure detail (both engines, both isolation levels): every B / D case shows the second writer **waiting on the identity lock** (`p6_finished_while_…_paused = false`) and then refused; A-family customer writers refused with the voucher reserved; G-family voucher / creator refused by the RADIUS presence of the old key; C-family second equal code refused. Timeouts: RADIUS authorization ≈3 s, web ≈10 s, nothing written, one retry after release = one grant and one transaction; inverted order (test-only): MySQL raised the user-lock deadlock error, MariaDB timed out, the writer then completed.
+
+### U0.7 Status of V1, V2, V4 and the reverse direction
+| Item | Status | Evidence | What is NOT closed |
+|---|---|---|---|
+| **V1** voucher-only grant over a customer identity | **CLOSED for application writers** — direct, canonical variants and every race interleaving (A / B / G) TEST-PROVEN on both engines, RR and RC | U0RaceTest, U0IdentityTest P6 rows, A1, T1aVoucherV1 | plugins / direct DB writers (the A1 raw-SQL barrier still records `RACE_REMAINS` by design); grandfathered data (a code already granted over an existing customer before U0) |
+| **V2** customer over a live voucher identity | **CLOSED for application writers** (P1 Admin / Agent / Sales, P2, P3, P4, P5 vs granted, CLAIMED and recharge-row identities) | U0IdentityTest, A-family | plugins / direct DB; pre-existing data (survey) |
+| **V4** two codes, one RADIUS identity | **security effect CLOSED**: a second equal code (case, accent, trailing / leading space, TAB, exact duplicate) is refused sequentially and concurrently | U0V4Test, U0RaceTest C1 / C2 | generation still issues collation-equal **unused** codes (byte-exact WP5B uniqueness; observation: equal groups exist) — availability only, no policy change made (D-U0-6) |
+| **Reverse direction** (owned activation over another identity's key) | **new colliders: CLOSED** (P1 Agent / P5 refused, incl. canonical variant). **Grandfathered collider: OPEN — TEST-PROVEN (E4) on both engines**: the reseller activation (COMPLETED) overwrote the unassigned customer's `Cleartext-Password` | U0ReverseDirectionTest | needs a decision (D-U0-R1) |
+
+### U0.8 Performance and operational limits (observation only — not a load test, WP10)
+| Customers | Availability check (median, ms) MariaDB / MySQL | Voucher-only redemption | P1 creation |
+|---|---|---|---|
+| 1 000 | 12.1 / 14.7 | 74.7 / 88.4 | 39.2 / 62.4 |
+| 10 000 | 18.4 / 28.4 | 89.9 / 127.2 | 61.3 / 91.6 |
+| 50 000 (+10 000 used vouchers) | 55.5 / 94.2 | 164.8 / 245.8 | 154.8 / 219.2 |
+| 8 parallel voucher-only redemptions at 50 000 | wall 877 / 1 044 ms; slowest 843 / 989 ms | | |
+
+Single host, disposable containers, one run; numbers show the cost grows roughly linearly with the unindexed scans and that one global lock serialises acquirers. **Open availability limits (unchanged decisions, documented):** (1) every acquisition scans `tbl_customers` (2 statements), `tbl_voucher` and `tbl_user_recharges` (`customer_id = 0`) — no index on these columns, no schema change made; (2) one global lock per database serialises all acquirers incl. RADIUS voucher authorization (3 s bound); (3) more than 1 000 candidate rows (e.g. legacy names with edge whitespace) or a statement over 2 s → **every** acquisition fails closed (proven with 1 001 rows); (4) a name equal to a used voucher-only code or to a key with leftover RADIUS rows (e.g. a deleted customer's suspended rows) stays unavailable (D-U0-2 / -3) until an operator removes the rows.
+
+### U0.9 Regression and full harness
+- **Full dual-engine harness** `dev/test/run-tests.sh --do-not-cache-result` (all suites, incl. `integration` → `Integration/Wp9`, `wp8-security-gates`; FreeRADIUS 3.2.8 test containers) on the final tree `d64cb359` (product fingerprint `d3136afb…`, identical before and after the run): **MariaDB 10.11: 1 316 tests / 70 589 assertions, 0 failures, 0 errors, 0 warnings, 104 incomplete; MySQL 8.0: identical; variant registry reproducible; exit 0** (`evidence/u0/harness/run-tests.out`).
+- The **104 incomplete tests per engine are NOT passes**: all are WP8 real-NAS lab tests that report "WP8 real-NAS lab not running" (17 classes, itemised in `harness/incomplete-itemised-mariadb.out`: OptionGGate 17, CheckradGate 10, DriverFailClosedLab 10, FailureDrills 10, DriverContractLab 8, FreeRadiusSqlClient 8, ConcurrentFirstLoginGate 7, RealAaa 7, CoaDisconnect 6, PortLimitGate 6, RenameOldSessionLab 6, RealLifecycle 3, HotspotEquivalenceGate 2, AccountingTimeLab / ResellerBusinessFlow / RouterOsClosure / UsernameEquivalenceGate 1 each). The CHR lab was **not** started: U0 changes no RADIUS write, NAS or device contract (RADIUS reads only).
+- PHP lint: 534 runtime / test files, 0 errors (`harness/lint.out`). A first harness launch on the LF-normalised bytes was stopped after ≈3 min by its process-group id (kept: `harness/run1-aborted-lf-endings/`).
+
+### U0.10 Files and evidence
+- Tests (new): `tests/Integration/Wp9/{U0Fixture, U0RaceTest, U0IdentityTest, U0LockTest, U0PerfTest, U0V4Test, U0ReverseDirectionTest, U0SurveyTest}.php`, `tests/Unit/Wp9/U0SourceGuardTest.php`; changed: `A1VoucherIdentityGuardTest.php` (replay fixture renames all three policy tables — required by D-U0-2, intent unchanged).
+- Tooling: `dev/wp9/t1a_run.sh` (`WP9_ISOLATION`, `WP9_FILTER`), `dev/wp9/identity_survey.sql` (read-only canonical survey, corrects PLAN §7.4).
+- Docs: `U0_DESIGN.md` §9, `U0_PROGRESS.md`, `PLAN.md` status notes, `docs/WP8_INTEGRATION_MODEL.md` §9 dated note, this section.
+- Evidence: `evidence/u0/{pre, pre/rc, u0-1, u0-2, u0-3, u0-4, u0-5, u0-5/rc, related, harness}` (consoles, JSON observations, fingerprints; kept failed runs in `run1-*` / `*-noisolationproof` / `matrix-run1-login-noise` / `perf-run1-timer-clobbered` / `harness/run1-aborted-lf-endings`).
+
+### U0.11 Integrity
+- Product files changed since the A1 commit `0f181323` (exactly): `CustomerIdentity.php` (new), `CustomerService.php`, `DomainError.php`, `LegacyReprovisionService.php`, `VoucherRedemptionService.php`, `customers.php`, `plan.php`, `register.php` — 8 files, 469 insertions / 107 deletions; mixed CRLF endings of the two controllers preserved.
+- SHA-256: `CustomerIdentity.php` `2b690615…e216`; `VoucherRedemptionService.php` `4f4972b6…a2b2`; `CustomerService.php` `112c1328…4d08`; `DomainError.php` `4acdc8b0…91ea`; `LegacyReprovisionService.php` `09d01d74…4952`; `plan.php` `91b8ae11…38ea`; `customers.php` / `register.php`: see `harness/integrity.txt` (after the EOL restoration).
+- Product fingerprint (system, install, ui, docs pack, dev/test, root *.php): A1 `6ff47e19…` → final `d3136afb33684562d421e6faffc2dd31f689e116662457b37f6326beb96b5b38` (1 634 files).
+- Manifest 42/42 OK; SourceGuard pins 23/23 match, no re-pin; no schema / migration change.
+- Secret sweep (known lab secret values + private-key markers) over every committed file of the U0 work: 0 hits; no fixture password in any evidence file.
+- Cleanup: 0 containers / networks / volumes of `nuxbill-reseller-test`, no QEMU, throwaway credential file deleted.
+- Git: branch `wp9/red-team-rc`, no upstream, nothing pushed / merged / deployed; protected remote refs unchanged (`feat` / `wp8` `704031c6`, `main` `500d3a2d`, `wp7` `8e7f0e1c`, `wp6c` `757d8de9`, `hotfix` `6d4f3f96`); no remote `wp9` branch.
+
+### U0.12 Remaining blockers (classified)
+| ID | Blocker | Class | Needs |
+|---|---|---|---|
+| OBS-1 (overall) | identity collisions | **PRODUCTION BLOCKER** until the owner rules on this evidence | owner review of §U0 |
+| D-U0-R1 | grandfathered collisions: reverse-direction activation overwrite TEST-PROVEN; legacy unassigned colliders overwrite each other (upstream) | **HIGH, PRODUCTION BLOCKER** (part of OBS-1 / L-A5-2) | decision: run the read-only survey (`dev/wp9/identity_survey.sql`) on an approved copy + operator clean-up plan, and/or an activation-time collision refusal (WP5A behaviour change) and/or U1–U4 |
+| D-U0-R2 | plugins / direct DB writers bypass every application lock | known (PLAN §8, OD-W9-9) | plugin boundary decision / U3–U4 |
+| D-U0-R3 | availability limits §U0.8 (global lock, unindexed scans, 1 000-row bound, leftover RADIUS rows) | operational | WP10 load evidence; any index is a schema decision |
+| N-07 | voucher code in clear in the server log (`target=`) incl. the new refusal reasons | LOW-MEDIUM (§A1.9) | WP9-D |
+| O-U0-1 | pre-fix A5: the voucher-only grant reported `GRANTED` (voucher consumed) while the owned customer renamed into the code kept its own policy — consistent with the WP8 device guard refusing the voucher's device write for an owned name; whether the voucher received any policy rows was **not measured**. After U0 this interleaving is refused through application writers | observation, pre-existing, unverified | owner classification |
+| — | A2-R `UNVERIFIED_SECURITY_RISK — PRODUCTION BLOCKER`; P1–P5 policies; NEW-7; NEW-8; plugins; WP1-CHECK; T1-B…T4 rows outside identity | unchanged | as before |
+
+T1-B … T4: only the identity-related rows were in scope (§12 #25 OBS-1, #13 voucher bypass parts, HTTP P2 / P4) and are covered above; T3 (PWA) and T4 (CHR) are not needed — no UI and no RADIUS-write / NAS-contract change (U0 adds RADIUS **reads** only). No other T1-B…T4 row was executed.
+
+### U0.13 Final acceptance audit (Definition of Done + PLAN §16; protocol text unavailable)
+| DoD / PLAN §16 item | Status |
+|---|---|
+| Requested scope (U0-0…U0-5, related V1 / V2 / V4 / reverse) implemented, nothing knowingly omitted | DONE — except items that need a new decision (§U0.12) |
+| No unauthorised adjacent work | DONE — no WP10, no CHR, no schema, no policy change, no V4 generation-policy change, no activation change |
+| Test-first; failed / aborted runs kept | DONE (`evidence/u0/pre`, kept run folders) |
+| Both engines, counts per engine; no silent pass | DONE; incomplete itemised, not counted |
+| Negative cases with positive controls; AM-W9-2 no-unauthorised-change criterion | DONE (state checksums, policy integrity per identity) |
+| Concurrency with real parallel processes, RR and RC | DONE |
+| Docs updated (design §9, PLAN notes, integration model §9, this report, progress ledger) | DONE |
+| Secrets / dirty tree / protected refs / cleanup | DONE (§U0.11) |
+| Known risks listed | DONE (§U0.12, §U0.8) |
+| Production untouched | DONE — `PRODUCTION_NOT_AUTHORIZED` |
+| Owner-named protocol text | NOT AVAILABLE — not claimed |
+
+### U0.14 Result
+**`WP9_U0_END_TO_END_FINAL_ACCEPTANCE_CANDIDATE`** — U0-0…U0-5 complete and test-proven on MariaDB and MySQL (RR and RC); V1 and V2 **closed for application writers**, V4 security effect closed; open, owner-decision blockers: grandfathered collisions incl. the TEST-PROVEN reverse-direction overwrite (D-U0-R1), plugins / direct DB (D-U0-R2), availability limits (D-U0-R3), N-07. **OBS-1 remains a PRODUCTION BLOCKER**; A2-R unchanged. `PRODUCTION_NOT_AUTHORIZED` — `STOPPED_WAITING_OWNER_REVIEW`.

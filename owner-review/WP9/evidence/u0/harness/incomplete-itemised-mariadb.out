@@ -1,0 +1,610 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+I...I..
+
+Time: 00:08.044, Memory: 16.00 MB
+
+There were 104 incomplete tests:
+
+1) Reseller\Tests\Integration\Wp8\AccountingTimeLabTest::testTheLiveChrSessionFollowsTheTimeContract
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/AccountingTimeLabTest.php:39
+
+2) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateAHealthyLiveSessionDuplicateIsRejectedByCheckrad
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CheckradGateTest.php:41
+
+3) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateBLostStopGoneSessionAllowsLoginAndKeepsHistory
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CheckradGateTest.php:41
+
+4) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateCAccountingLostLiveSessionStillProtected
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CheckradGateTest.php:41
+
+5) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpGateDRouterSnmpUnreachableDecisionFailsOpen
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CheckradGateTest.php:41
+
+6) Reseller\Tests\Integration\Wp8\CheckradGateTest::testFaultWalkGateDSnmpClientUnavailableFailsOpen
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CheckradGateTest.php:41
+
+7) Reseller\Tests\Integration\Wp8\CheckradGateTest::testFaultErrorGateDCheckradErrorFailsOpen
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CheckradGateTest.php:41
+
+8) Reseller\Tests\Integration\Wp8\CheckradGateTest::testOtherGateENoNasVerificationLostStopLocksOut
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CheckradGateTest.php:41
+
+9) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpHotspotShared1
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CheckradGateTest.php:41
+
+10) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpHotspotShared2
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CheckradGateTest.php:41
+
+11) Reseller\Tests\Integration\Wp8\CheckradGateTest::testSnmpHotspotShared1AccountingLost
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CheckradGateTest.php:41
+
+12) Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testPppoeDisconnectAckSessionGoneStopWrittenSingleRequest
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CoaDisconnectTest.php:33
+
+13) Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testHotspotDisconnectAckAndReinterception
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CoaDisconnectTest.php:33
+
+14) Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testRateLimitCoaChangesTheEffectiveSessionRate
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CoaDisconnectTest.php:33
+
+15) Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testAddressAndPoolChangesNeedDisconnectAndReauthentication
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CoaDisconnectTest.php:33
+
+16) Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testNoResponseGivesUnknownAfterIdenticalRetransmissionsAndNoSuccess
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CoaDisconnectTest.php:33
+
+17) Reseller\Tests\Integration\Wp8\CoaDisconnectTest::testErrorCause406Investigation
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/CoaDisconnectTest.php:33
+
+18) Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testA_FirstLoginBaselineWindow
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/ConcurrentFirstLoginGateTest.php:58
+
+19) Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testB0_ConcurrentSameNas
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/ConcurrentFirstLoginGateTest.php:58
+
+20) Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testBscan_StaggeredSecondLogin
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/ConcurrentFirstLoginGateTest.php:58
+
+21) Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testC_LostAccountingStartWindow
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/ConcurrentFirstLoginGateTest.php:58
+
+22) Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testE1_StaleRowAndSnmpFailureConcurrent
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/ConcurrentFirstLoginGateTest.php:58
+
+23) Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testE2_StaleRowAndHealthySnmpConcurrent
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/ConcurrentFirstLoginGateTest.php:58
+
+24) Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGateTest::testE3_MissingAccountingAndSnmpFailureConcurrent
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/ConcurrentFirstLoginGateTest.php:58
+
+25) Reseller\Tests\Integration\Wp8\DriverContractLabTest::testTheTemporaryApiCredentialIsLeastPrivilegeAndSufficient
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+26) Reseller\Tests\Integration\Wp8\DriverContractLabTest::testHotspotPlanAndUserContracts
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+27) Reseller\Tests\Integration\Wp8\DriverContractLabTest::testHotspotLocalLoginIsNotRadiusAndTheSessionMethodsWork
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+28) Reseller\Tests\Integration\Wp8\DriverContractLabTest::testPppoeProfilePoolAndSecretContracts
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+29) Reseller\Tests\Integration\Wp8\DriverContractLabTest::testPppoeLocalDialIsNotRadiusAndRemovalAndExpiryWork
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+30) Reseller\Tests\Integration\Wp8\DriverContractLabTest::testARadiusSubscriberStillAuthenticatesThroughRadiusWithItsOwnAccountingRow
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+31) Reseller\Tests\Integration\Wp8\DriverContractLabTest::testVpnApiObjectsAndNatContractsStayInsideTheTestRules
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+32) Reseller\Tests\Integration\Wp8\DriverContractLabTest::testApiUnavailableAndRouterAddressWithoutPort
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+33) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testDirectDriverGrantsAreRefusedForTheResellerOwnedCustomer
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+34) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testNameCollisionsWithTheOwnedCustomersKey
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+35) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testTheLegacyRechargeFunnelCollisionLeavesTheOwnedCustomerUntouched
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+36) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testALocalSecretNeverMasksAnOwnedRadiusSubscriber
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+37) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testThePermittedPathWorksAndThePermitEndsAfterSuccessAndFailure
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+38) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testThePermittedPathOnAnOwnedPppoeIdentityAndThePermitEnds
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+39) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testTheLegacyRechargeFunnelRefusesTheOwnedCustomer
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+40) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testAVoucherOnlyGrantWithTheOwnedUsernameIsRefused
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+41) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testA5RemovalPathsKeepTheLiveLocalSessionOfTheOwnedCustomer
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+42) Reseller\Tests\Integration\Wp8\DriverFailClosedLabTest::testCanonicalCronExpiryOfTheOwnedCustomerIsAllowed
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8DriverLabCase.php:98
+
+43) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill1and6FreeRadiusUnreachableAndAuthenticationTimeout
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+44) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill2RadiusDatabaseFailureBeforeCommit
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+45) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill3UncertainRadiusCommitGoesToReconciliation
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+46) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill4NasUnavailableForDisconnect
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+47) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill5CoaIncomingBlocked
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+48) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill7LostAccountingStopAndSimultaneousUse
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+49) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill7GuardLostStopReloginIsAcceptedWithoutAnyRepair
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+50) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill8RouterOsApiUnavailable
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+51) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill9DisconnectProcessedButResponseLost
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+52) Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill10PathRecoveryLeavesNoDrillResidue
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+53) Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testNasClientsComeFromTheNasTableWithoutAnyHardenedClientPolicy
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Integration/Wp8/FreeRadiusSqlClientTest.php:46
+
+54) Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testMa1MissingMessageAuthenticatorGetsNoResponse
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Integration/Wp8/FreeRadiusSqlClientTest.php:46
+
+55) Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testMa2InvalidMessageAuthenticatorIsDiscardedBeforeAuthorization
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Integration/Wp8/FreeRadiusSqlClientTest.php:46
+
+56) Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testMa3ValidMessageAuthenticatorKeepsNormalPapAndChapBehaviour
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Integration/Wp8/FreeRadiusSqlClientTest.php:46
+
+57) Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testAccountingWithoutMessageAuthenticatorStillWritesStartInterimStop
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Integration/Wp8/FreeRadiusSqlClientTest.php:46
+
+58) Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testPppoePoolStaticAddressRateAndSimultaneousUseOnTheSqlClient
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Integration/Wp8/FreeRadiusSqlClientTest.php:46
+
+59) Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testExpirationIsEvaluatedInTheApplicationTimeZone
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Integration/Wp8/FreeRadiusSqlClientTest.php:46
+
+60) Reseller\Tests\Integration\Wp8\FreeRadiusSqlClientTest::testTimeAndDataQuotasPerPeriodKeepTheAccountingHistory
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Integration/Wp8/FreeRadiusSqlClientTest.php:46
+
+61) Reseller\Tests\Integration\Wp8\HotspotEquivalenceGateTest::testEquivalentSpellingsNeverOpenAnExtraHotspotSession
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/HotspotEquivalenceGateTest.php:31
+
+62) Reseller\Tests\Integration\Wp8\HotspotEquivalenceGateTest::testSharedUsersTwoAdmitsTwoStoredSpellingSessionsAndNoVariant
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/HotspotEquivalenceGateTest.php:31
+
+63) Reseller\Tests\Integration\Wp8\OptionGGateTest::testDiscriminatorPppoeVersusHotspot
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+64) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateAFirstLoginNoVerification
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+65) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateBDuplicateRejectedByTheGuardBackstop
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+66) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateCLostStopGoneSessionAllowedHistoryUnchanged
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+67) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateDAccountingLostLiveSessionRejected
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+68) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateESnmpUnreachableRejects
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+69) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateFSnmpClientUnavailableRejects
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+70) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateGWrongCommunityRejects
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+71) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateHMissingCredentialsRejects
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+72) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateHUnknownNasAndMalformedInput
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+73) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedGateIMultipleNas
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+74) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedHostileUsernames
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+75) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedHotspotShared1
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+76) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedHotspotShared2
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+77) Reseller\Tests\Integration\Wp8\OptionGGateTest::testShippedHotspotShared1AccountingLost
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+78) Reseller\Tests\Integration\Wp8\OptionGGateTest::testFunctionalGateBStockLayerRejectsFirst
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+79) Reseller\Tests\Integration\Wp8\OptionGGateTest::testFunctionalSnmpUnreachableStockFailsOpenGuardRejects
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/OptionGGateTest.php:40
+
+80) Reseller\Tests\Integration\Wp8\PortLimitGateTest::testGatePppoePortLimit1IsNotEnforcedByRouterOs
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/PortLimitGateTest.php:36
+
+81) Reseller\Tests\Integration\Wp8\PortLimitGateTest::testGatePppoePortLimit1WithAccountingLostIsNotEnforcedByRouterOs
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/PortLimitGateTest.php:36
+
+82) Reseller\Tests\Integration\Wp8\PortLimitGateTest::testObservationPppProfileOnlyOne
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/PortLimitGateTest.php:36
+
+83) Reseller\Tests\Integration\Wp8\PortLimitGateTest::testGateHotspotPortLimit1
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/PortLimitGateTest.php:36
+
+84) Reseller\Tests\Integration\Wp8\PortLimitGateTest::testGateHotspotPortLimit2
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/PortLimitGateTest.php:36
+
+85) Reseller\Tests\Integration\Wp8\PortLimitGateTest::testGateHotspotPortLimit1WithAccountingLost
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/PortLimitGateTest.php:36
+
+86) Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeDynamicPoolRateDirectionSessionAndAccounting
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/RealAaaTest.php:27
+
+87) Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeStaticAddressIsAssignedExactlyAndNoPoolIsUsed
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/RealAaaTest.php:27
+
+88) Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeSimultaneousUseAllowsOneSession
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/RealAaaTest.php:27
+
+89) Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeNegativeCases
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/RealAaaTest.php:27
+
+90) Reseller\Tests\Integration\Wp8\RealAaaTest::testPppoeSessionEndsAtExpirationAndReauthenticationIsRefused
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/RealAaaTest.php:27
+
+91) Reseller\Tests\Integration\Wp8\RealAaaTest::testHotspotHttpChapLoginRateAccountingLogoutAndReinterception
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/RealAaaTest.php:27
+
+92) Reseller\Tests\Integration\Wp8\RealAaaTest::testHotspotSessionLimitAndExpiration
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/RealAaaTest.php:27
+
+93) Reseller\Tests\Integration\Wp8\RealLifecycleTest::testRenewThenChangePlanRateThenChangePlanPool
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+94) Reseller\Tests\Integration\Wp8\RealLifecycleTest::testExpiryOnTheNasThenReactivate
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+95) Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+96) Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testPppoeRenameEndsTheOldSessionAndTheNewNameWorks
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+97) Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testHotspotOldSessionsOnTwoNasAreBothEnded
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+98) Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testPppoeUsernameSetAndClearedEndTheFormerKeySession
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+99) Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testCaseOnlyRenameEndsThePreRenameSessionAndKeepsThePolicy
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+100) Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testCoaNotAcceptedIsUnconfirmedAndVisibleInDrift
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+101) Reseller\Tests\Integration\Wp8\RenameOldSessionLabTest::testLostAccountingStartIsNoAccountingEvidenceNotConfirmed
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+102) Reseller\Tests\Integration\Wp8\ResellerBusinessFlowTest::testAToBToCToSalesCustomerActivationOnTheRealNasConservesValue
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Support/Wp8ActivationLabCase.php:44
+
+103) Reseller\Tests\Integration\Wp8\RouterOsClosureTest::testRouterOs7245AuthenticatesAccountsAndDisconnectsUnderTheHardenedPolicy
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Integration/Wp8/RouterOsClosureTest.php:38
+
+104) Reseller\Tests\Integration\Wp8\UsernameEquivalenceGateTest::testEquivalentSpellingsNeverHoldTwoSessions
+WP8 real-NAS lab not running (dev/wp8/lab.sh up; dev/wp8/lab.sh test)
+
+/repo/tests/Support/Wp8LabHelpers.php:31
+/repo/tests/Integration/Wp8/UsernameEquivalenceGateTest.php:29
+
+OK, but there were issues!
+Tests: 7, Assertions: 95, Incomplete: 104.

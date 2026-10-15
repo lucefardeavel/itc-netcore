@@ -1,0 +1,18 @@
+manifest 42/42 OK
+SourceGuard pins 23 match 23
+system/autoload/Reseller/Domain/CustomerIdentity.php
+system/autoload/Reseller/Domain/CustomerService.php
+system/autoload/Reseller/Domain/DomainError.php
+system/autoload/Reseller/Domain/LegacyReprovisionService.php
+system/autoload/Reseller/Domain/VoucherRedemptionService.php
+system/controllers/customers.php
+system/controllers/plan.php
+system/controllers/register.php
+704031c61296f4975f1d4e51531973d67e5f0a9b	refs/heads/feat/reseller-system-v1
+6d4f3f962482b6e125429da7ae459ae8dfd4214c	refs/heads/hotfix/pace-xhr-csrf
+500d3a2d15003efeed6e0aad639c13d08101c3b1	refs/heads/main
+757d8de969e98787a270facb956a4c543fec7eaa	refs/heads/wp6c/mobile-adaptive-ux
+8e7f0e1c024e6c319b5088896e001555d6c4f079	refs/heads/wp7/staff-pwa
+704031c61296f4975f1d4e51531973d67e5f0a9b	refs/heads/wp8/integration-poc
+71edaeaa5bbb5cf921fe288efb65fcd638ec55a6d015d348856064126b065ad2  system/controllers/customers.php
+e1cfaf981e1a08210cfddbf684b11cf114f559a3ce4b3bbab5977d49e271f517  system/controllers/register.php
