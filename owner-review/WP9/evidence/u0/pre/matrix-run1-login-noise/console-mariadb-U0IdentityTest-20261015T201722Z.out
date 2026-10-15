@@ -1,0 +1,401 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/pre/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox tests/Integration/Wp9/U0IdentityTest.php
+start: 2026-10-15T20:17:22Z
+ Container nuxbill-reseller-test-php82-run-3316784244d2 Creating 
+ Container nuxbill-reseller-test-php82-run-3316784244d2 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.FFF.FFFFFFFFFF.FFF.FFFF..FF.FFFFF.FF.FFFF..FF.FFFF.....FFFF.FF.. 65 / 86 ( 75%)
+................F..FF                                             86 / 86 (100%)
+
+Time: 00:21.419, Memory: 10.00 MB
+
+U0Identity (Reseller\Tests\Integration\Wp9\U0Identity)
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs customer username (other case)"
+ ✘ Every acquirer is refused for every identity class with data set "P1 Admin vs customer PPPoE username (cross-field)"
+   │
+   │ P1 Admin vs customer PPPoE username (cross-field): refused "CREATED 11"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P1 Admin vs stored leading-space username"
+   │
+   │ P1 Admin vs stored leading-space username: refused "CREATED 13"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P1 Admin vs stored trailing-TAB PPPoE username"
+   │
+   │ P1 Admin vs stored trailing-TAB PPPoE username: refused "CREATED 15"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs accent"
+ ✘ Every acquirer is refused for every identity class with data set "P1 Admin vs live voucher-only identity"
+   │
+   │ P1 Admin vs live voucher-only identity: refused "CREATED 17"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P1 Admin vs CLAIMED voucher"
+   │
+   │ P1 Admin vs CLAIMED voucher: refused "CREATED 18"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P1 Admin vs voucher-only recharge row"
+   │
+   │ P1 Admin vs voucher-only recharge row: refused "CREATED 19"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P1 Admin vs leftover RADIUS rows"
+   │
+   │ P1 Admin vs leftover RADIUS rows: refused "CREATED 20"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P1 Agent vs customer PPPoE username (cross-field)"
+   │
+   │ P1 Agent vs customer PPPoE username (cross-field): refused "CREATED 22"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P1 Agent vs live voucher-only identity"
+   │
+   │ P1 Agent vs live voucher-only identity: refused "CREATED 23"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P1 Agent vs leftover RADIUS rows"
+   │
+   │ P1 Agent vs leftover RADIUS rows: refused "CREATED 24"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P1 Sales vs customer PPPoE username (cross-field)"
+   │
+   │ P1 Sales vs customer PPPoE username (cross-field): refused "CREATED 26"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P1 Sales vs live voucher-only identity"
+   │
+   │ P1 Sales vs live voucher-only identity: refused "CREATED 27"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P1 Sales vs leftover RADIUS rows"
+   │
+   │ P1 Sales vs leftover RADIUS rows: refused "CREATED 28"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs customer username (other case)"
+ ✘ Every acquirer is refused for every identity class with data set "P2 vs customer PPPoE username (cross-field)"
+   │
+   │ P2 vs customer PPPoE username (cross-field): refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P2 vs stored leading-space username"
+   │
+   │ P2 vs stored leading-space username: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P2 vs stored trailing-TAB PPPoE username"
+   │
+   │ P2 vs stored trailing-TAB PPPoE username: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs accent"
+ ✘ Every acquirer is refused for every identity class with data set "P2 vs live voucher-only identity"
+   │
+   │ P2 vs live voucher-only identity: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P2 vs CLAIMED voucher"
+   │
+   │ P2 vs CLAIMED voucher: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P2 vs voucher-only recharge row"
+   │
+   │ P2 vs voucher-only recharge row: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P2 vs leftover RADIUS rows"
+   │
+   │ P2 vs leftover RADIUS rows: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs customer PPPoE username (cross-field)"
+ ✘ Every acquirer is refused for every identity class with data set "P3 vs stored leading-space username"
+   │
+   │ P3 vs stored leading-space username: refused "GRANTED"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P3 vs stored trailing-TAB PPPoE username"
+   │
+   │ P3 vs stored trailing-TAB PPPoE username: refused "GRANTED"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs accent"
+ ✘ Every acquirer is refused for every identity class with data set "P3 vs live voucher-only identity"
+   │
+   │ P3 vs live voucher-only identity: refused "GRANTED"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P3 vs CLAIMED voucher"
+   │
+   │ P3 vs CLAIMED voucher: refused "GRANTED"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P3 vs voucher-only recharge row"
+   │
+   │ P3 vs voucher-only recharge row: refused "GRANTED"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P3 vs leftover RADIUS rows"
+   │
+   │ P3 vs leftover RADIUS rows: refused "GRANTED"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P4 vs customer username (other case)"
+   │
+   │ P4 vs customer username (other case): no business / identity / RADIUS change {"business":["tbl_users"],"audit":["tbl_logs"]}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'tbl_users',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:166
+   │
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs customer PPPoE username (cross-field)"
+ ✘ Every acquirer is refused for every identity class with data set "P4 vs stored leading-space username"
+   │
+   │ P4 vs stored leading-space username: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P4 vs stored trailing-TAB PPPoE username"
+   │
+   │ P4 vs stored trailing-TAB PPPoE username: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs accent"
+ ✘ Every acquirer is refused for every identity class with data set "P4 vs live voucher-only identity"
+   │
+   │ P4 vs live voucher-only identity: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P4 vs CLAIMED voucher"
+   │
+   │ P4 vs CLAIMED voucher: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P4 vs voucher-only recharge row"
+   │
+   │ P4 vs voucher-only recharge row: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P4 vs leftover RADIUS rows"
+   │
+   │ P4 vs leftover RADIUS rows: refused "HTTP 302"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs customer PPPoE username (cross-field)"
+ ✘ Every acquirer is refused for every identity class with data set "P5 vs stored leading-space username"
+   │
+   │ P5 vs stored leading-space username: refused "ACCEPTED NO_ACTIVE_PLAN"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P5 vs stored trailing-TAB PPPoE username"
+   │
+   │ P5 vs stored trailing-TAB PPPoE username: refused "ACCEPTED NO_ACTIVE_PLAN"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs accent"
+ ✘ Every acquirer is refused for every identity class with data set "P5 vs live voucher-only identity"
+   │
+   │ P5 vs live voucher-only identity: refused "ACCEPTED NO_ACTIVE_PLAN"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P5 vs CLAIMED voucher"
+   │
+   │ P5 vs CLAIMED voucher: refused "ACCEPTED NO_ACTIVE_PLAN"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P5 vs voucher-only recharge row"
+   │
+   │ P5 vs voucher-only recharge row: refused "ACCEPTED NO_ACTIVE_PLAN"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P5 vs leftover RADIUS rows"
+   │
+   │ P5 vs leftover RADIUS rows: refused "ACCEPTED NO_ACTIVE_PLAN"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs accent"
+ ✘ Every acquirer is refused for every identity class with data set "P6 vs live voucher-only identity"
+   │
+   │ P6 vs live voucher-only identity: refused "GRANTED voucher=1"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P6 vs CLAIMED voucher"
+   │
+   │ P6 vs CLAIMED voucher: refused "GRANTED voucher=1"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P6 vs voucher-only recharge row"
+   │
+   │ P6 vs voucher-only recharge row: refused "GRANTED voucher=1"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P6 vs leftover RADIUS rows"
+   │
+   │ P6 vs leftover RADIUS rows: refused "GRANTED voucher=1"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✔ Every acquirer is refused for every identity class with data set "P6 RADIUS vs customer PPPoE username (cross-field)"
+ ✘ Every acquirer is refused for every identity class with data set "P6 RADIUS vs live voucher-only identity"
+   │
+   │ P6 RADIUS vs live voucher-only identity: refused "GRANTED voucher=1"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✘ Every acquirer is refused for every identity class with data set "P6 RADIUS vs leftover RADIUS rows"
+   │
+   │ P6 RADIUS vs leftover RADIUS rows: refused "GRANTED voucher=1"
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:164
+   │
+ ✔ A fresh name is accepted with data set "P1 Admin"
+ ✔ A fresh name is accepted with data set "P1 Agent"
+ ✔ A fresh name is accepted with data set "P1 Sales"
+ ✔ A fresh name is accepted with data set "P2"
+ ✔ A fresh name is accepted with data set "P3"
+ ✔ A fresh name is accepted with data set "P4"
+ ✔ A fresh name is accepted with data set "P5"
+ ✔ A fresh name is accepted with data set "P6"
+ ✔ A fresh name is accepted with data set "P6 RADIUS"
+ ✔ An unused voucher code is not an identity with data set "P1 Admin"
+ ✔ An unused voucher code is not an identity with data set "P1 Agent"
+ ✔ An unused voucher code is not an identity with data set "P1 Sales"
+ ✔ An unused voucher code is not an identity with data set "P2"
+ ✔ An unused voucher code is not an identity with data set "P3"
+ ✔ An unused voucher code is not an identity with data set "P4"
+ ✔ An unused voucher code is not an identity with data set "P5"
+ ✔ An unused voucher code is not an identity with data set "P6"
+ ✔ An unused voucher code is not an identity with data set "P6 RADIUS"
+ ✘ Case only self rename is accepted
+   │
+   │ P4: a case-only rename of the customer itself (own RADIUS rows) is accepted
+   │ Failed asserting that false is true.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:206
+   │
+ ✔ Same customer username equals pppoe is accepted
+ ✔ Grandfathered duplicates stay editable
+ ✘ P 5 revert never restores a name taken meanwhile
+   │
+   │ P5r: one holder of X ["HTTP 302","REFUSED REPROVISION_FAILED"]
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:259
+   │
+ ✘ Public registration refusal is generic
+   │
+   │ a voucher identity and a customer are refused with the same generic message {"customer":{"status":200,"location":null,"account_already_exists":true},"voucher identity":{"status":302,"location":"http:\/\/127.0.0.1:21953\/?_route=login","account_already_exists":false}}
+   │ Failed asserting that false is true.
+   │
+   │ /repo/tests/Integration/Wp9/U0IdentityTest.php:278
+   │
+
+FAILURES!
+Tests: 86, Assertions: 153, Failures: 48.
+
+exit=1 end: 2026-10-15T20:17:46Z

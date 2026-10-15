@@ -1,0 +1,8 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/pre/obs-mariadb.jsonl php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox tests/Integration/Wp9/U0RaceTest.php
+start: 2026-10-15T20:12:21Z
+ Container nuxbill-reseller-test-php82-run-d53d62049a65 Creating 
+ Container nuxbill-reseller-test-php82-run-d53d62049a65 Created 
+
+Fatal error: Cannot make non static method Reseller\Tests\Support\Wp2HttpTestCase::customer() static in class Reseller\Tests\Integration\Wp9\U0Fixture in /repo/tests/Integration/Wp9/U0Fixture.php on line 175
+
+exit=255 end: 2026-10-15T20:12:23Z

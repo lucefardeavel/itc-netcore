@@ -27,10 +27,10 @@ case "${1:-}" in
     set -a; . "$STATE"; set +a
     mkdir -p "../../$EVID"
     log="../../$EVID/console-$engine-$(basename "$file" .php)-$(date -u +%Y%m%dT%H%M%SZ).out"
-    { echo "command: docker compose run --rm -e WP1_DB_HOST=$engine -e WP9_EVIDENCE=/repo/$EVID/obs-$engine.jsonl php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox $file"; echo "start: $(date -u +%FT%TZ)"; } > "$log"
+    { echo "command: docker compose run --rm -e WP1_DB_HOST=$engine -e WP9_EVIDENCE=/repo/$EVID/obs-$engine.jsonl -e WP9_ISOLATION=${WP9_ISOLATION:-} php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox ${WP9_FILTER:+--filter $WP9_FILTER} $file"; echo "start: $(date -u +%FT%TZ)"; } > "$log"
     set +e
-    docker compose run --rm -e WP1_DB_HOST="$engine" -e WP9_EVIDENCE="/repo/$EVID/obs-$engine.jsonl" php82 \
-      tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox "$file" >> "$log" 2>&1
+    docker compose run --rm -e WP1_DB_HOST="$engine" -e WP9_EVIDENCE="/repo/$EVID/obs-$engine.jsonl" -e WP9_ISOLATION="${WP9_ISOLATION:-}" php82 \
+      tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox ${WP9_FILTER:+--filter "$WP9_FILTER"} "$file" >> "$log" 2>&1
     rc=$?
     set -e
     echo "exit=$rc end: $(date -u +%FT%TZ)" >> "$log"

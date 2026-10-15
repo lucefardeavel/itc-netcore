@@ -1,0 +1,198 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/pre/obs-mysql.jsonl php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox tests/Integration/Wp9/U0RaceTest.php
+start: 2026-10-15T20:14:06Z
+ Container nuxbill-reseller-test-php82-run-237fc68d8f06 Creating 
+ Container nuxbill-reseller-test-php82-run-237fc68d8f06 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FFFFFFFFFFFFFFFFFFFFFF                                            22 / 22 (100%)
+
+Time: 00:30.266, Memory: 10.00 MB
+
+U0Race (Reseller\Tests\Integration\Wp9\U0Race)
+ ✘ A 1 voucher in flight versus p 1 creation and provisioning
+   │
+   │ A1 voucher in flight vs P1 create + provision: one identity, one holder {"P6":"GRANTED","P1":"CREATED 9","provision":"INV-6","voucher_status":"1"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:92
+   │
+ ✘ A 2 voucher in flight versus p 2 public registration
+   │
+   │ A2 voucher in flight vs P2 register: one identity, one holder {"P6":"GRANTED","P2":"HTTP 302","voucher_status":"1"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:102
+   │
+ ✘ A 3 voucher in flight versus p 3 voucher with new username
+   │
+   │ A3 voucher in flight vs P3 new username: one identity, one holder {"P6":"GRANTED","P3":"GRANTED","voucher_status":"1"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:113
+   │
+ ✘ A 4 voucher in flight versus p 4 rename into the name
+   │
+   │ A4 voucher in flight vs P4 rename into X: one identity, one holder {"P6":"GRANTED","P4":"HTTP 302","renamed":true,"voucher_status":"1"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:126
+   │
+ ✘ A 5 voucher in flight versus p 5 owned rename into the name
+   │
+   │ A5 voucher in flight vs P5 owned rename into X: one identity, one holder {"P6":"GRANTED","P5":"ACCEPTED DONE","renamed":true,"voucher_status":"1"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:141
+   │
+ ✘ B 1 p1 before commit versus voucher
+   │
+   │ B1 P1 paused before COMMIT vs voucher: one identity, one holder {"P1":"CREATED 14","P6":"GRANTED","p6_finished_while_P1_paused":true,"voucher_status":"1"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:176
+   │
+ ✘ B 2 p2 before insert versus voucher
+   │
+   │ B2 P2 paused at INSERT vs voucher: one identity, one holder {"P2":"HTTP 302","P6":"GRANTED","p6_finished_while_P2_paused":true,"voucher_status":"1"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:184
+   │
+ ✘ B 3 p3 before insert versus voucher
+   │
+   │ B3 P3 paused at INSERT vs voucher: one identity, one holder {"P3":"GRANTED","P6":"GRANTED","p6_finished_while_P3_paused":true,"voucher_status":"1"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:193
+   │
+ ✘ B 4 p4 before save versus voucher
+   │
+   │ B4 P4 (pppoe = X) paused at save vs voucher: one identity, one holder {"P4":"HTTP 302","P6":"GRANTED","p6_finished_while_P4_paused":true,"voucher_status":"1"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:202
+   │
+ ✘ B 5 p5 before write versus voucher
+   │
+   │ B5 P5 (pppoe = X) paused at write vs voucher: one identity, one holder {"P5":"ACCEPTED NO_ACTIVE_PLAN","P6":"GRANTED","p6_finished_while_P5_paused":true,"voucher_status":"1"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:210
+   │
+ ✘ C 1 voucher in flight versus an equal code with data set "case"
+   │
+   │ C1 voucher in flight vs equal code (case): one identity, one holder {"first":"GRANTED","second":"GRANTED","statuses":["1","1"]}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:230
+   │
+ ✘ C 1 voucher in flight versus an equal code with data set "accent"
+   │
+   │ C1 voucher in flight vs equal code (accent): one identity, one holder {"first":"GRANTED","second":"GRANTED","statuses":["1","1"]}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:230
+   │
+ ✘ C 1 voucher in flight versus an equal code with data set "trailing space"
+   │
+   │ C1 voucher in flight vs equal code (trailing space): one identity, one holder {"first":"GRANTED","second":"GRANTED","statuses":["1","1"]}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:230
+   │
+ ✘ C 2 simultaneous redemptions of equal codes
+   │
+   │ C2 simultaneous redemptions of equal codes: one identity, one holder {"outcomes":["GRANTED","GRANTED"]}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:242
+   │
+ ✘ D 1 p1 before commit versus p 2
+   │
+   │ D1 P1 paused before COMMIT vs P2 (upper case): one identity, one holder {"P1":"CREATED 19","P2":"HTTP 302"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:260
+   │
+ ✘ D 2 p1 before commit versus p 3
+   │
+   │ D2 P1 (pppoe = X) paused before COMMIT vs P3 new username X: one identity, one holder {"P1":"CREATED 21","P3":"GRANTED"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:278
+   │
+ ✘ D 3 p2 before insert versus p 3
+   │
+   │ D3 P2 paused at INSERT vs P3 (upper case): one identity, one holder {"P2":"HTTP 302","P3":"GRANTED"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:296
+   │
+ ✘ D 4 p4 before save versus p 1 cross field
+   │
+   │ D4 P4 (pppoe = X) paused at save vs P1 username X: one identity, one holder {"P4":"HTTP 302","P1":"CREATED 26"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:313
+   │
+ ✘ D 5 p5 before write versus p 1 cross field
+   │
+   │ D5 P5 (pppoe = X) paused at write vs P1 username X: one identity, one holder {"P5":"ACCEPTED NO_ACTIVE_PLAN","P1":"CREATED 28"}
+   │ Failed asserting that 2 is equal to 1 or is less than 1.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:61
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:330
+   │
+ ✘ G 1 p4 rename away versus voucher of the old name
+   │
+   │ G1 P4 rename X->Y paused vs voucher X: no other identity's RADIUS policy changed {"renamed_customer_password_is_its_own":false,"voucher_policy_is_its_own":false}
+   │ Failed asserting that false is true.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:62
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:360
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:370
+   │
+ ✘ G 2 p5 rename away versus voucher of the old name
+   │
+   │ G2 P5 rename X->Y paused vs voucher X: no other identity's RADIUS policy changed {"renamed_customer_password_is_its_own":true,"voucher_policy_is_its_own":false}
+   │ Failed asserting that false is true.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:62
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:360
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:380
+   │
+ ✘ G 3 p4 rename away versus p 1 creation of the old name
+   │
+   │ G3 P4 rename X->Y paused vs P1 create X + provision: no other identity's RADIUS policy changed {"renamed_customer_password_is_its_own":true,"new_customer_password_is_its_own":false}
+   │ Failed asserting that false is true.
+   │
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:62
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:360
+   │ /repo/tests/Integration/Wp9/U0RaceTest.php:390
+   │
+
+FAILURES!
+Tests: 22, Assertions: 76, Failures: 22.
+
+exit=1 end: 2026-10-15T20:14:38Z
