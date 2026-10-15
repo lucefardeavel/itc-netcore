@@ -1,0 +1,19 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/related/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0ReverseDirectionTest.php
+start: 2026-10-15T20:48:44Z
+ Container nuxbill-reseller-test-php82-run-47a0e2a30202 Creating 
+ Container nuxbill-reseller-test-php82-run-47a0e2a30202 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:01.796, Memory: 12.00 MB
+
+U0Reverse Direction (Reseller\Tests\Integration\Wp9\U0ReverseDirection)
+ ✔ A colliding owned identity cannot be created or renamed any more
+ ✔ Grandfathered colliding owned customer activation is characterised
+
+OK (2 tests, 29 assertions)
+exit=0 end: 2026-10-15T20:48:47Z

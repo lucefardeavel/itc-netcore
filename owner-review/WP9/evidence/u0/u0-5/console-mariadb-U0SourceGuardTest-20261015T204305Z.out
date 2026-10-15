@@ -1,0 +1,43 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-5/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp9/U0SourceGuardTest.php
+start: 2026-10-15T20:43:06Z
+ Container nuxbill-reseller-test-php82-run-3351f9a9d212 Creating 
+ Container nuxbill-reseller-test-php82-run-3351f9a9d212 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....F                                                               5 / 5 (100%)
+
+Time: 00:00.115, Memory: 12.00 MB
+
+U0Source Guard (Reseller\Tests\Unit\Wp9\U0SourceGuard)
+ ✔ Every acquiring write runs inside the identity lock
+ ✔ Checker detects a write moved out of its hold
+ ✔ Creation takes tree then identity then transaction
+ ✔ Customer identity only reads and never touches a device
+ ✘ Runtime named locks and seams
+   │
+   │ runtime named locks: tree, voucher username, identity
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    0 => 'nuxr_identity_',
+   │ -    1 => 'nuxr_tree_',
+   │ -    2 => 'nuxr_user_',
+   │ +    0 => 'nuxr_bop_',
+   │ +    1 => 'nuxr_identity_',
+   │ +    2 => 'nuxr_mig_',
+   │ +    3 => 'nuxr_tree_',
+   │ +    4 => 'nuxr_user_',
+   │  ]
+   │
+   │ /repo/tests/Unit/Wp9/U0SourceGuardTest.php:150
+   │
+
+FAILURES!
+Tests: 5, Assertions: 250, Failures: 1.
+
+exit=1 end: 2026-10-15T20:43:07Z

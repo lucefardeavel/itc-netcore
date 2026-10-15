@@ -1,0 +1,26 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-5/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0PerfTest.php
+start: 2026-10-15T20:45:44Z
+ Container nuxbill-reseller-test-php82-run-4b32587b82b9 Creating 
+ Container nuxbill-reseller-test-php82-run-4b32587b82b9 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+E                                                                   1 / 1 (100%)
+
+Time: 00:02.523, Memory: 10.00 MB
+
+U0Perf (Reseller\Tests\Integration\Wp9\U0Perf)
+ ✘ Observed cost of the identity lock by customer count
+   │
+   │ RuntimeException: exec failed:
+   │
+   │ /repo/tests/Support/AppServer.php:397
+   │ /repo/tests/Integration/Wp9/U0PerfTest.php:67
+   │
+
+ERRORS!
+Tests: 1, Assertions: 0, Errors: 1.
+
+exit=2 end: 2026-10-15T20:45:48Z

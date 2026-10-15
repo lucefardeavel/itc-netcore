@@ -232,3 +232,24 @@ How the owner's list maps onto the phases:
 | **D-U0-8** | Authorize phase **U0-0** (pre-fix characterisation with real writers), then U0-1…U0-5 one at a time | Owner's call |
 
 **`WP9_U0_DESIGN_READY_FOR_OWNER_REVIEW`** — U0 not implemented — `PRODUCTION_NOT_AUTHORIZED`.
+
+---
+
+## 9. Implementation record (2026-10-15, owner `WP9_U0_FULL_IMPLEMENTATION_AND_TESTING_AUTHORIZED`, D-U0-1 … D-U0-8 APPROVED)
+
+Cumulative addendum: §1–§8 above are the design as approved and are not edited. This section records how it was built and every point where the implementation refined it.
+
+| Design element | Implemented as | Refinement / note |
+|---|---|---|
+| `CustomerIdentity::hold` (§4.1) | `system/autoload/Reseller/Domain/CustomerIdentity.php`: `GET_LOCK('nuxr_identity_'.sha1(db)[0..20])`, `LogicException` inside a transaction, `LOCK_TIMEOUT` (`DomainError`) on timeout, a lock **error** (e.g. MySQL user-lock deadlock) → `IDENTITY_CHECK_UNAVAILABLE`; a transaction left open by the callback is rolled back before `RELEASE_LOCK` (R4 enforced); test seam `ActivationFaults::hit('identity.locked')` (no-op unless a test arms it) | the RADIUS connection is opened **before** `GET_LOCK` (a slow connect never extends the hold) |
+| `assertAvailable` (a)(b)(c) (§4.2) | `conflicts()` + `assertAvailable()`; (a) and (b) one bounded scan each of `tbl_customers`, `tbl_voucher`, `tbl_user_recharges`, then one collation comparison; (c) one indexed join per RADIUS policy table | every lookup carries a per-statement time bound (`MAX_EXECUTION_TIME(2000)` on MySQL, `SET STATEMENT max_statement_time=2 FOR` on MariaDB) — D-U0-2 "clear time limits"; the 1000-candidate bound per lookup kept from A1 (open availability limit); RADIUS **not configured** → (c) skipped, configured but unreachable → fail closed |
+| P6 (§4.3) | inside L-3: redeemable candidate? → `assertAvailable(code)` → `claim()`; grant outside | **refinement:** when no redeemable voucher exists (unknown, used, or the code's OWN `CLAIMED` row) the answer stays `NOT_VALID` without an identity check — keeps the WP5B contract (`VoucherRedemptionTest` "interrupted grant keeps the voucher claimed forever"); E15 waits 3 s, web 10 s (D-U0-5) |
+| P7 | `CustomerIdentity::conflicts()` without lock (unused codes are not identities) | message "…without matching an existing username…" |
+| P1 | `TreeSerialization::hold → CustomerIdentity::hold → Tx::run` (was `Tx::withTreeLock`) | I-5 for PPPoE (≤ 32 characters, no control character) in `validateCustomer` |
+| P2 | check + `$d->save()` under L-3 | refusal joins the existing validation-error form with "Account already exists" (identity taken) or "Failed to register" (busy / unavailable) — same response for a customer and a voucher identity (D-U0-4) |
+| P3 | L-2 → L-3 (check, claim, insert); grant outside | identity taken → `USERNAME_TAKEN`; unavailable → `REFUSED`; timeout → `DomainError LOCK_TIMEOUT` (as the L-2 timeout before) |
+| P4 | early checks exclude the customer itself (I-4; fixes the case-only false refusal); I-5 (username ≤ 45, PPPoE ≤ 32, no control character); only `$c->save()` of an **acquiring** edit runs under L-3 | `CustomerIdentity::acquired()` (new non-empty names that differ by bytes) / `keysOf()` (own exact + trimmed keys); the Wp5bSourceGuard identity-write shape is unchanged |
+| P5 / P5r | acquired names: `CustomerIdentity::hold(assertAvailable + Tx::run(write))` inside the tree lock; I-5 in `validate()`; `revert()` re-checks the old names under L-3 and writes nothing onto a name taken meanwhile → `REPROVISION_UNCONFIRMED` | — |
+| Lock order | L-1 → L-2 → L-3 → BEGIN; pre-existing `nuxr_bop_` (legacy balance idempotency) and `nuxr_mig_` (migration) never call an acquirer | static guard `tests/Unit/Wp9/U0SourceGuardTest.php` |
+
+Evidence, results and residuals: `REPORT.md` §U0, `U0_PROGRESS.md`, `evidence/u0/`.

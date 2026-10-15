@@ -1,0 +1,23 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-5/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/T1aLegacyPathsTest.php
+start: 2026-10-15T20:49:11Z
+ Container nuxbill-reseller-test-php82-run-e89f7058b502 Creating 
+ Container nuxbill-reseller-test-php82-run-e89f7058b502 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......                                                              6 / 6 (100%)
+
+Time: 00:10.815, Memory: 10.00 MB
+
+T1a Legacy Paths (Reseller\Tests\Integration\Wp9\T1aLegacyPaths)
+ ✔ P 2 public registration current behaviour
+ ✔ P 3 voucher with new username current behaviour
+ ✔ P 4 admin edit of an unassigned customer current behaviour
+ ✔ V 3 voucher code equal to an owned name is refused
+ ✔ V 2 customer created over a live voucher only identity
+ ✔ Bounded concurrent creation p 1 versus p 3
+
+OK (6 tests, 35 assertions)
+exit=0 end: 2026-10-15T20:49:24Z

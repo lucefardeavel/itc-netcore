@@ -1,0 +1,18 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-5/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/T1aVoucherV1Test.php
+start: 2026-10-15T20:45:55Z
+ Container nuxbill-reseller-test-php82-run-8880f055abaf Creating 
+ Container nuxbill-reseller-test-php82-run-8880f055abaf Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:02.520, Memory: 10.00 MB
+
+T1a Voucher V1 (Reseller\Tests\Integration\Wp9\T1aVoucherV1)
+ ✔ V 1 voucher code equal to an unassigned customers username
+
+OK (1 test, 3 assertions)
+exit=0 end: 2026-10-15T20:45:59Z

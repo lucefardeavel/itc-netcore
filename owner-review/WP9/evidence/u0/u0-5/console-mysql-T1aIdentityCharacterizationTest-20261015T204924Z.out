@@ -1,0 +1,24 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-5/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/T1aIdentityCharacterizationTest.php
+start: 2026-10-15T20:49:24Z
+ Container nuxbill-reseller-test-php82-run-a678ce2d4577 Creating 
+ Container nuxbill-reseller-test-php82-run-a678ce2d4577 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......                                                             7 / 7 (100%)
+
+Time: 00:05.934, Memory: 10.00 MB
+
+T1a Identity Characterization (Reseller\Tests\Integration\Wp9\T1aIdentityCharacterization)
+ ✔ Deployed identity column collations
+ ✔ Equality matrix of the identity columns
+ ✔ Equality under other collations
+ ✔ Php trim versus sql trim
+ ✔ Read only historical survey on synthetic duplicates
+ ✔ P 1 creation path current behaviour
+ ✔ P 5 rename path current behaviour
+
+OK (7 tests, 66 assertions)
+exit=0 end: 2026-10-15T20:49:31Z
