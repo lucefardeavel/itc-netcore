@@ -40,7 +40,7 @@ This is a short checklist for the session that executes WP9 after the next owner
 - **Commit:** one local commit of `PLAN.md` + `WP9_HANDOFF.md`. T0 evidence (`owner-review/WP9/evidence/t0/`) and `REPORT.md` (T0 section only) stay uncommitted.
 
 ## Next approvals expected (PLAN §18)
-1. **D-W9-R1:** T0 static / inert tests — **approved (rev 3)**.
+1. **D-W9-R1:** T0 static / inert tests — **approved (rev 3), executed and accepted** (`WP9_T0_STATIC_ACCEPTED_WITH_NOT_TESTED`). Afterwards T0+ (PHP) and T1-A were authorized and executed; T1-A stopped at the V1 stop trigger (see `REPORT.md`). *Status note 2026-10-15; the rev-3 text is otherwise unchanged.*
 2. **D-W9-R2:** T1–T3 harness, HTTP and PWA lab.
 3. **D-W9-R3 … R13:** A2-R implementation scope, the OBS-1 invariant and U0, the policies P1–P5, NEW-7 / NEW-8 options, the plugin policy, the re-pins, CHR execution, and the commit of the plan.
 

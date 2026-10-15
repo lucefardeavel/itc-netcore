@@ -1,0 +1,81 @@
+T0-09 command: docker run --rm --network none --read-only --tmpfs /tmp:rw,nosuid,nodev,size=64m --cap-drop ALL --security-opt no-new-privileges --pids-limit 64 --memory 512m --user 65534:65534 -v /srv/phpnuxbill/dev:/repo:ro -w /repo nuxbill-reseller-test-php82:latest php tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox tests/Unit/Wp3a/SourceGuardTest.php tests/Unit/Wp4/AdmissionSourceTest.php tests/Unit/Wp4/HotspotAdmissionSourceTest.php tests/Unit/Wp4/HotspotSpellingSourceTest.php tests/Unit/Wp4/RadiusSourceGuardTest.php tests/Unit/Wp4/SessionGuardSourceTest.php tests/Unit/Wp8/DriverClassificationSourceTest.php tests/Unit/Wp8/LegacyRemovalSourceTest.php
+start: 2026-10-15T16:23:46Z HEAD 143c4cd10ae7cc93d42e150b5641f6976e3342a9
+---
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...................................................               51 / 51 (100%)
+
+Time: 00:00.824, Memory: 26.00 MB
+
+Admission Source (Reseller\Tests\Unit\Wp4\AdmissionSource)
+ ✔ Claim is the last step before the accept and only after the verification
+ ✔ Only atomic statements and no destructive sql
+ ✔ Every sql result is checked against a sentinel
+ ✔ Accounting transitions are conditional and token bound
+ ✔ Schema upgrade is additive and radius sql unchanged
+
+Driver Classification Source (Reseller\Tests\Unit\Wp8\DriverClassificationSource)
+ ✔ Class a stays empty
+ ✔ Every driver grant method starts with the default deny guard
+ ✔ The call site inventory is pinned and every grant or removal is gated
+ ✔ The recharge funnel refuses before any write
+ ✔ The pre write checker detects mutations
+ ✔ The static mikrotik class has no caller
+ ✔ The checkers detect mutations
+
+Hotspot Admission Source (Reseller\Tests\Unit\Wp4\HotspotAdmissionSource)
+ ✔ The slots run only for hotspot after h 1 a and never for pppoe
+ ✔ Order identity age slots claim verifier late claim class
+ ✔ Claim v 2 is a precheck and one conditional update without a subquery
+ ✔ Strict mode only two releases and never of a pending slot by time or snmp
+ ✔ Every refusal is filtered and no radacct write or delete
+ ✔ Accounting is token bound and never revives or deletes
+ ✔ The stock simultaneous use check is skipped for hotspot only
+ ✔ The verifier module and program are fail closed and read only
+ ✔ Schema is additive and the only sql files are read only except the migration
+
+Hotspot Spelling Source (Reseller\Tests\Unit\Wp4\HotspotSpellingSource)
+ ✔ Hotspot only after the pppoe branch
+ ✔ Canonical bytes are compared never the collation
+ ✔ Every other outcome rejects like a wrong password
+ ✔ Nothing is written and request and authentication are untouched
+
+Legacy Removal Source (Reseller\Tests\Unit\Wp8\LegacyRemovalSource)
+ ✔ Every controller removal is gated before any effect
+ ✔ The three a 5 gates are exactly where the plan says
+ ✔ The checkers detect mutations
+
+Radius Source Guard (Reseller\Tests\Unit\Wp4\RadiusSourceGuard)
+ ✔ Virtual server requires message authenticator on access request only
+ ✔ Accounting history is never deleted or rewritten
+ ✔ No shell in any radius path
+ ✔ No interpolated sql in the endpoint and radius classes
+ ✔ Radius code makes no finance or billing writes
+ ✔ Nas secret is never rendered
+ ✔ Endpoint gate runs before any action
+ ✔ Package calls the device after saving the recharge
+
+Session Guard Source (Reseller\Tests\Unit\Wp4\SessionGuardSource)
+ ✔ The policy is the gate tested policy at the start of post auth
+ ✔ Discriminator key and decision are fail closed
+ ✔ Exec module has no shell no environment and a bounded timeout
+ ✔ Guard program keeps the gate tested logic
+ ✔ Stale sessions are never zapped and start scripts use the permanent files
+
+Source Guard (Reseller\Tests\Unit\Wp3a\SourceGuard)
+ ✔ Scan covers the runtime
+ ✔ Ledger has no update or delete path and one writer
+ ✔ Wallet writers
+ ✔ Reservation and transfer writers
+ ✔ No orm access to finance tables
+ ✔ Finance code is separated from legacy money and input
+ ✔ No entrypoint reaches the finance services
+ ✔ Fault hook is never assigned at runtime
+ ✔ No generic ledger writer
+ ✔ Accepted files are byte identical
+
+OK (51 tests, 37766 assertions)
+--- exit=0 end: 2026-10-15T16:23:49Z

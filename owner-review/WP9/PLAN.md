@@ -8,6 +8,7 @@
 | Nature of this file | Plan only. **It contains no test results.** `owner-review/WP9/REPORT.md` is not started. Every finding is a **static code-reading result**: none is a proven exploit, and none is proven safe (evidence levels §4.1) |
 | Revision log | **Rev 3:** §7.3 lock ordering redesigned (AM-W9-1); "no DB delta" replaced by the AM-W9-2 criterion everywhere; new §7.7 voucher namespace (AM-W9-3); §18 decision status; T0 execution mode (§13).<br>**Rev 1:** first plan, plus 14 cross-review corrections (log §17).<br>**Rev 2:**<br>• owner decisions recorded (§0);<br>• A2-R split into observations, hypotheses, exploitability, design and missing evidence (§6);<br>• OBS-1 invariant and separate uniqueness options (§7);<br>• plugin trust boundary (§8);<br>• NEW-7 / NEW-8 option studies (§9);<br>• owner-policy option matrix (§10);<br>• full N-01…N-17 table (§4);<br>• test plan staged under OD-W9-3 (§13);<br>• list of files and contracts that may change later (§15) |
 | Final state | Plan rev 3 for the T0 round; T0 results only in `REPORT.md` (T0 section) and `evidence/t0/` |
+| Status note (2026-10-15, after the rounds; history above unchanged) | **T0 was executed** (8/8 static checks PASS, 2 NOT TESTED; owner `WP9_T0_STATIC_ACCEPTED_WITH_NOT_TESTED`). **T0+** (PHP pure-unit / source-guard, owner `WP9_T0_PHP_COMPLETION_AUTHORIZED`) and **T1-A** (OBS-1 / voucher characterisation, owner `WP9_T1A_CHARACTERIZATION_AUTHORIZED_CONDITIONALLY`) were executed; T1-A **stopped at an owner stop trigger** (V1). Results only in `REPORT.md` §T0+ / §T1-A. The plan text below is the approved rev 3 and is not rewritten |
 
 ---
 
@@ -29,7 +30,7 @@
 **Rev 3 owner decisions (2026-10-15):** plan rev 2 accepted with amendments AM-W9-1…3; **T0 static testing authorized** (A2-R statement inventory; A2-R sentinel / rejection decision table; SourceGuard-oriented analysis; no-shell and ledger-writer scans; CSV formula / escaping pure-unit cases; NEW-7 key-use inventory; Smarty static-call / configuration-exposure inventory) under strict conditions: no database connection, no Docker container, no FreeRADIUS process, no MikroTik / CHR, no HTTP / PWA lab, no SQL exhaustion / pressure / fault / simulation, no product-code change, no schema / migration / SourceGuard re-pin. One local commit of `PLAN.md` + `WP9_HANDOFF.md` authorized after a diff audit and a secret sweep; no push.
 
 **Still needing owner approval (§18):**
-- execution of any test stage (T0–T4);
+- execution of any test stage (T0–T4) — *status 2026-10-15: T0, T0+ and T1-A (stopped) executed after their approvals; T1-B…T4 not approved*;
 - every remediation wave;
 - the A2-R hardening scope (OD-W9-2 implementation), and the rev-1 A-T2 DB-level constraint test;
 - the OBS-1 implementation, and any uniqueness option U1–U4;
@@ -725,8 +726,8 @@ An independent read-only fact-check of rev 1 produced 14 corrections, plus two s
 
 | ID | Decision | Status after the rev-3 owner decision |
 |---|---|---|
-| D-W9-R1 | Execute T0 (static / inert) | **APPROVED** with strict conditions (§0); execution mode §13 |
-| D-W9-R2 | T1–T3 on the disposable harness / PWA lab | pending (after T0 review) |
+| D-W9-R1 | Execute T0 (static / inert) | **APPROVED** with strict conditions (§0); execution mode §13. *Executed 2026-10-15; accepted as `WP9_T0_STATIC_ACCEPTED_WITH_NOT_TESTED`; T0+ PHP completion and T1-A authorized afterwards (REPORT.md)* |
+| D-W9-R2 | T1–T3 on the disposable harness / PWA lab | pending (after T0 review). *2026-10-15: only T1-A (OBS-1 / voucher characterisation) was authorized; it stopped at V1 (REPORT.md §T1-A)* |
 | D-W9-R3 | A2-R implementation scope | pending (design only, OD-W9-2) |
 | D-W9-R4 | Rev-1 A-T2 DB-level CHECK test | pending (deferred) |
 | D-W9-R5 | OBS-1 invariant I-1…I-5 + U0; U1–U4 separately | pending; lock design corrected (AM-W9-1, §7.3); U0 **not** implemented |

@@ -1,0 +1,19 @@
+command: python3 -I -B dev/wp9/t0_static.py --out owner-review/WP9/evidence/t0
+cwd: /srv/phpnuxbill/dev
+start: 2026-10-15T16:12:52Z
+HEAD: 143c4cd10ae7cc93d42e150b5641f6976e3342a9 branch: wp9/red-team-rc
+python: Python 3.12.3
+script sha256: 8f189880631a3d83162e61f01988890a3726b34317d9afae43d76a8c21872a39
+---
+T0-01 FAIL  assertions=  19 files=   1  A2-R static statement inventory  -- positive control failed: the echo detector finds the H-2B echoed parameter rows
+T0-02 PASS  assertions=  41 files=   1  A2-R sentinel / rejection decision table
+T0-03 PASS  assertions=  50 files=  27  SourceGuard-oriented analysis and lock-ordering premises
+T0-04 PASS  assertions=   5 files= 310  No-shell static scan
+T0-05 PASS  assertions=   5 files= 303  Ledger / audit writer static scan
+T0-06 PASS  assertions=   7 files=   2  CSV export escaping (static characterisation)
+T0-07 PASS  assertions=   8 files= 310  NEW-7 key-use inventory
+T0-08 PASS  assertions=   6 files=   2  Smarty static-call / configuration-exposure inventory
+T0-06b NOT TESTED  CSV Format::csvCell pure-unit execution (" =1", "\n=1", "-12.5", "=1+1", "@SUM")  -- requires executing PHP; the host has no PHP runtime and Docker is not allowed in T0
+T0-09 NOT TESTED  PHPUnit execution of the existing source-guard suites (Unit/Wp3a, Unit/Wp4, Unit/Wp8)  -- requires PHP (Docker image nuxbill-reseller-test-php82 only); not allowed in T0
+SUMMARY tests=8 passed=7 failed=1 assertions=141 not_tested=2 tree_unchanged=True
+--- exit=1 end: 2026-10-15T16:12:54Z

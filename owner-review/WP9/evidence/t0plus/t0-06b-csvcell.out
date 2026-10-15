@@ -1,0 +1,40 @@
+T0-06b command: docker run --rm --network none --read-only --tmpfs /tmp:rw,nosuid,nodev,size=64m --cap-drop ALL --security-opt no-new-privileges --pids-limit 64 --memory 512m --user 65534:65534 -v /srv/phpnuxbill/dev:/repo:ro -w /repo nuxbill-reseller-test-php82:latest php tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox tests/Unit/Wp9/CsvCellCharacterizationTest.php
+start: 2026-10-15T16:23:55Z HEAD 143c4cd10ae7cc93d42e150b5641f6976e3342a9 test sha256 e6e07ef04a769212b0530e0ac2935047aaa67f423bcb755310168eaedb86d61c
+Format.php sha256 b656f968f332052bc3c4355ca95ae7d46d365fd09d93e77d44f18a9981228bd6
+---
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......................                                           23 / 23 (100%)
+
+Time: 00:00.017, Memory: 10.00 MB
+
+Csv Cell Characterization (Tests\Unit\Wp9\CsvCellCharacterization)
+ ✔ Neutralised leading formula character with data set "equals formula"
+ ✔ Neutralised leading formula character with data set "hyperlink formula"
+ ✔ Neutralised leading formula character with data set "plus formula"
+ ✔ Neutralised leading formula character with data set "at formula"
+ ✔ Neutralised leading formula character with data set "minus formula"
+ ✔ Neutralised leading formula character with data set "dde style"
+ ✔ Neutralised leading formula character with data set "leading tab"
+ ✔ Neutralised leading formula character with data set "leading carriage return"
+ ✔ Neutralised leading formula character with data set "explicit plus number"
+ ✔ Values that stay unchanged with data set "negative decimal"
+ ✔ Values that stay unchanged with data set "negative integer"
+ ✔ Values that stay unchanged with data set "integer"
+ ✔ Values that stay unchanged with data set "plain text"
+ ✔ Values that stay unchanged with data set "arabic text"
+ ✔ Values that stay unchanged with data set "empty string"
+ ✔ Values that stay unchanged with data set "null"
+ ✔ Values that stay unchanged with data set "true"
+ ✔ Values that stay unchanged with data set "false"
+ ✔ Values that stay unchanged with data set "formula char later"
+ ✔ Defect reproduced formula after leading whitespace is not neutralised with data set "leading space before equals"
+ ✔ Defect reproduced formula after leading whitespace is not neutralised with data set "leading newline before equals"
+ ✔ Defect reproduced formula after leading whitespace is not neutralised with data set "leading space before at"
+ ✔ Defect reproduced formula after leading whitespace is not neutralised with data set "leading no-break space before equals"
+
+OK (23 tests, 27 assertions)
+--- exit=0 end: 2026-10-15T16:23:57Z
