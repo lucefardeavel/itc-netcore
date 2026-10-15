@@ -369,3 +369,23 @@ Final audit (from HEAD `c9469f9e`, before the commit):
 - **Results:** MariaDB and MySQL A1 16 / 78 exit 0; `T1aVoucherV1Test` refused on both; harness 603 / 49 703 / 0 failures / **94 incomplete per engine — not counted as passes**.
 - **Integrity:** `docs/claude-development-pack/MANIFEST.sha256` 42/42 OK; SourceGuard pins 23/23 match (neither changed file is pinned); no re-pin.
 - **Secrets / artifacts:** secret sweep over the 20 files to be committed (known lab secret values from the WP8 state files + private-key markers): 0 hits; no fixture password in the evidence; all evidence files are text (96 KiB); no credential file, pcap, image or lab artifact staged.
+
+---
+
+## A1.9 V1 interim acceptance record and U0 design (2026-10-15, after the A1 commit)
+
+| Item | Record |
+|---|---|
+| Owner decision | OD-W9-A1-1 `V1_INTERIM_MITIGATION_ACCEPTED — RACE_OPEN` |
+| **Official V1 status** | **`V1_MITIGATED_NOT_CLOSED`** (OBS-W9-V1, HIGH) |
+| Local commit | **`0f181323ad12220dcd6e584f98d3a6652ee2d824`** "wp9(a1): mitigate voucher-only identity collisions (race open)" (parent `c9469f9e`; 20 files; fix byte-identical to the tested `a1-fix.diff`; product fingerprint `6ff47e19…` = the tested after-fix fingerprint). Not pushed |
+| What is mitigated | voucher-only redemption refused before the claim when the code's canonical RADIUS identity equals any customer's `username` / `pppoe_username` (both engines); colliding generated codes regenerated or the batch refused |
+| What is open | the check-to-grant race (RACE_REMAINS, both engines); V2 (creation over a live voucher identity); the rename-away transition gap G3 (found by the U0 audit, not tested); plugins / direct DB writers (U3 / U4 only) |
+| Production blockers (unchanged) | **OBS-1** (incl. OBS-W9-V1 and the race) — **PRODUCTION BLOCKER**; A2-R `UNVERIFIED_SECURITY_RISK — PRODUCTION BLOCKER` |
+| Availability limit (open) | the 1000-candidate-row bound fails closed (every voucher-only redemption / voucher batch refused) when exceeded; it is not a performance or concurrency solution. The identity lookups scan the unindexed `tbl_customers.username` / `pppoe_username` (and, under U0, `tbl_voucher.code`, `tbl_user_recharges.username`); no performance figure is claimed (not measured; WP10) |
+| N-07 addition (OD-W9-A1-3) | **Voucher code in logs.** For PUBLIC / RADIUS voucher-only redemptions `VoucherRedemptionService::record()` writes `target=<code>` in clear to the PHP server error log (`ErrorReporter::log` → `error_log`; not shown in the application UI, readable by whoever reads the server / shipped logs); the `voucher=` field is a hash. **Severity by voucher state:** `REFUSED` / `REFUSED:IDENTITY_IN_USE` → the code is still **unused and redeemable**; `GRANTED` → the code is a **live RADIUS credential** (voucher-only username = password = code); `NOT_VALID` → used / invalid / mistyped input. Re-assessed **LOW-MEDIUM** where server logs are readable beyond the host operators, LOW otherwise. Logging unchanged (no change authorized); fix belongs to the N-07 / secrets-in-logs remediation (WP9-D) |
+| Unchanged | V2, V4, the reverse direction, SQL exhaustion (A2-R), P1–P5 policies, NEW-7, NEW-8, plugins, WP1-CHECK; T1-B…T4, WP10 not authorized |
+
+**U0 (OD-W9-A1-2, design only):** `owner-review/WP9/U0_DESIGN.md` — identity writer / authority matrix (P1–P5, P5r, **P6 voucher-only redemption**, P7 generation; releasers; key writers; non-coverable writers), gaps G1–G8 of the approved AM-W9-1 design, the `CustomerIdentity` contract (L-3 global identity lock, canonical `assertAvailable` over customers + live voucher identities + RADIUS presence), interleaving argument for races A / B / C, timeout / deadlock / rollback rules, option comparison, phased test-first plan U0-0…U0-5 with stop points, impact (no protected file, schema or finance change) and decisions D-U0-1…8. **U0 is not implemented; no test was run in this round.**
+
+**`WP9_U0_DESIGN_READY_FOR_OWNER_REVIEW`** — `PRODUCTION_NOT_AUTHORIZED` — `STOPPED_WAITING_OWNER_REVIEW`.
