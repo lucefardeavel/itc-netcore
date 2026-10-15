@@ -166,6 +166,11 @@ Nothing retries by itself. `UNKNOWN` is never `retryable`.
 - **No shell or process.** The secret never appears in logs or argv.
 - **Legacy device behaviour:** after provisioning, the device ends the subscriber's sessions so the new policy applies (as before). Failures are logged and never thrown.
 
+> **WP8 S8 note (2026-10-14).** The rules above are unchanged in code. On RouterOS CHR 7.24.5 the following were verified (§13):
+> - the NAS never answers 503. It NAKs every request that matches no session with **Error-Cause 406**, which stays `FAILED COA_NAK` (OD-W8-14, Option A), so on MikroTik a vanished session shows as `FAILED COA_NAK (406)`, not `SESSION_NOT_FOUND`;
+> - a CoA from an address that is not a configured `/radius` server was ignored. This was observed in the feasibility gate on RouterOS **7.12.1** and **not re-tested on 7.24.5**; the rule stays an owner contract (OD-W8-11);
+> - a CoA-ACK does not prove an address or pool change (policy → Disconnect → re-authentication).
+
 ## 7. rlm_rest endpoint `radius.php` (SEC-01, E16, owner decisions Q3 and Q4)
 
 - **Off unless configured.** `config.php` must set `$radius_rest_secret` (at least 32 characters); `$radius_rest_allow` is optional and defaults to loopback.
@@ -186,6 +191,7 @@ Nothing retries by itself. `UNKNOWN` is never `retryable`.
 - **Configuration:** `install/freeradius/` (see its README) holds the dictionary (`Nuxr-Period-Start`), the period counters (`Max-All-Session`, `Max-Data`), the `phpnuxbill` virtual server (PAP / CHAP / expiration / quotas / accounting / Simultaneous-Use) and an example `sql` module.
 - **Tests:** `dev/test/compose.yml` runs `freeradius/freeradius-server:3.2.8`, pinned by digest, once per engine (`freeradius-mariadb`, `freeradius-mysql`). There are no published ports and the secret is throwaway. `dev/test/freeradius/start.sh` installs the project configuration against the `nuxr_radius` test database.
 - **No real NAS / MikroTik** is involved (WP8). CoA is tested against a loopback stub NAS.
+- **WP8 S8 note (2026-10-14):** this describes the WP4 harness, which is unchanged. Real-NAS behaviour was verified separately in the WP8 CHR lab (`dev/wp8/`, §13).
 
 ## 10. Binding input for WP5A
 
@@ -226,6 +232,7 @@ Nothing retries by itself. `UNKNOWN` is never `retryable`.
 4. **Expiration and FreeRADIUS time zone.** `Expiration` is interpreted in FreeRADIUS local time; run FreeRADIUS in the application time zone. This is independent of the accounting time contract (§4.1), which depends on the database session zone, not the FreeRADIUS process zone.
 5. **Sessions across a period boundary.** A session that started before the period start is not counted in the new period.
 6. **No real-NAS verification.** CoA and Disconnect are verified against a stub NAS only. MikroTik verification is WP8.
+   - **WP8 S8 update (2026-10-14):** the residual is superseded for RouterOS CHR 7.24.5 + FreeRADIUS 3.2.8 only (§13). Other RouterOS versions and models, physical NAS hardware, quotas on a NAS, IPv6 and the rlm_rest mode remain unverified.
 7. **Device errors are now explicit.** Device-level failures raise `ProvisionFailure`. Legacy controllers without try/catch show the generic error page (as they did for PDO errors before). `Package::rechargeUser` reports them and notifies the operator.
 8. **Plaintext secrets.** The NAS secret is plaintext at rest (Q10). The customer password is plaintext because Cleartext-Password / CHAP needs it (WP0 §12).
 9. **Unchanged by WP4:** the legacy MikroTik device methods (WP8), the `.htaccess_firewall` default (SEC-20, WP10), and the `logs/radius` export of `radpostauth` passwords (WP2 R11). The project site does not enable post-auth logging.
@@ -234,3 +241,47 @@ Nothing retries by itself. `UNKNOWN` is never `retryable`.
     - the same session zone for the writer and the reader;
     - NTP on every host and the NAS.
     Rows written under a former database zone are read shifted and never corrected in place.
+
+## 13. WP8 real-NAS verified notes (S8, 2026-10-14)
+
+**Scope of these notes.**
+- **What was verified:** RouterOS **CHR 7.24.5** (QEMU, isolated lab) with FreeRADIUS **3.2.8**, `read_clients` from `nas`, and the project site.
+- **Exceptions** (marked in the row): the feasibility gate on **7.12.1 / 7.20.3**, and lab FreeRADIUS results driven by a **crafted test client** (no RouterOS).
+- **Nothing changed:** these notes record evidence only. No contract above changes. The full model is `docs/WP8_INTEGRATION_MODEL.md`.
+- **Paths and labels:** evidence paths are relative to `owner-review/WP8/`. "Harness only" marks an item that was **not** verified on the NAS.
+
+| Contract item (section) | Verified behaviour on the CHR | Evidence |
+|---|---|---|
+| §2 `Mikrotik-Rate-Limit` | `rx/tx` = client **upload / download** (dynamic queue `256000/512000`; measured 253 / 505 kbps) | `evidence/s2/lab-evidence.jsonl` |
+| §2 `Framed-Pool` / `Framed-IP-Address` | A pool gives an address from the named pool; a static gives the exact address; never both. A pool that does not exist on the NAS gives an Access-Accept with **no IPv4** (RADIUS cannot detect it). | `evidence/s2/` |
+| §2 `Simultaneous-Use` | The second PPPoE session is rejected; Hotspot `shared_users=1` is refused. **Alone it is not sufficient:**<br>• a lost Stop leaves an indefinite lockout (S6);<br>• the stock checkrad fails open (Option F).<br>Admission is completed by the A1 session guard, the A2-R reservation, H1-A and H-2B (§2 addenda). | `evidence/s2/`, `evidence/s6/`, `evidence/od-w8-16-*` |
+| §2 `Port-Limit` (A1 addendum) | Enforced per NAS on **Hotspot** (limits 1 and 2); **ignored on PPPoE** (two live sessions with Port-Limit 1 in the Accept) | `evidence/od-w8-16-gate/GATE_RESULTS.md` |
+| §2 `Expiration` | The NAS gets a Session-Timeout capped at the expiry, sends Stop `Session-Timeout`, and the next authentication is rejected. The FreeRADIUS process `TZ` was the application zone (residual 4). | `evidence/s2/`, `evidence/s5/` |
+| §2 quotas (`Max-All-Session`, `Max-Data`, `Nuxr-Period-Start`) | **Not verified on the NAS.** WP8 S1 covered them only with crafted packets from a test client against the lab FreeRADIUS (no RouterOS). | `evidence/s1/S1_RESULTS.md` |
+| §3 expiry follows billing | RENEW rewrites `Expiration` with **no disconnect**. The live session keeps its auth-time Session-Timeout until it re-authenticates. | `evidence/s5/` |
+| §4 `radacct` authority | Start / Interim (1 m) / Stop, one row per session. Terminate causes `User-Request`, `NAS-Request` / `Admin-Reset` (Disconnect), `Session-Timeout`, `NAS-Reboot` (Accounting-On).<br>**A lost Stop is not resent by RouterOS.**<br>No lifecycle path deleted a row. | `evidence/s2/`, `evidence/s3/`, `evidence/s6/` |
+| §4.1 accounting time | `Event-Timestamp` is present in PPPoE Start / Interim / Stop and absent in Accounting-On. The epoch reads match the real session. **Hotspot and other NAS models were not captured.** | `evidence/a4/lab/` |
+| §5 results | `RADIUS_DB_ERROR` → FAILED (reservation released).<br>`radius.commit_lost` → `RECONCILIATION_REQUIRED` → one settlement after reconcile.<br>FreeRADIUS paused before provisioning → the activation completes (DB authority) but no service is given until FreeRADIUS returns. | `evidence/s6/S6_RESULTS.md` |
+| §6 Disconnect / CoA | **Answers:**<br>• ACK → `SUCCESS`, exactly one packet;<br>• **NAK 406** for any request without a matching session → `FAILED COA_NAK` (OD-W8-14, Option A; **503 is never sent**);<br>• silence → `UNKNOWN COA_NO_RESPONSE` after 3 identical packets about 2 s apart.<br>**Source and port:** port 3799 = `nas.ports`; the co-located FreeRADIUS address is answered. A request from an address that is not a `/radius` server was ignored **on 7.12.1 (feasibility gate) only**, so the source rule is an owner contract (OD-W8-11) that was not re-tested on 7.24.5.<br>**Effects:** a rate CoA is applied live; a `Framed-Pool` / `Framed-IP-Address` CoA is ACKed and **ignored**. | `evidence/chr-feasibility/coa.txt`, `evidence/s3/`, `evidence/s6/` |
+| §6 legacy device rename | A3: exact-byte rename. The old identity's sessions are captured and disconnected (CONFIRMED on CHR1 + CHR2). | `evidence/a3/` |
+| §8 NAS administration | NAS identity: `radacct.nasipaddress` = `nas.nasname` = RouterOS `/radius src-address` (OD-W8-4) | `evidence/s1/`, `evidence/s2/`, `evidence/s3/` |
+| §9 FreeRADIUS configuration | **Message-Authenticator** (lab FreeRADIUS with a crafted SQL client): the global `require_message_authenticator = yes` is **not** applied to SQL-loaded clients, and the project site enforces it in `authorize` (OD-W8-13).<br>**On the NAS:** RouterOS 7.24.5 sends it in every Access-Request; 7.12.1 sends none (feasibility gate). The floor RouterOS ≥ 7.15 is an **owner contract**, not a test result.<br>**Accounting-On:** RouterOS sends one before its first record (OBS-W8-7). | `evidence/s1/`, `evidence/s1-ma-policy/`, `evidence/chr-feasibility/` |
+
+**Still unverified on a NAS:**
+- quotas;
+- IPv6;
+- other PPP services (L2TP / PPTP / SSTP / OVPN);
+- other RouterOS versions or hardware;
+- the rlm_rest mode;
+- Hotspot `Event-Timestamp`;
+- RouterOS's default incoming port 1700 (documentation only).
+
+Production preconditions remain open (`owner-review/WP8/REPORT.md` §5).
+
+**WP8 final development note (2026-10-15).**
+- The operator README `install/freeradius/README.md` ("Disconnect / CoA") now carries the §6 port and source notes above:
+  - `nas.ports` is the CoA / Disconnect destination port (empty → 3799), and the NAS port must be set explicitly;
+  - RouterOS 1700 is documented as the vendor default only;
+  - CoA must come from a `/radius` server address; the wrong-source case is [CHR-FG], observed on 7.12.1 only.
+- No contract in this document changed.
+- WP8 is development-accepted with blockers (`WP8_FINAL_DEVELOPMENT_ACCEPTED_WITH_BLOCKERS`, `PRODUCTION_NOT_AUTHORIZED`). The production preconditions in `owner-review/WP8/REPORT.md` §5 remain open.

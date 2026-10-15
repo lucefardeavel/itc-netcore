@@ -1,0 +1,22 @@
+mode=old
+stack_before=["Closure"]
+pear2_client_loadable_during_drill=true
+stack_after=["Closure","PEAR2\\Autoload::load"]
+stack_identical=false
+PEAR2_Autoload_class_loaded=true
+PEAR2_Autoload_registered=true
+-- a later test touches the global Message class (as ErrorReporter::report does):
+Warning: Undefined variable $root_path in /repo/system/autoload/Message.php on line 13
+Warning: Undefined variable $root_path in /repo/system/autoload/Message.php on line 14
+Warning: Undefined variable $root_path in /repo/system/autoload/Message.php on line 15
+bool(true)
+
+mode=scoped
+stack_before=["Closure"]
+pear2_client_loadable_during_drill=true
+stack_after=["Closure"]
+stack_identical=true
+PEAR2_Autoload_class_loaded=false
+-- a later test touches the global Message class (as ErrorReporter::report does):
+bool(false)
+

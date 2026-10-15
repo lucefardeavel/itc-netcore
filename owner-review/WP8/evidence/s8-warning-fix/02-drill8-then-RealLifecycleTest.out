@@ -1,0 +1,170 @@
+start 2026-10-14T16:51:08Z
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-09052904d090 Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-09052904d090 Created 
+PHPUnit Started (PHPUnit 11.5.56 using PHP 8.2.34 (cli) on Linux)
+Test Runner Configured
+Bootstrap Finished (/repo/tests/bootstrap.php)
+Event Facade Sealed
+Data Provider Method Called (Reseller\Tests\Unit\MigrationRedefinesTest::malformed for test method Reseller\Tests\Unit\MigrationRedefinesTest::testMalformedRedefinitionIsRejected)
+Data Provider Method Finished for Reseller\Tests\Unit\MigrationRedefinesTest::testMalformedRedefinitionIsRejected:
+- Reseller\Tests\Unit\MigrationRedefinesTest::malformed
+Data Provider Method Called (Reseller\Tests\Unit\MigrationRedefinesTest::nonReadOnlyGuards for test method Reseller\Tests\Unit\MigrationRedefinesTest::testMutatingOrNonSelectDataGuardIsRejected)
+Data Provider Method Finished for Reseller\Tests\Unit\MigrationRedefinesTest::testMutatingOrNonSelectDataGuardIsRejected:
+- Reseller\Tests\Unit\MigrationRedefinesTest::nonReadOnlyGuards
+Data Provider Method Called (Reseller\Tests\Integration\ForwardMigrationTest::variants for test method Reseller\Tests\Integration\ForwardMigrationTest::testForwardMigrationProducesContractAndKeepsLegacyDataUntouched)
+Data Provider Method Finished for Reseller\Tests\Integration\ForwardMigrationTest::testForwardMigrationProducesContractAndKeepsLegacyDataUntouched:
+- Reseller\Tests\Integration\ForwardMigrationTest::variants
+Data Provider Method Called (Reseller\Tests\Integration\ForwardMigrationTest::variants for test method Reseller\Tests\Integration\ForwardMigrationTest::testSecondRunExecutesZeroDdlAndWritesNothing)
+Data Provider Method Finished for Reseller\Tests\Integration\ForwardMigrationTest::testSecondRunExecutesZeroDdlAndWritesNothing:
+- Reseller\Tests\Integration\ForwardMigrationTest::variants
+Data Provider Method Called (Reseller\Tests\Integration\PartialFailureTest::variants for test method Reseller\Tests\Integration\PartialFailureTest::testFailedPartialBlocksAndRollbackRestoresRecognisedCore)
+Data Provider Method Finished for Reseller\Tests\Integration\PartialFailureTest::testFailedPartialBlocksAndRollbackRestoresRecognisedCore:
+- Reseller\Tests\Integration\PartialFailureTest::variants
+Data Provider Method Called (Reseller\Tests\Integration\PreflightTest::variants for test method Reseller\Tests\Integration\PreflightTest::testRecognisesVerifiedVariantWithZeroMutation)
+Data Provider Method Finished for Reseller\Tests\Integration\PreflightTest::testRecognisesVerifiedVariantWithZeroMutation:
+- Reseller\Tests\Integration\PreflightTest::variants
+Data Provider Method Called (Reseller\Tests\Integration\PreflightTest::incompatibleCoreChanges for test method Reseller\Tests\Integration\PreflightTest::testIncompatibleRequiredCoreChangeFailsBeforeMutation)
+Data Provider Method Finished for Reseller\Tests\Integration\PreflightTest::testIncompatibleRequiredCoreChangeFailsBeforeMutation:
+- Reseller\Tests\Integration\PreflightTest::incompatibleCoreChanges
+Data Provider Method Called (Reseller\Tests\Integration\PreflightTest::collisions for test method Reseller\Tests\Integration\PreflightTest::testCollisionsAreNeverAdopted)
+Data Provider Method Finished for Reseller\Tests\Integration\PreflightTest::testCollisionsAreNeverAdopted:
+- Reseller\Tests\Integration\PreflightTest::collisions
+Data Provider Method Called (Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::variants for test method Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::testCleanApplyAndVerifyOnEveryVariant)
+Data Provider Method Finished for Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::testCleanApplyAndVerifyOnEveryVariant:
+- Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::variants
+Data Provider Method Called (Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::variants for test method Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::testRollbackRestoresExactR0003Definitions)
+Data Provider Method Finished for Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::testRollbackRestoresExactR0003Definitions:
+- Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::variants
+Data Provider Method Called (Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::newStateUses for test method Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::testRollbackRefusedWhileANewStateIsUsed)
+Data Provider Method Finished for Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::testRollbackRefusedWhileANewStateIsUsed:
+- Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::newStateUses
+Data Provider Method Called (Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::badTargets for test method Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::testRedefinitionOfANonProjectTargetIsRefusedBeforeAnyWork)
+Data Provider Method Finished for Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::testRedefinitionOfANonProjectTargetIsRefusedBeforeAnyWork:
+- Reseller\Tests\Integration\R0007ReversalStatesMigrationTest::badTargets
+Data Provider Method Called (Reseller\Tests\Integration\RollbackTest::variants for test method Reseller\Tests\Integration\RollbackTest::testFullRollbackRestoresPreMigrationCoreFingerprintAndForwardAgain)
+Data Provider Method Finished for Reseller\Tests\Integration\RollbackTest::testFullRollbackRestoresPreMigrationCoreFingerprintAndForwardAgain:
+- Reseller\Tests\Integration\RollbackTest::variants
+Data Provider Method Called (Reseller\Tests\Unit\Wp3a\MoneyTest::malformed for test method Reseller\Tests\Unit\Wp3a\MoneyTest::testMalformedInputsAreRejected)
+Data Provider Method Finished for Reseller\Tests\Unit\Wp3a\MoneyTest::testMalformedInputsAreRejected:
+- Reseller\Tests\Unit\Wp3a\MoneyTest::malformed
+Data Provider Method Called (Reseller\Tests\Integration\Wp3a\FailureInjectionTest::points for test method Reseller\Tests\Integration\Wp3a\FailureInjectionTest::testFailureAtEveryStepRollsBackCompletely)
+Data Provider Method Finished for Reseller\Tests\Integration\Wp3a\FailureInjectionTest::testFailureAtEveryStepRollsBackCompletely:
+- Reseller\Tests\Integration\Wp3a\FailureInjectionTest::points
+Data Provider Method Called (Reseller\Tests\Integration\Wp3a\FinanceSchemaReadinessTest::financeTables for test method Reseller\Tests\Integration\Wp3a\FinanceSchemaReadinessTest::testMissingFinanceTableFailsClosedAndRecovers)
+Data Provider Method Finished for Reseller\Tests\Integration\Wp3a\FinanceSchemaReadinessTest::testMissingFinanceTableFailsClosedAndRecovers:
+- Reseller\Tests\Integration\Wp3a\FinanceSchemaReadinessTest::financeTables
+Data Provider Method Called (Reseller\Tests\Unit\Wp3b\SettlementMathTest::cases for test method Reseller\Tests\Unit\Wp3b\SettlementMathTest::testExactSettlement)
+Data Provider Method Finished for Reseller\Tests\Unit\Wp3b\SettlementMathTest::testExactSettlement:
+- Reseller\Tests\Unit\Wp3b\SettlementMathTest::cases
+Data Provider Method Called (Reseller\Tests\Integration\Wp3b\PricingFailureInjectionTest::points for test method Reseller\Tests\Integration\Wp3b\PricingFailureInjectionTest::testFailureAtEveryStepRollsBackCompletely)
+Data Provider Method Finished for Reseller\Tests\Integration\Wp3b\PricingFailureInjectionTest::testFailureAtEveryStepRollsBackCompletely:
+- Reseller\Tests\Integration\Wp3b\PricingFailureInjectionTest::points
+Data Provider Method Called (Reseller\Tests\Integration\Wp3b\PricingSchemaReadinessTest::pricingTables for test method Reseller\Tests\Integration\Wp3b\PricingSchemaReadinessTest::testMissingPricingTableFailsClosedAndRecovers)
+Data Provider Method Finished for Reseller\Tests\Integration\Wp3b\PricingSchemaReadinessTest::testMissingPricingTableFailsClosedAndRecovers:
+- Reseller\Tests\Integration\Wp3b\PricingSchemaReadinessTest::pricingTables
+Data Provider Method Called (Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriodTest::fresh for test method Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriodTest::testFreshPeriodMatchesTheLegacyArithmetic)
+Data Provider Method Finished for Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriodTest::testFreshPeriodMatchesTheLegacyArithmetic:
+- Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriodTest::fresh
+Data Provider Method Called (Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriodTest::renewals for test method Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriodTest::testRenewalExtendsFromTheCurrentExpiry)
+Data Provider Method Finished for Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriodTest::testRenewalExtendsFromTheCurrentExpiry:
+- Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriodTest::renewals
+Data Provider Method Called (Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::sessions for test method Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testSessionState)
+Data Provider Method Finished for Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::testSessionState:
+- Reseller\Tests\Unit\Wp5b\RenameOldSessionUnitTest::sessions
+Data Provider Method Called (Reseller\Tests\Integration\Wp5b\LegacyCustomerBalanceTest::decisions for test method Reseller\Tests\Integration\Wp5b\LegacyCustomerBalanceTest::testOperatorResolutionWaitsForTheLiveDispatcher)
+Data Provider Method Finished for Reseller\Tests\Integration\Wp5b\LegacyCustomerBalanceTest::testOperatorResolutionWaitsForTheLiveDispatcher:
+- Reseller\Tests\Integration\Wp5b\LegacyCustomerBalanceTest::decisions
+Data Provider Method Called (Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::staleCoupons for test method Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testAStaleCouponNeverDiscounts)
+Data Provider Method Finished for Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::testAStaleCouponNeverDiscounts:
+- Reseller\Tests\Integration\Wp5b\PaymentHardeningTest::staleCoupons
+Data Provider Method Called (Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::ambiguous for test method Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testAmbiguousRenameIsRefusedBeforeAnyWrite)
+Data Provider Method Finished for Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::testAmbiguousRenameIsRefusedBeforeAnyWrite:
+- Reseller\Tests\Integration\Wp5b\RenameIntegrityTest::ambiguous
+Data Provider Method Called (Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::planTerms for test method Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote)
+Data Provider Method Finished for Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedPlanServiceTermRefusesTheOldQuote:
+- Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::planTerms
+Data Provider Method Called (Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::rateTerms for test method Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote)
+Data Provider Method Finished for Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::testAChangedBandwidthRateRefusesTheOldQuote:
+- Reseller\Tests\Integration\Wp6a\ActivationPreviewTest::rateTerms
+Test Suite Loaded (1233 tests)
+Test Runner Started
+Test Suite Sorted
+Test Suite Filtered (4 tests)
+Test Runner Execution Started (4 tests)
+Test Suite Started (/repo/tests/phpunit.xml, 4 tests)
+Test Suite Started (wp8-integration, 4 tests)
+Test Suite Started (Reseller\Tests\Integration\Wp8\FailureDrillsTest, 1 test)
+Before First Test Method Called (Reseller\Tests\Integration\Wp8\FailureDrillsTest::setUpBeforeClass)
+Before First Test Method Finished:
+- Reseller\Tests\Integration\Wp8\FailureDrillsTest::setUpBeforeClass
+Test Preparation Started (Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill8RouterOsApiUnavailable)
+Before Test Method Called (Reseller\Tests\Integration\Wp8\FailureDrillsTest::setUp)
+Before Test Method Finished:
+- Reseller\Tests\Integration\Wp8\FailureDrillsTest::setUp
+Test Prepared (Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill8RouterOsApiUnavailable)
+Post Condition Method Called (Reseller\Tests\Integration\Wp8\FailureDrillsTest::assertPostConditions)
+Post Condition Method Finished:
+- Reseller\Tests\Integration\Wp8\FailureDrillsTest::assertPostConditions
+After Test Method Called (Reseller\Tests\Integration\Wp8\FailureDrillsTest::tearDown)
+After Test Method Finished:
+- Reseller\Tests\Integration\Wp8\FailureDrillsTest::tearDown
+Test Passed (Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill8RouterOsApiUnavailable)
+Test Finished (Reseller\Tests\Integration\Wp8\FailureDrillsTest::testDrill8RouterOsApiUnavailable)
+After Last Test Method Called (Reseller\Tests\Integration\Wp8\FailureDrillsTest::tearDownAfterClass)
+After Last Test Method Finished:
+- Reseller\Tests\Integration\Wp8\FailureDrillsTest::tearDownAfterClass
+Test Suite Finished (Reseller\Tests\Integration\Wp8\FailureDrillsTest, 1 test)
+Test Suite Started (Reseller\Tests\Integration\Wp8\RealLifecycleTest, 3 tests)
+Before First Test Method Called (Reseller\Tests\Integration\Wp8\RealLifecycleTest::setUpBeforeClass)
+Before First Test Method Finished:
+- Reseller\Tests\Integration\Wp8\RealLifecycleTest::setUpBeforeClass
+Test Preparation Started (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testRenewThenChangePlanRateThenChangePlanPool)
+Before Test Method Called (Reseller\Tests\Integration\Wp8\RealLifecycleTest::setUp)
+Before Test Method Finished:
+- Reseller\Tests\Integration\Wp8\RealLifecycleTest::setUp
+Test Prepared (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testRenewThenChangePlanRateThenChangePlanPool)
+Post Condition Method Called (Reseller\Tests\Integration\Wp8\RealLifecycleTest::assertPostConditions)
+Post Condition Method Finished:
+- Reseller\Tests\Integration\Wp8\RealLifecycleTest::assertPostConditions
+After Test Method Called (Reseller\Tests\Integration\Wp8\RealLifecycleTest::tearDown)
+After Test Method Finished:
+- Reseller\Tests\Integration\Wp8\RealLifecycleTest::tearDown
+Test Passed (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testRenewThenChangePlanRateThenChangePlanPool)
+Test Finished (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testRenewThenChangePlanRateThenChangePlanPool)
+Test Preparation Started (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testExpiryOnTheNasThenReactivate)
+Before Test Method Called (Reseller\Tests\Integration\Wp8\RealLifecycleTest::setUp)
+Before Test Method Finished:
+- Reseller\Tests\Integration\Wp8\RealLifecycleTest::setUp
+Test Prepared (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testExpiryOnTheNasThenReactivate)
+Post Condition Method Called (Reseller\Tests\Integration\Wp8\RealLifecycleTest::assertPostConditions)
+Post Condition Method Finished:
+- Reseller\Tests\Integration\Wp8\RealLifecycleTest::assertPostConditions
+After Test Method Called (Reseller\Tests\Integration\Wp8\RealLifecycleTest::tearDown)
+After Test Method Finished:
+- Reseller\Tests\Integration\Wp8\RealLifecycleTest::tearDown
+Test Passed (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testExpiryOnTheNasThenReactivate)
+Test Finished (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testExpiryOnTheNasThenReactivate)
+Test Preparation Started (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas)
+Before Test Method Called (Reseller\Tests\Integration\Wp8\RealLifecycleTest::setUp)
+Before Test Method Finished:
+- Reseller\Tests\Integration\Wp8\RealLifecycleTest::setUp
+Test Prepared (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas)
+Post Condition Method Called (Reseller\Tests\Integration\Wp8\RealLifecycleTest::assertPostConditions)
+Post Condition Method Finished:
+- Reseller\Tests\Integration\Wp8\RealLifecycleTest::assertPostConditions
+After Test Method Called (Reseller\Tests\Integration\Wp8\RealLifecycleTest::tearDown)
+After Test Method Finished:
+- Reseller\Tests\Integration\Wp8\RealLifecycleTest::tearDown
+Test Passed (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas)
+Test Finished (Reseller\Tests\Integration\Wp8\RealLifecycleTest::testLegacyReprovisionPasswordAndUsernameOnTheRealNas)
+After Last Test Method Called (Reseller\Tests\Integration\Wp8\RealLifecycleTest::tearDownAfterClass)
+After Last Test Method Finished:
+- Reseller\Tests\Integration\Wp8\RealLifecycleTest::tearDownAfterClass
+Test Suite Finished (Reseller\Tests\Integration\Wp8\RealLifecycleTest, 3 tests)
+Test Suite Finished (wp8-integration, 4 tests)
+Test Suite Finished (/repo/tests/phpunit.xml, 4 tests)
+Test Runner Execution Finished
+Test Runner Finished
+PHPUnit Finished (Shell Exit Code: 0)
+exit=0 end 2026-10-14T16:54:44Z

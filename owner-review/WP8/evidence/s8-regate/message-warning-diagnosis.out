@@ -1,0 +1,17 @@
+== case 1: test-bootstrap style autoloader (closure, no $root_path)
+Warning: Undefined variable $root_path in /repo/system/autoload/Message.php on line 13
+Warning: Undefined variable $root_path in /repo/system/autoload/Message.php on line 14
+Warning: Undefined variable $root_path in /repo/system/autoload/Message.php on line 15
+bool(true)
+== case 2: init.php style autoloader (global $root_path), cwd /tmp
+bool(true)
+== case 3: PEAR2/Autoload.php registered in-process (as FailureDrillsTest::testDrill8 does at :477), then class Message is used
+Deprecated: is_file(): Passing null to parameter #1 ($filename) of type string is deprecated in /repo/system/autoload/PEAR2/Autoload.php on line 206
+Warning: Undefined variable $root_path in /repo/system/autoload/Message.php on line 13
+Warning: Undefined variable $root_path in /repo/system/autoload/Message.php on line 14
+bool(true)
+Warning: Undefined variable $root_path in /repo/system/autoload/Message.php on line 15
+== case 4: production init.php order (_autoloader with global $root_path registered first, then PEAR2/Autoload.php), then class Message is used
+Deprecated: is_file(): Passing null to parameter #1 ($filename) of type string is deprecated in /repo/system/autoload/PEAR2/Autoload.php on line 206
+autoload stack: ["_autoloader","PEAR2\\Autoload::load"]
+bool(true)

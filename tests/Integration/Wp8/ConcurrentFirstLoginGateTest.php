@@ -26,9 +26,12 @@ use Reseller\Tests\Support\Wp8LabHelpers;
  * session". Clients and firewall rules are always cleaned up.
  *
  * GATE STATUS (owner review 2026-10-09): evidence ACCEPTED, SECURITY GATE FAILED - A2_RACE_PROVEN (B0, C, E3; see
- * owner-review/WP8/evidence/a2-concurrent-first-login/A2_RESULTS.md). This test FAILS BY DESIGN until the A2-R
- * remediation is implemented; it runs only in the separate PHPUnit suite `wp8-security-gates` (excluded from
- * `wp8-integration`), and its assertions must not be weakened to obtain a pass.
+ * owner-review/WP8/evidence/a2-concurrent-first-login/A2_RESULTS.md). History: this test failed by design until the A2-R
+ * remediation. A2-R was accepted for development (owner 2026-10-10) and the gate now passes in the production-contract
+ * lab: re-gate on b96747b5 (2026-10-14) `wp8-security-gates` 10 tests / 216 assertions, exit 0, 0 double sessions
+ * (owner-review/WP8/WP8_S8_FINAL_EVIDENCE_REGATE.md). It still runs only in the separate PHPUnit suite
+ * `wp8-security-gates` (excluded from `wp8-integration`); a failure is never waived and its assertions must not be
+ * weakened to obtain a pass.
  */
 final class ConcurrentFirstLoginGateTest extends TestCase
 {

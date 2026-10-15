@@ -436,6 +436,29 @@ PHPNuxBill sends RFC 5176 Disconnect-Request and CoA-Request packets itself (`Re
 - The port is `nas.ports` when it is set (the legacy convention), otherwise 3799.
 - MikroTik: `/radius incoming set accept=yes port=3799`.
 
+**Port and source on MikroTik (WP8 notes, 2026-10-14).** Validated on RouterOS CHR **7.24.5** in the WP8 lab unless a
+line says otherwise:
+- **Port.** RADIUS > NAS "Ports" (`nas.ports`) is the CoA / Disconnect **destination** port; empty means 3799. Set the NAS
+  to the same port explicitly: WP8 ran `nas.ports = 3799` with `/radius incoming set accept=yes port=3799`.
+  - MikroTik documents **1700** as the factory default of `/radius incoming port`. WP8 never ran with 1700. Do not rely on
+    the default: with an empty "Ports" and an unchanged router, PHPNuxBill sends to 3799 while the router listens on 1700.
+  - A port mismatch, `accept=no` or a firewall drop all look the same to PHPNuxBill: no answer → `UNKNOWN
+    COA_NO_RESPONSE` after 3 identical packets about 2 s apart. It is never retried as a new request and never rolls
+    back provisioning.
+- **Source address (binding rule).** Send CoA / Disconnect **from an address that is configured as a RouterOS `/radius`
+  server** on that NAS. In WP8 the application shares the FreeRADIUS address that the NAS uses as its `/radius` server
+  (co-located; no SNAT, no second generic `/radius` entry).
+  - Proven on 7.24.5: requests from that address are answered.
+  - Requests from an address that is **not** a `/radius` server were silently ignored on RouterOS **7.12.1** (WP8
+    feasibility gate). This case was **not re-tested on 7.24.5**; keep the rule regardless of version.
+- **Answers seen on 7.24.5.** ACK for a live session → `SUCCESS`. A request that matches no session → **NAK
+  Error-Cause 406** (never 503) → `FAILED COA_NAK`. A `Mikrotik-Rate-Limit` CoA is applied live. A CoA that changes
+  `Framed-Pool` / `Framed-IP-Address` is ACKed but **ignored**: change the policy, then Disconnect so the subscriber
+  re-authenticates.
+- Allow UDP to the incoming port on the NAS only from the PHPNuxBill / FreeRADIUS address.
+
+Details and evidence: `docs/WP8_INTEGRATION_MODEL.md` §2 and §6, `docs/WP4_RADIUS_MODEL.md` §13.
+
 ## rlm_rest mode (`radius.php`)
 
 The REST endpoint is **off** unless `config.php` defines it:

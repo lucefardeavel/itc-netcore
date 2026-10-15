@@ -1,0 +1,15 @@
+start 2026-10-14T15:26:05Z
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-39515dfac362 Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-39515dfac362 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......                                                              6 / 6 (100%)
+
+Time: 01:07.388, Memory: 30.00 MB
+
+OK (6 tests, 70 assertions)
+exit=0 end 2026-10-14T15:27:16Z

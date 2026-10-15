@@ -1,0 +1,52 @@
+diff --git a/tests/Integration/Wp8/FailureDrillsTest.php b/tests/Integration/Wp8/FailureDrillsTest.php
+index 1928525d..cbb8a6c9 100644
+--- a/tests/Integration/Wp8/FailureDrillsTest.php
++++ b/tests/Integration/Wp8/FailureDrillsTest.php
+@@ -473,21 +473,37 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
+         $h = $this->hierarchy();
+         $plan = $this->chainPlan($h);
+         $this->block('=chain=input', '=protocol=tcp', '=dst-port=8728', '=in-interface=ether2');
++        // WP8 S8 (D-S8-3): the PEAR2 client classes are loaded by a loader scoped to this drill - PEAR2\ only, the
++        // application's own namespace-to-path rule (init.php _autoloader) - and removed in finally. Requiring
++        // system/autoload/PEAR2/Autoload.php here left PEAR2\Autoload::load registered (with its internal "registered"
++        // state) for the rest of the PHPUnit process; a later test then loaded the global Message class inside that
++        // loader's scope (Message.php:13-15 "Undefined variable $root_path").
++        $autoloadBefore = spl_autoload_functions();
++        $pear2 = static function (string $class): void {
++            if (str_starts_with($class, 'PEAR2\\')) {
++                $file = dirname(__DIR__, 3) . '/system/autoload/' . str_replace('\\', '/', $class) . '.php';
++                if (is_file($file)) {
++                    require_once $file;
++                }
++            }
++        };
+         $prev = error_reporting(E_ALL & ~E_DEPRECATED);
+-        require_once dirname(__DIR__, 3) . '/system/autoload/PEAR2/Autoload.php';
+         $old = ini_set('default_socket_timeout', '8');
+         $t = microtime(true);
+         try {
++            spl_autoload_register($pear2);
+             // exactly how the application builds its client (system/autoload/Mikrotik.php getClient: no timeout argument)
+             new \PEAR2\Net\RouterOS\Client(Wp8Lab::CHR, 'admin', (string) getenv('NUXR_WP8_CHR_PASSWORD'), null);
+             $api = 'CONNECTED';
+         } catch (\Throwable $e) {
+             $api = get_class($e) . ': ' . $e->getMessage();
+         } finally {
++            spl_autoload_unregister($pear2);
+             ini_set('default_socket_timeout', (string) $old);
+             error_reporting($prev);
+         }
+         $elapsed = round(microtime(true) - $t, 1);
++        $this->assertSame($autoloadBefore, spl_autoload_functions(), 'drill 8 leaves the autoloader stack exactly as it found it');
+         $this->assertNotSame('CONNECTED', $api, 'the API is unreachable');
+         // the reseller activation path does not use the RouterOS API at all
+         [$cust, $user, $ref] = $this->onSession($h, $plan, 'D8-pass');
+@@ -495,7 +511,7 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
+         $this->assertSame('COMPLETED', $s['status']);
+         $this->invariants($s);
+         $this->unblockAll();
+-        Wp8Lab::evidence('S6.D8.api-unavailable', ['pear2' => $api, 'seconds' => $elapsed, 'timeout_source' => 'no explicit timeout in the application: default_socket_timeout (8 s in the drill, PHP default 60 s)', 'activation_unaffected' => $s['status']]);
++        Wp8Lab::evidence('S6.D8.api-unavailable', ['pear2' => $api, 'seconds' => $elapsed, 'autoload_stack_unchanged' => true, 'timeout_source' => 'no explicit timeout in the application: default_socket_timeout (8 s in the drill, PHP default 60 s)', 'activation_unaffected' => $s['status']]);
+     }
+ 
+     /** drill 9: the Disconnect reaches the NAS but the answer is lost */

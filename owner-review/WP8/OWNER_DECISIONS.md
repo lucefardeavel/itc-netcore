@@ -703,3 +703,58 @@ Every failed, aborted and diagnostic run is kept.
   - **P-A4-1 … P-A4-3:** the A4 contract checks.
   - **Previously recorded blockers:** see the A5 record above.
   - **S8** is not started; it waits for the owner's transition order.
+
+## S8 — Final integration evidence, re-gate, test-only warning fix and development finalization (2026-10-14 / 2026-10-15) — additive record
+
+**How S8 got here.** Each step was approved by the owner:
+1. `S7_COMMITTED_PUSHED_VERIFIED — S8_DOCUMENTATION_AUTHORIZED` → `REPORT.md` §1–§9 → `S8_READY_FOR_OWNER_ACCEPTANCE`.
+2. `S8_DOCUMENTATION_REVIEWED — FINAL_EVIDENCE_REGATE_AUTHORIZED`:
+   - D-S8-1 = A: OD-W8-16 closed for **development only**;
+   - D-S8-2 = A: re-gate;
+   - D-S8-3: diagnose only;
+   - D-S8-4: comparison and plan;
+   - D-S8-5 / D-S8-6 / D-S8-7: deferred;
+   - D-S8-8: keep the phases;
+   - D-S8-9: no protocol claim.
+   - Result `WP8_FINAL_REGATE_READY_FOR_OWNER_REVIEW` (`WP8_S8_FINAL_EVIDENCE_REGATE.md` §1–§9).
+3. `D-S8-3_TEST_ONLY_FIX_APPROVED — WP8_ACCEPTANCE_PENDING` → `WP8_READY_FOR_FINAL_DEVELOPMENT_ACCEPTANCE` (§10).
+4. **`S8_REGATE_ACCEPTED — FINAL_DEVELOPMENT_FINALIZATION_AUTHORIZED`** (2026-10-15), canonical baseline
+   `wp8/integration-poc@b96747b5f453a74f731624e01d5d5b4e8c53c43c`. It authorizes completing and committing the S8 package
+   for development. **It is not a production approval.**
+
+Basis: `REPORT.md` (§10–§12), `WP8_S8_FINAL_EVIDENCE_REGATE.md` (§10–§11), and `evidence/s8-regate/`,
+`evidence/s8-warning-fix/`, `evidence/s8-final/`. Every earlier run is kept, including the exit 1 run with 3 warnings.
+
+- **Accepted:**
+  - **The test-only fix** in `tests/Integration/Wp8/FailureDrillsTest.php`. Drill 8 uses a scoped PEAR2 loader, and the
+    autoloader stack, `error_reporting` and `default_socket_timeout` are restored. No product code, `Message.php`,
+    `PEAR2/Autoload.php`, `init.php` or `failOnWarning` change.
+  - **Final re-gate condition: MET.** Production-contract lab: RouterOS CHR 7.24.5 ×2, FreeRADIUS 3.2.8 threaded.
+    - `wp8-security-gates`: 10 / 216, exit 0, 0 double sessions in 48 trials.
+    - Full `wp8-integration`: 101 / 1849, exit 0, 0 errors, failures, warnings and deprecations. The 13 mode-gated skips
+      are not passes.
+  - **D-S8-4:** Architecture Lock conformance documented (`REPORT.md` §12.2). The lock is not merged or copied; the lock
+    reconciliation steps remain owner decisions.
+  - **D-S8-5:** operator notes in `install/freeradius/README.md` about the CoA port, 1700 and the source rule. Only proven
+    behaviour is stated: wrong-source is RouterOS 7.12.1 only, not re-tested on 7.24.5.
+  - **D-S8-6:** `ConcurrentFirstLoginGateTest` docblock corrected (comment-only). The `tests/phpunit.xml` comments stay
+    stale; editing that file needs a separate owner approval.
+- **Status: `WP8_FINAL_DEVELOPMENT_ACCEPTED_WITH_BLOCKERS` — `PRODUCTION_NOT_AUTHORIZED`.**
+  - Development acceptance and production readiness are separate. **WP8 is not production ready**: operational readiness
+    NOT READY; production readiness NOT READY.
+  - The ledger row stays `PENDING` until the owner records it (`REPORT.md` §12.1, D-S8-7).
+- **Still open (S8 closes none of them):** the whole production blocker register in `REPORT.md` §5 (31 rows), including:
+  - OBS-1 / L-A5-2;
+  - the A2-R SQL-exhaustion risk (`UNVERIFIED_SECURITY_RISK — PRODUCTION BLOCKER`; the reproduction is halted and must not
+    be retried);
+  - AV-1 … AV-3 and PENDING recovery;
+  - P-A4-1 … P-A4-3;
+  - the H-2 follow-ups and MAC-H1A;
+  - V-1;
+  - R-4;
+  - R-HF-CARRY-01;
+  - Phase B;
+  - OBS-S7-1 / -2 and OBS-W8-4;
+  - the Architecture-Lock release gates (Q1–Q4, P1–P3, N6–N7, REL-01 / 04 / 05, ISO-01) and lock risk R-021.
+  - Also still open: the CoA wrong-source case on 7.24.5, and the production-init PEAR2 `is_file(null)` deprecation (LOW).
+- **Not authorized:** a merge into `feat` or `main`, deployment, WP9 or WP10.

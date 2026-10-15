@@ -1,0 +1,981 @@
+{
+ "chr1": {
+  "/ip/address": [
+   {
+    "actual-interface": "ether1",
+    "address": "10.0.2.15/24",
+    "disabled": "false",
+    "dynamic": "true",
+    "interface": "ether1",
+    "invalid": "false",
+    "network": "10.0.2.0",
+    "slave": "false",
+    "vrf": "main"
+   },
+   {
+    "actual-interface": "ether2",
+    "address": "10.88.0.2/24",
+    "comment": "nuxr_wp8",
+    "disabled": "false",
+    "dynamic": "false",
+    "interface": "ether2",
+    "invalid": "false",
+    "network": "10.88.0.0",
+    "slave": "false",
+    "vrf": "main"
+   },
+   {
+    "actual-interface": "ether4",
+    "address": "10.88.2.1/24",
+    "comment": "nuxr_wp8",
+    "disabled": "false",
+    "dynamic": "false",
+    "interface": "ether4",
+    "invalid": "false",
+    "network": "10.88.2.0",
+    "slave": "false",
+    "vrf": "main"
+   }
+  ],
+  "/ip/dhcp-server": [
+   {
+    "add-dns-entries-suffix": "lan",
+    "address-lists": "",
+    "address-pool": "nuxr_wp8_pool_hs",
+    "disabled": "false",
+    "dynamic": "false",
+    "dynamic-lease-identifiers": "client-mac,client-id",
+    "interface": "ether4",
+    "invalid": "false",
+    "lease-script": "",
+    "lease-time": "10m",
+    "name": "nuxr_wp8_dhcp",
+    "support-broadband-tr101": "false",
+    "use-radius": "no",
+    "use-reconfigure": "false"
+   }
+  ],
+  "/ip/firewall/filter": [
+   {
+    "action": "jump",
+    "chain": "forward",
+    "dynamic": "true",
+    "hotspot": "from-client,!auth",
+    "invalid": "false",
+    "jump-target": "hs-unauth"
+   },
+   {
+    "action": "jump",
+    "chain": "forward",
+    "dynamic": "true",
+    "hotspot": "to-client,!auth",
+    "invalid": "false",
+    "jump-target": "hs-unauth-to"
+   },
+   {
+    "action": "jump",
+    "chain": "input",
+    "dynamic": "true",
+    "hotspot": "from-client",
+    "invalid": "false",
+    "jump-target": "hs-input"
+   },
+   {
+    "action": "drop",
+    "chain": "input",
+    "dst-port": "64872-64875",
+    "dynamic": "true",
+    "hotspot": "!from-client",
+    "invalid": "false",
+    "protocol": "tcp"
+   },
+   {
+    "action": "jump",
+    "chain": "hs-input",
+    "dynamic": "true",
+    "invalid": "false",
+    "jump-target": "pre-hs-input"
+   },
+   {
+    "action": "accept",
+    "chain": "hs-input",
+    "dst-port": "64872",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "udp"
+   },
+   {
+    "action": "accept",
+    "chain": "hs-input",
+    "dst-port": "64872-64875",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp"
+   },
+   {
+    "action": "jump",
+    "chain": "hs-input",
+    "dynamic": "true",
+    "hotspot": "!auth",
+    "invalid": "false",
+    "jump-target": "hs-unauth"
+   },
+   {
+    "action": "reject",
+    "chain": "hs-unauth",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "reject-with": "tcp-reset"
+   },
+   {
+    "action": "reject",
+    "chain": "hs-unauth",
+    "dynamic": "true",
+    "invalid": "false",
+    "reject-with": "icmp-net-prohibited"
+   },
+   {
+    "action": "reject",
+    "chain": "hs-unauth-to",
+    "dynamic": "true",
+    "invalid": "false",
+    "reject-with": "icmp-host-prohibited"
+   },
+   {
+    "action": "passthrough",
+    "chain": "unused-hs-chain",
+    "comment": "place hotspot rules here",
+    "disabled": "true",
+    "dynamic": "false",
+    "invalid": "false"
+   },
+   {
+    "action": "drop",
+    "chain": "input",
+    "comment": "nuxr_wp8_snmp",
+    "dst-port": "161",
+    "dynamic": "false",
+    "invalid": "false",
+    "protocol": "udp",
+    "src-address": "!10.88.0.10"
+   }
+  ],
+  "/ip/firewall/nat": [
+   {
+    "action": "jump",
+    "chain": "dstnat",
+    "dynamic": "true",
+    "hotspot": "from-client",
+    "invalid": "false",
+    "jump-target": "hotspot"
+   },
+   {
+    "action": "jump",
+    "chain": "hotspot",
+    "dynamic": "true",
+    "invalid": "false",
+    "jump-target": "pre-hotspot"
+   },
+   {
+    "action": "redirect",
+    "chain": "hotspot",
+    "dst-port": "53",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "udp",
+    "to-ports": "64872"
+   },
+   {
+    "action": "redirect",
+    "chain": "hotspot",
+    "dst-port": "53",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64872"
+   },
+   {
+    "action": "redirect",
+    "chain": "hotspot",
+    "dst-port": "80",
+    "dynamic": "true",
+    "hotspot": "local-dst",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64873"
+   },
+   {
+    "action": "redirect",
+    "chain": "hotspot",
+    "dst-port": "443",
+    "dynamic": "true",
+    "hotspot": "local-dst",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64875"
+   },
+   {
+    "action": "jump",
+    "chain": "hotspot",
+    "dynamic": "true",
+    "hotspot": "!auth",
+    "invalid": "false",
+    "jump-target": "hs-unauth",
+    "protocol": "tcp"
+   },
+   {
+    "action": "jump",
+    "chain": "hotspot",
+    "dynamic": "true",
+    "hotspot": "auth",
+    "invalid": "false",
+    "jump-target": "hs-auth",
+    "protocol": "tcp"
+   },
+   {
+    "action": "redirect",
+    "chain": "hs-unauth",
+    "dst-port": "80",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64874"
+   },
+   {
+    "action": "redirect",
+    "chain": "hs-unauth",
+    "dst-port": "3128",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64874"
+   },
+   {
+    "action": "redirect",
+    "chain": "hs-unauth",
+    "dst-port": "8080",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64874"
+   },
+   {
+    "action": "redirect",
+    "chain": "hs-unauth",
+    "dst-port": "443",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64875"
+   },
+   {
+    "action": "jump",
+    "chain": "hs-unauth",
+    "dst-port": "25",
+    "dynamic": "true",
+    "invalid": "false",
+    "jump-target": "hs-smtp",
+    "protocol": "tcp"
+   },
+   {
+    "action": "redirect",
+    "chain": "hs-auth",
+    "dynamic": "true",
+    "hotspot": "http",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64874"
+   },
+   {
+    "action": "jump",
+    "chain": "hs-auth",
+    "dst-port": "25",
+    "dynamic": "true",
+    "invalid": "false",
+    "jump-target": "hs-smtp",
+    "protocol": "tcp"
+   },
+   {
+    "action": "passthrough",
+    "chain": "unused-hs-chain",
+    "comment": "place hotspot rules here",
+    "disabled": "true",
+    "dynamic": "false",
+    "invalid": "false"
+   }
+  ],
+  "/ip/hotspot": [
+   {
+    "HTTPS": "false",
+    "addresses-per-mac": "2",
+    "disabled": "false",
+    "idle-timeout": "5m",
+    "interface": "ether4",
+    "invalid": "false",
+    "keepalive-timeout": "none",
+    "login-timeout": "none",
+    "name": "nuxr_wp8_hs",
+    "profile": "nuxr_wp8_hs_prof",
+    "proxy-status": "running"
+   }
+  ],
+  "/ip/hotspot/active": [],
+  "/ip/hotspot/user": [
+   {
+    "comment": "counters and limits for trial users",
+    "default": "true",
+    "disabled": "false",
+    "dynamic": "false",
+    "name": "default-trial",
+    "server": "all"
+   }
+  ],
+  "/ip/hotspot/user/profile": [
+   {
+    "add-mac-cookie": "true",
+    "address-list": "",
+    "default": "true",
+    "idle-timeout": "none",
+    "keepalive-timeout": "2m",
+    "mac-cookie-timeout": "3d",
+    "name": "default",
+    "shared-users": "10",
+    "status-autorefresh": "1m",
+    "transparent-proxy": "false"
+   }
+  ],
+  "/ip/pool": [
+   {
+    "available": "50",
+    "name": "nuxr_wp8_pool_dyn",
+    "ranges": "10.88.10.100-10.88.10.149",
+    "total": "50",
+    "used": "0"
+   },
+   {
+    "available": "50",
+    "name": "nuxr_wp8_pool_dyn2",
+    "ranges": "10.88.10.150-10.88.10.199",
+    "total": "50",
+    "used": "0"
+   },
+   {
+    "available": "98",
+    "name": "nuxr_wp8_pool_hs",
+    "ranges": "10.88.2.100-10.88.2.199",
+    "total": "100",
+    "used": "2"
+   }
+  ],
+  "/ppp/active": [],
+  "/ppp/profile": [
+   {
+    "address-list": "",
+    "bridge-learning": "default",
+    "change-tcp-mss": "yes",
+    "default": "true",
+    "name": "default",
+    "on-down": "",
+    "on-up": "",
+    "only-one": "default",
+    "use-compression": "default",
+    "use-encryption": "default",
+    "use-ipv6": "yes",
+    "use-mpls": "default",
+    "use-upnp": "default"
+   },
+   {
+    "address-list": "",
+    "bridge-learning": "default",
+    "change-tcp-mss": "default",
+    "default": "false",
+    "local-address": "10.88.10.1",
+    "name": "nuxr_wp8_pppoe",
+    "on-down": "",
+    "on-up": "",
+    "only-one": "default",
+    "use-compression": "default",
+    "use-encryption": "default",
+    "use-ipv6": "yes",
+    "use-mpls": "default",
+    "use-upnp": "default"
+   },
+   {
+    "address-list": "",
+    "bridge-learning": "default",
+    "change-tcp-mss": "yes",
+    "default": "true",
+    "name": "default-encryption",
+    "on-down": "",
+    "on-up": "",
+    "only-one": "default",
+    "use-compression": "default",
+    "use-encryption": "yes",
+    "use-ipv6": "yes",
+    "use-mpls": "default",
+    "use-upnp": "default"
+   }
+  ],
+  "/ppp/secret": [],
+  "/radius": [
+   {
+    "accounting-backup": "false",
+    "accounting-port": "1813",
+    "address": "10.88.0.10",
+    "authentication-port": "1812",
+    "called-id": "",
+    "certificate": "none",
+    "comment": "nuxr_wp8_freeradius",
+    "disabled": "false",
+    "domain": "",
+    "protocol": "udp",
+    "radsec-timeout": "3s300ms",
+    "realm": "",
+    "require-message-auth": "yes-for-request-resp",
+    "service": "ppp,hotspot",
+    "src-address": "10.88.0.2",
+    "status": "",
+    "timeout": "3s"
+   }
+  ],
+  "/radius/incoming": [
+   {
+    "accept": "true",
+    "port": "3799",
+    "vrf": "main"
+   }
+  ],
+  "/snmp/community": [
+   {
+    "addresses": "::/0",
+    "disabled": "true",
+    "read-access": "true",
+    "security": "none",
+    "write-access": "false"
+   },
+   {
+    "addresses": "10.88.0.10/32",
+    "disabled": "false",
+    "read-access": "true",
+    "security": "none",
+    "write-access": "false"
+   }
+  ],
+  "/user": [
+   {
+    "address": "",
+    "comment": "system default user",
+    "disabled": "false",
+    "expired": "false",
+    "group": "full",
+    "inactivity-policy": "none",
+    "inactivity-timeout": "10m",
+    "name": "admin"
+   }
+  ],
+  "/user/group": [
+   {
+    "name": "read",
+    "policy": "local,telnet,ssh,reboot,read,test,winbox,password,web,sniff,sensitive,api,romon,rest-api,!ftp,!write,!policy",
+    "skin": "default"
+   },
+   {
+    "name": "write",
+    "policy": "local,telnet,ssh,reboot,read,write,test,winbox,password,web,sniff,sensitive,api,romon,rest-api,!ftp,!policy",
+    "skin": "default"
+   },
+   {
+    "name": "full",
+    "policy": "local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,rest-api",
+    "skin": "default"
+   }
+  ]
+ },
+ "chr2": {
+  "/ip/address": [
+   {
+    "actual-interface": "ether1",
+    "address": "10.0.3.15/24",
+    "disabled": "false",
+    "dynamic": "true",
+    "interface": "ether1",
+    "invalid": "false",
+    "network": "10.0.3.0",
+    "slave": "false",
+    "vrf": "main"
+   },
+   {
+    "actual-interface": "ether2",
+    "address": "10.88.0.3/24",
+    "comment": "nuxr_wp8",
+    "disabled": "false",
+    "dynamic": "false",
+    "interface": "ether2",
+    "invalid": "false",
+    "network": "10.88.0.0",
+    "slave": "false",
+    "vrf": "main"
+   },
+   {
+    "actual-interface": "ether3",
+    "address": "10.88.12.1/24",
+    "comment": "nuxr_wp8_h2",
+    "disabled": "false",
+    "dynamic": "false",
+    "interface": "ether3",
+    "invalid": "false",
+    "network": "10.88.12.0",
+    "slave": "false",
+    "vrf": "main"
+   }
+  ],
+  "/ip/dhcp-server": [
+   {
+    "add-dns-entries-suffix": "lan",
+    "address-lists": "",
+    "address-pool": "nuxr_wp8_pool_hs",
+    "disabled": "false",
+    "dynamic": "false",
+    "dynamic-lease-identifiers": "client-mac,client-id",
+    "interface": "ether3",
+    "invalid": "false",
+    "lease-script": "",
+    "lease-time": "10m",
+    "name": "nuxr_wp8_dhcp",
+    "support-broadband-tr101": "false",
+    "use-radius": "no",
+    "use-reconfigure": "false"
+   }
+  ],
+  "/ip/firewall/filter": [
+   {
+    "action": "jump",
+    "chain": "forward",
+    "dynamic": "true",
+    "hotspot": "from-client,!auth",
+    "invalid": "false",
+    "jump-target": "hs-unauth"
+   },
+   {
+    "action": "jump",
+    "chain": "forward",
+    "dynamic": "true",
+    "hotspot": "to-client,!auth",
+    "invalid": "false",
+    "jump-target": "hs-unauth-to"
+   },
+   {
+    "action": "jump",
+    "chain": "input",
+    "dynamic": "true",
+    "hotspot": "from-client",
+    "invalid": "false",
+    "jump-target": "hs-input"
+   },
+   {
+    "action": "drop",
+    "chain": "input",
+    "dst-port": "64872-64875",
+    "dynamic": "true",
+    "hotspot": "!from-client",
+    "invalid": "false",
+    "protocol": "tcp"
+   },
+   {
+    "action": "jump",
+    "chain": "hs-input",
+    "dynamic": "true",
+    "invalid": "false",
+    "jump-target": "pre-hs-input"
+   },
+   {
+    "action": "accept",
+    "chain": "hs-input",
+    "dst-port": "64872",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "udp"
+   },
+   {
+    "action": "accept",
+    "chain": "hs-input",
+    "dst-port": "64872-64875",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp"
+   },
+   {
+    "action": "jump",
+    "chain": "hs-input",
+    "dynamic": "true",
+    "hotspot": "!auth",
+    "invalid": "false",
+    "jump-target": "hs-unauth"
+   },
+   {
+    "action": "reject",
+    "chain": "hs-unauth",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "reject-with": "tcp-reset"
+   },
+   {
+    "action": "reject",
+    "chain": "hs-unauth",
+    "dynamic": "true",
+    "invalid": "false",
+    "reject-with": "icmp-net-prohibited"
+   },
+   {
+    "action": "reject",
+    "chain": "hs-unauth-to",
+    "dynamic": "true",
+    "invalid": "false",
+    "reject-with": "icmp-host-prohibited"
+   },
+   {
+    "action": "passthrough",
+    "chain": "unused-hs-chain",
+    "comment": "place hotspot rules here",
+    "disabled": "true",
+    "dynamic": "false",
+    "invalid": "false"
+   },
+   {
+    "action": "drop",
+    "chain": "input",
+    "comment": "nuxr_wp8_snmp",
+    "dst-port": "161",
+    "dynamic": "false",
+    "invalid": "false",
+    "protocol": "udp",
+    "src-address": "!10.88.0.10"
+   }
+  ],
+  "/ip/firewall/nat": [
+   {
+    "action": "jump",
+    "chain": "dstnat",
+    "dynamic": "true",
+    "hotspot": "from-client",
+    "invalid": "false",
+    "jump-target": "hotspot"
+   },
+   {
+    "action": "jump",
+    "chain": "hotspot",
+    "dynamic": "true",
+    "invalid": "false",
+    "jump-target": "pre-hotspot"
+   },
+   {
+    "action": "redirect",
+    "chain": "hotspot",
+    "dst-port": "53",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "udp",
+    "to-ports": "64872"
+   },
+   {
+    "action": "redirect",
+    "chain": "hotspot",
+    "dst-port": "53",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64872"
+   },
+   {
+    "action": "redirect",
+    "chain": "hotspot",
+    "dst-port": "80",
+    "dynamic": "true",
+    "hotspot": "local-dst",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64873"
+   },
+   {
+    "action": "redirect",
+    "chain": "hotspot",
+    "dst-port": "443",
+    "dynamic": "true",
+    "hotspot": "local-dst",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64875"
+   },
+   {
+    "action": "jump",
+    "chain": "hotspot",
+    "dynamic": "true",
+    "hotspot": "!auth",
+    "invalid": "false",
+    "jump-target": "hs-unauth",
+    "protocol": "tcp"
+   },
+   {
+    "action": "jump",
+    "chain": "hotspot",
+    "dynamic": "true",
+    "hotspot": "auth",
+    "invalid": "false",
+    "jump-target": "hs-auth",
+    "protocol": "tcp"
+   },
+   {
+    "action": "redirect",
+    "chain": "hs-unauth",
+    "dst-port": "80",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64874"
+   },
+   {
+    "action": "redirect",
+    "chain": "hs-unauth",
+    "dst-port": "3128",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64874"
+   },
+   {
+    "action": "redirect",
+    "chain": "hs-unauth",
+    "dst-port": "8080",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64874"
+   },
+   {
+    "action": "redirect",
+    "chain": "hs-unauth",
+    "dst-port": "443",
+    "dynamic": "true",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64875"
+   },
+   {
+    "action": "jump",
+    "chain": "hs-unauth",
+    "dst-port": "25",
+    "dynamic": "true",
+    "invalid": "false",
+    "jump-target": "hs-smtp",
+    "protocol": "tcp"
+   },
+   {
+    "action": "redirect",
+    "chain": "hs-auth",
+    "dynamic": "true",
+    "hotspot": "http",
+    "invalid": "false",
+    "protocol": "tcp",
+    "to-ports": "64874"
+   },
+   {
+    "action": "jump",
+    "chain": "hs-auth",
+    "dst-port": "25",
+    "dynamic": "true",
+    "invalid": "false",
+    "jump-target": "hs-smtp",
+    "protocol": "tcp"
+   },
+   {
+    "action": "passthrough",
+    "chain": "unused-hs-chain",
+    "comment": "place hotspot rules here",
+    "disabled": "true",
+    "dynamic": "false",
+    "invalid": "false"
+   }
+  ],
+  "/ip/hotspot": [
+   {
+    "HTTPS": "false",
+    "addresses-per-mac": "2",
+    "disabled": "false",
+    "idle-timeout": "5m",
+    "interface": "ether3",
+    "invalid": "false",
+    "keepalive-timeout": "none",
+    "login-timeout": "none",
+    "name": "nuxr_wp8_hs",
+    "profile": "nuxr_wp8_hs_prof",
+    "proxy-status": "running"
+   }
+  ],
+  "/ip/hotspot/active": [],
+  "/ip/hotspot/user": [
+   {
+    "comment": "counters and limits for trial users",
+    "default": "true",
+    "disabled": "false",
+    "dynamic": "false",
+    "name": "default-trial",
+    "server": "all"
+   }
+  ],
+  "/ip/hotspot/user/profile": [
+   {
+    "add-mac-cookie": "true",
+    "address-list": "",
+    "default": "true",
+    "idle-timeout": "none",
+    "keepalive-timeout": "2m",
+    "mac-cookie-timeout": "3d",
+    "name": "default",
+    "shared-users": "10",
+    "status-autorefresh": "1m",
+    "transparent-proxy": "false"
+   }
+  ],
+  "/ip/pool": [
+   {
+    "available": "50",
+    "name": "nuxr_wp8_pool_dyn",
+    "ranges": "10.88.11.100-10.88.11.149",
+    "total": "50",
+    "used": "0"
+   },
+   {
+    "available": "99",
+    "name": "nuxr_wp8_pool_hs",
+    "ranges": "10.88.12.100-10.88.12.199",
+    "total": "100",
+    "used": "1"
+   }
+  ],
+  "/ppp/active": [],
+  "/ppp/profile": [
+   {
+    "address-list": "",
+    "bridge-learning": "default",
+    "change-tcp-mss": "yes",
+    "default": "true",
+    "name": "default",
+    "on-down": "",
+    "on-up": "",
+    "only-one": "default",
+    "use-compression": "default",
+    "use-encryption": "default",
+    "use-ipv6": "yes",
+    "use-mpls": "default",
+    "use-upnp": "default"
+   },
+   {
+    "address-list": "",
+    "bridge-learning": "default",
+    "change-tcp-mss": "default",
+    "default": "false",
+    "local-address": "10.88.11.1",
+    "name": "nuxr_wp8_pppoe",
+    "on-down": "",
+    "on-up": "",
+    "only-one": "default",
+    "use-compression": "default",
+    "use-encryption": "default",
+    "use-ipv6": "yes",
+    "use-mpls": "default",
+    "use-upnp": "default"
+   },
+   {
+    "address-list": "",
+    "bridge-learning": "default",
+    "change-tcp-mss": "yes",
+    "default": "true",
+    "name": "default-encryption",
+    "on-down": "",
+    "on-up": "",
+    "only-one": "default",
+    "use-compression": "default",
+    "use-encryption": "yes",
+    "use-ipv6": "yes",
+    "use-mpls": "default",
+    "use-upnp": "default"
+   }
+  ],
+  "/ppp/secret": [],
+  "/radius": [
+   {
+    "accounting-backup": "false",
+    "accounting-port": "1813",
+    "address": "10.88.0.10",
+    "authentication-port": "1812",
+    "called-id": "",
+    "certificate": "none",
+    "comment": "nuxr_wp8_freeradius",
+    "disabled": "false",
+    "domain": "",
+    "protocol": "udp",
+    "radsec-timeout": "3s300ms",
+    "realm": "",
+    "require-message-auth": "yes-for-request-resp",
+    "service": "ppp,hotspot",
+    "src-address": "10.88.0.3",
+    "status": "",
+    "timeout": "3s"
+   }
+  ],
+  "/radius/incoming": [
+   {
+    "accept": "true",
+    "port": "3799",
+    "vrf": "main"
+   }
+  ],
+  "/snmp/community": [
+   {
+    "addresses": "::/0",
+    "disabled": "true",
+    "read-access": "true",
+    "security": "none",
+    "write-access": "false"
+   },
+   {
+    "addresses": "10.88.0.10/32",
+    "disabled": "false",
+    "read-access": "true",
+    "security": "none",
+    "write-access": "false"
+   }
+  ],
+  "/user": [
+   {
+    "address": "",
+    "comment": "system default user",
+    "disabled": "false",
+    "expired": "false",
+    "group": "full",
+    "inactivity-policy": "none",
+    "inactivity-timeout": "10m",
+    "name": "admin"
+   }
+  ],
+  "/user/group": [
+   {
+    "name": "read",
+    "policy": "local,telnet,ssh,reboot,read,test,winbox,password,web,sniff,sensitive,api,romon,rest-api,!ftp,!write,!policy",
+    "skin": "default"
+   },
+   {
+    "name": "write",
+    "policy": "local,telnet,ssh,reboot,read,write,test,winbox,password,web,sniff,sensitive,api,romon,rest-api,!ftp,!policy",
+    "skin": "default"
+   },
+   {
+    "name": "full",
+    "policy": "local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,rest-api",
+    "skin": "default"
+   }
+  ]
+ }
+}

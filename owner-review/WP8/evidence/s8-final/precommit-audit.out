@@ -1,0 +1,126 @@
+== audit start 2026-10-15T14:36:49Z
+== 1 HEAD / origin
+HEAD   b96747b5f453a74f731624e01d5d5b4e8c53c43c
+origin b96747b5f453a74f731624e01d5d5b4e8c53c43c
+branch wp8/integration-poc
+protected origin/main 500d3a2d15003efeed6e0aad639c13d08101c3b1
+protected origin/feat/reseller-system-v1 5bdc57459a64dd53e32e5abb2ef6efa3815e387a
+protected origin/wp7/staff-pwa 8e7f0e1c024e6c319b5088896e001555d6c4f079
+protected origin/wp6c/mobile-adaptive-ux 757d8de969e98787a270facb956a4c543fec7eaa
+protected origin/hotfix/pace-xhr-csrf 6d4f3f962482b6e125429da7ae459ae8dfd4214c
+lock branch 8b0ee33672c7bbb06c75a56336ed229a8f9328a8 (docs-sync worktree status: 0 changes)
+== 2 inventory (git status -uall)
+ M docs/WP4_RADIUS_MODEL.md
+ M install/freeradius/README.md
+ M owner-review/WP8/OWNER_DECISIONS.md
+ M tests/Integration/Wp8/ConcurrentFirstLoginGateTest.php
+ M tests/Integration/Wp8/FailureDrillsTest.php
+?? docs/WP8_INTEGRATION_MODEL.md
+?? owner-review/WP8/REPORT.md
+?? owner-review/WP8/WP8_S8_FINAL_EVIDENCE_REGATE.md
+?? owner-review/WP8/evidence/s8-regate/01-wp8-security-gates.out
+?? owner-review/WP8/evidence/s8-regate/02-FailureDrillsTest.out
+?? owner-review/WP8/evidence/s8-regate/03-CoaDisconnectTest.out
+?? owner-review/WP8/evidence/s8-regate/04-ResellerBusinessFlowTest.out
+?? owner-review/WP8/evidence/s8-regate/05-wp8-integration.out
+?? owner-review/WP8/evidence/s8-regate/inventory-after.json
+?? owner-review/WP8/evidence/s8-regate/inventory-before.json
+?? owner-review/WP8/evidence/s8-regate/lab-console.out
+?? owner-review/WP8/evidence/s8-regate/lab-evidence.jsonl
+?? owner-review/WP8/evidence/s8-regate/message-warning-diagnosis.out
+?? owner-review/WP8/evidence/s8-regate/s7-objects-after.out
+?? owner-review/WP8/evidence/s8-regate/tree-fingerprint-after.txt
+?? owner-review/WP8/evidence/s8-regate/tree-fingerprint-before.txt
+?? owner-review/WP8/evidence/s8-warning-fix/01-drill8-standalone.out
+?? owner-review/WP8/evidence/s8-warning-fix/02-drill8-then-RealLifecycleTest.out
+?? owner-review/WP8/evidence/s8-warning-fix/03-wp8-integration-full.out
+?? owner-review/WP8/evidence/s8-warning-fix/FailureDrillsTest.diff
+?? owner-review/WP8/evidence/s8-warning-fix/autoload-lifecycle-probe.out
+?? owner-review/WP8/evidence/s8-warning-fix/autoload-lifecycle-probe.php
+?? owner-review/WP8/evidence/s8-warning-fix/inventory-after.json
+?? owner-review/WP8/evidence/s8-warning-fix/inventory-before.json
+?? owner-review/WP8/evidence/s8-warning-fix/lab-console.out
+?? owner-review/WP8/evidence/s8-warning-fix/lab-evidence.jsonl
+?? owner-review/WP8/evidence/s8-warning-fix/s7-objects-after.out
+?? owner-review/WP8/evidence/s8-warning-fix/tree-fingerprint-after-fix.txt
+?? owner-review/WP8/evidence/s8-warning-fix/tree-fingerprint-after-run.txt
+?? owner-review/WP8/evidence/s8-warning-fix/tree-fingerprint-before-fix.txt
+-- tracked diff stat
+ docs/WP4_RADIUS_MODEL.md                           | 51 ++++++++++++++++++++
+ install/freeradius/README.md                       | 23 +++++++++
+ owner-review/WP8/OWNER_DECISIONS.md                | 55 ++++++++++++++++++++++
+ .../Wp8/ConcurrentFirstLoginGateTest.php           |  9 ++--
+ tests/Integration/Wp8/FailureDrillsTest.php        | 20 +++++++-
+ 5 files changed, 153 insertions(+), 5 deletions(-)
+== 3 test autoloader = tested version
+FailureDrillsTest diff IDENTICAL to evidence/s8-warning-fix/FailureDrillsTest.diff
+FailureDrillsTest sha256 921742c752a81a5e109167953c192bebd4937310035b70864e847b781847baf8
+-- comment-only proof for ConcurrentFirstLoginGateTest (php -w strips comments)
+No syntax errors detected in /w/CFLG.new.php
+orig php -w d96df5daa6e514d9db53221f290c25d35bb546a810f35314e4f441aae5fe1c4e  -
+new  php -w d96df5daa6e514d9db53221f290c25d35bb546a810f35314e4f441aae5fe1c4e  -
+-- docblock diff contains no annotation token: 0 lines with @ (expect 1 = the +++ header? see below)
+(none)
+== 4 product code
+diff over system init.php ui install (README excluded): []
+untracked outside owner-review/ docs/: []
+changed tracked files: docs/WP4_RADIUS_MODEL.md install/freeradius/README.md owner-review/WP8/OWNER_DECISIONS.md tests/Integration/Wp8/ConcurrentFirstLoginGateTest.php tests/Integration/Wp8/FailureDrillsTest.php 
+== 5 phpunit.xml / failOnWarning
+HEAD     80acf5d7c839669f6eb49d823d3229dc18e418ed77fa82092191c5a24095633e
+worktree 80acf5d7c839669f6eb49d823d3229dc18e418ed77fa82092191c5a24095633e
+10:failOnRisky="true"
+11:failOnWarning="true"
+bootstrap.php diff lines: 0
+== 6 accepted results (evidence/s8-warning-fix/03-wp8-integration-full.out)
+5:PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+7:Runtime:       PHP 8.2.34
+49:Time: 54:57.103, Memory: 18.00 MB
+92:OK, but some tests were skipped!
+93:Tests: 101, Assertions: 1849, Skipped: 13.
+94:exit=0 end 2026-10-14T17:49:56Z
+warning/deprecation lines: 0
+-- historical exit 1 run kept: 135 lines; exit=1 end 2026-10-14T16:23:41Z
+== 7 source guards / manifest / protected / secrets
+Time: 00:01.545, Memory: 40.00 MB
+
+OK (50 tests, 40131 assertions)
+phpunit exit=0
+manifest 42/42 OK
+protected Package.php sha d4567f663193e16b6db7397ff94ed37c268274ebc5f6ce8a645af3c79fca2b85 (pin d4567f66...2b85)
+Message.php / PEAR2 Autoload / init.php diff lines: 0
+secret sweep over 35 changed / new files:
+values_checked=7 files=35 hits=0
+file types:       6 application/json       2 application/x-ndjson      23 text/plain       1 text/x-diff       3 text/x-php 
+forbidden names: []
+== 8 lab clean
+qemu: 0
+lab containers: 0
+lab networks: 0
+netns: 0 links wp8*: 0
+listeners 18728/18729: 0
+pycache dev/wp8: 0
+== 9 claims
+-- 'production ready' occurrences (each must be negated):
+(none un-negated)
+-- 7.24.5 wrong-source claims:
+owner-review/WP8/REPORT.md:318:| **D-S8-2** | A consolidated final lab **re-gate on `b96747b5`** before formal WP8 acceptance: `wp8-security-gates` + the full `wp8-integration`, in the production-contract configuration with CHR2, frozen tree, evidence only | (A) authorize it as a bounded evidence round (no code change) — **recommended**, to close the evidence-currency gaps of §3 / §7.1 (security gates since 2026-10-10; the drill, CoA and business-flow classes on the final code). Optionally add a CoA wrong-source probe on 7.24.5 (an existing lab capability; it needs owner approval because it extends the test set). (B) accept WP8 on the existing evidence with the gap recorded |
+owner-review/WP8/REPORT.md:412:| Integration Tests | **Verified with gaps**, now narrowed to: full lab suite exit 1 (test-process warnings); CoA wrong-source on 7.24.5; the untested areas of §7.1 item 6 |
+owner-review/WP8/REPORT.md:568:| 9 | Claims | The documents claim no production readiness, no SQL-exhaustion result and no 7.24.5 wrong-source result |
+owner-review/WP8/REPORT.md:579:| Integration tests | Verified for the tested lab scope (§11); gaps: CoA wrong-source on 7.24.5, the untested areas of §7.1 item 6 |
+owner-review/WP8/OWNER_DECISIONS.md:759:  - Also still open: the CoA wrong-source case on 7.24.5, and the production-init PEAR2 `is_file(null)` deprecation (LOW).
+-- SQL exhaustion lines:
+owner-review/WP8/REPORT.md:176:| 5 | **AV-2** | Capacity sizing (`pool.max`, `max_servers`, DB connections); lab evidence only | Open (owner); lock REL-04 | SQL exhaustion under load | **YES** | WP9 / WP10 load measurement | open |
+owner-review/WP8/REPORT.md:568:| 9 | Claims | The documents claim no production readiness, no SQL-exhaustion result and no 7.24.5 wrong-source result |
+owner-review/WP8/WP8_S8_FINAL_EVIDENCE_REGATE.md:242:- **SQL tooling:** no A2-R SQL tooling was run, and no SQL-exhaustion reproduction.
+owner-review/WP8/WP8_S8_FINAL_EVIDENCE_REGATE.md:290:  the SQL-exhaustion tooling and production were not used.
+== 10 blocker register rows in REPORT.md §5: 31
+== audit end 2026-10-15T14:36:56Z
+
+== reviewer notes (added after the run)
+- Section 9 grep lists every line that mentions "wrong-source" or "SQL exhaustion" without one of the qualifier words.
+  Each listed line was read: all of them record a gap, an open item, a recommendation or the audit statement itself.
+  None claims a 7.24.5 wrong-source result or a SQL-exhaustion result.
+- Secret sweep: 7 values checked. That is 4 env values (lab admin, DB root, RADIUS secret, SNMP community) plus 3 NAS SNMP
+  credentials. A second, all-token variant (scratch a4-secret-sweep.py) also found 0 hits. No value is printed anywhere.
+- The source-guard run used a read-only mount of the repository and no network (--network none, :ro, --do-not-cache-result).
+- No lab, CHR, SQL-exhaustion tooling or production system was used in this round.
