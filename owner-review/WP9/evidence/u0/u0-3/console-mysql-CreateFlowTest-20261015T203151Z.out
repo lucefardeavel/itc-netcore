@@ -1,0 +1,20 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-3/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp6a/CreateFlowTest.php
+start: 2026-10-15T20:31:51Z
+ Container nuxbill-reseller-test-php82-run-1cc840d9bbac Creating 
+ Container nuxbill-reseller-test-php82-run-1cc840d9bbac Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...                                                                 3 / 3 (100%)
+
+Time: 00:08.020, Memory: 10.00 MB
+
+Create Flow (Reseller\Tests\Integration\Wp6a\CreateFlow)
+ ✔ Form offers only the actors ownership choices
+ ✔ Ownership is resolved by the server and forgeries fail
+ ✔ Arabic names and the activate now prompt
+
+OK (3 tests, 53 assertions)
+exit=0 end: 2026-10-15T20:32:01Z

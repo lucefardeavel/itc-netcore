@@ -1,0 +1,24 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-3/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/HierarchyTest.php
+start: 2026-10-15T20:30:20Z
+ Container nuxbill-reseller-test-php82-run-7804ddf6c18f Creating 
+ Container nuxbill-reseller-test-php82-run-7804ddf6c18f Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......                                                             7 / 7 (100%)
+
+Time: 00:09.950, Memory: 10.00 MB
+
+Hierarchy (Reseller\Tests\Http\Hierarchy)
+ ✔ Seed tree is consistent
+ ✔ Explicit placement of legacy accounts
+ ✔ Move rules cycle self parent and roles
+ ✔ Move subtree keeps closure consistent and clears mismatched sales assignments
+ ✔ Agent disables strict descendants only
+ ✔ Frozen descendant is read only
+ ✔ Concurrent cross moves cannot create a cycle
+
+OK (7 tests, 72 assertions)
+exit=0 end: 2026-10-15T20:30:32Z

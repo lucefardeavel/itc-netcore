@@ -26,6 +26,9 @@ final class DomainError extends \RuntimeException
         'SALES_NEEDS_PARENT' => 'A Sales account must be placed under an Agent.',
         'LOCK_TIMEOUT' => 'The hierarchy is busy; please try again.',
         'USERNAME_TAKEN' => 'The username is already used.',
+        // WP9 U0: the shared identity check (generic: never says which identity holds the name)
+        'IDENTITY_TAKEN' => 'This username or PPPoE username is already in use.',
+        'IDENTITY_CHECK_UNAVAILABLE' => 'The username could not be checked right now; nothing was changed. Please try again.',
         'INVALID_INPUT' => 'Invalid input.',
         'INVALID_SALES' => 'The selected Sales account is not valid for this customer owner.',
         'INVALID_OWNER' => 'The selected owner must be an active, enrolled Agent.',

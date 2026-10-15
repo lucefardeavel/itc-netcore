@@ -93,7 +93,21 @@ switch ($do) {
             $d->address = $address;
             $d->email = $email;
             $d->phonenumber = $phone_number;
-            if ($d->save()) {
+            // WP9 U0 (P2): the name is checked and the row is inserted under the shared identity lock (customers, live
+            // voucher identities, RADIUS keys). A refusal uses the same generic message as an existing account (it never
+            // says which kind of identity holds the name) and the same form as every other validation error.
+            try {
+                $saved = \Reseller\Domain\CustomerIdentity::hold(static function (\PDO $pdo) use ($d): bool {
+                    \Reseller\Domain\CustomerIdentity::assertAvailable($pdo, [(string) $d->username]);
+                    return (bool) $d->save();
+                });
+            } catch (\Reseller\Domain\DomainError $e) {
+                $saved = null;
+                $msg .= ($e->reason === 'IDENTITY_TAKEN' ? Lang::T('Account already exists') : 'Failed to register') . '<br>';
+            }
+        }
+        if ($msg == '') {
+            if ($saved) {
                 $user = $d->id();
                 if ($config['photo_register'] == 'yes' && !empty($_FILES['photo']['name']) && file_exists($_FILES['photo']['tmp_name'])) {
                     if (function_exists('imagecreatetruecolor')) {

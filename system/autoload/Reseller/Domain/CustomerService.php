@@ -53,7 +53,10 @@ final class CustomerService
             default:
                 throw new DomainError('FORBIDDEN');
         }
-        return Tx::withTreeLock(function (\PDO $pdo) use ($a, $in, $customFields, $manager, $sales): int {
+        // WP9 U0 (P1, AM-W9-1): tree lock (L-1) -> identity lock (L-3) -> BEGIN; the same tree-lock semantics as
+        // Tx::withTreeLock (same lock, taken before the transaction); the identity check runs inside the transaction
+        // that inserts, which commits before the identity lock is released
+        return TreeSerialization::hold(static fn(): int => CustomerIdentity::hold(static fn(): int => Tx::run(function (\PDO $pdo) use ($a, $in, $customFields, $manager, $sales): int {
             ResellerTreeService::revalidateActor($pdo, $a);
             if ($manager !== null) {
                 self::assertOwner($pdo, $manager);
@@ -64,6 +67,8 @@ final class CustomerService
             if (Tx::row($pdo, 'SELECT id FROM tbl_customers WHERE username = ? FOR UPDATE', [$in['username']]) !== null) {
                 throw new DomainError('USERNAME_TAKEN', 'Account already exists');
             }
+            // I-1 (cross-field, canonical, customers + live voucher identities + RADIUS keys)
+            CustomerIdentity::assertAvailable($pdo, array_values(array_filter([(string) $in['username'], (string) ($in['pppoe_username'] ?? '')], static fn(string $n): bool => trim($n) !== '')));
             Tx::exec(
                 $pdo,
                 'INSERT INTO tbl_customers (username, password, pppoe_username, pppoe_password, pppoe_ip, email, account_type, fullname, address, created_by, phonenumber, service_type, coordinates, city, district, state, zip, manager_id, assigned_sales_id) '
@@ -88,7 +93,7 @@ final class CustomerService
                 'after' => ['manager_id' => $manager, 'assigned_sales_id' => $sales],
             ], $pdo);
             return $id;
-        });
+        })));
     }
 
     /** OD-7: assign (or clear with null) the Sales of an owned customer inside the actor's scope. */
@@ -316,6 +321,11 @@ final class CustomerService
         $p = (string) ($in['password'] ?? '');
         if (mb_strlen($p) < 2 || mb_strlen($p) > 45) {
             throw new DomainError('INVALID_INPUT', 'Password should be between 3 to 35 characters');
+        }
+        // WP9 U0 (I-5): a PPPoE username is a RADIUS key: it fits the column and has no control character (refused, never truncated)
+        $pp = (string) ($in['pppoe_username'] ?? '');
+        if (mb_strlen($pp) > 32 || preg_match('/[\x00-\x1F\x7F]/', $pp)) {
+            throw new DomainError('INVALID_INPUT', 'PPPoE username should be at most 32 characters, without control characters');
         }
     }
 

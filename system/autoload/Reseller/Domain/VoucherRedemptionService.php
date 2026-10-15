@@ -95,16 +95,25 @@ final class VoucherRedemptionService
             if (Tx::row($pdo, 'SELECT id FROM tbl_customers WHERE username = ? OR pppoe_username = ? LIMIT 1', [$username, $username]) !== null) {
                 return [self::USERNAME_TAKEN, null, null];
             }
-            $v = self::claim($code, false);
-            if ($v === null) {
-                return [self::NOT_VALID, null, null];
-            }
-            $id = Tx::run(static function (\PDO $pdo) use ($code, $username): int {
-                Tx::exec($pdo, "INSERT INTO tbl_customers (username, password, fullname, address, email, phonenumber) VALUES (?, ?, '', '', '', ?)",
-                    [$username, $code, strlen($username) < 21 ? $username : '']);
-                return (int) $pdo->lastInsertId();
+            // WP9 U0 (P3, AM-W9-1): voucher username lock (L-2) -> identity lock (L-3); the canonical check, the claim and
+            // the provisional customer insert run under the identity lock; the grant runs after both locks (unchanged)
+            return CustomerIdentity::hold(static function (\PDO $pdo) use ($code, $username): array {
+                try {
+                    CustomerIdentity::assertAvailable($pdo, [$username]);
+                } catch (DomainError $e) {
+                    return [$e->reason === 'IDENTITY_TAKEN' ? self::USERNAME_TAKEN : self::REFUSED, null, null];
+                }
+                $v = self::claim($code, false);
+                if ($v === null) {
+                    return [self::NOT_VALID, null, null];
+                }
+                $id = Tx::run(static function (\PDO $pdo) use ($code, $username): int {
+                    Tx::exec($pdo, "INSERT INTO tbl_customers (username, password, fullname, address, email, phonenumber) VALUES (?, ?, '', '', '', ?)",
+                        [$username, $code, strlen($username) < 21 ? $username : '']);
+                    return (int) $pdo->lastInsertId();
+                });
+                return ['CREATED', $v, $id];
             });
-            return ['CREATED', $v, $id];
         });
         [$state, $v, $id] = $created;
         if ($state !== 'CREATED') {

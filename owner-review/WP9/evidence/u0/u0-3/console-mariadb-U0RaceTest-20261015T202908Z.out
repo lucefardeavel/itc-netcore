@@ -1,0 +1,27 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-3/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox --filter A1|A2|A3|B1|B2|B3|D1|D2|D3|Isolation tests/Integration/Wp9/U0RaceTest.php
+start: 2026-10-15T20:29:08Z
+ Container nuxbill-reseller-test-php82-run-a7460cdaf3dd Creating 
+ Container nuxbill-reseller-test-php82-run-a7460cdaf3dd Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..........                                                        10 / 10 (100%)
+
+Time: 00:05.328, Memory: 10.00 MB
+
+U0Race (Reseller\Tests\Integration\Wp9\U0Race)
+ ✔ Application session isolation level
+ ✔ A 1 voucher in flight versus p 1 creation and provisioning
+ ✔ A 2 voucher in flight versus p 2 public registration
+ ✔ A 3 voucher in flight versus p 3 voucher with new username
+ ✔ B 1 p1 before commit versus voucher
+ ✔ B 2 p2 before insert versus voucher
+ ✔ B 3 p3 before insert versus voucher
+ ✔ D 1 p1 before commit versus p 2
+ ✔ D 2 p1 before commit versus p 3
+ ✔ D 3 p2 before insert versus p 3
+
+OK (10 tests, 37 assertions)
+exit=0 end: 2026-10-15T20:29:15Z

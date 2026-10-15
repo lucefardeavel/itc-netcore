@@ -1,0 +1,61 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-3/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox --filter P1|P2|P3|generic tests/Integration/Wp9/U0IdentityTest.php
+start: 2026-10-15T20:29:15Z
+ Container nuxbill-reseller-test-php82-run-fd7f9a0f1ab3 Creating 
+ Container nuxbill-reseller-test-php82-run-fd7f9a0f1ab3 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+............................................                      44 / 44 (100%)
+
+Time: 00:12.443, Memory: 10.00 MB
+
+U0Identity (Reseller\Tests\Integration\Wp9\U0Identity)
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Agent vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Agent vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Agent vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Sales vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Sales vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Sales vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs leftover RADIUS rows"
+ ✔ A fresh name is accepted with data set "P1 Admin"
+ ✔ A fresh name is accepted with data set "P1 Agent"
+ ✔ A fresh name is accepted with data set "P1 Sales"
+ ✔ A fresh name is accepted with data set "P2"
+ ✔ A fresh name is accepted with data set "P3"
+ ✔ An unused voucher code is not an identity with data set "P1 Admin"
+ ✔ An unused voucher code is not an identity with data set "P1 Agent"
+ ✔ An unused voucher code is not an identity with data set "P1 Sales"
+ ✔ An unused voucher code is not an identity with data set "P2"
+ ✔ An unused voucher code is not an identity with data set "P3"
+ ✔ Public registration refusal is generic
+
+OK (44 tests, 117 assertions)
+exit=0 end: 2026-10-15T20:29:29Z
