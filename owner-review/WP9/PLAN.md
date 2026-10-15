@@ -27,6 +27,8 @@
 | **OD-W9-10** | **CHR TEST PLANNING APPROVED ONLY** | CHR rows are planned and never run in this stage (§13) |
 | **OD-W9-11** | **WP9 = bounded security concurrency; WP10 = capacity, load and long-duration testing** | §2, §5 |
 
+**U0 status note (2026-10-15, cumulative; rev 3 text below unchanged):** owner decisions OD-W9-A1-1…4 (V1 interim acceptance, U0 design study, N-07 voucher-code logging, deferrals), then `WP9_U0_FULL_IMPLEMENTATION_AND_TESTING_AUTHORIZED` with D-U0-1…8 APPROVED. U0-0…U0-5 executed test-first on `wp9/red-team-rc` (local commits only); results, residual blockers and new decisions in `REPORT.md` §U0 and `U0_PROGRESS.md`. `PRODUCTION_NOT_AUTHORIZED`; OBS-1 remains a production blocker until the owner rules on the §U0 evidence.
+
 **Rev 3 owner decisions (2026-10-15):** plan rev 2 accepted with amendments AM-W9-1…3; **T0 static testing authorized** (A2-R statement inventory; A2-R sentinel / rejection decision table; SourceGuard-oriented analysis; no-shell and ledger-writer scans; CSV formula / escaping pure-unit cases; NEW-7 key-use inventory; Smarty static-call / configuration-exposure inventory) under strict conditions: no database connection, no Docker container, no FreeRADIUS process, no MikroTik / CHR, no HTTP / PWA lab, no SQL exhaustion / pressure / fault / simulation, no product-code change, no schema / migration / SourceGuard re-pin. One local commit of `PLAN.md` + `WP9_HANDOFF.md` authorized after a diff audit and a secret sweep; no push.
 
 **Still needing owner approval (§18):**
@@ -730,7 +732,7 @@ An independent read-only fact-check of rev 1 produced 14 corrections, plus two s
 | D-W9-R2 | T1–T3 on the disposable harness / PWA lab | pending (after T0 review). *2026-10-15: only T1-A (OBS-1 / voucher characterisation) was authorized; it stopped at V1 (REPORT.md §T1-A)* |
 | D-W9-R3 | A2-R implementation scope | pending (design only, OD-W9-2) |
 | D-W9-R4 | Rev-1 A-T2 DB-level CHECK test | pending (deferred) |
-| D-W9-R5 | OBS-1 invariant I-1…I-5 + U0; U1–U4 separately | pending; lock design corrected (AM-W9-1, §7.3); U0 **not** implemented |
+| D-W9-R5 | OBS-1 invariant I-1…I-5 + U0; U1–U4 separately | pending; lock design corrected (AM-W9-1, §7.3); U0 **not** implemented. **2026-10-15 status note:** U0 design accepted with D-U0-1…8 and implemented on `wp9/red-team-rc` (`WP9_U0_FULL_IMPLEMENTATION_AND_TESTING_AUTHORIZED`; `U0_DESIGN.md` §9, `REPORT.md` §U0); U1–U4 still separate decisions |
 | D-W9-R6 | Voucher namespace | **accepted for the study only** (AM-W9-3); separate V1–V4 study (§7.7); OBS-1 not closable for production while collidable RADIUS identities remain |
 | D-W9-R7 | Policies P1–P5 | pending (OWNER_POLICY_PENDING); no permission change |
 | D-W9-R8 | NEW-7 option | pending (remediation required before production) |
