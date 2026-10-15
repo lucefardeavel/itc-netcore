@@ -879,17 +879,19 @@ switch ($action) {
                     $vouchers[$i] = $code;
                 }
             }
-            // WP9-A1 (OBS-W9-V1): a voucher code is also a RADIUS identity (voucher-only redemption), so a code never equals
-            // a customer's username / PPPoE username (canonical RADIUS key, any customer). Colliding codes are regenerated
-            // with the CSPRNG (bounded, unique within the batch and among vouchers); when a collision remains or the check
-            // cannot run, no voucher of the batch is created.
+            // WP9-A1 / U0 (OBS-W9-V1, P7): a voucher code is also a RADIUS identity (voucher-only redemption), so a code never
+            // equals an identity in use (canonical RADIUS key: any customer's username / PPPoE username, a live voucher
+            // identity, a RADIUS key with policy rows). Colliding codes are regenerated with the CSPRNG (bounded, unique
+            // within the batch and among vouchers); when a collision remains or the check cannot run, no voucher of the
+            // batch is created. Unused codes are not identities, so this best-effort check takes no identity lock: a later
+            // collision is refused at redemption (P6) under the lock.
             for ($round = 0; ; $round++) {
-                $taken = \Reseller\Domain\VoucherRedemptionService::customerIdentityCollisions(array_map(static fn($c): string => $prefix . $c, $vouchers));
+                $taken = \Reseller\Domain\CustomerIdentity::conflicts(ORM::get_db(), array_map(static fn($c): string => $prefix . $c, $vouchers));
                 if ($taken === null || $taken === [] || $round >= 20) {
                     break;
                 }
                 foreach ($vouchers as $i => $code) {
-                    if (!in_array(trim($prefix . $code), $taken, true)) {
+                    if (!isset($taken[trim($prefix . $code)])) {
                         continue;
                     }
                     for ($try = 0; $try < 20 && ($try === 0 || count(array_keys($vouchers, $code, true)) > 1
@@ -902,7 +904,7 @@ switch ($action) {
                 }
             }
             if ($taken !== []) {
-                r2(getUrl('plan/add-voucher/'), 'e', 'Voucher codes could not be generated without matching a customer username; no voucher was created');
+                r2(getUrl('plan/add-voucher/'), 'e', 'Voucher codes could not be generated without matching an existing username; no voucher was created');
             }
 
             foreach ($vouchers as $code) {

@@ -32,11 +32,6 @@ final class VoucherRedemptionService
     public const REFUSED = 'REFUSED';
     public const USERNAME_TAKEN = 'USERNAME_TAKEN';
     private const LOCK_TIMEOUT = 10;
-    /** WP9-A1: PHP trim() characters (RadiusPolicyBuilder::key()), as regex escapes understood by MariaDB PCRE and MySQL ICU */
-    private const TRIM_RE = '^[ \t\n\r\x0B\x00]+|[ \t\n\r\x0B\x00]+$';
-    private const EDGE_RE = '^[ \t\n\r\x0B\x00]|[ \t\n\r\x0B\x00]$';
-    /** WP9-A1: bound of candidate customer rows per check (more: the check fails closed) */
-    private const IDENTITY_CANDIDATES = 1000;
 
     /**
      * Redeems $code for an existing customer (customerId > 0) or a voucher-only subscriber (customerId 0,
@@ -50,13 +45,28 @@ final class VoucherRedemptionService
             self::record($source, $code, $target, self::REFUSED);
             return ['status' => self::REFUSED, 'voucher' => null, 'result' => null];
         }
-        // WP9-A1 (OBS-W9-V1): a voucher-only subscriber's RADIUS identity is the code; it must not be any customer's
-        // identity (owned or unassigned). Refused before the claim: the voucher stays redeemable, nothing is written.
-        if ($target->customerId === 0 && self::identityInUse($target->username)) {
-            self::record($source, $code, $target, self::REFUSED . ':IDENTITY_IN_USE');
-            return ['status' => self::REFUSED, 'voucher' => null, 'result' => null];
+        if ($target->customerId === 0) {
+            // WP9-A1 / U0 (OBS-W9-V1, P6): a voucher-only subscriber's RADIUS identity is the code. Under the shared
+            // identity lock the code must be no customer's identity, no other live voucher identity and no RADIUS key in
+            // use; the claim inside the same lock is the durable reservation of the code (a CLAIMED or voucher-only
+            // granted code is an identity for every other acquirer). The grant stays OUTSIDE the lock. Refused before
+            // the claim: the voucher stays redeemable, nothing is written.
+            try {
+                $v = CustomerIdentity::hold(static function (\PDO $pdo) use ($code, $target, $source): ?array {
+                    // nothing redeemable (unknown, used, or this code's own CLAIMED reservation): NOT_VALID, as before U0
+                    if (self::candidate($code, $source->kind === RedemptionSource::RADIUS) === null) {
+                        return null;
+                    }
+                    CustomerIdentity::assertAvailable($pdo, [$target->username]);
+                    return self::claim($code, $source->kind === RedemptionSource::RADIUS);
+                }, $source->kind === RedemptionSource::RADIUS ? CustomerIdentity::RADIUS_TIMEOUT : CustomerIdentity::TIMEOUT);
+            } catch (DomainError $e) {
+                self::record($source, $code, $target, self::REFUSED . ':' . ($e->reason === 'IDENTITY_TAKEN' ? 'IDENTITY_IN_USE' : $e->reason));
+                return ['status' => self::REFUSED, 'voucher' => null, 'result' => null];
+            }
+        } else {
+            $v = self::claim($code, $source->kind === RedemptionSource::RADIUS);
         }
-        $v = self::claim($code, $source->kind === RedemptionSource::RADIUS);
         if ($v === null) {
             self::record($source, $code, $target, self::NOT_VALID);
             return ['status' => self::NOT_VALID, 'voucher' => null, 'result' => null];
@@ -128,76 +138,10 @@ final class VoucherRedemptionService
         return $target->customerId > 0 ? ServiceGate::isBlockedCustomerId($target->customerId) : ServiceGate::isBlockedUsername($target->username);
     }
 
-    /** True when $name is a customer's RADIUS identity, or when that cannot be checked (fail closed). */
-    private static function identityInUse(string $name): bool
+    /** The redeemable ('0') voucher with this code, null when none (read only). */
+    private static function candidate(string $code, bool $radiusOnly): ?array
     {
-        $taken = self::customerIdentityCollisions([$name]);
-        return $taken === null || $taken !== [];
-    }
-
-    /**
-     * WP9-A1 (OBS-W9-V1): which of $names equal a customer identity as RADIUS sees it - the canonical key of
-     * RadiusPolicyBuilder::key() (PHP trim(): space, TAB, LF, CR, NUL, VT) compared under the RADIUS collation
-     * (radcheck.username utf8mb4_general_ci: case-, accent-insensitive), against the username AND the PPPoE username of
-     * every customer (owned or unassigned). Returns the colliding names, [] when none, null when the check cannot run
-     * (any error, an empty canonical name, or more candidate rows than the bound): callers fail closed.
-     *
-     * Two statements, no schema change: (1) ONE scan of tbl_customers returning the canonical form (hex, so no value
-     * passes through the connection character set) of the rows whose column equals a name under the RADIUS collation,
-     * or whose column starts / ends with a trimmed character (the only rows whose canonical form differs from the
-     * stored value); (2) the names compared with those canonical forms under the RADIUS collation. tbl_customers has
-     * no index on either column, so (1) is the same full scan as the existing ServiceGate::isBlockedUsername() lookup.
-     *
-     * @param list<string> $names
-     * @return list<string>|null
-     */
-    public static function customerIdentityCollisions(array $names): ?array
-    {
-        $keys = [];
-        foreach ($names as $n) {
-            $k = trim((string) $n);
-            if ($k === '') {
-                return null;
-            }
-            $keys[$k] = true;
-        }
-        $keys = array_keys($keys);
-        if ($keys === []) {
-            return [];
-        }
-        $hex = array_map(static fn(string $k): string => strtoupper(bin2hex($k)), $keys);
-        $rad = static fn(string $expr): string => "CONVERT({$expr} USING utf8mb4) COLLATE utf8mb4_general_ci";
-        $in = implode(', ', array_fill(0, count($keys), $rad('UNHEX(?)')));
-        try {
-            $pdo = self::pdo();
-            $rows = Tx::rows($pdo,
-                'SELECT HEX(' . $rad("REGEXP_REPLACE(username, ?, '')") . ') AS u, HEX(' . $rad("REGEXP_REPLACE(pppoe_username, ?, '')") . ') AS p FROM tbl_customers'
-                . ' WHERE ' . $rad('username') . " IN ({$in}) OR " . $rad('pppoe_username') . " IN ({$in}) OR username REGEXP ? OR pppoe_username REGEXP ?"
-                . ' LIMIT ' . (self::IDENTITY_CANDIDATES + 1),
-                [self::TRIM_RE, self::TRIM_RE, ...$hex, ...$hex, self::EDGE_RE, self::EDGE_RE]);
-            if (count($rows) > self::IDENTITY_CANDIDATES) {
-                return null;
-            }
-            $canonical = [];
-            foreach ($rows as $r) {
-                foreach (['u', 'p'] as $col) {
-                    if ((string) $r[$col] !== '') {
-                        $canonical[(string) $r[$col]] = true;
-                    }
-                }
-            }
-            if ($canonical === []) {
-                return [];
-            }
-            $kv = implode(' UNION ALL ', array_fill(0, count($keys), 'SELECT ' . $rad('UNHEX(?)') . ' AS v'));
-            $cv = implode(' UNION ALL ', array_fill(0, count($canonical), 'SELECT ' . $rad('UNHEX(?)') . ' AS n'));
-            $hit = Tx::rows($pdo, "SELECT DISTINCT HEX(k.v) AS h FROM ({$kv}) k JOIN ({$cv}) c ON k.v = c.n", [...$hex, ...array_keys($canonical)]);
-            $byHex = array_combine($hex, $keys);
-            return array_values(array_map(static fn(array $r): string => $byHex[strtoupper((string) $r['h'])] ?? throw new \LogicException('identity hex'), $hit));
-        } catch (\Throwable $e) {
-            ErrorReporter::report($e, 'voucher-identity');
-            return null;
-        }
+        return Tx::row(self::pdo(), "SELECT * FROM tbl_voucher WHERE BINARY code = ? AND status = '0'" . ($radiusOnly ? " AND routers = 'radius'" : '') . ' ORDER BY id LIMIT 1', [$code]);
     }
 
     /** Atomic '0' -> 'CLAIMED' of one voucher with this code; null when none is redeemable. */
@@ -205,7 +149,7 @@ final class VoucherRedemptionService
     {
         $pdo = self::pdo();
         for ($i = 0; $i < 3; $i++) {
-            $v = Tx::row($pdo, "SELECT * FROM tbl_voucher WHERE BINARY code = ? AND status = '0'" . ($radiusOnly ? " AND routers = 'radius'" : '') . ' ORDER BY id LIMIT 1', [$code]);
+            $v = self::candidate($code, $radiusOnly);
             if ($v === null) {
                 return null;
             }

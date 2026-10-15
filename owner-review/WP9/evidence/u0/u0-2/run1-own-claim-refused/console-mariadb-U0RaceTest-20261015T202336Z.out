@@ -1,0 +1,44 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-2/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox --filter C1|C2|G1|G2 tests/Integration/Wp9/U0RaceTest.php
+start: 2026-10-15T20:23:36Z
+ Container nuxbill-reseller-test-php82-run-831e273af09e Creating 
+ Container nuxbill-reseller-test-php82-run-831e273af09e Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+WWWW..                                                              6 / 6 (100%)
+
+Time: 00:04.285, Memory: 10.00 MB
+
+U0Race (Reseller\Tests\Integration\Wp9\U0Race)
+ ⚠ C 1 voucher in flight versus an equal code with data set "case"
+ ⚠ C 1 voucher in flight versus an equal code with data set "accent"
+ ⚠ C 1 voucher in flight versus an equal code with data set "trailing space"
+ ⚠ C 2 simultaneous redemptions of equal codes
+ ✔ G 1 p4 rename away versus voucher of the old name
+ ✔ G 2 p5 rename away versus voucher of the old name
+
+4 tests triggered 1 PHP warning:
+
+1) /repo/tests/Integration/Wp9/U0RaceTest.php:52
+Array to string conversion
+
+Triggered by:
+
+* Reseller\Tests\Integration\Wp9\U0RaceTest::testC1VoucherInFlightVersusAnEqualCode#accent
+  /repo/tests/Integration/Wp9/U0RaceTest.php:229
+
+* Reseller\Tests\Integration\Wp9\U0RaceTest::testC1VoucherInFlightVersusAnEqualCode#case
+  /repo/tests/Integration/Wp9/U0RaceTest.php:229
+
+* Reseller\Tests\Integration\Wp9\U0RaceTest::testC1VoucherInFlightVersusAnEqualCode#trailing space
+  /repo/tests/Integration/Wp9/U0RaceTest.php:229
+
+* Reseller\Tests\Integration\Wp9\U0RaceTest::testC2SimultaneousRedemptionsOfEqualCodes
+  /repo/tests/Integration/Wp9/U0RaceTest.php:242
+
+OK, but there were issues!
+Tests: 6, Assertions: 26, Warnings: 1.
+
+exit=1 end: 2026-10-15T20:23:42Z

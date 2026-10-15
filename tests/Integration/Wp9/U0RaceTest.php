@@ -49,7 +49,7 @@ final class U0RaceTest extends RadiusHttpTestCase
      */
     private function judge(string $case, string $x, array $outcomes, int $grantedVouchers, array $extra = [], array $integrity = []): void
     {
-        if ($grantedVouchers === 1 && in_array('GRANTED', array_map('strval', $outcomes), true) && !isset($integrity['voucher_policy_is_its_own'])) {
+        if ($grantedVouchers === 1 && in_array('GRANTED', array_filter($outcomes, 'is_string'), true) && !isset($integrity['voucher_policy_is_its_own'])) {
             $integrity['voucher_policy_is_its_own'] = self::password(trim($x)) === $x;
         }
         $holders = self::holders($x);

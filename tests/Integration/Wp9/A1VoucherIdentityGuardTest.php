@@ -199,9 +199,13 @@ PHP;
         $vid = $this->voucher($u['username'], self::$hotspot);
         $first = $this->redeemVoucherOnly($u['username']);
         $second = $this->redeemVoucherOnly($u['username']);
-        // the colliding customer is renamed away (test fixture): the same code is now a free identity
+        // the colliding customer is renamed away (test fixture): the same code is now a free identity. WP9 U0 (D-U0-2): a key
+        // that still holds RADIUS policy rows is not free, so the fixture renames the customer's rows in all three policy
+        // tables (as RadiusRepository::renameUser does); the A1 version renamed radcheck only
         static::$db->pdo->prepare('UPDATE tbl_customers SET username = ? WHERE id = ?')->execute([$u['username'] . 'z', $u['id']]);
-        static::$db->pdo->prepare('UPDATE radcheck SET username = ? WHERE BINARY username = ?')->execute([$u['username'] . 'z', $u['username']]);
+        foreach (['radcheck', 'radreply', 'radusergroup'] as $t) {
+            static::$db->pdo->prepare("UPDATE {$t} SET username = ? WHERE BINARY username = ?")->execute([$u['username'] . 'z', $u['username']]);
+        }
         $third = $this->redeemVoucherOnly($u['username']);
         $fourth = $this->redeemVoucherOnly($u['username']);
         $obs = ['first' => $first, 'replay' => $second, 'after_rename' => $third, 'after_grant_replay' => $fourth, 'voucher_status_after' => $this->vstatus($vid)];

@@ -1,0 +1,33 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/u0/u0-2/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox --filter P6 tests/Integration/Wp9/U0IdentityTest.php
+start: 2026-10-15T20:24:40Z
+ Container nuxbill-reseller-test-php82-run-8cceb24ea59d Creating 
+ Container nuxbill-reseller-test-php82-run-8cceb24ea59d Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+................                                                  16 / 16 (100%)
+
+Time: 00:10.363, Memory: 10.00 MB
+
+U0Identity (Reseller\Tests\Integration\Wp9\U0Identity)
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P6 RADIUS vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P6 RADIUS vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P6 RADIUS vs leftover RADIUS rows"
+ ✔ A fresh name is accepted with data set "P6"
+ ✔ A fresh name is accepted with data set "P6 RADIUS"
+ ✔ An unused voucher code is not an identity with data set "P6"
+ ✔ An unused voucher code is not an identity with data set "P6 RADIUS"
+
+OK (16 tests, 42 assertions)
+exit=0 end: 2026-10-15T20:24:52Z
