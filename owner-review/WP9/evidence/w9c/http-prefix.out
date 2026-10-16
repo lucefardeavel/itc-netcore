@@ -1,0 +1,63 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Http/W9RedTeamHttpTest.php start 2026-10-16T20:43:46Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..F....E..                                                        10 / 10 (100%)
+Time: 00:11.344, Memory: 10.00 MB
+W9Red Team Http (Reseller\Tests\Http\W9RedTeamHttp)
+ ✔ R 1 foreign id answers exactly like a nonexistent one
+ ✔ R 2 unassigned legacy customer is unreachable for resellers
+ ✘ R 4 malformed and foreign ids are refused without change
+   │
+   │ an array id is not an error page
+   │ Failed asserting that 500 is not identical to 500.
+   │
+   │ /repo/tests/Http/W9RedTeamHttpTest.php:112
+   │
+ ✔ R 5 privilege escalation through staff edit is refused
+ ✔ R 6 forged money fields are ignored
+ ✔ R 8 idempotency conflicts and user scoped nonces
+ ✔ R 9 hierarchy move by agent is refused on web and api
+ ✘ N 10 api never returns configuration secrets
+   │
+   │ Error: Call to undefined method Reseller\Tests\Support\AppServer::appSecret()
+   │
+   │ /repo/tests/Http/W9RedTeamHttpTest.php:188
+   │
+ ✔ R 13 legacy recharge with junk ids writes nothing
+ ✔ R f c 1 voucher codes in methods are not visible to reseller staff
+ERRORS!
+Tests: 10, Assertions: 89, Errors: 1, Failures: 1.
+exit=2
+== mysql tests/Http/W9RedTeamHttpTest.php start 2026-10-16T20:43:59Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+..F....E..                                                        10 / 10 (100%)
+Time: 00:17.243, Memory: 10.00 MB
+W9Red Team Http (Reseller\Tests\Http\W9RedTeamHttp)
+ ✔ R 1 foreign id answers exactly like a nonexistent one
+ ✔ R 2 unassigned legacy customer is unreachable for resellers
+ ✘ R 4 malformed and foreign ids are refused without change
+   │
+   │ an array id is not an error page
+   │ Failed asserting that 500 is not identical to 500.
+   │
+   │ /repo/tests/Http/W9RedTeamHttpTest.php:112
+   │
+ ✔ R 5 privilege escalation through staff edit is refused
+ ✔ R 6 forged money fields are ignored
+ ✔ R 8 idempotency conflicts and user scoped nonces
+ ✔ R 9 hierarchy move by agent is refused on web and api
+ ✘ N 10 api never returns configuration secrets
+   │
+   │ Error: Call to undefined method Reseller\Tests\Support\AppServer::appSecret()
+   │
+   │ /repo/tests/Http/W9RedTeamHttpTest.php:188
+   │
+ ✔ R 13 legacy recharge with junk ids writes nothing
+ ✔ R f c 1 voucher codes in methods are not visible to reseller staff
+ERRORS!
+Tests: 10, Assertions: 89, Errors: 1, Failures: 1.
+exit=2

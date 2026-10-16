@@ -1,0 +1,27 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9c/http/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/W9RedTeamHttpTest.php
+start: 2026-10-16T20:42:02Z
+ Container nuxbill-reseller-test-php82-run-a2252f1ca8a5 Creating 
+ Container nuxbill-reseller-test-php82-run-a2252f1ca8a5 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..........                                                        10 / 10 (100%)
+
+Time: 00:15.576, Memory: 10.00 MB
+
+W9Red Team Http (Reseller\Tests\Http\W9RedTeamHttp)
+ ✔ R 1 foreign id answers exactly like a nonexistent one
+ ✔ R 2 unassigned legacy customer is unreachable for resellers
+ ✔ R 4 malformed and foreign ids are refused without change
+ ✔ R 5 privilege escalation through staff edit is refused
+ ✔ R 6 forged money fields are ignored
+ ✔ R 8 idempotency conflicts and user scoped nonces
+ ✔ R 9 hierarchy move by agent is refused on web and api
+ ✔ N 10 api never returns configuration secrets
+ ✔ R 13 legacy recharge with junk ids writes nothing
+ ✔ R f c 1 voucher codes in methods are not visible to reseller staff
+
+OK (10 tests, 132 assertions)
+exit=0 end: 2026-10-16T20:42:21Z

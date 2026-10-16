@@ -193,7 +193,12 @@ if (file_exists($lan_file)) {
 
 function safedata($value)
 {
-    $value = trim($value);
+    // WP9-C red team #4: an array / object request parameter (e.g. customer_id[]=1) is type confusion, never valid
+    // input; it used to end every request that read it with a TypeError (HTTP 500). It is now an empty value.
+    if (is_array($value) || is_object($value)) {
+        return '';
+    }
+    $value = trim((string) $value);
     return $value;
 }
 
