@@ -1,0 +1,28 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4e/post/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0VoucherEquivalenceTest.php
+start: 2026-10-16T16:02:23Z
+ Container nuxbill-reseller-test-php82-run-160ed599b9ac Creating 
+ Container nuxbill-reseller-test-php82-run-160ed599b9ac Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...........                                                       11 / 11 (100%)
+
+Time: 00:09.067, Memory: 10.00 MB
+
+U0Voucher Equivalence (Reseller\Tests\Integration\Wp9\U0VoucherEquivalence)
+ ✔ A case variant of a voucher in review is not served
+ ✔ A trailing whitespace variant of a voucher in review is not served
+ ✔ An accent variant of a voucher in review is not served
+ ✔ A granted voucher with an equivalent voucher in review is not served
+ ✔ A granted voucher is not served under a variant name
+ ✔ An unused voucher with an old recharge is not served under a variant name
+ ✔ A granted voucher next to an equivalent unused voucher
+ ✔ A legacy recharge without a voucher row
+ ✔ An empty identity is never allowed
+ ✔ A read error fails closed
+ ✔ More equivalent voucher rows than the bound fail closed
+
+OK (11 tests, 50 assertions)
+exit=0 end: 2026-10-16T16:02:34Z

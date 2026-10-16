@@ -1,0 +1,19 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4e/regression/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0VoucherLogTest.php
+start: 2026-10-16T16:09:16Z
+ Container nuxbill-reseller-test-php82-run-99a70069a7f9 Creating 
+ Container nuxbill-reseller-test-php82-run-99a70069a7f9 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:10.149, Memory: 10.00 MB
+
+U0Voucher Log (Reseller\Tests\Integration\Wp9\U0VoucherLog)
+ ✔ No voucher code or its short hash is logged or echoed
+ ✔ The voucher only login gate refusal does not record the code
+
+OK (2 tests, 10 assertions)
+exit=0 end: 2026-10-16T16:09:29Z

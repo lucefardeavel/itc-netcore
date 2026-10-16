@@ -1,0 +1,156 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4e/pre/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0VoucherEquivalenceTest.php
+start: 2026-10-16T15:59:52Z
+ Container nuxbill-reseller-test-php82-run-0b0fd494fcea Creating 
+ Container nuxbill-reseller-test-php82-run-0b0fd494fcea Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FFFFFF.FF.F                                                       11 / 11 (100%)
+
+Time: 00:31.671, Memory: 10.00 MB
+
+U0Voucher Equivalence (Reseller\Tests\Integration\Wp9\U0VoucherEquivalence)
+ ✘ A case variant of a voucher in review is not served
+   │
+   │ no authorization / policy write for this identity {"requested":"57395530393136423134","out":{"guard":"NULL","E12 login":"SERVED","E16 authenticate (authentication only)":401,"E15 authorize":401,"DEV device grant":"SERVED"},"served_by":["E12 login","DEV device grant"],"radius_write":true,"ledger_change":[]}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'E12 login',
+   │ +    1 => 'DEV device grant',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:154
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:164
+   │
+ ✘ A trailing whitespace variant of a voucher in review is not served
+   │
+   │ no authorization / policy write for this identity {"requested":"77397530663464663462","out":{"guard":"NULL","E12 login":"SERVED","E16 authenticate (authentication only)":401,"E15 authorize":401,"DEV device grant":"SERVED"},"served_by":["E12 login","DEV device grant"],"radius_write":true,"ledger_change":[]}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'E12 login',
+   │ +    1 => 'DEV device grant',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:154
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:173
+   │
+ ✘ An accent variant of a voucher in review is not served
+   │
+   │ no authorization / policy write for this identity {"requested":"7739753030383038316565","out":{"guard":"NULL","E12 login":"SERVED","E16 authenticate (authentication only)":401,"E15 authorize":401,"DEV device grant":"SERVED"},"served_by":["E12 login","DEV device grant"],"radius_write":true,"ledger_change":[]}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'E12 login',
+   │ +    1 => 'DEV device grant',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:154
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:181
+   │
+ ✘ A granted voucher with an equivalent voucher in review is not served
+   │
+   │ no authorization / policy write for this identity {"requested":"77397530626434333964","out":{"guard":"NULL","E12 login":"OTHER","E16 authenticate (authentication only)":204,"E15 authorize":200,"DEV device grant":"REFUSED RADIUS_IDENTITY_AMBIGUOUS"},"served_by":["E15 authorize"],"radius_write":false,"ledger_change":[]}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'E15 authorize',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:154
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:189
+   │
+ ✘ A granted voucher is not served under a variant name
+   │
+   │ no authorization / policy write for this identity {"requested":"57395530433933323143","out":{"guard":"NULL","E12 login":"SERVED","E16 authenticate (authentication only)":401,"E15 authorize":401,"DEV device grant":"SERVED"},"served_by":["E12 login","DEV device grant"],"radius_write":true,"ledger_change":[]}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'E12 login',
+   │ +    1 => 'DEV device grant',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:154
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:195
+   │
+ ✘ An unused voucher with an old recharge is not served under a variant name
+   │
+   │ no authorization / policy write for this identity {"requested":"57395530383939313635","out":{"guard":"NULL","E12 login":"SERVED","E16 authenticate (authentication only)":401,"E15 authorize":401,"DEV device grant":"SERVED"},"served_by":["E12 login","DEV device grant"],"radius_write":true,"ledger_change":[]}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'E12 login',
+   │ +    1 => 'DEV device grant',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:154
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:205
+   │
+ ✔ A granted voucher next to an equivalent unused voucher
+ ✘ A legacy recharge without a voucher row
+   │
+   │ no authorization / policy write for this identity {"requested":"57395530374142333342","out":{"guard":"NULL","E12 login":"SERVED","E16 authenticate (authentication only)":401,"E15 authorize":401,"DEV device grant":"SERVED"},"served_by":["E12 login","DEV device grant"],"radius_write":true,"ledger_change":[]}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'E12 login',
+   │ +    1 => 'DEV device grant',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:154
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:223
+   │
+ ✘ An empty identity is never allowed
+   │
+   │ an empty identity is refused by the guard itself
+   │ Failed asserting that 'NULL' [ASCII](length: 4) does not contain "NULL" [ASCII](length: 4).
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:238
+   │
+ ✔ A read error fails closed
+ ✘ More equivalent voucher rows than the bound fail closed
+   │
+   │ no authorization / policy write for this identity {"requested":"77397530613562386264","out":{"guard":"NULL","E12 login":"SERVED","E16 authenticate (authentication only)":204,"E15 authorize":200,"DEV device grant":"SERVED"},"served_by":["E12 login","E15 authorize","DEV device grant"],"radius_write":false,"ledger_change":[]}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'E12 login',
+   │ +    1 => 'E15 authorize',
+   │ +    2 => 'DEV device grant',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:154
+   │ /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php:279
+   │
+
+FAILURES!
+Tests: 11, Assertions: 25, Failures: 9.
+
+exit=1 end: 2026-10-16T16:00:26Z

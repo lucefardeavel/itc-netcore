@@ -1,0 +1,28 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4e/regression/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0OwnershipGuardTest.php
+start: 2026-10-16T16:08:49Z
+ Container nuxbill-reseller-test-php82-run-e85a98327f61 Creating 
+ Container nuxbill-reseller-test-php82-run-e85a98327f61 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...........                                                       11 / 11 (100%)
+
+Time: 00:14.465, Memory: 10.00 MB
+
+U0Ownership Guard (Reseller\Tests\Integration\Wp9\U0OwnershipGuard)
+ ✔ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (other case)"
+ ✔ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (stored leading space)"
+ ✔ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (trailing TAB)"
+ ✔ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (accent)"
+ ✔ Legacy recharge of a grandfathered duplicate is refused before any write with data set "cross-field (duplicate PPPoE = username)"
+ ✔ Legacy recharge of a customer over a live voucher identity is refused
+ ✔ Deactivation of a grandfathered duplicate never suspends the other owner
+ ✔ Customer add plan on an ambiguous key is refused
+ ✔ Legacy rename of an ambiguous key is refused before the save
+ ✔ Ownership check runs under the identity lock and fails closed
+ ✔ Single owners are unchanged
+
+OK (11 tests, 45 assertions)
+exit=0 end: 2026-10-16T16:09:05Z

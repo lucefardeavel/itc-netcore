@@ -1,0 +1,8 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4e/pre/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0VoucherEquivalenceTest.php
+start: 2026-10-16T15:59:42Z
+ Container nuxbill-reseller-test-php82-run-bbd99215c3d4 Creating 
+ Container nuxbill-reseller-test-php82-run-bbd99215c3d4 Created 
+
+Fatal error: Cannot override final method PHPUnit\Framework\TestCase::run() in /repo/tests/Integration/Wp9/U0VoucherEquivalenceTest.php on line 137
+
+exit=255 end: 2026-10-16T15:59:44Z

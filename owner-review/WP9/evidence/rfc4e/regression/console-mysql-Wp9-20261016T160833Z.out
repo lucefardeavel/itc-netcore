@@ -1,0 +1,54 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4e/regression/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp9
+start: 2026-10-16T16:08:33Z
+ Container nuxbill-reseller-test-php82-run-ab9780654d4b Creating 
+ Container nuxbill-reseller-test-php82-run-ab9780654d4b Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...................................                               35 / 35 (100%)
+
+Time: 00:00.109, Memory: 12.00 MB
+
+Csv Cell Characterization (Tests\Unit\Wp9\CsvCellCharacterization)
+ ✔ Neutralised leading formula character with data set "equals formula"
+ ✔ Neutralised leading formula character with data set "hyperlink formula"
+ ✔ Neutralised leading formula character with data set "plus formula"
+ ✔ Neutralised leading formula character with data set "at formula"
+ ✔ Neutralised leading formula character with data set "minus formula"
+ ✔ Neutralised leading formula character with data set "dde style"
+ ✔ Neutralised leading formula character with data set "leading tab"
+ ✔ Neutralised leading formula character with data set "leading carriage return"
+ ✔ Neutralised leading formula character with data set "explicit plus number"
+ ✔ Values that stay unchanged with data set "negative decimal"
+ ✔ Values that stay unchanged with data set "negative integer"
+ ✔ Values that stay unchanged with data set "integer"
+ ✔ Values that stay unchanged with data set "plain text"
+ ✔ Values that stay unchanged with data set "arabic text"
+ ✔ Values that stay unchanged with data set "empty string"
+ ✔ Values that stay unchanged with data set "null"
+ ✔ Values that stay unchanged with data set "true"
+ ✔ Values that stay unchanged with data set "false"
+ ✔ Values that stay unchanged with data set "formula char later"
+ ✔ Defect reproduced formula after leading whitespace is not neutralised with data set "leading space before equals"
+ ✔ Defect reproduced formula after leading whitespace is not neutralised with data set "leading newline before equals"
+ ✔ Defect reproduced formula after leading whitespace is not neutralised with data set "leading space before at"
+ ✔ Defect reproduced formula after leading whitespace is not neutralised with data set "leading no-break space before equals"
+
+U0Source Guard (Reseller\Tests\Unit\Wp9\U0SourceGuard)
+ ✔ Every acquiring write runs inside the identity lock
+ ✔ Checker detects a write moved out of its hold
+ ✔ Creation takes tree then identity then transaction
+ ✔ Customer identity only reads and never touches a device
+ ✔ Runtime named locks and seams
+ ✔ Every policy writer checks single ownership first
+ ✔ No recharge notification carries a voucher only credential
+ ✔ Ownership count inside an open transaction without the lock fails closed
+ ✔ Voucher only grant needs this grants confirmed write
+ ✔ The voucher only login gate never records the typed code
+ ✔ Every voucher only serving entry point checks the voucher state
+ ✔ The voucher only service decision uses the canonical identity
+
+OK (35 tests, 331 assertions)
+exit=0 end: 2026-10-16T16:08:35Z

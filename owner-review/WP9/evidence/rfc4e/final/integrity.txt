@@ -1,0 +1,11 @@
+manifest OK lines: 42 of 42
+SourceGuard pins 23 match 23
+pin list changed since ae1e22ad: 0 diff lines
+system/autoload/Reseller/Domain/CustomerIdentity.php CRLF 0 -> 0
+system/autoload/Reseller/Domain/VoucherRedemptionService.php CRLF 0 -> 0
+704031c61296f4975f1d4e51531973d67e5f0a9b	refs/heads/feat/reseller-system-v1
+6d4f3f962482b6e125429da7ae459ae8dfd4214c	refs/heads/hotfix/pace-xhr-csrf
+500d3a2d15003efeed6e0aad639c13d08101c3b1	refs/heads/main
+757d8de969e98787a270facb956a4c543fec7eaa	refs/heads/wp6c/mobile-adaptive-ux
+8e7f0e1c024e6c319b5088896e001555d6c4f079	refs/heads/wp7/staff-pwa
+704031c61296f4975f1d4e51531973d67e5f0a9b	refs/heads/wp8/integration-poc

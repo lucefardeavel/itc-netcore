@@ -848,3 +848,61 @@ Evidence: rows 2, 4, 5 (on), 6 (E12 / E15) and 8 are test-proven (E4, both engin
 ### RFC4.9 Result
 Commits: `9b96b4e3` (fix + tests); docs / evidence commit (see git log). Rollback: `git revert 9b96b4e3` (no data migration). Open production blockers unchanged from §FC.10 (OBS-1 existing duplicates, D-U0-R2, D-U0-R3, A2-R, CLAIMED_REVIEW operator recovery, P1–P5, NEW-7 / NEW-8, WP1-CHECK, T1-B…T4, WP10), plus the RFC4.7 residuals.
 **`WP9_U0_RFC4_FINAL_VERIFICATION_PACKAGE`** — R-FC-4 **confirmed and closed for the application entry points**; `PRODUCTION_NOT_AUTHORIZED`; `STOPPED_WAITING_OWNER_REVIEW`.
+
+## RFC4E — R-FC-4E canonical-identity verification and closure (2026-10-16)
+
+Owner decision: `WP9_U0_CORRECTION_REQUIRED — R_FC_4_EQUIVALENCE_VERIFICATION_AUTHORIZED` (independent review of pack v2). Baseline `ae1e22ada55d8fc46c3560c6bc29085dc2817cf1`, clean tree; review packs v1 / v2 verified unchanged (`sha256sum -c`) and kept. **Result: §RFC4E.7.**
+
+### RFC4E.1 How each serving path matches a name (code read, E1; collations E4: `utf8mb4_general_ci` for `tbl_voucher.code`, `tbl_user_recharges.username`, `radcheck.username` on both engines — case-, accent- and trailing-space-insensitive)
+| Path | Lookup | Matching |
+|---|---|---|
+| `login.php` E12 recharge row | `where('username', $voucher)->where('customer_id', '0')` | **collation** (equivalent names match) |
+| Radius device billing period / policy write | `where('username', …)` / `RadiusRepository::applyUser` `username = ?` | **collation** |
+| FreeRADIUS `rlm_sql` | `radcheck.username = '%{User-Name}'` | **collation** |
+| `radius.php` E15 / E16 | `BINARY username` / `BINARY code` | exact bytes |
+| R-FC-4 guard (`voucherOnlyServiceRefusal`, `9b96b4e3`) | `BINARY code = ? OR BINARY code = trim(?)`; no row → "legacy" | **exact bytes** — the mismatch |
+
+### RFC4E.2 Test-first (`U0VoucherEquivalenceTest`, synthetic data, `evidence/rfc4e/pre`, both engines identical) — **defect confirmed**
+Effect measured per case: E12 / E15 / DEV served, any RADIUS policy-table write, any voucher / invoice / recharge change; E16 (authentication only) recorded separately.
+| State (canonical class) | Requested | Pre-fix | Post-fix |
+|---|---|---|---|
+| `CLAIMED_REVIEW` (real flow) | other case | **E12 + DEV served, RADIUS written** | refused (`VOUCHER_IN_REVIEW`), nothing changed |
+| `CLAIMED` "K␠" + recharge "K␠" | "K" | **E12 + DEV served, RADIUS written** | refused (`VOUCHER_IN_REVIEW`) |
+| `CLAIMED` "Ké" + recharge | "Ke" | **E12 + DEV served, RADIUS written** | refused (`VOUCHER_IN_REVIEW`) |
+| GRANTED "K" + CLAIMED "KU" | "K" | **E15 authorized (200)**; E12 / DEV refused by the ownership guard (2 owners) | refused (`VOUCHER_IN_REVIEW`) |
+| GRANTED "K" | "KU" (no such voucher) | **E12 + DEV served, RADIUS written** (a different code got service) | refused (`VOUCHER_IDENTITY_MISMATCH`) |
+| unused "K" + recharge "K" | "KU" | **E12 + DEV served, RADIUS written** | refused (`VOUCHER_IDENTITY_MISMATCH`) |
+| GRANTED "K" + unused "KU" | "K" | served (control) | served (control) |
+| GRANTED "K" + unused "KU" | "KU" | refused (`VOUCHER_NOT_REDEEMED`) | refused |
+| legacy recharge "K", no voucher | "K" | served (control) | served (control) |
+| legacy recharge "K", no voucher | "KU" | **E12 + DEV served, RADIUS written** | refused (`VOUCHER_IDENTITY_MISMATCH`) |
+| empty / blank identity | "" / "␠⇥", symbols only | **guard allowed (null)**; no RADIUS write reachable (the policy builder refuses `POLICY_INVALID_USERNAME`; E12 ended on an error page) | refused (`VOUCHER_IDENTITY_INVALID`); E12 "Voucher Not Valid" |
+| voucher table unreadable (read error) | "K" (granted) | refused (fail closed) | refused (fail closed); control: served again afterwards |
+| 1 001 equivalent voucher rows (bound 1 000) | "K" (granted) | **served (no bound)** | refused (`VOUCHER_STATE_UNAVAILABLE`, fail closed); control: served again under the bound |
+Kept: `pre-run1-run-name-clash` (the test's helper `run()` clashed with PHPUnit's final `run()`; nothing ran).
+
+### RFC4E.3 Fix (`ec9d695f`; product +83 / −22 in `CustomerIdentity.php` and `VoucherRedemptionService.php`; no pinned file, schema, finance or voucher-lifecycle change)
+- `CustomerIdentity::voucherIdentity(\PDO, string)`: the voucher rows (any status) and voucher-only recharge rows (`customer_id 0`) of the **canonical identity** (PHP trim + `utf8mb4_general_ci`, HEX transport, the approved RADIUS key rule), each marked *exact* when its stored name is the requested key after PHP trim; two bounded (≤ 1 000 rows), time-limited (2 s) read-only statements; null on an empty key, any error or overflow. No lock, no transaction (no interaction with the U0 identity lock).
+- `voucherOnlyServiceRefusal()` now decides on that identity: refuses an empty identity (`VOUCHER_IDENTITY_INVALID`), an unavailable lookup (`VOUCHER_STATE_UNAVAILABLE`), any equivalent CLAIMED row (`VOUCHER_IN_REVIEW`), a variant spelling of existing vouchers or recharges (`VOUCHER_IDENTITY_MISMATCH`), an unredeemed exact voucher (`VOUCHER_NOT_REDEEMED`) and more than one granted voucher-only row (`VOUCHER_IDENTITY_AMBIGUOUS`); allows the exact granted identity, legacy recharges without any voucher row of the identity (when the recharge is the requested key itself) and the code's own in-flight grant (exact key). Reasons never contain the code; the call sites (device guard, E12, E15, E16) are unchanged.
+- Static guard `testTheVoucherOnlyServiceDecisionUsesTheCanonicalIdentity` (mutation-checked: byte-exact decision, dropped refusal, unbounded lookup).
+
+### RFC4E.4 Regression (both engines, `evidence/rfc4e/post`, `regression`, `regression-rc`)
+`U0VoucherEquivalenceTest` 11 / 50; `U0VoucherReactivationTest` (R-FC-4 matrix) 4 / 22; `U0GrantConfirmationTest` 7 / 41 (RR and RC); `U0OwnershipGuardTest` 11 / 45; `U0VoucherServiceTest` 3 / 16; `U0VoucherLogTest` 2 / 10; `A1VoucherIdentityGuardTest` 16 / 78; `U0RaceTest` 23 / 96 (RR and RC); `Wp4/RadiusRestEndpointTest` 6 / 68; `Integration/Wp5b` (all WP5B voucher / re-provision / reversal suites) 121 / 1 676; `Unit/Wp9` 35 / 331, `Unit/Wp5b` 26 / 638, `Unit/Wp4` 53 / 800, `Unit/Wp8` 10 / 83 — all exit 0.
+
+### RFC4E.5 Residuals
+- Pathological: more than 1 000 voucher or recharge rows of ONE canonical identity make every serving decision for that identity fail closed (availability, same bound policy as U0 / D-U0-R3).
+- Unchanged from §RFC4.7: `rlm_sql` serving rows that an uncertain commit (`DEVICE_UNKNOWN`) left; plugins / direct DB; E16 authenticates an unused exact voucher (authorize decides).
+- The canonical rule is the approved `utf8mb4_general_ci` + PHP trim; installations whose columns use another collation (legacy variants) rely on the same comparison expressions as U0 (explicit `CONVERT … COLLATE utf8mb4_general_ci`).
+
+### RFC4E.6 Full harness, integrity
+| Gate | MariaDB 10.11 | MySQL 8.0 |
+|---|---|---|
+| `dev/test/run-tests.sh --do-not-cache-result` at `ec9d695f`, fingerprint `efbdfe52…` identical before / after | **1 368 tests / 70 900 assertions, 0 failures, 0 errors, 0 warnings, 104 incomplete** | **1 368 / 70 897, 0 failures, 0 errors, 0 warnings, 104 incomplete** |
+| Variant registry / exit | matches / **0** | |
+- Reconciliation: +12 tests (11 equivalence + 1 static guard) and +54 assertions (50 + 4) over 1 356 / 70 846 → expected 70 900: MariaDB exact; **MySQL 3 fewer** — the same run-dependent assertion count already seen on MariaDB in §FC.8 (runs 1 / 2), now on the other engine, so it follows the run, not the engine. The exact test is not identified (no per-test log); the most likely source remains `Wp5b/ActivationReversalRaceTest` (race-winner-dependent assertion count); not investigated further. Test counts are equal; nothing skipped.
+- 104 incomplete = the WP8 real-NAS lab tests (not passes; no WP8 test changed); CHR not started (the fix only refuses before serving; no RADIUS attribute or RouterOS contract changed).
+- Lint 583 files 0 errors; manifest 42 / 42; SourceGuard pins 23 / 23 (no pin changed, no protected file touched); line endings unchanged; secret sweep 0 hits; protected remote refs unchanged; no remote `wp9` branch; 0 containers / networks / volumes left.
+
+### RFC4E.7 Result
+Commits: `ec9d695f` (fix + tests); docs / evidence commit (see git log). Rollback: `git revert ec9d695f` (restores the byte-exact R-FC-4 guard; no data migration). Independent review pack v3: `/root/Downloads/WP9_U0_INDEPENDENT_OWNER_REVIEW_PACK_v3` (v1 / v2 unchanged). Open production blockers unchanged from §FC.10 / §RFC4.9, plus §RFC4E.5.
+**`WP9_U0_RFC4E_READY_FOR_FINAL_OWNER_REVIEW`** — `PRODUCTION_NOT_AUTHORIZED`; `STOPPED_WAITING_OWNER_REVIEW`.

@@ -50,3 +50,13 @@ Resume rule: read this file, `U0_DESIGN.md` and `REPORT.md` §U0; `git log --one
 | Full harness | DONE | docs commit | `evidence/rfc4/final` | 1356 / 70846 per engine, 0 failures, 104 lab-incomplete, registry OK, exit 0; fingerprint `6bd6403b…` unchanged |
 | Review pack v2 | DONE | — | `/root/Downloads/WP9_U0_INDEPENDENT_OWNER_REVIEW_PACK_v2` (outside the repository) | v1 kept unchanged |
 
+## R-FC-4E round (2026-10-16, `WP9_U0_CORRECTION_REQUIRED — R_FC_4_EQUIVALENCE_VERIFICATION_AUTHORIZED`)
+
+| Unit | State | Commit | Evidence | Notes |
+|---|---|---|---|---|
+| Matching-semantics audit | DONE | — | REPORT §RFC4E.1 | E12 / device / rlm_sql resolve by collation; the R-FC-4 guard by bytes |
+| Test-first | DONE | — | `evidence/rfc4e/pre`, `pre-run1-run-name-clash` | defect confirmed both engines (variants served with RADIUS writes; E15 authorized next to an equivalent CLAIMED; empty identity allowed; no bound) |
+| Fix | DONE | `ec9d695f` | `evidence/rfc4e/post`, `regression`, `regression-rc` | canonical `voucherIdentity()` + rebuilt decision; 11/50 + R-FC-4 4/22 both engines; static guard |
+| Full harness | DONE | docs commit | `evidence/rfc4e/final` | 1368 per engine, 0 failures, 104 lab-incomplete, registry OK, exit 0; MySQL 3 assertions fewer (run-dependent, see §RFC4E.6) |
+| Review pack v3 | DONE | — | `/root/Downloads/WP9_U0_INDEPENDENT_OWNER_REVIEW_PACK_v3` | v1 / v2 unchanged |
+

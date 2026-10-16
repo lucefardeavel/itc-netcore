@@ -1,0 +1,45 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4e/regression/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp5b
+start: 2026-10-16T16:03:36Z
+ Container nuxbill-reseller-test-php82-run-40d46f388cf7 Creating 
+ Container nuxbill-reseller-test-php82-run-40d46f388cf7 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..........................                                        26 / 26 (100%)
+
+Time: 00:00.241, Memory: 18.00 MB
+
+Rename Old Session Unit (Reseller\Tests\Unit\Wp5b\RenameOldSessionUnit)
+ ✔ Session state with data set "ACK + Stop"
+ ✔ Session state with data set "ACK, no Stop"
+ ✔ Session state with data set "NAK 503"
+ ✔ Session state with data set "NAK 406 / other"
+ ✔ Session state with data set "no answer"
+ ✔ Session state with data set "NAS unknown"
+ ✔ Session state with data set "unexpected reply"
+ ✔ Session state with data set "exception"
+ ✔ Session state with data set "a Stop never turns a NAK into proof"
+ ✔ Identity state and worst of
+ ✔ The radius rename captures before and after and defers the disconnect
+ ✔ The service contacts the nas only after the tree lock is released
+ ✔ The disconnect targets a captured row and the drift kind exists
+ ✔ Old session notice type
+ ✔ Rename pairs drop pairs that keep the key
+ ✔ The target check is inside the rename transaction
+ ✔ The drift ignores refusals
+
+Wp5b Source Guard (Reseller\Tests\Unit\Wp5b\Wp5bSourceGuard)
+ ✔ Single voucher redemption path
+ ✔ Voucher deletes are conditional on status
+ ✔ Hardened balance paths never call balance
+ ✔ Device grants are default deny
+ ✔ Reprovision controllers never pre save
+ ✔ Single gateway resolver
+ ✔ Hardened controllers never call balance
+ ✔ Reversal and hook guards
+ ✔ Voucher generation uses the csprng
+
+OK (26 tests, 638 assertions)
+exit=0 end: 2026-10-16T16:03:38Z

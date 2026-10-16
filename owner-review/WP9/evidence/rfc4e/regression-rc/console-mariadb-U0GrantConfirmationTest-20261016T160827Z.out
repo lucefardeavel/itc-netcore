@@ -1,0 +1,24 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4e/regression-rc/obs-mariadb.jsonl -e WP9_ISOLATION=READ-COMMITTED php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0GrantConfirmationTest.php
+start: 2026-10-16T16:08:27Z
+ Container nuxbill-reseller-test-php82-run-06d3a4a9bf73 Creating 
+ Container nuxbill-reseller-test-php82-run-06d3a4a9bf73 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......                                                             7 / 7 (100%)
+
+Time: 00:04.564, Memory: 10.00 MB
+
+U0Grant Confirmation (Reseller\Tests\Integration\Wp9\U0GrantConfirmation)
+ ✔ Stale foreign rows of a colliding identity are not a grant
+ ✔ Partial rows are not a grant
+ ✔ A confirmed device failure with pre existing rows is not a grant
+ ✔ An unknown device outcome is not a grant
+ ✔ Foreign rows before the claim refuse the redemption untouched
+ ✔ Parallel grants with deadlock retry all end granted with their own policy
+ ✔ Controls are unchanged
+
+OK (7 tests, 41 assertions)
+exit=0 end: 2026-10-16T16:08:33Z
