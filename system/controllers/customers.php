@@ -65,7 +65,7 @@ switch ($action) {
         ];
 
         if (!$h) {
-            echo '"' . implode('","', $headers) . "\"\n";
+            echo \Reseller\Ui\Format::csvLine($headers, ',');
             $h = true;
         }
 
@@ -80,7 +80,7 @@ switch ($action) {
                 $c['balance'],
                 $c['service_type'],
             ];
-            echo '"' . implode('","', $row) . "\"\n";
+            echo \Reseller\Ui\Format::csvLine($row, ',');
         }
         break;
         //case csv-prepaid can be moved later to (plan.php)  php file dealing with prepaid users
@@ -100,7 +100,7 @@ switch ($action) {
             ->select('service_type')
             ->select('namebp')
             ->select('routers')
-            ->select('status')
+            ->select('tbl_user_recharges.status', 'status') // WP9-D: was ambiguous (tbl_customers.status) -> SQL error 500
             ->select('method', 'Payment')
             ->left_outer_join('tbl_user_recharges', array('tbl_customers.id', '=', 'tbl_user_recharges.customer_id'))
             ->order_by_asc('tbl_customers.id')
@@ -131,7 +131,7 @@ switch ($action) {
         ];
 
         if (!$h) {
-            echo '"' . implode('","', $headers) . "\"\n";
+            echo \Reseller\Ui\Format::csvLine($headers, ',');
             $h = true;
         }
 
@@ -150,7 +150,7 @@ switch ($action) {
                 $c['status'],
                 $c['Payment']
             ];
-            echo '"' . implode('","', $row) . "\"\n";
+            echo \Reseller\Ui\Format::csvLine($row, ',');
         }
         break;
     case 'add':
@@ -1089,7 +1089,7 @@ switch ($action) {
                     $c['balance'],
                     $c['service_type'],
                 ];
-                fputcsv($fp, $row, ";");
+                fputcsv($fp, array_map([\Reseller\Ui\Format::class, 'csvCell'], $row), ";");
             }
             fclose($fp);
             die();

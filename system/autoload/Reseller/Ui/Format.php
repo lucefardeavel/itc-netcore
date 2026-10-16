@@ -114,11 +114,29 @@ final class Format
         return \Lang::T(['provider' => 'Provider (administrator)', 'upstream' => 'Upstream reseller', 'staff' => 'Staff'][(string) ($party['label'] ?? '')] ?? 'Not shown');
     }
 
-    /** WP6B: CSV cell text with spreadsheet formula injection neutralised (leading = + - @ tab CR). */
+    /**
+     * WP6B: CSV cell text with spreadsheet formula injection neutralised (leading = + - @ tab CR).
+     * WP9-D / N-07a: also when the formula character follows leading whitespace or invisible characters
+     * (space, newline, no-break / zero-width spaces, BOM), which spreadsheets skip before evaluating.
+     */
     public static function csvCell(mixed $v): string
     {
         $t = $v === null ? '' : (is_bool($v) ? ($v ? 'yes' : 'no') : (string) $v);
-        return preg_match('/^[=+\-@\t\r]/', $t) && !preg_match('/^-?\d+(\.\d+)?$/D', $t) ? "'" . $t : $t;
+        if (preg_match('/^-?\d+(\.\d+)?$/D', $t)) {
+            return $t;
+        }
+        return preg_match('/^[\s\x{00A0}\x{1680}\x{2000}-\x{200B}\x{202F}\x{205F}\x{3000}\x{FEFF}]*[=+\-@\t\r]/u', $t) === 1
+            || preg_match('/^[=+\-@\t\r]/', $t) === 1 ? "'" . $t : $t;
+    }
+
+    /**
+     * WP9-D / N-07a: one RFC 4180 CSV line (every field quoted, inner quotes doubled, formula neutralised
+     * per csvCell) for the legacy exports that used to echo raw values between quotes.
+     * @param array<int|string,mixed> $cells
+     */
+    public static function csvLine(array $cells, string $sep = ','): string
+    {
+        return implode($sep, array_map(static fn($c): string => '"' . str_replace('"', '""', self::csvCell($c)) . '"', array_values($cells))) . "\n";
     }
 
     public static function icon(?string $tone): string

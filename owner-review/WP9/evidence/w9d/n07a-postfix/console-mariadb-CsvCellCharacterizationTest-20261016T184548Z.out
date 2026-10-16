@@ -1,0 +1,43 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/n07a-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp9/CsvCellCharacterizationTest.php
+start: 2026-10-16T18:45:48Z
+ Container nuxbill-reseller-test-php82-run-e7e9776c15a4 Creating 
+ Container nuxbill-reseller-test-php82-run-e7e9776c15a4 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..........................                                        26 / 26 (100%)
+
+Time: 00:00.017, Memory: 10.00 MB
+
+Csv Cell Characterization (Tests\Unit\Wp9\CsvCellCharacterization)
+ ✔ Neutralised leading formula character with data set "equals formula"
+ ✔ Neutralised leading formula character with data set "hyperlink formula"
+ ✔ Neutralised leading formula character with data set "plus formula"
+ ✔ Neutralised leading formula character with data set "at formula"
+ ✔ Neutralised leading formula character with data set "minus formula"
+ ✔ Neutralised leading formula character with data set "dde style"
+ ✔ Neutralised leading formula character with data set "leading tab"
+ ✔ Neutralised leading formula character with data set "leading carriage return"
+ ✔ Neutralised leading formula character with data set "explicit plus number"
+ ✔ Values that stay unchanged with data set "negative decimal"
+ ✔ Values that stay unchanged with data set "negative integer"
+ ✔ Values that stay unchanged with data set "integer"
+ ✔ Values that stay unchanged with data set "plain text"
+ ✔ Values that stay unchanged with data set "arabic text"
+ ✔ Values that stay unchanged with data set "empty string"
+ ✔ Values that stay unchanged with data set "null"
+ ✔ Values that stay unchanged with data set "true"
+ ✔ Values that stay unchanged with data set "false"
+ ✔ Values that stay unchanged with data set "formula char later"
+ ✔ Formula after leading whitespace is neutralised with data set "leading space before equals"
+ ✔ Formula after leading whitespace is neutralised with data set "leading newline before equals"
+ ✔ Formula after leading whitespace is neutralised with data set "leading space before at"
+ ✔ Formula after leading whitespace is neutralised with data set "leading no-break space before equals"
+ ✔ Formula after leading whitespace is neutralised with data set "leading zero-width space before plus"
+ ✔ Formula after leading whitespace is neutralised with data set "leading BOM before minus"
+ ✔ Csv line quotes every field and doubles quotes
+
+OK (26 tests, 33 assertions)
+exit=0 end: 2026-10-16T18:45:51Z

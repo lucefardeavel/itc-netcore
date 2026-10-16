@@ -43,10 +43,10 @@ switch ($action) {
                 $vs[] = $v;
             }
             if (!$h) {
-                echo '"' . implode('";"', $ks) . "\"\n";
+                echo \Reseller\Ui\Format::csvLine($ks, ';');
                 $h = true;
             }
-            echo '"' . implode('";"', $vs) . "\"\n";
+            echo \Reseller\Ui\Format::csvLine($vs, ';');
         }
         break;
     case 'radius-csv':
@@ -73,10 +73,10 @@ switch ($action) {
                 $vs[] = $v;
             }
             if (!$h) {
-                echo '"' . implode('";"', $ks) . "\"\n";
+                echo \Reseller\Ui\Format::csvLine($ks, ';');
                 $h = true;
             }
-            echo '"' . implode('";"', $vs) . "\"\n";
+            echo \Reseller\Ui\Format::csvLine($vs, ';');
         }
         break;
 
@@ -106,10 +106,10 @@ switch ($action) {
                 $vs[] = $v;
             }
             if (!$h) {
-                echo '"' . implode('";"', $ks) . "\"\n";
+                echo \Reseller\Ui\Format::csvLine($ks, ';');
                 $h = true;
             }
-            echo '"' . implode('";"', $vs) . "\"\n";
+            echo \Reseller\Ui\Format::csvLine($vs, ';');
         }
         break;
 

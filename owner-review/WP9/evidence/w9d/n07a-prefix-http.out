@@ -1,0 +1,53 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Http/W9CsvExportInjectionTest.php start 2026-10-16T18:43:50Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF                                                                  2 / 2 (100%)
+Time: 00:02.594, Memory: 10.00 MB
+W9Csv Export Injection (Reseller\Tests\Http\W9CsvExportInjection)
+ ✘ Customer exports are structurally safe
+   │
+   │ customers/csv: row 7 has a different column count (structure injection)
+   │ Failed asserting that actual size 10 matches expected size 8.
+   │
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:55
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:72
+   │
+ ✘ Log export is structurally safe
+   │
+   │ logs/list-csv: row 1 has a different column count (structure injection)
+   │ Failed asserting that actual size 7 matches expected size 6.
+   │
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:55
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:86
+   │
+FAILURES!
+Tests: 2, Assertions: 60, Failures: 2.
+exit=1
+== mysql tests/Http/W9CsvExportInjectionTest.php start 2026-10-16T18:43:55Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF                                                                  2 / 2 (100%)
+Time: 00:10.131, Memory: 10.00 MB
+W9Csv Export Injection (Reseller\Tests\Http\W9CsvExportInjection)
+ ✘ Customer exports are structurally safe
+   │
+   │ customers/csv: row 7 has a different column count (structure injection)
+   │ Failed asserting that actual size 10 matches expected size 8.
+   │
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:55
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:72
+   │
+ ✘ Log export is structurally safe
+   │
+   │ logs/list-csv: row 1 has a different column count (structure injection)
+   │ Failed asserting that actual size 7 matches expected size 6.
+   │
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:55
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:86
+   │
+FAILURES!
+Tests: 2, Assertions: 60, Failures: 2.
+exit=1

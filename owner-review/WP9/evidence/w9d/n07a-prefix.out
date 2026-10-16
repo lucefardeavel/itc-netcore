@@ -1,0 +1,255 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Http/W9CsvExportInjectionTest.php start 2026-10-16T18:42:48Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF                                                                  2 / 2 (100%)
+Time: 00:03.312, Memory: 10.00 MB
+W9Csv Export Injection (Reseller\Tests\Http\W9CsvExportInjection)
+ ✘ Customer exports are structurally safe
+   │
+   │ 405   Action not available - PHPNuxBill var appUrl = 'http://127.0.0.1:29585'; Skip to content P PHPNuxBill Action not available Search subscribers / S Staff ad Staff adAdmin My Account Change Password العربية Light / dark theme Install app Logout Dashboard Subscribers All subscribers Activations Add subscriber Active Customers Finance Wallet overview Wallets Transfers Resellers Reseller Tree Pr
+   │ Failed asserting that 405 is identical to 200.
+   │
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:71
+   │
+ ✘ Log export is structurally safe
+   │
+   │ logs/list-csv: row 1 has a different column count (structure injection)
+   │ Failed asserting that actual size 7 matches expected size 6.
+   │
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:55
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:85
+   │
+FAILURES!
+Tests: 2, Assertions: 13, Failures: 2.
+exit=1
+== mariadb tests/Unit/Wp9/CsvCellCharacterizationTest.php start 2026-10-16T18:42:53Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...................FFFFFFE                                        26 / 26 (100%)
+Time: 00:00.022, Memory: 10.00 MB
+Csv Cell Characterization (Tests\Unit\Wp9\CsvCellCharacterization)
+ ✔ Neutralised leading formula character with data set "equals formula"
+ ✔ Neutralised leading formula character with data set "hyperlink formula"
+ ✔ Neutralised leading formula character with data set "plus formula"
+ ✔ Neutralised leading formula character with data set "at formula"
+ ✔ Neutralised leading formula character with data set "minus formula"
+ ✔ Neutralised leading formula character with data set "dde style"
+ ✔ Neutralised leading formula character with data set "leading tab"
+ ✔ Neutralised leading formula character with data set "leading carriage return"
+ ✔ Neutralised leading formula character with data set "explicit plus number"
+ ✔ Values that stay unchanged with data set "negative decimal"
+ ✔ Values that stay unchanged with data set "negative integer"
+ ✔ Values that stay unchanged with data set "integer"
+ ✔ Values that stay unchanged with data set "plain text"
+ ✔ Values that stay unchanged with data set "arabic text"
+ ✔ Values that stay unchanged with data set "empty string"
+ ✔ Values that stay unchanged with data set "null"
+ ✔ Values that stay unchanged with data set "true"
+ ✔ Values that stay unchanged with data set "false"
+ ✔ Values that stay unchanged with data set "formula char later"
+ ✘ Formula after leading whitespace is neutralised with data set "leading space before equals"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'' =1+1'
+   │ +' =1+1'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Formula after leading whitespace is neutralised with data set "leading newline before equals"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -''
+   │ +'
+   │  =1+1'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Formula after leading whitespace is neutralised with data set "leading space before at"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'' @SUM(1)'
+   │ +' @SUM(1)'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Formula after leading whitespace is neutralised with data set "leading no-break space before equals"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'' =1+1'
+   │ +' =1+1'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Formula after leading whitespace is neutralised with data set "leading zero-width space before plus"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -''​+1'
+   │ +'​+1'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Formula after leading whitespace is neutralised with data set "leading BOM before minus"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -''﻿-1+1'
+   │ +'﻿-1+1'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Csv line quotes every field and doubles quotes
+   │
+   │ Error: Call to undefined method Reseller\Ui\Format::csvLine()
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:93
+   │
+ERRORS!
+Tests: 26, Assertions: 25, Errors: 1, Failures: 6.
+exit=2
+== mysql tests/Http/W9CsvExportInjectionTest.php start 2026-10-16T18:42:55Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF                                                                  2 / 2 (100%)
+Time: 00:12.803, Memory: 10.00 MB
+W9Csv Export Injection (Reseller\Tests\Http\W9CsvExportInjection)
+ ✘ Customer exports are structurally safe
+   │
+   │ 405   Action not available - PHPNuxBill var appUrl = 'http://127.0.0.1:21010'; Skip to content P PHPNuxBill Action not available Search subscribers / S Staff ad Staff adAdmin My Account Change Password العربية Light / dark theme Install app Logout Dashboard Subscribers All subscribers Activations Add subscriber Active Customers Finance Wallet overview Wallets Transfers Resellers Reseller Tree Pr
+   │ Failed asserting that 405 is identical to 200.
+   │
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:71
+   │
+ ✘ Log export is structurally safe
+   │
+   │ logs/list-csv: row 1 has a different column count (structure injection)
+   │ Failed asserting that actual size 7 matches expected size 6.
+   │
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:55
+   │ /repo/tests/Http/W9CsvExportInjectionTest.php:85
+   │
+FAILURES!
+Tests: 2, Assertions: 13, Failures: 2.
+exit=1
+== mysql tests/Unit/Wp9/CsvCellCharacterizationTest.php start 2026-10-16T18:43:10Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+...................FFFFFFE                                        26 / 26 (100%)
+Time: 00:00.042, Memory: 10.00 MB
+Csv Cell Characterization (Tests\Unit\Wp9\CsvCellCharacterization)
+ ✔ Neutralised leading formula character with data set "equals formula"
+ ✔ Neutralised leading formula character with data set "hyperlink formula"
+ ✔ Neutralised leading formula character with data set "plus formula"
+ ✔ Neutralised leading formula character with data set "at formula"
+ ✔ Neutralised leading formula character with data set "minus formula"
+ ✔ Neutralised leading formula character with data set "dde style"
+ ✔ Neutralised leading formula character with data set "leading tab"
+ ✔ Neutralised leading formula character with data set "leading carriage return"
+ ✔ Neutralised leading formula character with data set "explicit plus number"
+ ✔ Values that stay unchanged with data set "negative decimal"
+ ✔ Values that stay unchanged with data set "negative integer"
+ ✔ Values that stay unchanged with data set "integer"
+ ✔ Values that stay unchanged with data set "plain text"
+ ✔ Values that stay unchanged with data set "arabic text"
+ ✔ Values that stay unchanged with data set "empty string"
+ ✔ Values that stay unchanged with data set "null"
+ ✔ Values that stay unchanged with data set "true"
+ ✔ Values that stay unchanged with data set "false"
+ ✔ Values that stay unchanged with data set "formula char later"
+ ✘ Formula after leading whitespace is neutralised with data set "leading space before equals"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'' =1+1'
+   │ +' =1+1'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Formula after leading whitespace is neutralised with data set "leading newline before equals"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -''
+   │ +'
+   │  =1+1'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Formula after leading whitespace is neutralised with data set "leading space before at"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'' @SUM(1)'
+   │ +' @SUM(1)'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Formula after leading whitespace is neutralised with data set "leading no-break space before equals"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'' =1+1'
+   │ +' =1+1'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Formula after leading whitespace is neutralised with data set "leading zero-width space before plus"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -''​+1'
+   │ +'​+1'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Formula after leading whitespace is neutralised with data set "leading BOM before minus"
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -''﻿-1+1'
+   │ +'﻿-1+1'
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:87
+   │
+ ✘ Csv line quotes every field and doubles quotes
+   │
+   │ Error: Call to undefined method Reseller\Ui\Format::csvLine()
+   │
+   │ /repo/tests/Unit/Wp9/CsvCellCharacterizationTest.php:93
+   │
+ERRORS!
+Tests: 26, Assertions: 25, Errors: 1, Failures: 6.
+exit=2
