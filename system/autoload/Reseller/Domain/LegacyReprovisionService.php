@@ -216,6 +216,13 @@ final class LegacyReprovisionService
             ServiceGate::refused('deviceGrant', $id > 0 ? $id : null, $names[0] ?? null);
             throw new ProvisionFailure(ProvisionResult::failed('RESELLER_OWNED_REFUSED', 'Device changes for reseller-managed customers go through the reseller activation or re-provision service.', false));
         }
+        // WP9 U0 R-FC-4: a voucher-only row (no customer id; username = the code) is served only when the voucher state
+        // machine granted it (or no voucher row remains) - never a voucher under review / in flight elsewhere, never an
+        // unredeemed one. Shared by every driver's grant methods; nothing is written, the code is not logged
+        if ($id === 0 && $row !== [] && ($why = VoucherRedemptionService::voucherOnlyServiceRefusal((string) ($row['username'] ?? ''))) !== null) {
+            ErrorReporter::log('device.voucher_refused', 'reason=' . $why);
+            throw new ProvisionFailure(ProvisionResult::failed('VOUCHER_NOT_SERVABLE', 'The voucher is not granted (under review or not redeemed); nothing was applied.', false));
+        }
         self::singleOwner($row, $id);
     }
 

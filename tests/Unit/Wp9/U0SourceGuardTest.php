@@ -274,4 +274,65 @@ final class U0SourceGuardTest extends TestCase
         $this->assertStringContainsString("if (\\Reseller\\Domain\\ServiceGate::isBlockedUsername(\$voucher)) { \\Reseller\\Domain\\ServiceGate::refused('loginVoucherOnly'); r2(getUrl('login'), 'e', \\Reseller\\Domain\\ServiceGate::message()); }", $login);
         $this->assertDoesNotMatchRegularExpression('/ServiceGate::(guardUsername|refused)\([^;]*\$voucher/', $login, 'the voucher code is never passed to a refusal record');
     }
+
+    /** @return list<string> R-FC-4: entry points that serve a voucher-only identity without the voucher state check */
+    private static function voucherStateGaps(array $src): array
+    {
+        $out = [];
+        $lrs = $src['system/autoload/Reseller/Domain/LegacyReprovisionService.php'];
+        $guard = substr($lrs, strpos($lrs, 'public static function assertDeviceAllowed('));
+        $guard = substr($guard, 0, strpos($guard, 'private static function singleOwner('));
+        $check = strpos($guard, 'VoucherRedemptionService::voucherOnlyServiceRefusal(');
+        if ($check === false || $check < strpos($guard, "'RESELLER_OWNED_REFUSED'") || $check > strrpos($guard, 'self::singleOwner($row, $id);')) {
+            $out[] = 'device guard: voucher state check missing or out of order (after the WP8 refusal, before the ownership check)';
+        }
+        $login = $src['system/controllers/login.php'];
+        $e12 = substr($login, strpos($login, "if (!empty(_post('voucher_only')))"));
+        $e12 = substr($e12, 0, strpos($e12, '->add_customer($c, $p);'));
+        if (!str_contains($e12, 'VoucherRedemptionService::voucherOnlyServiceRefusal($voucher) !== null')) {
+            $out[] = 'login.php E12: re-activation without the voucher state check';
+        }
+        $rad = $src['radius.php'];
+        $auth = substr($rad, strpos($rad, "case 'authenticate':"), strpos($rad, "case 'authorize':") - strpos($rad, "case 'authenticate':"));
+        if (!str_contains($auth, "radius_active_recharge(\$username) && \\Reseller\\Domain\\VoucherRedemptionService::voucherOnlyServiceRefusal(\$username) === null")) {
+            $out[] = 'radius.php E16: an active recharge authenticates without the voucher state check';
+        }
+        $authz = substr($rad, strpos($rad, "case 'authorize':"));
+        $tur = strpos($authz, 'if ($tur) {');
+        $authz = substr($authz, $tur, strpos($authz, 'process_radiust_rest($tur, $code);', $tur) - $tur);
+        if (!str_contains($authz, "(int) \$tur['customer_id'] === 0 && \\Reseller\\Domain\\VoucherRedemptionService::voucherOnlyServiceRefusal((string) \$tur['username']) !== null")) {
+            $out[] = 'radius.php E15: a voucher-only recharge row is answered without the voucher state check';
+        }
+        $vrs = $src['system/autoload/Reseller/Domain/VoucherRedemptionService.php'];
+        $grant = substr($vrs, strpos($vrs, 'private static function grant('));
+        if (!preg_match('/self::\$inFlight = \$target->customerId === 0 \? trim\(\$code\) : null;\s*try \{\s*\$result = \\\\Package::rechargeUser\(/', $grant)
+            || !preg_match('/\} finally \{\s*self::\$inFlight = null;\s*\}/', $grant)) {
+            $out[] = 'grant: the in-flight permit is not scoped to its own Package call';
+        }
+        return $out;
+    }
+
+    public function testEveryVoucherOnlyServingEntryPointChecksTheVoucherState(): void
+    {
+        $src = [];
+        foreach (['system/autoload/Reseller/Domain/LegacyReprovisionService.php', 'system/controllers/login.php', 'radius.php', 'system/autoload/Reseller/Domain/VoucherRedemptionService.php'] as $f) {
+            $src[$f] = self::src($f);
+        }
+        $this->assertSame([], self::voucherStateGaps($src));
+        // mutation: removing any one check is detected
+        $mut = [
+            ['system/controllers/login.php', 'VoucherRedemptionService::voucherOnlyServiceRefusal($voucher) !== null', 'false'],
+            ['radius.php', "radius_active_recharge(\$username) && \\Reseller\\Domain\\VoucherRedemptionService::voucherOnlyServiceRefusal(\$username) === null", 'radius_active_recharge($username)'],
+            ['radius.php', "(int) \$tur['customer_id'] === 0 && \\Reseller\\Domain\\VoucherRedemptionService::voucherOnlyServiceRefusal((string) \$tur['username']) !== null", 'false'],
+            ['system/autoload/Reseller/Domain/LegacyReprovisionService.php', '($why = VoucherRedemptionService::voucherOnlyServiceRefusal(', '($why = null) && ('],
+            ['system/autoload/Reseller/Domain/VoucherRedemptionService.php', '            self::$inFlight = null;' . "\n        }", "        }"],
+        ];
+        foreach ($mut as [$f, $from, $to]) {
+            $m = $src;
+            $m[$f] = str_replace($from, $to, $src[$f], $n);
+            $this->assertGreaterThanOrEqual(1, $n, "mutation applied: {$f}");
+            $this->assertNotSame([], self::voucherStateGaps($m), "mutation detected: {$f}");
+        }
+    }
 }
+

@@ -33,6 +33,9 @@ final class VoucherRedemptionService
     public const USERNAME_TAKEN = 'USERNAME_TAKEN';
     private const LOCK_TIMEOUT = 10;
 
+    /** R-FC-4: the voucher-only code whose grant is in flight in THIS request (its own device step may serve it) */
+    private static ?string $inFlight = null;
+
     /**
      * Redeems $code for an existing customer (customerId > 0) or a voucher-only subscriber (customerId 0,
      * username = the code).
@@ -142,6 +145,41 @@ final class VoucherRedemptionService
         return $out + ['customer_id' => $out['status'] === self::NOT_GRANTED ? null : $id];
     }
 
+    /**
+     * WP9 U0 R-FC-4: whether a voucher-only identity (username = the code) may be SERVED again from its recharge row -
+     * re-provisioned by a device (login.php E12 re-activation, any device grant of a voucher-only row) or answered by the
+     * RADIUS REST endpoint (E15 / E16). null = allowed: a voucher row of the code was GRANTED voucher-only (status 1,
+     * user 0), no voucher row exists any more (legacy / deleted vouchers), or this request is that code's own grant;
+     * otherwise the refusal reason: VOUCHER_IN_REVIEW (a row is CLAIMED: under review or in flight in another request) or
+     * VOUCHER_NOT_REDEEMED (rows exist, none granted voucher-only - e.g. unused). Fail closed on a read error. Read-only:
+     * no voucher, invoice, recharge or RADIUS row is changed; recovery of a reviewed voucher stays an operator decision.
+     */
+    public static function voucherOnlyServiceRefusal(string $username): ?string
+    {
+        if ($username === '' || (self::$inFlight !== null && self::$inFlight === trim($username))) {
+            return null;
+        }
+        try {
+            $st = self::pdo()->prepare('SELECT status, user FROM tbl_voucher WHERE BINARY code = ? OR BINARY code = ?');
+            $st->execute([$username, trim($username)]);
+            $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'voucher-service-state');
+            return 'VOUCHER_STATE_UNAVAILABLE';
+        }
+        if ($rows === []) {
+            return null;
+        }
+        $granted = false;
+        foreach ($rows as $r) {
+            if ((string) $r['status'] === self::CLAIMED) {
+                return 'VOUCHER_IN_REVIEW';
+            }
+            $granted = $granted || ((string) $r['status'] === '1' && (string) $r['user'] === '0');
+        }
+        return $granted ? null : 'VOUCHER_NOT_REDEEMED';
+    }
+
     // ------------------------------------------------------------------ steps
 
     /** True when the target is reseller-owned or its ownership cannot be evaluated (fail closed). */
@@ -213,12 +251,16 @@ final class VoucherRedemptionService
         $id = (int) $v['id'];
         // owner §5: only a write of THIS grant can confirm the voucher-only service (no earlier result in this process)
         \Reseller\Radius\RadiusProvisioner::forgetProvision(trim($code));
+        // R-FC-4: the voucher is CLAIMED during its own grant; only this grant's device step may serve the code meanwhile
+        self::$inFlight = $target->customerId === 0 ? trim($code) : null;
         try {
             $result = \Package::rechargeUser($target->customerId, $v['routers'], $v['id_plan'], 'Voucher', $code);
         } catch (\Throwable $e) {
             ErrorReporter::report($e, 'voucher-grant');
             self::record($source, $code, $target, self::REVIEW, (int) $v['id']);
             return ['status' => self::REVIEW, 'voucher' => $v, 'result' => null];
+        } finally {
+            self::$inFlight = null;
         }
         if ($result === false) {
             $released = $release !== null ? $release()

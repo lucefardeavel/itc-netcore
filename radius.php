@@ -77,7 +77,8 @@ try {
                 // E16: a voucher authenticates only while unused (authorize redeems it) or while its recharge is active
                 $username = Text::alphanumeric($username, "-_.,");
                 $v = ORM::for_table('tbl_voucher')->where_raw('BINARY code = ?', [$username])->find_one();
-                $d = $v && ($v['status'] == 0 || radius_active_recharge($username));
+                // WP9 U0 R-FC-4: an active recharge serves a voucher only when the state machine granted it (not under review)
+                $d = $v && ($v['status'] == 0 || (radius_active_recharge($username) && \Reseller\Domain\VoucherRedemptionService::voucherOnlyServiceRefusal($username) === null));
             } else {
                 $c = ORM::for_table('tbl_customers')->where_raw("BINARY username = ? AND status = 'Active'", [$username])->find_one();
                 $d = $c && ($c['password'] == $password || ($c['pppoe_password'] != '' && $c['pppoe_password'] == $password));
@@ -146,6 +147,11 @@ try {
                 }
             }
             if ($tur) {
+                // WP9 U0 R-FC-4: a voucher-only recharge row (customer 0) is answered only for a voucher the state machine
+                // granted - never one under review (CLAIMED) or unredeemed
+                if ((int) $tur['customer_id'] === 0 && \Reseller\Domain\VoucherRedemptionService::voucherOnlyServiceRefusal((string) $tur['username']) !== null) {
+                    show_radius_result(['control:Auth-Type' => 'Reject', 'reply:Reply-Message' => 'Voucher Not Valid'], 401);
+                }
                 if (!$isVoucher && !$isCHAP) {
                     $d = radius_active_customer('username', $username) ?: radius_active_customer('pppoe_username', $username);
                     if ($d && $d['password'] != $password && $d['pppoe_password'] != $password) {

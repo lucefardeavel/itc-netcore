@@ -92,6 +92,10 @@ switch ($do) {
                 if ($tur['status'] == 'off') {
                     _alert(Lang::T('Internet Voucher Expired'), 'danger', "login");
                 }
+                // WP9 U0 R-FC-4: re-activation serves only a voucher the state machine granted (never one under review or unredeemed)
+                if (\Reseller\Domain\VoucherRedemptionService::voucherOnlyServiceRefusal($voucher) !== null) {
+                    _alert(Lang::T('Voucher Not Valid'), 'danger', "login");
+                }
                 $p = ORM::for_table('tbl_plans')->where('id', $tur['plan_id'])->find_one();
                 if ($p) {
                     $dvc = Package::getDevice($p);
