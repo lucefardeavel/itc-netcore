@@ -10,6 +10,7 @@
 > - **AD-04 / AD-06 / AD-07:** session admission moves to a logical Session Authority (PROVEN_SAFE / PROVEN_LIVE / UNKNOWN). "Stale" means unverified, not offline. Simultaneous-Use is service-aware and needs a concurrent-first-login gate.
 >   - WP8 Option G is the lab-proven candidate (`wp8/integration-poc@47a3a02c`). It is **not** productionized.
 >   - `AccountingService::staleSessions` stays a report only. It is never an admission authority.
+> - **Status 2026-10-16 (WP9 sync, D-S8-4):** WP8 (Option G session authority, admission tables, H-2/H-2B/A2-R hardening) has since been accepted with notes (dev only) and merged into `feat/reseller-system-v1`; the current status of each gate is in `owner-review/WP9/`.
 > - **Accounting time contract:** R-WP8-CARRY-03 / GAP-05 is open, and WP4 owner decision 4 (run FreeRADIUS in the application time zone) is unchanged.
 >   - The lock suggests a canonical (preferably UTC) time contract. The final contract is an open owner decision; see `architecture/DOCUMENTATION_SYNC_REPORT.md`, conflict C-05.
 

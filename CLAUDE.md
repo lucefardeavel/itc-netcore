@@ -9,7 +9,7 @@ Keep this file short. The details live in the documents linked below.
 2. **Development rules and specification:** [`docs/claude-development-pack/START_HERE.md`](docs/claude-development-pack/START_HERE.md) and `docs/15_CLAUDE_RULES.md`.
    - The pack is manifest-pinned (42 files). Do not edit pack files.
 3. **Implementation status:** the code, the tests, git, and the owner-controlled [`ACCEPTANCE_LEDGER.md`](docs/claude-development-pack/review/ACCEPTANCE_LEDGER.md).
-   - The latest audit is [`docs/architecture/DEVELOPMENT_STATUS_REPORT.md`](docs/architecture/DEVELOPMENT_STATUS_REPORT.md).
+   - The audit of 2026-10-09 is [`docs/architecture/DEVELOPMENT_STATUS_REPORT.md`](docs/architecture/DEVELOPMENT_STATUS_REPORT.md) (a dated snapshot; newer status is in `owner-review/WP9/`).
 
 ## Rules for decisions
 - Approving an architecture is not approval of an implementation. A locked decision is not a passing test, an accepted WP, or permission to change code or deploy.
@@ -26,6 +26,6 @@ Keep this file short. The details live in the documents linked below.
 ## Before any work
 - Check the WP status in the ledger and in `owner-review/<WP>/`, and the branch, HEAD and working tree.
   - The execution base is the owner-accepted HEAD (`feat/reseller-system-v1`).
-  - WP8 lives on `wp8/integration-poc` and is **not** merged.
+  - Status 2026-10-16: WP8 is `ACCEPTED_WITH_NOTES` (dev only) and merged into `feat/reseller-system-v1` (`704031c6`). WP9 work is on the local branch `wp9/red-team-rc` (see `owner-review/WP9/`).
 - Default is no push, merge, tag, deploy, or production action without explicit owner authorization (D038).
 - Never commit secrets, credentials, RouterOS images, or customer data.
