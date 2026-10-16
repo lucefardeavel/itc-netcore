@@ -304,7 +304,8 @@ final class DriverClassificationSourceTest extends TestCase
             'P2 gate removed' => ['system/controllers/customers.php', "/[^\\n]*'customerDeactivate', 'customers[^\\n]*\\n/", ''],
             'portal sync gate removed' => ['system/controllers/home.php', "/[^\\n]*'homeSync', 'home'\\);\\n/", ''],
             'core funnel gate removed' => ['system/autoload/Package.php', '/ServiceGate::isBlockedUsername\(\(string\) \$channel\) : \\\\Reseller\\\\Domain\\\\ServiceGate::isBlockedCustomerId\(\$id_customer\)/', 'false : false'],
-            'voucher-only gate removed' => ['system/controllers/login.php', "/[^\\n]*'loginVoucherOnly', 'login'\\);\\n/", ''],
+            // WP9 U0 N-07: the voucher-only gate records its refusal without the typed code (one line: removing it removes the gate)
+            'voucher-only gate removed' => ['system/controllers/login.php', "/[^\\n]*ServiceGate::refused\\('loginVoucherOnly'\\);[^\\n]*\\n/", ''],
             'new unclassified call site' => ['system/controllers/plan.php', "/case 'view':/", "case 'view':\n        (new \$p['device'])->add_customer(\$c, \$p);"],
         ];
         foreach ($cases as $name => [$file, $re, $to]) {

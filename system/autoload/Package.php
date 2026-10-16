@@ -61,6 +61,11 @@ class Package
                 'password' => $channel,
             ];
         }
+        // WP9 U0 N-07 (owner limited exception to the Package.php pin, notifications only): a voucher-only subscriber's
+        // username, password and channel are the voucher code, a credential. No notification carries it: Telegram names
+        // the subscriber voucher_only (the invoice number identifies the grant) and the invoice notification, which has no
+        // recipient for a voucher-only subscriber, is not sent. Recharge, invoice, device and return values are unchanged.
+        $nuxrTg = $isVoucher ? 'voucher_only' : 'u' . $c['username'];
 
         $add_cost = 0;
         $bills = [];
@@ -285,7 +290,7 @@ class Package
                     Message::sendTelegram(
                         "System Error. When activate Package. You need to sync manually\n" .
                             "Router: $router_name\n" .
-                            "Customer: u$c[username]\n" .
+                            "Customer: $nuxrTg\n" .
                             "Plan: p$p[name_plan]\n" .
                             "ref=" . $nuxrRef
                     );
@@ -346,10 +351,10 @@ class Package
                 }
             }
 
-            Message::sendTelegram("#u$c[username] $c[fullname] #recharge #$p[type] \n" . $p['name_plan'] .
+            Message::sendTelegram("#$nuxrTg $c[fullname] #recharge #$p[type] \n" . $p['name_plan'] .
                 "\nRouter: " . $router_name .
                 "\nGateway: " . $gateway .
-                "\nChannel: " . $channel .
+                "\nChannel: " . ($isVoucher ? 'voucher ' . $inv : $channel) .
                 "\nLast Expired: $lastExpired" .
                 "\nNew Expired: " . Lang::dateAndTimeFormat($date_exp, $time) .
                 "\nPrice: " . Lang::moneyFormat($p['price'] + $add_cost) .
@@ -396,7 +401,7 @@ class Package
                     Message::sendTelegram(
                         "System Error. When activate Package. You need to sync manually\n" .
                             "Router: $router_name\n" .
-                            "Customer: u$c[username]\n" .
+                            "Customer: $nuxrTg\n" .
                             "Plan: p$p[name_plan]\n" .
                             "ref=" . $nuxrRef
                     );
@@ -463,10 +468,10 @@ class Package
                 }
             }
 
-            Message::sendTelegram("#u$c[username] $c[fullname] #buy #$p[type] \n" . $p['name_plan'] .
+            Message::sendTelegram("#$nuxrTg $c[fullname] #buy #$p[type] \n" . $p['name_plan'] .
                 "\nRouter: " . $router_name .
                 "\nGateway: " . $gateway .
-                "\nChannel: " . $channel .
+                "\nChannel: " . ($isVoucher ? 'voucher ' . $inv : $channel) .
                 "\nExpired: " . Lang::dateAndTimeFormat($date_exp, $time) .
                 "\nPrice: " . Lang::moneyFormat($p['price'] + $add_cost) .
                 "\nNote:\n" . $note);
@@ -476,7 +481,9 @@ class Package
             User::billsPaid($bills, $id_customer);
         }
         run_hook("recharge_user_finish");
-        Message::sendInvoice($c, $t);
+        if (!$isVoucher) {
+            Message::sendInvoice($c, $t);
+        }
         if ($trx) {
             $trx->trx_invoice = $inv;
         }

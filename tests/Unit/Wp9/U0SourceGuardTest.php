@@ -15,6 +15,9 @@ use PHPUnit\Framework\TestCase;
  *  - the runtime named locks are exactly the tree, voucher-username and identity locks;
  *  - test seams are never armed by runtime code.
  * The checker is mutation-checked: removing a hold or moving a write out of it is detected.
+ * Final closure (owner WP9_U0_HARDENING_CONDITIONALLY_ACCEPTED): no rechargeUser notification carries a voucher-only
+ * credential (N-07); the ownership count never runs inside an open transaction without the identity lock (§4); a
+ * voucher-only grant is GRANTED only on this grant's own confirmed RADIUS write (§5).
  */
 final class U0SourceGuardTest extends TestCase
 {
@@ -179,7 +182,7 @@ final class U0SourceGuardTest extends TestCase
         $rename = substr($lrs, strpos($lrs, 'public static function renameCheck('));
         $this->assertLessThan(strpos($rename, '->equivalentKeys('), strpos($rename, 'CustomerIdentity::assertSingleOwner($from)'), 'rename: the source key ownership first');
         $pkg = self::src('system/autoload/Package.php');
-        $this->assertLessThan(strpos($pkg, "run_hook(\"recharge_user\")"), strpos($pkg, 'LegacyReprovisionService::assertDeviceAllowed($c)'), 'Package (pinned, unchanged): the device guard is still pre-write');
+        $this->assertLessThan(strpos($pkg, "run_hook(\"recharge_user\")"), strpos($pkg, 'LegacyReprovisionService::assertDeviceAllowed($c)'), 'Package (pinned): the device guard is still pre-write');
         // mutation: dropping the check from provision() is detected
         $mutated = str_replace("        self::singleOwner(\$policy->username);\n", '', $radius);
         // the legacy deadlock retry re-runs ONLY the policy write, never the ownership check skipped, and only for 1213
@@ -188,5 +191,87 @@ final class U0SourceGuardTest extends TestCase
         $this->assertNotSame($radius, $mutated, 'mutation applied');
         $body = substr($mutated, strpos($mutated, 'function provision('));
         $this->assertStringNotContainsString('self::singleOwner(', substr($body, 0, strpos($body, '->provision($policy)')));
+    }
+
+    /** the source text of the call starting at $pos (balanced parentheses) */
+    private static function call(string $src, int $pos): string
+    {
+        return self::holdCall($src, $pos);
+    }
+
+    /** @return list<string> N-07 violations: rechargeUser notifications that can carry the voucher-only code */
+    private static function notificationLeaks(string $pkg): array
+    {
+        $body = substr($pkg, strpos($pkg, 'public static function rechargeUser('));
+        $body = substr($body, 0, strpos($body, 'public static function rechargeBalance('));
+        $out = [];
+        if (!str_contains($body, "\$nuxrTg = \$isVoucher ? 'voucher_only' : 'u' . \$c['username'];")) {
+            $out[] = 'no voucher-only Telegram name';
+        }
+        $n = 0;
+        for ($pos = 0; ($pos = strpos($body, 'Message::sendTelegram(', $pos)) !== false; $pos++) {
+            $n++;
+            $call = preg_replace("/\\(\\\$isVoucher \\? 'voucher ' \\. \\\$inv : \\\$channel\\)/", '<redacted channel>', self::call($body, $pos));
+            foreach (['$c[username]', "\$c['username']", '$channel', '$c[password]', "\$c['password']"] as $needle) {
+                if (str_contains($call, $needle)) {
+                    $out[] = "Telegram call {$n} interpolates {$needle}";
+                }
+            }
+        }
+        if ($n !== 4) {
+            $out[] = "expected 4 Telegram calls, found {$n}";
+        }
+        if (!preg_match('/if \(!\$isVoucher\) \{\s*Message::sendInvoice\(\$c, \$t\);\s*\}/', $body) || substr_count($body, 'Message::sendInvoice(') !== 1) {
+            $out[] = 'invoice notification sent for voucher-only';
+        }
+        return $out;
+    }
+
+    public function testNoRechargeNotificationCarriesAVoucherOnlyCredential(): void
+    {
+        $pkg = self::src('system/autoload/Package.php');
+        $this->assertSame([], self::notificationLeaks($pkg));
+        // mutation: the pre-N-07 forms are detected
+        $this->assertNotSame([], self::notificationLeaks(str_replace('"#$nuxrTg $c[fullname] #buy', '"#u$c[username] $c[fullname] #buy', $pkg)));
+        $this->assertNotSame([], self::notificationLeaks(str_replace("(\$isVoucher ? 'voucher ' . \$inv : \$channel)", '$channel', $pkg)));
+        $this->assertNotSame([], self::notificationLeaks(preg_replace('/if \(!\$isVoucher\) \{\s*(Message::sendInvoice\(\$c, \$t\);)\s*\}/', '$1', $pkg)));
+    }
+
+    public function testOwnershipCountInsideAnOpenTransactionWithoutTheLockFailsClosed(): void
+    {
+        $ci = self::src(self::CI);
+        $body = substr($ci, strpos($ci, 'public static function assertSingleOwner('));
+        $body = substr($body, 0, strpos($body, 'public static function keysOf('));
+        $held = strpos($body, '$held = self::held($pdo);');
+        $tx = strpos($body, 'if ($pdo->inTransaction()) {');
+        $this->assertNotFalse($held);
+        $this->assertNotFalse($tx);
+        $this->assertLessThan($tx, $held, 'a caller holding L-3 is counted in place first');
+        $branch = substr($body, $tx, strpos($body, '}', $tx) - $tx);
+        $this->assertStringContainsString("throw new DomainError('IDENTITY_CHECK_UNAVAILABLE');", $branch, 'open transaction without the lock: refused');
+        $this->assertStringNotContainsString('$check(', $branch, 'no unlocked count inside a transaction');
+    }
+
+    public function testVoucherOnlyGrantNeedsThisGrantsConfirmedWrite(): void
+    {
+        $prov = self::src('system/autoload/Reseller/Radius/RadiusProvisioner.php');
+        $this->assertMatchesRegularExpression('/public function provision\(RadiusPolicy \$policy\): ProvisionResult\s*\{\s*return self::\$results\[\$policy->username\] = \$this->run\(/', $prov);
+        $vrs = self::src('system/autoload/Reseller/Domain/VoucherRedemptionService.php');
+        $grant = substr($vrs, strpos($vrs, 'private static function grant('));
+        $this->assertLessThan(strpos($grant, '\Package::rechargeUser('), strpos($grant, 'RadiusProvisioner::forgetProvision(trim($code));'), 'no earlier result counts');
+        $this->assertStringContainsString('($why = self::unconfirmed($v, $code)) !== null', $grant);
+        $this->assertLessThan(strpos($grant, "status = '1'"), strpos($grant, 'self::unconfirmed($v, $code)'), 'confirmation before the voucher is finalized');
+        $check = substr($vrs, strpos($vrs, 'private static function unconfirmed('));
+        $check = substr($check, 0, strpos($check, 'private static function candidate('));
+        $this->assertStringContainsString('RadiusProvisioner::lastProvision(trim($code))', $check);
+        $this->assertStringContainsString('if (!$r->isSuccess()) {', $check);
+        $this->assertStringNotContainsString('servicePresent', $vrs, 'rows under the name alone are no longer proof');
+    }
+
+    public function testTheVoucherOnlyLoginGateNeverRecordsTheTypedCode(): void
+    {
+        $login = self::src('system/controllers/login.php');
+        $this->assertStringContainsString("if (\\Reseller\\Domain\\ServiceGate::isBlockedUsername(\$voucher)) { \\Reseller\\Domain\\ServiceGate::refused('loginVoucherOnly'); r2(getUrl('login'), 'e', \\Reseller\\Domain\\ServiceGate::message()); }", $login);
+        $this->assertDoesNotMatchRegularExpression('/ServiceGate::(guardUsername|refused)\([^;]*\$voucher/', $login, 'the voucher code is never passed to a refusal record');
     }
 }

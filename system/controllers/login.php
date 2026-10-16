@@ -81,8 +81,9 @@ switch ($do) {
             }
             $voucher = Text::alphanumeric(_post('voucher_only'), "-_.,");
             // WP2 / OD-11 (E14): a voucher-only session must not collide with a reseller-owned customer
-            // (also refuses everything while the reseller schema is not ready)
-            \Reseller\Domain\ServiceGate::guardUsername($voucher, 'loginVoucherOnly', 'login');
+            // (also refuses everything while the reseller schema is not ready). WP9 U0 N-07: the typed name is the voucher
+            // code, a credential - the refusal is recorded without it (ServiceGate::guardUsername would record the name)
+            if (\Reseller\Domain\ServiceGate::isBlockedUsername($voucher)) { \Reseller\Domain\ServiceGate::refused('loginVoucherOnly'); r2(getUrl('login'), 'e', \Reseller\Domain\ServiceGate::message()); }
             $tur = ORM::for_table('tbl_user_recharges')
                 ->where('username', $voucher)
                 ->where('customer_id', '0') // Voucher Only will make customer ID as 0

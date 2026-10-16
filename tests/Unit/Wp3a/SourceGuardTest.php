@@ -32,8 +32,11 @@ final class SourceGuardTest extends TestCase
         'system/autoload/Balance.php' => '9652370fcc1d7ca370ff9061c4631fa34531f2049a5da9c0b9b8601ab00c57ae',
         // WP4 (owner decision Q5): the device calls in rechargeUser run after the recharge row is saved;
         // WP8 S7-FC (owner decision OD-S7-FC-1, limited exception): + the pre-write device-guard refusal in rechargeUser
-        // (previous pin e4225dd06c4e4b5e555f141f8319f9a2575c4d7461f96ff30dc52b35f1f36346)
-        'system/autoload/Package.php' => 'd4567f663193e16b6db7397ff94ed37c268274ebc5f6ce8a645af3c79fca2b85',
+        // (previous pin e4225dd06c4e4b5e555f141f8319f9a2575c4d7461f96ff30dc52b35f1f36346);
+        // WP9 U0 N-07 (owner WP9_U0_HARDENING_CONDITIONALLY_ACCEPTED, limited exception, 2026-10-16): the rechargeUser
+        // notifications never carry a voucher-only credential (Telegram text; no invoice notification without a recipient)
+        // (previous pin d4567f663193e16b6db7397ff94ed37c268274ebc5f6ce8a645af3c79fca2b85)
+        'system/autoload/Package.php' => '9759fca72b5f33236d5a7a00ceaf4ffb9f2dc76b86b16a03a70c6ac145e4aa54',
         // accepted WP1 migration runner
         'system/reseller/migrate.php' => '8420e021293260ae01f097e5d202221003a172e14e116933831e0087f44803fa',
         'system/reseller/Migration/Db.php' => 'd5123172de0d8bda244c3c8081f8c156e454766d50c3af49958b4f30048c1c51',

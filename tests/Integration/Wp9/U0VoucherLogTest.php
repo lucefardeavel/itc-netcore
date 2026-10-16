@@ -94,4 +94,33 @@ final class U0VoucherLogTest extends RadiusHttpTestCase
         $this->assertSame([], $obs['leaks'], 'no code and no short code hash in logs, audit or responses');
         $this->assertSame(['IDENTITY_IN_USE' => true, 'NOT_VALID' => true, 'GRANTED' => true], $obs['reasons_logged'], 'the diagnostics keep the outcome / reason');
     }
+
+    /**
+     * Final closure (owner §3, N-07 complete audit): the voucher-only login gate (login.php E12 -> ServiceGate, WP2 / OD-11)
+     * recorded the typed name - the voucher code - in its refusal record (PHP log line and audit snapshot) when the code
+     * equals a reseller-owned customer's name, and for EVERY attempt while the reseller schema is not ready. The refusal
+     * itself and its record stay; the code does not.
+     */
+    public function testTheVoucherOnlyLoginGateRefusalDoesNotRecordTheCode(): void
+    {
+        $owned = $this->person(self::tag(), '', 'A');
+        $code = $owned['username'];
+        $vid = $this->voucher($code);
+        $logFile = static::$app->dir . '/wp2_probe/php_error.log';
+        $log0 = strlen((string) @file_get_contents($logFile));
+        $audit0 = (int) static::$db->value('SELECT COALESCE(MAX(id), 0) FROM tbl_reseller_audit_events');
+        $r = $this->client()->postWithToken('login/activation', ['voucher_only' => $code], [], 'login');
+        $lines = array_values(array_filter(explode("\n", substr((string) @file_get_contents($logFile), $log0)), static fn(string $l): bool => str_contains($l, 'op=loginVoucherOnly')));
+        $audit = static::$db->rows("SELECT target_snapshot, after_json FROM tbl_reseller_audit_events WHERE id > ? AND event_type = 'service.refused'", [$audit0]);
+        $obs = ['http' => $r->status, 'voucher_status' => self::vstatus($vid), 'refusal_log_lines' => count($lines), 'refusal_audit_rows' => count($audit),
+            'code_in_refusal_log' => (bool) array_filter($lines, static fn(string $l): bool => str_contains($l, $code)),
+            'code_in_refusal_audit' => str_contains(json_encode($audit), $code), 'code_in_response' => str_contains($r->body, $code)];
+        self::record('U0 N-07 voucher-only login gate refusal record', $obs['code_in_refusal_log'] || $obs['code_in_refusal_audit'] ? 'DEFECT_REPRODUCED' : 'CONTRACT_MET', $obs);
+        $this->assertSame('0', $obs['voucher_status'], 'control: refused, the voucher is untouched');
+        $this->assertSame(1, $obs['refusal_log_lines'], 'control: the refusal is still recorded');
+        $this->assertSame(1, $obs['refusal_audit_rows'], 'control: the refusal is still audited');
+        $this->assertFalse($obs['code_in_refusal_log'], 'no voucher code in the refusal log line');
+        $this->assertFalse($obs['code_in_refusal_audit'], 'no voucher code in the refusal audit record');
+        $this->assertFalse($obs['code_in_response']);
+    }
 }
