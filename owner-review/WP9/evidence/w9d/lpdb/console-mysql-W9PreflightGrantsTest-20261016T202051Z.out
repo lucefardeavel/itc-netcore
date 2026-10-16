@@ -1,0 +1,18 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/lpdb/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/W9PreflightGrantsTest.php
+start: 2026-10-16T20:20:51Z
+ Container nuxbill-reseller-test-php82-run-266f3df32d05 Creating 
+ Container nuxbill-reseller-test-php82-run-266f3df32d05 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:07.434, Memory: 10.00 MB
+
+W9Preflight Grants (Reseller\Tests\Http\W9PreflightGrants)
+ ✔ Preflight and least privilege account
+
+OK (1 test, 32 assertions)
+exit=0 end: 2026-10-16T20:21:01Z

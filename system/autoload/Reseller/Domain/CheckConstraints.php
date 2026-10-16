@@ -30,7 +30,7 @@ final class CheckConstraints
     {
         $out = [];
         $offset = 0;
-        while (preg_match('/CONSTRAINT\s+`([A-Za-z0-9_]+)`\s+CHECK\s*\(/i', $sql, $m, PREG_OFFSET_CAPTURE, $offset) === 1) {
+        while (preg_match('/CONSTRAINT\s+`?([A-Za-z0-9_]+)`?\s+CHECK\s*\(/i', $sql, $m, PREG_OFFSET_CAPTURE, $offset) === 1) {
             $name = $m[1][0];
             $start = $m[0][1] + strlen($m[0][0]) - 1; // the opening parenthesis
             $expr = self::balanced($sql, $start);
@@ -39,10 +39,12 @@ final class CheckConstraints
                 break;
             }
             $table = '';
-            if (preg_match_all('/(?:CREATE|ALTER)\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`([A-Za-z0-9_]+)`/i', substr($sql, 0, $m[0][1]), $t) > 0) {
+            if (preg_match_all('/(?:CREATE|ALTER)\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?([A-Za-z0-9_]+)`?/i', substr($sql, 0, $m[0][1]), $t) > 0) {
                 $table = (string) end($t[1]);
             }
-            $out[$name] = ['table' => $table, 'expr' => $expr];
+            // the FIRST declaration in one text is authoritative (a later copy inside a quoted, guarded ALTER string of
+            // the same file is the same constraint with doubled quotes)
+            $out[$name] ??= ['table' => $table, 'expr' => $expr];
             $offset = $start + strlen($expr) + 2;
         }
         return $out;
@@ -50,6 +52,12 @@ final class CheckConstraints
 
     /**
      * Problems of the actual CHECK constraints against the expected ones (empty list = consistent).
+     *
+     * The actual constraints are read from SHOW CREATE TABLE, not from information_schema.CHECK_CONSTRAINTS: MariaDB
+     * 10.11 hides CHECK_CONSTRAINTS rows from an account with table-level grants (the WP10 least-privilege runtime
+     * account), while SHOW CREATE TABLE shows them to any account that may SELECT the table, on both engines. MySQL marks
+     * a NOT ENFORCED constraint there with a versioned comment.
+     *
      * @param array<string,array{table:string,expr:string}> $expected
      * @return list<string>
      */
@@ -65,49 +73,68 @@ final class CheckConstraints
                 $p[] = 'CHECK constraints are not enforced on this connection (check_constraint_checks = ' . (string) $on . ')';
             }
         }
-        $enforcedCol = $engineFamily === 'mysql' ? ', tc.ENFORCED AS enforced' : ", 'YES' AS enforced";
-        $rows = $pdo->query(
-            "SELECT tc.TABLE_NAME AS t, cc.CONSTRAINT_NAME AS n, cc.CHECK_CLAUSE AS c{$enforcedCol}
-               FROM information_schema.CHECK_CONSTRAINTS cc
-               JOIN information_schema.TABLE_CONSTRAINTS tc
-                 ON tc.CONSTRAINT_SCHEMA = cc.CONSTRAINT_SCHEMA AND tc.CONSTRAINT_NAME = cc.CONSTRAINT_NAME
-                AND tc.CONSTRAINT_TYPE = 'CHECK'"
-                . ($engineFamily === 'mariadb' ? ' AND tc.TABLE_NAME = cc.TABLE_NAME' : '')
-                . ' WHERE cc.CONSTRAINT_SCHEMA = DATABASE()'
-        )->fetchAll(\PDO::FETCH_ASSOC);
-        // a CHECK of an absent table is not reported here: the missing table itself is (runner contract /
-        // readiness), and a table that exists is always fully verified
+        // a CHECK of an absent table is not reported here: the missing table itself is (runner contract / readiness)
         $tables = array_map('strtolower', $pdo->query('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()')->fetchAll(\PDO::FETCH_COLUMN));
-        $actual = [];
-        foreach ($rows as $r) {
-            $actual[(string) $r['n']][] = $r;
-        }
+        $byTable = [];
         foreach ($expected as $name => $e) {
-            if ($e['table'] !== '' && !in_array(strtolower($e['table']), $tables, true)) {
+            $byTable[strtolower($e['table'])][$name] = $e;
+        }
+        foreach ($byTable as $table => $checks) {
+            if ($table === '') {
+                foreach ($checks as $name => $e) {
+                    $p[] = "CHECK {$name}: its table cannot be determined from the declaring SQL";
+                }
                 continue;
             }
-            $found = $actual[$name] ?? [];
-            if ($e['table'] !== '') {
-                $found = array_values(array_filter($found, static fn(array $r): bool => strcasecmp((string) $r['t'], $e['table']) === 0));
-            }
-            if ($found === []) {
-                $p[] = "CHECK {$name}" . ($e['table'] !== '' ? " on {$e['table']}" : '') . ' is missing';
+            if (!in_array($table, $tables, true)) {
                 continue;
             }
-            if (count($found) > 1) {
-                $p[] = "CHECK {$name} is defined more than once";
-                continue;
-            }
-            $want = self::canonical($e['expr']);
-            $have = self::canonical((string) $found[0]['c']);
-            if ($want === null || $have === null || $want !== $have) {
-                $p[] = "CHECK {$name} expression differs from its migration (expected [" . ($want ?? 'unparseable') . '] actual [' . ($have ?? 'unparseable') . '])';
-            }
-            if (strtoupper((string) $found[0]['enforced']) !== 'YES') {
-                $p[] = "CHECK {$name} is NOT ENFORCED";
+            $create = (string) ($pdo->query('SHOW CREATE TABLE `' . str_replace('`', '``', $table) . '`')->fetch(\PDO::FETCH_NUM)[1] ?? '');
+            $actual = self::actualFromCreate($create);
+            foreach ($checks as $name => $e) {
+                if (!isset($actual[$name])) {
+                    $p[] = "CHECK {$name} on {$e['table']} is missing";
+                    continue;
+                }
+                if ($actual[$name]['count'] > 1) {
+                    $p[] = "CHECK {$name} is defined more than once";
+                    continue;
+                }
+                $want = self::canonical($e['expr']);
+                $have = self::canonical($actual[$name]['expr']);
+                if ($want === null || $have === null || $want !== $have) {
+                    $p[] = "CHECK {$name} expression differs from its migration (expected [" . ($want ?? 'unparseable') . '] actual [' . ($have ?? 'unparseable') . '])';
+                }
+                if (!$actual[$name]['enforced']) {
+                    $p[] = "CHECK {$name} is NOT ENFORCED";
+                }
             }
         }
         return $p;
+    }
+
+    /** @return array<string,array{expr:string,count:int,enforced:bool}> the CHECK constraints of a SHOW CREATE TABLE text */
+    public static function actualFromCreate(string $create): array
+    {
+        $out = [];
+        $offset = 0;
+        while (preg_match('/CONSTRAINT\s+`([^`]+)`\s+CHECK\s*\(/i', $create, $m, PREG_OFFSET_CAPTURE, $offset) === 1) {
+            $name = $m[1][0];
+            $start = $m[0][1] + strlen($m[0][0]) - 1;
+            $expr = self::balanced($create, $start);
+            if ($expr === null) {
+                break;
+            }
+            $after = substr($create, $start + strlen($expr) + 2, 40);
+            $enforced = !preg_match('/^\s*(\/\*!\d+\s*)?NOT ENFORCED/i', $after);
+            if (isset($out[$name])) {
+                $out[$name]['count']++;
+            } else {
+                $out[$name] = ['expr' => $expr, 'count' => 1, 'enforced' => $enforced];
+            }
+            $offset = $start + strlen($expr) + 2;
+        }
+        return $out;
     }
 
     /** Canonical rendering of a CHECK expression, or null if it cannot be parsed. */
@@ -365,6 +392,9 @@ final class CheckConstraints
                     }
                 }
                 self::expect($t, $pos, 'op', ')');
+                if ($v === 'regexp_like' && count($args) === 2) {
+                    return ['match', [false, 'regexp', $args[0], $args[1]]]; // MySQL 8.0 prints `x REGEXP y` as regexp_like(x, y)
+                }
                 return ['fn', [$v, $args]];
             }
             return ['id', $v]; // a bare (unquoted) column name
