@@ -168,6 +168,12 @@ final class StaffService
                 }
             }
             if ($newPassword !== null && $newPassword !== '') {
+                // WP9-B / N-15 P3 (OD-W9-6 option B): a tree-scoped actor resets the password of a DIRECT child only
+                // (audited; existing sessions end because the staff fingerprint binds the password hash)
+                if ($id !== (int) $a->userId && PermissionService::scopeOf($a, Capability::STAFF_UPDATE_PROFILE) !== 'G'
+                    && Tx::row($pdo, 'SELECT 1 AS x FROM tbl_manager_tree WHERE ancestor_id = ? AND descendant_id = ? AND depth = 1', [(int) $a->userId, $id]) === null) {
+                    throw new DomainError('STAFF_PASSWORD_DIRECT_CHILD_ONLY');
+                }
                 if (strlen($newPassword) < 6) {
                     throw new DomainError('INVALID_INPUT', 'Password should be minimum 6 characters');
                 }
@@ -212,6 +218,15 @@ final class StaffService
             }
             if ($t['status'] === $status) {
                 return;
+            }
+            // WP9-B / N-15 P2 (OD-W9-6 option B): an account disabled by a global administrator (or by an unknown path)
+            // is reactivated by a global administrator only; an Agent may still reactivate what it disabled itself
+            if ($status === 'Active' && PermissionService::scopeOf($a, Capability::STAFF_DISABLE) !== 'G') {
+                $by = Tx::row($pdo, "SELECT actor_snapshot FROM tbl_reseller_audit_events WHERE event_type = 'staff.disable' AND target_user_id = ? ORDER BY id DESC LIMIT 1", [$id]);
+                $role = $by === null ? null : (json_decode((string) $by['actor_snapshot'], true)['role'] ?? null);
+                if ($by === null || in_array($role, ['SuperAdmin', 'Admin'], true)) {
+                    throw new DomainError('STAFF_REACTIVATION_ADMIN_ONLY');
+                }
             }
             if ($status === 'Inactive' && $t['user_type'] === 'SuperAdmin') {
                 self::assertNotLastSuperAdmin($pdo, $id);

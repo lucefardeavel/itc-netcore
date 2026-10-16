@@ -1,0 +1,26 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/policy-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/CustomerOwnershipTest.php
+start: 2026-10-16T19:16:53Z
+ Container nuxbill-reseller-test-php82-run-4c7ad8eba62a Creating 
+ Container nuxbill-reseller-test-php82-run-4c7ad8eba62a Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.........                                                           9 / 9 (100%)
+
+Time: 00:25.627, Memory: 10.00 MB
+
+Customer Ownership (Reseller\Tests\Http\CustomerOwnership)
+ ✔ Sales creates for its manager and self ignoring forged fields
+ ✔ Agent creates for self with optional own sales
+ ✔ Admin creates unassigned or for an enrolled agent
+ ✔ Report and non enrolled cannot create
+ ✔ Sales assignment inside scope
+ ✔ Owner transfer is admin only and clears foreign sales
+ ✔ Explicit legacy owner assignment only
+ ✔ Customer delete has reference pre check and is audited
+ ✔ Customer referenced by reseller domain is not deleted
+
+OK (9 tests, 75 assertions)
+exit=0 end: 2026-10-16T19:17:20Z

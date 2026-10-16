@@ -1,0 +1,20 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/policy-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp6a/ActivationReadModelTest.php
+start: 2026-10-16T19:18:54Z
+ Container nuxbill-reseller-test-php82-run-a492547ae567 Creating 
+ Container nuxbill-reseller-test-php82-run-a492547ae567 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...                                                                 3 / 3 (100%)
+
+Time: 00:10.307, Memory: 12.00 MB
+
+Activation Read Model (Reseller\Tests\Integration\Wp6a\ActivationReadModel)
+ ✔ List and view visibility equal status visibility
+ ✔ View is display only and money is role filtered
+ ✔ Groups counts and customer flags
+
+OK (3 tests, 203 assertions)
+exit=0 end: 2026-10-16T19:19:06Z

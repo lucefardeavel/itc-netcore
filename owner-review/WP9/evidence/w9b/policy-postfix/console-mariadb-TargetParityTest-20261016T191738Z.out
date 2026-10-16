@@ -1,0 +1,22 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/policy-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp6c/TargetParityTest.php
+start: 2026-10-16T19:17:38Z
+ Container nuxbill-reseller-test-php82-run-3501d1b9b89c Creating 
+ Container nuxbill-reseller-test-php82-run-3501d1b9b89c Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:10.484, Memory: 10.00 MB
+
+Target Parity (Reseller\Tests\Integration\Wp6c\TargetParity)
+ ✔ Admin is not offered delete for a sales account
+ ✔ Admin keeps delete for a report account and usable links
+ ✔ Sales gets no link to its parent agent
+ ✔ Voucher generator links only to viewable staff
+ ✔ Voucher customer links only to customers in scope
+
+OK (5 tests, 89 assertions)
+exit=0 end: 2026-10-16T19:17:50Z

@@ -70,10 +70,15 @@ final class ActivationService
         }
         $actor = ActivationActor::staff($a);
         $key = 'staff:' . (int) $a->userId . ':' . $nonce;
-        [$id, $replayed] = FinanceTx::run(
+        $opened = FinanceTx::run(
             static fn(\PDO $pdo): array => self::open($pdo, $a, (int) $customerId, (int) $planId, $expectedAction, $key, $preview),
             true
         );
+        [$id, $replayed] = $opened;
+        if (($opened[2] ?? true) === false) {
+            // P1: authority lost since the original request: status only, no progression
+            return self::outcome(ActivationStore::find(FinanceTx::pdo(), $id) ?? throw new DomainError('NOT_FOUND'), true);
+        }
         return self::outcome(self::execute($id, $actor), $replayed);
     }
 
@@ -219,6 +224,16 @@ final class ActivationService
             if ((int) $existing['customer_id'] !== $customerId || (int) $existing['plan_id'] !== $planId
                 || $existing['action'] !== $expected || (int) $existing['actor_user_id'] !== (int) $a->userId) {
                 throw new DomainError('IDEMPOTENCY_CONFLICT');
+            }
+            // WP9-B / N-05 P1 (OD-W9-6 option B): a replay drives the activation forward only while the actor still
+            // has authority over the customer; otherwise it reports the status and changes nothing (the reserved
+            // operation stays for an administrator to reconcile or cancel; no automatic release)
+            try {
+                ResellerTreeService::revalidateActor($pdo, $a);
+                $customer = Tx::row($pdo, 'SELECT * FROM tbl_customers WHERE id = ?', [$customerId]) ?? throw new DomainError('NOT_FOUND');
+                self::authorizeCustomer($a, $customer);
+            } catch (DomainError) {
+                return [(int) $existing['id'], true, false];
             }
             return [(int) $existing['id'], true];
         }
@@ -579,7 +594,10 @@ final class ActivationService
         $visible = match ($scope) {
             'G' => true,
             'T' => Tx::row($pdo, 'SELECT 1 AS x FROM tbl_manager_tree WHERE ancestor_id = ? AND descendant_id = ?', [(int) $a->userId, (int) $act['manager_id']]) !== null,
-            'A' => DataScope::customerInScope($a, C::ACTIVATION_READ, (int) $act['customer_id']),
+            // WP9-B / N-15 P5 (OD-W9-6 option B): a Sales account sees only the activations paid by the customer's
+            // CURRENT owner (no history of a previous owner after an ownership transfer)
+            'A' => DataScope::customerInScope($a, C::ACTIVATION_READ, (int) $act['customer_id'])
+                && Tx::row($pdo, 'SELECT 1 AS x FROM tbl_customers WHERE id = ? AND manager_id = ?', [(int) $act['customer_id'], (int) $act['manager_id']]) !== null,
             default => false,
         };
         if (!$visible) {

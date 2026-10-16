@@ -1,0 +1,24 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/policy-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/StaffManagementTest.php
+start: 2026-10-16T19:16:41Z
+ Container nuxbill-reseller-test-php82-run-4be1401ea0d7 Creating 
+ Container nuxbill-reseller-test-php82-run-4be1401ea0d7 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......                                                             7 / 7 (100%)
+
+Time: 00:09.588, Memory: 10.00 MB
+
+Staff Management (Reseller\Tests\Http\StaffManagement)
+ ✔ Role escalation on create is rejected
+ ✔ Agent creates only direct children and parent is never taken from the form
+ ✔ Admin creates tree accounts under valid parents only
+ ✔ Self cannot change own type status or parent
+ ✔ Edit targets are scoped
+ ✔ Delete rules
+ ✔ Role change is tree safe and last super admin protected
+
+OK (7 tests, 72 assertions)
+exit=0 end: 2026-10-16T19:16:52Z

@@ -1,0 +1,22 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/policy-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/W9OwnerPolicyTest.php
+start: 2026-10-16T19:17:50Z
+ Container nuxbill-reseller-test-php82-run-0922b702667e Creating 
+ Container nuxbill-reseller-test-php82-run-0922b702667e Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:11.304, Memory: 12.00 MB
+
+W9Owner Policy (Reseller\Tests\Integration\Wp9\W9OwnerPolicy)
+ ✔ P 1 replay after lost authority does not progress
+ ✔ P 2 admin disabled account is reactivated by an administrator only
+ ✔ P 3 password reset of direct sub accounts only
+ ✔ P 4 only the owner reassigns sales
+ ✔ P 5 new owner sales does not see previous owner activations
+
+OK (5 tests, 73 assertions)
+exit=0 end: 2026-10-16T19:18:05Z

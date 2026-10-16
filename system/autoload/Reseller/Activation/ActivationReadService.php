@@ -193,7 +193,11 @@ final class ActivationReadService
         return match (PermissionService::scopeOf($a, C::ACTIVATION_READ)) {
             'G' => ['(1 = 1)', []],
             'T' => ['(a.manager_id IN (SELECT descendant_id FROM tbl_manager_tree WHERE ancestor_id = ?))', [(int) $a->userId]],
-            'A' => DataScope::byCustomerColumnPredicate($a, C::ACTIVATION_READ, 'a.customer_id') ?? ['(1 = 0)', []],
+            // WP9-B / N-15 P5: a Sales account sees only activations paid by the customer's CURRENT owner
+            'A' => (static function (?array $p): array {
+                return $p === null || $p[0] === '(1 = 0)' ? ['(1 = 0)', []]
+                    : ['(' . $p[0] . ' AND a.manager_id = (SELECT pco.manager_id FROM tbl_customers pco WHERE pco.id = a.customer_id))', $p[1]];
+            })(DataScope::byCustomerColumnPredicate($a, C::ACTIVATION_READ, 'a.customer_id')),
             default => ['(1 = 0)', []],
         };
     }

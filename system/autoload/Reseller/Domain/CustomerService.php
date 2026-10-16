@@ -106,6 +106,11 @@ final class CustomerService
             if ($c['manager_id'] === null) {
                 throw new DomainError('INVALID_SALES', 'Unassigned customers have no Sales; set an owner first.');
             }
+            // WP9-B / N-15 P4 (OD-W9-6 option B): only the owning reseller (or a global administrator) re-assigns the
+            // Sales of a customer; an ancestor Agent no longer re-assigns a child Agent's customer
+            if (PermissionService::scopeOf($a, Capability::CUSTOMER_ASSIGN_SALES) !== 'G' && (int) $c['manager_id'] !== (int) $a->userId) {
+                throw new DomainError('SALES_ASSIGN_OWNER_ONLY');
+            }
             if ($salesId !== null) {
                 self::assertSalesOf($pdo, $salesId, (int) $c['manager_id']);
             }

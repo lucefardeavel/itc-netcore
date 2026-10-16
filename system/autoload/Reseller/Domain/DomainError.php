@@ -26,6 +26,10 @@ final class DomainError extends \RuntimeException
         'SALES_NEEDS_PARENT' => 'A Sales account must be placed under an Agent.',
         'LOCK_TIMEOUT' => 'The hierarchy is busy; please try again.',
         // WP9-B / R-4: the customer's service is being changed by another operation (renewal / expiry)
+        // WP9-B owner policies P2-P4 (OD-W9-6, option B)
+        'STAFF_REACTIVATION_ADMIN_ONLY' => 'This account was disabled by an administrator; only an administrator can reactivate it.',
+        'STAFF_PASSWORD_DIRECT_CHILD_ONLY' => 'You can reset the password of your direct sub-accounts only.',
+        'SALES_ASSIGN_OWNER_ONLY' => 'Only the reseller that owns this customer (or an administrator) can change its Sales assignment.',
         'SERVICE_BUSY' => 'This customer\'s service is being updated by another operation; please try again shortly.',
         'USERNAME_TAKEN' => 'The username is already used.',
         // WP9 U0: the shared identity check (generic: never says which identity holds the name)
