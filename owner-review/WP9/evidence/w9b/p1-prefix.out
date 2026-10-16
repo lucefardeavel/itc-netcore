@@ -1,0 +1,35 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Integration/Wp9/W9StalePolicySessionTest.php start 2026-10-16T20:35:10Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F                                                                   1 / 1 (100%)
+Time: 00:02.467, Memory: 12.00 MB
+W9Stale Policy Session (Reseller\Tests\Integration\Wp9\W9StalePolicySession)
+ ✘ Reactivation whose disconnect failed is reported until the old session ends
+   │
+   │ the session that kept the previous policy is reported
+   │ Failed asserting that actual size 0 matches expected size 1.
+   │
+   │ /repo/tests/Integration/Wp9/W9StalePolicySessionTest.php:43
+   │
+FAILURES!
+Tests: 1, Assertions: 12, Failures: 1.
+exit=1
+== mysql tests/Integration/Wp9/W9StalePolicySessionTest.php start 2026-10-16T20:35:14Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F                                                                   1 / 1 (100%)
+Time: 00:07.405, Memory: 12.00 MB
+W9Stale Policy Session (Reseller\Tests\Integration\Wp9\W9StalePolicySession)
+ ✘ Reactivation whose disconnect failed is reported until the old session ends
+   │
+   │ the session that kept the previous policy is reported
+   │ Failed asserting that actual size 0 matches expected size 1.
+   │
+   │ /repo/tests/Integration/Wp9/W9StalePolicySessionTest.php:43
+   │
+FAILURES!
+Tests: 1, Assertions: 12, Failures: 1.
+exit=1

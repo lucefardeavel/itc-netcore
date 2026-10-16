@@ -9,6 +9,7 @@ use Reseller\Domain\LegacyReprovisionService;
 use Reseller\Domain\Tx;
 use Reseller\Domain\VoucherRedemptionService;
 use Reseller\Finance\FinanceTx;
+use Reseller\Radius\ProvisionResult;
 
 /**
  * Detective control of WP5B (§5): what the preventive closure cannot stop (installed plugins with direct database
@@ -25,7 +26,11 @@ use Reseller\Finance\FinanceTx;
  *    re-provision of the customer superseded;
  *  - OLD_SESSION_UNCONFIRMED (WP8 A3): a rename whose old-identity sessions are not confirmed ended (state UNCONFIRMED),
  *    or whose confirmation was never recorded (state CONFIRMATION_MISSING);
- *  - BALANCE_HELD: a legacy balance operation HELD for review.
+ *  - BALANCE_HELD: a legacy balance operation HELD for review;
+ *  - SESSION_POLICY_STALE (WP9, lock gate P1): the latest CHANGE_PLAN / REACTIVATE of a reseller-owned customer whose
+ *    Disconnect of the running session did not succeed (UNKNOWN / FAILED / error), while a session that started before
+ *    the change is still open - it runs with the previous plan's policy until it ends. Operator: disconnect it
+ *    (reconcile.php session-end <ACT>, or on the NAS); the Session-Timeout of the previous period bounds it.
  */
 final class DriftReport
 {
@@ -97,8 +102,60 @@ final class DriftReport
                 $out[] = ['kind' => 'OLD_SESSION_UNCONFIRMED', 'customer_id' => $cid, 'state' => $state === 'PENDING' ? 'CONFIRMATION_MISSING' : 'UNCONFIRMED'];
             }
         }
+        if ($radius) {
+            foreach (self::stalePolicySessions($pdo, $owned) as $f) {
+                $out[] = $f;
+            }
+        }
         foreach (LegacyCustomerBalanceService::held() as $h) {
             $out[] = ['kind' => 'BALANCE_HELD', 'journal_id' => (int) $h['id'], 'customer_id' => (int) $h['user_id'], 'channel' => (string) $h['payment_channel']];
+        }
+        return $out;
+    }
+
+    /**
+     * Lock gate P1: plan changes whose running session kept the previous policy (see the class comment).
+     *
+     * @param list<array<string,mixed>> $owned
+     * @return list<array<string,mixed>>
+     */
+    private static function stalePolicySessions(\PDO $pdo, array $owned): array
+    {
+        $out = [];
+        try {
+            $rp = \ORM::get_db('radius');
+        } catch (\Throwable) {
+            $rp = $pdo;
+        }
+        foreach ($owned as $c) {
+            $latest = ActivationStore::latest($pdo, (int) $c['id'], ActivationState::COMPLETED);
+            if ($latest === null || !in_array($latest['action'], ['CHANGE_PLAN', 'REACTIVATE'], true)) {
+                continue;
+            }
+            $failed = false;
+            $since = null;
+            foreach (ActivationStore::events($pdo, (int) $latest['id']) as $e) {
+                $meta = json_decode((string) ($e['metadata'] ?? ''), true);
+                if ($e['event_type'] === 'ANNOTATION' && is_array($meta) && isset($meta['disconnect']) && is_array($meta['disconnect'])) {
+                    // the latest Disconnect summary decides (an operator session-end appends a newer one)
+                    $failed = false;
+                    foreach ($meta['disconnect'] as $r) {
+                        if (!str_starts_with((string) $r, ProvisionResult::SUCCESS)) {
+                            $failed = true;
+                        }
+                    }
+                    $since = $since ?? (string) $e['created_at'];
+                }
+            }
+            $username = ActivationStore::radius($pdo, (int) $latest['id'])['target']['username'] ?? null;
+            if (!$failed || $since === null || !is_string($username)) {
+                continue;
+            }
+            $st = $rp->prepare('SELECT COUNT(*) FROM radacct WHERE username = ? AND acctstoptime IS NULL AND acctstarttime <= ?');
+            $st->execute([$username, $since]);
+            if ((int) $st->fetchColumn() > 0) {
+                $out[] = ['kind' => 'SESSION_POLICY_STALE', 'customer_id' => (int) $c['id'], 'activation' => (string) $latest['reference']];
+            }
         }
         return $out;
     }

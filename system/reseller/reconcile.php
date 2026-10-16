@@ -34,6 +34,7 @@ if (PHP_SAPI !== 'cli') {
  *   php system/reseller/reconcile.php finance-check             read-only finance + activation integrity (exit 4 = issues)
  *   php system/reseller/reconcile.php voucher-review            vouchers left CLAIMED (review) with their grant evidence
  *   php system/reseller/reconcile.php voucher-resolve <id> <confirm|deny|release> --operator=<name> --reason=<text>
+ *   php system/reseller/reconcile.php session-end <ACT-...>      re-send the Disconnect of a plan change (drift SESSION_POLICY_STALE)
  *   php system/reseller/reconcile.php admission-pending         unresolved PPPoE admission claims (PENDING)
  *   php system/reseller/reconcile.php admission-release <key hex> <token> --operator=<name> --reason=<text> --evidence=<NAS proof>
  *
@@ -162,6 +163,10 @@ try {
             }
             echo json_encode(\Reseller\Domain\VoucherRedemptionService::reviewResolve((int) $reference, $args[2], $text('operator'), $text('reason'))) . "\n";
             exit(0);
+        case 'session-end':
+            // WP9 lock gate P1: re-send the Disconnect of a plan change whose running session kept the old policy
+            echo json_encode(['reference' => $reference, 'disconnect' => ActivationService::endStaleSessions($reference, $actor)]) . "\n";
+            exit(0);
         case 'admission-pending':
             foreach (\Reseller\Radius\AdmissionRecovery::pending() as $r) {
                 echo json_encode($r, JSON_UNESCAPED_SLASHES) . "\n";
@@ -171,7 +176,7 @@ try {
             echo json_encode(\Reseller\Radius\AdmissionRecovery::release($reference, (string) ($args[2] ?? ''), $text('operator'), $text('reason'), $text('evidence'))) . "\n";
             exit(0);
         default:
-            fwrite(STDERR, "usage: php system/reseller/reconcile.php <stale|show|reconcile|resume|rollback|cancel|drift|expired-autorenew|balance-held|balance-resolve|finance-check|voucher-review|voucher-resolve|admission-pending|admission-release> [ACT-reference|id] [--seconds=N]\n");
+            fwrite(STDERR, "usage: php system/reseller/reconcile.php <stale|show|reconcile|resume|rollback|cancel|drift|expired-autorenew|balance-held|balance-resolve|finance-check|session-end|voucher-review|voucher-resolve|admission-pending|admission-release> [ACT-reference|id] [--seconds=N]\n");
             exit(5);
     }
 } catch (DomainError $e) {

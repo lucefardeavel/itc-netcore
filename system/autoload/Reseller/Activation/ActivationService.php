@@ -687,6 +687,37 @@ final class ActivationService
     }
 
     /** Ends the customer's sessions so a changed policy applies (best effort; UNKNOWN never undoes provisioning). */
+    /**
+     * WP9 lock gate P1: operator re-send of the Disconnect of a COMPLETED CHANGE_PLAN / REACTIVATE whose first Disconnect
+     * did not succeed (DriftReport SESSION_POLICY_STALE). Operator-initiated only (never automatic); a Disconnect of a
+     * session that already ended is answered NAK / not found and changes nothing. The summary is annotated.
+     *
+     * @return list<string> per-session "<status>:<code>"
+     */
+    public static function endStaleSessions(string $reference, ActivationActor $actor): array
+    {
+        $pdo = FinanceTx::pdo();
+        $act = ActivationStore::byReference($pdo, $reference) ?? throw new DomainError('NOT_FOUND');
+        if ($act['status'] !== ActivationState::COMPLETED || !in_array($act['action'], ['CHANGE_PLAN', 'REACTIVATE'], true)) {
+            throw new DomainError('ACTIVATION_STATE_CONFLICT');
+        }
+        $username = ActivationStore::radius($pdo, (int) $act['id'])['target']['username'] ?? throw new DomainError('ACTIVATION_STATE_CONFLICT');
+        $summary = [];
+        try {
+            foreach (CoAClient::connection()->disconnect((string) $username) as $r) {
+                $summary[] = $r->status . ':' . $r->code;
+            }
+        } catch (\Throwable $e) {
+            $summary[] = 'ERROR';
+            \Reseller\Security\ErrorReporter::report($e, 'activation-disconnect');
+        }
+        self::tx(static function (\PDO $pdo) use ($act, $actor, $summary): void {
+            ActivationStore::lock($pdo, (int) $act['id']);
+            ActivationStore::event($pdo, (int) $act['id'], ActivationState::COMPLETED, ActivationState::COMPLETED, $actor, ['event_type' => 'ANNOTATION', 'metadata' => ['disconnect' => $summary, 'operator' => 'session-end']]);
+        });
+        return $summary;
+    }
+
     private static function endSessions(int $id, string $username, ActivationActor $actor): void
     {
         $summary = [];

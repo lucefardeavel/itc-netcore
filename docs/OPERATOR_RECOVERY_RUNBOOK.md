@@ -131,6 +131,16 @@ ACTIVE claims are never released by hand. The A1 NAS verification ends them when
 
   The drift line disappears once no open row of the old name remains.
 
+## 4a. A plan change whose running session kept the old policy (SESSION_POLICY_STALE, lock gate P1)
+
+A CHANGE_PLAN or REACTIVATE ends the running session (Disconnect) so that the next login gets the new policy. If the
+Disconnect was not confirmed (UNKNOWN / FAILED) and a session that started before the change is still open, that
+session runs with the previous plan's rate until it ends (bounded by the previous period's Session-Timeout).
+- Detect: `reconcile.php drift` -> `SESSION_POLICY_STALE` with the activation reference.
+- Act: `php system/reseller/reconcile.php session-end <ACT>` (re-sends the Disconnect; annotated on the activation),
+  or disconnect the session on the NAS. Never automatic; repeating it is harmless (an ended session is not found).
+- The finding clears when the old session's accounting Stop arrives.
+
 ## 5. Legacy balance operations (HELD)
 
 1. List them with `balance-held`.
