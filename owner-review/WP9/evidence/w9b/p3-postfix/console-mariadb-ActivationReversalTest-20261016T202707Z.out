@@ -1,0 +1,31 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/p3-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5b/ActivationReversalTest.php
+start: 2026-10-16T20:27:07Z
+ Container nuxbill-reseller-test-php82-run-082a89749967 Creating 
+ Container nuxbill-reseller-test-php82-run-082a89749967 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..............                                                    14 / 14 (100%)
+
+Time: 00:08.986, Memory: 12.00 MB
+
+Activation Reversal (Reseller\Tests\Integration\Wp5b\ActivationReversal)
+ ✔ Full reversal of a new activation
+ ✔ Reversal of a renewal restores the previous recharge row exactly
+ ✔ Later activation refuses without any write
+ ✔ External radius edit refuses without any write
+ ✔ Legacy recharge drift refuses without any write
+ ✔ Activation without captured context is not reversible
+ ✔ Financial preflight refusal writes nothing
+ ✔ Unrestorable prior secret is refused before any write
+ ✔ Only admin and super admin may reverse and a reason is required
+ ✔ Crash after start resumes with the radius compensation
+ ✔ Crash after the restore records the evidence without a second write
+ ✔ Financial commit failure after the restore holds and resumes without a second radius write
+ ✔ Financial refusal after the restore keeps reversal pending for the operator
+ ✔ Radius is read and restored with no database transaction open
+
+OK (14 tests, 305 assertions)
+exit=0 end: 2026-10-16T20:27:18Z

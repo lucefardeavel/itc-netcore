@@ -273,8 +273,11 @@ final class ActivationService
         $actor = ActivationActor::staff($a);
         ActivationStore::event($pdo, $id, null, ActivationState::CREATED, $actor, [], $utcNow);
         $utc = new \DateTimeZone('UTC');
+        // Lock gate P3 / WP6A R-15: the bandwidth terms confirmed now are sealed with the period and verified before
+        // provisioning (a later bandwidth edit never changes this activation's service)
+        $sealedBw = self::bandwidthTerms(Tx::row($pdo, 'SELECT * FROM tbl_bandwidth WHERE id = ?', [(int) $plan['id_bw']]));
         ActivationStore::transition($pdo, $id, [ActivationState::CREATED], ActivationState::VALIDATED, $actor, ['metadata' => [
-            'action' => $action, 'previous_recharge_id' => $current !== null ? (int) $current['id'] : null,
+            'action' => $action, 'previous_recharge_id' => $current !== null ? (int) $current['id'] : null, 'bandwidth' => $sealedBw,
             'period' => [
                 'timezone' => $now->getTimezone()->getName(),
                 'start' => $start->format('Y-m-d H:i:s'), 'expiry' => $expiry->format('Y-m-d H:i:s'),
@@ -531,6 +534,12 @@ final class ActivationService
         $provisioner = RadiusProvisioner::connection();
         $plan = self::plan($act);
         $bw = Tx::row(FinanceTx::pdo(), 'SELECT * FROM tbl_bandwidth WHERE id = ?', [(int) $plan['id_bw']]);
+        // Lock gate P3 / R-15: verify the sealed bandwidth terms BEFORE any RADIUS write (activations opened before WP9
+        // carry no sealed terms and keep the WP6A behaviour)
+        $meta = ActivationStore::period(FinanceTx::pdo(), (int) $act['id']);
+        if (array_key_exists('bandwidth', $meta) && self::bandwidthTerms($bw) !== $meta['bandwidth']) {
+            return [ProvisionResult::failed('BANDWIDTH_TERMS_CHANGED', 'The bandwidth of the plan changed after the confirmation; nothing was applied or charged. Review the activation again.', false), $policy];
+        }
         $group = $provisioner->applyPlan((int) $plan['id'], $bw);
         if (!$group->isSuccess()) {
             return [$group, $policy];
@@ -550,6 +559,24 @@ final class ActivationService
         $start = ServicePeriod::at(substr($meta['period']['start'], 0, 10), substr($meta['period']['start'], 11), $zone);
         $expiry = ServicePeriod::at(substr($meta['period']['expiry'], 0, 10), substr($meta['period']['expiry'], 11), $zone);
         return RadiusPolicyBuilder::build($customer, $plan, $bw, $expiry, $start);
+    }
+
+    /**
+     * The bandwidth terms RadiusPolicyBuilder applies (Mikrotik-Rate-Limit / Ascend rates), normalized for comparison.
+     *
+     * @param array<string,mixed>|null $bw
+     * @return array<string,string>|null
+     */
+    public static function bandwidthTerms(?array $bw): ?array
+    {
+        if ($bw === null) {
+            return null;
+        }
+        $out = [];
+        foreach (['id', 'rate_down', 'rate_down_unit', 'rate_up', 'rate_up_unit', 'burst'] as $f) {
+            $out[$f] = trim((string) ($bw[$f] ?? ''));
+        }
+        return $out;
     }
 
     /** The sealed plan (plan_snapshot) of the activation. */

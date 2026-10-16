@@ -1,0 +1,53 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Integration/Wp9/W9BandwidthTermsTest.php start 2026-10-16T20:23:01Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F                                                                   1 / 1 (100%)
+Time: 00:02.771, Memory: 12.00 MB
+W9Bandwidth Terms (Reseller\Tests\Integration\Wp9\W9BandwidthTerms)
+ ✘ Bandwidth edit after confirmation is not provisioned
+   │
+   │ {"reference":"ACT-88B2802116DDF84C","status":"COMPLETED","action":"NEW","replayed":false,"error_code":null,"error_message":null}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    0 => 'FAILED',
+   │ -    1 => 'BANDWIDTH_TERMS_CHANGED',
+   │ +    0 => 'COMPLETED',
+   │ +    1 => null,
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp9/W9BandwidthTermsTest.php:37
+   │
+FAILURES!
+Tests: 1, Assertions: 8, Failures: 1.
+exit=1
+== mysql tests/Integration/Wp9/W9BandwidthTermsTest.php start 2026-10-16T20:23:08Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F                                                                   1 / 1 (100%)
+Time: 00:05.480, Memory: 12.00 MB
+W9Bandwidth Terms (Reseller\Tests\Integration\Wp9\W9BandwidthTerms)
+ ✘ Bandwidth edit after confirmation is not provisioned
+   │
+   │ {"reference":"ACT-0DCA462D6C79F029","status":"COMPLETED","action":"NEW","replayed":false,"error_code":null,"error_message":null}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    0 => 'FAILED',
+   │ -    1 => 'BANDWIDTH_TERMS_CHANGED',
+   │ +    0 => 'COMPLETED',
+   │ +    1 => null,
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp9/W9BandwidthTermsTest.php:37
+   │
+FAILURES!
+Tests: 1, Assertions: 8, Failures: 1.
+exit=1

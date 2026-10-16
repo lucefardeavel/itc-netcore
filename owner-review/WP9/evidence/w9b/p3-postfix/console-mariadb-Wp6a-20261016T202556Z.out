@@ -1,0 +1,76 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/p3-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp6a
+start: 2026-10-16T20:25:56Z
+ Container nuxbill-reseller-test-php82-run-d8cf4a4da7f1 Creating 
+ Container nuxbill-reseller-test-php82-run-d8cf4a4da7f1 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................                     45 / 45 (100%)
+
+Time: 01:08.454, Memory: 14.00 MB
+
+Activation Preview (Reseller\Tests\Integration\Wp6a\ActivationPreview)
+ ✔ Quote values and role visibility write nothing
+ ✔ Confirmed quote executes and changed material is refused before any write
+ ✔ Non material changes keep the quote
+ ✔ Missing forged or foreign fingerprints are refused
+ ✔ Replay returns the same activation whatever changed later
+ ✔ Insufficient credit is a yes no for sales
+ ✔ A changed plan service term refuses the old quote with data set "id_bw"
+ ✔ A changed plan service term refuses the old quote with data set "typebp"
+ ✔ A changed plan service term refuses the old quote with data set "limit_type"
+ ✔ A changed plan service term refuses the old quote with data set "time_limit"
+ ✔ A changed plan service term refuses the old quote with data set "time_unit"
+ ✔ A changed plan service term refuses the old quote with data set "data_limit"
+ ✔ A changed plan service term refuses the old quote with data set "data_unit"
+ ✔ A changed plan service term refuses the old quote with data set "shared_users"
+ ✔ A changed plan service term refuses the old quote with data set "pool"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_up"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_up_unit"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_down"
+ ✔ A changed bandwidth rate refuses the old quote with data set "rate_down_unit"
+ ✔ A changed bandwidth rate refuses the old quote with data set "burst"
+ ✔ Presentation only renames keep the quote
+ ✔ Every service term the policy consumes is bound
+
+Activation Read Model (Reseller\Tests\Integration\Wp6a\ActivationReadModel)
+ ✔ List and view visibility equal status visibility
+ ✔ View is display only and money is role filtered
+ ✔ Groups counts and customer flags
+
+Activation Ux (Reseller\Tests\Integration\Wp6a\ActivationUx)
+ ✔ Confirmation shows live server values by role
+ ✔ Browser money is ignored and a stale quote writes nothing
+ ✔ Customer picker is scoped to activatable customers
+ ✔ Status page maps every state honestly
+
+Create Flow (Reseller\Tests\Integration\Wp6a\CreateFlow)
+ ✔ Form offers only the actors ownership choices
+ ✔ Ownership is resolved by the server and forgeries fail
+ ✔ Arabic names and the activate now prompt
+
+Dashboard (Reseller\Tests\Integration\Wp6a\Dashboard)
+ ✔ Counts are the actors scope
+ ✔ Widgets tab is global only and report gets an empty state
+
+Shell Navigation (Reseller\Tests\Integration\Wp6a\ShellNavigation)
+ ✔ Every rendered navigation link is authorized for the actor
+ ✔ Primary navigation and quick actions follow capabilities
+ ✔ Document direction language landmarks and assets
+ ✔ Missing translations never leave the server
+
+Subscriber Search (Reseller\Tests\Integration\Wp6a\SubscriberSearch)
+ ✔ Every identifier matches within scope only
+ ✔ Bounds wildcards and escaping
+ ✔ List filters and role actions
+
+Subscriber360 (Reseller\Tests\Integration\Wp6a\Subscriber360)
+ ✔ Actions follow capabilities and nothing rendered is denied
+ ✔ Secrets escaping tokens and assets
+ ✔ Session state comes from accounting only
+ ✔ Operational flags and tabs
+
+OK (45 tests, 1440 assertions)
+exit=0 end: 2026-10-16T20:27:07Z
