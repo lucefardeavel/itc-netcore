@@ -4,6 +4,15 @@
  *  by https://t.me/ibnux
  **/
 
+// WP9 / SESS-1: the session cookie carries the authenticated staff / customer session: never readable by scripts,
+// not sent on cross-site sub-requests, Secure under HTTPS; strict mode never adopts a client-chosen session id
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax', 'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off']);
+// WP9 / HDR-1: no framing by other sites (clickjacking), no MIME sniffing
+header('X-Frame-Options: SAMEORIGIN');
+header("Content-Security-Policy: frame-ancestors 'self'");
+header('X-Content-Type-Options: nosniff');
 session_start();
 
 if(isset($_GET['nux-mac']) && !empty($_GET['nux-mac'])){
