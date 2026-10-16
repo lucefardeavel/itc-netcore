@@ -1,0 +1,28 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/new7-followup/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/SecurityRoutesTest.php
+start: 2026-10-16T18:50:41Z
+ Container nuxbill-reseller-test-php82-run-5819724b52ef Creating 
+ Container nuxbill-reseller-test-php82-run-5819724b52ef Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...........                                                       11 / 11 (100%)
+
+Time: 00:18.012, Memory: 10.00 MB
+
+Security Routes (Reseller\Tests\Http\SecurityRoutes)
+ ✔ Plugin dispatch requires registered authorized function
+ ✔ Updater is disabled
+ ✔ Installer is disabled once configured
+ ✔ Search user requires staff and scope
+ ✔ Raw sql parameters are inert
+ ✔ Agent and sales cannot generate vouchers
+ ✔ Pages traversal is rejected
+ ✔ Language cookie traversal is ignored
+ ✔ Public invoice signature
+ ✔ Print content is escaped
+ ✔ Wp 2 files refuse direct http execution
+
+OK (11 tests, 204 assertions)
+exit=0 end: 2026-10-16T18:51:01Z

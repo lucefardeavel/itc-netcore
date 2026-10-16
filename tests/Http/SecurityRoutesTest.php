@@ -195,7 +195,11 @@ final class SecurityRoutesTest extends Wp2HttpTestCase
         $this->assertStringNotContainsString('INV-WP2', $r->body);
         $id = static::$seed->transactions['cB'];
         $this->assertSame(404, $c->get('voucher/invoice/' . $id . '/' . md5($id . 'wrong'))->status);
-        $r = $c->get('voucher/invoice/' . $id . '/' . md5($id . $db));
+        // WP9-D / NEW-7 (O7-A): the link is signed with the AppKey voucher-invoice subkey; the former
+        // md5(id . db_pass) signature is refused
+        $this->assertSame(404, $c->get('voucher/invoice/' . $id . '/' . md5($id . $db))->status);
+        $sub = hash_hmac('sha256', 'nuxr-subkey|v1|voucher-invoice', (string) static::$app->appSecret(), true);
+        $r = $c->get('voucher/invoice/' . $id . '/' . hash_hmac('sha256', 'id|' . $id, $sub));
         $this->assertSame(200, $r->status);
         $this->assertStringContainsString('INV-WP2', $r->body);
     }
