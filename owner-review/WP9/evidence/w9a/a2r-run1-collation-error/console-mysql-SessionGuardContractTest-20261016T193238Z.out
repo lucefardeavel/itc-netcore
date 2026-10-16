@@ -1,0 +1,37 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9a/a2r-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp4/SessionGuardContractTest.php
+start: 2026-10-16T19:32:38Z
+ Container nuxbill-reseller-test-php82-run-1fd83625fc49 Creating 
+ Container nuxbill-reseller-test-php82-run-1fd83625fc49 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F.....F                                                             7 / 7 (100%)
+
+Time: 00:12.013, Memory: 10.00 MB
+
+Session Guard Contract (Reseller\Tests\Integration\Wp4\SessionGuardContract)
+ ✘ First pppoe login without an open row needs no verification
+   │
+   │ Failed asserting that 3 is identical to 2.
+   │
+   │ /repo/tests/Integration/Wp4/SessionGuardContractTest.php:112
+   │
+ ✔ Open row on an unverifiable nas rejects and keeps the history
+ ✔ Open row on a nas without credentials rejects
+ ✔ Multi nas any unverifiable nas rejects
+ ✔ An open row on a nas of type other stays with the stock layer
+ ✔ Hotspot never reaches the guard and carries the port limit
+ ✘ Hostile usernames are matched on the stock sql key
+   │
+   │ g-q'uote: a near-miss name is another subscriber without open rows
+   │ Failed asserting that 3 is identical to 2.
+   │
+   │ /repo/tests/Integration/Wp4/SessionGuardContractTest.php:181
+   │
+
+FAILURES!
+Tests: 7, Assertions: 47, Failures: 2.
+
+exit=1 end: 2026-10-16T19:32:51Z

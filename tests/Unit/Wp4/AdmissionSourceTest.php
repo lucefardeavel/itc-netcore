@@ -97,7 +97,9 @@ final class AdmissionSourceTest extends TestCase
         $this->assertStringContainsString('if (&Tmp-String-1 =~ /^k=([0-9A-F]{2,512})$/) {', $post);
         $this->assertSame(2, substr_count($post, "SELECT CONCAT('r=', COALESCE((SELECT CONCAT(state, '|', token, '|', IF("), 'reservation read + one re-read');
         $this->assertStringContainsString('elsif (&Tmp-String-3 =~ /^r=(PENDING|ACTIVE|ENDED)\|([0-9a-f]{32})\|(same|other)\|(spell|respell)\|([0-9.]{7,15})$/) {', $post);
-        $this->assertStringContainsString('if (&Tmp-String-4 != "m=0") {', $post);
+        // WP9 A2-R hardening L2: the open-row-other-spelling count carries the echo of its input
+        $this->assertStringContainsString('if (&Tmp-String-4 !~ /^m=0;/) {', $post);
+        $this->assertStringContainsString("SELECT CONCAT('m=', (SELECT COUNT(*) FROM radacct r WHERE r.username = p.u AND r.acctstoptime IS NULL AND (r.username COLLATE utf8mb4_bin) <> (p.u COLLATE utf8mb4_bin)), ';u=', LOWER(HEX(p.u))) FROM (SELECT CONVERT('%{SQL-User-Name}' USING utf8mb4) COLLATE utf8mb4_general_ci AS u) AS p", $post);
         $this->assertSame(2, substr_count($post, 'if (&Tmp-String-0 != "nuxr-admission-claim=1") {'), 'a claim succeeds only on exactly one affected row');
         $this->assertSame(2, substr_count($post, 'if ((&Tmp-String-6 !~ /^[0-9]{1,9}$/) || (<integer>&Tmp-String-6 > 5000)) {'), 'late guard before and after the claim, malformed age rejects');
         $this->assertSame(2, substr_count($post, '&Tmp-String-6 := "%{expr:(%{time_since:us} - %l * 1000000 - %M) / 1000}"'), 'request age on ONE clock: gettimeofday() now (rlm_date time_since) minus the gettimeofday() receive time (WP8 AV-5)');
@@ -127,7 +129,15 @@ final class AdmissionSourceTest extends TestCase
     {
         $up = self::read('install/freeradius/nuxr_admission.sql');
         $this->assertSame(2, substr_count($up, 'CREATE TABLE IF NOT EXISTS'));
-        $this->assertDoesNotMatchRegularExpression('/\b(DROP|ALTER|DELETE|UPDATE|INSERT|TRUNCATE|RENAME)\b/i', self::code(str_replace(["\n", '--'], ["\n", "\n#"], $up)), 'idempotent and additive');
+        // WP9 A2-R hardening L1 (protected-file exception, re-pinned 2026-10-16): the only ALTER is the guarded, once-only
+        // addition of the two CHECK constraints to a pre-WP9 table; still nothing dropped, deleted or rewritten
+        $code = self::code(str_replace(["\n", '--'], ["\n", "\n#"], $up));
+        $this->assertDoesNotMatchRegularExpression('/\b(DROP|DELETE|UPDATE|INSERT|TRUNCATE|RENAME)\b/i', $code, 'idempotent and additive');
+        $this->assertSame(2, preg_match_all('/\bALTER\b/i', $code), 'only the two guarded ADD CONSTRAINT statements');
+        $this->assertSame(2, substr_count($up, "'ALTER TABLE nuxr_admission ADD CONSTRAINT ck_nuxr_admission_"));
+        $this->assertSame(2, substr_count($up, "AND CONSTRAINT_TYPE = 'CHECK' AND CONSTRAINT_NAME = 'ck_nuxr_admission_"), 'each guarded by information_schema');
+        $this->assertStringContainsString("CONSTRAINT ck_nuxr_admission_token CHECK (token REGEXP '^[0-9a-f]{32}$' AND username <> '' AND session_user <> '')", $up);
+        $this->assertStringContainsString("CONSTRAINT ck_nuxr_admission_claim CHECK (nas REGEXP '^[0-9]{1,3}([.][0-9]{1,3}){3}$' AND acct_session_id <> ''", $up);
         $this->assertStringContainsString("username varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL", $up);
         $this->assertStringContainsString('PRIMARY KEY (username)', $up);
         $this->assertStringContainsString('UNIQUE KEY uq_nuxr_admission_token (token)', $up);
@@ -135,6 +145,8 @@ final class AdmissionSourceTest extends TestCase
         $chk = self::read('install/freeradius/nuxr_admission_check.sql');
         $this->assertStringContainsString("'nuxr_admission=READY'", $chk);
         $this->assertDoesNotMatchRegularExpression('/\b(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b/', preg_replace('/^--.*$/m', '', $chk), 'the check is read-only');
+        $this->assertStringContainsString("'check_constraints'", $chk);
+        $this->assertStringContainsString("AND CONSTRAINT_NAME IN ('ck_nuxr_admission_token', 'ck_nuxr_admission_claim')) = 2, NULL, 'check_constraints')", $chk, 'WP9 A2-R hardening L4');
         $rel = self::read('install/freeradius/nuxr_admission_release.sql');
         $this->assertStringContainsString("AND state = 'PENDING';", $rel, 'only PENDING claims are released');
         $this->assertStringContainsString('INSERT INTO nuxr_admission_audit', $rel, 'every decision is audited');

@@ -24,6 +24,11 @@ FROM (SELECT CONCAT_WS(',',
      OR (COLUMN_NAME = 'prev_token' AND COLUMN_TYPE = 'char(32)' AND COLLATION_NAME = 'ascii_bin'))) = 18, NULL, 'columns'),
   IF((SELECT GROUP_CONCAT(COLUMN_NAME) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'nuxr_admission' AND INDEX_NAME = 'PRIMARY') = 'username', NULL, 'primary_key'),
   IF((SELECT GROUP_CONCAT(COLUMN_NAME) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'nuxr_admission' AND NON_UNIQUE = 0 AND INDEX_NAME <> 'PRIMARY') = 'token', NULL, 'token_unique'),
+  -- WP9 A2-R hardening L4: the two CHECK constraints that refuse an emptied SQL expansion (enforced by MariaDB >= 10.2
+  -- and MySQL >= 8.0.16; their exact expressions and enforcement - MySQL NOT ENFORCED, MariaDB check_constraint_checks -
+  -- are verified by the engine-aware application preflight, php system/reseller/preflight.php)
+  IF((SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'nuxr_admission' AND CONSTRAINT_TYPE = 'CHECK'
+      AND CONSTRAINT_NAME IN ('ck_nuxr_admission_token', 'ck_nuxr_admission_claim')) = 2, NULL, 'check_constraints'),
   -- the canonical-name key relies on the radcheck lookup collation of install/radius.sql
   IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'radcheck' AND COLUMN_NAME = 'username' AND COLLATION_NAME = 'utf8mb4_general_ci') = 1, NULL, 'radcheck_collation'),
   IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'radacct' AND COLUMN_NAME = 'nasipaddress' AND COLLATION_NAME = 'utf8mb4_general_ci') = 1, NULL, 'radacct_collation')

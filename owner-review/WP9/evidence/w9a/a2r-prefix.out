@@ -1,0 +1,147 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Integration/Wp9/W9AdmissionHardeningTest.php start 2026-10-16T19:53:25Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FFFFFFFF.EF                                                       11 / 11 (100%)
+Time: 00:01.139, Memory: 10.00 MB
+W9Admission Hardening (Reseller\Tests\Integration\Wp9\W9AdmissionHardening)
+ ✘ L 1 a claim with an emptied value is refused with data set "key UNHEX(empty)"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "token"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "session user"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "nas"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "acct session id"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "calling station"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "nas port"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "request authenticator"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✔ L 1 a well formed claim is stored and empty token never matches
+ ✘ L 1 guarded upgrade of a pre wp 9 table and violating rows
+   │
+   │ PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nuxr_w9a2r_1305d4.nuxr_admission' doesn't exist
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:54
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:106
+   │
+ ✘ L 2 echo turns an emptied input into a reject
+   │
+   │ positive control
+   │ Failed asserting that 'n=1;10.0.0.9' matches PCRE pattern "/^n=[0-9]+;[0-9.,]*;u=[0-9a-f]{2,512};k=6162$/".
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:140
+   │
+ERRORS!
+Tests: 11, Assertions: 13, Errors: 1, Failures: 9.
+exit=2
+== mysql tests/Integration/Wp9/W9AdmissionHardeningTest.php start 2026-10-16T19:53:28Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FFFFFFFF.EF                                                       11 / 11 (100%)
+Time: 00:05.378, Memory: 10.00 MB
+W9Admission Hardening (Reseller\Tests\Integration\Wp9\W9AdmissionHardening)
+ ✘ L 1 a claim with an emptied value is refused with data set "key UNHEX(empty)"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "token"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "session user"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "nas"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "acct session id"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "calling station"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "nas port"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✘ L 1 a claim with an emptied value is refused with data set "request authenticator"
+   │
+   │ the database stored a claim with an emptied value
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:79
+   │
+ ✔ L 1 a well formed claim is stored and empty token never matches
+ ✘ L 1 guarded upgrade of a pre wp 9 table and violating rows
+   │
+   │ PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nuxr_w9a2r_2a85d1.nuxr_admission' doesn't exist
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:54
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:106
+   │
+ ✘ L 2 echo turns an emptied input into a reject
+   │
+   │ positive control
+   │ Failed asserting that 'n=1;10.0.0.9' matches PCRE pattern "/^n=[0-9]+;[0-9.,]*;u=[0-9a-f]{2,512};k=6162$/".
+   │
+   │ /repo/tests/Integration/Wp9/W9AdmissionHardeningTest.php:140
+   │
+ERRORS!
+Tests: 11, Assertions: 13, Errors: 1, Failures: 9.
+exit=2

@@ -79,8 +79,16 @@ final class SessionGuardSourceTest extends TestCase
         $this->assertStringContainsString('if ((&Service-Type == Framed-User) && (&Framed-Protocol == PPP) && (&NAS-Port-Type == Ethernet) && &control:Simultaneous-Use) {', $post,
             'PPPoE only (RouterOS 7.24.5 discriminator); Hotspot (Login-User) never matches');
         $this->assertStringContainsString("&Tmp-String-5 := \"%{sql:SELECT '1'}\"", $post, 'creates the stock SQL-User-Name before the open-row query');
-        $this->assertMatchesRegularExpression("/FROM radacct WHERE username = '%\\{SQL-User-Name\\}' AND acctstoptime IS NULL UNION ALL SELECT nas FROM nuxr_admission WHERE username = UNHEX\\('%\\{Tmp-String-2\\}'\\) AND state = 'ACTIVE'\\) AS o\\}/", $post,
-            'the stock-escaped key, open rows only - plus the NAS of an ACTIVE admission reservation (WP8 A2-R)');
+        // WP9 A2-R hardening L2 (protected-file exception, re-pinned 2026-10-16): the open-row statement reads the stock-escaped
+        // key and the canonical key from ONE parameter row p and echoes both back (an emptied expansion cannot become n=0)
+        $this->assertStringContainsString("FROM (SELECT CONVERT('%{SQL-User-Name}' USING utf8mb4) COLLATE utf8mb4_general_ci AS u, UNHEX('%{Tmp-String-2}') AS k) AS p}\"", $post,
+            'the stock-escaped key from one parameter row');
+        $this->assertStringContainsString("(SELECT COUNT(*) FROM radacct r WHERE r.username = p.u AND r.acctstoptime IS NULL) + (SELECT COUNT(*) FROM nuxr_admission a WHERE a.username = p.k AND a.state = 'ACTIVE')", $post,
+            'open rows only - plus the NAS of an ACTIVE admission reservation (WP8 A2-R)');
+        $this->assertStringContainsString("';u=', LOWER(HEX(p.u)), ';k=', HEX(p.k))", $post, 'the echo of the inputs');
+        $this->assertStringContainsString('if ((&Tmp-String-8 !~ /^n=[0-9]+;[0-9.,]*;u=[0-9a-f]{2,512};k=%{Tmp-String-2}$/) || (&Tmp-String-4 !~ /^m=[0-9]+;u=[0-9a-f]{2,512}$/)) {', $post, 'echo mismatch (or an emptied name) rejects');
+        $this->assertStringContainsString('if (&Tmp-String-8 =~ /^(n=[0-9]+;[0-9.,]*);u=/) {', $post, 'normalized back to the A1 form');
+        $this->assertLessThan(strpos($post, 'if (&Tmp-String-8 == "n=0;") {'), strpos($post, 'nuxr-admission=reject:echo'), 'the echo is validated BEFORE n=0 can skip the NAS verification');
         $this->assertStringNotContainsString("'%{User-Name}'", $post, 'never the raw User-Name inside SQL');
         $this->assertDoesNotMatchRegularExpression('/\\b(DELETE\\s+FROM|UPDATE\\s+radacct|INSERT\\s+INTO\\s+radacct|REPLACE\\s+INTO|TRUNCATE)\\b/i', $post, 'no accounting write, no delete');
         $hotspot = strpos($post, 'if ((&Service-Type == Login-User) && (&NAS-Port-Type == Wireless-802.11)) {');
@@ -90,18 +98,22 @@ final class SessionGuardSourceTest extends TestCase
         foreach (['reject', 'fail', 'ok', 'handled', 'invalid', 'userlock', 'notfound', 'noop', 'updated'] as $rc) {
             $this->assertMatchesRegularExpression('/^\\s*' . $rc . ' = 1$/m', $post, "module result {$rc} is mapped explicitly");
         }
-        $this->assertStringContainsString("if (ok) {\n\t\t\t\tif (&control:Tmp-String-7 == \"SAFE\") {\n\t\t\t\t}", $post, 'accept only on ok AND SAFE');
+        // WP9 A2-R hardening L3: the SAFE verdict of THIS request is recorded; an ACTIVE take-over requires it
+        $this->assertStringContainsString("if (ok) {\n\t\t\t\tif (&control:Tmp-String-7 == \"SAFE\") {\n\t\t\t\t\tupdate control {\n\t\t\t\t\t\t&Tmp-String-8 := \"verified\"\n\t\t\t\t\t}\n\t\t\t\t}", $post, 'accept only on ok AND SAFE');
+        $this->assertStringContainsString('if ((&control:Tmp-String-0 == "ACTIVE") && (&control:Tmp-String-8 != "verified")) {', $post);
+        $this->assertLessThan(strpos($post, "nuxr-admission-claim=%{sql:UPDATE nuxr_admission SET prev_token"), strpos($post, 'reject:active-unverified'), 'checked before the take-over claim');
+        $this->assertLessThan(strpos($post, '&Tmp-String-7 := "%{Packet-Authentication-Vector}"'), strpos($post, "&Tmp-String-8 !* ANY"), 'the flag is cleared first');
         // A1: SQL key, unparsable rows, not SAFE, module not ok (4); A2-R: identity, key, reservation read, pending of
         // another attempt, ACTIVE under another spelling, open rows under another spelling, late before the claim,
-        // token, claim lost, late claim (10)
-        // 14 PPPoE reject branches (A1 + A2-R) + 3 Hotspot canonical-spelling branches (WP8 H-1 H1-A, which carry NO
+        // token, claim lost, late claim (10); WP9 A2-R hardening: echo, ACTIVE take-over without this request's SAFE (2)
+        // 16 PPPoE reject branches (A1 + A2-R + WP9) + 3 Hotspot canonical-spelling branches (WP8 H-1 H1-A, which carry NO
         // Reply-Message: their refusal looks like a wrong password - HotspotSpellingSourceTest) + 10 Hotspot admission
         // slot branches (WP8 H-2B: limit, identity, late, slots, token, verified-audit, verified-release, attach-read,
         // full, late-claim - with the same Reply-Message as the PPPoE refusals; HotspotAdmissionSourceTest)
-        $this->assertSame(27, preg_match_all('/^\\s*reject$/m', $post), 'every reject branch');
-        $this->assertSame(28, substr_count($post, 'attr_filter.access_reject'), 'each reject branch filters the reply (+ Post-Auth-Type REJECT)');
-        $this->assertSame(24, substr_count($post, '&Reply-Message := "Session verification failed"'), 'the PPPoE + Hotspot admission branches');
-        $this->assertSame(14, substr_count(substr($post, 0, $hotspot), '&Reply-Message := "Session verification failed"'), 'the PPPoE branches');
+        $this->assertSame(29, preg_match_all('/^\\s*reject$/m', $post), 'every reject branch');
+        $this->assertSame(30, substr_count($post, 'attr_filter.access_reject'), 'each reject branch filters the reply (+ Post-Auth-Type REJECT)');
+        $this->assertSame(26, substr_count($post, '&Reply-Message := "Session verification failed"'), 'the PPPoE + Hotspot admission branches');
+        $this->assertSame(16, substr_count(substr($post, 0, $hotspot), '&Reply-Message := "Session verification failed"'), 'the PPPoE branches');
         $this->assertStringContainsString("&Exec-Program !* ANY\n", $post, 'no reply Exec-Program can run');
         $this->assertStringContainsString('sql', self::sessionSection(), 'Simultaneous-Use (session { sql }) stays the first layer');
     }

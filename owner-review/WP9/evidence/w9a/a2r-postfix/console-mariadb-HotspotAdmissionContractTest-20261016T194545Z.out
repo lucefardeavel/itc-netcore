@@ -1,0 +1,29 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9a/a2r-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp4/HotspotAdmissionContractTest.php
+start: 2026-10-16T19:45:45Z
+ Container nuxbill-reseller-test-php82-run-d3e6f2b6bc16 Creating 
+ Container nuxbill-reseller-test-php82-run-d3e6f2b6bc16 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+............                                                      12 / 12 (100%)
+
+Time: 00:44.811, Memory: 10.00 MB
+
+Hotspot Admission Contract (Reseller\Tests\Integration\Wp4\HotspotAdmissionContract)
+ ✔ Limit one claim accounting and release
+ ✔ Concurrent logins never exceed the limit
+ ✔ An exact retransmission reuses its claim and a new attempt does not
+ ✔ Strict mode an old pending slot is never released
+ ✔ An active slot is kept when its nas cannot be verified
+ ✔ Accounting is bound to its token nas session and mac
+ ✔ Limit decrease and increase
+ ✔ Concurrent logins during a limit decrease never exceed the new limit
+ ✔ Fail closed identity limit and schema
+ ✔ The stock simultaneous use check still runs for every non hotspot request
+ ✔ Migration is additive idempotent and checkable
+ ✔ Pppoe is not touched by the hotspot slots
+
+OK (12 tests, 232 assertions)
+exit=0 end: 2026-10-16T19:46:31Z

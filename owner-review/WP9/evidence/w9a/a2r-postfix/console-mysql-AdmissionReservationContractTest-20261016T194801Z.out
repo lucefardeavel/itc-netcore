@@ -1,0 +1,28 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9a/a2r-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp4/AdmissionReservationContractTest.php
+start: 2026-10-16T19:48:01Z
+ Container nuxbill-reseller-test-php82-run-5f1bb5cf6839 Creating 
+ Container nuxbill-reseller-test-php82-run-5f1bb5cf6839 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...........                                                       11 / 11 (100%)
+
+Time: 01:03.585, Memory: 10.00 MB
+
+Admission Reservation Contract (Reseller\Tests\Integration\Wp4\AdmissionReservationContract)
+ ✔ Upgrade is idempotent and the readiness check detects an incomplete schema
+ ✔ No distinct subscribers collide under the lookup collation
+ ✔ First login claims one reservation with a per attempt token
+ ✔ Concurrent different attempts exactly one is accepted
+ ✔ Retransmission reuses the claim and a new attempt is refused
+ ✔ Attempt identity and methods fail closed
+ ✔ Accounting transitions are token nas and identity bound
+ ✔ S 1 equivalent spellings share one reservation
+ ✔ Creator releases only an unused late claim and a missing table fails closed
+ ✔ Operator recovery releases only that pending claim and audits every decision
+ ✔ Hotspot is not touched by the admission
+
+OK (11 tests, 193 assertions)
+exit=0 end: 2026-10-16T19:49:10Z

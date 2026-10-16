@@ -1,0 +1,25 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9a/a2r-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp4/FreeRadiusContractTest.php
+start: 2026-10-16T19:47:18Z
+ Container nuxbill-reseller-test-php82-run-377e2d38570b Creating 
+ Container nuxbill-reseller-test-php82-run-377e2d38570b Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+........                                                            8 / 8 (100%)
+
+Time: 00:24.455, Memory: 10.00 MB
+
+Free Radius Contract (Reseller\Tests\Integration\Wp4\FreeRadiusContract)
+ ✔ Pppoe pap and chap with static address and rate
+ ✔ Pppoe dynamic pool
+ ✔ Hotspot group rate and simultaneous use
+ ✔ Expiration
+ ✔ Time quota per period keeps history
+ ✔ Data quota per period keeps history
+ ✔ Suspended and removed subscribers are rejected and history kept
+ ✔ Message authenticator is required for authentication only
+
+OK (8 tests, 75 assertions)
+exit=0 end: 2026-10-16T19:47:44Z

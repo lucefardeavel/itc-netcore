@@ -1,0 +1,28 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9a/a2r-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp4/AccountingTimeContractTest.php
+start: 2026-10-16T19:35:12Z
+ Container nuxbill-reseller-test-php82-run-189d5ec4c774 Creating 
+ Container nuxbill-reseller-test-php82-run-189d5ec4c774 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...........                                                       11 / 11 (100%)
+
+Time: 00:14.447, Memory: 12.00 MB
+
+Accounting Time Contract (Reseller\Tests\Integration\Wp4\AccountingTimeContract)
+ ✔ The time zone tables are present
+ ✔ The free radius writer and the application reader share one time reference
+ ✔ From unixtime and unix timestamp convert exactly in every non dst zone
+ ✔ Stale sessions is the same for every database zone and application zone
+ ✔ Subscriber session state and display are the same instant in every zone combination
+ ✔ Changing the application zone between write and read changes nothing
+ ✔ Accounting interruption with the real writer
+ ✔ A zone mismatch shifts every epoch exactly and voids the freshness guarantee
+ ✔ Mixed history written before and after a database zone change is read never rewritten
+ ✔ Dst transitions are characterised and utc has no ambiguity
+ ✔ The stale query keeps the access path of the previous query
+
+OK (11 tests, 666 assertions)
+exit=0 end: 2026-10-16T19:35:28Z

@@ -1,0 +1,28 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9a/a2r-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/W9AdmissionHardeningTest.php
+start: 2026-10-16T19:53:07Z
+ Container nuxbill-reseller-test-php82-run-640ad6eeb87e Creating 
+ Container nuxbill-reseller-test-php82-run-640ad6eeb87e Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...........                                                       11 / 11 (100%)
+
+Time: 00:08.181, Memory: 10.00 MB
+
+W9Admission Hardening (Reseller\Tests\Integration\Wp9\W9AdmissionHardening)
+ ✔ L 1 a claim with an emptied value is refused with data set "key UNHEX(empty)"
+ ✔ L 1 a claim with an emptied value is refused with data set "token"
+ ✔ L 1 a claim with an emptied value is refused with data set "session user"
+ ✔ L 1 a claim with an emptied value is refused with data set "nas"
+ ✔ L 1 a claim with an emptied value is refused with data set "acct session id"
+ ✔ L 1 a claim with an emptied value is refused with data set "calling station"
+ ✔ L 1 a claim with an emptied value is refused with data set "nas port"
+ ✔ L 1 a claim with an emptied value is refused with data set "request authenticator"
+ ✔ L 1 a well formed claim is stored and empty token never matches
+ ✔ L 1 guarded upgrade of a pre wp 9 table and violating rows
+ ✔ L 2 echo turns an emptied input into a reject
+
+OK (11 tests, 35 assertions)
+exit=0 end: 2026-10-16T19:53:17Z

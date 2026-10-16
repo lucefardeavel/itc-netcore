@@ -215,6 +215,9 @@ post-auth {
 			}
 			reject
 		}
+		update control {
+			&Tmp-String-8 !* ANY
+		}
 		# ---- A2-R 1: the attempt identity must be complete and well formed (RouterOS sends all of it)
 		# the Request Authenticator (virtual attribute, printed as 0x + 32 hex): an exact retransmission repeats it
 		update request {
@@ -307,10 +310,32 @@ post-auth {
 		# ---- A1 + A2-R: the NAS to verify = the NAS of the open radacct rows + the NAS of an ACTIVE reservation. Open
 		# rows recorded under ANOTHER spelling of the same subscriber cannot be verified by the guard -> reject (S-1).
 		update request {
-			&Tmp-String-8 := "%{sql:SELECT CONCAT('n=', COUNT(*), ';', COALESCE(GROUP_CONCAT(DISTINCT o.nas ORDER BY o.nas SEPARATOR ','), '')) FROM (SELECT nasipaddress AS nas FROM radacct WHERE username = '%{SQL-User-Name}' AND acctstoptime IS NULL UNION ALL SELECT nas FROM nuxr_admission WHERE username = UNHEX('%{Tmp-String-2}') AND state = 'ACTIVE') AS o}"
-			&Tmp-String-4 := "%{sql:SELECT CONCAT('m=', COUNT(*)) FROM radacct WHERE username = '%{SQL-User-Name}' AND acctstoptime IS NULL AND (username COLLATE utf8mb4_bin) <> '%{SQL-User-Name}'}"
+			&Tmp-String-8 := "%{sql:SELECT CONCAT('n=', (SELECT COUNT(*) FROM radacct r WHERE r.username = p.u AND r.acctstoptime IS NULL) + (SELECT COUNT(*) FROM nuxr_admission a WHERE a.username = p.k AND a.state = 'ACTIVE'), ';', CONCAT_WS(',', (SELECT GROUP_CONCAT(DISTINCT r.nasipaddress ORDER BY r.nasipaddress SEPARATOR ',') FROM radacct r WHERE r.username = p.u AND r.acctstoptime IS NULL), (SELECT a.nas FROM nuxr_admission a WHERE a.username = p.k AND a.state = 'ACTIVE' AND NOT EXISTS (SELECT 1 FROM radacct r2 WHERE r2.username = p.u AND r2.acctstoptime IS NULL AND r2.nasipaddress = a.nas))), ';u=', LOWER(HEX(p.u)), ';k=', HEX(p.k)) FROM (SELECT CONVERT('%{SQL-User-Name}' USING utf8mb4) COLLATE utf8mb4_general_ci AS u, UNHEX('%{Tmp-String-2}') AS k) AS p}"
+			&Tmp-String-4 := "%{sql:SELECT CONCAT('m=', (SELECT COUNT(*) FROM radacct r WHERE r.username = p.u AND r.acctstoptime IS NULL AND (r.username COLLATE utf8mb4_bin) <> (p.u COLLATE utf8mb4_bin)), ';u=', LOWER(HEX(p.u))) FROM (SELECT CONVERT('%{SQL-User-Name}' USING utf8mb4) COLLATE utf8mb4_general_ci AS u) AS p}"
 		}
-		if (&Tmp-String-4 != "m=0") {
+		# ---- WP9 A2-R hardening L2 (echo validation): rlm_sql 3.2.8 expands every %{...} inside a %{sql:...} statement on its
+		# own pool connection; under pool exhaustion an expansion can become EMPTY while the statement still runs (WP8 H-2B
+		# lab record). Both open-session statements therefore read their inputs from ONE parameter row (p) and echo it back:
+		# a key that is not exactly this request's key, or an empty subscriber name, rejects - an emptied input can never
+		# turn into "nothing open" (n=0, which skips the NAS verification) or into "no open row of another spelling".
+		# (the key is upper-case hex from step 2, so it is a literal inside the dynamic regex)
+		if ((&Tmp-String-8 !~ /^n=[0-9]+;[0-9.,]*;u=[0-9a-f]{2,512};k=%{Tmp-String-2}$/) || (&Tmp-String-4 !~ /^m=[0-9]+;u=[0-9a-f]{2,512}$/)) {
+			update request {
+				&Tmp-String-0 := "nuxr-admission=reject:echo"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# the echo is proven: back to the A1 form "n=<count>;<nas list>" for the unchanged A1 decision below
+		if (&Tmp-String-8 =~ /^(n=[0-9]+;[0-9.,]*);u=/) {
+			update request {
+				&Tmp-String-8 := "%{1}"
+			}
+		}
+		if (&Tmp-String-4 !~ /^m=0;/) {
 			update request {
 				&Tmp-String-0 := "nuxr-admission=reject:open-row-other-spelling"
 			}
@@ -353,6 +378,10 @@ post-auth {
 			if (ok) {
 				if (&control:Tmp-String-7 == "SAFE") {
 					# proven: every NAS answered and no live PPPoE session of this spelling
+					# WP9 A2-R hardening L3: THIS request proved it (an ACTIVE take-over below requires this flag)
+					update control {
+						&Tmp-String-8 := "verified"
+					}
 				}
 				else {
 					attr_filter.access_reject
@@ -389,6 +418,18 @@ post-auth {
 		if ((&Tmp-String-6 !~ /^[0-9]{1,9}$/) || (<integer>&Tmp-String-6 > 5000)) {
 			update request {
 				&Tmp-String-0 := "nuxr-admission=reject:late"
+			}
+			attr_filter.access_reject
+			update reply {
+				&Reply-Message := "Session verification failed"
+			}
+			reject
+		}
+		# ---- WP9 A2-R hardening L3: an ACTIVE reservation is taken over only after THIS request's own NAS verification
+		# returned SAFE (never on a skipped verification)
+		if ((&control:Tmp-String-0 == "ACTIVE") && (&control:Tmp-String-8 != "verified")) {
+			update request {
+				&Tmp-String-0 := "nuxr-admission=reject:active-unverified"
 			}
 			attr_filter.access_reject
 			update reply {

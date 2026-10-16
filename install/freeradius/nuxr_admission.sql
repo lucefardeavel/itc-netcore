@@ -2,9 +2,10 @@
 --
 -- ADDITIVE SCHEMA UPGRADE for the FreeRADIUS / RADIUS database of ONE ISP instance (the database that holds radcheck and
 -- radacct, created from install/radius.sql). install/radius.sql is NOT changed. Idempotent: safe to run again; it never
--- drops, alters or rewrites anything. Apply it BEFORE enabling the A2-R virtual server (sites-available/phpnuxbill);
--- without it every PPPoE login is refused (fail closed). Verify with nuxr_admission_check.sql. See README.md
--- "PPPoE admission reservation".
+-- drops, rewrites or deletes anything; the only ALTER is the guarded, once-only addition of the two WP9 CHECK constraints
+-- to a table created before WP9 (see the end of this file). Apply it BEFORE enabling the A2-R virtual server
+-- (sites-available/phpnuxbill); without it every PPPoE login is refused (fail closed). Verify with
+-- nuxr_admission_check.sql. See README.md "PPPoE admission reservation".
 --
 -- nuxr_admission: one row per CANONICAL subscriber name = the exact radcheck.username bytes that the RADIUS lookup matched
 -- (radcheck.username is utf8mb4_general_ci, so different spellings - case, accents - can authenticate as the same
@@ -43,7 +44,14 @@ CREATE TABLE IF NOT EXISTS nuxr_admission (
   prev_token char(32) CHARACTER SET ascii COLLATE ascii_bin NULL,
   prev_state varchar(8) CHARACTER SET ascii COLLATE ascii_bin NULL,
   PRIMARY KEY (username),
-  UNIQUE KEY uq_nuxr_admission_token (token)
+  UNIQUE KEY uq_nuxr_admission_token (token),
+  -- WP9 A2-R hardening L1 (same rule as the WP8 H-2B slots): rlm_sql 3.2.8 escapes every %{...} inside a %{sql:...}
+  -- statement on its own pool connection; under pool exhaustion such an expansion can become an EMPTY string while the
+  -- statement still runs. These constraints make the database refuse a claim written with an emptied key, token or
+  -- attempt identity (-> Access-Reject) instead of storing it, and no statement can ever match a token ''.
+  CONSTRAINT ck_nuxr_admission_token CHECK (token REGEXP '^[0-9a-f]{32}$' AND username <> '' AND session_user <> ''),
+  CONSTRAINT ck_nuxr_admission_claim CHECK (nas REGEXP '^[0-9]{1,3}([.][0-9]{1,3}){3}$' AND acct_session_id <> ''
+    AND calling_station_id <> '' AND nas_port_id <> '' AND request_authenticator REGEXP '^[0-9a-f]{32}$')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- Append-only audit of operator recovery decisions (nuxr_admission_release.sql): who released which claim, why, and on
@@ -61,3 +69,23 @@ CREATE TABLE IF NOT EXISTS nuxr_admission_audit (
   PRIMARY KEY (id),
   KEY ix_nuxr_admission_audit_user (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- WP9 A2-R hardening L1 for a nuxr_admission table created BEFORE WP9: add each CHECK constraint once (guarded by
+-- information_schema; a second run changes nothing). MariaDB and MySQL validate the existing rows: a row that violates
+-- a constraint (an empty key / token / attempt identity - only possible from the condition these constraints prevent)
+-- makes the ALTER fail and this script stop. Find such rows first with the read-only pre-scan in README.md
+-- "PPPoE admission reservation - WP9 CHECK upgrade"; they are resolved by the operator, never deleted automatically.
+SET @nuxr_a2r_sql = IF((SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'nuxr_admission'
+    AND CONSTRAINT_TYPE = 'CHECK' AND CONSTRAINT_NAME = 'ck_nuxr_admission_token') = 0,
+  'ALTER TABLE nuxr_admission ADD CONSTRAINT ck_nuxr_admission_token CHECK (token REGEXP ''^[0-9a-f]{32}$'' AND username <> '''' AND session_user <> '''')',
+  'DO 0');
+PREPARE nuxr_a2r_stmt FROM @nuxr_a2r_sql;
+EXECUTE nuxr_a2r_stmt;
+DEALLOCATE PREPARE nuxr_a2r_stmt;
+SET @nuxr_a2r_sql = IF((SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'nuxr_admission'
+    AND CONSTRAINT_TYPE = 'CHECK' AND CONSTRAINT_NAME = 'ck_nuxr_admission_claim') = 0,
+  'ALTER TABLE nuxr_admission ADD CONSTRAINT ck_nuxr_admission_claim CHECK (nas REGEXP ''^[0-9]{1,3}([.][0-9]{1,3}){3}$'' AND acct_session_id <> '''' AND calling_station_id <> '''' AND nas_port_id <> '''' AND request_authenticator REGEXP ''^[0-9a-f]{32}$'')',
+  'DO 0');
+PREPARE nuxr_a2r_stmt FROM @nuxr_a2r_sql;
+EXECUTE nuxr_a2r_stmt;
+DEALLOCATE PREPARE nuxr_a2r_stmt;

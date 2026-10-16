@@ -232,14 +232,39 @@ FreeRADIUS liveness, alert on the orphan-candidate query (below), release only w
    (no `DELETE`); the audit table is written only by the operator procedure.
 3. Run `nuxr_admission_check.sql`: it must print `nuxr_admission=READY`. Anything else: stop.
 4. Install the site file and restart FreeRADIUS.
-5. SQL pool: `pool.max` must cover the peak of concurrent authentications plus accounting. When the pool is exhausted
-   FreeRADIUS answers Access-Reject (`No connections available`), never Accept. Each FreeRADIUS worker thread holds at
-   most one connection at a time, so `pool.max` >= `thread pool { max_servers }` (32 by default) removes pool exhaustion
-   inside one instance (WP8 lab: 40 concurrent attempts, `pool.max` 8 -> 166 pool errors and 2 of 3 rounds admitted
-   nobody; `pool.max` 32 -> no pool error, 1 admitted per round). The database `max_connections` must then cover the
-   `pool.max` of every instance on it plus the application. This does not add capacity: load beyond the threads waits
-   inside FreeRADIUS and is refused by the 5000 ms late-claim guard (availability, never a second session). See
-   "Capacity sizing".
+5. SQL pool: `pool.max` must cover the peak of concurrent authentications plus accounting; `pool.max` >=
+   `thread pool { max_servers }` (32 by default) is **necessary, not sufficient**. WP9 correction (N-17): an earlier
+   version of this step stated that this sizing *removes* pool exhaustion and that exhaustion yields Access-Reject,
+   *never* Accept. Neither statement is proven. rlm_sql 3.2.8 escapes every `%{...}` inside a `%{sql:...}` statement on
+   its own pool connection, so one statement can need more than one connection, and the WP8 H-2B lab recorded a
+   statement that ran with its inner expansions EMPTIED under exhaustion. The WP9 A2-R hardening therefore makes an
+   emptied expansion fail closed instead of relying on sizing: the CHECK constraints of `nuxr_admission` refuse an
+   emptied key / token / attempt identity, the two open-session statements echo their inputs from one parameter row
+   (a mismatch rejects: `reject:echo`), and an ACTIVE reservation is taken over only after this request's own SAFE NAS
+   verification (`reject:active-unverified`). An exhausted pool can still cost availability (refusals, an orphan
+   PENDING claim when a release or Stop statement is emptied - see "Operator recovery"). The SQL-exhaustion scenario
+   itself was halted in WP8 and is not reproduced; its exploitability stays unverified (WP8 lab sizing evidence: 40
+   concurrent attempts, `pool.max` 8 -> 166 pool errors and 2 of 3 rounds admitted nobody; `pool.max` 32 -> no pool
+   error observed, 1 admitted per round). The database `max_connections` must cover the `pool.max` of every instance
+   on it plus the application. Load beyond the threads waits inside FreeRADIUS and is refused by the 5000 ms late-claim
+   guard. See "Capacity sizing".
+
+   **WP9 CHECK upgrade of an existing `nuxr_admission` table.** Re-running `nuxr_admission.sql` adds the two CHECK
+   constraints once (guarded). The database validates the existing rows first; run this read-only pre-scan before the
+   upgrade - it must return no row:
+
+   ```sql
+   SELECT HEX(username), state, token, nas, updated_at FROM nuxr_admission
+    WHERE NOT (token REGEXP '^[0-9a-f]{32}$' AND username <> '' AND session_user <> '')
+       OR NOT (nas REGEXP '^[0-9]{1,3}([.][0-9]{1,3}){3}$' AND acct_session_id <> '' AND calling_station_id <> ''
+               AND nas_port_id <> '' AND request_authenticator REGEXP '^[0-9a-f]{32}$');
+   ```
+
+   A row it returns was written with an emptied value: record it, then resolve it with the operator recovery procedure
+   (NAS-side proof first); it is never deleted automatically. `nuxr_admission_check.sql` reports `check_constraints`
+   until both constraints exist; the application preflight (`php system/reseller/preflight.php`) also verifies their
+   exact expressions and that they are enforced (MySQL `ENFORCED = YES`; MariaDB global and session
+   `check_constraint_checks = 1`).
 6. NAS contract additions: RouterOS returns `Class` unchanged in Start / Interim-Update / Stop (verified on 7.24.5);
    keep PPP accounting and Interim-Update enabled (`/ppp aaa set accounting=yes interim-update=...`); `/radius timeout=3s`.
 
@@ -254,13 +279,15 @@ FreeRADIUS liveness, alert on the orphan-candidate query (below), release only w
 3. *Threads.* `thread pool { max_servers }` >= peak concurrent requests that must be in progress at once; throughput is
    about `max_servers / per-request time`. Requests beyond it queue inside FreeRADIUS (`max_queue_size`), and those that
    wait longer than the 5000 ms budget are refused - availability, never an unsafe Accept.
-4. *SQL pool.* `pool.max` >= `max_servers` (one connection per busy thread; step 5 above). `pool.max` 8 under 40
+4. *SQL pool.* `pool.max` >= `max_servers` (necessary, not sufficient: step 5 above). `pool.max` 8 under 40
    concurrent requests exhausted the pool in the lab (166 errors, 2 of 3 rounds admitted nobody); `pool.max` 32 =
-   `max_servers` 32: no exhaustion observed.
+   `max_servers` 32: no exhaustion observed in that run (not a proof that none can occur).
 5. *Database.* `max_connections` >= Σ `pool.max` of every FreeRADIUS instance on that server + the application pool +
    operator / backup sessions + margin; the database CPU / IO must sustain the per-request statements at the peak rate.
-6. *Limits and failure behaviour.* Open-file and process limits of the service cover `max_servers` + sockets; on any
-   exhaustion (threads, SQL pool, database) the answer is Access-Reject or no answer - never an Accept without a claim.
+6. *Limits and failure behaviour.* Open-file and process limits of the service cover `max_servers` + sockets. Every
+   Access-Accept of the PPPoE path follows a successful claim (`claim=1`); with the WP9 A2-R hardening an emptied SQL
+   expansion makes the claim, the open-session read or the echo fail and the request is refused. What exhaustion does
+   in practice was not measured (the experiment is halted); treat it as an availability risk to monitor.
    Re-measure after every change of NAS size, interim interval or hardware.
 
 **Rollback:** reinstall the previous site file and restart FreeRADIUS (the A1 behaviour returns). The tables may stay
