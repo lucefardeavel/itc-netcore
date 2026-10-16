@@ -36,7 +36,10 @@ final class SourceGuardTest extends TestCase
         // WP9 U0 N-07 (owner WP9_U0_HARDENING_CONDITIONALLY_ACCEPTED, limited exception, 2026-10-16): the rechargeUser
         // notifications never carry a voucher-only credential (Telegram text; no invoice notification without a recipient)
         // (previous pin d4567f663193e16b6db7397ff94ed37c268274ebc5f6ce8a645af3c79fca2b85)
-        'system/autoload/Package.php' => '9759fca72b5f33236d5a7a00ceaf4ffb9f2dc76b86b16a03a70c6ac145e4aa54',
+        // WP9 release profile (owner WP8_WP9_WP10_AUTONOMOUS_EXECUTION_AUTHORIZED, protected-file exception, 2026-10-16):
+        // rechargeUser refuses a plan of a device type disabled in the release profile BEFORE any write
+        // (previous pin 9759fca72b5f33236d5a7a00ceaf4ffb9f2dc76b86b16a03a70c6ac145e4aa54)
+        'system/autoload/Package.php' => '51e8c47b0229ab5787d0df5b2d5cfa600cb4df225df2340700f551adc5045122',
         // accepted WP1 migration runner
         // WP9-D / WP1-CHECK (owner WP8_WP9_WP10_AUTONOMOUS_EXECUTION_AUTHORIZED, protected-file exception, 2026-10-16):
         // migrate.php loads the shared CHECK-expression verifier; Runner::contractDiff verifies every CHECK of a

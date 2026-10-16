@@ -96,7 +96,9 @@ switch ($action) {
         foreach ($files as $file) {
             $ext = pathinfo($file, PATHINFO_EXTENSION);
             if ($ext == 'php') {
-                $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                if (\Reseller\Domain\ReleaseProfile::deviceEnabled(pathinfo($file, PATHINFO_FILENAME))) { // WP9 release profile
+                    $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                }
             }
         }
         $ui->assign('devices', $devices);
@@ -150,7 +152,9 @@ switch ($action) {
         foreach ($files as $file) {
             $ext = pathinfo($file, PATHINFO_EXTENSION);
             if ($ext == 'php') {
-                $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                if (\Reseller\Domain\ReleaseProfile::deviceEnabled(pathinfo($file, PATHINFO_FILENAME))) { // WP9 release profile
+                    $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                }
             }
         }
         $ui->assign('devices', $devices);
@@ -178,7 +182,9 @@ switch ($action) {
             foreach ($files as $file) {
                 $ext = pathinfo($file, PATHINFO_EXTENSION);
                 if ($ext == 'php') {
+                    if (\Reseller\Domain\ReleaseProfile::deviceEnabled(pathinfo($file, PATHINFO_FILENAME))) { // WP9 release profile
                     $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                }
                 }
             }
             $ui->assign('devices', $devices);
@@ -246,6 +252,9 @@ switch ($action) {
         $expired_date = _post('expired_date');
 
         $msg = '';
+        if ($device !== '' && !\Reseller\Domain\ReleaseProfile::deviceEnabled((string) $device)) { // WP9 release profile
+            $msg .= Lang::T('This device type is disabled in the release profile') . '<br>';
+        }
         if (Validator::UnsignedNumber($validity) == false) {
             $msg .= 'The validity must be a number' . '<br>';
         }
@@ -345,6 +354,9 @@ switch ($action) {
         $on_logout = _post('on_logout');
         $expired_date = _post('expired_date');
         $msg = '';
+        if ($device !== '' && !\Reseller\Domain\ReleaseProfile::deviceEnabled((string) $device)) { // WP9 release profile
+            $msg .= Lang::T('This device type is disabled in the release profile') . '<br>';
+        }
         if (Validator::UnsignedNumber($validity) == false) {
             $msg .= 'The validity must be a number' . '<br>';
         }
@@ -479,7 +491,9 @@ switch ($action) {
         foreach ($files as $file) {
             $ext = pathinfo($file, PATHINFO_EXTENSION);
             if ($ext == 'php') {
-                $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                if (\Reseller\Domain\ReleaseProfile::deviceEnabled(pathinfo($file, PATHINFO_FILENAME))) { // WP9 release profile
+                    $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                }
             }
         }
         $ui->assign('devices', $devices);
@@ -535,7 +549,9 @@ switch ($action) {
         foreach ($files as $file) {
             $ext = pathinfo($file, PATHINFO_EXTENSION);
             if ($ext == 'php') {
-                $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                if (\Reseller\Domain\ReleaseProfile::deviceEnabled(pathinfo($file, PATHINFO_FILENAME))) { // WP9 release profile
+                    $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                }
             }
         }
         $ui->assign('devices', $devices);
@@ -571,7 +587,9 @@ switch ($action) {
             foreach ($files as $file) {
                 $ext = pathinfo($file, PATHINFO_EXTENSION);
                 if ($ext == 'php') {
+                    if (\Reseller\Domain\ReleaseProfile::deviceEnabled(pathinfo($file, PATHINFO_FILENAME))) { // WP9 release profile
                     $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                }
                 }
             }
             $ui->assign('devices', $devices);
@@ -635,6 +653,9 @@ switch ($action) {
 
 
         $msg = '';
+        if ($device !== '' && !\Reseller\Domain\ReleaseProfile::deviceEnabled((string) $device)) { // WP9 release profile
+            $msg .= Lang::T('This device type is disabled in the release profile') . '<br>';
+        }
         if (Validator::UnsignedNumber($validity) == false) {
             $msg .= 'The validity must be a number' . '<br>';
         }
@@ -738,6 +759,9 @@ switch ($action) {
         $on_logout = _post('on_logout');
 
         $msg = '';
+        if ($device !== '' && !\Reseller\Domain\ReleaseProfile::deviceEnabled((string) $device)) { // WP9 release profile
+            $msg .= Lang::T('This device type is disabled in the release profile') . '<br>';
+        }
         if (Validator::UnsignedNumber($validity) == false) {
             $msg .= 'The validity must be a number' . '<br>';
         }
@@ -985,7 +1009,9 @@ switch ($action) {
         foreach ($files as $file) {
             $ext = pathinfo($file, PATHINFO_EXTENSION);
             if ($ext == 'php') {
-                $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                if (\Reseller\Domain\ReleaseProfile::deviceEnabled(pathinfo($file, PATHINFO_FILENAME))) { // WP9 release profile
+                    $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                }
             }
         }
         $ui->assign('devices', $devices);
@@ -1041,7 +1067,9 @@ switch ($action) {
         foreach ($files as $file) {
             $ext = pathinfo($file, PATHINFO_EXTENSION);
             if ($ext == 'php') {
-                $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                if (\Reseller\Domain\ReleaseProfile::deviceEnabled(pathinfo($file, PATHINFO_FILENAME))) { // WP9 release profile
+                    $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                }
             }
         }
         $ui->assign('devices', $devices);
@@ -1077,7 +1105,9 @@ switch ($action) {
             foreach ($files as $file) {
                 $ext = pathinfo($file, PATHINFO_EXTENSION);
                 if ($ext == 'php') {
+                    if (\Reseller\Domain\ReleaseProfile::deviceEnabled(pathinfo($file, PATHINFO_FILENAME))) { // WP9 release profile
                     $devices[] = pathinfo($file, PATHINFO_FILENAME);
+                }
                 }
             }
             $ui->assign('devices', $devices);
@@ -1141,6 +1171,9 @@ switch ($action) {
 
 
         $msg = '';
+        if ($device !== '' && !\Reseller\Domain\ReleaseProfile::deviceEnabled((string) $device)) { // WP9 release profile
+            $msg .= Lang::T('This device type is disabled in the release profile') . '<br>';
+        }
         if (Validator::UnsignedNumber($validity) == false) {
             $msg .= 'The validity must be a number' . '<br>';
         }
@@ -1244,6 +1277,9 @@ switch ($action) {
         $on_logout = _post('on_logout');
 
         $msg = '';
+        if ($device !== '' && !\Reseller\Domain\ReleaseProfile::deviceEnabled((string) $device)) { // WP9 release profile
+            $msg .= Lang::T('This device type is disabled in the release profile') . '<br>';
+        }
         if (Validator::UnsignedNumber($validity) == false) {
             $msg .= 'The validity must be a number' . '<br>';
         }

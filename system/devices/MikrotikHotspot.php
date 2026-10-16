@@ -12,6 +12,12 @@ use PEAR2\Net\RouterOS;
 
 class MikrotikHotspot
 {
+    // WP9 release profile: disabled unless $legacy_devices_enabled = true (Reseller\Domain\ReleaseProfile)
+    public function __construct()
+    {
+        \Reseller\Domain\ReleaseProfile::assertDeviceEnabled(static::class);
+    }
+
 
     // show Description
     function description()

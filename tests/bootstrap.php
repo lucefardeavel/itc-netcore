@@ -11,6 +11,10 @@ foreach (['Outcome', 'Db', 'SchemaInspector', 'Grants', 'MigrationDefinition', '
 if (!defined('NUXR_RUNTIME')) {
     define('NUXR_RUNTIME', true);
 }
+// WP9 release profile: in-process tests of the accepted legacy drivers opt in (W9ReleaseProfileTest proves the default)
+if (!isset($GLOBALS['legacy_devices_enabled'])) {
+    $GLOBALS['legacy_devices_enabled'] = true;
+}
 // WP9-D / NEW-7: in-process runtime code signs with the dedicated application key (never $db_pass)
 if (!isset($GLOBALS['app_secret'])) {
     $GLOBALS['app_secret'] = bin2hex(random_bytes(32));

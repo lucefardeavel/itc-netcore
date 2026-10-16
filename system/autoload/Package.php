@@ -47,6 +47,12 @@ class Package
         }
 
         $p = ORM::for_table('tbl_plans')->where('id', $plan_id)->find_one();
+        // WP9 release profile (owner protected-file exception): a plan whose device type is disabled in the release
+        // profile is refused BEFORE any recharge, invoice or balance write (never billed without a device)
+        if ($p && !empty($p['device']) && !\Reseller\Domain\ReleaseProfile::deviceEnabled((string) $p['device'])) {
+            \Reseller\Security\ErrorReporter::log('device.release_profile_refused', 'op=rechargeUser');
+            return false;
+        }
 
         if (!$isVoucher) {
             $c = ORM::for_table('tbl_customers')->where('id', $id_customer)->find_one();

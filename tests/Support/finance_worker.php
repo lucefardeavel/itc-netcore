@@ -28,6 +28,7 @@ require_once $root . '/system/orm.php';
 // WP5B: the legacy classes and device path the bounded re-provision uses
 $GLOBALS['DEVICE_PATH'] = $root . '/system/devices';
 $GLOBALS['_app_stage'] = 'Live';
+$GLOBALS['legacy_devices_enabled'] = true; // WP9 release profile: the accepted legacy-driver contracts opt in
 require_once $root . '/system/autoload/Package.php';
 require_once $root . '/system/autoload/Text.php';
 

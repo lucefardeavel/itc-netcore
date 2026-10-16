@@ -26,6 +26,11 @@ $app_secret = "";
 // Dedicated API signing secret (WP2 / OD-3): at least 32 characters; without it the API fails closed.
 // $api_secret = "";
 
+// WP9 release profile: subscribers are served through FreeRADIUS only. The legacy MikroTik-API drivers
+// (MikrotikHotspot / MikrotikPppoe / MikrotikVpn) and the rlm_rest device (RadiusRest) are DISABLED unless this is
+// set to true. Enabling them is an unsupported configuration with open findings (docs: release profile).
+// $legacy_devices_enabled = false;
+
 // FreeRADIUS rlm_rest endpoint (radius.php) - OFF unless a secret of at least 32 characters is set.
 // See install/freeradius/README.md. The secret is the HTTP Basic password of the FreeRADIUS rest module.
 // $radius_rest_secret = "";

@@ -4,6 +4,12 @@ use PEAR2\Net\RouterOS;
 
 class MikrotikVpn
 {
+    // WP9 release profile: disabled unless $legacy_devices_enabled = true (Reseller\Domain\ReleaseProfile)
+    public function __construct()
+    {
+        \Reseller\Domain\ReleaseProfile::assertDeviceEnabled(static::class);
+    }
+
 
     function description()
     {

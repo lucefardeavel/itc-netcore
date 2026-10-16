@@ -56,9 +56,14 @@ switch ($action) {
             if ($ext == 'php') {
                 $dev = pathinfo($file, PATHINFO_FILENAME);
                 require_once $DEVICE_PATH . DIRECTORY_SEPARATOR . $file;
-                $dvc = new $dev;
+                // WP9 release profile: a disabled device is listed (description only, never constructed)
+                $nuxrEnabled = \Reseller\Domain\ReleaseProfile::deviceEnabled($dev);
+                $dvc = $nuxrEnabled ? new $dev : (new \ReflectionClass($dev))->newInstanceWithoutConstructor();
                 if (method_exists($dvc, 'description')) {
                     $arr = $dvc->description();
+                    if (!$nuxrEnabled) {
+                        $arr['title'] = ($arr['title'] ?? $dev) . ' - ' . Lang::T('disabled in the release profile');
+                    }
                     $arr['file'] = $dev;
                     $devices[] = $arr;
                 } else {

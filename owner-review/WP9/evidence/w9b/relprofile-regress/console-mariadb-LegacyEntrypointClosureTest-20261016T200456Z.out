@@ -1,0 +1,23 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/relprofile-regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5b/LegacyEntrypointClosureTest.php
+start: 2026-10-16T20:04:56Z
+ Container nuxbill-reseller-test-php82-run-f873f3d321ad Creating 
+ Container nuxbill-reseller-test-php82-run-f873f3d321ad Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......                                                              6 / 6 (100%)
+
+Time: 00:17.944, Memory: 10.00 MB
+
+Legacy Entrypoint Closure (Reseller\Tests\Integration\Wp5b\LegacyEntrypointClosure)
+ ✔ Admin recharge of a reseller owned customer continues at the activation
+ ✔ Admin balance recharge of an unassigned customer is exactly once
+ ✔ Customer balance purchase gift and transfer are post only and replay safe
+ ✔ Payment check and cancel are post only
+ ✔ Reseller owned reprovision goes through the service
+ ✔ The activation reverse route is admin only and post only
+
+OK (6 tests, 62 assertions)
+exit=0 end: 2026-10-16T20:05:16Z
