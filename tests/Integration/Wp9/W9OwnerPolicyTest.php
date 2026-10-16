@@ -94,9 +94,9 @@ final class W9OwnerPolicyTest extends ActivationTestCase
         $this->refused('STAFF_PASSWORD_DIRECT_CHILD_ONLY', fn() => StaffService::updateProfile($this->ctx('A'), $grandchild, $this->profile($grandchild), 'new-secret-1'), false);
         $this->assertSame($before, (string) static::$db->value('SELECT password FROM tbl_users WHERE id = ?', [$grandchild]));
         StaffService::updateProfile($this->ctx('A'), $child, $this->profile($child), 'new-secret-2');
-        $this->assertSame(sha1('new-secret-2'), (string) static::$db->value('SELECT password FROM tbl_users WHERE id = ?', [$child]), 'positive: direct child');
+        $this->assertTrue(password_verify('new-secret-2', (string) static::$db->value('SELECT password FROM tbl_users WHERE id = ?', [$child])), 'positive: direct child (SEC-17: password_hash)');
         StaffService::updateProfile($this->ctx($child), $grandchild, $this->profile($grandchild), 'new-secret-3');
-        $this->assertSame(sha1('new-secret-3'), (string) static::$db->value('SELECT password FROM tbl_users WHERE id = ?', [$grandchild]), 'positive: its own direct child');
+        $this->assertTrue(password_verify('new-secret-3', (string) static::$db->value('SELECT password FROM tbl_users WHERE id = ?', [$grandchild])), 'positive: its own direct child (SEC-17: password_hash)');
     }
 
     public function testP4OnlyTheOwnerReassignsSales(): void

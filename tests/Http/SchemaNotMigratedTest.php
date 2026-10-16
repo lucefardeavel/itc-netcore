@@ -79,7 +79,8 @@ final class SchemaNotMigratedTest extends Wp2HttpTestCase
         $this->assertSame('Renamed Legacy', static::$db->value("SELECT fullname FROM tbl_users WHERE username = 'ag_legacy'"), 'own profile editable');
         $r = $c->postWithToken('settings/change-password-post', ['password' => 'pw-ag_legacy', 'npass' => 'new-pw-123', 'cnpass' => 'new-pw-123']);
         $this->assertSame(302, $r->status);
-        $this->assertSame(sha1('new-pw-123'), static::$db->value("SELECT password FROM tbl_users WHERE username = 'ag_legacy'"));
+        // WP9 SEC-17: stored with password_hash (bcrypt): the change is proven by verification
+        $this->assertTrue(password_verify('new-pw-123', (string) static::$db->value("SELECT password FROM tbl_users WHERE username = 'ag_legacy'")));
         $c2 = $this->client();
         $c2->loginStaff('ag_legacy', 'new-pw-123');
         $this->assertSame(200, $c2->get('dashboard')->status);

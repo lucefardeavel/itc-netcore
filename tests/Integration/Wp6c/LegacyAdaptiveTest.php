@@ -158,10 +158,12 @@ final class LegacyAdaptiveTest extends Wp2HttpTestCase
         $c = $this->staff('ad');
         $page = $c->get('settings/change-password');
         $this->assertSame(200, $page->status);
+        // WP9 SEC-17: the login above may have upgraded the stored hash (SHA-1 -> password_hash); compare with it
+        $stored = (string) static::$db->value('SELECT password FROM tbl_users WHERE id = ?', [$s->staff['ad']]);
         // wrong current password: the unchanged controller refuses and redirects back (no write)
         $r = $c->postWithToken('settings/change-password-post', ['password' => 'not-the-password', 'npass' => 'x1-Newpass!', 'cnpass' => 'x1-Newpass!']);
         $this->assertSame(302, $r->status);
-        $this->assertSame(sha1(\Reseller\Tests\Support\Wp2Seed::password('ad')), (string) static::$db->value('SELECT password FROM tbl_users WHERE id = ?', [$s->staff['ad']]),
+        $this->assertSame($stored, (string) static::$db->value('SELECT password FROM tbl_users WHERE id = ?', [$s->staff['ad']]),
             'the controller (not the template) still decides');
     }
 }

@@ -33,6 +33,13 @@ switch ($do) {
             $d = ORM::for_table('tbl_users')->where('username', $username)->find_one();
             // WP2 / SEC-10: an Inactive account is refused with the same message as a wrong password
             if ($d && $d['status'] === 'Active' && Password::_verify($password, $d['password']) == true) {
+                // WP9 / SEC-17: a legacy SHA-1 hash is replaced by password_hash() at this login (only while it is
+                // unchanged); the installer-seeded default stays recognisable for the change-password lock (SEC-18)
+                if (Password::needsRehash($d['password']) && !Admin::hasDefaultCredential($d)) {
+                    ORM::get_db()->prepare('UPDATE tbl_users SET password = ? WHERE id = ? AND password = ?')
+                        ->execute([Password::_crypt($password), (int) $d['id'], (string) $d['password']]);
+                    $d = ORM::for_table('tbl_users')->find_one($d['id']);
+                }
                 $d->last_login = date('Y-m-d H:i:s');
                 $d->save();
                 _log($username . ' ' . Lang::T('Login Successful'), $d['user_type'], $d['id']);

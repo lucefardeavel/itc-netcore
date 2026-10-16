@@ -112,7 +112,7 @@ final class StaffService
             Tx::exec(
                 $pdo,
                 "INSERT INTO tbl_users (username, fullname, password, user_type, phone, email, city, subdistrict, ward, status, root, creationdate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', 0, ?)",
-                [$in['username'], $in['fullname'], sha1((string) $in['password']), $role, (string) ($in['phone'] ?? ''), (string) ($in['email'] ?? ''),
+                [$in['username'], $in['fullname'], password_hash((string) $in['password'], PASSWORD_BCRYPT), $role, (string) ($in['phone'] ?? ''), (string) ($in['email'] ?? ''),
                     (string) ($in['city'] ?? ''), (string) ($in['subdistrict'] ?? ''), (string) ($in['ward'] ?? ''), gmdate('Y-m-d H:i:s')]
             );
             $id = (int) $pdo->lastInsertId();
@@ -178,7 +178,7 @@ final class StaffService
                     throw new DomainError('INVALID_INPUT', 'Password should be minimum 6 characters');
                 }
                 $sets[] = '`password` = ?';
-                $vals[] = sha1($newPassword);
+                $vals[] = password_hash($newPassword, PASSWORD_BCRYPT);   // WP9 / SEC-17
                 $after['password_changed'] = true;
             }
             if (isset($in['photo']) && is_string($in['photo'])) {

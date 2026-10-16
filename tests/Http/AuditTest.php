@@ -29,7 +29,8 @@ final class AuditTest extends Wp2HttpTestCase
         $rid = (int) static::$db->value("SELECT id FROM tbl_users WHERE username = 'aud_report'");
         $this->assertGreaterThan(0, $rid);
         $sa->postWithToken('settings/users-edit-post', ['id' => $rid, 'username' => 'aud_report', 'fullname' => 'Audit Report', 'password' => self::STAFF_PW2, 'cpassword' => self::STAFF_PW2]);
-        $this->assertSame(sha1(self::STAFF_PW2), static::$db->value('SELECT password FROM tbl_users WHERE id = ?', [$rid]), 'password reset applied');
+        // WP9 SEC-17: staff passwords are stored with password_hash (bcrypt), so the reset is proven by verification
+        $this->assertTrue(password_verify(self::STAFF_PW2, (string) static::$db->value('SELECT password FROM tbl_users WHERE id = ?', [$rid])), 'password reset applied');
         $a->postWithToken('settings/users-post', ['username' => 'aud_sales', 'fullname' => 'Audit Sales', 'password' => self::STAFF_PW, 'user_type' => 'Sales']);
         $sid = (int) static::$db->value("SELECT id FROM tbl_users WHERE username = 'aud_sales'");
         $this->assertGreaterThan(0, $sid);

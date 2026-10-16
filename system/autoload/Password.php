@@ -8,17 +8,31 @@
 class Password
 {
 
+    /**
+     * Staff password hash. WP9 / SEC-17: salted and adaptive (bcrypt, 60 characters: fits tbl_users.password
+     * varchar(64) on every supported schema); unsalted SHA-1 is never written.
+     */
     public static function _crypt($password)
     {
-        return sha1($password);
+        return password_hash((string) $password, PASSWORD_BCRYPT);
     }
 
     public static function _verify($user_input, $hashed_password)
     {
-        if (sha1($user_input) == $hashed_password) {
-            return true;
+        $hash = (string) $hashed_password;
+        if ($hash !== '' && $hash[0] === '$') {
+            return password_verify((string) $user_input, $hash);
         }
-        return false;
+        // WP9 / SEC-17: a legacy unsalted SHA-1 hash (replaced at the next login), compared strictly: the former
+        // loose == let two different passwords whose SHA-1 values are both "0e<digits>" log in for each other
+        return preg_match('/^[0-9a-f]{40}$/', $hash) === 1 && hash_equals($hash, sha1((string) $user_input));
+    }
+
+    /** WP9 / SEC-17: true when a stored staff hash should be replaced by a current password_hash(). */
+    public static function needsRehash($hashed_password)
+    {
+        $hash = (string) $hashed_password;
+        return $hash === '' || $hash[0] !== '$' || password_needs_rehash($hash, PASSWORD_BCRYPT);
     }
     public static function _uverify($user_input, $hashed_password)
     {
