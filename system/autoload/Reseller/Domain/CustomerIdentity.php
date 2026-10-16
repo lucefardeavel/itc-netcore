@@ -252,9 +252,13 @@ final class CustomerIdentity
     /**
      * WP9 U0 final hardening (D-U0-R1): refuses (DomainError IDENTITY_AMBIGUOUS / IDENTITY_CHECK_UNAVAILABLE) when one of
      * $keys has more than one logical owner. The count runs under the shared identity lock (at most RADIUS_TIMEOUT
-     * seconds of waiting: it guards writes on RADIUS and web paths alike); a caller that already holds the lock is
-     * counted in place; inside a caller's open transaction the lock cannot be taken, so the same read-only count runs
-     * without it and the event is logged. Called before every write of a subscriber's RADIUS login policy.
+     * seconds of waiting: it guards writes on RADIUS and web paths alike); a caller that already holds the lock on this
+     * connection (order L-3 -> BEGIN) is counted in place. Called before every write of a subscriber's RADIUS login policy.
+     *
+     * WP9 U0 final closure (owner §4): inside a caller's open transaction WITHOUT the lock nothing serializes the count
+     * and the following write against an acquirer (which cannot see the caller's uncommitted rows), and under REPEATABLE
+     * READ the count would read the transaction's old snapshot: refused (IDENTITY_CHECK_UNAVAILABLE), nothing counted or
+     * written. No application RADIUS writer runs inside a transaction (the device steps run after COMMIT).
      */
     public static function assertSingleOwner(string ...$keys): void
     {
@@ -275,14 +279,19 @@ final class CustomerIdentity
             }
         };
         $pdo = self::pdo();
-        if ($pdo->inTransaction()) {
-            ErrorReporter::log('identity.owner_check_in_transaction', 'keys=' . count($keys));
+        try {
+            $held = self::held($pdo);
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'identity-owners');
+            throw new DomainError('IDENTITY_CHECK_UNAVAILABLE');
+        }
+        if ($held) {
             $check($pdo);
             return;
         }
-        if (self::held($pdo)) {
-            $check($pdo);
-            return;
+        if ($pdo->inTransaction()) {
+            ErrorReporter::log('identity.owner_check_refused', 'reason=open_transaction keys=' . count($keys));
+            throw new DomainError('IDENTITY_CHECK_UNAVAILABLE');
         }
         self::hold($check, self::RADIUS_TIMEOUT);
     }
