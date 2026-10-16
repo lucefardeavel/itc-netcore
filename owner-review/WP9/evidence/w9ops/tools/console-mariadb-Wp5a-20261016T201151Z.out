@@ -1,0 +1,48 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9ops/tools/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp5a
+start: 2026-10-16T20:11:51Z
+ Container nuxbill-reseller-test-php82-run-d57de58501a0 Creating 
+ Container nuxbill-reseller-test-php82-run-d57de58501a0 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.........................                                         25 / 25 (100%)
+
+Time: 00:00.338, Memory: 18.00 MB
+
+Activation Capability (Reseller\Tests\Unit\Wp5a\ActivationCapability)
+ ✔ Exact matrix
+ ✔ Fail closed principals
+ ✔ Activation create requires a validly placed reseller identity
+
+Activation Source Guard (Reseller\Tests\Unit\Wp5a\ActivationSourceGuard)
+ ✔ One sealed insert only under the tree lock
+ ✔ Snapshots are never updated and events are append only
+ ✔ The activation layer uses only the authoritative services
+ ✔ The controller stays thin
+
+Activation State And Period (Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriod)
+ ✔ Transition table over the full matrix
+ ✔ Fresh period matches the legacy arithmetic with data set "months"
+ ✔ Fresh period matches the legacy arithmetic with data set "days"
+ ✔ Fresh period matches the legacy arithmetic with data set "hours"
+ ✔ Fresh period matches the legacy arithmetic with data set "minutes"
+ ✔ Fresh period matches the legacy arithmetic with data set "period"
+ ✔ Fresh period matches the legacy arithmetic with data set "period-short"
+ ✔ Renewal extends from the current expiry with data set "months"
+ ✔ Renewal extends from the current expiry with data set "days"
+ ✔ Renewal extends from the current expiry with data set "hours"
+ ✔ Renewal extends from the current expiry with data set "minutes"
+ ✔ Renewal extends from the current expiry with data set "period"
+ ✔ Period day is clamped and invalid validity refused
+ ✔ Derived action
+
+Radius State (Reseller\Tests\Unit\Wp5a\RadiusState)
+ ✔ The target is the provisioner contract without the password
+ ✔ Equality is exact and canonical
+ ✔ Pre a 1 target differs from an a 1 write only by the port limit
+ ✔ Diff names components never values
+
+OK (25 tests, 1711 assertions)
+exit=0 end: 2026-10-16T20:11:53Z

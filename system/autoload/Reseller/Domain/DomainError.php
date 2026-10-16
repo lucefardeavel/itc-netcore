@@ -30,6 +30,8 @@ final class DomainError extends \RuntimeException
         'STAFF_REACTIVATION_ADMIN_ONLY' => 'This account was disabled by an administrator; only an administrator can reactivate it.',
         'STAFF_PASSWORD_DIRECT_CHILD_ONLY' => 'You can reset the password of your direct sub-accounts only.',
         'SALES_ASSIGN_OWNER_ONLY' => 'Only the reseller that owns this customer (or an administrator) can change its Sales assignment.',
+        // WP9-OPS voucher review: the decision needs evidence that is not there (nothing changed)
+        'VOUCHER_REVIEW_EVIDENCE' => 'The voucher grant evidence does not allow this decision; nothing was changed.',
         'SERVICE_BUSY' => 'This customer\'s service is being updated by another operation; please try again shortly.',
         'USERNAME_TAKEN' => 'The username is already used.',
         // WP9 U0: the shared identity check (generic: never says which identity holds the name)

@@ -313,6 +313,121 @@ final class VoucherRedemptionService
     }
 
     /**
+     * WP9-OPS: operator review of vouchers left CLAIMED (CLAIMED_REVIEW:NOT_CONFIRMED | DEVICE_FAILED | DEVICE_UNKNOWN |
+     * NO_SERVICE, or an interrupted grant). Read-only list with the evidence an operator decides on; the code (a
+     * credential) is never returned - only the voucher id.
+     *
+     * @return list<array{voucher_id:int,plan_id:int,device:string,recharges:int,recharges_on:int,voucher_only:bool,transactions:int,radius_rows:int}>
+     */
+    public static function reviewList(): array
+    {
+        $pdo = self::pdo();
+        $out = [];
+        foreach (Tx::rows($pdo, "SELECT v.id, v.code, v.id_plan, p.device FROM tbl_voucher v LEFT JOIN tbl_plans p ON p.id = v.id_plan WHERE v.status = '" . self::CLAIMED . "' ORDER BY v.id") as $v) {
+            $out[] = ['voucher_id' => (int) $v['id'], 'plan_id' => (int) $v['id_plan'], 'device' => (string) $v['device']] + self::evidence($pdo, (string) $v['code']);
+        }
+        return $out;
+    }
+
+    /**
+     * WP9-OPS: one operator decision on one CLAIMED voucher, exactly once, under the code's lock, audited (no code in
+     * the record). Nothing is deleted:
+     *  - confirm: the grant is proven complete (recharge row 'on', its invoice, and - for a FreeRADIUS plan - the
+     *             identity's RADIUS rows): the voucher becomes used (GRANTED), as the redemption would have recorded it;
+     *  - deny:    voucher-only grant whose service must not run: the RADIUS identity is suspended (nothing deleted),
+     *             the recharge row is set 'off', the voucher becomes used (never redeemable again; refunds are handled
+     *             outside the application); the invoice stays as history;
+     *  - release: proven NOT started (no recharge row, no invoice, no RADIUS row for the code): the voucher is
+     *             redeemable again.
+     * Any other situation refuses (VOUCHER_REVIEW_EVIDENCE) and changes nothing.
+     *
+     * @return array{voucher_id:int,decision:string,outcome:string}
+     */
+    public static function reviewResolve(int $voucherId, string $decision, string $operator, string $reason): array
+    {
+        if (!in_array($decision, ['confirm', 'deny', 'release'], true) || strlen(trim($operator)) < 2 || strlen(trim($reason)) < 10) {
+            throw new DomainError('INVALID_INPUT', 'decision confirm|deny|release, operator (>= 2) and reason (>= 10 characters) are required');
+        }
+        $pdo = self::pdo();
+        $v = Tx::row($pdo, 'SELECT * FROM tbl_voucher WHERE id = ?', [$voucherId]) ?? throw new DomainError('NOT_FOUND');
+        $code = (string) $v['code'];
+        return self::withUsernameLock($pdo, $code, static function (\PDO $pdo) use ($voucherId, $decision, $operator, $reason, $code): array {
+            $v = Tx::row($pdo, 'SELECT * FROM tbl_voucher WHERE id = ?', [$voucherId]) ?? throw new DomainError('NOT_FOUND');
+            if ($v['status'] !== self::CLAIMED) {
+                throw new DomainError('ACTIVATION_STATE_CONFLICT', 'The voucher is not under review.');
+            }
+            $plan = Tx::row($pdo, 'SELECT * FROM tbl_plans WHERE id = ?', [(int) $v['id_plan']]);
+            $e = self::evidence($pdo, $code);
+            $radiusPlan = $plan !== null && $plan['device'] === 'Radius';
+            if ($decision === 'confirm') {
+                if ($e['recharges_on'] < 1 || $e['transactions'] < 1 || ($radiusPlan && $e['voucher_only'] && $e['radius_rows'] < 1)) {
+                    throw new DomainError('VOUCHER_REVIEW_EVIDENCE', 'The grant is not proven complete; nothing was changed.');
+                }
+                $user = $e['voucher_only'] ? (string) ($v['user'] ?? '') : (string) (Tx::row($pdo, "SELECT username FROM tbl_user_recharges WHERE method = ? AND customer_id > 0 ORDER BY id DESC LIMIT 1", ['Voucher - ' . $code])['username'] ?? '');
+                Tx::exec($pdo, "UPDATE tbl_voucher SET status = '1', used_date = ?, user = ? WHERE id = ? AND status = '" . self::CLAIMED . "'", [date('Y-m-d H:i:s'), $user, $voucherId]);
+            } elseif ($decision === 'deny') {
+                if (!$e['voucher_only'] || $e['recharges'] < 1) {
+                    throw new DomainError('VOUCHER_REVIEW_EVIDENCE', 'Deny applies to a voucher-only grant with a recharge row; use the customer service tools otherwise.');
+                }
+                if ($radiusPlan && $e['radius_rows'] > 0) {
+                    require_once $GLOBALS['DEVICE_PATH'] . DIRECTORY_SEPARATOR . 'Radius.php';
+                    (new \Radius())->customerDeactivate($code, true); // suspends (random password), deletes nothing
+                }
+                Tx::exec($pdo, "UPDATE tbl_user_recharges SET status = 'off' WHERE customer_id = 0 AND username = ? AND method = ?", [$code, 'Voucher - ' . $code]);
+                Tx::exec($pdo, "UPDATE tbl_voucher SET status = '1', used_date = ? WHERE id = ? AND status = '" . self::CLAIMED . "'", [date('Y-m-d H:i:s'), $voucherId]);
+            } else {
+                if ($e['recharges'] > 0 || $e['transactions'] > 0 || $e['radius_rows'] !== 0) { // unknown (-1) is never "absent"
+                    throw new DomainError('VOUCHER_REVIEW_EVIDENCE', 'Something of the grant exists; the voucher cannot become redeemable again.');
+                }
+                Tx::exec($pdo, "UPDATE tbl_voucher SET status = '0' WHERE id = ? AND status = '" . self::CLAIMED . "'", [$voucherId]);
+            }
+            $outcome = ['confirm' => 'CONFIRMED', 'deny' => 'DENIED', 'release' => 'RELEASED'][$decision];
+            \Reseller\Audit\AuditLog::record('voucher.review_resolve', \Reseller\Security\ActorContext::system('CLI'), [
+                'target_type' => 'system', 'target_snapshot' => ['voucher_id' => $voucherId],
+                'after' => ['decision' => $decision, 'outcome' => $outcome, 'operator' => mb_substr(trim($operator), 0, 64), 'evidence' => $e],
+                'reason' => mb_substr(trim($reason), 0, 255),
+            ], $pdo);
+            return ['voucher_id' => $voucherId, 'decision' => $decision, 'outcome' => $outcome];
+        });
+    }
+
+    /** @return array{recharges:int,recharges_on:int,voucher_only:bool,transactions:int,radius_rows:int} */
+    private static function evidence(\PDO $pdo, string $code): array
+    {
+        $method = 'Voucher - ' . $code;
+        $rech = Tx::rows($pdo, 'SELECT customer_id, status FROM tbl_user_recharges WHERE method = ? OR (customer_id = 0 AND CAST(username AS BINARY) = CAST(? AS BINARY))', [$method, $code]);
+        $voucherOnly = $rech === [] || count(array_filter($rech, static fn(array $r): bool => (int) $r['customer_id'] === 0)) > 0;
+        $radius = 0;
+        try {
+            $rp = self::radiusPdoForReview();
+            $st = $rp->prepare('SELECT (SELECT COUNT(*) FROM radcheck WHERE CAST(username AS BINARY) = CAST(? AS BINARY)) + (SELECT COUNT(*) FROM radusergroup WHERE CAST(username AS BINARY) = CAST(? AS BINARY))');
+            $st->execute([$code, $code]);
+            $radius = (int) $st->fetchColumn();
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'voucher-review');
+            $radius = -1; // unknown: never "proven absent"
+        }
+        return [
+            'recharges' => count($rech),
+            'recharges_on' => count(array_filter($rech, static fn(array $r): bool => $r['status'] === 'on')),
+            'voucher_only' => $voucherOnly,
+            'transactions' => (int) (Tx::row($pdo, 'SELECT COUNT(*) AS n FROM tbl_transactions WHERE method = ?', [$method])['n'] ?? 0),
+            'radius_rows' => $radius,
+        ];
+    }
+
+    private static function radiusPdoForReview(): \PDO
+    {
+        try {
+            $r = \ORM::get_db('radius');
+        } catch (\Throwable) {
+            $r = \ORM::get_db();
+        }
+        $r->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        return $r;
+    }
+
+    /**
      * @template T
      * @param callable(\PDO):T $fn
      * @return T

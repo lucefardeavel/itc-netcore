@@ -30,6 +30,13 @@ if (PHP_SAPI !== 'cli') {
  *   php system/reseller/reconcile.php balance-resolve <id> <completed|refund>
  *                       operator decision on one HELD operation (exactly once, audited; refund credits back)
  *
+ * WP9-OPS recovery commands (runbook: docs/OPERATOR_RECOVERY_RUNBOOK.md):
+ *   php system/reseller/reconcile.php finance-check             read-only finance + activation integrity (exit 4 = issues)
+ *   php system/reseller/reconcile.php voucher-review            vouchers left CLAIMED (review) with their grant evidence
+ *   php system/reseller/reconcile.php voucher-resolve <id> <confirm|deny|release> --operator=<name> --reason=<text>
+ *   php system/reseller/reconcile.php admission-pending         unresolved PPPoE admission claims (PENDING)
+ *   php system/reseller/reconcile.php admission-release <key hex> <token> --operator=<name> --reason=<text> --evidence=<NAS proof>
+ *
  * Exit codes: 0 OK, 2 refused (state / not found), 3 failed, 4 external state ambiguous (funds held), 5 usage.
  */
 
@@ -53,6 +60,15 @@ $option = static function (string $name, int $default) use ($args): int {
     return $default;
 };
 $actor = ActivationActor::system('wp5a-reconcile');
+// WP9-OPS: --name=value string options of the recovery commands
+$text = static function (string $name) use ($args): string {
+    foreach ($args as $a) {
+        if (str_starts_with($a, "--{$name}=")) {
+            return substr($a, strlen($name) + 3);
+        }
+    }
+    return '';
+};
 $print = static function (array $row): void {
     echo json_encode(['reference' => $row['reference'], 'status' => $row['status'], 'action' => $row['action'],
         'error_code' => $row['error_code']], JSON_UNESCAPED_SLASHES) . "\n";
@@ -125,8 +141,37 @@ try {
             }
             echo json_encode(['journal_id' => (int) $reference, 'resolved' => \Reseller\Domain\LegacyCustomerBalanceService::resolve((int) $reference, $args[2])]) . "\n";
             exit(0);
+        // ---- WP9-OPS recovery commands (each decision exactly once, audited, nothing deleted)
+        case 'finance-check':
+            // read-only whole-database finance + activation integrity (tamper detector); exit 4 when anything is found
+            $issues = \Reseller\Finance\IntegrityCheck::current();
+            foreach ($issues as $i) {
+                echo json_encode(['issue' => $i], JSON_UNESCAPED_SLASHES) . "\n";
+            }
+            echo json_encode(['finance_check' => $issues === [] ? 'CONSISTENT' : 'ISSUES', 'count' => count($issues)]) . "\n";
+            exit($issues === [] ? 0 : 4);
+        case 'voucher-review':
+            foreach (\Reseller\Domain\VoucherRedemptionService::reviewList() as $r) {
+                echo json_encode($r, JSON_UNESCAPED_SLASHES) . "\n";
+            }
+            exit(0);
+        case 'voucher-resolve':
+            if (!ctype_digit($reference) || !in_array($args[2] ?? '', ['confirm', 'deny', 'release'], true)) {
+                fwrite(STDERR, "usage: php system/reseller/reconcile.php voucher-resolve <voucher id> <confirm|deny|release> --operator=<name> --reason=<text>\n");
+                exit(5);
+            }
+            echo json_encode(\Reseller\Domain\VoucherRedemptionService::reviewResolve((int) $reference, $args[2], $text('operator'), $text('reason'))) . "\n";
+            exit(0);
+        case 'admission-pending':
+            foreach (\Reseller\Radius\AdmissionRecovery::pending() as $r) {
+                echo json_encode($r, JSON_UNESCAPED_SLASHES) . "\n";
+            }
+            exit(0);
+        case 'admission-release':
+            echo json_encode(\Reseller\Radius\AdmissionRecovery::release($reference, (string) ($args[2] ?? ''), $text('operator'), $text('reason'), $text('evidence'))) . "\n";
+            exit(0);
         default:
-            fwrite(STDERR, "usage: php system/reseller/reconcile.php <stale|show|reconcile|resume|rollback|cancel|drift|expired-autorenew|balance-held|balance-resolve> [ACT-reference|id] [--seconds=N]\n");
+            fwrite(STDERR, "usage: php system/reseller/reconcile.php <stale|show|reconcile|resume|rollback|cancel|drift|expired-autorenew|balance-held|balance-resolve|finance-check|voucher-review|voucher-resolve|admission-pending|admission-release> [ACT-reference|id] [--seconds=N]\n");
             exit(5);
     }
 } catch (DomainError $e) {
