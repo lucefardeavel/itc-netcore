@@ -5,7 +5,7 @@
         <div class="panel panel-info">
             <div class="panel-heading">{Lang::T('Announcement')}</div>
             <div class="panel-body">
-                {include file="$_path/../pages/Announcement.html"}
+                {nuxr_page name="Announcement"}
             </div>
         </div>
     </div>

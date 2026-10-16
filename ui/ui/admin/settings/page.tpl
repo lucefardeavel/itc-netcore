@@ -63,7 +63,7 @@
                     {if is_file("$PAGES_PATH/vouchers/$v")}
                         <div class="panel mb20 panel-primary panel-hovered" style="cursor: pointer;" onclick="selectTemplate(this)">
                             <div class="panel-heading">{str_replace(".html", '', $v)}</div>
-                            <div class="panel-body">{include file="$PAGES_PATH/vouchers/$v"}</div>
+                            <div class="panel-body">{nuxr_page voucher=$v}</div>
                         </div>
                     {/if}
                 {/foreach}

@@ -22,6 +22,8 @@ function _notify($msg, $type = 'e')
 }
 
 $ui = new Smarty();
+// WP9-D / NEW-8 (O8-A): editable page templates are rendered only by the sandboxed Smarty instance
+$ui->registerPlugin('function', 'nuxr_page', [\Reseller\Ui\PageTemplate::class, 'plugin']);
 $ui->assign('_kolaps', $_COOKIE['kolaps']);
 if (!empty($config['theme']) && $config['theme'] != 'default') {
     $_theme = APP_URL . '/' . $UI_PATH . '/themes/' . $config['theme'];

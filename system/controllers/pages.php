@@ -42,13 +42,15 @@ if (!\Reseller\Security\PathGuard::inside($path, $PAGES_PATH)) {
 }
 
 if ($nuxrMode === 'reset') {
+    // WP9-D / NEW-8 (O8-A): reset only from the templates bundled with this release; never from a remote
+    // branch (the former raw.githubusercontent.com/.../master fetch was a supply-chain path)
     $temp = "pages_template/" . $action . ".html";
     if (file_exists($temp) && \Reseller\Security\PathGuard::inside($temp, 'pages_template', true)) {
         if (!copy($temp, $path)) {
-            file_put_contents($path, Http::getData('https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/pages_template/' . rawurlencode($action) . '.html'));
+            file_put_contents($path, '');
         }
     } else {
-        file_put_contents($path, Http::getData('https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/pages_template/' . rawurlencode($action) . '.html'));
+        file_put_contents($path, '');
     }
     r2(getUrl('pages/') . $action);
 } else if ($nuxrMode === 'view') {

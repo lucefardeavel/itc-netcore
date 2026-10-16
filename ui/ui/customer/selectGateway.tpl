@@ -5,7 +5,7 @@
         <div class="col-md-6">
             <div class="panel panel-warning panel-hovered">
                 <div class="panel-heading">{Lang::T('Payment Info')}</div>
-                <div class="panel-body">{include file="$PAGES_PATH/Payment_Info.html"}</div>
+                <div class="panel-body">{nuxr_page name="Payment_Info"}</div>
             </div>
         </div>
     {/if}

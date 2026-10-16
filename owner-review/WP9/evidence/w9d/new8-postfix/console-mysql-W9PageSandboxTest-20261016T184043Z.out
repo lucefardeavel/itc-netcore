@@ -1,0 +1,29 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/new8-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/W9PageSandboxTest.php
+start: 2026-10-16T18:40:43Z
+ Container nuxbill-reseller-test-php82-run-2362bfd5d21a Creating 
+ Container nuxbill-reseller-test-php82-run-2362bfd5d21a Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+............                                                      12 / 12 (100%)
+
+Time: 00:06.436, Memory: 10.00 MB
+
+W9Page Sandbox (Reseller\Tests\Http\W9PageSandbox)
+ ✔ Plain page and allowlisted helpers render
+ ✔ Secret configuration is not available
+ ✔ Hostile template is refused without leaking with data set "static ORM read of a staff password hash"
+ ✔ Hostile template is refused without leaking with data set "php function"
+ ✔ Hostile template is refused without leaking with data set "php function via modifier"
+ ✔ Hostile template is refused without leaking with data set "include a local file"
+ ✔ Hostile template is refused without leaking with data set "fetch"
+ ✔ Hostile template is refused without leaking with data set "constant"
+ ✔ Hostile template is refused without leaking with data set "super global"
+ ✔ Hostile template is refused without leaking with data set "php tag"
+ ✔ Hostile template is refused without leaking with data set "template object"
+ ✔ Hostile template is refused without leaking with data set "unlisted static method of an allowed class"
+
+OK (12 tests, 65 assertions)
+exit=0 end: 2026-10-16T18:40:51Z

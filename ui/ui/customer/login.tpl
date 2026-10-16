@@ -6,10 +6,7 @@
         <div class="panel panel-info">
             <div class="panel-heading">{Lang::T('Announcement')}</div>
             <div class="panel-body">
-                {$Announcement = "{$PAGES_PATH}/Announcement.html"}
-                {if file_exists($Announcement)}
-                    {include file=$Announcement}
-                {/if}
+                {nuxr_page name="Announcement"}
             </div>
         </div>
     </div>

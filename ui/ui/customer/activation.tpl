@@ -8,7 +8,7 @@
                 <h3 class="box-title">{Lang::T('Order Voucher')}</h3>
             </div>
             <div class="box-body">
-                {include file="$PAGES_PATH/Order_Voucher.html"}
+                {nuxr_page name="Order_Voucher"}
             </div>
         </div>
     </div>
