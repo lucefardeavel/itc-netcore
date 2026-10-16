@@ -53,7 +53,7 @@
                                     <td width="30px">{$ds['id']}</td>
                                     <td width="200px">{Lang::dateTimeFormat($ds['authdate'])}</td>
                                     <td width="100px">{$ds['username']}</td>
-                                    <td width="10px">{include file="admin/nuxr/secret.tpl" nuxr_secret=$ds['pass'] nuxr_secret_label=Lang::T('Password')}</td>
+                                    <td width="10px"><span class="nuxr-muted" title="WP9-D / N-11">{Lang::T('Password')}: ••••••</span></td>
                                     <td>{$ds['reply']}</td>
                                 </tr>
                             {/foreach}
@@ -65,7 +65,7 @@
                         <li><div class="nuxr-mcard is-wrap"><div class="nuxr-mcard-main">
                             <span class="nuxr-mcard-title"><bdi dir="ltr">{$ds['username']|escape}</bdi> <span class="nuxr-muted">#<bdi dir="ltr">{$ds['id']|escape}</bdi></span></span>
                             <span class="nuxr-mcard-sub"><bdi dir="ltr">{Lang::dateTimeFormat($ds['authdate'])|escape}</bdi> · {$ds['reply']|escape}</span>
-                            <span class="nuxr-mcard-sub">{include file="admin/nuxr/secret.tpl" nuxr_secret=$ds['pass'] nuxr_secret_label=Lang::T('Password')}</span>
+                            <span class="nuxr-mcard-sub"><span class="nuxr-muted" title="WP9-D / N-11">{Lang::T('Password')}: ••••••</span></span>
                         </div></div></li>
                     {foreachelse}
                         <li><div class="nuxr-empty"><strong>{Lang::T('No records.')}</strong></div></li>

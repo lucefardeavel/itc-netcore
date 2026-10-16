@@ -46,7 +46,7 @@
                         <label for="password" class="col-md-2 control-label">{Lang::T('Router Secret')}</label>
                         <div class="col-md-6">
                             <input type="password" class="form-control" id="password" name="password"
-                                value="{$d['password']}" onmouseleave="this.type = 'password'"
+                                value="" autocomplete="new-password" placeholder="{Lang::T('Stored value is hidden. Leave empty to keep it.')}" onmouseleave="this.type = 'password'"
                                 onmouseenter="this.type = 'text'" data-nuxr-peek>
                         </div>
                     </div>

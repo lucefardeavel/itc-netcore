@@ -53,7 +53,7 @@ switch ($action) {
         $logs = ORM::for_table('radpostauth')
             ->select('id')
             ->select('username')
-            ->select('pass')
+            ->select_expr("'[hidden]'", 'pass') // WP9-D / N-11: post-auth passwords are never exported
             ->select('reply')
             ->select('authdate')
             ->order_by_asc('id')->find_array();

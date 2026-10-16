@@ -678,7 +678,7 @@
                     <div class="col-md-5">
                         <input type="password" class="form-control" id="telegram_bot" name="telegram_bot"
                             onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek
-                            value="{$_c['telegram_bot']}" placeholder="123456:asdasgdkuasghddlashdashldhalskdklasd">
+                            value="" autocomplete="new-password" data-nuxr-secret="set" title="{Lang::T('Stored value is hidden. Leave empty to keep it.')}" placeholder="123456:asdasgdkuasghddlashdashldhalskdklasd">
                     </div>
                 </div>
                 <div class="form-group">
@@ -826,7 +826,7 @@
                     <label for="smtp_pass" class="col-md-3 control-label">{Lang::T('SMTP Password')}</label>
                     <div class="col-md-5">
                         <input type="password" class="form-control" id="smtp_pass" name="smtp_pass"
-                            value="{$_c['smtp_pass']}" onmouseleave="this.type = 'password'"
+                            value="" autocomplete="new-password" data-nuxr-secret="set" title="{Lang::T('Stored value is hidden. Leave empty to keep it.')}" onmouseleave="this.type = 'password'"
                             onmouseenter="this.type = 'text'" data-nuxr-peek>
                     </div>
                 </div>
@@ -973,8 +973,8 @@
                 <div class="form-group">
                     <label for="tawkto_api_key" class="col-md-3 control-label">Tawk.to Javascript API key</label>
                     <div class="col-md-5">
-                        <input type="text" class="form-control" id="tawkto_api_key" name="tawkto_api_key"
-                            value="{$_c['tawkto_api_key']}" placeholder="39e52264cxxxxxxxxxxxxxdd078af5342e8">
+                        <input type="password" class="form-control" id="tawkto_api_key" name="tawkto_api_key"
+                            value="" autocomplete="new-password" data-nuxr-secret="set" title="{Lang::T('Stored value is hidden. Leave empty to keep it.')}" placeholder="39e52264cxxxxxxxxxxxxxdd078af5342e8">
                     </div>
                 </div>
                 <label class="col-md-2"></label>
@@ -1031,7 +1031,7 @@
                     <label for="http_proxyauth" class="col-md-3 control-label">{Lang::T('Proxy Server Login')}</label>
                     <div class="col-md-5">
                         <input type="password" class="form-control" id="http_proxyauth" name="http_proxyauth"
-                            autocomplete="off" value="{$_c['http_proxyauth']}" placeholder="username:password"
+                            value="" autocomplete="new-password" data-nuxr-secret="set" title="{Lang::T('Stored value is hidden. Leave empty to keep it.')}" placeholder="username:password"
                             onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek>
                     </div>
                 </div>
@@ -1138,7 +1138,7 @@
                     <label for="github_token" class="col-md-3 control-label">{Lang::T('Github Token')}</label>
                     <div class="col-md-5">
                         <input type="password" class="form-control" id="github_token" name="github_token"
-                            value="{$_c['github_token']}" placeholder="ghp_........"
+                            value="" autocomplete="new-password" data-nuxr-secret="set" title="{Lang::T('Stored value is hidden. Leave empty to keep it.')}" placeholder="ghp_........"
                             onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek>
                     </div>
                     <span class="help-block col-md-4"><a href="https://github.com/settings/tokens/new"

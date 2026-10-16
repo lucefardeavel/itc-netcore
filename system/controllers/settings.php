@@ -347,9 +347,13 @@ switch ($action) {
             $nuxrSuperAdminOnly = ['radius_enable', 'single_session', 'enable_session_timeout', 'session_timeout_duration',
                 'http_proxy', 'http_proxyauth', 'github_token', 'github_username'];
             $nuxrIsSA = \Reseller\Security\PermissionService::can($nuxrActor, $nuxrC::SYSTEM_CODE);
+            // WP9-D / N-11 + O-T0-1: secret settings are write-only (never rendered back); an empty submission
+            // keeps the stored value
+            $nuxrWriteOnly = ['smtp_pass', 'telegram_bot', 'http_proxyauth', 'github_token', 'tawkto_api_key'];
             foreach ($_POST as $key => $value) {
                 if (!is_string($key) || !in_array($key, $nuxrAllowed, true) || !is_scalar($value)
-                    || (in_array($key, $nuxrSuperAdminOnly, true) && !$nuxrIsSA)) {
+                    || (in_array($key, $nuxrSuperAdminOnly, true) && !$nuxrIsSA)
+                    || (in_array($key, $nuxrWriteOnly, true) && (string) $value === '')) {
                     continue;
                 }
                 $d = ORM::for_table('tbl_appconfig')->where('setting', $key)->find_one();

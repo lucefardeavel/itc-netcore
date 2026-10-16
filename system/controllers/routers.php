@@ -106,6 +106,11 @@ switch ($action) {
         $ip_address = _post('ip_address');
         $username = _post('username');
         $password = _post('password');
+        // WP9-D / N-11: the router API password is write-only; an empty field keeps the stored one
+        if ($password === '') {
+            $nuxrOld = ORM::for_table('tbl_routers')->find_one(_post('id'));
+            $password = $nuxrOld ? (string) $nuxrOld['password'] : '';
+        }
         $description = _post('description');
         $coordinates = _post('coordinates');
         $coverage = _post('coverage');
