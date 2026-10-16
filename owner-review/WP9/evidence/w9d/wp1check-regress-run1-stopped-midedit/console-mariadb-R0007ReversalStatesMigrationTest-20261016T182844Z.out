@@ -1,0 +1,40 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/wp1check-regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/R0007ReversalStatesMigrationTest.php
+start: 2026-10-16T18:28:44Z
+ Container nuxbill-reseller-test-php82-run-56e566472f82 Creating 
+ Container nuxbill-reseller-test-php82-run-56e566472f82 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......................                                           23 / 23 (100%)
+
+Time: 01:04.843, Memory: 10.00 MB
+
+R0007Reversal States Migration (Reseller\Tests\Integration\R0007ReversalStatesMigration)
+ ✔ Clean apply and verify on every variant with data set "V1_FRESH_INSTALL"
+ ✔ Clean apply and verify on every variant with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Clean apply and verify on every variant with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ R 0003 drift is still detected outside the redefined columns
+ ✔ Unknown third definition while applied is drift
+ ✔ To definition present while r 0007 not applied is a collision
+ ✔ Unknown third definition while not applied fails closed
+ ✔ Interrupted apply after first alter blocks and is recoverable
+ ✔ Failed second alter is partial and rollback restores
+ ✔ Rollback restores exact r 0003 definitions with data set "V1_FRESH_INSTALL"
+ ✔ Rollback restores exact r 0003 definitions with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Rollback restores exact r 0003 definitions with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Rollback refused while a new state is used with data set "activation REVERSAL_PENDING"
+ ✔ Rollback refused while a new state is used with data set "activation REVERSED"
+ ✔ Rollback refused while a new state is used with data set "event to_state REVERSAL_PENDING"
+ ✔ Rollback refused while a new state is used with data set "event to_state REVERSED"
+ ✔ Rollback refused while a new state is used with data set "event from_state REVERSAL_PENDING"
+ ✔ Rollback refused while a new state is used with data set "event from_state REVERSED"
+ ✔ Checksum and contract fingerprint are deterministic
+ ✔ Redefinition of a non project target is refused before any work with data set "legacy core table"
+ ✔ Redefinition of a non project target is refused before any work with data set "legacy non-core table"
+ ✔ Redefinition of a non project target is refused before any work with data set "wrong from"
+ ✔ Redefinition of a non project target is refused before any work with data set "unknown column"
+
+OK (23 tests, 241 assertions)
+exit=0 end: 2026-10-16T18:29:51Z

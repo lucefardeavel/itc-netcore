@@ -99,6 +99,20 @@ final class SchemaReadiness
                     }
                 }
             }
+            // WP9-D / WP1-CHECK: the CHECK constraints of the applied migrations must exist with their exact
+            // (normalized) expressions and be enforced on this connection; a same-name weakened, dropped or
+            // NOT ENFORCED CHECK, or a MariaDB session with check_constraint_checks = 0, is not ready
+            $expected = [];
+            foreach (self::EXPECTED as $id) {
+                $file = self::migrationsDir() . $id . '.php';
+                if (is_file($file)) {
+                    $expected = CheckConstraints::expectedFromSql((string) file_get_contents($file)) + $expected;
+                }
+            }
+            $engine = stripos((string) $pdo->query('SELECT VERSION()')->fetchColumn(), 'mariadb') !== false ? 'mariadb' : 'mysql';
+            foreach (CheckConstraints::problems($pdo, $engine, $expected) as $c) {
+                $problems[] = $c;
+            }
             foreach (self::REQUIRED_TABLES as $t) {
                 if ($has('SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?', [$t]) !== 1) {
                     $problems[] = "table {$t} missing";

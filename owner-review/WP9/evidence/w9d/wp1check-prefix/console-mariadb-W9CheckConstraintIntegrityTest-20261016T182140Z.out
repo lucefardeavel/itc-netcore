@@ -1,0 +1,464 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/wp1check-prefix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/W9CheckConstraintIntegrityTest.php
+start: 2026-10-16T18:21:41Z
+ Container nuxbill-reseller-test-php82-run-351c3d4f5c42 Creating 
+ Container nuxbill-reseller-test-php82-run-351c3d4f5c42 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.FFFF.F.F.                                                        10 / 10 (100%)
+
+Time: 00:10.278, Memory: 10.00 MB
+
+W9Check Constraint Integrity (Reseller\Tests\Integration\Wp9\W9CheckConstraintIntegrity)
+ ✔ Freshly migrated database verifies and is ready
+ ✘ Same name weakened check is drift and not ready with data set "wallet floor allows overdraft"
+   │
+   │ a same-name weakened CHECK must be reported as drift
+   │ expected DRIFT, got exit 0
+   │ {
+   │     "messages": [
+   │         "7 applied migration(s) verified against their contracts"
+   │     ],
+   │     "problems": [],
+   │     "drift": [],
+   │     "command": "verify",
+   │     "runner_version": "1.0.0",
+   │     "host": "mariadb",
+   │     "database": "wp1_t_7af01ecff8",
+   │     "engine": "mariadb",
+   │     "server_version": "10.11.19-MariaDB-ubu2204",
+   │     "variant": "V2_FRESH_INSTALL_UPDATED",
+   │     "core_fingerprint": "562ac6cc2fe419fcca22be18f25aafe217371e853c88b165191bb6820b39753e",
+   │     "extra_tables": [
+   │         "rad_acct",
+   │         "tbl_appconfig",
+   │         "tbl_bandwidth",
+   │         "tbl_coupons",
+   │         "tbl_customers_fields",
+   │         "tbl_customers_inbox",
+   │         "tbl_logs",
+   │         "tbl_message_logs",
+   │         "tbl_meta",
+   │         "tbl_odps",
+   │         "tbl_payment_gateway",
+   │         "tbl_pool",
+   │         "tbl_port_pool",
+   │         "tbl_routers",
+   │         "tbl_transactions",
+   │         "tbl_user_recharges",
+   │         "tbl_voucher",
+   │         "tbl_widgets"
+   │     ],
+   │     "migrations": [
+   │         {
+   │             "id": "R0001_manager_tree",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "a0b52f7fb4bd5f5e317c701d85df6db7d2a95ace04ec1b1112873191e514a5a7",
+   │             "recorded_checksum": "a0b52f7fb4bd5f5e317c701d85df6db7d2a95ace04ec1b1112873191e514a5a7"
+   │         },
+   │         {
+   │             "id": "R0002_pricing_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "38bceb1fb4f4be1b26bdb53c5317840109ce6f7e1ef7b98dc8af61b9b8c3b771",
+   │             "recorded_checksum": "38bceb1fb4f4be1b26bdb53c5317840109ce6f7e1ef7b98dc8af61b9b8c3b771"
+   │         },
+   │         {
+   │             "id": "R0003_activation_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd",
+   │             "recorded_checksum": "60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd"
+   │         },
+   │         {
+   │             "id": "R0004_wallet_finance_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 4,
+   │             "steps_total": 4,
+   │             "checksum": "7f3bc5bc8479bfe0f186ec4ae00af4623cc0c8d7201f13897f7184d4b92dffa7",
+   │             "recorded_checksum": "7f3bc5bc8479bfe0f186ec4ae00af4623cc0c8d7201f13897f7184d4b92dffa7"
+   │         },
+   │         {
+   │             "id": "R0005_customer_ownership",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "b69135eab8b70f3bed2355946d959be356c3d48897df9db6cb41c6c7e45b3854",
+   │             "recorded_checksum": "b69135eab8b70f3bed2355946d959be356c3d48897df9db6cb41c6c7e45b3854"
+   │         },
+   │         {
+   │             "id": "R0006_reseller_audit",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd",
+   │             "recorded_checksum": "f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd"
+   │         },
+   │         {
+   │             "id": "R0007_activation_reversal_states",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "b7edce53accd75a5af7bce6cbf66a9bae02b90f8f67211000a5fb08328ef00f6",
+   │             "recorded_checksum": "b7edce53accd75a5af7bce6cbf66a9bae02b90f8f67211000a5fb08328ef00f6"
+   │         }
+   │     ],
+   │     "blocking": [],
+   │     "pending": [],
+   │     "outcome": 0,
+   │     "outcome_name": "OK"
+   │ }
+   │
+   │ Failed asserting that 0 is identical to 4.
+   │
+   │ /repo/tests/Support/IntegrationTestCase.php:52
+   │ /repo/tests/Integration/Wp9/W9CheckConstraintIntegrityTest.php:88
+   │
+ ✘ Same name weakened check is drift and not ready with data set "ledger amount may be negative"
+   │
+   │ a same-name weakened CHECK must be reported as drift
+   │ expected DRIFT, got exit 0
+   │ {
+   │     "messages": [
+   │         "7 applied migration(s) verified against their contracts"
+   │     ],
+   │     "problems": [],
+   │     "drift": [],
+   │     "command": "verify",
+   │     "runner_version": "1.0.0",
+   │     "host": "mariadb",
+   │     "database": "wp1_t_1638e48a4e",
+   │     "engine": "mariadb",
+   │     "server_version": "10.11.19-MariaDB-ubu2204",
+   │     "variant": "V2_FRESH_INSTALL_UPDATED",
+   │     "core_fingerprint": "562ac6cc2fe419fcca22be18f25aafe217371e853c88b165191bb6820b39753e",
+   │     "extra_tables": [
+   │         "rad_acct",
+   │         "tbl_appconfig",
+   │         "tbl_bandwidth",
+   │         "tbl_coupons",
+   │         "tbl_customers_fields",
+   │         "tbl_customers_inbox",
+   │         "tbl_logs",
+   │         "tbl_message_logs",
+   │         "tbl_meta",
+   │         "tbl_odps",
+   │         "tbl_payment_gateway",
+   │         "tbl_pool",
+   │         "tbl_port_pool",
+   │         "tbl_routers",
+   │         "tbl_transactions",
+   │         "tbl_user_recharges",
+   │         "tbl_voucher",
+   │         "tbl_widgets"
+   │     ],
+   │     "migrations": [
+   │         {
+   │             "id": "R0001_manager_tree",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "a0b52f7fb4bd5f5e317c701d85df6db7d2a95ace04ec1b1112873191e514a5a7",
+   │             "recorded_checksum": "a0b52f7fb4bd5f5e317c701d85df6db7d2a95ace04ec1b1112873191e514a5a7"
+   │         },
+   │         {
+   │             "id": "R0002_pricing_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "38bceb1fb4f4be1b26bdb53c5317840109ce6f7e1ef7b98dc8af61b9b8c3b771",
+   │             "recorded_checksum": "38bceb1fb4f4be1b26bdb53c5317840109ce6f7e1ef7b98dc8af61b9b8c3b771"
+   │         },
+   │         {
+   │             "id": "R0003_activation_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd",
+   │             "recorded_checksum": "60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd"
+   │         },
+   │         {
+   │             "id": "R0004_wallet_finance_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 4,
+   │             "steps_total": 4,
+   │             "checksum": "7f3bc5bc8479bfe0f186ec4ae00af4623cc0c8d7201f13897f7184d4b92dffa7",
+   │             "recorded_checksum": "7f3bc5bc8479bfe0f186ec4ae00af4623cc0c8d7201f13897f7184d4b92dffa7"
+   │         },
+   │         {
+   │             "id": "R0005_customer_ownership",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "b69135eab8b70f3bed2355946d959be356c3d48897df9db6cb41c6c7e45b3854",
+   │             "recorded_checksum": "b69135eab8b70f3bed2355946d959be356c3d48897df9db6cb41c6c7e45b3854"
+   │         },
+   │         {
+   │             "id": "R0006_reseller_audit",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd",
+   │             "recorded_checksum": "f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd"
+   │         },
+   │         {
+   │             "id": "R0007_activation_reversal_states",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "b7edce53accd75a5af7bce6cbf66a9bae02b90f8f67211000a5fb08328ef00f6",
+   │             "recorded_checksum": "b7edce53accd75a5af7bce6cbf66a9bae02b90f8f67211000a5fb08328ef00f6"
+   │         }
+   │     ],
+   │     "blocking": [],
+   │     "pending": [],
+   │     "outcome": 0,
+   │     "outcome_name": "OK"
+   │ }
+   │
+   │ Failed asserting that 0 is identical to 4.
+   │
+   │ /repo/tests/Support/IntegrationTestCase.php:52
+   │ /repo/tests/Integration/Wp9/W9CheckConstraintIntegrityTest.php:88
+   │
+ ✘ Same name weakened check is drift and not ready with data set "tree depth rule removed"
+   │
+   │ a same-name weakened CHECK must be reported as drift
+   │ expected DRIFT, got exit 0
+   │ {
+   │     "messages": [
+   │         "7 applied migration(s) verified against their contracts"
+   │     ],
+   │     "problems": [],
+   │     "drift": [],
+   │     "command": "verify",
+   │     "runner_version": "1.0.0",
+   │     "host": "mariadb",
+   │     "database": "wp1_t_42dcac9a96",
+   │     "engine": "mariadb",
+   │     "server_version": "10.11.19-MariaDB-ubu2204",
+   │     "variant": "V2_FRESH_INSTALL_UPDATED",
+   │     "core_fingerprint": "562ac6cc2fe419fcca22be18f25aafe217371e853c88b165191bb6820b39753e",
+   │     "extra_tables": [
+   │         "rad_acct",
+   │         "tbl_appconfig",
+   │         "tbl_bandwidth",
+   │         "tbl_coupons",
+   │         "tbl_customers_fields",
+   │         "tbl_customers_inbox",
+   │         "tbl_logs",
+   │         "tbl_message_logs",
+   │         "tbl_meta",
+   │         "tbl_odps",
+   │         "tbl_payment_gateway",
+   │         "tbl_pool",
+   │         "tbl_port_pool",
+   │         "tbl_routers",
+   │         "tbl_transactions",
+   │         "tbl_user_recharges",
+   │         "tbl_voucher",
+   │         "tbl_widgets"
+   │     ],
+   │     "migrations": [
+   │         {
+   │             "id": "R0001_manager_tree",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "a0b52f7fb4bd5f5e317c701d85df6db7d2a95ace04ec1b1112873191e514a5a7",
+   │             "recorded_checksum": "a0b52f7fb4bd5f5e317c701d85df6db7d2a95ace04ec1b1112873191e514a5a7"
+   │         },
+   │         {
+   │             "id": "R0002_pricing_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "38bceb1fb4f4be1b26bdb53c5317840109ce6f7e1ef7b98dc8af61b9b8c3b771",
+   │             "recorded_checksum": "38bceb1fb4f4be1b26bdb53c5317840109ce6f7e1ef7b98dc8af61b9b8c3b771"
+   │         },
+   │         {
+   │             "id": "R0003_activation_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd",
+   │             "recorded_checksum": "60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd"
+   │         },
+   │         {
+   │             "id": "R0004_wallet_finance_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 4,
+   │             "steps_total": 4,
+   │             "checksum": "7f3bc5bc8479bfe0f186ec4ae00af4623cc0c8d7201f13897f7184d4b92dffa7",
+   │             "recorded_checksum": "7f3bc5bc8479bfe0f186ec4ae00af4623cc0c8d7201f13897f7184d4b92dffa7"
+   │         },
+   │         {
+   │             "id": "R0005_customer_ownership",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "b69135eab8b70f3bed2355946d959be356c3d48897df9db6cb41c6c7e45b3854",
+   │             "recorded_checksum": "b69135eab8b70f3bed2355946d959be356c3d48897df9db6cb41c6c7e45b3854"
+   │         },
+   │         {
+   │             "id": "R0006_reseller_audit",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd",
+   │             "recorded_checksum": "f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd"
+   │         },
+   │         {
+   │             "id": "R0007_activation_reversal_states",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "b7edce53accd75a5af7bce6cbf66a9bae02b90f8f67211000a5fb08328ef00f6",
+   │             "recorded_checksum": "b7edce53accd75a5af7bce6cbf66a9bae02b90f8f67211000a5fb08328ef00f6"
+   │         }
+   │     ],
+   │     "blocking": [],
+   │     "pending": [],
+   │     "outcome": 0,
+   │     "outcome_name": "OK"
+   │ }
+   │
+   │ Failed asserting that 0 is identical to 4.
+   │
+   │ /repo/tests/Support/IntegrationTestCase.php:52
+   │ /repo/tests/Integration/Wp9/W9CheckConstraintIntegrityTest.php:88
+   │
+ ✘ Same name weakened check is drift and not ready with data set "base cost may be negative"
+   │
+   │ a same-name weakened CHECK must be reported as drift
+   │ expected DRIFT, got exit 0
+   │ {
+   │     "messages": [
+   │         "7 applied migration(s) verified against their contracts"
+   │     ],
+   │     "problems": [],
+   │     "drift": [],
+   │     "command": "verify",
+   │     "runner_version": "1.0.0",
+   │     "host": "mariadb",
+   │     "database": "wp1_t_739c3ff567",
+   │     "engine": "mariadb",
+   │     "server_version": "10.11.19-MariaDB-ubu2204",
+   │     "variant": "V2_FRESH_INSTALL_UPDATED",
+   │     "core_fingerprint": "562ac6cc2fe419fcca22be18f25aafe217371e853c88b165191bb6820b39753e",
+   │     "extra_tables": [
+   │         "rad_acct",
+   │         "tbl_appconfig",
+   │         "tbl_bandwidth",
+   │         "tbl_coupons",
+   │         "tbl_customers_fields",
+   │         "tbl_customers_inbox",
+   │         "tbl_logs",
+   │         "tbl_message_logs",
+   │         "tbl_meta",
+   │         "tbl_odps",
+   │         "tbl_payment_gateway",
+   │         "tbl_pool",
+   │         "tbl_port_pool",
+   │         "tbl_routers",
+   │         "tbl_transactions",
+   │         "tbl_user_recharges",
+   │         "tbl_voucher",
+   │         "tbl_widgets"
+   │     ],
+   │     "migrations": [
+   │         {
+   │             "id": "R0001_manager_tree",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "a0b52f7fb4bd5f5e317c701d85df6db7d2a95ace04ec1b1112873191e514a5a7",
+   │             "recorded_checksum": "a0b52f7fb4bd5f5e317c701d85df6db7d2a95ace04ec1b1112873191e514a5a7"
+   │         },
+   │         {
+   │             "id": "R0002_pricing_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "38bceb1fb4f4be1b26bdb53c5317840109ce6f7e1ef7b98dc8af61b9b8c3b771",
+   │             "recorded_checksum": "38bceb1fb4f4be1b26bdb53c5317840109ce6f7e1ef7b98dc8af61b9b8c3b771"
+   │         },
+   │         {
+   │             "id": "R0003_activation_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd",
+   │             "recorded_checksum": "60e63156bdc90e9772dd479f69c9507fdc648f98dbbe301ab060ff59fe3f9acd"
+   │         },
+   │         {
+   │             "id": "R0004_wallet_finance_foundation",
+   │             "status": "APPLIED",
+   │             "steps_completed": 4,
+   │             "steps_total": 4,
+   │             "checksum": "7f3bc5bc8479bfe0f186ec4ae00af4623cc0c8d7201f13897f7184d4b92dffa7",
+   │             "recorded_checksum": "7f3bc5bc8479bfe0f186ec4ae00af4623cc0c8d7201f13897f7184d4b92dffa7"
+   │         },
+   │         {
+   │             "id": "R0005_customer_ownership",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "b69135eab8b70f3bed2355946d959be356c3d48897df9db6cb41c6c7e45b3854",
+   │             "recorded_checksum": "b69135eab8b70f3bed2355946d959be356c3d48897df9db6cb41c6c7e45b3854"
+   │         },
+   │         {
+   │             "id": "R0006_reseller_audit",
+   │             "status": "APPLIED",
+   │             "steps_completed": 1,
+   │             "steps_total": 1,
+   │             "checksum": "f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd",
+   │             "recorded_checksum": "f1a761196fcb9e0850888971d009d5e8a09514ffb10f605d78023fdb88327abd"
+   │         },
+   │         {
+   │             "id": "R0007_activation_reversal_states",
+   │             "status": "APPLIED",
+   │             "steps_completed": 2,
+   │             "steps_total": 2,
+   │             "checksum": "b7edce53accd75a5af7bce6cbf66a9bae02b90f8f67211000a5fb08328ef00f6",
+   │             "recorded_checksum": "b7edce53accd75a5af7bce6cbf66a9bae02b90f8f67211000a5fb08328ef00f6"
+   │         }
+   │     ],
+   │     "blocking": [],
+   │     "pending": [],
+   │     "outcome": 0,
+   │     "outcome_name": "OK"
+   │ }
+   │
+   │ Failed asserting that 0 is identical to 4.
+   │
+   │ /repo/tests/Support/IntegrationTestCase.php:52
+   │ /repo/tests/Integration/Wp9/W9CheckConstraintIntegrityTest.php:88
+   │
+ ✔ Restored exact check verifies again
+ ✘ Missing check is not ready
+   │
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/W9CheckConstraintIntegrityTest.php:111
+   │
+ ✔ Mysql not enforced check is drift and not ready
+ ✘ Mariadb session without check enforcement is not ready
+   │
+   │ a connection that does not enforce CHECK constraints must not be ready
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/W9CheckConstraintIntegrityTest.php:139
+   │
+ ✔ Record engine check clauses
+
+FAILURES!
+Tests: 10, Assertions: 23, Failures: 6.
+
+exit=1 end: 2026-10-16T18:21:52Z

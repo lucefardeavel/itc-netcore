@@ -1,0 +1,60 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/wp1check-regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp3b/PricingSchemaReadinessTest.php
+start: 2026-10-16T18:29:54Z
+ Container nuxbill-reseller-test-php82-run-12967d1f99e6 Creating 
+ Container nuxbill-reseller-test-php82-run-12967d1f99e6 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.FF                                                                 3 / 3 (100%)
+
+Time: 00:01.823, Memory: 12.00 MB
+
+Pricing Schema Readiness (Reseller\Tests\Integration\Wp3b\PricingSchemaReadiness)
+ ✔ Expected is r 0001 to r 0007
+ ✘ Missing pricing table fails closed and recovers with data set "tbl_reseller_plan_base_costs"
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      'ready' => false,
+   │      'problems' => Array &1 [
+   │ -        0 => 'table tbl_reseller_plan_base_costs missing',
+   │ +        0 => 'CHECK ck_basecost_nonneg on tbl_reseller_plan_base_costs is missing',
+   │ +        1 => 'CHECK ck_basecost_resale_bool on tbl_reseller_plan_base_costs is missing',
+   │ +        2 => 'table tbl_reseller_plan_base_costs missing',
+   │      ],
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp3b/PricingSchemaReadinessTest.php:80
+   │
+ ✘ Missing pricing table fails closed and recovers with data set "tbl_manager_plan_prices"
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      'ready' => false,
+   │      'problems' => Array &1 [
+   │ -        0 => 'table tbl_manager_plan_prices missing',
+   │ +        0 => 'CHECK ck_mpp_wholesale_nonneg on tbl_manager_plan_prices is missing',
+   │ +        1 => 'CHECK ck_mpp_retail_nonneg on tbl_manager_plan_prices is missing',
+   │ +        2 => 'CHECK ck_mpp_enabled_bool on tbl_manager_plan_prices is missing',
+   │ +        3 => 'CHECK ck_mpp_availability_audit on tbl_manager_plan_prices is missing',
+   │ +        4 => 'CHECK ck_mpp_wholesale_audit on tbl_manager_plan_prices is missing',
+   │ +        5 => 'CHECK ck_mpp_retail_audit on tbl_manager_plan_prices is missing',
+   │ +        6 => 'table tbl_manager_plan_prices missing',
+   │      ],
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp3b/PricingSchemaReadinessTest.php:80
+   │
+
+FAILURES!
+Tests: 3, Assertions: 20, Failures: 2.
+
+exit=1 end: 2026-10-16T18:29:57Z

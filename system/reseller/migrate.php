@@ -34,6 +34,17 @@ require_once __DIR__ . '/Migration/MigrationSet.php';
 require_once __DIR__ . '/Migration/VariantRegistry.php';
 require_once __DIR__ . '/Migration/Registry.php';
 require_once __DIR__ . '/Migration/Runner.php';
+// WP9-D / WP1-CHECK: the CHECK-expression verifier is shared with the runtime schema readiness (a runtime
+// class); this CLI process loads it explicitly.
+if (!defined('NUXR_RUNTIME')) {
+    define('NUXR_RUNTIME', true);
+}
+$nuxrChecks = dirname(__DIR__) . '/autoload/Reseller/Domain/CheckConstraints.php';
+if (!is_file($nuxrChecks)) {
+    fwrite(STDERR, "NOT_READY: the CHECK-constraint verifier (system/autoload/Reseller/Domain/CheckConstraints.php) is missing\n");
+    exit(Outcome::NOT_READY);
+}
+require_once $nuxrChecks;
 
 use Reseller\Migration\Db;
 use Reseller\Migration\MigrationSet;

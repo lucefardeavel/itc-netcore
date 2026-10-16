@@ -1,0 +1,192 @@
+[
+    {
+        "t": "tbl_manager_ledger",
+        "n": "ck_ledger_amount_pos",
+        "c": "(`amount` > 0)"
+    },
+    {
+        "t": "tbl_manager_ledger",
+        "n": "ck_ledger_customer_actor",
+        "c": "((`actor_type` <> _utf8mb4\\'CUSTOMER\\') or (`actor_customer_id` is not null))"
+    },
+    {
+        "t": "tbl_manager_ledger",
+        "n": "ck_ledger_math",
+        "c": "(((`direction` = _utf8mb4\\'CREDIT\\') and (`balance_after` = (`balance_before` + `amount`))) or ((`direction` = _utf8mb4\\'DEBIT\\') and (`balance_after` = (`balance_before` - `amount`))))"
+    },
+    {
+        "t": "tbl_manager_ledger",
+        "n": "ck_ledger_staff_operator",
+        "c": "((`actor_type` <> _utf8mb4\\'STAFF\\') or (`operator_id` is not null))"
+    },
+    {
+        "t": "tbl_manager_plan_prices",
+        "n": "ck_mpp_availability_audit",
+        "c": "(((`is_enabled` is null) and (`availability_set_by` is null) and (`availability_set_at` is null)) or ((`is_enabled` is not null) and (`availability_set_by` is not null) and (`availability_set_at` is not null)))"
+    },
+    {
+        "t": "tbl_manager_plan_prices",
+        "n": "ck_mpp_enabled_bool",
+        "c": "((`is_enabled` is null) or (`is_enabled` in (0,1)))"
+    },
+    {
+        "t": "tbl_manager_plan_prices",
+        "n": "ck_mpp_retail_audit",
+        "c": "(((`retail_price` is null) and (`retail_set_by` is null) and (`retail_set_at` is null)) or ((`retail_price` is not null) and (`retail_set_by` is not null) and (`retail_set_at` is not null)))"
+    },
+    {
+        "t": "tbl_manager_plan_prices",
+        "n": "ck_mpp_retail_nonneg",
+        "c": "((`retail_price` is null) or (`retail_price` >= 0))"
+    },
+    {
+        "t": "tbl_manager_plan_prices",
+        "n": "ck_mpp_wholesale_audit",
+        "c": "(((`wholesale_cost` is null) and (`wholesale_set_by` is null) and (`wholesale_set_at` is null)) or ((`wholesale_cost` is not null) and (`wholesale_set_by` is not null) and (`wholesale_set_at` is not null)))"
+    },
+    {
+        "t": "tbl_manager_plan_prices",
+        "n": "ck_mpp_wholesale_nonneg",
+        "c": "((`wholesale_cost` is null) or (`wholesale_cost` >= 0))"
+    },
+    {
+        "t": "tbl_manager_transfers",
+        "n": "ck_trf_amount_pos",
+        "c": "(`amount` > 0)"
+    },
+    {
+        "t": "tbl_manager_transfers",
+        "n": "ck_trf_shape",
+        "c": "(((`operation_type` in (_utf8mb4\\'PROVIDER_FUNDING\\',_utf8mb4\\'ADJUSTMENT_CREDIT\\')) and (`from_manager_id` is null) and (`to_manager_id` is not null)) or ((`operation_type` in (_utf8mb4\\'PROVIDER_WITHDRAWAL\\',_utf8mb4\\'ADJUSTMENT_DEBIT\\')) and (`from_manager_id` is not null) and (`to_manager_id` is null)) or ((`operation_type` = _utf8mb4\\'PARENT_CHILD_TRANSFER\\') and (`from_manager_id` is not null) and (`to_manager_id` is not null) and (`from_manager_id` <> `to_manager_id`)))"
+    },
+    {
+        "t": "tbl_manager_tree",
+        "n": "ck_tree_depth_self",
+        "c": "(((`depth` = 0) and (`ancestor_id` = `descendant_id`)) or ((`depth` > 0) and (`ancestor_id` <> `descendant_id`)))"
+    },
+    {
+        "t": "tbl_manager_wallet_reservations",
+        "n": "ck_res_amount_pos",
+        "c": "(`amount` > 0)"
+    },
+    {
+        "t": "tbl_manager_wallet_reservations",
+        "n": "ck_res_commit_link",
+        "c": "((`status` <> _utf8mb4\\'COMMITTED\\') or (`committed_ledger_entry_id` is not null))"
+    },
+    {
+        "t": "tbl_manager_wallet_reservations",
+        "n": "ck_res_resolution",
+        "c": "(((`status` = _utf8mb4\\'ACTIVE\\') and (`resolved_at` is null)) or ((`status` <> _utf8mb4\\'ACTIVE\\') and (`resolved_at` is not null)))"
+    },
+    {
+        "t": "tbl_manager_wallets",
+        "n": "ck_wallet_debt_nonneg",
+        "c": "(`debt_limit` >= 0)"
+    },
+    {
+        "t": "tbl_manager_wallets",
+        "n": "ck_wallet_floor",
+        "c": "((`balance` + `debt_limit`) >= 0)"
+    },
+    {
+        "t": "tbl_reseller_activation_events",
+        "n": "ck_evt_customer_actor",
+        "c": "((`actor_type` <> _utf8mb4\\'CUSTOMER\\') or (`actor_customer_id` is not null))"
+    },
+    {
+        "t": "tbl_reseller_activation_events",
+        "n": "ck_evt_initial",
+        "c": "((`from_state` is not null) or (`to_state` = _utf8mb4\\'CREATED\\'))"
+    },
+    {
+        "t": "tbl_reseller_activation_events",
+        "n": "ck_evt_metadata_json",
+        "c": "((`metadata` is null) or json_valid(`metadata`))"
+    },
+    {
+        "t": "tbl_reseller_activation_events",
+        "n": "ck_evt_staff_actor",
+        "c": "((`actor_type` <> _utf8mb4\\'STAFF\\') or (`actor_user_id` is not null))"
+    },
+    {
+        "t": "tbl_reseller_activations",
+        "n": "ck_act_change_plan_previous",
+        "c": "((`action` <> _utf8mb4\\'CHANGE_PLAN\\') or (`previous_plan_id` is not null))"
+    },
+    {
+        "t": "tbl_reseller_activations",
+        "n": "ck_act_customer_actor",
+        "c": "((`actor_type` <> _utf8mb4\\'CUSTOMER\\') or (`actor_customer_id` is not null))"
+    },
+    {
+        "t": "tbl_reseller_activations",
+        "n": "ck_act_plan_snapshot_json",
+        "c": "((`plan_snapshot` is null) or json_valid(`plan_snapshot`))"
+    },
+    {
+        "t": "tbl_reseller_activations",
+        "n": "ck_act_pricing_snapshot_json",
+        "c": "((`pricing_chain_snapshot` is null) or json_valid(`pricing_chain_snapshot`))"
+    },
+    {
+        "t": "tbl_reseller_activations",
+        "n": "ck_act_retail_nonneg",
+        "c": "((`retail_price` is null) or (`retail_price` >= 0))"
+    },
+    {
+        "t": "tbl_reseller_activations",
+        "n": "ck_act_settlement_nonneg",
+        "c": "((`provider_settlement_amount` is null) or (`provider_settlement_amount` >= 0))"
+    },
+    {
+        "t": "tbl_reseller_activations",
+        "n": "ck_act_staff_actor",
+        "c": "((`actor_type` <> _utf8mb4\\'STAFF\\') or (`actor_user_id` is not null))"
+    },
+    {
+        "t": "tbl_reseller_activations",
+        "n": "ck_act_wholesale_nonneg",
+        "c": "((`wholesale_cost` is null) or (`wholesale_cost` >= 0))"
+    },
+    {
+        "t": "tbl_reseller_audit_events",
+        "n": "ck_audit_actor_snapshot_json",
+        "c": "json_valid(`actor_snapshot`)"
+    },
+    {
+        "t": "tbl_reseller_audit_events",
+        "n": "ck_audit_after_json",
+        "c": "((`after_json` is null) or json_valid(`after_json`))"
+    },
+    {
+        "t": "tbl_reseller_audit_events",
+        "n": "ck_audit_before_json",
+        "c": "((`before_json` is null) or json_valid(`before_json`))"
+    },
+    {
+        "t": "tbl_reseller_audit_events",
+        "n": "ck_audit_customer_actor",
+        "c": "((`actor_type` <> _utf8mb4\\'CUSTOMER\\') or (`actor_customer_id` is not null))"
+    },
+    {
+        "t": "tbl_reseller_audit_events",
+        "n": "ck_audit_staff_actor",
+        "c": "((`actor_type` <> _utf8mb4\\'STAFF\\') or (`actor_user_id` is not null))"
+    },
+    {
+        "t": "tbl_reseller_audit_events",
+        "n": "ck_audit_target_snapshot_json",
+        "c": "((`target_snapshot` is null) or json_valid(`target_snapshot`))"
+    },
+    {
+        "t": "tbl_reseller_plan_base_costs",
+        "n": "ck_basecost_nonneg",
+        "c": "(`base_cost` >= 0)"
+    },
+    {
+        "t": "tbl_reseller_plan_base_costs",
+        "n": "ck_basecost_resale_bool",
+        "c": "(`is_resale_enabled` in (0,1))"
+    }
+]

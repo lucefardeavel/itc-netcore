@@ -624,7 +624,9 @@ final class Runner
     /** @return list<string> */
     private function contractDiff(MigrationDefinition $m): array
     {
-        $d = [];
+        // WP9-D / WP1-CHECK: every CHECK of this migration is verified by its normalized expression and
+        // its enforcement, not only by its name
+        $d = \Reseller\Domain\CheckConstraints::problems($this->db->pdo, $this->db->engineFamily, $this->expectedChecks($m));
         foreach ($m->contract['tables'] as $t => $expected) {
             $actual = $this->inspector->table($t);
             $d = array_merge($d, SchemaInspector::diff($t, SchemaInspector::normalise($this->withLaterRedefinitions($m, $t, $expected, $actual)), SchemaInspector::normalise($actual)));
@@ -658,6 +660,16 @@ final class Runner
             }
         }
         return $d;
+    }
+
+    /** @return array<string,array{table:string,expr:string}> CHECK constraints declared by the UP steps of $m */
+    private function expectedChecks(MigrationDefinition $m): array
+    {
+        $out = [];
+        foreach ($m->up as $step) {
+            $out = \Reseller\Domain\CheckConstraints::expectedFromSql((string) $step['sql']) + $out;
+        }
+        return $out;
     }
 
     private function contractFingerprint(MigrationDefinition $m): string

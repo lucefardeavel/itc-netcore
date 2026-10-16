@@ -130,10 +130,14 @@ final class PartialFailureTest extends IntegrationTestCase
     public function testPostflightContractMismatchFailsClosed(): void
     {
         $db = $this->newDatabase(FixtureBuilder::V1);
-        $copy = sys_get_temp_dir() . '/wp1_runner_badcontract_' . bin2hex(random_bytes(4));
+        // the copy mirrors system/ (reseller/ + the shared WP9 CHECK verifier in autoload/Reseller/Domain/)
+        $root = sys_get_temp_dir() . '/wp1_runner_badcontract_' . bin2hex(random_bytes(4));
+        $copy = $root . '/reseller';
         $src = dirname(__DIR__, 2) . '/system/reseller';
         mkdir($copy . '/Migration', 0777, true);
         mkdir($copy . '/migrations', 0777, true);
+        mkdir($root . '/autoload/Reseller/Domain', 0777, true);
+        copy(dirname(__DIR__, 2) . '/system/autoload/Reseller/Domain/CheckConstraints.php', $root . '/autoload/Reseller/Domain/CheckConstraints.php');
         copy($src . '/migrate.php', $copy . '/migrate.php');
         foreach (glob($src . '/Migration/*.php') as $f) {
             copy($f, $copy . '/Migration/' . basename($f));
@@ -152,10 +156,14 @@ final class PartialFailureTest extends IntegrationTestCase
             $this->assertSame(0, (int) $db->value("SELECT COUNT(*) FROM tbl_project_migrations WHERE status = 'APPLIED'"), 'never marked applied');
             $this->assertOutcome(Outcome::NOT_READY, \Reseller\Tests\Support\RunnerProcess::run($db, 'migrate', [], [], $copy . '/migrate.php'), 'blocked afterwards');
         } finally {
-            array_map('unlink', array_merge(glob($copy . '/*/*.php'), [$copy . '/migrate.php']));
+            array_map('unlink', array_merge(glob($copy . '/*/*.php'), [$copy . '/migrate.php', $root . '/autoload/Reseller/Domain/CheckConstraints.php']));
             rmdir($copy . '/Migration');
             rmdir($copy . '/migrations');
             rmdir($copy);
+            rmdir($root . '/autoload/Reseller/Domain');
+            rmdir($root . '/autoload/Reseller');
+            rmdir($root . '/autoload');
+            rmdir($root);
         }
     }
 

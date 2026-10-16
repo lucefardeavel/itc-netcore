@@ -1,0 +1,23 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/wp1check-regress/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/DriftAndRegistryTest.php
+start: 2026-10-16T18:31:14Z
+ Container nuxbill-reseller-test-php82-run-45ef2f7aa48f Creating 
+ Container nuxbill-reseller-test-php82-run-45ef2f7aa48f Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......                                                              6 / 6 (100%)
+
+Time: 00:29.280, Memory: 10.00 MB
+
+Drift And Registry (Reseller\Tests\Integration\DriftAndRegistry)
+ ✔ Manual change to project table is drift
+ ✔ Edited applied migration file is drift
+ ✔ Tampered registry is not ready
+ ✔ Unknown migration in registry is not ready
+ ✔ Concurrent runner is refused by lock
+ ✔ Committed variant registry equals freshly built fixtures
+
+OK (6 tests, 31 assertions)
+exit=0 end: 2026-10-16T18:31:46Z

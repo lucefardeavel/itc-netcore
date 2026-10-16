@@ -1,0 +1,23 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/wp1check-regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/RollbackTest.php
+start: 2026-10-16T18:27:46Z
+ Container nuxbill-reseller-test-php82-run-bf4f16413895 Creating 
+ Container nuxbill-reseller-test-php82-run-bf4f16413895 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......                                                              6 / 6 (100%)
+
+Time: 00:19.278, Memory: 10.00 MB
+
+Rollback (Reseller\Tests\Integration\Rollback)
+ ✔ Full rollback restores pre migration core fingerprint and forward again with data set "V1_FRESH_INSTALL"
+ ✔ Full rollback restores pre migration core fingerprint and forward again with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Full rollback restores pre migration core fingerprint and forward again with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Partial rollback to target
+ ✔ Rollback refuses when new domain holds data
+ ✔ Rollback requires explicit scope
+
+OK (6 tests, 84 assertions)
+exit=0 end: 2026-10-16T18:28:07Z

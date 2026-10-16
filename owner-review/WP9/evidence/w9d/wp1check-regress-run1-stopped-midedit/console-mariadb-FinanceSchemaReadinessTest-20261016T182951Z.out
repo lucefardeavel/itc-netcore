@@ -1,0 +1,119 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/wp1check-regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp3a/FinanceSchemaReadinessTest.php
+start: 2026-10-16T18:29:51Z
+ Container nuxbill-reseller-test-php82-run-ce44ee415a83 Creating 
+ Container nuxbill-reseller-test-php82-run-ce44ee415a83 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.FFFFF                                                              6 / 6 (100%)
+
+Time: 00:01.750, Memory: 10.00 MB
+
+Finance Schema Readiness (Reseller\Tests\Integration\Wp3a\FinanceSchemaReadiness)
+ ✔ Required table list is exact
+ ✘ Missing finance table fails closed and recovers with data set "tbl_reseller_activations"
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      'ready' => false,
+   │      'problems' => Array &1 [
+   │ -        0 => 'table tbl_reseller_activations missing',
+   │ +        0 => 'CHECK ck_act_wholesale_nonneg on tbl_reseller_activations is missing',
+   │ +        1 => 'CHECK ck_act_retail_nonneg on tbl_reseller_activations is missing',
+   │ +        2 => 'CHECK ck_act_settlement_nonneg on tbl_reseller_activations is missing',
+   │ +        3 => 'CHECK ck_act_plan_snapshot_json on tbl_reseller_activations is missing',
+   │ +        4 => 'CHECK ck_act_pricing_snapshot_json on tbl_reseller_activations is missing',
+   │ +        5 => 'CHECK ck_act_change_plan_previous on tbl_reseller_activations is missing',
+   │ +        6 => 'CHECK ck_act_staff_actor on tbl_reseller_activations is missing',
+   │ +        7 => 'CHECK ck_act_customer_actor on tbl_reseller_activations is missing',
+   │ +        8 => 'table tbl_reseller_activations missing',
+   │      ],
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp3a/FinanceSchemaReadinessTest.php:105
+   │
+ ✘ Missing finance table fails closed and recovers with data set "tbl_manager_wallets"
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      'ready' => false,
+   │      'problems' => Array &1 [
+   │ -        0 => 'table tbl_manager_wallets missing',
+   │ +        0 => 'CHECK ck_wallet_debt_nonneg on tbl_manager_wallets is missing',
+   │ +        1 => 'CHECK ck_wallet_floor on tbl_manager_wallets is missing',
+   │ +        2 => 'table tbl_manager_wallets missing',
+   │      ],
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp3a/FinanceSchemaReadinessTest.php:105
+   │
+ ✘ Missing finance table fails closed and recovers with data set "tbl_manager_transfers"
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      'ready' => false,
+   │      'problems' => Array &1 [
+   │ -        0 => 'table tbl_manager_transfers missing',
+   │ +        0 => 'CHECK ck_trf_amount_pos on tbl_manager_transfers is missing',
+   │ +        1 => 'CHECK ck_trf_shape on tbl_manager_transfers is missing',
+   │ +        2 => 'table tbl_manager_transfers missing',
+   │      ],
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp3a/FinanceSchemaReadinessTest.php:105
+   │
+ ✘ Missing finance table fails closed and recovers with data set "tbl_manager_ledger"
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      'ready' => false,
+   │      'problems' => Array &1 [
+   │ -        0 => 'table tbl_manager_ledger missing',
+   │ +        0 => 'CHECK ck_ledger_amount_pos on tbl_manager_ledger is missing',
+   │ +        1 => 'CHECK ck_ledger_math on tbl_manager_ledger is missing',
+   │ +        2 => 'CHECK ck_ledger_staff_operator on tbl_manager_ledger is missing',
+   │ +        3 => 'CHECK ck_ledger_customer_actor on tbl_manager_ledger is missing',
+   │ +        4 => 'table tbl_manager_ledger missing',
+   │      ],
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp3a/FinanceSchemaReadinessTest.php:105
+   │
+ ✘ Missing finance table fails closed and recovers with data set "tbl_manager_wallet_reservations"
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      'ready' => false,
+   │      'problems' => Array &1 [
+   │ -        0 => 'table tbl_manager_wallet_reservations missing',
+   │ +        0 => 'CHECK ck_res_amount_pos on tbl_manager_wallet_reservations is missing',
+   │ +        1 => 'CHECK ck_res_resolution on tbl_manager_wallet_reservations is missing',
+   │ +        2 => 'CHECK ck_res_commit_link on tbl_manager_wallet_reservations is missing',
+   │ +        3 => 'table tbl_manager_wallet_reservations missing',
+   │      ],
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp3a/FinanceSchemaReadinessTest.php:105
+   │
+
+FAILURES!
+Tests: 6, Assertions: 25, Failures: 5.
+
+exit=1 end: 2026-10-16T18:29:54Z

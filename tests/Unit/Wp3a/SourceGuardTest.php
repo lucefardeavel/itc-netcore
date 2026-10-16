@@ -38,14 +38,19 @@ final class SourceGuardTest extends TestCase
         // (previous pin d4567f663193e16b6db7397ff94ed37c268274ebc5f6ce8a645af3c79fca2b85)
         'system/autoload/Package.php' => '9759fca72b5f33236d5a7a00ceaf4ffb9f2dc76b86b16a03a70c6ac145e4aa54',
         // accepted WP1 migration runner
-        'system/reseller/migrate.php' => '8420e021293260ae01f097e5d202221003a172e14e116933831e0087f44803fa',
+        // WP9-D / WP1-CHECK (owner WP8_WP9_WP10_AUTONOMOUS_EXECUTION_AUTHORIZED, protected-file exception, 2026-10-16):
+        // migrate.php loads the shared CHECK-expression verifier; Runner::contractDiff verifies every CHECK of a
+        // migration by normalized expression and enforcement (previous pins migrate.php
+        // 8420e021293260ae01f097e5d202221003a172e14e116933831e0087f44803fa, Runner.php
+        // c0172038c69f6ee3da86faaee2ea0f777028d805d1361d4d9c1abc65dbdfc247)
+        'system/reseller/migrate.php' => 'e1aa8be7f3be640076acedb3e5f6ebb4eff00ae942f82e6b7af3c9b04b6faad0',
         'system/reseller/Migration/Db.php' => 'd5123172de0d8bda244c3c8081f8c156e454766d50c3af49958b4f30048c1c51',
         'system/reseller/Migration/Grants.php' => '321f1e3a69d23000417a2bab638383c25d05fd62fa4048446b08a4e2b5ab1d58',
         'system/reseller/Migration/MigrationDefinition.php' => 'faf492d26e3598927ac7c99b2730ecdb57672ae86936e4b0a7923caa8393ddf2',
         'system/reseller/Migration/MigrationSet.php' => '7421f6f5ce66ca4bd87000d9c57a9e1afd03a07bb6b88353209699111c48187e',
         'system/reseller/Migration/Outcome.php' => 'af89a92118e38c2f6a952bfa3e7e9ce2d2f8d3f095ae6d5485174326e78ff491',
         'system/reseller/Migration/Registry.php' => 'dceb66f1c05450df45e4452d2407edcecf8fd60af24744dc9ef96d010e9a26a2',
-        'system/reseller/Migration/Runner.php' => 'c0172038c69f6ee3da86faaee2ea0f777028d805d1361d4d9c1abc65dbdfc247',
+        'system/reseller/Migration/Runner.php' => '4fd83961774ad47d91545f3ee3ecf8f94845a9192a01e48013e77cc463ec9d26',
         'system/reseller/Migration/SchemaInspector.php' => '7ee73bfd5319c81c7169c631a5de497af09502c2c0b39bd27dbf65c702c5a5a0',
         'system/reseller/Migration/VariantRegistry.php' => 'f11f0031041a2d610dbdb2675e92885f510ca8ac039e856f06cdb05e18d006d6',
         'system/reseller/Migration/variants.php' => '4d9f7f8a38c81d29164a474aaa36a0d29ef10bc7c12beecdc37f02b391022202',

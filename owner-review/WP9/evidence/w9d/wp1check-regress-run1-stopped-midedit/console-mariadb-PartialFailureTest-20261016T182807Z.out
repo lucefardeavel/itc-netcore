@@ -1,0 +1,41 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/wp1check-regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/PartialFailureTest.php
+start: 2026-10-16T18:28:07Z
+ Container nuxbill-reseller-test-php82-run-9bdc305c1d15 Creating 
+ Container nuxbill-reseller-test-php82-run-9bdc305c1d15 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....F.                                                             7 / 7 (100%)
+
+Time: 00:20.849, Memory: 10.00 MB
+
+Partial Failure (Reseller\Tests\Integration\PartialFailure)
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V1_FRESH_INSTALL"
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Interrupted run becomes rollback required
+ ✔ Failure of atomic customer alter leaves tbl customers untouched
+ ✘ Postflight contract mismatch fails closed
+   │
+   │ expected FAILED, got exit 255
+   │
+   │ Warning: require_once(/tmp/autoload/Reseller/Domain/CheckConstraints.php): Failed to open stream: No such file or directory in /tmp/wp1_runner_badcontract_241ee964/migrate.php on line 42
+   │
+   │ Fatal error: Uncaught Error: Failed opening required '/tmp/autoload/Reseller/Domain/CheckConstraints.php' (include_path='.:/usr/local/lib/php') in /tmp/wp1_runner_badcontract_241ee964/migrate.php:42
+   │ Stack trace:
+   │ #0 {main}
+   │   thrown in /tmp/wp1_runner_badcontract_241ee964/migrate.php on line 42
+   │
+   │ Failed asserting that 255 is identical to 3.
+   │
+   │ /repo/tests/Support/IntegrationTestCase.php:52
+   │ /repo/tests/Integration/PartialFailureTest.php:148
+   │
+ ✔ Failed rollback blocks and can be resumed
+
+FAILURES!
+Tests: 7, Assertions: 106, Failures: 1.
+
+exit=1 end: 2026-10-16T18:28:30Z

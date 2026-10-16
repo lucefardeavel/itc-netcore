@@ -1,0 +1,10 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/wp1check-regress/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/ForwardMigrationTest.php
+start: 2026-10-16T18:31:46Z
+ Container nuxbill-reseller-test-php82-run-e91706dbc0af Creating 
+ Container nuxbill-reseller-test-php82-run-e91706dbc0af Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......

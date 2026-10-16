@@ -32,10 +32,14 @@ final class DriftAndRegistryTest extends IntegrationTestCase
         $db = $this->newDatabase(FixtureBuilder::V1);
         $this->assertOutcome(Outcome::OK, $this->run_($db, 'migrate'));
         // run a copy of the runner whose R0002 file differs by one comment byte
-        $copy = sys_get_temp_dir() . '/wp1_runner_copy_' . bin2hex(random_bytes(4));
+        // the copy mirrors system/ (reseller/ + the shared WP9 CHECK verifier in autoload/Reseller/Domain/)
+        $root = sys_get_temp_dir() . '/wp1_runner_copy_' . bin2hex(random_bytes(4));
+        $copy = $root . '/reseller';
         mkdir($copy . '/Migration', 0777, true);
         mkdir($copy . '/migrations', 0777, true);
+        mkdir($root . '/autoload/Reseller/Domain', 0777, true);
         $src = dirname(__DIR__, 2) . '/system/reseller';
+        copy(dirname(__DIR__, 2) . '/system/autoload/Reseller/Domain/CheckConstraints.php', $root . '/autoload/Reseller/Domain/CheckConstraints.php');
         copy($src . '/migrate.php', $copy . '/migrate.php');
         foreach (glob($src . '/Migration/*.php') as $f) {
             copy($f, $copy . '/Migration/' . basename($f));
@@ -48,10 +52,14 @@ final class DriftAndRegistryTest extends IntegrationTestCase
         $this->assertOutcome(Outcome::DRIFT, $r);
         $this->assertStringContainsString('R0002_pricing_foundation: applied migration file was modified', implode("\n", $r['report']['drift']));
         $this->assertOutcome(Outcome::DRIFT, RunnerProcess::run($db, 'migrate', [], [], $copy . '/migrate.php'));
-        array_map('unlink', array_merge(glob($copy . '/*/*.php'), [$copy . '/migrate.php']));
+        array_map('unlink', array_merge(glob($copy . '/*/*.php'), [$copy . '/migrate.php', $root . '/autoload/Reseller/Domain/CheckConstraints.php']));
         rmdir($copy . '/Migration');
         rmdir($copy . '/migrations');
         rmdir($copy);
+        rmdir($root . '/autoload/Reseller/Domain');
+        rmdir($root . '/autoload/Reseller');
+        rmdir($root . '/autoload');
+        rmdir($root);
     }
 
     public function testTamperedRegistryIsNotReady(): void
