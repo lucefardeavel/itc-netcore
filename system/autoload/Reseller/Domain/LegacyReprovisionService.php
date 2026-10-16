@@ -209,11 +209,32 @@ final class LegacyReprovisionService
         $id = (int) ($row['id'] ?? 0);
         $names = array_values(array_filter(array_merge([(string) ($row['username'] ?? ''), (string) ($row['pppoe_username'] ?? '')], array_map('strval', $usernames)), static fn(string $n): bool => $n !== ''));
         if (self::$permit !== null && ($id === 0 || $id === self::$permit['id']) && array_diff($names, self::$permit['names']) === []) {
+            self::singleOwner($row, $id);
             return;
         }
         if (self::deviceOwned($id, $names)) {
             ServiceGate::refused('deviceGrant', $id > 0 ? $id : null, $names[0] ?? null);
             throw new ProvisionFailure(ProvisionResult::failed('RESELLER_OWNED_REFUSED', 'Device changes for reseller-managed customers go through the reseller activation or re-provision service.', false));
+        }
+        self::singleOwner($row, $id);
+    }
+
+    /**
+     * WP9 U0 final hardening (D-U0-R1): a grant for a row whose username / PPPoE username has MORE THAN ONE logical owner
+     * (grandfathered duplicate) is refused before anything is written - inside run() too, and for the pre-write check of
+     * Package::rechargeUser (WP8 S7-FC). The WP8 reseller-owned refusal keeps precedence (its reason and refusal record
+     * are unchanged); the rename names are judged by renameCheck().
+     */
+    private static function singleOwner(array $row, int $id): void
+    {
+        if ($row === []) {
+            return;
+        }
+        try {
+            CustomerIdentity::assertSingleOwner((string) ($row['username'] ?? ''), (string) ($row['pppoe_username'] ?? ''));
+        } catch (DomainError $e) {
+            ErrorReporter::log('device.identity_refused', 'reason=' . $e->reason . ' customer=' . $id);
+            throw new ProvisionFailure(ProvisionResult::failed($e->reason === 'IDENTITY_AMBIGUOUS' ? 'RADIUS_IDENTITY_AMBIGUOUS' : 'RADIUS_IDENTITY_CHECK_UNAVAILABLE', $e->getMessage(), false));
         }
     }
 
@@ -280,6 +301,13 @@ final class LegacyReprovisionService
             $own = self::ownKeys($old);
             $earlier = [];   // the sources and targets of the earlier pairs of this edit (as the write will see them)
             foreach ($pairs as [$from, $to]) {
+                // WP9 U0 final hardening (D-U0-R1): a source key that another identity also holds (grandfathered duplicate,
+                // even byte-identical) is never moved: its rows may be the other owner's policy
+                try {
+                    CustomerIdentity::assertSingleOwner($from);
+                } catch (DomainError $e) {
+                    return $e->reason === 'IDENTITY_AMBIGUOUS' ? 'AMBIGUOUS_IDENTITY' : 'CHECK_UNAVAILABLE';
+                }
                 if ($repo->equivalentKeys($from, $to, false, $earlier) !== []) {
                     return 'AMBIGUOUS_IDENTITY';
                 }

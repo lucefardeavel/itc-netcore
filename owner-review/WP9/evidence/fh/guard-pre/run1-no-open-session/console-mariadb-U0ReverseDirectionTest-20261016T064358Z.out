@@ -1,0 +1,44 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fh/guard-pre/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0ReverseDirectionTest.php
+start: 2026-10-16T06:43:58Z
+ Container nuxbill-reseller-test-php82-run-dc46618ca51e Creating 
+ Container nuxbill-reseller-test-php82-run-dc46618ca51e Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.F.F                                                                4 / 4 (100%)
+
+Time: 00:05.950, Memory: 12.00 MB
+
+U0Reverse Direction (Reseller\Tests\Integration\Wp9\U0ReverseDirection)
+ ✔ A colliding owned identity cannot be created or renamed any more
+ ✘ Grandfathered colliding owned customer activation is refused before any write
+   │
+   │ {"activation_status":"COMPLETED","error_code":null,"victim_policy_overwritten":true,"reservation":["COMMITTED"],"wallet_unchanged":false,"ledger_rows_added":2,"recharge_rows_for_b":1}
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'FAILED'
+   │ +'COMPLETED'
+   │
+   │ /repo/tests/Integration/Wp9/U0ReverseDirectionTest.php:109
+   │
+ ✔ A non colliding owned activation still completes
+ ✘ Owned rename of an ambiguous key is refused
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'REFUSED RENAME_AMBIGUOUS_IDENTITY'
+   │ +'ACCEPTED'
+   │
+   │ /repo/tests/Integration/Wp9/U0ReverseDirectionTest.php:147
+   │
+
+FAILURES!
+Tests: 4, Assertions: 45, Failures: 2.
+
+exit=1 end: 2026-10-16T06:44:06Z

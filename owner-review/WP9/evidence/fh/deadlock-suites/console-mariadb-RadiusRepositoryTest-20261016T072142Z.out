@@ -1,0 +1,25 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fh/deadlock-suites/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp4/RadiusRepositoryTest.php
+start: 2026-10-16T07:21:42Z
+ Container nuxbill-reseller-test-php82-run-786a551733d9 Creating 
+ Container nuxbill-reseller-test-php82-run-786a551733d9 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+........                                                            8 / 8 (100%)
+
+Time: 00:00.521, Memory: 10.00 MB
+
+Radius Repository (Reseller\Tests\Integration\Wp4\RadiusRepository)
+ ✔ Apply is exact and idempotent and leaves unmanaged rows alone
+ ✔ Plan change replaces the policy completely
+ ✔ Rename moves all three tables and keeps history
+ ✔ Suspend and remove never touch accounting
+ ✔ Plan group rows
+ ✔ Failure before commit is failed and rolled back
+ ✔ Lost commit is unknown
+ ✔ Verify mismatch is unknown
+
+OK (8 tests, 55 assertions)
+exit=0 end: 2026-10-16T07:21:44Z

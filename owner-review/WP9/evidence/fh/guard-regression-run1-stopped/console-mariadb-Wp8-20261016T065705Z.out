@@ -1,0 +1,346 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fh/guard-regression/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp8
+start: 2026-10-16T06:57:05Z
+ Container nuxbill-reseller-test-php82-run-f24a43a3ab8f Creating 
+ Container nuxbill-reseller-test-php82-run-f24a43a3ab8f Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FF..F..
+
+Time: 00:13.661, Memory: 16.00 MB
+
+Device Guard Key Collision (Reseller\Tests\Integration\Wp8\DeviceGuardKeyCollision)
+ ✘ An unassigned row carrying the owned username as pppoe username is refused
+   │
+   │ every variant is refused before any device write; the owned customer's RADIUS policy is unchanged
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      'results' => Array &1 [
+   │          'exact' => Array &2 [
+   │ -            'guard' => 'RESELLER_OWNED_REFUSED',
+   │ -            'add_customer' => 'RESELLER_OWNED_REFUSED',
+   │ -            'sync_customer' => 'RESELLER_OWNED_REFUSED',
+   │ +            'guard' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'add_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'sync_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │          ],
+   │          'upper case' => Array &3 [
+   │ -            'guard' => 'RESELLER_OWNED_REFUSED',
+   │ -            'add_customer' => 'RESELLER_OWNED_REFUSED',
+   │ -            'sync_customer' => 'RESELLER_OWNED_REFUSED',
+   │ +            'guard' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'add_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'sync_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │          ],
+   │          'trailing space' => Array &4 [
+   │ -            'guard' => 'RESELLER_OWNED_REFUSED',
+   │ -            'add_customer' => 'RESELLER_OWNED_REFUSED',
+   │ -            'sync_customer' => 'RESELLER_OWNED_REFUSED',
+   │ +            'guard' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'add_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'sync_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │          ],
+   │          'accent' => Array &5 [
+   │ -            'guard' => 'RESELLER_OWNED_REFUSED',
+   │ -            'add_customer' => 'RESELLER_OWNED_REFUSED',
+   │ -            'sync_customer' => 'RESELLER_OWNED_REFUSED',
+   │ +            'guard' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'add_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'sync_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │          ],
+   │      ],
+   │      'owned_policy_unchanged' => true,
+   │      'tables_unchanged' => true,
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp8/DeviceGuardKeyCollisionTest.php:130
+   │
+ ✘ An unassigned row carrying the owned pppoe username as pppoe username is refused
+   │
+   │ every variant is refused; the owned customer's RADIUS policy is unchanged
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      'results' => Array &1 [
+   │          'exact' => Array &2 [
+   │ -            'guard' => 'RESELLER_OWNED_REFUSED',
+   │ -            'add_customer' => 'RESELLER_OWNED_REFUSED',
+   │ -            'sync_customer' => 'RESELLER_OWNED_REFUSED',
+   │ +            'guard' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'add_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'sync_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │          ],
+   │          'upper case' => Array &3 [
+   │ -            'guard' => 'RESELLER_OWNED_REFUSED',
+   │ -            'add_customer' => 'RESELLER_OWNED_REFUSED',
+   │ -            'sync_customer' => 'RESELLER_OWNED_REFUSED',
+   │ +            'guard' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'add_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'sync_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │          ],
+   │          'trailing space' => Array &4 [
+   │ -            'guard' => 'RESELLER_OWNED_REFUSED',
+   │ -            'add_customer' => 'RESELLER_OWNED_REFUSED',
+   │ -            'sync_customer' => 'RESELLER_OWNED_REFUSED',
+   │ +            'guard' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'add_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'sync_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │          ],
+   │          'accent' => Array &5 [
+   │ -            'guard' => 'RESELLER_OWNED_REFUSED',
+   │ -            'add_customer' => 'RESELLER_OWNED_REFUSED',
+   │ -            'sync_customer' => 'RESELLER_OWNED_REFUSED',
+   │ +            'guard' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'add_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │ +            'sync_customer' => 'RADIUS_IDENTITY_AMBIGUOUS',
+   │          ],
+   │      ],
+   │      'owned_policy_unchanged' => true,
+   │      'tables_unchanged' => true,
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp8/DeviceGuardKeyCollisionTest.php:150
+   │
+ ✔ A non colliding unassigned customer keeps the legacy device behaviour
+ ✔ The permitted reprovision of an owned pppoe identity still works and the permit ends
+
+Recharge Pre Write Refusal (Reseller\Tests\Integration\Wp8\RechargePreWriteRefusal)
+ ✘ A colliding legacy recharge is refused before any write
+   │
+   │ no hook, recharge, transaction, device call, RADIUS write or notification; one safe refusal record
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │          'device' => Array &4 [],
+   │          'telegram' => Array &5 [],
+   │          'sms' => Array &6 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'A pppoe=owned username | radius_pppoe | recharge on' => Array &7 [
+   │ @@ @@
+   │          'device' => Array &10 [],
+   │          'telegram' => Array &11 [],
+   │          'sms' => Array &12 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'A pppoe=owned username | radius_pppoe | recharge off' => Array &13 [
+   │ @@ @@
+   │          'device' => Array &16 [],
+   │          'telegram' => Array &17 [],
+   │          'sms' => Array &18 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'A pppoe=owned username | mikrotik_pppoe | recharge none' => Array &19 [
+   │ @@ @@
+   │          'device' => Array &22 [],
+   │          'telegram' => Array &23 [],
+   │          'sms' => Array &24 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'A pppoe=owned username | mikrotik_pppoe | recharge on' => Array &25 [
+   │ @@ @@
+   │          'device' => Array &28 [],
+   │          'telegram' => Array &29 [],
+   │          'sms' => Array &30 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'A pppoe=owned username | mikrotik_pppoe | recharge off' => Array &31 [
+   │ @@ @@
+   │          'device' => Array &34 [],
+   │          'telegram' => Array &35 [],
+   │          'sms' => Array &36 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'A pppoe=owned username | mikrotik_vpn | recharge none' => Array &37 [
+   │ @@ @@
+   │          'device' => Array &40 [],
+   │          'telegram' => Array &41 [],
+   │          'sms' => Array &42 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'A pppoe=owned username | mikrotik_vpn | recharge on' => Array &43 [
+   │ @@ @@
+   │          'device' => Array &46 [],
+   │          'telegram' => Array &47 [],
+   │          'sms' => Array &48 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'A pppoe=owned username | mikrotik_vpn | recharge off' => Array &49 [
+   │ @@ @@
+   │          'device' => Array &52 [],
+   │          'telegram' => Array &53 [],
+   │          'sms' => Array &54 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'A pppoe=owned username | probe_pppoe | recharge none' => Array &55 [
+   │ @@ @@
+   │          'device' => Array &58 [],
+   │          'telegram' => Array &59 [],
+   │          'sms' => Array &60 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'A pppoe=owned username | probe_pppoe | recharge on' => Array &61 [
+   │ @@ @@
+   │          'device' => Array &64 [],
+   │          'telegram' => Array &65 [],
+   │          'sms' => Array &66 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'A pppoe=owned username | probe_pppoe | recharge off' => Array &67 [
+   │ @@ @@
+   │          'device' => Array &70 [],
+   │          'telegram' => Array &71 [],
+   │          'sms' => Array &72 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'B pppoe=upper case | radius_pppoe' => Array &73 [
+   │ @@ @@
+   │          'device' => Array &76 [],
+   │          'telegram' => Array &77 [],
+   │          'sms' => Array &78 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'B pppoe=upper case | mikrotik_pppoe' => Array &79 [
+   │ @@ @@
+   │          'device' => Array &82 [],
+   │          'telegram' => Array &83 [],
+   │          'sms' => Array &84 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'B pppoe=trailing space | radius_pppoe' => Array &85 [
+   │ @@ @@
+   │          'device' => Array &88 [],
+   │          'telegram' => Array &89 [],
+   │          'sms' => Array &90 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'B pppoe=trailing space | mikrotik_pppoe' => Array &91 [
+   │ @@ @@
+   │          'device' => Array &94 [],
+   │          'telegram' => Array &95 [],
+   │          'sms' => Array &96 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'B pppoe=accent | radius_pppoe' => Array &97 [
+   │ @@ @@
+   │          'device' => Array &100 [],
+   │          'telegram' => Array &101 [],
+   │          'sms' => Array &102 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'B pppoe=accent | mikrotik_pppoe' => Array &103 [
+   │ @@ @@
+   │          'device' => Array &106 [],
+   │          'telegram' => Array &107 [],
+   │          'sms' => Array &108 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'B pppoe=owned pppoe username | radius_pppoe' => Array &109 [
+   │ @@ @@
+   │          'device' => Array &112 [],
+   │          'telegram' => Array &113 [],
+   │          'sms' => Array &114 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'B pppoe=owned pppoe username | mikrotik_pppoe' => Array &115 [
+   │ @@ @@
+   │          'device' => Array &118 [],
+   │          'telegram' => Array &119 [],
+   │          'sms' => Array &120 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'C username=owned username | mikrotik_hotspot | recharge on' => Array &121 [
+   │ @@ @@
+   │          'device' => Array &124 [],
+   │          'telegram' => Array &125 [],
+   │          'sms' => Array &126 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'C username=owned username | probe_hotspot | recharge on' => Array &127 [
+   │ @@ @@
+   │          'device' => Array &130 [],
+   │          'telegram' => Array &131 [],
+   │          'sms' => Array &132 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'C username=owned pppoe username (upper case) | mikrotik_hotspot | recharge on' => Array &133 [
+   │ @@ @@
+   │          'device' => Array &136 [],
+   │          'telegram' => Array &137 [],
+   │          'sms' => Array &138 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │      'C username=owned pppoe username (upper case) | probe_hotspot | recharge on' => Array &139 [
+   │ @@ @@
+   │          'device' => Array &142 [],
+   │          'telegram' => Array &143 [],
+   │          'sms' => Array &144 [],
+   │ -        'refusals' => 1,
+   │ +        'refusals' => 0,
+   │          'leak' => false,
+   │      ],
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp8/RechargePreWriteRefusalTest.php:130
+   │
+ ✔ Allowed recharges keep the wp 4 order and the legacy behaviour
+ ✔ Voucher only and owned customer paths are unchanged
+
+FAILURES!
+Tests: 7, Assertions: 87, Failures: 3, Incomplete: 104.
+
+exit=1 end: 2026-10-16T06:57:22Z

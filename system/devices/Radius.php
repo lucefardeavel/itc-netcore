@@ -262,6 +262,7 @@ class Radius
     /** Suspends a subscriber (random password, nothing deleted) and ends its sessions. */
     public function customerDeactivate($username, $radiusDisconnect = true)
     {
+        self::singleOwner((string) $username);
         self::check((new RadiusProvisioner(self::repository()))->suspend((string) $username));
         return $radiusDisconnect ? $this->disconnectCustomer($username) : [];
     }
@@ -269,6 +270,7 @@ class Radius
     /** Removes the subscriber's policy rows; accounting history is kept. */
     public function customerDelete($username)
     {
+        self::singleOwner((string) $username);
         self::check((new RadiusProvisioner(self::repository()))->remove((string) $username));
     }
 
@@ -316,7 +318,21 @@ class Radius
         } catch (InvalidArgumentException $e) {
             throw new ProvisionFailure(ProvisionResult::failed($e->getMessage(), 'The customer data cannot be provisioned.', false));
         }
-        self::check((new RadiusProvisioner(self::repository()))->provision($policy));
+        self::singleOwner($policy->username);
+        // WP9 U0 final hardening: concurrent policy writes for different keys can deadlock (InnoDB 1213: the transaction
+        // was rolled back, nothing applied). The legacy grant has no retry state machine (WP5A retries through
+        // RETRY_PENDING), so the same policy write is run again here, bounded; any other failure is unchanged
+        $provisioner = new RadiusProvisioner(self::repository());
+        for ($attempt = 1; ; $attempt++) {
+            $result = $provisioner->provision($policy);
+            if ($attempt < 3 && $result->status === ProvisionResult::FAILED && (int) ($result->metadata['db_error'] ?? 0) === 1213) {
+                ErrorReporter::log('radius.deadlock_retry', 'attempt=' . $attempt);
+                usleep(random_int(5000, 50000) * $attempt);
+                continue;
+            }
+            break;
+        }
+        self::check($result);
         // a new policy takes effect at the next session: end the current one (best effort, never retried)
         $this->disconnectCustomer($policy->username);
     }
@@ -351,6 +367,19 @@ class Radius
     private static function row($row): array
     {
         return is_object($row) && method_exists($row, 'as_array') ? $row->as_array() : (array) $row;
+    }
+
+    /**
+     * WP9 U0 final hardening (D-U0-R1): a subscriber key with more than one logical owner (grandfathered duplicate) is
+     * never provisioned, suspended or removed - nothing written, no disconnect; a confirmed, non-retryable failure.
+     */
+    private static function singleOwner(string $key): void
+    {
+        try {
+            \Reseller\Domain\CustomerIdentity::assertSingleOwner($key);
+        } catch (\Reseller\Domain\DomainError $e) {
+            throw new ProvisionFailure(ProvisionResult::failed($e->reason === 'IDENTITY_AMBIGUOUS' ? 'RADIUS_IDENTITY_AMBIGUOUS' : 'RADIUS_IDENTITY_CHECK_UNAVAILABLE', $e->getMessage(), false));
+        }
     }
 
     private static function repository(): RadiusRepository

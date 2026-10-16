@@ -1,0 +1,132 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fh/guard-pre/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0OwnershipGuardTest.php
+start: 2026-10-16T06:44:54Z
+ Container nuxbill-reseller-test-php82-run-a5194707d929 Creating 
+ Container nuxbill-reseller-test-php82-run-a5194707d929 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FFFFFFFFFF.                                                       11 / 11 (100%)
+
+Time: 00:21.120, Memory: 10.00 MB
+
+U0Ownership Guard (Reseller\Tests\Integration\Wp9\U0OwnershipGuard)
+ ✘ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (other case)"
+   │
+   │ Package::rechargeUser returns false (pre-write refusal)
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'false'
+   │ +''INV-7''
+   │
+   │ /repo/tests/Integration/Wp9/U0OwnershipGuardTest.php:93
+   │
+ ✘ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (stored leading space)"
+   │
+   │ Package::rechargeUser returns false (pre-write refusal)
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'false'
+   │ +''INV-9''
+   │
+   │ /repo/tests/Integration/Wp9/U0OwnershipGuardTest.php:93
+   │
+ ✘ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (trailing TAB)"
+   │
+   │ Package::rechargeUser returns false (pre-write refusal)
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'false'
+   │ +''INV-11''
+   │
+   │ /repo/tests/Integration/Wp9/U0OwnershipGuardTest.php:93
+   │
+ ✘ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (accent)"
+   │
+   │ Package::rechargeUser returns false (pre-write refusal)
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'false'
+   │ +''INV-13''
+   │
+   │ /repo/tests/Integration/Wp9/U0OwnershipGuardTest.php:93
+   │
+ ✘ Legacy recharge of a grandfathered duplicate is refused before any write with data set "cross-field (duplicate PPPoE = username)"
+   │
+   │ Package::rechargeUser returns false (pre-write refusal)
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'false'
+   │ +''INV-15''
+   │
+   │ /repo/tests/Integration/Wp9/U0OwnershipGuardTest.php:93
+   │
+ ✘ Legacy recharge of a customer over a live voucher identity is refused
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'false'
+   │ +''INV-17''
+   │
+   │ /repo/tests/Integration/Wp9/U0OwnershipGuardTest.php:106
+   │
+ ✘ Deactivation of a grandfathered duplicate never suspends the other owner
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'REFUSED RADIUS_IDENTITY_AMBIGUOUS'
+   │ +'APPLIED'
+   │
+   │ /repo/tests/Integration/Wp9/U0OwnershipGuardTest.php:116
+   │
+ ✘ Customer add plan on an ambiguous key is refused
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'REFUSED RADIUS_IDENTITY_AMBIGUOUS'
+   │ +'APPLIED'
+   │
+   │ /repo/tests/Integration/Wp9/U0OwnershipGuardTest.php:126
+   │
+ ✘ Legacy rename of an ambiguous key is refused before the save
+   │
+   │ the rename is refused before the customer row is saved
+   │ Failed asserting that 'HTTP 302 renamed=true' ends with "renamed=false".
+   │
+   │ /repo/tests/Integration/Wp9/U0OwnershipGuardTest.php:141
+   │
+ ✘ Ownership check runs under the identity lock and fails closed
+   │
+   │ the ownership check could not take the identity lock: refused, nothing written
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'false'
+   │ +''INV-21''
+   │
+   │ /repo/tests/Integration/Wp9/U0OwnershipGuardTest.php:169
+   │
+ ✔ Single owners are unchanged
+
+FAILURES!
+Tests: 11, Assertions: 22, Failures: 10.
+
+exit=1 end: 2026-10-16T06:45:17Z

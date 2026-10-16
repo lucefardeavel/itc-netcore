@@ -115,7 +115,7 @@ final class RadiusProvisioner
         } catch (\PDOException $e) {
             ErrorReporter::report($e, 'radius-provision');
             $code = (int) ($e->errorInfo[1] ?? 0);
-            return ProvisionResult::failed('RADIUS_DB_ERROR', 'The RADIUS database rejected the change; nothing was applied.', in_array($code, self::TRANSIENT, true), null, ['operation' => $operation]);
+            return ProvisionResult::failed('RADIUS_DB_ERROR', 'The RADIUS database rejected the change; nothing was applied.', in_array($code, self::TRANSIENT, true), null, ['operation' => $operation, 'db_error' => $code]);
         } catch (\Throwable $e) {
             ErrorReporter::report($e, 'radius-provision');
             return ProvisionResult::failed('RADIUS_ERROR', 'The RADIUS change could not be applied.', false, null, ['operation' => $operation]);

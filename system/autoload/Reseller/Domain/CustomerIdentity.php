@@ -213,6 +213,81 @@ final class CustomerIdentity
     }
 
     /**
+     * WP9 U0 final hardening (D-U0-R1): the number of distinct LOGICAL OWNERS of one canonical RADIUS key - customers that
+     * hold it as username or PPPoE username (canonical, any ownership) plus live voucher identities (CLAIMED or
+     * voucher-only granted vouchers; a voucher-only recharge row without such a voucher counts as one). null when the
+     * count cannot be established (any error, an empty key, more candidate rows than the bound).
+     */
+    public static function owners(\PDO $pdo, string $key): ?int
+    {
+        $k = trim($key);
+        if ($k === '') {
+            return null;
+        }
+        $hex = [strtoupper(bin2hex($k))];
+        $key = self::rad('UNHEX(?)');
+        try {
+            $customers = self::bounded($pdo, 'SELECT DISTINCT id FROM tbl_customers WHERE (' . self::rad('username') . " = {$key} OR " . self::rad('pppoe_username') . " = {$key}"
+                . ' OR username REGEXP ? OR pppoe_username REGEXP ?) AND (' . self::rad("REGEXP_REPLACE(username, ?, '')") . " = {$key}"
+                . " OR (pppoe_username <> '' AND " . self::rad("REGEXP_REPLACE(pppoe_username, ?, '')") . " = {$key})) LIMIT " . (self::CANDIDATES + 1),
+                [...$hex, ...$hex, self::EDGE_RE, self::EDGE_RE, self::TRIM_RE, ...$hex, self::TRIM_RE, ...$hex]);
+            $vouchers = self::bounded($pdo, "SELECT DISTINCT id FROM tbl_voucher WHERE (status = 'CLAIMED' OR (status = '1' AND user = '0')) AND ("
+                . self::rad('code') . " = {$key} OR code REGEXP ?) AND " . self::rad("REGEXP_REPLACE(code, ?, '')") . " = {$key} LIMIT " . (self::CANDIDATES + 1),
+                [...$hex, self::EDGE_RE, self::TRIM_RE, ...$hex]);
+            if (count($customers) > self::CANDIDATES || count($vouchers) > self::CANDIDATES) {
+                return null;
+            }
+            $n = count($customers) + count($vouchers);
+            if ($vouchers === []) {
+                $n += count(self::bounded($pdo, 'SELECT 1 AS x FROM tbl_user_recharges WHERE customer_id = 0 AND (' . self::rad('username') . " = {$key} OR username REGEXP ?) AND "
+                    . self::rad("REGEXP_REPLACE(username, ?, '')") . " = {$key} LIMIT 1", [...$hex, self::EDGE_RE, self::TRIM_RE, ...$hex]));
+            }
+            return $n;
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'identity-owners');
+            return null;
+        }
+    }
+
+    /**
+     * WP9 U0 final hardening (D-U0-R1): refuses (DomainError IDENTITY_AMBIGUOUS / IDENTITY_CHECK_UNAVAILABLE) when one of
+     * $keys has more than one logical owner. The count runs under the shared identity lock (at most RADIUS_TIMEOUT
+     * seconds of waiting: it guards writes on RADIUS and web paths alike); a caller that already holds the lock is
+     * counted in place; inside a caller's open transaction the lock cannot be taken, so the same read-only count runs
+     * without it and the event is logged. Called before every write of a subscriber's RADIUS login policy.
+     */
+    public static function assertSingleOwner(string ...$keys): void
+    {
+        $keys = array_values(array_unique(array_filter(array_map('trim', $keys), static fn(string $k): bool => $k !== '')));
+        if ($keys === []) {
+            return;
+        }
+        $check = static function (\PDO $pdo) use ($keys): void {
+            foreach ($keys as $k) {
+                $n = self::owners($pdo, $k);
+                if ($n === null) {
+                    throw new DomainError('IDENTITY_CHECK_UNAVAILABLE');
+                }
+                if ($n > 1) {
+                    ErrorReporter::log('identity.ambiguous', 'owners=' . $n);
+                    throw new DomainError('IDENTITY_AMBIGUOUS');
+                }
+            }
+        };
+        $pdo = self::pdo();
+        if ($pdo->inTransaction()) {
+            ErrorReporter::log('identity.owner_check_in_transaction', 'keys=' . count($keys));
+            $check($pdo);
+            return;
+        }
+        if (self::held($pdo)) {
+            $check($pdo);
+            return;
+        }
+        self::hold($check, self::RADIUS_TIMEOUT);
+    }
+
+    /**
      * The exact RADIUS keys an identity already holds (its current names, as stored and as RadiusPolicyBuilder::key()
      * trims them): the acquirer's own policy rows never block its own rename.
      *

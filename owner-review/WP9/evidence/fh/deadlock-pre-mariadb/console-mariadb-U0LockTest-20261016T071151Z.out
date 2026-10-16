@@ -1,0 +1,18 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fh/deadlock-pre-mariadb/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox --filter ParallelMixed tests/Integration/Wp9/U0LockTest.php
+start: 2026-10-16T07:11:51Z
+ Container nuxbill-reseller-test-php82-run-74e86c901830 Creating 
+ Container nuxbill-reseller-test-php82-run-74e86c901830 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:02.667, Memory: 10.00 MB
+
+U0Lock (Reseller\Tests\Integration\Wp9\U0Lock)
+ ✔ Parallel mixed acquirers never deadlock
+
+OK (1 test, 2 assertions)
+exit=0 end: 2026-10-16T07:11:55Z

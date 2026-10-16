@@ -209,7 +209,12 @@ final class U0LockTest extends RadiusHttpTestCase
         $out = array_map(static fn(array $h): string => (string) static::$app->execFinish($h), $hs);
         $elapsed = round(microtime(true) - $t, 1);
         $ok = array_filter($out, static fn(string $o): bool => in_array($o, ['GRANTED', 'ACCEPTED NO_ACTIVE_PLAN', 'HTTP 302'], true) || str_starts_with($o, 'CREATED'));
-        self::record('U0 lock parallel mixed acquirers', count($ok) === count($out) ? 'CONTRACT_MET' : 'DEFECT_REPRODUCED', ['outcomes' => $out, 'elapsed_s' => $elapsed]);
+        $log = (string) @file_get_contents(static::$app->dir . '/wp2_probe/php_error.log');
+        $reqs = preg_match_all('/request=([0-9a-f]+) [^\n]*outcome=CLAIMED_REVIEW/', $log, $m) ? $m[1] : [];
+        $diag = array_values(array_filter(explode("\n", $log), static fn(string $l): bool => (bool) preg_match('/identity\.|device\.identity_refused|LOCK_TIMEOUT|voucher-service-check|radius\.deadlock_retry/', $l)
+            || array_filter($reqs, static fn(string $r): bool => str_contains($l, $r) || str_contains($l, 'ref=' . substr($r, 0, 12))) !== []));
+        self::record('U0 lock parallel mixed acquirers', count($ok) === count($out) ? 'CONTRACT_MET' : 'DEFECT_REPRODUCED', ['outcomes' => $out, 'elapsed_s' => $elapsed,
+            'diagnostics' => array_map(static fn(string $l): string => preg_replace('/^\[[^\]]*\] /', '', $l), array_slice($diag, -20))]);
         $this->assertCount(count($out), $ok, 'all distinct-name acquirers succeed ' . json_encode($out));
         $this->assertTrue(self::free());
     }

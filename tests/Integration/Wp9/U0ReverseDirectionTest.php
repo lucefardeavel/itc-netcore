@@ -79,7 +79,13 @@ final class U0ReverseDirectionTest extends ActivationTestCase
         }
     }
 
-    public function testGrandfatheredCollidingOwnedCustomerActivationIsCharacterised(): void
+    /**
+     * Final hardening (D-U0-R1): the grandfathered collider's activation is refused before any RADIUS write - FAILED
+     * RADIUS_IDENTITY_AMBIGUOUS, the other customer's policy unchanged, reservation released and no settlement (the
+     * ActivationTestCase post-conditions check the finance invariants and the activation / reservation consistency).
+     * The U0-5 run recorded the overwrite (KNOWN_RESIDUAL_REPRODUCED, evidence/u0/related).
+     */
+    public function testGrandfatheredCollidingOwnedCustomerActivationIsRefusedBeforeAnyWrite(): void
     {
         [$plan, [, $leaf]] = $this->pricedChain(['12', '15'], '10', '20', 'PPPOE');
         $x = 'w9rg' . bin2hex(random_bytes(3));
@@ -88,12 +94,59 @@ final class U0ReverseDirectionTest extends ActivationTestCase
         $b = $this->customer($leaf, null, ['pppoe_username' => $x]);
         $before = $this->radcheck($x);
         $this->assertSame($victimPw, $before['Cleartext-Password'] ?? null, 'control: the victim policy');
+        $wallet = static::$db->rows('SELECT balance FROM tbl_manager_wallets WHERE manager_id = ?', [$leaf]);
+        $ledger = (int) static::$db->value('SELECT COUNT(*) FROM tbl_manager_ledger');
         $out = $this->activate($leaf, $b, $plan, 'NEW');
         $after = $this->radcheck($x);
-        $overwritten = ($after['Cleartext-Password'] ?? null) !== $victimPw;
-        self::record('U0 reverse direction: grandfathered collider activation', $overwritten ? 'KNOWN_RESIDUAL_REPRODUCED' : 'OBSERVED', [
-            'activation_status' => $out['status'], 'error_code' => $out['error_code'], 'victim_policy_overwritten' => $overwritten,
-            'detail' => 'pre-existing duplicate identities are outside U0 (acquirers only); needs the read-only survey + operator plan or a uniqueness decision (U1-U4)']);
-        $this->assertNotSame('', $out['reference'], 'control: the activation ran');
+        $overwritten = $after !== $before;
+        $act = $this->act($out['reference']);
+        $res = static::$db->rows('SELECT status FROM tbl_manager_wallet_reservations WHERE activation_id = ?', [(int) $act['id']]);
+        $obs = ['activation_status' => $out['status'], 'error_code' => $out['error_code'], 'victim_policy_overwritten' => $overwritten,
+            'reservation' => array_column($res, 'status'), 'wallet_unchanged' => static::$db->rows('SELECT balance FROM tbl_manager_wallets WHERE manager_id = ?', [$leaf]) === $wallet,
+            'ledger_rows_added' => (int) static::$db->value('SELECT COUNT(*) FROM tbl_manager_ledger') - $ledger, 'recharge_rows_for_b' => (int) static::$db->value('SELECT COUNT(*) FROM tbl_user_recharges WHERE customer_id = ?', [$b])];
+        $met = $out['status'] === 'FAILED' && $out['error_code'] === 'RADIUS_IDENTITY_AMBIGUOUS' && !$overwritten && $obs['wallet_unchanged'] && $obs['ledger_rows_added'] === 0 && $obs['recharge_rows_for_b'] === 0;
+        self::record('U0 reverse direction: grandfathered collider activation', $met ? 'CONTRACT_MET' : 'DEFECT_REPRODUCED', $obs);
+        $this->assertSame('FAILED', $out['status'], json_encode($obs));
+        $this->assertSame('RADIUS_IDENTITY_AMBIGUOUS', $out['error_code']);
+        $this->assertFalse($overwritten, "the other customer's RADIUS policy is unchanged");
+        $this->assertTrue($obs['wallet_unchanged'], 'no debit');
+        $this->assertSame(0, $obs['ledger_rows_added'], 'no settlement');
+        $this->assertSame(0, $obs['recharge_rows_for_b'], 'no legacy recharge row');
+        $this->assertSame(['RELEASED'], $obs['reservation'], 'the reservation is released (WP5A FAILED)');
+    }
+
+    public function testANonCollidingOwnedActivationStillCompletes(): void
+    {
+        [$plan, [, $leaf]] = $this->pricedChain(['12', '15'], '10', '20', 'PPPOE');
+        $b = $this->customer($leaf, null, ['pppoe_username' => 'w9rk' . bin2hex(random_bytes(3))]);
+        $out = $this->activate($leaf, $b, $plan, 'NEW');
+        self::record('U0 reverse direction control: single owner activation', $out['status'] === 'COMPLETED' ? 'CONTROL_PASS' : 'CONTROL_FAIL', ['status' => $out['status'], 'error_code' => $out['error_code']]);
+        $this->assertSame('COMPLETED', $out['status'], json_encode($out));
+    }
+
+    /** the reseller-owned rename of a key another customer also holds (exact duplicate) is refused before any write */
+    public function testOwnedRenameOfAnAmbiguousKeyIsRefused(): void
+    {
+        [$plan, [, $leaf]] = $this->pricedChain(['12', '15'], '10', '20', 'PPPOE');
+        $x = 'w9ra' . bin2hex(random_bytes(3));
+        [, $victimPw] = $this->victim($x);
+        $b = $this->customer($leaf, null, ['pppoe_username' => $x]);
+        $this->recharge($b, $plan, date('Y-m-d', time() + 86400 * 10), '23:59:59', 'on', 'PPPOE');
+        $before = $this->radcheck($x);
+        $y = 'w9rb' . bin2hex(random_bytes(3));
+        try {
+            R::run($this->ctx('ad'), $b, R::IDENTITY_EDIT, ['pppoe_username' => $y]);
+            $outcome = 'ACCEPTED';
+            $this->customersChanged();
+        } catch (DomainError $e) {
+            $outcome = 'REFUSED ' . $e->reason;
+        }
+        $stored = (string) static::$db->value('SELECT pppoe_username FROM tbl_customers WHERE id = ?', [$b]);
+        $met = $outcome === 'REFUSED RENAME_AMBIGUOUS_IDENTITY' && $stored === $x && $this->radcheck($x) === $before;
+        self::record('U0 reverse direction: owned rename of an ambiguous key', $met ? 'CONTRACT_MET' : 'DEFECT_REPRODUCED', ['outcome' => $outcome, 'pppoe_unchanged' => $stored === $x, 'victim_policy_unchanged' => $this->radcheck($x) === $before]);
+        $this->assertSame('REFUSED RENAME_AMBIGUOUS_IDENTITY', $outcome);
+        $this->assertSame($x, $stored);
+        $this->assertSame($before, $this->radcheck($x), "the other customer's policy is not moved");
+        $this->assertSame($victimPw, $this->radcheck($x)['Cleartext-Password'] ?? null);
     }
 }

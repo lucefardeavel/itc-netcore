@@ -1,0 +1,98 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fh/focused-regression/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5a
+start: 2026-10-16T07:06:18Z
+ Container nuxbill-reseller-test-php82-run-e8ad98e08744 Creating 
+ Container nuxbill-reseller-test-php82-run-e8ad98e08744 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+............EE............................................        58 / 58 (100%)
+
+Time: 02:27.496, Memory: 14.00 MB
+
+Activation Authorization (Reseller\Tests\Integration\Wp5a\ActivationAuthorization)
+ ✔ Owner sales and admin may activate on the owners wallet
+ ✔ Scope refusals write nothing
+ ✔ Eligibility refusals write nothing
+ ✔ Frozen reseller cannot start but settlement completes
+ ✔ Schema not ready refuses before any write
+ ✔ Replay never doubles a period debit or commission
+ ✔ Read scope and reconciliation authority
+
+Activation Catalog (Reseller\Tests\Integration\Wp5a\ActivationCatalog)
+ ✔ Unplaced agent is refused before any data
+ ✔ Agent sees only plans saleable for itself
+ ✔ Invalid wholesale chain is absent
+ ✔ Sales catalog follows the authoritative customer owner
+ ✔ Admin keeps the administrative list
+
+Activation Failure (Reseller\Tests\Integration\Wp5a\ActivationFailure)
+ ✔ Confirmed radius failure releases and charges nothing
+ ✔ Retryable failure is retried identically then succeeds
+ ✔ Retries are bounded
+ ✔ Unknown keeps the reservation and reconciliation settles once
+ ✔ Crash before the radius call reconciles to failed
+ ✔ Crash after the radius call reconciles to completed
+ ✔ Settlement failure never becomes free service
+ ✔ Capacity failure needs an administrative fix
+ ✔ Settlement failures are classified
+ ✔ Verify mismatch keeps the funds reserved until reconciled
+ ✔ Disconnect is best effort and recorded
+ ✔ Rollback restores the previous service
+ ✔ Rollback of a new service restores the empty prior state
+ ✔ Cancel before provisioning and resume
+
+Activation Http (Reseller\Tests\Integration\Wp5a\ActivationHttp)
+ ✔ Staff flow completes and repeats are safe
+ ✔ Authorization over http
+ ✔ Eligibility and catalog over http
+ ✔ Reconciliation is admin only and the cli tool works
+
+Activation Lifecycle (Reseller\Tests\Integration\Wp5a\ActivationLifecycle)
+ ✔ New activation completes end to end
+ ✔ Renew extends from the current expiry
+ ✔ Reactivate after expiry starts now
+ ✔ Change plan starts now and records the previous plan
+ ✔ The action is server derived and a mismatch is refused
+
+Activation Race (Reseller\Tests\Integration\Wp5a\ActivationRace)
+ ✔ Double submit with the same key is one activation
+ ✔ Two devices with different keys yield one period
+ ✔ Concurrent activations cannot overspend
+ ✔ Activation versus price change is never a mix
+ ✔ Activation versus plan delete
+
+Activation Reconciliation (Reseller\Tests\Integration\Wp5a\ActivationReconciliation)
+ ✔ Verified delivery is reconciled financially despite foreign edits
+ ✔ Financial reconciliation that still fails keeps the funds held
+ ✔ Unverified but exactly the target is settled once
+ ✔ Unverified and exactly the prior state is not applied
+ ✔ Unverified foreign state is ambiguous and holds the funds
+ ✔ Rollback from the ambiguous state restores and releases once
+ ✔ Uncertain rollback keeps the funds held
+ ✔ Rollback restores the customer password exactly
+ ✔ Rollback restores the pppoe password exactly
+ ✔ Unknown prior password is refused before any write
+ ✔ Prior without password restores the absence
+ ✔ Ambiguous state with unknown prior password stays untouched
+ ✔ Capture is durable and holds no secret
+ ✔ Unreadable radius never starts provisioning
+
+Hotspot Port Limit Reconciliation (Reseller\Tests\Integration\Wp5a\HotspotPortLimitReconciliation)
+ ✔ New hotspot activation provisions and verifies the port limit pppoe gets none
+ ✔ Pre a 1 captured activation still reconciles to target while radius is unchanged
+ ✔ Pre a 1 captured activation after an a 1 reprovision is ambiguous and holds the funds
+
+These before-first-test methods errored:
+
+1) Reseller\Tests\Integration\Wp5a\ActivationContractTest::setUpBeforeClass
+RuntimeException: test FreeRADIUS did not answer
+
+/repo/tests/Support/RadiusClient.php:73
+/repo/tests/Integration/Wp5a/ActivationContractTest.php:27
+
+ERRORS!
+Tests: 58, Assertions: 1363, Errors: 1.
+
+exit=2 end: 2026-10-16T07:08:47Z

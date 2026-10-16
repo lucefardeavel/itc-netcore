@@ -108,7 +108,7 @@ final class U0SourceGuardTest extends TestCase
         $this->assertNotSame($sources[$rel], $mutated[$rel], 'mutation applied');
         $this->assertNotSame([], self::violations($mutated, [$rel => self::REQUIRED[$rel]]), 'a save outside the hold is detected');
         $rel = 'system/autoload/Reseller/Domain/VoucherRedemptionService.php';
-        $mutated[$rel] = preg_replace('/CustomerIdentity::hold\(static function \(\\\\PDO \$pdo\) use \(\$code, \$target, \$source\)/', 'call_user_func(static function (\PDO $pdo) use ($code, $target, $source)', $sources[$rel]);
+        $mutated[$rel] = preg_replace('/CustomerIdentity::hold\(static function \(\\\\PDO \$pdo\) use \(\$code, \$target, \$source, &\$candidateId\)/', 'call_user_func(static function (\PDO $pdo) use ($code, $target, $source, &$candidateId)', $sources[$rel]);
         $this->assertNotSame($sources[$rel], $mutated[$rel], 'mutation applied');
         $this->assertNotSame([], self::violations($mutated, [$rel => self::REQUIRED[$rel]]), 'a P6 claim outside the lock is detected');
     }
@@ -148,10 +148,45 @@ final class U0SourceGuardTest extends TestCase
         }
         ksort($names);
         // pre-existing: nuxr_bop_ (legacy balance-operation idempotency) and nuxr_mig_ (migration runner / readiness) never
-        // call an identity acquirer, so they take no part in the L-1 -> L-2 -> L-3 order
+        // call an identity acquirer. Final hardening: the balance grant (nuxr_bop_ held, no transaction) reaches the
+        // ownership check (L-3) through Package::rechargeUser - order nuxr_bop_ -> L-3, never the reverse
         $this->assertSame(['nuxr_bop_', 'nuxr_identity_', 'nuxr_mig_', 'nuxr_tree_', 'nuxr_user_'], array_keys($names), 'runtime named locks');
         foreach (['system/autoload/Reseller/Domain/LegacyCustomerBalanceService.php', 'system/reseller/Migration/Runner.php', 'system/autoload/Reseller/Domain/SchemaReadiness.php'] as $rel) {
             $this->assertDoesNotMatchRegularExpression('/CustomerIdentity::|VoucherRedemptionService::|CustomerService::create\(|LegacyReprovisionService::run\(/', self::src($rel), "{$rel}: no identity acquirer under its lock");
         }
+    }
+
+    /** final hardening (D-U0-R1): every write of a subscriber's RADIUS login policy is preceded by the ownership check */
+    public function testEveryPolicyWriterChecksSingleOwnershipFirst(): void
+    {
+        $radius = self::src('system/devices/Radius.php');
+        foreach (['provision' => '->provision($policy)', 'customerDeactivate' => 'RadiusProvisioner(self::repository()))->suspend(',
+            'customerDelete' => 'RadiusProvisioner(self::repository()))->remove('] as $fn => $write) {
+            $body = substr($radius, strpos($radius, "function {$fn}("));
+            $body = substr($body, 0, strpos($body, $write) ?: 0);
+            $this->assertStringContainsString('self::singleOwner(', $body, "Radius::{$fn}: ownership check before the write");
+        }
+        $this->assertMatchesRegularExpression('/private static function singleOwner\(string \$key\): void\s*\{\s*try \{\s*\\\\Reseller\\\\Domain\\\\CustomerIdentity::assertSingleOwner\(\$key\);/', $radius);
+        $act = self::src('system/autoload/Reseller/Activation/ActivationService.php');
+        $prov = substr($act, strpos($act, 'public static function provision('));
+        $this->assertLessThan(strpos($prov, '->applyPlan('), strpos($prov, 'CustomerIdentity::assertSingleOwner($policy->username)'), 'activation: ownership check before any RADIUS write');
+        $lrs = self::src('system/autoload/Reseller/Domain/LegacyReprovisionService.php');
+        $guard = substr($lrs, strpos($lrs, 'public static function assertDeviceAllowed('));
+        $guard = substr($guard, 0, strpos($guard, 'public static function renamePairs('));
+        $this->assertSame(2, substr_count($guard, 'self::singleOwner($row, $id);'), 'device guard: the ownership check on the permit path and after the WP8 owned-name refusal');
+        $this->assertLessThan(strpos($guard, 'self::singleOwner($row, $id);', strpos($guard, 'self::deviceOwned(')), strpos($guard, "'RESELLER_OWNED_REFUSED'"), 'the WP8 refusal keeps precedence');
+        $this->assertStringContainsString('CustomerIdentity::assertSingleOwner(', $guard);
+        $rename = substr($lrs, strpos($lrs, 'public static function renameCheck('));
+        $this->assertLessThan(strpos($rename, '->equivalentKeys('), strpos($rename, 'CustomerIdentity::assertSingleOwner($from)'), 'rename: the source key ownership first');
+        $pkg = self::src('system/autoload/Package.php');
+        $this->assertLessThan(strpos($pkg, "run_hook(\"recharge_user\")"), strpos($pkg, 'LegacyReprovisionService::assertDeviceAllowed($c)'), 'Package (pinned, unchanged): the device guard is still pre-write');
+        // mutation: dropping the check from provision() is detected
+        $mutated = str_replace("        self::singleOwner(\$policy->username);\n", '', $radius);
+        // the legacy deadlock retry re-runs ONLY the policy write, never the ownership check skipped, and only for 1213
+        $prov = substr($radius, strpos($radius, 'function provision('));
+        $this->assertMatchesRegularExpression("/=== ProvisionResult::FAILED && \\(int\\) \\(\\\$result->metadata\\['db_error'\\] \\?\\? 0\\) === 1213\\)/", $prov);
+        $this->assertNotSame($radius, $mutated, 'mutation applied');
+        $body = substr($mutated, strpos($mutated, 'function provision('));
+        $this->assertStringNotContainsString('self::singleOwner(', substr($body, 0, strpos($body, '->provision($policy)')));
     }
 }

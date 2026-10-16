@@ -4,6 +4,7 @@ namespace Reseller\Activation;
 // Runtime class: loaded only through init.php (NUXR_RUNTIME); never executable on its own.
 if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
 
+use Reseller\Domain\CustomerIdentity;
 use Reseller\Domain\DomainError;
 use Reseller\Domain\ResellerTreeService;
 use Reseller\Domain\Tx;
@@ -486,6 +487,15 @@ final class ActivationService
             $policy = self::policy($act);
         } catch (\InvalidArgumentException $e) {
             return [ProvisionResult::failed($e->getMessage(), 'The customer data cannot be provisioned.', false), null];
+        }
+        // WP9 U0 final hardening (D-U0-R1): a key with more than one logical owner (grandfathered duplicate) is never
+        // written - FAILED before any RADIUS change (WP5A: reservation released); a check that cannot run is retryable
+        try {
+            CustomerIdentity::assertSingleOwner($policy->username);
+        } catch (DomainError $e) {
+            return [$e->reason === 'IDENTITY_AMBIGUOUS'
+                ? ProvisionResult::failed('RADIUS_IDENTITY_AMBIGUOUS', $e->getMessage(), false)
+                : ProvisionResult::failed('RADIUS_IDENTITY_CHECK_UNAVAILABLE', $e->getMessage(), true), $policy];
         }
         $provisioner = RadiusProvisioner::connection();
         $plan = self::plan($act);
