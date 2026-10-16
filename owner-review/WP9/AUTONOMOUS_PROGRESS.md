@@ -19,3 +19,8 @@ Resume rule: read `AUTONOMOUS_EXECUTION_PLAN.md`, then the last rows here. Never
 | 11 | N-06 CLI guard | DONE | 43007e35 | reconcile floor 300 s; resume stale only |
 | 12 | A2-R hardening L1-L5 + N-17 | DONE (dev + FreeRADIUS harness); CHR regression pending (W9-E) | b4223961 | CHECKs, echo, SAFE flag, README; enforcement check -> app preflight (TODO system/reseller/preflight.php in WP10) |
 | next | AV-3, release profile (legacy drivers), R-FC-1, N-10, OBS-1 tools, W9-OPS recovery CLI, P3 R-15, P1 lock gate, N6/N7, TAMPER/LPDB, W8-14, W8-17, OBS-S7-4, red team, full harness, CHR | | | |
+| 13 | AV-3 attested release audit | DONE | 2c7f0b4d | [db_account=CURRENT_USER() connection=..] |
+| 14 | Release profile (legacy MikroTik-API + rlm_rest disabled) | DONE | cf19e04e | Package.php re-pinned 9759fca7 -> 51e8c47b; harness opts in ($legacy_devices_enabled) |
+| 15 | W9-OPS recovery tools + runbook | DONE | 558acddc | finance-check (IntegrityCheck), voucher-review/resolve, admission-pending/release; docs/OPERATOR_RECOVERY_RUNBOOK.md |
+| 16 | LPDB grants + preflight + CHECK via SHOW CREATE TABLE | DONE | 58f5eadf | MariaDB hides CHECK_CONSTRAINTS from table grants (finding fixed) |
+| next | R-FC-1, N-10, P3 R-15, P1 lock gate, N6/N7, W8-14, W8-17, OBS-S7-4, red team (WP9-C), full harness, CHR regression | | | |
