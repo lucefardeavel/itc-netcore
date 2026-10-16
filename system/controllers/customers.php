@@ -932,6 +932,8 @@ switch ($action) {
                 // WP8 A3 (owner D-3): the Radius device may replace an existing exact target only when it is this
                 // customer's own key (its old keys, or a key this edit renamed into first)
                 \Reseller\Domain\LegacyReprovisionService::renameScope($nuxrOld);
+                // WP9 / W8-17: the old-name sessions of this rename are confirmed and audited after the device calls
+                \Reseller\Domain\LegacyReprovisionService::legacyRenameBegin();
                 try {
                 foreach ($turs as $tur) {
                     $p = ORM::for_table('tbl_plans')->find_one($tur['plan_id']);
@@ -964,11 +966,12 @@ switch ($action) {
                 }
                 } finally {
                     \Reseller\Domain\LegacyReprovisionService::renameScope(null);
+                    $nuxrLegacyOldSession = \Reseller\Domain\LegacyReprovisionService::legacyRenameFinish(\Reseller\Security\ActorContext::current(), $c);
                 }
             }
             // WP8 A3 (FIX-5): the old-identity session state of a reseller-owned rename; UNCONFIRMED and
             // NO_ACCOUNTING_EVIDENCE are shown as warnings, never as success
-            $nuxrOldSession = isset($nuxrReprovision) ? ($nuxrReprovision['old_session'] ?? null) : null;
+            $nuxrOldSession = isset($nuxrReprovision) ? ($nuxrReprovision['old_session'] ?? null) : ($nuxrLegacyOldSession ?? null);
             r2(getUrl('customers/view/') . $id, \Reseller\Domain\LegacyReprovisionService::oldSessionNoticeType($nuxrOldSession), 'User Updated Successfully' . \Reseller\Domain\LegacyReprovisionService::oldSessionNote($nuxrOldSession));
         } else {
             r2(getUrl('customers/edit/') . $id, 'e', $msg);

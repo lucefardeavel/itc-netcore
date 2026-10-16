@@ -38,6 +38,23 @@ Exit codes:
 | `reconcile.php voucher-review` | vouchers left CLAIMED (review) | no line |
 | `reconcile.php balance-held` | interrupted legacy balance operations | no line |
 
+**Continuous monitoring (WP10):** `php system/reseller/health.php --json` every 5 minutes, and with `--finance` hourly.
+- Exit codes: 0 OK, 1 WARNING, 2 CRITICAL, 3 UNKNOWN.
+- It reports counts and ages only. It covers:
+  - the database contract (REPEATABLE-READ, UTC, clock skew);
+  - schema readiness;
+  - stale and reconciliation-required activations;
+  - the oldest ACTIVE reservation (N-09: reservations never expire on their own);
+  - PPPoE / Hotspot admission claims PENDING over 10 minutes;
+  - CLAIMED vouchers;
+  - HELD balance operations;
+  - accounting freshness;
+  - unconfirmed Disconnect / CoA outcomes;
+  - finance integrity (`--finance`).
+
+  Each WARNING / CRITICAL line names the command of this runbook that lists the records.
+- Alerting rules: `docs/PRODUCTION_CONFIGURATION_CHECKLIST.md` §J.
+
 **`finance-check` exit 4 is a security incident.** It means a write happened outside the finance services: tampering, a plugin, or a bug.
 - Do not "fix" the numbers.
 - Preserve a database snapshot and the logs.
@@ -125,7 +142,7 @@ ACTIVE claims are never released by hand. The A1 NAS verification ends them when
   2. Run "Sync" (ADMIN_SYNC) once; it re-applies the active plan.
 
   The billing period is unchanged by design.
-- **`OLD_SESSION_UNCONFIRMED`:** after a rename, a session of the OLD name may still run.
+- **`OLD_SESSION_UNCONFIRMED`:** after a rename, a session of the OLD name may still run. This applies to reseller-owned renames, and since WP9 W8-17 also to the Admin rename of an unassigned legacy customer (audit operation `LEGACY_RENAME`).
   1. Disconnect it on the NAS (or wait for its Session-Timeout).
   2. Check `radacct` for an open row of the old name.
 

@@ -1,0 +1,227 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Http/W9StaffPasswordStorageTest.php start 2026-10-16T21:27:28Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FFF.                                                                4 / 4 (100%)
+Time: 00:05.843, Memory: 10.00 MB
+W9Staff Password Storage (Reseller\Tests\Http\W9StaffPasswordStorage)
+ ✘ Magic hashes are compared strictly
+   │
+   │ a different password with a 0e SHA-1 is refused
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Http/W9StaffPasswordStorageTest.php:46
+   │
+ ✘ Legacy sha 1 logs in once and is upgraded
+   │
+   │ upgraded to password_hash at the login
+   │ Failed asserting that '360d364bee3ca60730659bfe1a8193f137720887' starts with "$2y$".
+   │
+   │ /repo/tests/Http/W9StaffPasswordStorageTest.php:59
+   │
+ ✘ Changed and created passwords use modern hashing
+   │
+   │ changed password stored with password_hash
+   │ Failed asserting that '5cef12307dc03079d4d95bf1f1fe8699de983dc0' starts with "$2y$".
+   │
+   │ /repo/tests/Http/W9StaffPasswordStorageTest.php:73
+   │
+ ✔ Default credential is not upgraded and stays locked
+FAILURES!
+Tests: 4, Assertions: 13, Failures: 3.
+exit=1
+== mariadb tests/Http/W9InstallerPostInstallTest.php start 2026-10-16T21:27:35Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF                                                                  2 / 2 (100%)
+Time: 00:01.767, Memory: 10.00 MB
+W9Installer Post Install (Reseller\Tests\Http\W9InstallerPostInstall)
+ ✘ Step 5 does nothing on an installed application
+   │
+   │ 200   PHPNuxBill Installer PHPNuxBill Installer Congratulations! You have just install PHPNuxBill ! But wait!! Don't forget to rename folder pages_example to pages. if it not yet renamed Activate Cronjob for Expired and Reminder. Check how PHPNuxbill Works how to link Mikrotik Login to PHPNuxBill or use Mikrotik Login Template for PHPNuxBill To Login Admin Portal: Use this link - http://127.0.0.1:23241
+   │ Failed asserting that 200 is identical to 403.
+   │
+   │ /repo/tests/Http/W9InstallerPostInstallTest.php:26
+   │
+ ✘ Step 5 still copies the pages during a fresh installation
+   │
+   │ the installer created pages/
+   │ Failed asserting that file "/tmp/wp2_app_da93e448df/pages/Privacy_Policy.html" exists.
+   │
+   │ /repo/tests/Http/W9InstallerPostInstallTest.php:39
+   │
+FAILURES!
+Tests: 2, Assertions: 4, Failures: 2.
+exit=1
+== mariadb tests/Http/W9SessionCookieHardeningTest.php start 2026-10-16T21:27:38Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF                                                                  2 / 2 (100%)
+Time: 00:02.429, Memory: 10.00 MB
+W9Session Cookie Hardening (Reseller\Tests\Http\W9SessionCookieHardening)
+ ✘ Session cookie and framing headers
+   │
+   │ admin: HttpOnly
+   │ Failed asserting that 'PHPSESSID=518d9af70eca3b6a675647e6f1548df6; path=/' matches PCRE pattern "/;\s*HttpOnly/i".
+   │
+   │ /repo/tests/Http/W9SessionCookieHardeningTest.php:34
+   │
+ ✘ Client chosen session id is not adopted
+   │
+   │ strict mode replaces the unknown id
+   │ Failed asserting that an array is not empty.
+   │
+   │ /repo/tests/Http/W9SessionCookieHardeningTest.php:53
+   │
+FAILURES!
+Tests: 2, Assertions: 5, Failures: 2.
+exit=1
+== mariadb tests/Integration/Wp9/W9LegacyRenameAuditTest.php start 2026-10-16T21:27:42Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF.                                                                 3 / 3 (100%)
+Time: 00:19.525, Memory: 10.00 MB
+W9Legacy Rename Audit (Reseller\Tests\Integration\Wp9\W9LegacyRenameAudit)
+ ✘ Unconfirmed legacy rename is audited and shown as a warning
+   │
+   │ one rename.old_session audit event
+   │ Failed asserting that actual size 0 matches expected size 1.
+   │
+   │ /repo/tests/Integration/Wp9/W9LegacyRenameAuditTest.php:87
+   │
+ ✘ Confirmed legacy rename is audited as confirmed
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    0 => 'CONFIRMED',
+   │ -    1 => 'LEGACY_RENAME',
+   │ +    0 => null,
+   │ +    1 => null,
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp9/W9LegacyRenameAuditTest.php:104
+   │
+ ✔ An edit without rename records nothing
+FAILURES!
+Tests: 3, Assertions: 23, Failures: 2.
+exit=1
+== mysql tests/Http/W9StaffPasswordStorageTest.php start 2026-10-16T21:28:03Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FFF.                                                                4 / 4 (100%)
+Time: 00:06.715, Memory: 10.00 MB
+W9Staff Password Storage (Reseller\Tests\Http\W9StaffPasswordStorage)
+ ✘ Magic hashes are compared strictly
+   │
+   │ a different password with a 0e SHA-1 is refused
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Http/W9StaffPasswordStorageTest.php:46
+   │
+ ✘ Legacy sha 1 logs in once and is upgraded
+   │
+   │ upgraded to password_hash at the login
+   │ Failed asserting that '360d364bee3ca60730659bfe1a8193f137720887' starts with "$2y$".
+   │
+   │ /repo/tests/Http/W9StaffPasswordStorageTest.php:59
+   │
+ ✘ Changed and created passwords use modern hashing
+   │
+   │ changed password stored with password_hash
+   │ Failed asserting that '5cef12307dc03079d4d95bf1f1fe8699de983dc0' starts with "$2y$".
+   │
+   │ /repo/tests/Http/W9StaffPasswordStorageTest.php:73
+   │
+ ✔ Default credential is not upgraded and stays locked
+FAILURES!
+Tests: 4, Assertions: 13, Failures: 3.
+exit=1
+== mysql tests/Http/W9InstallerPostInstallTest.php start 2026-10-16T21:28:12Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF                                                                  2 / 2 (100%)
+Time: 00:04.729, Memory: 10.00 MB
+W9Installer Post Install (Reseller\Tests\Http\W9InstallerPostInstall)
+ ✘ Step 5 does nothing on an installed application
+   │
+   │ 200   PHPNuxBill Installer PHPNuxBill Installer Congratulations! You have just install PHPNuxBill ! But wait!! Don't forget to rename folder pages_example to pages. if it not yet renamed Activate Cronjob for Expired and Reminder. Check how PHPNuxbill Works how to link Mikrotik Login to PHPNuxBill or use Mikrotik Login Template for PHPNuxBill To Login Admin Portal: Use this link - http://127.0.0.1:24026
+   │ Failed asserting that 200 is identical to 403.
+   │
+   │ /repo/tests/Http/W9InstallerPostInstallTest.php:26
+   │
+ ✘ Step 5 still copies the pages during a fresh installation
+   │
+   │ the installer created pages/
+   │ Failed asserting that file "/tmp/wp2_app_2d5763fc51/pages/Privacy_Policy.html" exists.
+   │
+   │ /repo/tests/Http/W9InstallerPostInstallTest.php:39
+   │
+FAILURES!
+Tests: 2, Assertions: 4, Failures: 2.
+exit=1
+== mysql tests/Http/W9SessionCookieHardeningTest.php start 2026-10-16T21:28:18Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF                                                                  2 / 2 (100%)
+Time: 00:04.387, Memory: 10.00 MB
+W9Session Cookie Hardening (Reseller\Tests\Http\W9SessionCookieHardening)
+ ✘ Session cookie and framing headers
+   │
+   │ admin: HttpOnly
+   │ Failed asserting that 'PHPSESSID=7f4803623fb2d054b2f2c3998197e552; path=/' matches PCRE pattern "/;\s*HttpOnly/i".
+   │
+   │ /repo/tests/Http/W9SessionCookieHardeningTest.php:34
+   │
+ ✘ Client chosen session id is not adopted
+   │
+   │ strict mode replaces the unknown id
+   │ Failed asserting that an array is not empty.
+   │
+   │ /repo/tests/Http/W9SessionCookieHardeningTest.php:53
+   │
+FAILURES!
+Tests: 2, Assertions: 5, Failures: 2.
+exit=1
+== mysql tests/Integration/Wp9/W9LegacyRenameAuditTest.php start 2026-10-16T21:28:24Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF.                                                                 3 / 3 (100%)
+Time: 00:21.560, Memory: 10.00 MB
+W9Legacy Rename Audit (Reseller\Tests\Integration\Wp9\W9LegacyRenameAudit)
+ ✘ Unconfirmed legacy rename is audited and shown as a warning
+   │
+   │ one rename.old_session audit event
+   │ Failed asserting that actual size 0 matches expected size 1.
+   │
+   │ /repo/tests/Integration/Wp9/W9LegacyRenameAuditTest.php:87
+   │
+ ✘ Confirmed legacy rename is audited as confirmed
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    0 => 'CONFIRMED',
+   │ -    1 => 'LEGACY_RENAME',
+   │ +    0 => null,
+   │ +    1 => null,
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp9/W9LegacyRenameAuditTest.php:104
+   │
+ ✔ An edit without rename records nothing
+FAILURES!
+Tests: 3, Assertions: 23, Failures: 2.
+exit=1

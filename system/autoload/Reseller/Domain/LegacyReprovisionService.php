@@ -62,6 +62,8 @@ final class LegacyReprovisionService
      * @var list<array<string,mixed>>|null
      */
     private static ?array $oldSessions = null;
+    /** WP9 / W8-17: the captures of an Admin rename of an unassigned legacy customer (legacyRenameBegin / legacyRenameFinish) */
+    private static ?array $legacyCaptures = null;
     /** @var list<array{0:string,1:string}> */
     private static array $renameAttempts = [];
     /** WP8 A3 (OD-A3R-6): total bound for the Accounting-Stop confirmation of the Disconnects, outside every lock */
@@ -374,17 +376,46 @@ final class LegacyReprovisionService
 
     /**
      * WP8 A3: called by the Radius device after a rename. Inside run() (the per-call permit is set) the capture is kept
-     * for the confirmation after the tree lock; returns false elsewhere (legacy path: the device sends at once).
+     * for the confirmation after the tree lock; inside the legacy rename of the Admin edit form (W8-17) it is kept for
+     * legacyRenameFinish(); returns false elsewhere (other legacy callers: the device sends at once).
      *
      * @param array<string,mixed> $capture
      */
     public static function deferOldSessions(array $capture): bool
     {
+        if (self::$permit === null && self::$legacyCaptures !== null) {
+            self::$legacyCaptures[] = $capture;
+            return true;
+        }
         if (self::$permit === null || self::$oldSessions === null) {
             return false;
         }
         self::$oldSessions[] = $capture;
         return true;
+    }
+
+    /** WP9 / W8-17: the Admin edit form starts the rename of an unassigned legacy customer (the device calls follow). */
+    public static function legacyRenameBegin(): void
+    {
+        self::$legacyCaptures = [];
+    }
+
+    /**
+     * WP9 / W8-17: after the device calls of that rename (no transaction, no lock held): the same Disconnect / Accounting-
+     * Stop confirmation and 'rename.old_session' audit as the reseller path (operation LEGACY_RENAME). Returns the
+     * old_session state for the operator notice, or null when nothing was renamed on a Radius device.
+     *
+     * @param array<string,mixed>|\ArrayAccess $customer
+     */
+    public static function legacyRenameFinish(ActorContext $a, array|\ArrayAccess $customer): ?string
+    {
+        $captures = self::$legacyCaptures;
+        self::$legacyCaptures = null;
+        if ($captures === null || $captures === []) {
+            return null;
+        }
+        $row = ['id' => (int) $customer['id'], 'manager_id' => $customer['manager_id'] ?? null, 'username' => (string) $customer['username']];
+        return self::confirmOldSessions($a, $row, 'LEGACY_RENAME', $captures, [], 'LEGACY');
     }
 
     /**
