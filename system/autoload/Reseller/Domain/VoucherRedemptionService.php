@@ -151,21 +151,36 @@ final class VoucherRedemptionService
     }
 
     /**
-     * O-U0-1: whether the voucher-only identity's RADIUS policy exists after the grant (exact key bytes, so an equivalent
-     * key of another owner never counts). Plans on other devices cannot be verified here and keep the WP5B behaviour.
-     * A read error counts as "not present" (review, never a false GRANTED).
+     * O-U0-1 / owner §5: null when the voucher-only identity's RADIUS policy is CONFIRMED after the grant, otherwise the
+     * review reason. Confirmed = this request's own write of the code's key returned SUCCESS (committed and read back equal
+     * to the requested policy: RadiusProvisioner::lastProvision) AND the rows are still there (exact key bytes, so an
+     * equivalent key of another owner never counts). Rows that merely exist under the name - stale, partial or foreign,
+     * left by a refused or failed write - are never proof. NOT_CONFIRMED: no write of the key ran (refused before it, or
+     * no device step); DEVICE_FAILED: the write was rolled back; DEVICE_UNKNOWN: the commit or its read-back is
+     * unconfirmed; NO_SERVICE: confirmed, but the rows are gone. Plans on other devices cannot be verified here and keep
+     * the WP5B behaviour. A read error counts as not confirmed (review, never a false GRANTED).
      */
-    private static function servicePresent(array $v, string $code): bool
+    private static function unconfirmed(array $v, string $code): ?string
     {
         try {
             $plan = Tx::row(self::pdo(), 'SELECT device FROM tbl_plans WHERE id = ?', [(int) $v['id_plan']]);
             if ($plan === null || (string) $plan['device'] !== 'Radius') {
-                return true;
+                return null;
             }
-            return \Reseller\Radius\RadiusRepository::connection()->exactRows(trim($code)) > 0;
+            $r = \Reseller\Radius\RadiusProvisioner::lastProvision(trim($code));
+            if ($r === null) {
+                return 'NOT_CONFIRMED';
+            }
+            if ($r->status === \Reseller\Radius\ProvisionResult::UNKNOWN) {
+                return 'DEVICE_UNKNOWN';
+            }
+            if (!$r->isSuccess()) {
+                return 'DEVICE_FAILED';
+            }
+            return \Reseller\Radius\RadiusRepository::connection()->exactRows(trim($code)) > 0 ? null : 'NO_SERVICE';
         } catch (\Throwable $e) {
             ErrorReporter::report($e, 'voucher-service-check');
-            return false;
+            return 'NOT_CONFIRMED';
         }
     }
 
@@ -196,6 +211,8 @@ final class VoucherRedemptionService
     {
         $pdo = self::pdo();
         $id = (int) $v['id'];
+        // owner §5: only a write of THIS grant can confirm the voucher-only service (no earlier result in this process)
+        \Reseller\Radius\RadiusProvisioner::forgetProvision(trim($code));
         try {
             $result = \Package::rechargeUser($target->customerId, $v['routers'], $v['id_plan'], 'Voucher', $code);
         } catch (\Throwable $e) {
@@ -215,11 +232,12 @@ final class VoucherRedemptionService
             self::record($source, $code, $target, self::REVIEW, $id);
             return ['status' => self::REVIEW, 'voucher' => $v, 'result' => $result];
         }
-        if ($target->customerId === 0 && !self::servicePresent($v, $code)) {
-            // WP9 U0 final hardening (O-U0-1): Package::rechargeUser (pinned) returns an invoice even when its device step
-            // failed (it records the failure and continues). A voucher-only identity whose RADIUS policy was not written
-            // is NOT granted: the voucher stays CLAIMED (never redeemable again, operator review), no second grant
-            self::record($source, $code, $target, self::REVIEW . ':NO_SERVICE', $id);
+        if ($target->customerId === 0 && ($why = self::unconfirmed($v, $code)) !== null) {
+            // WP9 U0 final hardening (O-U0-1, owner §5): Package::rechargeUser (pinned) returns an invoice even when its
+            // device step failed (it records the failure and continues). A voucher-only identity whose RADIUS policy was
+            // not confirmed written by this grant is NOT granted: the voucher stays CLAIMED (never redeemable again,
+            // operator review), no second grant
+            self::record($source, $code, $target, self::REVIEW . ':' . $why, $id);
             return ['status' => self::REVIEW, 'voucher' => $v, 'result' => $result];
         }
         Tx::exec($pdo, "UPDATE tbl_voucher SET status = '1', used_date = ?, user = ? WHERE id = ? AND status = '" . self::CLAIMED . "'",

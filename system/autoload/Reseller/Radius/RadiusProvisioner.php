@@ -19,6 +19,15 @@ final class RadiusProvisioner
     /** MySQL/MariaDB driver codes after which the rolled-back write may safely be repeated. */
     private const TRANSIENT = [1205, 1213, 2002, 2006, 2013];
 
+    /**
+     * WP9 U0 final closure (owner §5): the last provision() result per exact subscriber key in this request, so a caller
+     * whose own path swallows device failures (Package::rechargeUser) can tell a verified write of the requested policy
+     * from rows that merely exist under the name.
+     *
+     * @var array<string,ProvisionResult>
+     */
+    private static array $results = [];
+
     public function __construct(private readonly RadiusRepository $repo)
     {
     }
@@ -33,9 +42,20 @@ final class RadiusProvisioner
         return $this->repo;
     }
 
+    /** The last provision() result of this exact key in this request (null: none since forgetProvision()). */
+    public static function lastProvision(string $key): ?ProvisionResult
+    {
+        return self::$results[$key] ?? null;
+    }
+
+    public static function forgetProvision(string $key): void
+    {
+        unset(self::$results[$key]);
+    }
+
     public function provision(RadiusPolicy $policy): ProvisionResult
     {
-        return $this->run('provision', fn(): bool => $this->repo->applyUser($policy), function () use ($policy): bool {
+        return self::$results[$policy->username] = $this->run('provision', fn(): bool => $this->repo->applyUser($policy), function () use ($policy): bool {
             $state = $this->repo->readUser($policy->username);
             foreach ([[$policy->checkMap(), $state['check'], RadiusPolicy::MANAGED_CHECK], [$policy->replyMap(), $state['reply'], RadiusPolicy::MANAGED_REPLY]] as [$want, $have, $managed]) {
                 if (array_intersect_key($have, array_flip($managed)) != $want) {
