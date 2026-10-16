@@ -541,3 +541,99 @@ T1-B … T4: only the identity-related rows were in scope (§12 #25 OBS-1, #13 v
 
 ### U0.14 Result
 **`WP9_U0_END_TO_END_FINAL_ACCEPTANCE_CANDIDATE`** — U0-0…U0-5 complete and test-proven on MariaDB and MySQL (RR and RC); V1 and V2 **closed for application writers**, V4 security effect closed; open, owner-decision blockers: grandfathered collisions incl. the TEST-PROVEN reverse-direction overwrite (D-U0-R1), plugins / direct DB (D-U0-R2), availability limits (D-U0-R3), N-07. **OBS-1 remains a PRODUCTION BLOCKER**; A2-R unchanged. `PRODUCTION_NOT_AUTHORIZED` — `STOPPED_WAITING_OWNER_REVIEW`.
+
+---
+
+## FH — U0 final hardening and residual security closure (2026-10-16)
+
+Owner decision: `WP9_U0_IMPLEMENTED — FINAL_HARDENING_AUTHORIZED — PRODUCTION_BLOCKED`; D-U0-R1 **APPROVED: READ-ONLY SURVEY + TARGETED FAIL-CLOSED PROTECTION**; O-U0-1, N-07 fixes allowed in scope; D-U0-R2 / D-U0-R3 read-only reviews. Mode: audit → test-first → implement → verify → fix → full regression. Baseline `aebba8bff60f11e2bf96b57b0cd42bd4f852facd` verified (clean tree, 9 commits since the A1 fix, nothing on the remote). Local commits only; nothing pushed, merged or deployed. **Result: §FH.11.**
+
+### FH.1 Source audit (claims re-checked against the code, not the report)
+Re-read: PLAN, U0_DESIGN (incl. §9), REPORT §U0, U0 evidence, Architecture Lock, AM-W9-1…3, WP5A / WP5B / WP8 contracts, the writer matrix and `dev/wp9/identity_survey.sql`. Every subscriber RADIUS policy write was traced to its code path (FH.3). Findings of the audit that changed the plan: (1) `Package::rechargeUser` (pinned) already runs `LegacyReprovisionService::assertDeviceAllowed()` **before** any write (WP8 S7-FC), so a check placed there refuses legacy grants with nothing written; (2) every subscriber-key write goes through `RadiusProvisioner`, called only by the Radius device and `ActivationService`; (3) `Package::rechargeUser` catches every device failure and still writes the invoice (basis of O-U0-1); (4) `run_hook()` runs only the first registered function per hook (R2-3).
+
+### FH.2 D-U0-R1 — read-only survey (synthetic data only)
+`dev/wp9/identity_survey.sql` hardened: statement 0 aborts when the session would mis-parse the regex escapes (`NO_BACKSLASH_ESCAPES`); ownership labels (owned / unassigned); edge **and interior** control characters; RADIUS keys with no live owner (old / suspended / orphaned) or with more than one owner; RADIUS column collations. `U0SurveyTest` seeds every owner-listed class — username vs PPPoE, case, accent, leading / trailing whitespace, TAB, LF, CR, NUL, VT, interior control character, orphaned / suspended RADIUS key, two-owner RADIUS key, customer vs customer, voucher vs customer, unassigned vs owned — and runs the survey through a utf8mb4 **and** a utf8 (utf8mb3) connection: **1 test / 12 assertions, exit 0 on MariaDB and MySQL**; same answers on both connections; read-only (state checksums unchanged). Kept: run 1 (`survey-run1-mariadb-missed-voucher`) — a **test** defect: MariaDB returned the group's upper-case representative and the test compared hex case-sensitively (run 2 debug evidence kept). Not run on production or real data.
+
+### FH.3 D-U0-R1 — targeted fail-closed protection (implemented)
+**Rule:** a subscriber's RADIUS login policy is never written, suspended, removed or renamed while its canonical key has **more than one logical owner** (customers holding it as username / PPPoE username, canonical; live voucher identities). `CustomerIdentity::owners()` counts them (bounded, time-limited reads; null = cannot check); `CustomerIdentity::assertSingleOwner()` runs the count **under the shared identity lock** (≤ 3 s wait; in place when the caller already holds it; a caller inside an open transaction cannot take the lock — the same read-only count runs and is logged, not observed in any run). Refusal = nothing written, no disconnect, no recharge / invoice, no settlement; legacy data untouched (no clean-up).
+
+**Policy writer matrix (final):**
+| Writer (all subscriber-key writes in the application) | Guard | Refusal |
+|---|---|---|
+| `Package::rechargeUser` non-voucher grants (admin recharge, customer purchase, gateway, balance purchase, customer-path voucher) | pre-write `assertDeviceAllowed()` → ownership check **after** the WP8 owned-name refusal (its reason / record unchanged), on the row's username **and** PPPoE username | returns `false` before any hook, recharge, invoice or device call (existing callers refund / release) |
+| Radius device `add_customer` / `sync_customer` (legacy controllers, `LegacyReprovisionService` incl. its permit), `customerAddPlan` (public, N-01), `remove_customer` with `plan_expired` | `assertDeviceAllowed()` + `Radius::provision()` → `singleOwner(policy key)` | `ProvisionFailure RADIUS_IDENTITY_AMBIGUOUS` (non-retryable) |
+| Radius device `customerDeactivate` (suspend: deactivate, delete, cron expiry) / `customerDelete` | `singleOwner(key)` before the write and before any disconnect | same; **the other owner keeps its policy and session** |
+| Rename (`change_username`) — P4 legacy edit, P5 owned edit | `renameCheck()` refuses a source key with another owner, **before** the customer row is saved / written | `AMBIGUOUS_IDENTITY` message (P4) / `RENAME_AMBIGUOUS_IDENTITY` (P5) |
+| `ActivationService::provision` (reseller activation, reconciliation retries) | `assertSingleOwner(policy key)` before the plan-group and subscriber writes | `FAILED RADIUS_IDENTITY_AMBIGUOUS` → WP5A FAILED: reservation **released**, no debit, no legacy recharge; a check that cannot run is retryable (WP5A RETRY_PENDING) |
+| Voucher-only grant | P6 (U0) + the device guard + post-grant service check (FH.4) | `REFUSED` / `CLAIMED_REVIEW` |
+| Reversal / reconciliation **restore** of a captured prior state | not guarded (restores the activation's own captured snapshot) | — documented |
+| RadiusRest device | writes no RADIUS policy rows (rlm_rest reads the application tables) | — |
+| Plan group rows (`applyPlan`) | not a subscriber identity | — |
+| MikroTik devices | the shared pre-write device guard also refuses multi-owner rows (router-user namespace) | conservative |
+| Plugins / direct DB / `RadiusRepository` used directly | **not coverable** by application controls (D-U0-R2) | — |
+
+**Evidence (test-first; `evidence/fh/guard-pre`, `guard`):** before the fix, on both engines: a legacy recharge of a grandfathered duplicate (case, leading space, TAB, accent, cross-field) and of a customer over a live voucher identity returned an invoice and **overwrote** the other owner's policy; deactivation **suspended the other owner and sent a disconnect**; `customerAddPlan` overwrote; the legacy rename **moved the other owner's rows**; the owned activation over an unassigned key **COMPLETED with a debit and 2 ledger rows**; the owned rename moved the victim's rows. After: `U0OwnershipGuardTest` **11 / 45** and `U0ReverseDirectionTest` **4 / 60**, exit 0 on both engines — every case refused with no business delta, the protected policy unchanged, **no disconnect attempt** (an open accounting session of the protected owner was present), accounting history unchanged; activation FAILED `RADIUS_IDENTITY_AMBIGUOUS`, reservation `RELEASED`, wallet unchanged, 0 ledger rows, 0 recharge rows; controls: single owners recharge / deactivate / username = own PPPoE / voucher-only grant / non-colliding owned activation unchanged; the WP8 owned-name refusal unchanged; with the identity lock held elsewhere the check waits ≈3 s and refuses (fail closed) and succeeds once the lock is free.
+
+**Contract change flagged for the owner (D-FH-1):** `tests/Integration/Wp5b/RenameOldSessionTest::testAnotherCustomerHoldingTheOldNameMeansNothingIsSent` (WP8 A3) expected the rename of a key that a legacy customer also holds (equivalent PPPoE name) to **run** with the old session left UNCONFIRMED. Under D-U0-R1 that rename is a policy move of a multi-owner key and is now **refused before any write**; the test's "nothing is sent" assertion is unchanged and it now also asserts the refusal and that nothing was written. Kept: the first regression run that found it (`guard-regression-run1-stopped`).
+
+**Fix found by the regression (kept: run 1):** the first version ran the ownership check **before** the WP8 owned-name refusal, which changed WP8's refusal reason and skipped its refusal record (`DeviceGuardKeyCollisionTest`, `RechargePreWriteRefusalTest` failed); reordered so WP8's refusal keeps precedence.
+
+### FH.4 O-U0-1 — voucher granted without service (characterised and fixed)
+| State | Finding |
+|---|---|
+| Historical (before U0) | the mechanism existed unchanged: `Package::rechargeUser` (pinned) catches every device failure, reports it and still writes the invoice; the redemption then finalised `GRANTED` (voucher `1`). The U0-0 A5 run showed such a grant while the owned rename held the name (rows not measured then) |
+| Current, before this fix (`evidence/fh/o-u0-1-pre`, both engines) | **TEST-PROVEN** phantom grants: (a) a code the RADIUS key rules refuse (interior control character — not reachable through `login.php` / `radius.php`, whose filters strip it); (b) a direct-DB customer inserted during the grant (the new ownership guard correctly refused the write); (c) **found during validation: concurrent grants for different keys deadlock in the RADIUS write (InnoDB 1213) — 5 of 20 parallel runs on each engine** — a real, no-bypass trigger. In every case: `GRANTED`, voucher `1`, invoice written, **0 RADIUS rows** |
+| Confirmed failure vs UNKNOWN | all three are CONFIRMED failures (nothing applied: refused before the write, or rolled back by the engine); an UNKNOWN RADIUS outcome inside `Package` is equally swallowed and was not exercised (no fault injection) |
+| Fix 1 (voucher state machine, `VoucherRedemptionService::grant`) | a voucher-only grant on a Radius plan is finalised `GRANTED` only if the code's policy rows exist (exact key); otherwise `CLAIMED_REVIEW:NO_SERVICE`: the voucher stays `CLAIMED` (never redeemable, listed by the drift report), no second grant, replay `NOT_VALID` |
+| Fix 2 (legacy device path, `Radius::provision`) | a deadlocked policy write (1213 only — not lock-wait or connection errors) is run again, at most 3 attempts; WP5A keeps its own accepted RETRY_PENDING handling (a repository-level retry was tried first and reverted because it hid WP5A's retry timeline — `ActivationFailureTest` caught it) |
+| After | `U0VoucherServiceTest` **3 / 16**, `A1VoucherIdentityGuardTest` 16 / 78, WP5B `VoucherRedemptionTest` 10 / 66 — exit 0 on both engines; parallel mixed acquirers: **0 of 20 runs per engine** end in review (2 / 7 deadlocks transparently retried), `ActivationFailureTest` 14 / 241 and `RadiusRepositoryTest` 8 / 55 unchanged |
+| Not covered | customer-path vouchers (an existing customer's key may already hold rows, so absence cannot be proven) and non-Radius plans keep the WP5B behaviour; the recharge row / invoice written by `Package` before a failed device step remain for the operator (pinned file) |
+
+### FH.5 N-07 — voucher code logging
+| Location | Before (`evidence/fh/n07-pre`, both engines) | After |
+|---|---|---|
+| PHP error log `voucher.redeem` | `target=<code>` in clear for public / RADIUS voucher-only redemptions; `voucher=<sha256(code)[0..16]>` for all (an unsalted short hash of a short code is easy to brute-force) | `voucher_id=<row id or none> target=voucher-only|customer:<id>|new-customer outcome=<reason>` — no code, no hash |
+| Reseller audit (`voucher.redeem`, staff / customer sources) | `target_snapshot.voucher = sha256 prefix` | `target_snapshot.voucher_id` |
+| HTTP responses | no code found | unchanged (verified) |
+| Pinned `Package.php` operator Telegram on a device failure | contains `Customer: u<username>` — for a voucher-only grant that is the code | **unchanged (pinned file)** — residual, needs a pinned-file approval |
+| `login.php` `_log` of failed customer logins | logs the typed username (a typed code would appear) | unchanged — observation |
+`U0VoucherLogTest` (public HTTP voucher-only login, service PUBLIC / RADIUS granted, refused identity in use, not valid, reseller-owned, new username, customer portal): before — code in the PHP log and the hash in log and audit, both engines; after — **1 / 4, exit 0 on both engines**, no code or hash in the PHP log, `tbl_logs`, the audit table or the responses, while the outcome / reason diagnostics remain. Historical logs were not rewritten or deleted.
+
+### FH.6 D-U0-R2 / D-U0-R3 (read-only reviews)
+`owner-review/WP9/U0_HARDENING_REVIEWS.md`: R2 — plugins (`init.php` include, errors swallowed), hooks inside identity flows, plugin install (`SYSTEM_CODE`, SuperAdmin), direct DB accounts and direct `RadiusRepository` use **bypass** the application lock; mitigated (detection + write refusal) but **OPEN**; closure plan = plugin boundary decision, U3 / U4 schema options, least-privilege DB accounts (WP10), periodic survey. R3 — global lock, unindexed scans, 1 000-row bound, 2 s statement budget, legitimate customers refused by fail-closed rules (incl. the new multi-owner refusals: expiry of a multi-owner key is refused so the other owner keeps service); **OPEN for WP10**; U0 perf figures remain observational.
+
+### FH.7 Validation
+| Gate | MariaDB 10.11 | MySQL 8.0 |
+|---|---|---|
+| **Full dual-engine harness** `dev/test/run-tests.sh --do-not-cache-result` (all suites incl. `Integration/Wp9`, WP4 FreeRADIUS contract suites, `wp8-security-gates`), final tree `9e4d8156` + docs, fingerprint `f10011ec…` identical before / after | **1 334 tests / 70 703 assertions, 0 failures, 0 errors, 0 warnings, 104 incomplete** | **identical** |
+| Variant registry reproducibility | matches | — |
+| Race matrix READ COMMITTED (`U0RaceTest`, isolation proven per session) | 23 / 96, exit 0 | 23 / 96, exit 0 |
+| Race matrix REPEATABLE READ, identity matrix, lock suite (timeouts, inverted order, parallel, bounds), perf, survey, guard, reverse direction, voucher service, voucher log, A1, T1-A | inside the harness (`Integration/Wp9`), all passed | same |
+| Parallel mixed acquirers × 20 (deadlock evidence) | 0 / 20 in review (2 deadlocks retried) | 0 / 20 (7 retried) |
+| Static source guard `U0SourceGuardTest` | 6 / 266 (in the harness) | same |
+| PHP lint | 537 files, 0 errors | — |
+| Finance / ledger invariants | ActivationTestCase post-conditions on every WP5A / WP5B / reverse-direction test (in the harness); no settlement or debit on any refusal | same |
+- The **104 incomplete tests per engine are not passes**: they are the WP8 real-NAS lab tests ("WP8 real-NAS lab not running"), itemised in `evidence/u0/harness/incomplete-itemised-mariadb.out`; the CHR lab was **not** started — no NAS / RouterOS contract changed (the only RADIUS-side change is a read-only ownership count and a retry of a rolled-back write).
+- Kept failed / stopped runs of this round: `survey-run1-mariadb-missed-voucher`, `survey-run2-debug`, `guard-pre/run1-no-open-session`, `guard-regression-run1-stopped` (WP8 precedence + D-FH-1 found), `o-u0-1-pre/run1-bypass-insert-failed`, `o-u0-1-pre/run2-hook-not-first`, `focused-regression-run1-stopped-deadlock-found`, `parallel-diag`, `deadlock-pre-*`.
+
+### FH.8 Local commits (this round)
+`081a23e5` survey hardening; `0067bb22` multi-owner write refusal + deadlock retry; `9e4d8156` voucher service (O-U0-1) + log redaction (N-07); final docs commit (see git log). Product files changed in this round: `CustomerIdentity.php` (`72b47b7d…`), `VoucherRedemptionService.php` (`893bad04…`), `LegacyReprovisionService.php` (`c7919166…`), `DomainError.php` (`048d1024…`), `ActivationService.php` (`cfc8ba0d…`, WP5A — 10 lines, provision guard only), `system/devices/Radius.php` (`e8117845…`), `RadiusProvisioner.php` (`3f39d0ac…`, metadata only) — 7 files, 190 insertions / 18 deletions. No pinned file, schema, migration, finance / ledger / pricing code, RBAC or route change.
+
+### FH.9 Open production blockers
+| ID | Status |
+|---|---|
+| OBS-1 (identity collisions) | **PRODUCTION BLOCKER** — application writers closed (U0) and multi-owner writes refused (FH.3); open: existing duplicates must be resolved by an operator plan (survey) before production; D-U0-R2 bypass |
+| D-U0-R2 plugins / direct DB | OPEN (FH.6) |
+| D-U0-R3 availability | OPEN for WP10 (FH.6) |
+| N-07 residual | pinned `Package.php` Telegram message (code for voucher-only device failures) |
+| D-FH-1 | owner confirmation of the superseded WP8 A3 rename behaviour |
+| A2-R | `UNVERIFIED_SECURITY_RISK — PRODUCTION BLOCKER` (unchanged) |
+| Others | P1–P5 policies, NEW-7, NEW-8, WP1-CHECK, remaining T1-B…T4 rows, WP10 — unchanged |
+
+### FH.10 Rollback and cleanup
+Rollback: each unit is one local commit (`git revert` of `9e4d8156`, `0067bb22`, `081a23e5` restores the U0 state; no schema or data migration involved). Cleanup: 0 containers / networks / volumes of `nuxbill-reseller-test`, no QEMU, the throwaway credential file deleted; manifest 42/42; SourceGuard pins 23/23 (no re-pin); line endings of every changed file preserved; secret sweep of every committed file of this round: 0 hits (no fixture password in the evidence); protected remote refs unchanged (`feat` / `wp8` `704031c6`, `main` `500d3a2d`, `wp7` `8e7f0e1c`, `wp6c` `757d8de9`, `hotfix` `6d4f3f96`), no remote `wp9` branch.
+
+### FH.11 Final acceptance audit and result
+Applied: the pack's `DEFINITION_OF_DONE.md` and PLAN §16 gates (the owner-named "MASTER FINAL SYSTEM ACCEPTANCE AUDIT PROTOCOL v1.0" text is still not available and is not claimed). Scope implemented and nothing knowingly omitted within the authority; no unauthorised adjacent work (no schema, index, plugin architecture, WP10, CHR, production or real data); test-first with kept failures; both engines; negative cases with positive controls and the AM-W9-2 criterion; zero unexpected failures / errors / new warnings; incomplete itemised; no accounting-history change, no unauthorised policy overwrite, no phantom grant, no double settlement in any test; docs cumulative; secrets / cleanup / refs verified; risks listed (FH.9).
+
+**`WP9_U0_FINAL_HARDENING_READY_FOR_OWNER_REVIEW`** — `PRODUCTION_NOT_AUTHORIZED`; OBS-1 remains a **production blocker** (existing duplicates need an operator plan; plugins / direct DB uncovered), with owner decisions D-FH-1 (superseded WP8 A3 rename behaviour) and the N-07 pinned-file residual. `STOPPED_WAITING_OWNER_REVIEW`.

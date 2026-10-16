@@ -253,3 +253,16 @@ Cumulative addendum: §1–§8 above are the design as approved and are not edit
 | Lock order | L-1 → L-2 → L-3 → BEGIN; pre-existing `nuxr_bop_` (legacy balance idempotency) and `nuxr_mig_` (migration) never call an acquirer | static guard `tests/Unit/Wp9/U0SourceGuardTest.php` |
 
 Evidence, results and residuals: `REPORT.md` §U0, `U0_PROGRESS.md`, `evidence/u0/`.
+
+## 10. Final hardening record (2026-10-16, `WP9_U0_IMPLEMENTED — FINAL_HARDENING_AUTHORIZED — PRODUCTION_BLOCKED`)
+
+Cumulative; §1–§9 unchanged.
+
+| Element | Implemented as | Note |
+|---|---|---|
+| D-U0-R1 survey | `dev/wp9/identity_survey.sql` statements 0–5 (session-escape guard, ownership labels, edge / interior control characters, orphaned / multi-owner RADIUS keys) | read-only; tested on synthetic data only (`U0SurveyTest`) |
+| D-U0-R1 protection | `CustomerIdentity::owners()` (logical owners of a canonical key) + `assertSingleOwner()` (count under the shared lock, ≤ 3 s; in place when already held; unlocked + logged inside a caller's transaction) | callers: `LegacyReprovisionService::assertDeviceAllowed()` (after the WP8 owned-name refusal; covers the pinned `Package::rechargeUser` pre-write check), `Radius::provision / customerDeactivate / customerDelete`, `ActivationService::provision`, `renameCheck()` (rename source) |
+| Lock order | unchanged; the ownership check is an L-3 acquisition taken by key writers (no transaction open), after L-1 when a re-provision holds it, after `nuxr_bop_` on the balance path | never reversed (static guard) |
+| O-U0-1 | `VoucherRedemptionService::grant()` verifies the voucher-only policy rows after an invoice (Radius plans) → else `CLAIMED_REVIEW:NO_SERVICE`; `Radius::provision()` retries a deadlocked (1213) write, ≤ 3 attempts | `RadiusProvisioner` adds `db_error` to the FAILED metadata (additive) |
+| N-07 | redemption log / audit name the voucher by row id and the target by kind | the pinned `Package.php` Telegram message is unchanged |
+| Superseded behaviour | the WP8 A3 rename of a key another customer also holds now refuses (D-FH-1) | flagged for the owner |

@@ -29,6 +29,8 @@
 
 **U0 status note (2026-10-15, cumulative; rev 3 text below unchanged):** owner decisions OD-W9-A1-1…4 (V1 interim acceptance, U0 design study, N-07 voucher-code logging, deferrals), then `WP9_U0_FULL_IMPLEMENTATION_AND_TESTING_AUTHORIZED` with D-U0-1…8 APPROVED. U0-0…U0-5 executed test-first on `wp9/red-team-rc` (local commits only); results, residual blockers and new decisions in `REPORT.md` §U0 and `U0_PROGRESS.md`. `PRODUCTION_NOT_AUTHORIZED`; OBS-1 remains a production blocker until the owner rules on the §U0 evidence.
 
+**Final hardening note (2026-10-16, cumulative):** `WP9_U0_IMPLEMENTED — FINAL_HARDENING_AUTHORIZED — PRODUCTION_BLOCKED`; D-U0-R1 survey + targeted fail-closed protection, O-U0-1, N-07 implemented; D-U0-R2 / R3 reviewed read-only (open) — `REPORT.md` §FH, `U0_HARDENING_REVIEWS.md`.
+
 **Rev 3 owner decisions (2026-10-15):** plan rev 2 accepted with amendments AM-W9-1…3; **T0 static testing authorized** (A2-R statement inventory; A2-R sentinel / rejection decision table; SourceGuard-oriented analysis; no-shell and ledger-writer scans; CSV formula / escaping pure-unit cases; NEW-7 key-use inventory; Smarty static-call / configuration-exposure inventory) under strict conditions: no database connection, no Docker container, no FreeRADIUS process, no MikroTik / CHR, no HTTP / PWA lab, no SQL exhaustion / pressure / fault / simulation, no product-code change, no schema / migration / SourceGuard re-pin. One local commit of `PLAN.md` + `WP9_HANDOFF.md` authorized after a diff audit and a secret sweep; no push.
 
 **Still needing owner approval (§18):**

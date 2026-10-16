@@ -15,3 +15,15 @@ Resume rule: read this file, `U0_DESIGN.md` and `REPORT.md` §U0; `git log --one
 | Full harness | DONE | final docs commit | `evidence/u0/harness/` | `run-tests.sh` all suites at `d64cb359`: both engines 1 316 tests / 70 589 assertions, 0 failures / errors / warnings, 104 incomplete = WP8 real-NAS lab tests (itemised), variant registry reproducible, exit 0; fingerprint `d3136afb…` unchanged before / after; lint 534 files OK |
 | Related WP9 work (V4, reverse direction, survey) | DONE | (in the U0-5 commit) | `evidence/u0/related/` | see U0-5 row |
 | Final audit / report | DONE | final docs commit | `REPORT.md` §U0 | result `WP9_U0_END_TO_END_FINAL_ACCEPTANCE_CANDIDATE`; integrity §U0.11; blockers §U0.12 |
+
+## Final hardening round (2026-10-16, `WP9_U0_IMPLEMENTED — FINAL_HARDENING_AUTHORIZED — PRODUCTION_BLOCKED`)
+
+| Unit | State | Commit | Evidence | Notes |
+|---|---|---|---|---|
+| Baseline audit | DONE | — | — | `aebba8bf` verified; claims re-read against code |
+| fh-1 survey | DONE | `081a23e5` | `evidence/fh/survey*` | 1/12 both engines; run 1 = test hex case defect (kept) |
+| fh-2 multi-owner write refusal | DONE | `0067bb22` | `evidence/fh/guard*`, `deadlock-*`, `parallel-diag`, `focused-regression-run1-stopped-deadlock-found` | guard 11/45, reverse 4/60 both engines; WP8 precedence fix; WP8 A3 rename test expectation changed (D-FH-1); 1213 deadlock found (5/20 runs per engine) and fixed at the legacy device (0/20) |
+| fh-3 O-U0-1 + N-07 | DONE | `9e4d8156` | `evidence/fh/o-u0-1*`, `n07*` | phantom GRANTED reproduced (control char, bypass, deadlock) → CLAIMED_REVIEW; log/audit no code / hash |
+| R2 / R3 reviews | DONE (read-only) | final docs commit | `U0_HARDENING_REVIEWS.md` | both OPEN |
+| Full validation | DONE | final docs commit | `evidence/fh/final/` | lint 537 OK; RC race 23/96 both engines; full harness 1334 / 70703 per engine, 0 failures, 104 lab-incomplete, registry OK, exit 0; fingerprint `f10011ec…` unchanged |
+| Final report | DONE | final docs commit | `REPORT.md` §FH | `WP9_U0_FINAL_HARDENING_READY_FOR_OWNER_REVIEW` |
