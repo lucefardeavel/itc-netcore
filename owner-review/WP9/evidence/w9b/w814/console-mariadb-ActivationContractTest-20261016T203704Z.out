@@ -1,0 +1,18 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/w814/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5a/ActivationContractTest.php
+start: 2026-10-16T20:37:04Z
+ Container nuxbill-reseller-test-php82-run-66365878c5f8 Creating 
+ Container nuxbill-reseller-test-php82-run-66365878c5f8 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:13.080, Memory: 12.00 MB
+
+Activation Contract (Reseller\Tests\Integration\Wp5a\ActivationContract)
+ ✔ Completed activation authenticates and renewal extends it
+
+OK (1 test, 19 assertions)
+exit=0 end: 2026-10-16T20:37:23Z

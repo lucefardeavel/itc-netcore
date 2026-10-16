@@ -129,6 +129,13 @@ $try('identity', static function () use ($add, $pdo): void {
     $edge = (int) $pdo->query("SELECT COUNT(*) FROM tbl_customers WHERE username REGEXP '^[ \\\\t\\\\n\\\\r\\\\x0B\\\\x00]|[ \\\\t\\\\n\\\\r\\\\x0B\\\\x00]$' OR pppoe_username REGEXP '^[ \\\\t\\\\n\\\\r\\\\x0B\\\\x00]|[ \\\\t\\\\n\\\\r\\\\x0B\\\\x00]$'")->fetchColumn();
     $add('identity.non_canonical', $edge === 0 ? 'PASS' : 'WARN', "{$edge} customer name(s) with edge whitespace / control characters (write-time checks refuse ambiguous use)");
 });
+$try('shared_key', static function () use ($add, $pdo): void {
+    // W8-14: an existing customer with an active Hotspot AND PPPoE service on one RADIUS key (re-provision unconfirmable)
+    $n = (int) $pdo->query("SELECT COUNT(*) FROM tbl_customers c WHERE (TRIM(c.pppoe_username) = '' OR LOWER(TRIM(c.pppoe_username)) = LOWER(TRIM(c.username)))
+        AND EXISTS (SELECT 1 FROM tbl_user_recharges h WHERE h.customer_id = c.id AND h.type = 'Hotspot' AND h.status = 'on')
+        AND EXISTS (SELECT 1 FROM tbl_user_recharges p WHERE p.customer_id = c.id AND p.type = 'PPPOE' AND p.status = 'on')")->fetchColumn();
+    $add('shared_key', $n === 0 ? 'PASS' : 'WARN', "{$n} customer(s) with an active Hotspot and PPPoE service on one RADIUS key (set a distinct PPPoE username)");
+});
 $try('profile', static function () use ($add): void {
     $legacy = \Reseller\Domain\ReleaseProfile::legacyDevicesEnabled();
     $add('profile', $legacy ? 'WARN' : 'PASS', $legacy ? 'legacy MikroTik-API / rlm_rest devices ENABLED: unsupported configuration with open findings' : 'FreeRADIUS-only release profile');

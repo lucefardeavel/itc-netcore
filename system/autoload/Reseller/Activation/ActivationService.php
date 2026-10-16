@@ -259,6 +259,7 @@ final class ActivationService
         if ($action !== $expected) {
             throw new DomainError('ACTION_MISMATCH');
         }
+        self::assertOwnRadiusKey($pdo, $customer, (string) $plan['type']);
         [$start, $expiry] = ServicePeriod::compute($action, $plan, $action === 'RENEW' ? $current : null, $now, self::dayExp($pdo, $customerId, $plan));
         $snap = PricingService::resolveInTx($pdo, $manager, $planId);
         if ($preview !== null && !$preview->matches(ActivationPreviewService::material($customerId, $planId, $manager, $action, $current, $snap, self::dayExp($pdo, $customerId, $plan), ActivationPreviewService::serviceTerms($pdo, $snap)))) {
@@ -559,6 +560,30 @@ final class ActivationService
         $start = ServicePeriod::at(substr($meta['period']['start'], 0, 10), substr($meta['period']['start'], 11), $zone);
         $expiry = ServicePeriod::at(substr($meta['period']['expiry'], 0, 10), substr($meta['period']['expiry'], 11), $zone);
         return RadiusPolicyBuilder::build($customer, $plan, $bw, $expiry, $start);
+    }
+
+    /**
+     * WP9 / W8-14 (same-key ADMIN_SYNC, lowest-risk option: forbid the configuration): a Hotspot and a PPPoE service of
+     * one customer must not share one RADIUS key (the PPPoE key is the username when no PPPoE username is set) - two
+     * plans writing one key make every later re-provision unconfirmable. Refused before anything is written while the
+     * customer holds an active recharge of the other service type with the same (canonical) key.
+     */
+    private static function assertOwnRadiusKey(\PDO $pdo, array $customer, string $type): void
+    {
+        $other = $type === 'PPPOE' ? 'Hotspot' : 'PPPOE';
+        $active = Tx::row($pdo, "SELECT id FROM tbl_user_recharges WHERE customer_id = ? AND type = ? AND status = 'on' LIMIT 1", [(int) $customer['id'], $other]);
+        if ($active === null) {
+            return;
+        }
+        try {
+            $mine = RadiusPolicyBuilder::key($customer, $type === 'PPPOE');
+            $theirs = RadiusPolicyBuilder::key($customer, $other === 'PPPOE');
+        } catch (\InvalidArgumentException) {
+            return; // an invalid key is refused by the policy build itself
+        }
+        if (mb_strtolower($mine) === mb_strtolower($theirs)) {
+            throw new DomainError('RADIUS_KEY_SHARED');
+        }
     }
 
     /**

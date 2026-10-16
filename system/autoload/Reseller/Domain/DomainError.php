@@ -32,6 +32,8 @@ final class DomainError extends \RuntimeException
         'SALES_ASSIGN_OWNER_ONLY' => 'Only the reseller that owns this customer (or an administrator) can change its Sales assignment.',
         // WP9-OPS voucher review: the decision needs evidence that is not there (nothing changed)
         'VOUCHER_REVIEW_EVIDENCE' => 'The voucher grant evidence does not allow this decision; nothing was changed.',
+        // WP9 / W8-14: two service types of one customer on one RADIUS key
+        'RADIUS_KEY_SHARED' => 'This customer already has an active service of the other type on the same login; set a distinct PPPoE username first.',
         'SERVICE_BUSY' => 'This customer\'s service is being updated by another operation; please try again shortly.',
         'USERNAME_TAKEN' => 'The username is already used.',
         // WP9 U0: the shared identity check (generic: never says which identity holds the name)
