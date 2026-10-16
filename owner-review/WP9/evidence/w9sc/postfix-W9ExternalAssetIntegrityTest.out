@@ -1,0 +1,48 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..............................                                    30 / 30 (100%)
+
+Time: 00:00.059, Memory: 10.00 MB
+
+W9External Asset Integrity (Reseller\Tests\Unit\Wp9\W9ExternalAssetIntegrity)
+ ✔ Every external script and stylesheet is pinned with integrity
+
+Wp6a Source Guard (Reseller\Tests\Unit\Wp6a\Wp6aSourceGuard)
+ ✔ Every variable is escaped or allow listed
+ ✔ Confirmations use dialogs not window confirm
+ ✔ No external assets beyond the documented residuals
+ ✔ Activation flow never shows the legacy plan price
+ ✔ Ui helpers stay outside finance and translation stays local
+
+Wp6c Guard (Reseller\Tests\Unit\Wp6c\Wp6cGuard)
+ ✔ No device detection in the shell script
+ ✔ No new external assets in the shell
+ ✔ Viewport allows zoom and covers safe areas
+ ✔ Tables switch by component width with a fallback
+ ✔ No hover only reveal in staff templates
+ ✔ No smarty comment inside a literal block
+ ✔ Up registry lives in the ui layer
+ ✔ Wp 6c components escape their output
+ ✔ No inline widths in wp 6c components
+ ✔ Every wp 6c string has an arabic entry
+
+Wp7Guard (Reseller\Tests\Unit\Wp7\Wp7Guard)
+ ✔ Pwa routes are public get only and never api allowed
+ ✔ The pwa controller has no business or mutating code
+ ✔ The pwa builder is pure and user neutral
+ ✔ The service worker stores only the literal precache list
+ ✔ One version for worker client and builder
+ ✔ The offline document is static and generic
+ ✔ The pwa client uses feature detection only
+ ✔ The csrf shim hook can only stop a request
+ ✔ The gate blocks only confirmed offline or reconnecting non get requests
+ ✔ Install is user initiated only
+ ✔ Update is user chosen deferred in critical flows and reloads only this tab once
+ ✔ Every wp 7 string has an arabic entry
+ ✔ The heartbeat bypasses the csrf shim and nothing else does
+ ✔ Prune stays inside the installation namespace
+
+OK (30 tests, 271 assertions)

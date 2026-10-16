@@ -163,8 +163,8 @@
     <p>{Lang::T('Export and Print will show all data without pagination')}.</p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js" integrity="sha384-zVyRZ9eQ45iRS7ZRZQSFKGJpypyxssU6clBCysSqzjmdGWNn8//uC8dh9DabpAbK" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors@0.5.1/dist/chartjs-plugin-autocolors.min.js" integrity="sha384-vnGRB4CdtZ0nxGdDU8ZknCYFULPqwUgZDuBR0bVo3l1hpTKuOCWykajKvrGGFnyz" crossorigin="anonymous"></script>
 
 {literal}
     <script>

@@ -1,0 +1,55 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F                                                                   1 / 1 (100%)
+
+Time: 00:00.044, Memory: 10.00 MB
+
+W9External Asset Integrity (Reseller\Tests\Unit\Wp9\W9ExternalAssetIntegrity)
+ ✘ Every external script and stylesheet is pinned with integrity
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'ui/ui/customer/invoice-customer.tpl:6 https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    1 => 'ui/ui/customer/reg-login-custom-moon.tpl:9 https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    2 => 'ui/ui/customer/reg-login-custom-moon.tpl:10 https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    3 => 'ui/ui/customer/reg-login-custom-moon.tpl:11 https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css: no sha384/sha512 integrity, no crossorigin="anonymous", version not pinned (x.y.z)',
+   │ +    4 => 'ui/ui/customer/reg-login-custom-moon.tpl:12 https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js: no sha384/sha512 integrity, no crossorigin="anonymous", version not pinned (x.y.z)',
+   │ +    5 => 'ui/ui/customer/login-custom-moon.tpl:9 https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    6 => 'ui/ui/customer/login-custom-moon.tpl:10 https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    7 => 'ui/ui/customer/login-custom-moon.tpl:11 https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css: no sha384/sha512 integrity, no crossorigin="anonymous", version not pinned (x.y.z)',
+   │ +    8 => 'ui/ui/customer/login-custom-moon.tpl:12 https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js: no sha384/sha512 integrity, no crossorigin="anonymous", version not pinned (x.y.z)',
+   │ +    9 => 'ui/ui/admin/plan/invoice.tpl:2 https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    10 => 'ui/ui/admin/pppoe/edit.tpl:243 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    11 => 'ui/ui/admin/pppoe/edit.tpl:245 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/perl/perl.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    12 => 'ui/ui/admin/pppoe/edit.tpl:248 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    13 => 'ui/ui/admin/pppoe/edit.tpl:251 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/abbott.min.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    14 => 'ui/ui/admin/coupons/list.tpl:233 https://code.jquery.com/jquery-3.6.0.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    15 => 'ui/ui/admin/reports/list.tpl:166 https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    16 => 'ui/ui/admin/reports/list.tpl:167 https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors: no sha384/sha512 integrity, no crossorigin="anonymous", version not pinned (x.y.z)',
+   │ +    17 => 'ui/ui/admin/header.tpl:43 https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    18 => 'ui/ui/admin/vpn/edit.tpl:242 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    19 => 'ui/ui/admin/vpn/edit.tpl:244 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/perl/perl.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    20 => 'ui/ui/admin/vpn/edit.tpl:247 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    21 => 'ui/ui/admin/vpn/edit.tpl:250 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/abbott.min.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    22 => 'ui/ui/admin/message/bulk.tpl:2 https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    23 => 'ui/ui/admin/message/bulk.tpl:3 https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    24 => 'ui/ui/admin/message/bulk.tpl:126 https://code.jquery.com/jquery-3.6.0.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    25 => 'ui/ui/admin/message/bulk.tpl:127 https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    26 => 'ui/ui/admin/hotspot/edit.tpl:318 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    27 => 'ui/ui/admin/hotspot/edit.tpl:320 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/perl/perl.min.js: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    28 => 'ui/ui/admin/hotspot/edit.tpl:323 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +    29 => 'ui/ui/admin/hotspot/edit.tpl:326 https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/abbott.min.css: no sha384/sha512 integrity, no crossorigin="anonymous"',
+   │ +]
+   │
+   │ /repo/tests/Unit/Wp9/W9ExternalAssetIntegrityTest.php:69
+   │
+
+FAILURES!
+Tests: 1, Assertions: 3, Failures: 1.
