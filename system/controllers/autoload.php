@@ -18,6 +18,11 @@ $ui->assign('_admin', $admin);
 // WP2: customer lookups are scoped; other customers' usernames are never revealed to tree scopes
 $nuxrActor = \Reseller\Security\ActorContext::current();
 $nuxrGlobal = \Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ) === 'G';
+// WP9-B / R-HF-CARRY-01 (N-12): router, plan and bandwidth metadata feed the legacy recharge forms, which only global
+// (Admin) staff use; tree-scoped staff (Agent / Sales) get no infrastructure or catalogue metadata from here
+if (!$nuxrGlobal && in_array($action, ['server', 'plan', 'bw_name', 'pool'], true)) {
+    die('');
+}
 
 switch ($action) {
     case 'pool':
@@ -33,7 +38,7 @@ switch ($action) {
         break;
     case 'bw_name':
         $bw = ORM::for_table('tbl_bandwidth')->select("name_bw")->find_one($routes['2']);
-        echo $bw['name_bw'];
+        echo htmlspecialchars((string) ($bw['name_bw'] ?? ''), ENT_QUOTES);
         die();
     case 'balance':
         $balance = ORM::for_table('tbl_customers')->select("balance")->find_one($routes['2'])['balance'];
@@ -117,6 +122,11 @@ switch ($action) {
             if (!$c) {
                 die();
             }
+            // WP9-B / N-12: only a plan this customer actually holds may trigger a device (router API) query
+            $nuxrHeld = ORM::for_table('tbl_user_recharges')->where('customer_id', $c['id'])->where('plan_id', (int) ($routes['3'] ?? 0))->find_one();
+            if (!$nuxrHeld) {
+                die();
+            }
             $p = ORM::for_table('tbl_plans')->find_one($routes['3']);
             $dvc = Package::getDevice($p);
             if ($_app_stage != 'Demo') {
@@ -169,9 +179,9 @@ switch ($action) {
                             }
                         }
                     }
-                    $ps[] = ('<span class="label label-primary m-1" title="Expired ' . Lang::dateAndTimeFormat($d['expiration'], $d['time']) . '">' . $d['namebp'] . ' ' . $status . '</span>');
+                    $ps[] = ('<span class="label label-primary m-1" title="Expired ' . htmlspecialchars(Lang::dateAndTimeFormat($d['expiration'], $d['time']), ENT_QUOTES) . '">' . htmlspecialchars((string) $d['namebp'], ENT_QUOTES) . ' ' . $status . '</span>');
                 } else {
-                    $ps[] = ('<span class="label label-danger m-1" title="Expired ' . Lang::dateAndTimeFormat($d['expiration'], $d['time']) . '">' . $d['namebp'] . '</span>');
+                    $ps[] = ('<span class="label label-danger m-1" title="Expired ' . htmlspecialchars(Lang::dateAndTimeFormat($d['expiration'], $d['time']), ENT_QUOTES) . '">' . htmlspecialchars((string) $d['namebp'], ENT_QUOTES) . '</span>');
                 }
             }
             echo implode("<br>", $ps);

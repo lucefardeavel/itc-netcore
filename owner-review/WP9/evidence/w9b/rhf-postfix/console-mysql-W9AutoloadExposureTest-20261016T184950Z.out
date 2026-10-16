@@ -1,0 +1,20 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/rhf-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/W9AutoloadExposureTest.php
+start: 2026-10-16T18:49:50Z
+ Container nuxbill-reseller-test-php82-run-3ffee46a06fa Creating 
+ Container nuxbill-reseller-test-php82-run-3ffee46a06fa Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...                                                                 3 / 3 (100%)
+
+Time: 00:06.964, Memory: 10.00 MB
+
+W9Autoload Exposure (Reseller\Tests\Http\W9AutoloadExposure)
+ ✔ Tree scoped staff get no router plan or bandwidth metadata
+ ✔ Admin keeps legacy metadata
+ ✔ Device query only for a plan the customer holds
+
+OK (3 tests, 19 assertions)
+exit=0 end: 2026-10-16T18:49:58Z

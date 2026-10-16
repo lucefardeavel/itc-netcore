@@ -1,0 +1,55 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Http/W9AutoloadExposureTest.php start 2026-10-16T18:49:35Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F.F                                                                 3 / 3 (100%)
+Time: 00:02.283, Memory: 10.00 MB
+W9Autoload Exposure (Reseller\Tests\Http\W9AutoloadExposure)
+ ✘ Tree scoped staff get no router plan or bandwidth metadata
+   │
+   │ A: router list
+   │ Failed asserting that '<option value=''>Select Routers</option>\n
+   │ 	<option value="wp2_router">wp2_router</option>\n
+   │ ' [ASCII](length: 89) does not contain "wp2_router" [ASCII](length: 10).
+   │
+   │ /repo/tests/Http/W9AutoloadExposureTest.php:43
+   │
+ ✔ Admin keeps legacy metadata
+ ✘ Device query only for a plan the customer holds
+   │
+   │ a plan the customer does not hold must not trigger a device query
+   │ Failed asserting that 1 is identical to 0.
+   │
+   │ /repo/tests/Http/W9AutoloadExposureTest.php:66
+   │
+FAILURES!
+Tests: 3, Assertions: 6, Failures: 2.
+exit=1
+== mysql tests/Http/W9AutoloadExposureTest.php start 2026-10-16T18:49:38Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F.F                                                                 3 / 3 (100%)
+Time: 00:04.950, Memory: 10.00 MB
+W9Autoload Exposure (Reseller\Tests\Http\W9AutoloadExposure)
+ ✘ Tree scoped staff get no router plan or bandwidth metadata
+   │
+   │ A: router list
+   │ Failed asserting that '<option value=''>Select Routers</option>\n
+   │ 	<option value="wp2_router">wp2_router</option>\n
+   │ ' [ASCII](length: 89) does not contain "wp2_router" [ASCII](length: 10).
+   │
+   │ /repo/tests/Http/W9AutoloadExposureTest.php:43
+   │
+ ✔ Admin keeps legacy metadata
+ ✘ Device query only for a plan the customer holds
+   │
+   │ a plan the customer does not hold must not trigger a device query
+   │ Failed asserting that 1 is identical to 0.
+   │
+   │ /repo/tests/Http/W9AutoloadExposureTest.php:66
+   │
+FAILURES!
+Tests: 3, Assertions: 6, Failures: 2.
+exit=1
