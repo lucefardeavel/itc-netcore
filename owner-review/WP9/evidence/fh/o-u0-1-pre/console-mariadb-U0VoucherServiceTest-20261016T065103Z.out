@@ -1,0 +1,44 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fh/o-u0-1-pre/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0VoucherServiceTest.php
+start: 2026-10-16T06:51:03Z
+ Container nuxbill-reseller-test-php82-run-dabeea599901 Creating 
+ Container nuxbill-reseller-test-php82-run-dabeea599901 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FF.                                                                 3 / 3 (100%)
+
+Time: 00:07.790, Memory: 10.00 MB
+
+U0Voucher Service (Reseller\Tests\Integration\Wp9\U0VoucherService)
+ ✘ A code the radius key rules refuse is never reported granted
+   │
+   │ no GRANTED without a RADIUS policy {"status":"GRANTED","voucher_status":"1","radius_rows_for_code":0,"replay":"NOT_VALID","transactions_added":1,"drift_lists_voucher":false,"customers_with_code":0,"bypass_insert_ran":false,"log_identity_ambiguous":0,"log_device_identity_refused":0}
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'CLAIMED_REVIEW'
+   │ +'GRANTED'
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherServiceTest.php:79
+   │
+ ✘ A bypass insert during the grant is never reported granted
+   │
+   │ {"status":"GRANTED","voucher_status":"1","radius_rows_for_code":0,"replay":"NOT_VALID","transactions_added":1,"drift_lists_voucher":false,"customers_with_code":1,"bypass_insert_ran":true,"log_identity_ambiguous":1,"log_device_identity_refused":1}
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'CLAIMED_REVIEW'
+   │ +'GRANTED'
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherServiceTest.php:91
+   │
+ ✔ A normal grant is unchanged
+
+FAILURES!
+Tests: 3, Assertions: 9, Failures: 2.
+
+exit=1 end: 2026-10-16T06:51:14Z

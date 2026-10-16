@@ -1,0 +1,35 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fh/n07-pre/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0VoucherLogTest.php
+start: 2026-10-16T06:54:29Z
+ Container nuxbill-reseller-test-php82-run-4517cbed7f0f Creating 
+ Container nuxbill-reseller-test-php82-run-4517cbed7f0f Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F                                                                   1 / 1 (100%)
+
+Time: 00:03.952, Memory: 10.00 MB
+
+U0Voucher Log (Reseller\Tests\Integration\Wp9\U0VoucherLog)
+ ✘ No voucher code or its short hash is logged or echoed
+   │
+   │ no code and no short code hash in logs, audit or responses
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'code in php_error.log',
+   │ +    1 => 'sha256 prefix in php_error.log',
+   │ +    2 => 'sha256 prefix in tbl_logs / audit',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherLogTest.php:94
+   │
+
+FAILURES!
+Tests: 1, Assertions: 3, Failures: 1.
+
+exit=1 end: 2026-10-16T06:54:35Z

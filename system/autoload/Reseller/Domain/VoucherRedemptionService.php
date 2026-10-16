@@ -51,17 +51,20 @@ final class VoucherRedemptionService
             // use; the claim inside the same lock is the durable reservation of the code (a CLAIMED or voucher-only
             // granted code is an identity for every other acquirer). The grant stays OUTSIDE the lock. Refused before
             // the claim: the voucher stays redeemable, nothing is written.
+            $candidateId = null;
             try {
-                $v = CustomerIdentity::hold(static function (\PDO $pdo) use ($code, $target, $source): ?array {
+                $v = CustomerIdentity::hold(static function (\PDO $pdo) use ($code, $target, $source, &$candidateId): ?array {
                     // nothing redeemable (unknown, used, or this code's own CLAIMED reservation): NOT_VALID, as before U0
-                    if (self::candidate($code, $source->kind === RedemptionSource::RADIUS) === null) {
+                    $candidate = self::candidate($code, $source->kind === RedemptionSource::RADIUS);
+                    if ($candidate === null) {
                         return null;
                     }
+                    $candidateId = (int) $candidate['id'];
                     CustomerIdentity::assertAvailable($pdo, [$target->username]);
                     return self::claim($code, $source->kind === RedemptionSource::RADIUS);
                 }, $source->kind === RedemptionSource::RADIUS ? CustomerIdentity::RADIUS_TIMEOUT : CustomerIdentity::TIMEOUT);
             } catch (DomainError $e) {
-                self::record($source, $code, $target, self::REFUSED . ':' . ($e->reason === 'IDENTITY_TAKEN' ? 'IDENTITY_IN_USE' : $e->reason));
+                self::record($source, $code, $target, self::REFUSED . ':' . ($e->reason === 'IDENTITY_TAKEN' ? 'IDENTITY_IN_USE' : $e->reason), $candidateId);
                 return ['status' => self::REFUSED, 'voucher' => null, 'result' => null];
             }
         } else {
@@ -147,6 +150,25 @@ final class VoucherRedemptionService
         return $target->customerId > 0 ? ServiceGate::isBlockedCustomerId($target->customerId) : ServiceGate::isBlockedUsername($target->username);
     }
 
+    /**
+     * O-U0-1: whether the voucher-only identity's RADIUS policy exists after the grant (exact key bytes, so an equivalent
+     * key of another owner never counts). Plans on other devices cannot be verified here and keep the WP5B behaviour.
+     * A read error counts as "not present" (review, never a false GRANTED).
+     */
+    private static function servicePresent(array $v, string $code): bool
+    {
+        try {
+            $plan = Tx::row(self::pdo(), 'SELECT device FROM tbl_plans WHERE id = ?', [(int) $v['id_plan']]);
+            if ($plan === null || (string) $plan['device'] !== 'Radius') {
+                return true;
+            }
+            return \Reseller\Radius\RadiusRepository::connection()->exactRows(trim($code)) > 0;
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'voucher-service-check');
+            return false;
+        }
+    }
+
     /** The redeemable ('0') voucher with this code, null when none (read only). */
     private static function candidate(string $code, bool $radiusOnly): ?array
     {
@@ -178,24 +200,31 @@ final class VoucherRedemptionService
             $result = \Package::rechargeUser($target->customerId, $v['routers'], $v['id_plan'], 'Voucher', $code);
         } catch (\Throwable $e) {
             ErrorReporter::report($e, 'voucher-grant');
-            self::record($source, $code, $target, self::REVIEW);
+            self::record($source, $code, $target, self::REVIEW, (int) $v['id']);
             return ['status' => self::REVIEW, 'voucher' => $v, 'result' => null];
         }
         if ($result === false) {
             $released = $release !== null ? $release()
                 : Tx::exec($pdo, "UPDATE tbl_voucher SET status = '0' WHERE id = ? AND status = '" . self::CLAIMED . "'", [$id]) === 1;
             $status = $released ? self::NOT_GRANTED : self::REVIEW;
-            self::record($source, $code, $target, $status);
+            self::record($source, $code, $target, $status, $id);
             return ['status' => $status, 'voucher' => $v, 'result' => false];
         }
         if ($result === null || $result === true || !is_string($result) || $result === '') {
             // anything but an invoice: the grant may have happened; never redeemable again, never re-granted
-            self::record($source, $code, $target, self::REVIEW);
+            self::record($source, $code, $target, self::REVIEW, $id);
+            return ['status' => self::REVIEW, 'voucher' => $v, 'result' => $result];
+        }
+        if ($target->customerId === 0 && !self::servicePresent($v, $code)) {
+            // WP9 U0 final hardening (O-U0-1): Package::rechargeUser (pinned) returns an invoice even when its device step
+            // failed (it records the failure and continues). A voucher-only identity whose RADIUS policy was not written
+            // is NOT granted: the voucher stays CLAIMED (never redeemable again, operator review), no second grant
+            self::record($source, $code, $target, self::REVIEW . ':NO_SERVICE', $id);
             return ['status' => self::REVIEW, 'voucher' => $v, 'result' => $result];
         }
         Tx::exec($pdo, "UPDATE tbl_voucher SET status = '1', used_date = ?, user = ? WHERE id = ? AND status = '" . self::CLAIMED . "'",
             [date('Y-m-d H:i:s'), $target->customerId > 0 ? $target->username : (string) ($v['user'] ?? ''), $id]);
-        self::record($source, $code, $target, self::GRANTED);
+        self::record($source, $code, $target, self::GRANTED, $id);
         return ['status' => self::GRANTED, 'voucher' => $v, 'result' => $result];
     }
 
@@ -219,13 +248,18 @@ final class VoucherRedemptionService
         }
     }
 
-    private static function record(RedemptionSource $source, string $code, RedemptionTarget $target, string $outcome): void
+    /**
+     * WP9 U0 final hardening (N-07): a voucher code is a credential (the voucher-only username AND password). Neither the
+     * code nor a derivative of it (an unsalted short hash of a short code is easy to reverse) is ever logged: the record
+     * names the voucher by its row id (when known) and the target by kind; the outcome keeps the refusal reason.
+     */
+    private static function record(RedemptionSource $source, string $code, RedemptionTarget $target, string $outcome, ?int $voucherId = null): void
     {
         if ($source->context !== null) {
             try {
                 AuditLog::record('voucher.redeem', $source->context, [
                     'target_type' => 'customer', 'target_customer_id' => $target->customerId > 0 ? $target->customerId : null,
-                    'target_snapshot' => ['username' => $target->username, 'voucher' => self::codeRef($code)],
+                    'target_snapshot' => ['username' => $target->customerId > 0 ? $target->username : null, 'voucher_id' => $voucherId],
                     'after' => ['outcome' => $outcome, 'source' => $source->kind],
                 ]);
                 return;
@@ -233,14 +267,9 @@ final class VoucherRedemptionService
                 ErrorReporter::report($e, 'voucher-audit');
             }
         }
-        ErrorReporter::log('voucher.redeem', 'source=' . $source->kind . ' voucher=' . self::codeRef($code) . ' target=' . $target->username
+        $kind = $target->customerId > 0 ? 'customer:' . $target->customerId : ($target->username === $code ? 'voucher-only' : 'new-customer');
+        ErrorReporter::log('voucher.redeem', 'source=' . $source->kind . ' voucher_id=' . ($voucherId ?? 'none') . ' target=' . $kind
             . ($source->client !== null ? ' client=' . $source->client : '') . ' outcome=' . $outcome);
-    }
-
-    /** A non-reversible reference of a voucher code for logs (never the code). */
-    private static function codeRef(string $code): string
-    {
-        return substr(hash('sha256', $code), 0, 16);
     }
 
     private static function pdo(): \PDO
