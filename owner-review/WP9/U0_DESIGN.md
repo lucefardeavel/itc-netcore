@@ -261,8 +261,20 @@ Cumulative; §1–§9 unchanged.
 | Element | Implemented as | Note |
 |---|---|---|
 | D-U0-R1 survey | `dev/wp9/identity_survey.sql` statements 0–5 (session-escape guard, ownership labels, edge / interior control characters, orphaned / multi-owner RADIUS keys) | read-only; tested on synthetic data only (`U0SurveyTest`) |
-| D-U0-R1 protection | `CustomerIdentity::owners()` (logical owners of a canonical key) + `assertSingleOwner()` (count under the shared lock, ≤ 3 s; in place when already held; unlocked + logged inside a caller's transaction) | callers: `LegacyReprovisionService::assertDeviceAllowed()` (after the WP8 owned-name refusal; covers the pinned `Package::rechargeUser` pre-write check), `Radius::provision / customerDeactivate / customerDelete`, `ActivationService::provision`, `renameCheck()` (rename source) |
+| D-U0-R1 protection | `CustomerIdentity::owners()` (logical owners of a canonical key) + `assertSingleOwner()` (count under the shared lock, ≤ 3 s; in place when already held; unlocked + logged inside a caller's transaction — *superseded 2026-10-16: refused, §11*) | callers: `LegacyReprovisionService::assertDeviceAllowed()` (after the WP8 owned-name refusal; covers the pinned `Package::rechargeUser` pre-write check), `Radius::provision / customerDeactivate / customerDelete`, `ActivationService::provision`, `renameCheck()` (rename source) |
 | Lock order | unchanged; the ownership check is an L-3 acquisition taken by key writers (no transaction open), after L-1 when a re-provision holds it, after `nuxr_bop_` on the balance path | never reversed (static guard) |
-| O-U0-1 | `VoucherRedemptionService::grant()` verifies the voucher-only policy rows after an invoice (Radius plans) → else `CLAIMED_REVIEW:NO_SERVICE`; `Radius::provision()` retries a deadlocked (1213) write, ≤ 3 attempts | `RadiusProvisioner` adds `db_error` to the FAILED metadata (additive) |
-| N-07 | redemption log / audit name the voucher by row id and the target by kind | the pinned `Package.php` Telegram message is unchanged |
+| O-U0-1 | `VoucherRedemptionService::grant()` verifies the voucher-only policy rows after an invoice (Radius plans) → else `CLAIMED_REVIEW:NO_SERVICE` (*superseded 2026-10-16: this grant's own confirmed write, §11*); `Radius::provision()` retries a deadlocked (1213) write, ≤ 3 attempts | `RadiusProvisioner` adds `db_error` to the FAILED metadata (additive) |
+| N-07 | redemption log / audit name the voucher by row id and the target by kind | the pinned `Package.php` Telegram message is unchanged (*closed 2026-10-16 under the owner's limited exception, §11*) |
 | Superseded behaviour | the WP8 A3 rename of a key another customer also holds now refuses (D-FH-1) | flagged for the owner |
+
+## 11. Final closure record (2026-10-16, `WP9_U0_HARDENING_CONDITIONALLY_ACCEPTED — TARGETED_FINAL_CLOSURE_AUTHORIZED`)
+
+Cumulative; §1–§10 unchanged except where this table says "supersedes".
+
+| Element | Implemented as | Note |
+|---|---|---|
+| Ownership check inside an open transaction (supersedes the §10 "unlocked + logged inside a caller's transaction") | `assertSingleOwner()`: lock held on this connection → counted in place (L-3 → BEGIN); open transaction **without** the lock → `IDENTITY_CHECK_UNAVAILABLE`, nothing counted or written; a lock-status read error → refused | no application RADIUS writer runs inside a transaction; no lock-order change; RADIUS writes stay outside L-3 (D-U0-2) |
+| Voucher-only grant confirmation (supersedes the §10 "rows exist" rule) | `RadiusProvisioner::provision()` keeps the last result per exact key for the request; `VoucherRedemptionService::grant()` forgets the key before the grant and requires this grant's own SUCCESS (committed + read back equal to the requested policy) and present rows; else `CLAIMED_REVIEW:NOT_CONFIRMED | DEVICE_FAILED | DEVICE_UNKNOWN | NO_SERVICE` | WP5B states unchanged; `Package.php` not changed for this |
+| N-07 notifications | `Package::rechargeUser` (pinned; owner limited exception, re-pinned): Telegram names a voucher-only subscriber `voucher_only`, its channel `voucher INV-…`; no invoice notification for voucher-only (no recipient) | recharge order, invoice, finance, device call and return values unchanged |
+| N-07 voucher-only login gate | `login.php` E12: `isBlockedUsername($voucher)` → `ServiceGate::refused('loginVoucherOnly')` without the name | refusal, message and record kept |
+| D-FH-1 | approved: fail-closed rename precedence | `PLAN.md` §18 |

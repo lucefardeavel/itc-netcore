@@ -1,0 +1,26 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fc/pre-login/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox --filter testTheVoucherOnlyLoginGateRefusalDoesNotRecordTheCode tests/Integration/Wp9/U0VoucherLogTest.php
+start: 2026-10-16T09:24:42Z
+ Container nuxbill-reseller-test-php82-run-0b5a487affd2 Creating 
+ Container nuxbill-reseller-test-php82-run-0b5a487affd2 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F                                                                   1 / 1 (100%)
+
+Time: 00:04.686, Memory: 10.00 MB
+
+U0Voucher Log (Reseller\Tests\Integration\Wp9\U0VoucherLog)
+ ✘ The voucher only login gate refusal does not record the code
+   │
+   │ no voucher code in the refusal log line
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherLogTest.php:122
+   │
+
+FAILURES!
+Tests: 1, Assertions: 4, Failures: 1.
+
+exit=1 end: 2026-10-16T09:24:47Z

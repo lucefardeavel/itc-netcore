@@ -1,0 +1,45 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fc/pre-rc/obs-mysql.jsonl -e WP9_ISOLATION=READ-COMMITTED php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0OpenTransactionGuardTest.php
+start: 2026-10-16T09:10:42Z
+ Container nuxbill-reseller-test-php82-run-01d34e16e3ae Creating 
+ Container nuxbill-reseller-test-php82-run-01d34e16e3ae Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.FFF                                                                4 / 4 (100%)
+
+Time: 00:07.170, Memory: 10.00 MB
+
+U0Open Transaction Guard (Reseller\Tests\Integration\Wp9\U0OpenTransactionGuard)
+ ✔ A stale read view inside an open transaction never authorizes a policy write
+ ✘ An uncommitted owner inside an open transaction cannot race the acquirer
+   │
+   │ never a RADIUS policy for a key that ends with two owners {"isolation":"READ-COMMITTED","writer_reached_the_radius_write":true,"writer_outcome":"APPLIED","acquirer_http":302,"acquirer_took_the_name":true,"acquirer_elapsed_s":0.4,"owners_at_end":2,"policy_written":true,"deadlock_or_lock_wait_lines":0}
+   │ Failed asserting that false is true.
+   │
+   │ /repo/tests/Integration/Wp9/U0OpenTransactionGuardTest.php:143
+   │
+ ✘ With the identity lock held the count and the write are serialized
+   │
+   │ the lock-held path counts in place (no open-transaction event)
+   │ Failed asserting that 1 is identical to 0.
+   │
+   │ /repo/tests/Integration/Wp9/U0OpenTransactionGuardTest.php:178
+   │
+ ✘ Controls outside a transaction are unchanged
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'REFUSED RADIUS_IDENTITY_CHECK_UNAVAILABLE'
+   │ +'APPLIED'
+   │
+   │ /repo/tests/Integration/Wp9/U0OpenTransactionGuardTest.php:201
+   │
+
+FAILURES!
+Tests: 4, Assertions: 17, Failures: 3.
+
+exit=1 end: 2026-10-16T09:10:51Z

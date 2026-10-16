@@ -27,7 +27,7 @@
 | **OD-W9-10** | **CHR TEST PLANNING APPROVED ONLY** | CHR rows are planned and never run in this stage (§13) |
 | **OD-W9-11** | **WP9 = bounded security concurrency; WP10 = capacity, load and long-duration testing** | §2, §5 |
 
-**U0 status note (2026-10-15, cumulative; rev 3 text below unchanged):** owner decisions OD-W9-A1-1…4 (V1 interim acceptance, U0 design study, N-07 voucher-code logging, deferrals), then `WP9_U0_FULL_IMPLEMENTATION_AND_TESTING_AUTHORIZED` with D-U0-1…8 APPROVED. U0-0…U0-5 executed test-first on `wp9/red-team-rc` (local commits only); results, residual blockers and new decisions in `REPORT.md` §U0 and `U0_PROGRESS.md`. `PRODUCTION_NOT_AUTHORIZED`; OBS-1 remains a production blocker until the owner rules on the §U0 evidence.
+**U0 status note (2026-10-15, cumulative; rev 3 text below unchanged):** owner decisions OD-W9-A1-1…4 (V1 interim acceptance, U0 design study, N-07 voucher-code logging, deferrals), then `WP9_U0_FULL_IMPLEMENTATION_AND_TESTING_AUTHORIZED` with D-U0-1…8 APPROVED. U0-0…U0-5 executed test-first on `wp9/red-team-rc` (local commits only); results, residual blockers and new decisions in `REPORT.md` §U0 and `U0_PROGRESS.md`. `PRODUCTION_NOT_AUTHORIZED`; OBS-1 remains a production blocker until the owner rules on the §U0 evidence. **2026-10-16:** final hardening (REPORT §FH) and, after `WP9_U0_HARDENING_CONDITIONALLY_ACCEPTED — TARGETED_FINAL_CLOSURE_AUTHORIZED`, the final closure round (REPORT §FC: D-FH-1 approved, N-07 complete audit with the limited `Package.php` re-pin, open-transaction ownership guard, voucher grant confirmation); still `PRODUCTION_NOT_AUTHORIZED`.
 
 **Final hardening note (2026-10-16, cumulative):** `WP9_U0_IMPLEMENTED — FINAL_HARDENING_AUTHORIZED — PRODUCTION_BLOCKED`; D-U0-R1 survey + targeted fail-closed protection, O-U0-1, N-07 implemented; D-U0-R2 / R3 reviewed read-only (open) — `REPORT.md` §FH, `U0_HARDENING_REVIEWS.md`.
 
@@ -740,9 +740,10 @@ An independent read-only fact-check of rev 1 produced 14 corrections, plus two s
 | D-W9-R8 | NEW-7 option | pending (remediation required before production) |
 | D-W9-R9 | NEW-8 option | pending (remediation required before production) |
 | D-W9-R10 | Plugin trust policy and public-method guards | pending |
-| D-W9-R11 | SourceGuard re-pins | pending; none in T0 |
+| D-W9-R11 | SourceGuard re-pins | pending; none in T0. **2026-10-16 (owner `WP9_U0_HARDENING_CONDITIONALLY_ACCEPTED`, N-07 limited exception):** one re-pin only — `system/autoload/Package.php` `d4567f66…` → `9759fca7…` (notifications never carry a voucher-only credential; recharge order, invoice, finance, device call and return values unchanged; REPORT §FC.9). The other 22 pins unchanged |
 | D-W9-R12 | CHR execution | pending (planning only) |
 | D-W9-R13 | Commit of the plan files | **APPROVED:** one local commit of `PLAN.md` + `WP9_HANDOFF.md` after a diff audit and a secret sweep; no push; T0 evidence and `REPORT.md` are not part of that commit |
+| D-FH-1 | WP8 A3 rename of a key another owner also holds (superseded by D-U0-R1) | **APPROVED — FAIL_CLOSED_RENAME_PRECEDENCE** (owner, 2026-10-16, `WP9_U0_HARDENING_CONDITIONALLY_ACCEPTED`): a rename whose source key has more than one logical owner is refused before any RADIUS policy write and before any Disconnect. `RenameOldSessionTest::testAnotherCustomerHoldingTheOldNameMeansNothingIsSent` keeps the changed expectation and now also proves the old key's policy rows (all three tables), the open session, the customer row and the NAS are untouched (REPORT §FC.2). The WP8 acceptance record and its results are unchanged; this is a dated clarification only |
 
 ## 19. Readiness verdict
 

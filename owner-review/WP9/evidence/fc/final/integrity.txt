@@ -1,0 +1,18 @@
+manifest OK lines: 42
+manifest entries: 42
+SourceGuard pins 23 match 23
+pins changed vs 94bfd7b9:
+-        'system/autoload/Package.php' => 'd4567f663193e16b6db7397ff94ed37c268274ebc5f6ce8a645af3c79fca2b85',
++        'system/autoload/Package.php' => '9759fca72b5f33236d5a7a00ceaf4ffb9f2dc76b86b16a03a70c6ac145e4aa54',
+line endings (CRLF/LF) per changed product file, before -> after:
+system/autoload/Package.php crlf 0 -> 0
+system/autoload/Reseller/Domain/CustomerIdentity.php crlf 0 -> 0
+system/autoload/Reseller/Domain/VoucherRedemptionService.php crlf 0 -> 0
+system/autoload/Reseller/Radius/RadiusProvisioner.php crlf 0 -> 0
+system/controllers/login.php crlf 298 -> 299
+704031c61296f4975f1d4e51531973d67e5f0a9b	refs/heads/feat/reseller-system-v1
+6d4f3f962482b6e125429da7ae459ae8dfd4214c	refs/heads/hotfix/pace-xhr-csrf
+500d3a2d15003efeed6e0aad639c13d08101c3b1	refs/heads/main
+757d8de969e98787a270facb956a4c543fec7eaa	refs/heads/wp6c/mobile-adaptive-ux
+8e7f0e1c024e6c319b5088896e001555d6c4f079	refs/heads/wp7/staff-pwa
+704031c61296f4975f1d4e51531973d67e5f0a9b	refs/heads/wp8/integration-poc

@@ -27,3 +27,15 @@ Resume rule: read this file, `U0_DESIGN.md` and `REPORT.md` §U0; `git log --one
 | R2 / R3 reviews | DONE (read-only) | final docs commit | `U0_HARDENING_REVIEWS.md` | both OPEN |
 | Full validation | DONE | final docs commit | `evidence/fh/final/` | lint 537 OK; RC race 23/96 both engines; full harness 1334 / 70703 per engine, 0 failures, 104 lab-incomplete, registry OK, exit 0; fingerprint `f10011ec…` unchanged |
 | Final report | DONE | final docs commit | `REPORT.md` §FH | `WP9_U0_FINAL_HARDENING_READY_FOR_OWNER_REVIEW` |
+
+## Final closure round (2026-10-16, `WP9_U0_HARDENING_CONDITIONALLY_ACCEPTED — TARGETED_FINAL_CLOSURE_AUTHORIZED`)
+
+| Unit | State | Commit | Evidence | Notes |
+|---|---|---|---|---|
+| Baseline audit | DONE | — | — | `94bfd7b9` verified (clean, refs unchanged); claims re-read against code |
+| fc-1 D-FH-1 | DONE | `fa0b4483` | `evidence/fc/post` | approved; WP8 test proves no policy write / disconnect / session change; 20/329 both engines |
+| fc-2 open-transaction guard | DONE | `64f617be` | `evidence/fc/pre-run2`, `pre-rc`, `post`, `post-rc` | S1 (RR stale view) and S2 (uncommitted owner, RR + RC) reproduced → refused; 4/24 both engines × both isolations |
+| fc-3 grant confirmation | DONE | `fc6190a6` | `evidence/fc/pre`, `pre-rc`, `post`, `post-rc` | C1–C3 false GRANTED, C4 unconfirmed GRANTED reproduced → CLAIMED_REVIEW with reason; 7/41 both engines × both isolations |
+| fc-4 N-07 | DONE | `21858d4c` | `evidence/fc/pre-run2`, `pre-login`, `post`, `post-login` | Package.php limited exception + re-pin (`d4567f66…` → `9759fca7…`); login.php gate record; 1/11 + 2/10 both engines |
+| Full validation | DONE | docs commit | `evidence/fc/final`, `full-run1-stopped-scope-extended`, `clionly-classification` | first run stopped (scope extended to login.php); run 1: MySQL clean, MariaDB 1 known `CliOnlyTest` counter flake (10/10 isolated passes); **run 2 (final, `21858d4c`): 1351 tests per engine, 0 failures / errors / warnings, 104 lab-incomplete, registry OK, exit 0**; fingerprint `4e62cacd…` unchanged; lint 581 OK; manifest 42/42; pins 23/23 (Package re-pinned only) |
+| Final report | DONE | docs commit | `REPORT.md` §FC | `WP9_U0_FINAL_OWNER_ACCEPTANCE_PACKAGE` — `PRODUCTION_NOT_AUTHORIZED` |

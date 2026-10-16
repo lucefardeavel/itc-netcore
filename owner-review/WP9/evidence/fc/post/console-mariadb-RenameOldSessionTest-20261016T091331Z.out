@@ -1,0 +1,37 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fc/post/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5b/RenameOldSessionTest.php
+start: 2026-10-16T09:13:31Z
+ Container nuxbill-reseller-test-php82-run-634ccf6ce2de Creating 
+ Container nuxbill-reseller-test-php82-run-634ccf6ce2de Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....................                                              20 / 20 (100%)
+
+Time: 01:59.241, Memory: 12.00 MB
+
+Rename Old Session (Reseller\Tests\Integration\Wp5b\RenameOldSession)
+ ✔ Ack with stop is confirmed and only the old row is targeted
+ ✔ Ack without stop is unconfirmed after the bound and status stays done
+ ✔ Nak 503 is confirmed for that session and nak 406 is not
+ ✔ No answer and unknown nas are unconfirmed without retry or revert
+ ✔ No open row is no accounting evidence and nothing is sent
+ ✔ Pppoe username old to new targets the old pppoe key
+ ✔ Pppoe username empty to set and set to empty target the former pppoe key
+ ✔ Username and pppoe together give per identity results and the worst wins
+ ✔ The same old key is disconnected once across plans
+ ✔ Equivalent rename targets only the sessions open before the rename
+ ✔ Non equivalent rename targets every recorded spelling of the old name only
+ ✔ Another subscriber with an equivalent name means nothing is sent
+ ✔ Another customer holding the old name means nothing is sent
+ ✔ Rename failed is reverted and nothing is sent
+ ✔ Rename applied then add failed still records the old session
+ ✔ Unconfirmed rename is an unconfirmed old session
+ ✔ A missing confirmation event is reported by the drift report
+ ✔ Disconnects run without the tree lock or a transaction and keep the captured identity
+ ✔ Legacy unassigned rename also ends the old session
+ ✔ Password change is not applicable
+
+OK (20 tests, 329 assertions)
+exit=0 end: 2026-10-16T09:15:32Z

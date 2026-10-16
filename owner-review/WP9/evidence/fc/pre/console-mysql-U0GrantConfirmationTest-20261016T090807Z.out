@@ -1,0 +1,74 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fc/pre/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0GrantConfirmationTest.php
+start: 2026-10-16T09:08:07Z
+ Container nuxbill-reseller-test-php82-run-8aac82541ace Creating 
+ Container nuxbill-reseller-test-php82-run-8aac82541ace Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FFFF...                                                             7 / 7 (100%)
+
+Time: 00:08.729, Memory: 10.00 MB
+
+U0Grant Confirmation (Reseller\Tests\Integration\Wp9\U0GrantConfirmation)
+ ✘ Stale foreign rows of a colliding identity are not a grant
+   │
+   │ never GRANTED without a confirmed policy {"isolation":"REPEATABLE-READ","status":"GRANTED","voucher_status":"1","bypass_ran":true,"radius_rows":1,"password_is_the_code":false,"replay":"NOT_VALID","transactions_added":1,"logged_outcomes":["GRANTED","NOT_VALID"],"drift_lists_voucher":false}
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'CLAIMED_REVIEW'
+   │ +'GRANTED'
+   │
+   │ /repo/tests/Integration/Wp9/U0GrantConfirmationTest.php:121
+   │ /repo/tests/Integration/Wp9/U0GrantConfirmationTest.php:131
+   │
+ ✘ Partial rows are not a grant
+   │
+   │ never GRANTED without a confirmed policy {"isolation":"REPEATABLE-READ","status":"GRANTED","voucher_status":"1","bypass_ran":true,"radius_rows":0,"password_is_the_code":false,"replay":"NOT_VALID","transactions_added":1,"logged_outcomes":["GRANTED","NOT_VALID"],"drift_lists_voucher":false}
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'CLAIMED_REVIEW'
+   │ +'GRANTED'
+   │
+   │ /repo/tests/Integration/Wp9/U0GrantConfirmationTest.php:121
+   │ /repo/tests/Integration/Wp9/U0GrantConfirmationTest.php:136
+   │
+ ✘ A confirmed device failure with pre existing rows is not a grant
+   │
+   │ never GRANTED without a confirmed policy {"isolation":"REPEATABLE-READ","status":"GRANTED","voucher_status":"1","bypass_ran":true,"radius_rows":1,"password_is_the_code":false,"replay":"NOT_VALID","transactions_added":1,"logged_outcomes":["GRANTED","NOT_VALID"],"drift_lists_voucher":false}
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'CLAIMED_REVIEW'
+   │ +'GRANTED'
+   │
+   │ /repo/tests/Integration/Wp9/U0GrantConfirmationTest.php:121
+   │ /repo/tests/Integration/Wp9/U0GrantConfirmationTest.php:142
+   │
+ ✘ An unknown device outcome is not a grant
+   │
+   │ never GRANTED without a confirmed policy {"isolation":"REPEATABLE-READ","status":"GRANTED","voucher_status":"1","bypass_ran":true,"radius_rows":3,"password_is_the_code":true,"replay":"NOT_VALID","transactions_added":1,"logged_outcomes":["GRANTED","NOT_VALID"],"drift_lists_voucher":false}
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'CLAIMED_REVIEW'
+   │ +'GRANTED'
+   │
+   │ /repo/tests/Integration/Wp9/U0GrantConfirmationTest.php:121
+   │ /repo/tests/Integration/Wp9/U0GrantConfirmationTest.php:149
+   │
+ ✔ Foreign rows before the claim refuse the redemption untouched
+ ✔ Parallel grants with deadlock retry all end granted with their own policy
+ ✔ Controls are unchanged
+
+FAILURES!
+Tests: 7, Assertions: 19, Failures: 4.
+
+exit=1 end: 2026-10-16T09:08:17Z

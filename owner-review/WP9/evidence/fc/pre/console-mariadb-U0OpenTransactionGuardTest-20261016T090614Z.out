@@ -1,0 +1,51 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fc/pre/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0OpenTransactionGuardTest.php
+start: 2026-10-16T09:06:14Z
+ Container nuxbill-reseller-test-php82-run-527a7f669685 Creating 
+ Container nuxbill-reseller-test-php82-run-527a7f669685 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FFFF                                                                4 / 4 (100%)
+
+Time: 00:43.225, Memory: 10.00 MB
+
+U0Open Transaction Guard (Reseller\Tests\Integration\Wp9\U0OpenTransactionGuard)
+ ✘ A stale read view inside an open transaction never authorizes a policy write
+   │
+   │ no RADIUS policy written for a key with two owners {"isolation":"REPEATABLE-READ","outcome":"APPLIED","policy_rows_written_for_ambiguous_key":true,"owners_at_end":2,"deadlock_or_lock_wait_lines":0,"refused_in_transaction_logged":0}
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0OpenTransactionGuardTest.php:106
+   │
+ ✘ An uncommitted owner inside an open transaction cannot race the acquirer
+   │
+   │ refused before any RADIUS write
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Integration/Wp9/U0OpenTransactionGuardTest.php:136
+   │
+ ✘ With the identity lock held the count and the write are serialized
+   │
+   │ {"isolation":"REPEATABLE-READ","writer_reached_the_radius_write":true,"acquirer_waited_on_the_identity_lock":true,"writer_outcome":"APPLIED","acquirer_outcome":"REFUSED USERNAME_TAKEN","owners_at_end":1,"password_is_the_writers":true,"deadlock_or_lock_wait_lines":0,"in_transaction_events":1}
+   │ Failed asserting that false is true.
+   │
+   │ /repo/tests/Integration/Wp9/U0OpenTransactionGuardTest.php:167
+   │
+ ✘ Controls outside a transaction are unchanged
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'REFUSED RADIUS_IDENTITY_CHECK_UNAVAILABLE'
+   │ +'APPLIED'
+   │
+   │ /repo/tests/Integration/Wp9/U0OpenTransactionGuardTest.php:192
+   │
+
+FAILURES!
+Tests: 4, Assertions: 13, Failures: 4.
+
+exit=1 end: 2026-10-16T09:06:59Z

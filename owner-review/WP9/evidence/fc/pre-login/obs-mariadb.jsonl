@@ -1,0 +1,1 @@
+{"engine":"mariadb","test":"Reseller\\Tests\\Integration\\Wp9\\U0VoucherLogTest","case":"U0 N-07 voucher-only login gate refusal record","classification":"DEFECT_REPRODUCED","http":302,"voucher_status":"0","refusal_log_lines":1,"refusal_audit_rows":1,"code_in_refusal_log":true,"code_in_refusal_audit":true,"code_in_response":false}

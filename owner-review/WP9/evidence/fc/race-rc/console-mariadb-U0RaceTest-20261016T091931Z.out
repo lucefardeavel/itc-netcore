@@ -1,0 +1,40 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fc/race-rc/obs-mariadb.jsonl -e WP9_ISOLATION=READ-COMMITTED php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0RaceTest.php
+start: 2026-10-16T09:19:31Z
+ Container nuxbill-reseller-test-php82-run-47e3c75414bc Creating 
+ Container nuxbill-reseller-test-php82-run-47e3c75414bc Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......................                                           23 / 23 (100%)
+
+Time: 00:10.823, Memory: 10.00 MB
+
+U0Race (Reseller\Tests\Integration\Wp9\U0Race)
+ ✔ Application session isolation level
+ ✔ A 1 voucher in flight versus p 1 creation and provisioning
+ ✔ A 2 voucher in flight versus p 2 public registration
+ ✔ A 3 voucher in flight versus p 3 voucher with new username
+ ✔ A 4 voucher in flight versus p 4 rename into the name
+ ✔ A 5 voucher in flight versus p 5 owned rename into the name
+ ✔ B 1 p1 before commit versus voucher
+ ✔ B 2 p2 before insert versus voucher
+ ✔ B 3 p3 before insert versus voucher
+ ✔ B 4 p4 before save versus voucher
+ ✔ B 5 p5 before write versus voucher
+ ✔ C 1 voucher in flight versus an equal code with data set "case"
+ ✔ C 1 voucher in flight versus an equal code with data set "accent"
+ ✔ C 1 voucher in flight versus an equal code with data set "trailing space"
+ ✔ C 2 simultaneous redemptions of equal codes
+ ✔ D 1 p1 before commit versus p 2
+ ✔ D 2 p1 before commit versus p 3
+ ✔ D 3 p2 before insert versus p 3
+ ✔ D 4 p4 before save versus p 1 cross field
+ ✔ D 5 p5 before write versus p 1 cross field
+ ✔ G 1 p4 rename away versus voucher of the old name
+ ✔ G 2 p5 rename away versus voucher of the old name
+ ✔ G 3 p4 rename away versus p 1 creation of the old name
+
+OK (23 tests, 96 assertions)
+exit=0 end: 2026-10-16T09:19:44Z

@@ -1,0 +1,21 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fc/post/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0OpenTransactionGuardTest.php
+start: 2026-10-16T09:13:20Z
+ Container nuxbill-reseller-test-php82-run-2910015bb4d7 Creating 
+ Container nuxbill-reseller-test-php82-run-2910015bb4d7 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....                                                                4 / 4 (100%)
+
+Time: 00:03.561, Memory: 10.00 MB
+
+U0Open Transaction Guard (Reseller\Tests\Integration\Wp9\U0OpenTransactionGuard)
+ ✔ A stale read view inside an open transaction never authorizes a policy write
+ ✔ An uncommitted owner inside an open transaction cannot race the acquirer
+ ✔ With the identity lock held the count and the write are serialized
+ ✔ Controls outside a transaction are unchanged
+
+OK (4 tests, 24 assertions)
+exit=0 end: 2026-10-16T09:13:25Z

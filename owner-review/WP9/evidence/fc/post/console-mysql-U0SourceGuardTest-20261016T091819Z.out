@@ -1,0 +1,26 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/fc/post/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp9/U0SourceGuardTest.php
+start: 2026-10-16T09:18:19Z
+ Container nuxbill-reseller-test-php82-run-6dd1e4e931a0 Creating 
+ Container nuxbill-reseller-test-php82-run-6dd1e4e931a0 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.........                                                           9 / 9 (100%)
+
+Time: 00:00.420, Memory: 12.00 MB
+
+U0Source Guard (Reseller\Tests\Unit\Wp9\U0SourceGuard)
+ ✔ Every acquiring write runs inside the identity lock
+ ✔ Checker detects a write moved out of its hold
+ ✔ Creation takes tree then identity then transaction
+ ✔ Customer identity only reads and never touches a device
+ ✔ Runtime named locks and seams
+ ✔ Every policy writer checks single ownership first
+ ✔ No recharge notification carries a voucher only credential
+ ✔ Ownership count inside an open transaction without the lock fails closed
+ ✔ Voucher only grant needs this grants confirmed write
+
+OK (9 tests, 282 assertions)
+exit=0 end: 2026-10-16T09:18:22Z
