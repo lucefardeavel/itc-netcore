@@ -10,6 +10,7 @@ Usage: python3 dev/wp10/pwa_history.py --out DIR [--state /srv/phpnuxbill/pwalab
 """
 import json
 import os
+import re
 import sys
 
 sys.dont_write_bytecode = True
@@ -17,7 +18,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 import pwa_suite as P  # noqa: E402
 from playwright.sync_api import sync_playwright  # noqa: E402
 
-MARKERS = ['محمد عبد الله الحسيني', 'mohammed.h', 'Staff A', 'initial provider funding']
+# A's data only: word-bounded, so the next user's own name ("Staff A1") is not mistaken for A's ("Staff A")
+MARKERS = {'customer name': r'محمد عبد الله الحسيني', 'customer username': r'mohammed\.h\b', "A's name": r'Staff A(?![0-9A-Za-z])',
+           'funding note': r'initial provider funding'}
 
 
 def leaked(pg):
@@ -25,7 +28,7 @@ def leaked(pg):
         text = pg.evaluate('() => document.documentElement.outerHTML')
     except Exception as e:  # navigation in progress
         return [f'unreadable: {e}'[:80]]
-    return [m for m in MARKERS if m in text]
+    return [k for k, rx in MARKERS.items() if re.search(rx, text)]
 
 
 def main():

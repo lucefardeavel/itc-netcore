@@ -1,0 +1,33 @@
+T00 PASS | http://localhost:18099/: isSecureContext=true, appUrl=http://localhost:18099; http://localhost:18098/billing/: isSecureContext=true, appUrl=http://localhost:18098/billing
+T01 PASS | http://localhost:18099/: id=/?_route=admin icons=3 start=./?_route=admin; http://localhost:18098/billing/: id=/billing/?_route=admin icons=3 start=./?_route=admin
+T02 PASS | no installability errors (root, persistent profile)
+T03 PASS | http://localhost:18099/: scope=http://localhost:18099/ controller=activated; http://localhost:18098/billing/: scope=http://localhost:18098/billing/ controller=activated; outside /billing/: not controlled
+T04 PASS | http://localhost:18099/: nuxr-pwa:8acf0404:wp7.1 = 5 precache entries; http://localhost:18098/billing/: nuxr-pwa:82c75d71:wp7.1 = 5 precache entries
+T05 PASS | 5 entries, all on the precache list; no identity, customer, finance or token text
+T06 PASS | start_url offline -> offline document (status 503), no user data
+T07 PASS | offline deep links (subdirectory) -> generic document only: customers, activation, finance
+T07b PASS | POST navigation offline -> nuxr-offline.html?reason=unconfirmed; reload sent no POST
+T08 PASS | requestSubmit via the confirmation sheet stopped: 0 POST requests, notice shown, form not left pending
+T09 PASS | data-method link, nuxrPost and native form.submit(): 0 POST requests
+T10 PASS | 0 POST requests; fetch=blocked: Not sent: offline; xhr=error event; jquery=fail: offline
+T10b PASS | customer login: gate undefined, csrf token string, nuxrPost function
+T11 PASS | states ['offline', 'reconnecting', 'online']; POST blocked while reconnecting, allowed once online
+T12 PASS | slow chip "Slow connection"; POST allowed while SLOW
+T12h PASS | http://localhost:18099/: heartbeat headers ['accept', 'accept-encoding', 'cache-control', 'connection', 'host', 'pragma', 'sec-ch-ua', 'sec-ch-ua-mobile', 'sec-ch-ua-platform', 'sec-fetch-dest', 'sec-fetch-mode', 'sec-fetch-site', 'user-agent']; marker exact; no Set-Cookie; ordinary fetch keeps X-CS
+T12n PASS | fetch: rejected TypeError to the caller, 1 immediate ping after 0.23 s, state stayed online, 1 request (with X-CSRF-Token); xhr: error once to the caller, ping after 0.03 s, states from pings only ['slow', 'online'], 1 request; no retry
+T10c PASS | staff logout landing -> 200 logout; public login -> 200 login; public register -> 200 register; public forgot -> 200 forgot; customer login result -> 200 login/post; customer home -> 200 home; customer profile (GET) -> 200 accounts/profile; customer POST change-password (wrong current password: refu
+T13 PASS | ad: 9 pages, logout clean; A: 7 pages, logout clean; A1: 2 pages, logout clean; final local=[], session=[], idb=[]
+T13b PASS | kept another-app-on-this-origin and nuxr-pwa:8acf0404:wp7.1; removed nuxr-pwa:8acf0404:wp7.0
+T14i PASS | manual sheet when the browser offers no prompt; deferred prompt used once, on the More-sheet click; display-mode emulation unsupported by this Chromium; standalone CSS rule verified in the live CSSOM
+T14 PASS | http://localhost:18099/: waiting, offered, no self-activation for 4 s, offered again on the next page; http://localhost:18098/billing/: waiting, offered, no self-activation for 4 s, offered again on the next page
+T15 PASS | activation confirm: deferred; finance review: deferred; dirty POST form: deferred; dialog[open]: deferred; form[data-nuxr-submitted]: deferred; offered again on a non-critical page
+T16 PASS | one reload (http://localhost:18099/?_route=dashboard); caches now ['nuxr-pwa:8acf0404:wp7.1-labnext']; other tab not reloaded, shows: The app was updated in another tab. Reload this page when convenient.Update
+T17 PASS | 24 deep links identical (status, final route, title, h1, forms, alerts); 9 denials among them
+T18 PASS | http://localhost:18099/: 10 pages + funding review POST identical; worker-controlled vs blocked; http://localhost:18098/billing/: 10 pages + funding review POST identical; worker-controlled vs blocked
+T19 PASS | offline / not-sent / reconnecting in Arabic; slow in Arabic; install item + sheet in Arabic; update bar + deferred in Arabic; offline documents: Arabic + English blocks with lang / dir
+T20 PASS | 10 audits (phone Arabic + desktop English): axe serious/critical 0, no target < 44 px, no horizontal overflow
+T21 PASS | http://localhost:18099/ allow: server 200 + plan 200, one exact token each, 1 plan(s) rendered; http://localhost:18099/ block: server 200 + plan 200, one exact token each, 1 plan(s) rendered; http://localhost:18098/billing/ allow: server 200 + plan 200, one exact token each, 1 plan(s) rendered; http
+T22 PASS | http://localhost:18099/ allow: 6 same-origin probes one exact token, 2 cross-origin none, events + callbacks unchanged, upload events, Pace active; http://localhost:18099/ block: 6 same-origin probes one exact token, 2 cross-origin none, events + callbacks unchanged, upload events, Pace active; http
+T23 PASS | SLOW: jQuery POST success, one request with the exact token; network error: caller error once (status 0, readyState 4), request sent once with the exact token, heartbeat after 0.08 s, no retry
+T24 PASS | coupon bulk delete: 1 XHR, 200 success, exact token, 2 lab fixtures removed; voucher bulk delete: generated 2 lab vouchers via the restored autoload paths, 1 XHR, 200 success (0 skipped), exact token, removed; bulk message TEST mode: 3 XHR(s), 200 success, exact token, statuses ['Test Mode'] (nothin
+PASS 32 of 32

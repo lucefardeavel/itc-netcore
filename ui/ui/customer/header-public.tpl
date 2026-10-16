@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="{$nuxr_lang|default:'en'}">
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{$_title} - {$_c['CompanyName']}</title>
     <link rel="shortcut icon" href="{$app_url}/ui/ui/images/logo.png" type="image/x-icon" />
 
