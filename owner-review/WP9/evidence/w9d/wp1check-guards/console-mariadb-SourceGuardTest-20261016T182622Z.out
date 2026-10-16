@@ -1,0 +1,40 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/t1a/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp3a/SourceGuardTest.php
+start: 2026-10-16T18:26:22Z
+ Container nuxbill-reseller-test-php82-run-a1c6300d2a86 Creating 
+ Container nuxbill-reseller-test-php82-run-a1c6300d2a86 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.........F                                                        10 / 10 (100%)
+
+Time: 00:00.470, Memory: 18.00 MB
+
+Source Guard (Reseller\Tests\Unit\Wp3a\SourceGuard)
+ ✔ Scan covers the runtime
+ ✔ Ledger has no update or delete path and one writer
+ ✔ Wallet writers
+ ✔ Reservation and transfer writers
+ ✔ No orm access to finance tables
+ ✔ Finance code is separated from legacy money and input
+ ✔ No entrypoint reaches the finance services
+ ✔ Fault hook is never assigned at runtime
+ ✔ No generic ledger writer
+ ✘ Accepted files are byte identical
+   │
+   │ system/reseller/migrate.php changed
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'8420e021293260ae01f097e5d202221003a172e14e116933831e0087f44803fa'
+   │ +'0e3a63e70fcfe57aba1bc43d9727cde9890953bf9b33ecfa792a1a5fe88b028a'
+   │
+   │ /repo/tests/Unit/Wp3a/SourceGuardTest.php:271
+   │
+
+FAILURES!
+Tests: 10, Assertions: 37038, Failures: 1.
+
+exit=1 end: 2026-10-16T18:26:24Z

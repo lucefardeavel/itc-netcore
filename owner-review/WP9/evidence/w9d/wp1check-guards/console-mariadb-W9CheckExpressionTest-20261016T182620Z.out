@@ -1,0 +1,30 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/t1a/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp9/W9CheckExpressionTest.php
+start: 2026-10-16T18:26:20Z
+ Container nuxbill-reseller-test-php82-run-f4e548c4a6ae Creating 
+ Container nuxbill-reseller-test-php82-run-f4e548c4a6ae Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............                                                     13 / 13 (100%)
+
+Time: 00:00.020, Memory: 10.00 MB
+
+W9Check Expression (Reseller\Tests\Unit\Wp9\W9CheckExpression)
+ ✔ Every declared check matches both engines exactly
+ ✔ Different expressions never compare equal with data set "grouping"
+ ✔ Different expressions never compare equal with data set "operator"
+ ✔ Different expressions never compare equal with data set "constant"
+ ✔ Different expressions never compare equal with data set "negation"
+ ✔ Different expressions never compare equal with data set "in list"
+ ✔ Different expressions never compare equal with data set "string"
+ ✔ Different expressions never compare equal with data set "column"
+ ✔ Different expressions never compare equal with data set "arith order"
+ ✔ Different expressions never compare equal with data set "not"
+ ✔ Different expressions never compare equal with data set "tautology"
+ ✔ Equivalent renderings compare equal
+ ✔ Unparseable expression is null
+
+OK (13 tests, 346 assertions)
+exit=0 end: 2026-10-16T18:26:22Z
