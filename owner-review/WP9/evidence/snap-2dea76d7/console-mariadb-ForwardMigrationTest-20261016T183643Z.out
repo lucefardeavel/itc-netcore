@@ -1,0 +1,25 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/snap-2dea76d7/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/ForwardMigrationTest.php
+start: 2026-10-16T18:36:43Z
+ Container nuxbill-reseller-test-php82-run-3e77745edb93 Creating 
+ Container nuxbill-reseller-test-php82-run-3e77745edb93 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+........                                                            8 / 8 (100%)
+
+Time: 00:13.416, Memory: 10.00 MB
+
+Forward Migration (Reseller\Tests\Integration\ForwardMigration)
+ ✔ Forward migration produces contract and keeps legacy data untouched with data set "V1_FRESH_INSTALL"
+ ✔ Forward migration produces contract and keeps legacy data untouched with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Forward migration produces contract and keeps legacy data untouched with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Registry is durable and journal complete
+ ✔ Second run executes zero ddl and writes nothing with data set "V1_FRESH_INSTALL"
+ ✔ Second run executes zero ddl and writes nothing with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Second run executes zero ddl and writes nothing with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Foreign key signedness and rules from catalog
+
+OK (8 tests, 449 assertions)
+exit=0 end: 2026-10-16T18:36:58Z

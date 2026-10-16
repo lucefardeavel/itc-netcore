@@ -1,0 +1,20 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/snap-2dea76d7/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp3b/PricingSchemaReadinessTest.php
+start: 2026-10-16T18:39:19Z
+ Container nuxbill-reseller-test-php82-run-cce74c9caa73 Creating 
+ Container nuxbill-reseller-test-php82-run-cce74c9caa73 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...                                                                 3 / 3 (100%)
+
+Time: 00:02.251, Memory: 10.00 MB
+
+Pricing Schema Readiness (Reseller\Tests\Integration\Wp3b\PricingSchemaReadiness)
+ ✔ Expected is r 0001 to r 0007
+ ✔ Missing pricing table fails closed and recovers with data set "tbl_reseller_plan_base_costs"
+ ✔ Missing pricing table fails closed and recovers with data set "tbl_manager_plan_prices"
+
+OK (3 tests, 146 assertions)
+exit=0 end: 2026-10-16T18:39:23Z

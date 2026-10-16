@@ -284,6 +284,22 @@ final class ActivationService
     public static function execute(int $id, ActivationActor $actor): array
     {
         ActivationFaults::hit('activation.before_execute');
+        // WP9-B / R-4: provisioning, verification and settlement of a customer's service period run under the
+        // per-customer service lock shared with the cron expiry (ServiceLock, outermost). A busy lock makes no
+        // progress and changes nothing: the activation keeps its state and is resumed later.
+        $row = ActivationStore::find(FinanceTx::pdo(), $id) ?? throw new DomainError('NOT_FOUND');
+        try {
+            return \Reseller\Domain\ServiceLock::hold((int) $row['customer_id'], static fn(): array => self::executeLocked($id, $actor));
+        } catch (DomainError $e) {
+            if ($e->reason !== 'SERVICE_BUSY') {
+                throw $e;
+            }
+            return ActivationStore::find(FinanceTx::pdo(), $id) ?? $row;
+        }
+    }
+
+    private static function executeLocked(int $id, ActivationActor $actor): array
+    {
         $pdo = FinanceTx::pdo();
         for ($guard = 0; $guard < 10; $guard++) {
             $row = ActivationStore::find($pdo, $id) ?? throw new DomainError('NOT_FOUND');

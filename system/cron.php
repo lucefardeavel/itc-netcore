@@ -50,19 +50,35 @@ echo "Found " . count($d) . " user(s)\n";
 run_hook('cronjob'); #HOOK
 
 foreach ($d as $ds) {
+    $nuxrLocked = 0;
     try {
         $date_now = strtotime(date("Y-m-d H:i:s"));
         $expiration = strtotime($ds['expiration'] . ' ' . $ds['time']);
         echo $ds['expiration'] . " : " . ($isCli ? $ds['username'] : Lang::maskText($ds['username']));
 
         if ($date_now >= $expiration) {
-            echo " : EXPIRED \r\n";
+            // WP9-B / R-4 (N-04): the expiry of a customer's service period runs under the per-customer service lock
+            // shared with activation / re-provisioning, and re-checks the row it is about to expire: a period renewed,
+            // reactivated or changed meanwhile is never suspended or set 'off'. A busy customer is retried next run.
+            $nuxrCid = (int) $ds['customer_id'];
+            if ($nuxrCid > 0) {
+                if (!\Reseller\Domain\ServiceLock::acquire($nuxrCid)) {
+                    echo " : SKIPPED (service busy, retried at the next run)\r\n";
+                    continue;
+                }
+                $nuxrLocked = $nuxrCid;
+            }
 
             // Fetch user recharge details
             $u = ORM::for_table('tbl_user_recharges')->where('id', $ds['id'])->find_one();
             if (!$u) {
                 throw new Exception("User recharge record not found for ID: " . $ds['id']);
             }
+            if ($u['status'] !== 'on' || strtotime($u['expiration'] . ' ' . $u['time']) > strtotime(date("Y-m-d H:i:s"))) {
+                echo " : RENEWED meanwhile, not expired\r\n";
+                continue;
+            }
+            echo " : EXPIRED \r\n";
 
             // Fetch customer details
             $c = ORM::for_table('tbl_customers')->where('id', $ds['customer_id'])->find_one();
@@ -140,6 +156,10 @@ foreach ($d as $ds) {
         // Catch any unexpected errors (WP2 / OD-14: sanitized log, summary-only notification)
         $nuxrRef = \Reseller\Security\ErrorReporter::report($e, 'cron');
         echo "Unexpected Error: " . ($isCli ? \Reseller\Security\ErrorReporter::sanitize($e->getMessage()) : 'ref ' . $nuxrRef) . "\n";
+    } finally {
+        if ($nuxrLocked > 0) {
+            \Reseller\Domain\ServiceLock::release($nuxrLocked);
+        }
     }
 }
 

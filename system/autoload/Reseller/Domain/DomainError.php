@@ -25,6 +25,8 @@ final class DomainError extends \RuntimeException
         'SALES_HAS_CHILDREN' => 'Sales accounts cannot have child accounts.',
         'SALES_NEEDS_PARENT' => 'A Sales account must be placed under an Agent.',
         'LOCK_TIMEOUT' => 'The hierarchy is busy; please try again.',
+        // WP9-B / R-4: the customer's service is being changed by another operation (renewal / expiry)
+        'SERVICE_BUSY' => 'This customer\'s service is being updated by another operation; please try again shortly.',
         'USERNAME_TAKEN' => 'The username is already used.',
         // WP9 U0: the shared identity check (generic: never says which identity holds the name)
         'IDENTITY_TAKEN' => 'This username or PPPoE username is already in use.',

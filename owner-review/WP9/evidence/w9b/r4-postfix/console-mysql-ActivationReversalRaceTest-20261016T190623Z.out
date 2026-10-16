@@ -1,0 +1,19 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/r4-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5b/ActivationReversalRaceTest.php
+start: 2026-10-16T19:06:23Z
+ Container nuxbill-reseller-test-php82-run-f5c2a7dd887e Creating 
+ Container nuxbill-reseller-test-php82-run-f5c2a7dd887e Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:12.602, Memory: 12.00 MB
+
+Activation Reversal Race (Reseller\Tests\Integration\Wp5b\ActivationReversalRace)
+ ✔ Reversal start and activation open never both proceed
+ ✔ Reversal start and reprovision are serialized
+
+OK (2 tests, 82 assertions)
+exit=0 end: 2026-10-16T19:06:37Z

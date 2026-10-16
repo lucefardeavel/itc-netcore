@@ -66,6 +66,20 @@ if (isset($op['pause_at'], $op['pause_file'])) {
         }
     };
 }
+if (isset($op['pause_activation_at'], $op['pause_file'])) {
+    // WP9-B / R-4: the same deterministic barrier at an activation fault point (e.g. activation.before_commit)
+    \Reseller\Activation\ActivationFaults::$hook = static function (string $point) use ($op): void {
+        if ($point !== $op['pause_activation_at']) {
+            return;
+        }
+        touch($op['pause_file'] . '.entered');
+        $deadline = microtime(true) + 60;
+        while (is_file($op['pause_file']) && microtime(true) < $deadline) {
+            usleep(2000);
+            clearstatcache();
+        }
+    };
+}
 try {
     $r = match ($op['op']) {
         'fund' => TransferService::fund($staff($op['actor']), $op['manager'], $op['amount'], 'concurrency funding', $op['reference']),

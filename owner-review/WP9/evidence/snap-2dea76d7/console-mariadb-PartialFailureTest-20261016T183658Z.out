@@ -1,0 +1,24 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/snap-2dea76d7/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/PartialFailureTest.php
+start: 2026-10-16T18:36:58Z
+ Container nuxbill-reseller-test-php82-run-efe5bacb9f6c Creating 
+ Container nuxbill-reseller-test-php82-run-efe5bacb9f6c Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......                                                             7 / 7 (100%)
+
+Time: 00:21.147, Memory: 10.00 MB
+
+Partial Failure (Reseller\Tests\Integration\PartialFailure)
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V1_FRESH_INSTALL"
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V2_FRESH_INSTALL_UPDATED"
+ ✔ Failed partial blocks and rollback restores recognised core with data set "V3_LONGLIVED_2023_UPDATED"
+ ✔ Interrupted run becomes rollback required
+ ✔ Failure of atomic customer alter leaves tbl customers untouched
+ ✔ Postflight contract mismatch fails closed
+ ✔ Failed rollback blocks and can be resumed
+
+OK (7 tests, 111 assertions)
+exit=0 end: 2026-10-16T18:37:21Z

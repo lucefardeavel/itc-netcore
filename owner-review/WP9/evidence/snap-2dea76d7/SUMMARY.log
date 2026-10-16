@@ -1,0 +1,71 @@
+== mariadb tests/Integration/ConstraintTest.php
+OK (11 tests, 155 assertions)
+exit=0 end: 2026-10-16T18:36:33Z
+== mariadb tests/Integration/DriftAndRegistryTest.php
+OK (6 tests, 31 assertions)
+exit=0 end: 2026-10-16T18:36:43Z
+== mariadb tests/Integration/ForwardMigrationTest.php
+OK (8 tests, 449 assertions)
+exit=0 end: 2026-10-16T18:36:58Z
+== mariadb tests/Integration/PartialFailureTest.php
+OK (7 tests, 111 assertions)
+exit=0 end: 2026-10-16T18:37:21Z
+== mariadb tests/Integration/PreflightTest.php
+OK (18 tests, 79 assertions)
+exit=0 end: 2026-10-16T18:37:35Z
+== mariadb tests/Integration/R0007ReversalStatesMigrationTest.php
+OK (23 tests, 241 assertions)
+exit=0 end: 2026-10-16T18:38:45Z
+== mariadb tests/Integration/RollbackTest.php
+OK (6 tests, 84 assertions)
+exit=0 end: 2026-10-16T18:39:13Z
+== mariadb tests/Integration/Wp3a/FinanceSchemaReadinessTest.php
+OK (6 tests, 685 assertions)
+exit=0 end: 2026-10-16T18:39:19Z
+== mariadb tests/Integration/Wp3b/PricingSchemaReadinessTest.php
+OK (3 tests, 146 assertions)
+exit=0 end: 2026-10-16T18:39:23Z
+== mariadb tests/Unit
+OK (393 tests, 46483 assertions)
+exit=0 end: 2026-10-16T18:39:27Z
+== mariadb tests/Http
+ ✘ Public invoice signature
+FAILURES!
+Tests: 135, Assertions: 6438, Failures: 1.
+exit=1 end: 2026-10-16T18:46:18Z
+== mysql tests/Integration/ConstraintTest.php
+OK (11 tests, 155 assertions)
+exit=0 end: 2026-10-16T18:46:59Z
+== mysql tests/Integration/DriftAndRegistryTest.php
+OK (6 tests, 31 assertions)
+exit=0 end: 2026-10-16T18:47:34Z
+== mysql tests/Integration/ForwardMigrationTest.php
+OK (8 tests, 449 assertions)
+exit=0 end: 2026-10-16T18:48:19Z
+== mysql tests/Integration/PartialFailureTest.php
+OK (7 tests, 111 assertions)
+exit=0 end: 2026-10-16T18:49:09Z
+== mysql tests/Integration/PreflightTest.php
+OK (18 tests, 79 assertions)
+exit=0 end: 2026-10-16T18:49:44Z
+== mysql tests/Integration/R0007ReversalStatesMigrationTest.php
+OK (23 tests, 241 assertions)
+exit=0 end: 2026-10-16T18:52:47Z
+== mysql tests/Integration/RollbackTest.php
+OK (6 tests, 84 assertions)
+exit=0 end: 2026-10-16T18:53:32Z
+== mysql tests/Integration/Wp3a/FinanceSchemaReadinessTest.php
+OK (6 tests, 685 assertions)
+exit=0 end: 2026-10-16T18:53:40Z
+== mysql tests/Integration/Wp3b/PricingSchemaReadinessTest.php
+OK (3 tests, 146 assertions)
+exit=0 end: 2026-10-16T18:53:47Z
+== mysql tests/Unit
+OK (393 tests, 46483 assertions)
+exit=0 end: 2026-10-16T18:53:52Z
+== mysql tests/Http
+ ✘ Public invoice signature
+FAILURES!
+Tests: 135, Assertions: 6438, Failures: 1.
+exit=1 end: 2026-10-16T19:03:44Z
+ALL_EXIT=1

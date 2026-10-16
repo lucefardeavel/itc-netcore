@@ -153,7 +153,11 @@ final class U0SourceGuardTest extends TestCase
         // pre-existing: nuxr_bop_ (legacy balance-operation idempotency) and nuxr_mig_ (migration runner / readiness) never
         // call an identity acquirer. Final hardening: the balance grant (nuxr_bop_ held, no transaction) reaches the
         // ownership check (L-3) through Package::rechargeUser - order nuxr_bop_ -> L-3, never the reverse
-        $this->assertSame(['nuxr_bop_', 'nuxr_identity_', 'nuxr_mig_', 'nuxr_tree_', 'nuxr_user_'], array_keys($names), 'runtime named locks');
+        // WP9-B / R-4: + nuxr_svc_ (per-customer service lock, OUTERMOST: never taken inside a transaction or under the
+        // tree / identity lock - ServiceLock::acquire refuses that order)
+        $this->assertSame(['nuxr_bop_', 'nuxr_identity_', 'nuxr_mig_', 'nuxr_svc_', 'nuxr_tree_', 'nuxr_user_'], array_keys($names), 'runtime named locks');
+        $svc = self::src('system/autoload/Reseller/Domain/ServiceLock.php');
+        $this->assertStringContainsString('$pdo->inTransaction() || TreeSerialization::held($pdo) || CustomerIdentity::held($pdo)', $svc);
         foreach (['system/autoload/Reseller/Domain/LegacyCustomerBalanceService.php', 'system/reseller/Migration/Runner.php', 'system/autoload/Reseller/Domain/SchemaReadiness.php'] as $rel) {
             $this->assertDoesNotMatchRegularExpression('/CustomerIdentity::|VoucherRedemptionService::|CustomerService::create\(|LegacyReprovisionService::run\(/', self::src($rel), "{$rel}: no identity acquirer under its lock");
         }

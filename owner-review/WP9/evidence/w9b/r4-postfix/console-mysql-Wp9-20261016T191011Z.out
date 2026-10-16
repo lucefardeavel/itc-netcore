@@ -1,0 +1,72 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/r4-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp9
+start: 2026-10-16T19:10:11Z
+ Container nuxbill-reseller-test-php82-run-5eb9b82446b5 Creating 
+ Container nuxbill-reseller-test-php82-run-5eb9b82446b5 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...................................................               51 / 51 (100%)
+
+Time: 00:00.158, Memory: 12.00 MB
+
+Csv Cell Characterization (Tests\Unit\Wp9\CsvCellCharacterization)
+ ✔ Neutralised leading formula character with data set "equals formula"
+ ✔ Neutralised leading formula character with data set "hyperlink formula"
+ ✔ Neutralised leading formula character with data set "plus formula"
+ ✔ Neutralised leading formula character with data set "at formula"
+ ✔ Neutralised leading formula character with data set "minus formula"
+ ✔ Neutralised leading formula character with data set "dde style"
+ ✔ Neutralised leading formula character with data set "leading tab"
+ ✔ Neutralised leading formula character with data set "leading carriage return"
+ ✔ Neutralised leading formula character with data set "explicit plus number"
+ ✔ Values that stay unchanged with data set "negative decimal"
+ ✔ Values that stay unchanged with data set "negative integer"
+ ✔ Values that stay unchanged with data set "integer"
+ ✔ Values that stay unchanged with data set "plain text"
+ ✔ Values that stay unchanged with data set "arabic text"
+ ✔ Values that stay unchanged with data set "empty string"
+ ✔ Values that stay unchanged with data set "null"
+ ✔ Values that stay unchanged with data set "true"
+ ✔ Values that stay unchanged with data set "false"
+ ✔ Values that stay unchanged with data set "formula char later"
+ ✔ Formula after leading whitespace is neutralised with data set "leading space before equals"
+ ✔ Formula after leading whitespace is neutralised with data set "leading newline before equals"
+ ✔ Formula after leading whitespace is neutralised with data set "leading space before at"
+ ✔ Formula after leading whitespace is neutralised with data set "leading no-break space before equals"
+ ✔ Formula after leading whitespace is neutralised with data set "leading zero-width space before plus"
+ ✔ Formula after leading whitespace is neutralised with data set "leading BOM before minus"
+ ✔ Csv line quotes every field and doubles quotes
+
+U0Source Guard (Reseller\Tests\Unit\Wp9\U0SourceGuard)
+ ✔ Every acquiring write runs inside the identity lock
+ ✔ Checker detects a write moved out of its hold
+ ✔ Creation takes tree then identity then transaction
+ ✔ Customer identity only reads and never touches a device
+ ✔ Runtime named locks and seams
+ ✔ Every policy writer checks single ownership first
+ ✔ No recharge notification carries a voucher only credential
+ ✔ Ownership count inside an open transaction without the lock fails closed
+ ✔ Voucher only grant needs this grants confirmed write
+ ✔ The voucher only login gate never records the typed code
+ ✔ Every voucher only serving entry point checks the voucher state
+ ✔ The voucher only service decision uses the canonical identity
+
+W9Check Expression (Reseller\Tests\Unit\Wp9\W9CheckExpression)
+ ✔ Every declared check matches both engines exactly
+ ✔ Different expressions never compare equal with data set "grouping"
+ ✔ Different expressions never compare equal with data set "operator"
+ ✔ Different expressions never compare equal with data set "constant"
+ ✔ Different expressions never compare equal with data set "negation"
+ ✔ Different expressions never compare equal with data set "in list"
+ ✔ Different expressions never compare equal with data set "string"
+ ✔ Different expressions never compare equal with data set "column"
+ ✔ Different expressions never compare equal with data set "arith order"
+ ✔ Different expressions never compare equal with data set "not"
+ ✔ Different expressions never compare equal with data set "tautology"
+ ✔ Equivalent renderings compare equal
+ ✔ Unparseable expression is null
+
+OK (51 tests, 689 assertions)
+exit=0 end: 2026-10-16T19:10:14Z

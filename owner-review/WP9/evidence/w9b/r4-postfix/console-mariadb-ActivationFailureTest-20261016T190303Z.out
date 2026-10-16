@@ -1,0 +1,31 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/r4-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5a/ActivationFailureTest.php
+start: 2026-10-16T19:03:03Z
+ Container nuxbill-reseller-test-php82-run-7687efd89422 Creating 
+ Container nuxbill-reseller-test-php82-run-7687efd89422 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..............                                                    14 / 14 (100%)
+
+Time: 00:17.147, Memory: 12.00 MB
+
+Activation Failure (Reseller\Tests\Integration\Wp5a\ActivationFailure)
+ ✔ Confirmed radius failure releases and charges nothing
+ ✔ Retryable failure is retried identically then succeeds
+ ✔ Retries are bounded
+ ✔ Unknown keeps the reservation and reconciliation settles once
+ ✔ Crash before the radius call reconciles to failed
+ ✔ Crash after the radius call reconciles to completed
+ ✔ Settlement failure never becomes free service
+ ✔ Capacity failure needs an administrative fix
+ ✔ Settlement failures are classified
+ ✔ Verify mismatch keeps the funds reserved until reconciled
+ ✔ Disconnect is best effort and recorded
+ ✔ Rollback restores the previous service
+ ✔ Rollback of a new service restores the empty prior state
+ ✔ Cancel before provisioning and resume
+
+OK (14 tests, 241 assertions)
+exit=0 end: 2026-10-16T19:03:24Z

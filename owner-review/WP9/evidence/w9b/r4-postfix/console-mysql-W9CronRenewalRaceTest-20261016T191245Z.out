@@ -1,0 +1,19 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/r4-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/W9CronRenewalRaceTest.php
+start: 2026-10-16T19:12:45Z
+ Container nuxbill-reseller-test-php82-run-ab6949679526 Creating 
+ Container nuxbill-reseller-test-php82-run-ab6949679526 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:09.686, Memory: 12.00 MB
+
+W9Cron Renewal Race (Reseller\Tests\Integration\Wp9\W9CronRenewalRace)
+ ✔ Order a reactivation in flight while cron expires
+ ✔ Order b cron first then reactivation
+
+OK (2 tests, 34 assertions)
+exit=0 end: 2026-10-16T19:12:56Z

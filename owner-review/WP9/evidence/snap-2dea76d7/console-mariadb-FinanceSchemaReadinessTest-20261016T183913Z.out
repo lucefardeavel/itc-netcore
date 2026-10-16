@@ -1,0 +1,23 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/snap-2dea76d7/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp3a/FinanceSchemaReadinessTest.php
+start: 2026-10-16T18:39:13Z
+ Container nuxbill-reseller-test-php82-run-c701aa9d9037 Creating 
+ Container nuxbill-reseller-test-php82-run-c701aa9d9037 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......                                                              6 / 6 (100%)
+
+Time: 00:03.683, Memory: 10.00 MB
+
+Finance Schema Readiness (Reseller\Tests\Integration\Wp3a\FinanceSchemaReadiness)
+ ✔ Required table list is exact
+ ✔ Missing finance table fails closed and recovers with data set "tbl_reseller_activations"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallets"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_transfers"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_ledger"
+ ✔ Missing finance table fails closed and recovers with data set "tbl_manager_wallet_reservations"
+
+OK (6 tests, 685 assertions)
+exit=0 end: 2026-10-16T18:39:19Z

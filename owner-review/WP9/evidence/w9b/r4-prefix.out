@@ -1,0 +1,49 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Integration/Wp9/W9CronRenewalRaceTest.php start 2026-10-16T19:01:45Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F.                                                                  2 / 2 (100%)
+Time: 00:06.159, Memory: 12.00 MB
+W9Cron Renewal Race (Reseller\Tests\Integration\Wp9\W9CronRenewalRace)
+ ✘ Order a reactivation in flight while cron expires
+   │
+   │ order A: a paid COMPLETED period must not be suspended in RADIUS
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'pw-c5a99ebfebb'
+   │ +'88410ca6221939badb646f85dccfca7ed2ccbd3c261c530f'
+   │
+   │ /repo/tests/Integration/Wp9/W9CronRenewalRaceTest.php:76
+   │ /repo/tests/Integration/Wp9/W9CronRenewalRaceTest.php:102
+   │
+ ✔ Order b cron first then reactivation
+FAILURES!
+Tests: 2, Assertions: 31, Failures: 1.
+exit=1
+== mysql tests/Integration/Wp9/W9CronRenewalRaceTest.php start 2026-10-16T19:01:54Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F.                                                                  2 / 2 (100%)
+Time: 00:12.808, Memory: 12.00 MB
+W9Cron Renewal Race (Reseller\Tests\Integration\Wp9\W9CronRenewalRace)
+ ✘ Order a reactivation in flight while cron expires
+   │
+   │ order A: a paid COMPLETED period must not be suspended in RADIUS
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'pw-c5a9c92442a'
+   │ +'62a8bc401a9657fe14977a04bd4b23672abcc96203de9cee'
+   │
+   │ /repo/tests/Integration/Wp9/W9CronRenewalRaceTest.php:76
+   │ /repo/tests/Integration/Wp9/W9CronRenewalRaceTest.php:102
+   │
+ ✔ Order b cron first then reactivation
+FAILURES!
+Tests: 2, Assertions: 31, Failures: 1.
+exit=1

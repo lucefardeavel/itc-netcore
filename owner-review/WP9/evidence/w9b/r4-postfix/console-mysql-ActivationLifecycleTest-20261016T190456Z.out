@@ -1,0 +1,22 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/r4-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5a/ActivationLifecycleTest.php
+start: 2026-10-16T19:04:56Z
+ Container nuxbill-reseller-test-php82-run-18b2405e46c2 Creating 
+ Container nuxbill-reseller-test-php82-run-18b2405e46c2 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:12.587, Memory: 12.00 MB
+
+Activation Lifecycle (Reseller\Tests\Integration\Wp5a\ActivationLifecycle)
+ ✔ New activation completes end to end
+ ✔ Renew extends from the current expiry
+ ✔ Reactivate after expiry starts now
+ ✔ Change plan starts now and records the previous plan
+ ✔ The action is server derived and a mismatch is refused
+
+OK (5 tests, 83 assertions)
+exit=0 end: 2026-10-16T19:05:11Z

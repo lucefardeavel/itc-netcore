@@ -97,6 +97,12 @@ final class LegacyReprovisionService
         if (!array_key_exists($op, self::OPS)) {
             throw new \LogicException('unknown re-provision operation');
         }
+        // WP9-B / R-4: a re-provision of the customer's service never interleaves with the cron expiry or an
+        // activation of the same customer (per-customer service lock, outermost; busy = SERVICE_BUSY, no change)
+        if (!ServiceLock::acquire($customerId)) {
+            throw new DomainError('SERVICE_BUSY');
+        }
+        try { // WP9-B / R-4: released in the finally block at the end of run()
         $handover = null;
         $error = null;
         $result = null;
@@ -194,15 +200,11 @@ final class LegacyReprovisionService
             throw $error;
         }
         return $result + ['old_session' => $oldSession];
+        } finally {
+            ServiceLock::release($customerId); // WP9-B / R-4
+        }
     }
 
-    /**
-     * Device default deny (§4.3), called first by every legacy device grant method: a reseller-owned customer
-     * (or one whose ownership cannot be evaluated) is refused unless the call is made inside run() for that
-     * same customer. Refusals are recorded (ServiceGate) and raised as a confirmed, non-retryable failure.
-     * WP8 S7-F1: the row's PPPoE username is part of the identity the device is given (the PPPoE / VPN secret name and
-     * the RADIUS key of a PPPoE plan), so it is judged like the username.
-     */
     public static function assertDeviceAllowed(mixed $customer = null, ?string ...$usernames): void
     {
         $row = is_object($customer) && method_exists($customer, 'as_array') ? $customer->as_array() : (is_array($customer) ? $customer : []);

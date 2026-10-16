@@ -1,0 +1,31 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/r4-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5a/ActivationReconciliationTest.php
+start: 2026-10-16T19:05:33Z
+ Container nuxbill-reseller-test-php82-run-46ae1b909620 Creating 
+ Container nuxbill-reseller-test-php82-run-46ae1b909620 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..............                                                    14 / 14 (100%)
+
+Time: 00:12.749, Memory: 12.00 MB
+
+Activation Reconciliation (Reseller\Tests\Integration\Wp5a\ActivationReconciliation)
+ ✔ Verified delivery is reconciled financially despite foreign edits
+ ✔ Financial reconciliation that still fails keeps the funds held
+ ✔ Unverified but exactly the target is settled once
+ ✔ Unverified and exactly the prior state is not applied
+ ✔ Unverified foreign state is ambiguous and holds the funds
+ ✔ Rollback from the ambiguous state restores and releases once
+ ✔ Uncertain rollback keeps the funds held
+ ✔ Rollback restores the customer password exactly
+ ✔ Rollback restores the pppoe password exactly
+ ✔ Unknown prior password is refused before any write
+ ✔ Prior without password restores the absence
+ ✔ Ambiguous state with unknown prior password stays untouched
+ ✔ Capture is durable and holds no secret
+ ✔ Unreadable radius never starts provisioning
+
+OK (14 tests, 430 assertions)
+exit=0 end: 2026-10-16T19:05:48Z
