@@ -1,3 +1,12 @@
+<?php
+// WP9 / INST-1: once installed (config.php written by step 4) and the editable pages exist, this step does nothing:
+// it used to copy pages_template/ over the operator's edited pages/ and delete pages_template/ for anyone.
+if (file_exists(__DIR__ . '/../config.php') && is_dir(__DIR__ . '/../pages')) {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    exit('Forbidden: the application is already installed.');
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -14,8 +23,8 @@
     <link type='text/css' href="css/bootstrap.min.css" rel="stylesheet">
 </head>
 <?php
-$sourceDir = $_SERVER['DOCUMENT_ROOT'].'/pages_template';
-$targetDir = $_SERVER['DOCUMENT_ROOT'].'/pages';
+$sourceDir = dirname(__DIR__) . '/pages_template';
+$targetDir = dirname(__DIR__) . '/pages';
 
 function copyDir($src, $dst) {
     $dir = opendir($src);
