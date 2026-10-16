@@ -13,11 +13,11 @@ if (PHP_SAPI !== 'cli') {
  * Usage:
  *   php system/reseller/reconcile.php stale [--seconds=300]      list non-terminal activations not updated for N seconds
  *   php system/reseller/reconcile.php show <ACT-...>             state and event timeline
- *   php system/reseller/reconcile.php reconcile <ACT-...> [--stale-seconds=300]
+ *   php system/reseller/reconcile.php reconcile <ACT-...> [--stale-seconds=300]   (WP9: at least 300)
  *                       delivery already verified -> retry the settlement only (RADIUS is not consulted);
  *                       never verified -> RADIUS == target: settle once; == captured prior state: release,
  *                       FAILED (NOT_APPLIED); anything else: EXTERNAL_STATE_AMBIGUOUS, nothing changed (exit 4)
- *   php system/reseller/reconcile.php resume <ACT-...>           continue from FUNDS_RESERVED / RETRY_PENDING / VERIFIED
+ *   php system/reseller/reconcile.php resume <ACT-...>           continue a STALE FUNDS_RESERVED / RETRY_PENDING / VERIFIED (WP9)
  *   php system/reseller/reconcile.php rollback <ACT-...>         restore the captured prior RADIUS state; release only once verified
  *   php system/reseller/reconcile.php cancel <ACT-...>           before provisioning: release, CANCELLED
  *
@@ -74,7 +74,13 @@ try {
             }
             exit(0);
         case 'reconcile':
-            $row = ReconciliationService::reconcile($actor, $reference, $option('stale-seconds', ReconciliationService::STALE_SECONDS));
+            // WP9-B / N-06: the operator tool never reconciles a live in-flight activation (the 300 s guard is a floor)
+            $staleSeconds = $option('stale-seconds', ReconciliationService::STALE_SECONDS);
+            if ($staleSeconds < ReconciliationService::STALE_SECONDS) {
+                fwrite(STDERR, 'refused: --stale-seconds must be at least ' . ReconciliationService::STALE_SECONDS . " (live activations are never reconciled)\n");
+                exit(5);
+            }
+            $row = ReconciliationService::reconcile($actor, $reference, $staleSeconds);
             $print($row);
             if ($row['error_code'] === ReconciliationService::AMBIGUOUS) {
                 fwrite(STDERR, ReconciliationService::AMBIGUOUS . ': ' . ReconciliationService::AMBIGUOUS_MESSAGE . "\n");
@@ -83,6 +89,11 @@ try {
             exit(0);
         case 'resume':
             $row = ActivationStore::byReference(\ORM::get_db(), $reference) ?? throw new DomainError('NOT_FOUND');
+            // WP9-B / N-06: resume only a STALE activation (same rule as the web operator resume, OD-7)
+            if (!in_array($reference, array_column(ReconciliationService::stale(), 'reference'), true)) {
+                fwrite(STDERR, 'refused: the activation is not stale (updated less than ' . ReconciliationService::STALE_SECONDS . " seconds ago, or terminal)\n");
+                exit(2);
+            }
             $print(ActivationService::execute((int) $row['id'], $actor));
             exit(0);
         case 'rollback':

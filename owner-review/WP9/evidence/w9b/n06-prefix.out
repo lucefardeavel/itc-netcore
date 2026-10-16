@@ -1,0 +1,53 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Integration/Wp9/W9ReconcileCliGuardTest.php start 2026-10-16T19:22:46Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF                                                                  2 / 2 (100%)
+Time: 00:02.336, Memory: 12.00 MB
+W9Reconcile Cli Guard (Reseller\Tests\Integration\Wp9\W9ReconcileCliGuard)
+ ✘ Live in flight activation is not reconciled through a lowered floor
+   │
+   │ {"reference":"ACT-2FAFFF41354D9525","status":"FAILED","action":"NEW","error_code":"NOT_APPLIED"}
+   │
+   │ Failed asserting that 0 is identical to 5.
+   │
+   │ /repo/tests/Integration/Wp9/W9ReconcileCliGuardTest.php:74
+   │
+ ✘ Resume requires a stale activation
+   │
+   │ {"reference":"ACT-28C90E8C9EC8A718","status":"COMPLETED","action":"NEW","error_code":null}
+   │
+   │ Failed asserting that 0 is identical to 2.
+   │
+   │ /repo/tests/Integration/Wp9/W9ReconcileCliGuardTest.php:85
+   │
+FAILURES!
+Tests: 2, Assertions: 18, Failures: 2.
+exit=1
+== mysql tests/Integration/Wp9/W9ReconcileCliGuardTest.php start 2026-10-16T19:22:49Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FF                                                                  2 / 2 (100%)
+Time: 00:06.788, Memory: 12.00 MB
+W9Reconcile Cli Guard (Reseller\Tests\Integration\Wp9\W9ReconcileCliGuard)
+ ✘ Live in flight activation is not reconciled through a lowered floor
+   │
+   │ {"reference":"ACT-8DB25CEC3A5DEA37","status":"FAILED","action":"NEW","error_code":"NOT_APPLIED"}
+   │
+   │ Failed asserting that 0 is identical to 5.
+   │
+   │ /repo/tests/Integration/Wp9/W9ReconcileCliGuardTest.php:74
+   │
+ ✘ Resume requires a stale activation
+   │
+   │ {"reference":"ACT-04A798DD4413BAA4","status":"COMPLETED","action":"NEW","error_code":null}
+   │
+   │ Failed asserting that 0 is identical to 2.
+   │
+   │ /repo/tests/Integration/Wp9/W9ReconcileCliGuardTest.php:85
+   │
+FAILURES!
+Tests: 2, Assertions: 18, Failures: 2.
+exit=1
