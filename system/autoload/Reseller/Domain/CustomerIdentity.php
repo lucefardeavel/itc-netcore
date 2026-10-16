@@ -250,6 +250,43 @@ final class CustomerIdentity
     }
 
     /**
+     * WP9 U0 R-FC-4E: the voucher rows (any status) and the voucher-only recharge rows (customer_id 0) of ONE canonical
+     * identity - PHP trim() compared under utf8mb4_general_ci, the RADIUS key rule every serving path resolves names with -
+     * each marked "exact" when its stored name is the requested key itself (the same bytes after PHP trim). null when the
+     * answer cannot be established (empty key, any error, more rows than the bound): callers fail closed. Read only,
+     * bounded and time-limited like every identity lookup; no lock, no transaction.
+     *
+     * @return array{vouchers:list<array{status:string,user:string,exact:bool}>,recharges:list<array{exact:bool}>}|null
+     */
+    public static function voucherIdentity(\PDO $pdo, string $key): ?array
+    {
+        $k = trim($key);
+        if ($k === '') {
+            return null;
+        }
+        $hex = strtoupper(bin2hex($k));
+        $p = self::rad('UNHEX(?)');
+        try {
+            $vouchers = self::bounded($pdo, "SELECT status, user, HEX(CONVERT(REGEXP_REPLACE(code, ?, '') USING utf8mb4)) AS h FROM tbl_voucher WHERE ("
+                . self::rad('code') . " = {$p} OR code REGEXP ?) AND " . self::rad("REGEXP_REPLACE(code, ?, '')") . " = {$p} LIMIT " . (self::CANDIDATES + 1),
+                [self::TRIM_RE, $hex, self::EDGE_RE, self::TRIM_RE, $hex]);
+            $recharges = self::bounded($pdo, "SELECT HEX(CONVERT(REGEXP_REPLACE(username, ?, '') USING utf8mb4)) AS h FROM tbl_user_recharges WHERE customer_id = 0 AND ("
+                . self::rad('username') . " = {$p} OR username REGEXP ?) AND " . self::rad("REGEXP_REPLACE(username, ?, '')") . " = {$p} LIMIT " . (self::CANDIDATES + 1),
+                [self::TRIM_RE, $hex, self::EDGE_RE, self::TRIM_RE, $hex]);
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'identity-voucher');
+            return null;
+        }
+        if (count($vouchers) > self::CANDIDATES || count($recharges) > self::CANDIDATES) {
+            return null;
+        }
+        return [
+            'vouchers' => array_map(static fn(array $r): array => ['status' => (string) $r['status'], 'user' => (string) $r['user'], 'exact' => strtoupper((string) $r['h']) === $hex], $vouchers),
+            'recharges' => array_map(static fn(array $r): array => ['exact' => strtoupper((string) $r['h']) === $hex], $recharges),
+        ];
+    }
+
+    /**
      * WP9 U0 final hardening (D-U0-R1): refuses (DomainError IDENTITY_AMBIGUOUS / IDENTITY_CHECK_UNAVAILABLE) when one of
      * $keys has more than one logical owner. The count runs under the shared identity lock (at most RADIUS_TIMEOUT
      * seconds of waiting: it guards writes on RADIUS and web paths alike); a caller that already holds the lock on this

@@ -334,5 +334,42 @@ final class U0SourceGuardTest extends TestCase
             $this->assertNotSame([], self::voucherStateGaps($m), "mutation detected: {$f}");
         }
     }
+
+    /** @return list<string> R-FC-4E: the voucher-only service decision is made on the canonical identity, never on bytes alone */
+    private static function canonicalDecisionGaps(string $vrs, string $ci): array
+    {
+        $out = [];
+        $fn = substr($vrs, strpos($vrs, 'public static function voucherOnlyServiceRefusal('));
+        $fn = substr($fn, 0, strpos($fn, '// ------------------------------------------------------------------ steps'));
+        if (!str_contains($fn, 'CustomerIdentity::voucherIdentity(self::pdo(), $key)')) {
+            $out[] = 'the decision does not use the canonical identity lookup';
+        }
+        if (preg_match('/BINARY\s+code/i', $fn)) {
+            $out[] = 'a byte-exact voucher lookup decides';
+        }
+        if (!preg_match("/if \(\\\$key === ''\) \{\s*return 'VOUCHER_IDENTITY_INVALID';/", $fn) || !preg_match("/if \(\\\$id === null\) \{\s*return 'VOUCHER_STATE_UNAVAILABLE';/", $fn)) {
+            $out[] = 'an empty identity or an unavailable lookup is not refused';
+        }
+        if (strpos($fn, "return 'VOUCHER_IN_REVIEW';") === false || strpos($fn, "return 'VOUCHER_IDENTITY_MISMATCH';") === false) {
+            $out[] = 'an equivalent CLAIMED row or a variant spelling is not refused';
+        }
+        $lookup = substr($ci, strpos($ci, 'public static function voucherIdentity('));
+        $lookup = substr($lookup, 0, strpos($lookup, 'public static function assertSingleOwner('));
+        if (substr_count($lookup, 'self::bounded(') !== 2 || !str_contains($lookup, 'count($vouchers) > self::CANDIDATES || count($recharges) > self::CANDIDATES')) {
+            $out[] = 'the canonical lookup is not bounded';
+        }
+        return $out;
+    }
+
+    public function testTheVoucherOnlyServiceDecisionUsesTheCanonicalIdentity(): void
+    {
+        $vrs = self::src('system/autoload/Reseller/Domain/VoucherRedemptionService.php');
+        $ci = self::src(self::CI);
+        $this->assertSame([], self::canonicalDecisionGaps($vrs, $ci));
+        // mutation: the pre-R-FC-4E byte-exact decision, a dropped refusal and an unbounded lookup are detected
+        $this->assertNotSame([], self::canonicalDecisionGaps(str_replace('CustomerIdentity::voucherIdentity(self::pdo(), $key)', "['vouchers' => [], 'recharges' => []]", $vrs), $ci));
+        $this->assertNotSame([], self::canonicalDecisionGaps(str_replace("return 'VOUCHER_IN_REVIEW';", 'return null;', $vrs), $ci));
+        $this->assertNotSame([], self::canonicalDecisionGaps($vrs, str_replace('count($vouchers) > self::CANDIDATES || ', '', $ci)));
+    }
 }
 

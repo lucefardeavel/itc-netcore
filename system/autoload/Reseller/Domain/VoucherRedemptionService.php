@@ -146,38 +146,62 @@ final class VoucherRedemptionService
     }
 
     /**
-     * WP9 U0 R-FC-4: whether a voucher-only identity (username = the code) may be SERVED again from its recharge row -
-     * re-provisioned by a device (login.php E12 re-activation, any device grant of a voucher-only row) or answered by the
-     * RADIUS REST endpoint (E15 / E16). null = allowed: a voucher row of the code was GRANTED voucher-only (status 1,
-     * user 0), no voucher row exists any more (legacy / deleted vouchers), or this request is that code's own grant;
-     * otherwise the refusal reason: VOUCHER_IN_REVIEW (a row is CLAIMED: under review or in flight in another request) or
-     * VOUCHER_NOT_REDEEMED (rows exist, none granted voucher-only - e.g. unused). Fail closed on a read error. Read-only:
-     * no voucher, invoice, recharge or RADIUS row is changed; recovery of a reviewed voucher stays an operator decision.
+     * WP9 U0 R-FC-4 / R-FC-4E: whether a voucher-only identity (username = the code) may be SERVED again from its recharge
+     * row - re-provisioned by a device (login.php E12 re-activation, any device grant of a voucher-only row) or answered
+     * by the RADIUS REST endpoint (E15 / E16). The decision is made on the CANONICAL identity (PHP trim + utf8mb4_general_ci,
+     * the rule every serving path resolves names with), not on exact bytes. null = allowed:
+     *  - this request is the code's own grant (its exact key), or
+     *  - no voucher row of the canonical identity exists (legacy / deleted voucher) and, if voucher-only recharge rows of
+     *    it exist, one is the requested key itself, or
+     *  - the voucher row that IS the requested key was granted voucher-only (status 1, user 0), it is the only granted
+     *    voucher-only row of the identity, and no row of the identity is CLAIMED.
+     * Otherwise the refusal reason: VOUCHER_IDENTITY_INVALID (empty name), VOUCHER_STATE_UNAVAILABLE (read error or more
+     * rows than the bound - fail closed), VOUCHER_IN_REVIEW (an equivalent row is CLAIMED: under review or in flight
+     * elsewhere), VOUCHER_IDENTITY_MISMATCH (the identity's vouchers / recharges exist under other bytes only - a variant
+     * spelling is never served), VOUCHER_NOT_REDEEMED, VOUCHER_IDENTITY_AMBIGUOUS (more than one granted voucher-only row).
+     * Read only: no voucher, invoice, recharge or RADIUS row is changed; recovery of a reviewed voucher stays an operator
+     * decision. The reason never contains the code.
      */
     public static function voucherOnlyServiceRefusal(string $username): ?string
     {
-        if ($username === '' || (self::$inFlight !== null && self::$inFlight === trim($username))) {
+        $key = trim($username);
+        if ($key === '') {
+            return 'VOUCHER_IDENTITY_INVALID';
+        }
+        if (self::$inFlight !== null && self::$inFlight === $key) {
             return null;
         }
-        try {
-            $st = self::pdo()->prepare('SELECT status, user FROM tbl_voucher WHERE BINARY code = ? OR BINARY code = ?');
-            $st->execute([$username, trim($username)]);
-            $rows = $st->fetchAll(\PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
-            ErrorReporter::report($e, 'voucher-service-state');
+        $id = CustomerIdentity::voucherIdentity(self::pdo(), $key);
+        if ($id === null) {
             return 'VOUCHER_STATE_UNAVAILABLE';
         }
-        if ($rows === []) {
-            return null;
-        }
-        $granted = false;
-        foreach ($rows as $r) {
-            if ((string) $r['status'] === self::CLAIMED) {
+        $exact = false;
+        $exactGranted = false;
+        $granted = 0;
+        foreach ($id['vouchers'] as $v) {
+            if ($v['status'] === self::CLAIMED) {
                 return 'VOUCHER_IN_REVIEW';
             }
-            $granted = $granted || ((string) $r['status'] === '1' && (string) $r['user'] === '0');
+            $isGranted = $v['status'] === '1' && $v['user'] === '0';
+            $granted += $isGranted ? 1 : 0;
+            $exact = $exact || $v['exact'];
+            $exactGranted = $exactGranted || ($v['exact'] && $isGranted);
         }
-        return $granted ? null : 'VOUCHER_NOT_REDEEMED';
+        if ($id['vouchers'] !== []) {
+            if (!$exact) {
+                return 'VOUCHER_IDENTITY_MISMATCH';
+            }
+            if (!$exactGranted) {
+                return 'VOUCHER_NOT_REDEEMED';
+            }
+            if ($granted > 1) {
+                return 'VOUCHER_IDENTITY_AMBIGUOUS';
+            }
+        }
+        if ($id['recharges'] !== [] && !in_array(true, array_column($id['recharges'], 'exact'), true)) {
+            return 'VOUCHER_IDENTITY_MISMATCH';
+        }
+        return null;
     }
 
     // ------------------------------------------------------------------ steps
