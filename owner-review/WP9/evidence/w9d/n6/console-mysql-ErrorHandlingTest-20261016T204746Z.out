@@ -1,0 +1,21 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/n6/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/ErrorHandlingTest.php
+start: 2026-10-16T20:47:46Z
+ Container nuxbill-reseller-test-php82-run-85a11d34d2d6 Creating 
+ Container nuxbill-reseller-test-php82-run-85a11d34d2d6 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....                                                                4 / 4 (100%)
+
+Time: 00:07.212, Memory: 10.00 MB
+
+Error Handling (Reseller\Tests\Http\ErrorHandling)
+ ✔ Staff of every role gets generic error with reference
+ ✔ Customer and anonymous get generic error
+ ✔ Api errors are generic
+ ✔ Display errors forced off even if config enables it
+
+OK (4 tests, 126 assertions)
+exit=0 end: 2026-10-16T20:47:55Z

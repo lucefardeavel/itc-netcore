@@ -116,8 +116,45 @@ final class ErrorReporter
                 }
             }
         }
+        // WP9 N-11 / N6 (AD-18 secret boundary): the NAS shared secrets and the router API passwords are stored in the
+        // database (RADIUS needs them recoverable); they are redacted from every logged text too. Read once per request,
+        // only when something is reported; a failing read never breaks the error path.
+        foreach (self::databaseSecrets() as $v) {
+            $out[] = $v;
+        }
         usort($out, static fn(string $a, string $b): int => strlen($b) <=> strlen($a));
         return array_values(array_unique($out));
+    }
+
+    /** @var list<string>|null */
+    private static ?array $dbSecrets = null;
+
+    /** @return list<string> */
+    private static function databaseSecrets(): array
+    {
+        if (self::$dbSecrets !== null) {
+            return self::$dbSecrets;
+        }
+        self::$dbSecrets = [];
+        try {
+            if (!class_exists('ORM', false)) {
+                return self::$dbSecrets;
+            }
+            foreach (['radius' => 'SELECT secret FROM nas', \ORM::DEFAULT_CONNECTION => 'SELECT password FROM tbl_routers'] as $conn => $sql) {
+                try {
+                    $pdo = \ORM::get_db($conn);
+                    foreach ($pdo->query($sql)->fetchAll(\PDO::FETCH_COLUMN) as $v) {
+                        if (is_string($v) && strlen($v) >= 4) {
+                            self::$dbSecrets[] = $v;
+                        }
+                    }
+                } catch (\Throwable) {
+                    // table or connection absent: nothing to redact from it
+                }
+            }
+        } catch (\Throwable) {
+        }
+        return self::$dbSecrets;
     }
 
     private static function route(): string

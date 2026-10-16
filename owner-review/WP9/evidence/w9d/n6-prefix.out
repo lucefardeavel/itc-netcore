@@ -1,0 +1,37 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Http/W9SecretRedactionTest.php start 2026-10-16T20:47:15Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F                                                                   1 / 1 (100%)
+Time: 00:02.784, Memory: 10.00 MB
+W9Secret Redaction (Reseller\Tests\Http\W9SecretRedaction)
+ ✘ Database secrets are redacted from reports
+   │
+   │ NAS shared secret
+   │ Failed asserting that '[17-Oct-2026 03:47:19 Asia/Jakarta] [nuxr] ref=f164342b41c6-f3fc4a class=RuntimeException route=cli context=w9-redaction message=w9marker nas=w9-nas-secret-65f667bb9a5d router=w9-router-pw-cc49203c343b at wp2_exec_8a6aa2c7.php:9 trace=#0 {main}\n
+   │ ' [ASCII](length: 245) does not contain "w9-nas-secret-65f667bb9a5d" [ASCII](length: 26).
+   │
+   │ /repo/tests/Http/W9SecretRedactionTest.php:28
+   │
+FAILURES!
+Tests: 1, Assertions: 3, Failures: 1.
+exit=1
+== mysql tests/Http/W9SecretRedactionTest.php start 2026-10-16T20:47:20Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F                                                                   1 / 1 (100%)
+Time: 00:06.568, Memory: 10.00 MB
+W9Secret Redaction (Reseller\Tests\Http\W9SecretRedaction)
+ ✘ Database secrets are redacted from reports
+   │
+   │ NAS shared secret
+   │ Failed asserting that '[17-Oct-2026 03:47:28 Asia/Jakarta] [nuxr] ref=6a7f0fa35777-88a01e class=RuntimeException route=cli context=w9-redaction message=w9marker nas=w9-nas-secret-301cfd0c51fd router=w9-router-pw-8d9b1b8dd4fd at wp2_exec_b6b666b4.php:9 trace=#0 {main}\n
+   │ ' [ASCII](length: 245) does not contain "w9-nas-secret-301cfd0c51fd" [ASCII](length: 26).
+   │
+   │ /repo/tests/Http/W9SecretRedactionTest.php:28
+   │
+FAILURES!
+Tests: 1, Assertions: 3, Failures: 1.
+exit=1
