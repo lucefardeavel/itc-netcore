@@ -122,11 +122,7 @@ final class DriftReport
     private static function stalePolicySessions(\PDO $pdo, array $owned): array
     {
         $out = [];
-        try {
-            $rp = \ORM::get_db('radius');
-        } catch (\Throwable) {
-            $rp = $pdo;
-        }
+        $acct = \Reseller\Radius\AccountingService::connection();
         foreach ($owned as $c) {
             $latest = ActivationStore::latest($pdo, (int) $c['id'], ActivationState::COMPLETED);
             if ($latest === null || !in_array($latest['action'], ['CHANGE_PLAN', 'REACTIVATE'], true)) {
@@ -151,13 +147,24 @@ final class DriftReport
             if (!$failed || $since === null || !is_string($username)) {
                 continue;
             }
-            $st = $rp->prepare('SELECT COUNT(*) FROM radacct WHERE username = ? AND acctstoptime IS NULL AND acctstarttime <= ?');
-            $st->execute([$username, $since]);
-            if ((int) $st->fetchColumn() > 0) {
+            // a session open since before the plan change (accounting read through Reseller\Radius only)
+            $kept = array_filter($acct->openSessions($username), static fn(array $r): bool => (string) $r['acctstarttime'] !== '' && (string) $r['acctstarttime'] <= $since);
+            if ($kept !== []) {
                 $out[] = ['kind' => 'SESSION_POLICY_STALE', 'customer_id' => (int) $c['id'], 'activation' => (string) $latest['reference']];
             }
         }
         return $out;
+    }
+
+    /**
+     * WP9-OPS: the read-only finance integrity report (Reseller\Finance\SettlementReadModel::integrity) for the operator
+     * CLI and the health check; an empty list means consistent.
+     *
+     * @return list<string>
+     */
+    public static function financeIntegrity(): array
+    {
+        return \Reseller\Finance\SettlementReadModel::integrity();
     }
 
     /** @return list<array<string,mixed>> AUTO_RENEW_UNAVAILABLE records (reseller-owned obligations not renewed) */

@@ -336,7 +336,10 @@ class Radius
         if (\Reseller\Domain\SchemaReadiness::isReady()
             && (\Reseller\Domain\ServiceGate::isBlockedCustomerId($row['id'] ?? null) || \Reseller\Domain\ServiceGate::isBlockedUsername((string) ($row['username'] ?? '')))) {
             try {
-                $sellable = ORM::for_table('tbl_reseller_plan_base_costs')->where('plan_id', $expiredId)->where('is_resale_enabled', 1)->count() > 0;
+                // read-only (only PricingService writes pricing rows; no ORM object of the pricing table exists here)
+                $st = ORM::get_db()->prepare('SELECT 1 FROM tbl_reseller_plan_base_costs WHERE plan_id = ? AND is_resale_enabled = 1 LIMIT 1');
+                // a failed read counts as sellable (fail closed: no free fallback)
+                $sellable = !$st->execute([$expiredId]) || $st->fetchColumn() !== false;
             } catch (\Throwable $e) {
                 $sellable = true; // fail closed: unknown -> no free fallback
             }

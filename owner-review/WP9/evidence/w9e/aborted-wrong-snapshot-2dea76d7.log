@@ -1,0 +1,17 @@
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Recreate 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Recreate 
+ Container nuxbill-reseller-test-mariadb-1 Recreate 
+ Container nuxbill-reseller-test-mysql-1 Recreate 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Recreated 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Recreated 
+ Container nuxbill-reseller-test-mariadb-1 Recreated 
+ Container nuxbill-reseller-test-mysql-1 Recreated 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+Terminated

@@ -6,14 +6,14 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
 use Reseller\Domain\DomainError;
 use Reseller\Domain\VoucherRedemptionService;
-use Reseller\Finance\IntegrityCheck;
+use Reseller\Finance\SettlementReadModel;
 use Reseller\Radius\AdmissionRecovery;
 use Reseller\Tests\Support\ActivationTestCase;
 use Reseller\Tests\Support\FixtureBuilder;
 
 /**
  * WP9-OPS (owner §3 operational integrity): the operator recovery tools on synthetic data.
- *  - finance-check (IntegrityCheck): consistent database -> no issue; a tampered ledger / wallet is detected;
+ *  - finance-check (SettlementReadModel::integrity): consistent database -> no issue; a tampered ledger / wallet is detected;
  *  - voucher review: confirm only with complete grant evidence, deny suspends (nothing deleted), release only when
  *    nothing of the grant exists; every decision exactly once and audited without the code;
  *  - admission release: only an old PENDING claim with that token and no open session; refusals audited; the audit
@@ -34,23 +34,23 @@ final class W9RecoveryToolsTest extends ActivationTestCase
     {
         [$plan, [, $leaf]] = $this->pricedChain(['12', '15'], '10', '20');
         $this->assertSame('COMPLETED', $this->activate($leaf, $this->customer($leaf), $plan, 'NEW')['status']);
-        $this->assertSame([], IntegrityCheck::current(), 'consistent database');
+        $this->assertSame([], SettlementReadModel::integrity(), 'consistent database');
         // a tamper that the row CHECK (ck_ledger_math) still accepts: amount and balance_after moved together
         $e = static::$db->rows('SELECT id, amount, balance_after FROM tbl_manager_ledger ORDER BY id DESC LIMIT 1')[0];
         static::$db->exec("UPDATE tbl_manager_ledger SET amount = amount + 1, balance_after = IF(direction = 'CREDIT', balance_after + 1, balance_after - 1) WHERE id = " . (int) $e['id']);
         try {
-            $this->assertNotSame([], IntegrityCheck::current(), 'a tampered ledger entry is detected');
+            $this->assertNotSame([], SettlementReadModel::integrity(), 'a tampered ledger entry is detected');
         } finally {
             static::$db->exec('UPDATE tbl_manager_ledger SET amount = ' . static::$db->db()->pdo->quote((string) $e['amount']) . ', balance_after = ' . static::$db->db()->pdo->quote((string) $e['balance_after']) . ' WHERE id = ' . (int) $e['id']);
         }
         $w = static::$db->rows('SELECT manager_id, balance FROM tbl_manager_wallets WHERE manager_id = ?', [$leaf])[0];
         static::$db->exec("UPDATE tbl_manager_wallets SET balance = balance + 5 WHERE manager_id = {$leaf}");
         try {
-            $this->assertNotSame([], IntegrityCheck::current(), 'a wallet changed outside the ledger is detected');
+            $this->assertNotSame([], SettlementReadModel::integrity(), 'a wallet changed outside the ledger is detected');
         } finally {
             static::$db->exec('UPDATE tbl_manager_wallets SET balance = ' . static::$db->db()->pdo->quote((string) $w['balance']) . " WHERE manager_id = {$leaf}");
         }
-        $this->assertSame([], IntegrityCheck::current(), 'restored');
+        $this->assertSame([], SettlementReadModel::integrity(), 'restored');
     }
 
     /** a CLAIMED voucher-only voucher with the chosen grant evidence; returns [voucher id, code] */

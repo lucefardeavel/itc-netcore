@@ -145,7 +145,7 @@ try {
         // ---- WP9-OPS recovery commands (each decision exactly once, audited, nothing deleted)
         case 'finance-check':
             // read-only whole-database finance + activation integrity (tamper detector); exit 4 when anything is found
-            $issues = \Reseller\Finance\IntegrityCheck::current();
+            $issues = \Reseller\Activation\DriftReport::financeIntegrity();
             foreach ($issues as $i) {
                 echo json_encode(['issue' => $i], JSON_UNESCAPED_SLASHES) . "\n";
             }

@@ -113,6 +113,12 @@ final class LegacyBridge
         return $row !== null && self::pick($row) === $legacy['post']['row'];
     }
 
+    /** The invoice name of the compensating transaction of a reversed activation (the only REV- writer). */
+    public static function reversalInvoice(string $reference): string
+    {
+        return 'REV-' . $reference;
+    }
+
     /**
      * The legacy part of a reversal (caller's transaction, after the finance locks): the recharge row is locked
      * and must still equal legacy.post; it is restored to legacy.pre, or switched off when the activation had
@@ -136,7 +142,7 @@ final class LegacyBridge
         }
         $set = implode(', ', array_map(static fn(string $c): string => "{$c} = ?", array_keys($values)));
         Tx::exec($pdo, "UPDATE tbl_user_recharges SET {$set} WHERE id = ?", [...array_values($values), $rechargeId]);
-        $invoice = 'REV-' . $act['reference'];
+        $invoice = self::reversalInvoice((string) $act['reference']);
         if (Tx::row($pdo, 'SELECT id FROM tbl_transactions WHERE invoice = ? LIMIT 1', [$invoice]) !== null) {
             throw new \LogicException('compensating transaction already recorded');
         }

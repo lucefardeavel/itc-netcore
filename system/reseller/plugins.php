@@ -1,4 +1,9 @@
 <?php
+// CLI ONLY: refused before anything else
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
 /**
  * WP9-B / N-02 (OD-W9-9 B2) plugin inventory: plugins are fully trusted, in-process PHP (there is no sandbox), so an
  * installation must know exactly which plugin files run. CLI only.
@@ -9,11 +14,6 @@
  *
  * Exit codes: 0 inventory printed / matches; 4 DRIFT (unknown, missing or modified plugin); 5 usage error.
  */
-
-if (PHP_SAPI !== 'cli') {
-    http_response_code(404);
-    exit;
-}
 
 $opts = [];
 foreach (array_slice($argv, 1) as $a) {

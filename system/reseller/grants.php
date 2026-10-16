@@ -1,4 +1,9 @@
 <?php
+// CLI ONLY: refused before anything else
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
 /**
  * WP9 TAMPER / LPDB -> WP10 least-privilege runtime accounts. CLI ONLY.
  *
@@ -23,11 +28,6 @@
  *
  * Exit: 0 printed; 5 usage.
  */
-
-if (PHP_SAPI !== 'cli') {
-    http_response_code(404);
-    exit;
-}
 
 $opt = [];
 foreach (array_slice($argv, 1) as $a) {
@@ -63,8 +63,9 @@ function nuxr_grants(PDO $pdo, string $db, string $app, ?string $radius): string
 {
     $tables = $pdo->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME")->fetchAll(PDO::FETCH_COLUMN);
     $appendOnly = ['tbl_manager_ledger', 'tbl_reseller_audit_events', 'tbl_reseller_activation_events'];
-    $noDelete = ['tbl_manager_wallets', 'tbl_manager_transfers', 'tbl_manager_wallet_reservations', 'tbl_reseller_activations', 'tbl_reseller_plan_base_costs'];
+    // reseller-domain tables: no DELETE, except where the domain itself deletes (closure rows, all-NULL price overrides)
     $withDelete = ['tbl_manager_tree', 'tbl_manager_plan_prices'];
+    $domain = static fn(string $t): bool => str_starts_with($t, 'tbl_manager_') || str_starts_with($t, 'tbl_reseller_');
     $readOnly = ['tbl_project_migrations', 'tbl_project_migration_journal', 'radacct', 'nuxr_hs_admission', 'nuxr_hs_admission_audit'];
     $special = ['nuxr_admission' => 'SELECT, UPDATE', 'nuxr_admission_audit' => 'SELECT, INSERT'];
     $q = static fn(string $t): string => '`' . str_replace('`', '``', $db) . '`.`' . str_replace('`', '``', $t) . '`';
@@ -73,8 +74,8 @@ function nuxr_grants(PDO $pdo, string $db, string $app, ?string $radius): string
     foreach ($tables as $t) {
         $priv = $special[$t] ?? (in_array($t, $appendOnly, true) ? 'SELECT, INSERT'
             : (in_array($t, $readOnly, true) ? 'SELECT'
-            : (in_array($t, $noDelete, true) ? 'SELECT, INSERT, UPDATE'
             : (in_array($t, $withDelete, true) ? 'SELECT, INSERT, UPDATE, DELETE'
+            : ($domain($t) ? 'SELECT, INSERT, UPDATE'
             : (str_starts_with($t, 'nuxr_') ? 'SELECT' : 'SELECT, INSERT, UPDATE, DELETE')))));
         $out .= "GRANT {$priv} ON {$q($t)} TO {$app};\n";
     }

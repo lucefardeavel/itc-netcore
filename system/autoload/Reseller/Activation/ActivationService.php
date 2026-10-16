@@ -306,45 +306,43 @@ final class ActivationService
         // WP9-B / R-4: provisioning, verification and settlement of a customer's service period run under the
         // per-customer service lock shared with the cron expiry (ServiceLock, outermost). A busy lock makes no
         // progress and changes nothing: the activation keeps its state and is resumed later.
-        $row = ActivationStore::find(FinanceTx::pdo(), $id) ?? throw new DomainError('NOT_FOUND');
+        $pdo = FinanceTx::pdo();
+        $row = ActivationStore::find($pdo, $id) ?? throw new DomainError('NOT_FOUND');
+        $steps = static function () use ($pdo, $id, $actor): array {
+            for ($guard = 0; $guard < 10; $guard++) {
+                $row = ActivationStore::find($pdo, $id) ?? throw new DomainError('NOT_FOUND');
+                try {
+                    switch ($row['status']) {
+                        case ActivationState::FUNDS_RESERVED:
+                        case ActivationState::RETRY_PENDING:
+                            if (!self::provisionStep($row, $actor)) {
+                                return ActivationStore::find($pdo, $id) ?? $row;
+                            }
+                            continue 2;
+                        case ActivationState::VERIFIED:
+                            self::commitStep($row, $actor);
+                            continue 2;
+                        default:
+                            return $row;
+                    }
+                } catch (DomainError $e) {
+                    if ($e->reason !== 'ACTIVATION_STATE_CONFLICT') {
+                        throw $e;
+                    }
+                    // a concurrent request owns this step: report the state it reached
+                    return ActivationStore::find($pdo, $id) ?? $row;
+                }
+            }
+            return ActivationStore::find($pdo, $id) ?? throw new DomainError('NOT_FOUND');
+        };
         try {
-            return \Reseller\Domain\ServiceLock::hold((int) $row['customer_id'], static fn(): array => self::executeLocked($id, $actor));
+            return \Reseller\Domain\ServiceLock::hold((int) $row['customer_id'], $steps);
         } catch (DomainError $e) {
             if ($e->reason !== 'SERVICE_BUSY') {
                 throw $e;
             }
-            return ActivationStore::find(FinanceTx::pdo(), $id) ?? $row;
+            return ActivationStore::find($pdo, $id) ?? $row;
         }
-    }
-
-    private static function executeLocked(int $id, ActivationActor $actor): array
-    {
-        $pdo = FinanceTx::pdo();
-        for ($guard = 0; $guard < 10; $guard++) {
-            $row = ActivationStore::find($pdo, $id) ?? throw new DomainError('NOT_FOUND');
-            try {
-                switch ($row['status']) {
-                    case ActivationState::FUNDS_RESERVED:
-                    case ActivationState::RETRY_PENDING:
-                        if (!self::provisionStep($row, $actor)) {
-                            return ActivationStore::find($pdo, $id) ?? $row;
-                        }
-                        continue 2;
-                    case ActivationState::VERIFIED:
-                        self::commitStep($row, $actor);
-                        continue 2;
-                    default:
-                        return $row;
-                }
-            } catch (DomainError $e) {
-                if ($e->reason !== 'ACTIVATION_STATE_CONFLICT') {
-                    throw $e;
-                }
-                // a concurrent request owns this step: report the state it reached
-                return ActivationStore::find($pdo, $id) ?? $row;
-            }
-        }
-        return ActivationStore::find($pdo, $id) ?? throw new DomainError('NOT_FOUND');
     }
 
     /** @return bool false when provisioning could not start (the prior RADIUS state could not be captured) */

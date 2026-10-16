@@ -1,4 +1,9 @@
 <?php
+// CLI ONLY: refused before anything else
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
 /**
  * WP9 / WP10 release preflight of ONE ISP instance. CLI ONLY, READ-ONLY (it never writes).
  *
@@ -22,11 +27,6 @@
  *                  audit tables (WP10 LPDB; FAIL for an administrative account such as root)
  *  mac             MAC-auth impact (MAC-H1A): RADIUS usernames that look like lower-case MAC addresses (WARN)
  */
-
-if (PHP_SAPI !== 'cli') {
-    http_response_code(404);
-    exit;
-}
 
 define('NUXR_DEFER_PLUGINS', true);
 require dirname(__DIR__, 2) . '/init.php';

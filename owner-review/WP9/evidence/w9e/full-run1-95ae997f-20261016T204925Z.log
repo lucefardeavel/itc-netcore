@@ -1,0 +1,382 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+================ engine: mariadb ================
+ Container nuxbill-reseller-test-php82-run-bc98984ef6d0 Creating 
+ Container nuxbill-reseller-test-php82-run-bc98984ef6d0 Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-6b5d68fc1da2 Creating 
+ Container nuxbill-reseller-test-php82-run-6b5d68fc1da2 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1580 (  3%)
+.............................................................  122 / 1580 (  7%)
+..F..........................................................  183 / 1580 ( 11%)
+.............................................................  244 / 1580 ( 15%)
+.............................................................  305 / 1580 ( 19%)
+.............................................................  366 / 1580 ( 23%)
+.............................................................  427 / 1580 ( 27%)
+.............................................................  488 / 1580 ( 30%)
+.............................................................  549 / 1580 ( 34%)
+.............................................................  610 / 1580 ( 38%)
+.............................................................  671 / 1580 ( 42%)
+..........................................F..................  732 / 1580 ( 46%)
+.............................................................  793 / 1580 ( 50%)
+...................................FFF.......................  854 / 1580 ( 54%)
+.............................................................  915 / 1580 ( 57%)
+.............................................................  976 / 1580 ( 61%)
+............................................................. 1037 / 1580 ( 65%)
+.................................................F........... 1098 / 1580 ( 69%)
+............................................................. 1159 / 1580 ( 73%)
+.............................F............................... 1220 / 1580 ( 77%)
+............................................................. 1281 / 1580 ( 81%)
+............................................................. 1342 / 1580 ( 84%)
+.............................F............................... 1403 / 1580 ( 88%)
+...........................................................I. 1464 / 1580 ( 92%)
+..I..I......
+
+Time: 31:55.644, Memory: 74.00 MB
+
+There were 8 failures:
+
+1) Reseller\Tests\Integration\CliOnlyTest::testEveryNewPhpFileCarriesTheCliGuard
+/repo/system/reseller/grants.php lacks the CLI guard
+Failed asserting that '<?php\n
+\n
+/**\n
+\n
+ * WP9 TAMPER / LPDB -> WP10 least-privilege runtime accounts. CLI ONLY.\n
+\n
+ *\n
+\n
+ * Prints the GRANT statements (no passwords, no CREATE USER) for the two RUNTIME database accounts of ONE ISP instance,\n
+\n
+ * derived from the tables that exist in the database (`php system/reseller/grants.php --app=<'user'@'host'>\n
+\n
+ * [--radius=<'user'@'host'>]`, connection from config.php). The operator creates the accounts (password from the\n
+\n
+ * instance secret store), reviews the statements and applies them with an administrative account. Migrations run with\n
+\n
+ * a separate, privileged migration account (system/reseller/migrate.php checks its privileges).\n
+\n
+ *\n
+\n
+ * Application account (the PHP runtime, config.php $db_user):\n
+\n
+ *  - append-only records: SELECT, INSERT only on the ledger, the audit tables and the activation timeline - so the\n
+\n
+ *    application account itself cannot rewrite financial or audit history (TAMPER: the application-level immutability\n
+\n
+ *    becomes a database guarantee);\n
+\n
+ *  - reseller domain tables: SELECT, INSERT, UPDATE (DELETE only where the domain deletes: closure rows, price overrides);\n
+\n
+ *  - migration registry and journal: SELECT (readiness);\n
+\n
+ *  - FreeRADIUS accounting (radacct): SELECT (FreeRADIUS writes it; the release profile has no rlm_rest counter);\n
+\n
+ *  - FreeRADIUS admission tables: SELECT; nuxr_admission UPDATE and nuxr_admission_audit INSERT for the audited\n
+\n
+ *    operator recovery CLI;\n
+\n
+ *  - every other (legacy PHPNuxBill / RADIUS policy) table: SELECT, INSERT, UPDATE, DELETE.\n
+\n
+ * FreeRADIUS account (--radius): SELECT on the policy tables it reads, INSERT/UPDATE on radacct, the admission tables\n
+\n
+ * it maintains (no DELETE anywhere, no access to tbl_* billing tables).\n
+\n
+ *\n
+\n
+ * Exit: 0 printed; 5 usage.\n
+\n
+ */\n
+' matches PCRE pattern "/if \(PHP_SAPI !== 'cli'\) \{\s*http_response_code\(404\);\s*exit;/".
+
+/repo/tests/Integration/CliOnlyTest.php:84
+
+2) Reseller\Tests\Unit\Wp3a\SourceGuardTest::testNoEntrypointReachesTheFinanceServices
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'system/reseller/reconcile.php',
++]
+
+/repo/tests/Unit/Wp3a/SourceGuardTest.php:231
+
+3) Reseller\Tests\Unit\Wp3b\PricingSourceGuardTest::testPricingTablesHaveOnlyTheApprovedWriter
+tbl_reseller_plan_base_costs: no ORM access
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'system/devices/Radius.php',
++]
+
+/repo/tests/Unit/Wp3b/PricingSourceGuardTest.php:89
+
+4) Reseller\Tests\Unit\Wp3b\PricingSourceGuardTest::testActivationSnapshotsAreWriteOnce
+only the approved files reference the activation table (WP5A owner decision A1: the activation store and reconciliation)
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+     0 => 'system/autoload/Reseller/Activation/ActivationStore.php',
+     1 => 'system/autoload/Reseller/Activation/ReconciliationService.php',
+     2 => 'system/autoload/Reseller/Domain/SchemaReadiness.php',
+-    3 => 'system/autoload/Reseller/Finance/LedgerService.php',
+-    4 => 'system/autoload/Reseller/Finance/ReservationService.php',
+-    5 => 'system/autoload/Reseller/Finance/SettlementReadModel.php',
++    3 => 'system/autoload/Reseller/Finance/IntegrityCheck.php',
++    4 => 'system/autoload/Reseller/Finance/LedgerService.php',
++    5 => 'system/autoload/Reseller/Finance/ReservationService.php',
++    6 => 'system/autoload/Reseller/Finance/SettlementReadModel.php',
++    7 => 'system/reseller/grants.php',
+ ]
+
+/repo/tests/Unit/Wp3b/PricingSourceGuardTest.php:106
+
+5) Reseller\Tests\Unit\Wp3b\PricingSourceGuardTest::testOneSettlementAuthority
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    0 => 'system/autoload/Reseller/Finance/LedgerService.php',
++    0 => 'system/autoload/Reseller/Finance/IntegrityCheck.php',
++    1 => 'system/autoload/Reseller/Finance/LedgerService.php',
+ ]
+
+/repo/tests/Unit/Wp3b/PricingSourceGuardTest.php:143
+
+6) Reseller\Tests\Unit\Wp5a\ActivationSourceGuardTest::testTheActivationLayerUsesOnlyTheAuthoritativeServices
+system/autoload/Reseller/Activation/DriftReport.php: RADIUS only through Reseller\Radius
+Failed asserting that '<?php\n
+namespace Reseller\Activation;\n
+\n
+\n
+if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }\n
+\n
+use Reseller\Domain\LegacyCustomerBalanceService;\n
+use Reseller\Domain\LegacyReprovisionService;\n
+use Reseller\Domain\Tx;\n
+use Reseller\Domain\VoucherRedemptionService;\n
+use Reseller\Finance\FinanceTx;\n
+use Reseller\Radius\ProvisionResult;\n
+\n
+\n
+final class DriftReport\n
+{\n
+    \n
+    public static function collect(bool $radius = true): array\n
+    {\n
+        $pdo = FinanceTx::pdo();\n
+        $out = [];\n
+        $owned = Tx::rows($pdo, 'SELECT id, username FROM tbl_customers WHERE manager_id IS NOT NULL ORDER BY id');\n
+        foreach ($owned as $c) {\n
+            $cid = (int) $c['id'];\n
+            foreach (Tx::rows($pdo, "SELECT id, method FROM tbl_user_recharges WHERE customer_id = ? AND status = 'on' ORDER BY id", [$cid]) as $r) {\n
+                $ref = str_starts_with((string) $r['method'], 'Reseller - ') ? substr((string) $r['method'], 11) : '';\n
+                $act = $ref !== '' ? ActivationStore::byReference($pdo, $ref) : null;\n
+                if ($act === null || $act['status'] !== ActivationState::COMPLETED || (int) $act['customer_id'] !== $cid || (int) $act['legacy_recharge_id'] !== (int) $r['id']) {\n
+                    $out[] = ['kind' => 'PERIOD_NOT_BACKED', 'customer_id' => $cid, 'recharge_id' => (int) $r['id']];\n
+                }\n
+            }\n
+            if ($radius) {\n
+                $latest = ActivationStore::latest($pdo, $cid, ActivationState::COMPLETED);\n
+                if ($latest !== null) {\n
+                    $target = ActivationStore::radius($pdo, (int) $latest['id'])['target'];\n
+                    try {\n
+                        $current = is_array($target) ? RadiusState::read((string) $target['username'], (int) $latest['plan_id'], (string) $latest['reference']) : null;\n
+                        if ($current === null || !RadiusState::sameSubscriber($current, $target)) {\n
+                            $out[] = ['kind' => 'RADIUS_DRIFT', 'customer_id' => $cid, 'activation' => (string) $latest['reference'],\n
+                                'differs' => $current === null ? ['not_captured'] : RadiusState::diff($current, $target)];\n
+                        }\n
+                    } catch (\Throwable $e) {\n
+                        $out[] = ['kind' => 'RADIUS_DRIFT', 'customer_id' => $cid, 'activation' => (string) $latest['reference'], 'differs' => ['radius_unreadable']];\n
+                    }\n
+                }\n
+            }\n
+        }\n
+        foreach (Tx::rows($pdo, 'SELECT p.id, p.user_id FROM tbl_payment_gateway p JOIN tbl_customers c ON c.id = p.user_id WHERE c.manager_id IS NOT NULL AND p.status = 2 ORDER BY p.id') as $p) {\n
+            $out[] = ['kind' => 'PAYMENT_FOR_RESELLER_OWNED', 'payment_id' => (int) $p['id'], 'customer_id' => (int) $p['user_id']];\n
+        }\n
+        foreach (Tx::rows($pdo, 'SELECT id, id_plan, routers FROM tbl_voucher WHERE status = ? ORDER BY id', [VoucherRedemptionService::CLAIMED]) as $v) {\n
+            $out[] = ['kind' => 'VOUCHER_CLAIMED', 'voucher_id' => (int) $v['id'], 'plan_id' => (int) $v['id_plan']];\n
+        }\n
+        $last = [];\n
+        foreach (Tx::rows($pdo, "SELECT id, target_customer_id, after_json FROM tbl_reseller_audit_events WHERE event_type LIKE 'reprovision.%' ORDER BY id") as $a) {\n
+            $after = json_decode((string) $a['after_json'], true);\n
+            \n
+            if (is_array($after) && str_starts_with((string) ($after['outcome'] ?? ''), 'REFUSED_')) {\n
+                continue;\n
+            }\n
+            $last[(int) $a['target_customer_id']] = is_array($after) ? ($after['outcome'] ?? null) : null;\n
+        }\n
+        foreach ($last as $cid => $outcome) {\n
+            if ($outcome === LegacyReprovisionService::UNCONFIRMED) {\n
+                $out[] = ['kind' => 'REPROVISION_UNCONFIRMED', 'customer_id' => $cid];\n
+            }\n
+        }\n
+        \n
+        \n
+        $old = [];\n
+        foreach (Tx::rows($pdo, "SELECT target_customer_id, event_type, after_json FROM tbl_reseller_audit_events WHERE event_type LIKE 'reprovision.%' OR event_type = 'rename.old_session' ORDER BY id") as $a) {\n
+            $after = json_decode((string) $a['after_json'], true);\n
+            $state = is_array($after) ? ($after['old_session'] ?? null) : null;\n
+            if ($a['event_type'] === 'rename.old_session') {\n
+                $old[(int) $a['target_customer_id']] = $state;\n
+            } elseif ($state === 'PENDING') {\n
+                $old[(int) $a['target_customer_id']] = 'PENDING';\n
+            }\n
+        }\n
+        foreach ($old as $cid => $state) {\n
+            if ($state === 'PENDING' || $state === 'UNCONFIRMED') {\n
+                $out[] = ['kind' => 'OLD_SESSION_UNCONFIRMED', 'customer_id' => $cid, 'state' => $state === 'PENDING' ? 'CONFIRMATION_MISSING' : 'UNCONFIRMED'];\n
+            }\n
+        }\n
+        if ($radius) {\n
+            foreach (self::stalePolicySessions($pdo, $owned) as $f) {\n
+                $out[] = $f;\n
+            }\n
+        }\n
+        foreach (LegacyCustomerBalanceService::held() as $h) {\n
+            $out[] = ['kind' => 'BALANCE_HELD', 'journal_id' => (int) $h['id'], 'customer_id' => (int) $h['user_id'], 'channel' => (string) $h['payment_channel']];\n
+        }\n
+        return $out;\n
+    }\n
+\n
+    \n
+    private static function stalePolicySessions(\PDO $pdo, array $owned): array\n
+    {\n
+        $out = [];\n
+        try {\n
+            $rp = \ORM::get_db('radius');\n
+        } catch (\Throwable) {\n
+            $rp = $pdo;\n
+        }\n
+        foreach ($owned as $c) {\n
+            $latest = ActivationStore::latest($pdo, (int) $c['id'], ActivationState::COMPLETED);\n
+            if ($latest === null || !in_array($latest['action'], ['CHANGE_PLAN', 'REACTIVATE'], true)) {\n
+                continue;\n
+            }\n
+            $failed = false;\n
+            $since = null;\n
+            foreach (ActivationStore::events($pdo, (int) $latest['id']) as $e) {\n
+                $meta = json_decode((string) ($e['metadata'] ?? ''), true);\n
+                if ($e['event_type'] === 'ANNOTATION' && is_array($meta) && isset($meta['disconnect']) && is_array($meta['disconnect'])) {\n
+                    \n
+                    $failed = false;\n
+                    foreach ($meta['disconnect'] as $r) {\n
+                        if (!str_starts_with((string) $r, ProvisionResult::SUCCESS)) {\n
+                            $failed = true;\n
+                        }\n
+                    }\n
+                    $since = $since ?? (string) $e['created_at'];\n
+                }\n
+            }\n
+            $username = ActivationStore::radius($pdo, (int) $latest['id'])['target']['username'] ?? null;\n
+            if (!$failed || $since === null || !is_string($username)) {\n
+                continue;\n
+            }\n
+            $st = $rp->prepare('SELECT COUNT(*) FROM radacct WHERE username = ? AND acctstoptime IS NULL AND acctstarttime <= ?');\n
+            $st->execute([$username, $since]);\n
+            if ((int) $st->fetchColumn() > 0) {\n
+                $out[] = ['kind' => 'SESSION_POLICY_STALE', 'customer_id' => (int) $c['id'], 'activation' => (string) $latest['reference']];\n
+            }\n
+        }\n
+        return $out;\n
+    }\n
+\n
+    \n
+    public static function autoRenewUnavailable(): array\n
+    {\n
+        return array_map(static function (array $a): array {\n
+            $after = json_decode((string) $a['after_json'], true);\n
+            return ['customer_id' => (int) $a['target_customer_id'], 'obligation' => is_array($after) ? ($after['obligation'] ?? null) : null, 'at' => (string) $a['created_at']];\n
+        }, Tx::rows(FinanceTx::pdo(), "SELECT target_customer_id, after_json, created_at FROM tbl_reseller_audit_events WHERE event_type = 'service.auto_renew_unavailable' ORDER BY id"));\n
+    }\n
+}\n
+' does not match PCRE pattern "/\b(radcheck|radreply|radusergroup|radgroupreply|radacct|rad_acct)\b/".
+
+/repo/tests/Unit/Wp5a/ActivationSourceGuardTest.php:112
+
+7) Reseller\Tests\Unit\Wp5b\Wp5bSourceGuardTest::testReversalAndHookGuards
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+-    0 => 'system/autoload/Reseller/Activation/LegacyBridge.php',
++    0 => 'system/autoload/Reseller/Finance/IntegrityCheck.php',
++    1 => 'system/autoload/Reseller/Activation/LegacyBridge.php',
+ ]
+
+/repo/tests/Unit/Wp5b/Wp5bSourceGuardTest.php:165
+
+8) Reseller\Tests\Integration\Wp6b\ActivationActionMatrixTest::testTheOperationTableMirrorsTheAcceptedPrimitives
+STALE_OPERATIONS equals ReconciliationService::cancel / ActivationService::execute
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &0 [
+     'FUNDS_RESERVED' => Array &1 [
+         0 => 'cancel',
++        1 => 'resume',
+     ],
+     'RETRY_PENDING' => Array &2 [
+         0 => 'cancel',
++        1 => 'resume',
++    ],
++    'VERIFIED' => Array &3 [
++        0 => 'resume',
+     ],
+ ]
+
+/repo/tests/Integration/Wp6b/ActivationActionMatrixTest.php:189
+
+FAILURES!
+Tests: 1476, Assertions: 75219, Failures: 8, Incomplete: 104.
+
+================ engine: mysql ================
+ Container nuxbill-reseller-test-php82-run-33020f3c66ad Creating 
+ Container nuxbill-reseller-test-php82-run-33020f3c66ad Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-90ac0f77408f Creating 
+ Container nuxbill-reseller-test-php82-run-90ac0f77408f Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1580 (  3%)
+.............................................................  122 / 1580 (  7%)
+..F..
+=== run stopped by operator at 2026-10-16T21:22:08Z after the MariaDB section (8 failures, deterministic source guards); MySQL section not completed; superseded by a run on the fixed tree
