@@ -15,3 +15,7 @@ Resume rule: read `AUTONOMOUS_EXECUTION_PLAN.md`, then the last rows here. Never
 | 8 | Phase B N-01/N-02 | DONE | a6aa0011 | customerAddPlan guard; stored plan_expired; plugin errors reported; radius.php plugins after RestGate; plugins.php inventory |
 | 9 | R-4 / N-04 cron vs renewal | DONE | 39c7aed5 | ServiceLock L-S outermost; pre-fix paid COMPLETED + RADIUS suspended (both engines) |
 | tools | prefix worktree /srv/phpnuxbill/wp9-prefix @7e467581 (vendor hardlinked) for test-first; scratchpad tools/prefix.sh, precommit.sh, sub.py (CRLF aware) | | | |
+| 10 | P1-P5 policies (option B) | DONE | 614bcae0 | replay re-auth; admin-disabled reactivation; direct-child password; owner-only Sales assign; Sales sees current-owner activations |
+| 11 | N-06 CLI guard | DONE | 43007e35 | reconcile floor 300 s; resume stale only |
+| 12 | A2-R hardening L1-L5 + N-17 | DONE (dev + FreeRADIUS harness); CHR regression pending (W9-E) | b4223961 | CHECKs, echo, SAFE flag, README; enforcement check -> app preflight (TODO system/reseller/preflight.php in WP10) |
+| next | AV-3, release profile (legacy drivers), R-FC-1, N-10, OBS-1 tools, W9-OPS recovery CLI, P3 R-15, P1 lock gate, N6/N7, TAMPER/LPDB, W8-14, W8-17, OBS-S7-4, red team, full harness, CHR | | | |
