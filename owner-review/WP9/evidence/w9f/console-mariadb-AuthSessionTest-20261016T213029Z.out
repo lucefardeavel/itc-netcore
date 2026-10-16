@@ -1,0 +1,24 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9f/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/AuthSessionTest.php
+start: 2026-10-16T21:30:29Z
+ Container nuxbill-reseller-test-php82-run-d4f5099bb13f Creating 
+ Container nuxbill-reseller-test-php82-run-d4f5099bb13f Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......                                                             7 / 7 (100%)
+
+Time: 00:05.281, Memory: 10.00 MB
+
+Auth Session (Reseller\Tests\Http\AuthSession)
+ ✔ Inactive staff cannot login and gets the same message
+ ✔ Disabled mid session is cut off immediately
+ ✔ Password change invalidates other sessions and cookies
+ ✔ Remember cookie works and is bound to user and password
+ ✔ Session id regenerated on login and logout clears everything
+ ✔ Deleted user session is unauthenticated
+ ✔ Default credential must be changed first
+
+OK (7 tests, 52 assertions)
+exit=0 end: 2026-10-16T21:30:35Z

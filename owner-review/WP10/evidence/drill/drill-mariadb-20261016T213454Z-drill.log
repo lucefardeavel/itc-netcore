@@ -1,0 +1,14 @@
+2026-10-16T21:34:56Z ==== drill start engine=mariadb 10.11.19-MariaDB-ubu2204
+2026-10-16T21:34:57Z D1 legacy before upgrade: 30 tables, 60 rows, fingerprint 12fe74efad64d11d
+2026-10-16T21:34:57Z host dump B0-mariadb.sql db=wp1_drl_3a862ed24d {"bytes":38020,"sha256":"775a4321ccb75782469b9a3eb473e318b67d3d0d062cb94ed4e0e58513039ff6","seconds":0.5}
+2026-10-16T21:34:59Z D1 preflight=0 migrate=0 verify=0 second-migrate=0 (no change); legacy data of every legacy table unchanged
+2026-10-16T21:34:59Z D1 rollback --all with new-domain data: exit 2 (refused), nothing changed
+2026-10-16T21:35:04Z D2 source instance: 46 tables, 357 rows, fingerprint f882c8931f39a48a, activations 7 + 1 in flight
+2026-10-16T21:35:06Z host dump B1-mariadb.sql db=wp1_f_4e3b19b101 {"bytes":154400,"sha256":"6521d7f508a150755dacae671fd3b7cdc90d05665d85564a8c6cb0b9f9c898ba","seconds":2.05}
+2026-10-16T21:35:07Z host restore B1-mariadb.sql db=wp1_rst_456f589967 {"bytes":154400,"sha256":"6521d7f508a150755dacae671fd3b7cdc90d05665d85564a8c6cb0b9f9c898ba","seconds":0.89}
+2026-10-16T21:35:07Z D2 restored copy: 46 tables, 357 rows, fingerprint f882c8931f39a48a -> identical to the source on every table
+2026-10-16T21:35:10Z D2 restored copy: verify=0, health {"db":"OK","schema":"OK","activations_stale":"OK","reconciliation":"OK","reservations":"OK","admission_pending":"OK","vouchers_review":"OK","balance_held":"OK","accounting":"OK","coa_failures":"OK","finance":"OK"}, new activation on the restored copy: COMPLETED
+2026-10-16T21:35:11Z host restore B0-mariadb.sql db=wp1_rbk_b4a9a47596 {"bytes":38020,"sha256":"775a4321ccb75782469b9a3eb473e318b67d3d0d062cb94ed4e0e58513039ff6","seconds":0.63}
+2026-10-16T21:35:11Z D3 B0 restored: 30 tables, 60 rows, fingerprint 12fe74efad64d11d -> identical to the pre-upgrade database; status exit 0
+2026-10-16T21:35:12Z D3 upgrade re-run on the restored legacy database: migrate=0 verify=0
+2026-10-16T21:35:12Z ==== drill PASS engine=mariadb B0 {"ok":true,"bytes":38020,"sha256":"775a4321ccb75782469b9a3eb473e318b67d3d0d062cb94ed4e0e58513039ff6","seconds":0.5} B1 {"ok":true,"bytes":154400,"sha256":"6521d7f508a150755dacae671fd3b7cdc90d05665d85564a8c6cb0b9f9c898ba","seconds":2.05}

@@ -1,0 +1,18 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/t1a/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp9/W9NoShellSourceTest.php
+start: 2026-10-16T20:45:17Z
+ Container nuxbill-reseller-test-php82-run-a932b9d74af2 Creating 
+ Container nuxbill-reseller-test-php82-run-a932b9d74af2 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:00.135, Memory: 12.00 MB
+
+W9No Shell Source (Reseller\Tests\Unit\Wp9\W9NoShellSource)
+ ✔ No runtime file starts a process
+
+OK (1 test, 2 assertions)
+exit=0 end: 2026-10-16T20:45:19Z

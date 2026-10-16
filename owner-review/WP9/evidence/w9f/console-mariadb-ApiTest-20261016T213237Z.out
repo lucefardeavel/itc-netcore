@@ -1,0 +1,22 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9f/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/ApiTest.php
+start: 2026-10-16T21:32:37Z
+ Container nuxbill-reseller-test-php82-run-f7cd7e465114 Creating 
+ Container nuxbill-reseller-test-php82-run-f7cd7e465114 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:04.710, Memory: 10.00 MB
+
+Api (Reseller\Tests\Http\Api)
+ ✔ Valid token works and responses are sanitized
+ ✔ Invalid tokens are refused
+ ✔ Password change revokes earlier tokens
+ ✔ Disabled user token is refused
+ ✔ Api inherits the actor scope and allowlist
+
+OK (5 tests, 177 assertions)
+exit=0 end: 2026-10-16T21:32:43Z

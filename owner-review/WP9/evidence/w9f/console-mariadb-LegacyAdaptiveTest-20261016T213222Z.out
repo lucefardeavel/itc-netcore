@@ -1,0 +1,22 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9f/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp6c/LegacyAdaptiveTest.php
+start: 2026-10-16T21:32:22Z
+ Container nuxbill-reseller-test-php82-run-4c2160d7e693 Creating 
+ Container nuxbill-reseller-test-php82-run-4c2160d7e693 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:08.940, Memory: 10.00 MB
+
+Legacy Adaptive (Reseller\Tests\Integration\Wp6c\LegacyAdaptive)
+ ✔ Converted forms keep their contract and gain the adaptive layer
+ ✔ Daily lists render the adaptive pair with real links
+ ✔ Admin config lists stack with labels and no hover only data
+ ✔ Audit defects are fixed
+ ✔ A converted form still posts through its controller
+
+OK (5 tests, 266 assertions)
+exit=0 end: 2026-10-16T21:32:32Z

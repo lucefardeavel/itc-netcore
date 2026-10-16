@@ -1,0 +1,86 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/t1a/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp4
+start: 2026-10-16T19:28:49Z
+ Container nuxbill-reseller-test-php82-run-cfc56a18506a Creating 
+ Container nuxbill-reseller-test-php82-run-cfc56a18506a Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....................................................             53 / 53 (100%)
+
+Time: 00:00.283, Memory: 18.00 MB
+
+Accounting Time Unit (Reseller\Tests\Unit\Wp4\AccountingTimeUnit)
+ ✔ State boundaries around the stale threshold
+ ✔ Missing invalid or future times are never a confirmed online
+ ✔ Epoch normalisation
+ ✔ Display is the application zone with its offset across dst changes
+ ✔ The same instant is shown consistently in every application zone
+ ✔ Source guards of the time contract
+
+Admission Source (Reseller\Tests\Unit\Wp4\AdmissionSource)
+ ✔ Claim is the last step before the accept and only after the verification
+ ✔ Only atomic statements and no destructive sql
+ ✔ Every sql result is checked against a sentinel
+ ✔ Accounting transitions are conditional and token bound
+ ✔ Schema upgrade is additive and radius sql unchanged
+
+Chap And Rest Gate (Reseller\Tests\Unit\Wp4\ChapAndRestGate)
+ ✔ Chap verifies only the right response
+ ✔ Rest endpoint is off until configured
+ ✔ Secret and source are both required
+ ✔ Unknown is never retryable
+
+Hotspot Admission Source (Reseller\Tests\Unit\Wp4\HotspotAdmissionSource)
+ ✔ The slots run only for hotspot after h 1 a and never for pppoe
+ ✔ Order identity age slots claim verifier late claim class
+ ✔ Claim v 2 is a precheck and one conditional update without a subquery
+ ✔ Strict mode only two releases and never of a pending slot by time or snmp
+ ✔ Every refusal is filtered and no radacct write or delete
+ ✔ Accounting is token bound and never revives or deletes
+ ✔ The stock simultaneous use check is skipped for hotspot only
+ ✔ The verifier module and program are fail closed and read only
+ ✔ Schema is additive and the only sql files are read only except the migration
+
+Hotspot Spelling Source (Reseller\Tests\Unit\Wp4\HotspotSpellingSource)
+ ✔ Hotspot only after the pppoe branch
+ ✔ Canonical bytes are compared never the collation
+ ✔ Every other outcome rejects like a wrong password
+ ✔ Nothing is written and request and authentication are untouched
+
+Radius Packet (Reseller\Tests\Unit\Wp4\RadiusPacket)
+ ✔ Disconnect request authenticator and message authenticator
+ ✔ Access request hides the password
+ ✔ Response verification
+ ✔ Chap response and malformed packets
+
+Radius Policy Builder (Reseller\Tests\Unit\Wp4\RadiusPolicyBuilder)
+ ✔ Pppoe static address policy
+ ✔ Pppoe dynamic pool and fallbacks
+ ✔ Hotspot shared users rate burst and terminate time
+ ✔ Port limit is hotspot only
+ ✔ Hotspot quotas are not overwritten by the expiry
+ ✔ Group reply uses the upload rate for xmit
+ ✔ Invalid input is refused
+ ✔ Managed attribute sets cover every policy attribute
+
+Radius Source Guard (Reseller\Tests\Unit\Wp4\RadiusSourceGuard)
+ ✔ Virtual server requires message authenticator on access request only
+ ✔ Accounting history is never deleted or rewritten
+ ✔ No shell in any radius path
+ ✔ No interpolated sql in the endpoint and radius classes
+ ✔ Radius code makes no finance or billing writes
+ ✔ Nas secret is never rendered
+ ✔ Endpoint gate runs before any action
+ ✔ Package calls the device after saving the recharge
+
+Session Guard Source (Reseller\Tests\Unit\Wp4\SessionGuardSource)
+ ✔ The policy is the gate tested policy at the start of post auth
+ ✔ Discriminator key and decision are fail closed
+ ✔ Exec module has no shell no environment and a bounded timeout
+ ✔ Guard program keeps the gate tested logic
+ ✔ Stale sessions are never zapped and start scripts use the permanent files
+
+OK (53 tests, 816 assertions)
+exit=0 end: 2026-10-16T19:28:52Z

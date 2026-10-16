@@ -1,0 +1,19 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9f/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/W9InstallerPostInstallTest.php
+start: 2026-10-16T21:29:38Z
+ Container nuxbill-reseller-test-php82-run-5cc04a8a97fb Creating 
+ Container nuxbill-reseller-test-php82-run-5cc04a8a97fb Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:01.876, Memory: 10.00 MB
+
+W9Installer Post Install (Reseller\Tests\Http\W9InstallerPostInstall)
+ ✔ Step 5 does nothing on an installed application
+ ✔ Step 5 still copies the pages during a fresh installation
+
+OK (2 tests, 6 assertions)
+exit=0 end: 2026-10-16T21:29:41Z

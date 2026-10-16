@@ -1,0 +1,5 @@
+2026-10-16T21:36:30Z ==== load start engine=mysql 8.0.46
+2026-10-16T21:36:40Z L1 distributed: 96 ops in 8 waves of <= 12, total 9.46 s, 10.2 ops/s, wave p50 1.24 s, wave max 1.30 s, peak Max_used_connections 15 (max_connections 151), outcomes {"OK:COMPLETED":96}
+2026-10-16T21:36:51Z L2 one wallet: 96 ops in 8 waves of <= 12, total 10.64 s, 9.0 ops/s, wave p50 1.32 s, wave max 1.71 s, peak Max_used_connections 15 (max_connections 151), outcomes {"OK:COMPLETED":96}
+2026-10-16T21:36:56Z L3 one customer: 48 ops in 8 waves of <= 12, total 4.18 s, 11.5 ops/s, wave p50 0.53 s, wave max 0.55 s, peak Max_used_connections 9 (max_connections 151), outcomes {"OK:COMPLETED":8,"REFUSED:ACTIVATION_IN_PROGRESS":40}
+2026-10-16T21:36:56Z ==== load PASS

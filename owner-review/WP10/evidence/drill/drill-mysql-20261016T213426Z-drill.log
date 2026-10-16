@@ -1,0 +1,14 @@
+2026-10-16T21:34:30Z ==== drill start engine=mysql 8.0.46
+2026-10-16T21:34:32Z D1 legacy before upgrade: 30 tables, 60 rows, fingerprint bb432eba5167f4b9
+2026-10-16T21:34:33Z host dump B0-mysql.sql db=wp1_drl_edaebc24da {"bytes":46240,"sha256":"319fd78a86fcf35d55b50706491b4020f7d8f9260b68b5de94797238900a9fe9","seconds":0.82}
+2026-10-16T21:34:36Z D1 preflight=0 migrate=0 verify=0 second-migrate=0 (no change); legacy data of every legacy table unchanged
+2026-10-16T21:34:37Z D1 rollback --all with new-domain data: exit 2 (refused), nothing changed
+2026-10-16T21:34:40Z D2 source instance: 46 tables, 357 rows, fingerprint a86884f18bef4b34, activations 7 + 1 in flight
+2026-10-16T21:34:41Z host dump B1-mysql.sql db=wp1_f_2c7fbd2282 {"bytes":165723,"sha256":"8fd2586244b2c22a198c5d3b31dabca52cf746c892e981a710c0961538749a9a","seconds":0.9}
+2026-10-16T21:34:43Z host restore B1-mysql.sql db=wp1_rst_154e66303f {"bytes":165723,"sha256":"8fd2586244b2c22a198c5d3b31dabca52cf746c892e981a710c0961538749a9a","seconds":1.25}
+2026-10-16T21:34:43Z D2 restored copy: 46 tables, 357 rows, fingerprint a86884f18bef4b34 -> identical to the source on every table
+2026-10-16T21:34:45Z D2 restored copy: verify=0, health {"db":"OK","schema":"OK","activations_stale":"OK","reconciliation":"OK","reservations":"OK","admission_pending":"OK","vouchers_review":"OK","balance_held":"OK","accounting":"OK","coa_failures":"OK","finance":"OK"}, new activation on the restored copy: COMPLETED
+2026-10-16T21:34:46Z host restore B0-mysql.sql db=wp1_rbk_63cf2d02e2 {"bytes":46240,"sha256":"319fd78a86fcf35d55b50706491b4020f7d8f9260b68b5de94797238900a9fe9","seconds":0.93}
+2026-10-16T21:34:46Z D3 B0 restored: 30 tables, 60 rows, fingerprint bb432eba5167f4b9 -> identical to the pre-upgrade database; status exit 0
+2026-10-16T21:34:48Z D3 upgrade re-run on the restored legacy database: migrate=0 verify=0
+2026-10-16T21:34:48Z ==== drill PASS engine=mysql B0 {"ok":true,"bytes":46240,"sha256":"319fd78a86fcf35d55b50706491b4020f7d8f9260b68b5de94797238900a9fe9","seconds":0.82} B1 {"ok":true,"bytes":165723,"sha256":"8fd2586244b2c22a198c5d3b31dabca52cf746c892e981a710c0961538749a9a","seconds":0.9}

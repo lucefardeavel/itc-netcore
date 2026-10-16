@@ -1,0 +1,32 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9f/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/AuditTest.php
+start: 2026-10-16T21:30:21Z
+ Container nuxbill-reseller-test-php82-run-09c209e3c46f Creating 
+ Container nuxbill-reseller-test-php82-run-09c209e3c46f Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F.                                                                  2 / 2 (100%)
+
+Time: 00:03.031, Memory: 10.00 MB
+
+Audit (Reseller\Tests\Http\Audit)
+ ✘ Audit rows carry context and never secrets
+   │
+   │ password reset applied
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'e1942bcb7c5a4590e6c30e4375c5b1b3ff12ee47'
+   │ +'$2y$10$BZwmIh9GE/xhWNgUvlyYHuglOarpDsHFuZWD.DH7imLPZIkaz4ZT6'
+   │
+   │ /repo/tests/Http/AuditTest.php:32
+   │
+ ✔ No runtime code mutates the audit table
+
+FAILURES!
+Tests: 2, Assertions: 7, Failures: 1.
+
+exit=1 end: 2026-10-16T21:30:25Z

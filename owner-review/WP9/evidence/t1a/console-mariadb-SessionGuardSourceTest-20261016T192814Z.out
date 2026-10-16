@@ -1,0 +1,30 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/t1a/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp4/SessionGuardSourceTest.php
+start: 2026-10-16T19:28:14Z
+ Container nuxbill-reseller-test-php82-run-d61ea11960ae Creating 
+ Container nuxbill-reseller-test-php82-run-d61ea11960ae Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.F...                                                               5 / 5 (100%)
+
+Time: 00:00.038, Memory: 10.00 MB
+
+Session Guard Source (Reseller\Tests\Unit\Wp4\SessionGuardSource)
+ ✔ The policy is the gate tested policy at the start of post auth
+ ✘ Discriminator key and decision are fail closed
+   │
+   │ the flag is cleared first
+   │ Failed asserting that 383 is less than false.
+   │
+   │ /repo/tests/Unit/Wp4/SessionGuardSourceTest.php:105
+   │
+ ✔ Exec module has no shell no environment and a bounded timeout
+ ✔ Guard program keeps the gate tested logic
+ ✔ Stale sessions are never zapped and start scripts use the permanent files
+
+FAILURES!
+Tests: 5, Assertions: 145, Failures: 1.
+
+exit=1 end: 2026-10-16T19:28:16Z

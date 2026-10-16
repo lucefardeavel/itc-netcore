@@ -1,0 +1,31 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F                                                                   1 / 1 (100%)
+
+Time: 00:17.883, Memory: 12.00 MB
+
+Backup Restore Drill (Reseller\Tests\Lab\BackupRestoreDrill)
+ ✘ Drill
+   │
+   │ D2 restored nasreload identical (definition, rows, data)
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    'ddl' => '97ad73c51f45789a53e26404d6351c9b548901c39bec8960028661e9ed20e36b',
+   │ +    'ddl' => '33ca74aa7c9faaa210ea3f34c53e8926b840dffbf8e7788fdc17cc1ee807fdfd',
+   │      'rows' => 0,
+   │      'data' => 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+   │  ]
+   │
+   │ /repo/dev/wp10/BackupRestoreDrillTest.php:218
+   │
+
+FAILURES!
+Tests: 1, Assertions: 63, Failures: 1.
+
+exit=1

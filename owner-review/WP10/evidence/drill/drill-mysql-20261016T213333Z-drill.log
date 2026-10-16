@@ -1,0 +1,8 @@
+2026-10-16T21:33:38Z ==== drill start engine=mysql 8.0.46
+2026-10-16T21:33:40Z D1 legacy before upgrade: 30 tables, 60 rows, fingerprint 6a0fca0a897bf362
+2026-10-16T21:33:42Z host dump B0-mysql.sql db=wp1_drl_e90d17db45 {"bytes":46240,"sha256":"49160311e674ac7b6775d287fcaa39b10332b3f86366bf26cefe5c0c7ebe997d","seconds":0.82}
+2026-10-16T21:33:45Z D1 preflight=0 migrate=0 verify=0 second-migrate=0 (no change); legacy data of every legacy table unchanged
+2026-10-16T21:33:46Z D1 rollback --all with new-domain data: exit 2 (refused), nothing changed
+2026-10-16T21:33:48Z D2 source instance: 46 tables, 357 rows, fingerprint b2a872b4b33b4fed, activations 7 + 1 in flight
+2026-10-16T21:33:49Z host dump B1-mysql.sql db=wp1_f_da6891bd1e {"bytes":165723,"sha256":"690684cb81d7aca0666ca4d68570ba983642ee092749175a91af62521828f734","seconds":0.89}
+2026-10-16T21:33:51Z host restore B1-mysql.sql db=wp1_rst_dc2a865af9 {"bytes":165723,"sha256":"690684cb81d7aca0666ca4d68570ba983642ee092749175a91af62521828f734","seconds":1.32}

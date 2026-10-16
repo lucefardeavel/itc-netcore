@@ -1,0 +1,30 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/t1a/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp4/AdmissionSourceTest.php
+start: 2026-10-16T19:28:17Z
+ Container nuxbill-reseller-test-php82-run-0d857fcc64af Creating 
+ Container nuxbill-reseller-test-php82-run-0d857fcc64af Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..F..                                                               5 / 5 (100%)
+
+Time: 00:00.020, Memory: 10.00 MB
+
+Admission Source (Reseller\Tests\Unit\Wp4\AdmissionSource)
+ ✔ Claim is the last step before the accept and only after the verification
+ ✔ Only atomic statements and no destructive sql
+ ✘ Every sql result is checked against a sentinel
+   │
+   │ no other age computation
+   │ Failed asserting that 4 is identical to 2.
+   │
+   │ /repo/tests/Unit/Wp4/AdmissionSourceTest.php:106
+   │
+ ✔ Accounting transitions are conditional and token bound
+ ✔ Schema upgrade is additive and radius sql unchanged
+
+FAILURES!
+Tests: 5, Assertions: 81, Failures: 1.
+
+exit=1 end: 2026-10-16T19:28:18Z

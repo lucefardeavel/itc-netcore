@@ -1,0 +1,3 @@
+tool: mariadb-dump  Ver 10.19 Distrib 10.11.19-MariaDB, for debian-linux-gnu (x86_64)
+step 1 dump B0-mariadb.sql db=wp1_drl_48242dfb5e ok=true bytes=38020 sha256=640a5b08468ac94c6cecde6f941e60bf1bc1b1d6ba8e9a406e3760f2b42910bf seconds=0.48
+step 2 dump B1-mariadb.sql db=wp1_f_6e11610263 ok=true bytes=154400 sha256=ac6e15a275ba053cf2f214600677a4a355b7ec060256a17e6efc8d1d33fc0261 seconds=0.65

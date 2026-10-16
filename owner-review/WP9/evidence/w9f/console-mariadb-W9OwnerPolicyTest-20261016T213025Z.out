@@ -1,0 +1,35 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9f/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/W9OwnerPolicyTest.php
+start: 2026-10-16T21:30:25Z
+ Container nuxbill-reseller-test-php82-run-e513462a5d2b Creating 
+ Container nuxbill-reseller-test-php82-run-e513462a5d2b Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..F..                                                               5 / 5 (100%)
+
+Time: 00:01.752, Memory: 12.00 MB
+
+W9Owner Policy (Reseller\Tests\Integration\Wp9\W9OwnerPolicy)
+ ✔ P 1 replay after lost authority does not progress
+ ✔ P 2 admin disabled account is reactivated by an administrator only
+ ✘ P 3 password reset of direct sub accounts only
+   │
+   │ positive: direct child
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'5928a70a64dd89d108eb7b4f4e842a65e4e98ea9'
+   │ +'$2y$10$LOqoy4som3jfy0uhCKeiP.jxWV/IIOitBMyo7qowu/EQOZSGRawR.'
+   │
+   │ /repo/tests/Integration/Wp9/W9OwnerPolicyTest.php:97
+   │
+ ✔ P 4 only the owner reassigns sales
+ ✔ P 5 new owner sales does not see previous owner activations
+
+FAILURES!
+Tests: 5, Assertions: 68, Failures: 1.
+
+exit=1 end: 2026-10-16T21:30:29Z

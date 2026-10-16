@@ -1,0 +1,14 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:12.189, Memory: 12.00 MB
+
+Backup Restore Drill (Reseller\Tests\Lab\BackupRestoreDrill)
+ ✔ Drill
+
+OK (1 test, 128 assertions)
+exit=0

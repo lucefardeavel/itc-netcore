@@ -1,0 +1,7 @@
+2026-10-16T21:32:54Z ==== drill start engine=mariadb 10.11.19-MariaDB-ubu2204
+2026-10-16T21:32:54Z D1 legacy before upgrade: 30 tables, 60 rows, fingerprint 6fe797e9f4055b39
+2026-10-16T21:32:55Z host dump B0-mariadb.sql db=wp1_drl_48242dfb5e {"bytes":38020,"sha256":"640a5b08468ac94c6cecde6f941e60bf1bc1b1d6ba8e9a406e3760f2b42910bf","seconds":0.48}
+2026-10-16T21:32:56Z D1 preflight=0 migrate=0 verify=0 second-migrate=0 (no change); legacy data of every legacy table unchanged
+2026-10-16T21:32:57Z D1 rollback --all with new-domain data: exit 2 (refused), nothing changed
+2026-10-16T21:32:58Z D2 source instance: 46 tables, 356 rows, fingerprint 78752caef762a89b, activations 7 + 1 in flight
+2026-10-16T21:33:01Z host dump B1-mariadb.sql db=wp1_f_6e11610263 {"bytes":154400,"sha256":"ac6e15a275ba053cf2f214600677a4a355b7ec060256a17e6efc8d1d33fc0261","seconds":0.65}

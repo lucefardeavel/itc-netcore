@@ -1,0 +1,529 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9f/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit
+start: 2026-10-16T21:29:15Z
+ Container nuxbill-reseller-test-php82-run-5452cbdf4937 Creating 
+ Container nuxbill-reseller-test-php82-run-5452cbdf4937 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............................................................  63 / 398 ( 15%)
+............................................................... 126 / 398 ( 31%)
+..........................................F.................... 189 / 398 ( 47%)
+............................................................... 252 / 398 ( 63%)
+............................................................... 315 / 398 ( 79%)
+............................................................... 378 / 398 ( 94%)
+....................                                            398 / 398 (100%)
+
+Time: 00:04.192, Memory: 46.00 MB
+
+Accounting Time Unit (Reseller\Tests\Unit\Wp4\AccountingTimeUnit)
+ ✔ State boundaries around the stale threshold
+ ✔ Missing invalid or future times are never a confirmed online
+ ✔ Epoch normalisation
+ ✔ Display is the application zone with its offset across dst changes
+ ✔ The same instant is shown consistently in every application zone
+ ✔ Source guards of the time contract
+
+Activation Capability (Reseller\Tests\Unit\Wp5a\ActivationCapability)
+ ✔ Exact matrix
+ ✔ Fail closed principals
+ ✔ Activation create requires a validly placed reseller identity
+
+Activation Source Guard (Reseller\Tests\Unit\Wp5a\ActivationSourceGuard)
+ ✔ One sealed insert only under the tree lock
+ ✔ Snapshots are never updated and events are append only
+ ✔ The activation layer uses only the authoritative services
+ ✔ The controller stays thin
+
+Activation State And Period (Reseller\Tests\Unit\Wp5a\ActivationStateAndPeriod)
+ ✔ Transition table over the full matrix
+ ✔ Fresh period matches the legacy arithmetic with data set "months"
+ ✔ Fresh period matches the legacy arithmetic with data set "days"
+ ✔ Fresh period matches the legacy arithmetic with data set "hours"
+ ✔ Fresh period matches the legacy arithmetic with data set "minutes"
+ ✔ Fresh period matches the legacy arithmetic with data set "period"
+ ✔ Fresh period matches the legacy arithmetic with data set "period-short"
+ ✔ Renewal extends from the current expiry with data set "months"
+ ✔ Renewal extends from the current expiry with data set "days"
+ ✔ Renewal extends from the current expiry with data set "hours"
+ ✔ Renewal extends from the current expiry with data set "minutes"
+ ✔ Renewal extends from the current expiry with data set "period"
+ ✔ Period day is clamped and invalid validity refused
+ ✔ Derived action
+
+Admission Source (Reseller\Tests\Unit\Wp4\AdmissionSource)
+ ✔ Claim is the last step before the accept and only after the verification
+ ✔ Only atomic statements and no destructive sql
+ ✔ Every sql result is checked against a sentinel
+ ✔ Accounting transitions are conditional and token bound
+ ✔ Schema upgrade is additive and radius sql unchanged
+
+Chap And Rest Gate (Reseller\Tests\Unit\Wp4\ChapAndRestGate)
+ ✔ Chap verifies only the right response
+ ✔ Rest endpoint is off until configured
+ ✔ Secret and source are both required
+ ✔ Unknown is never retryable
+
+Csv Cell Characterization (Tests\Unit\Wp9\CsvCellCharacterization)
+ ✔ Neutralised leading formula character with data set "equals formula"
+ ✔ Neutralised leading formula character with data set "hyperlink formula"
+ ✔ Neutralised leading formula character with data set "plus formula"
+ ✔ Neutralised leading formula character with data set "at formula"
+ ✔ Neutralised leading formula character with data set "minus formula"
+ ✔ Neutralised leading formula character with data set "dde style"
+ ✔ Neutralised leading formula character with data set "leading tab"
+ ✔ Neutralised leading formula character with data set "leading carriage return"
+ ✔ Neutralised leading formula character with data set "explicit plus number"
+ ✔ Values that stay unchanged with data set "negative decimal"
+ ✔ Values that stay unchanged with data set "negative integer"
+ ✔ Values that stay unchanged with data set "integer"
+ ✔ Values that stay unchanged with data set "plain text"
+ ✔ Values that stay unchanged with data set "arabic text"
+ ✔ Values that stay unchanged with data set "empty string"
+ ✔ Values that stay unchanged with data set "null"
+ ✔ Values that stay unchanged with data set "true"
+ ✔ Values that stay unchanged with data set "false"
+ ✔ Values that stay unchanged with data set "formula char later"
+ ✔ Formula after leading whitespace is neutralised with data set "leading space before equals"
+ ✔ Formula after leading whitespace is neutralised with data set "leading newline before equals"
+ ✔ Formula after leading whitespace is neutralised with data set "leading space before at"
+ ✔ Formula after leading whitespace is neutralised with data set "leading no-break space before equals"
+ ✔ Formula after leading whitespace is neutralised with data set "leading zero-width space before plus"
+ ✔ Formula after leading whitespace is neutralised with data set "leading BOM before minus"
+ ✔ Csv line quotes every field and doubles quotes
+
+Driver Classification Source (Reseller\Tests\Unit\Wp8\DriverClassificationSource)
+ ✔ Class a stays empty
+ ✔ Every driver grant method starts with the default deny guard
+ ✔ The call site inventory is pinned and every grant or removal is gated
+ ✔ The recharge funnel refuses before any write
+ ✔ The pre write checker detects mutations
+ ✔ The static mikrotik class has no caller
+ ✔ The checkers detect mutations
+
+Export Cap Guard (Reseller\Tests\Unit\Wp6b\ExportCapGuard)
+ ✔ Every finance export cursor counts and streams in one capped snapshot
+ ✔ Every csv producer is a capped cursor or the pre refused catalog
+
+Finance Actor (Reseller\Tests\Unit\Wp3a\FinanceActor)
+ ✔ Staff stays staff on every channel
+ ✔ Customer stays customer on every channel
+ ✔ System and cron are explicit
+ ✔ Wrong principals are refused
+ ✔ There is no api or inferred factory
+
+Finance Capability (Reseller\Tests\Unit\Wp3a\FinanceCapability)
+ ✔ Finance capabilities are defined and classified
+ ✔ Exact role matrix
+ ✔ Pricing and activation stay reserved
+ ✔ Frozen non enrolled inconsistent and inactive
+ ✔ Schema not ready fails closed for every role
+ ✔ Non staff principals hold no finance capability
+ ✔ Flags reflect the matrix
+
+Grants (Reseller\Tests\Unit\Grants)
+ ✔ Global all privileges is sufficient
+ ✔ Database level explicit privileges
+ ✔ Escaped underscore matches literal only
+ ✔ Wildcard pattern
+ ✔ Missing references is reported
+ ✔ Other database or table level does not count
+ ✔ Role only grants are not assumed
+
+Guards (Reseller\Tests\Unit\Wp2\Guards)
+ ✔ Customer predicates are parenthesized and bound
+ ✔ Id validation
+ ✔ Path guard rejects traversal
+ ✔ Api sanitizer removes credentials and config
+ ✔ Audit redactor and error sanitizer
+
+Hotspot Admission Source (Reseller\Tests\Unit\Wp4\HotspotAdmissionSource)
+ ✔ The slots run only for hotspot after h 1 a and never for pppoe
+ ✔ Order identity age slots claim verifier late claim class
+ ✔ Claim v 2 is a precheck and one conditional update without a subquery
+ ✔ Strict mode only two releases and never of a pending slot by time or snmp
+ ✔ Every refusal is filtered and no radacct write or delete
+ ✔ Accounting is token bound and never revives or deletes
+ ✔ The stock simultaneous use check is skipped for hotspot only
+ ✔ The verifier module and program are fail closed and read only
+ ✔ Schema is additive and the only sql files are read only except the migration
+
+Hotspot Spelling Source (Reseller\Tests\Unit\Wp4\HotspotSpellingSource)
+ ✔ Hotspot only after the pppoe branch
+ ✔ Canonical bytes are compared never the collation
+ ✔ Every other outcome rejects like a wrong password
+ ✔ Nothing is written and request and authentication are untouched
+
+Legacy Removal Source (Reseller\Tests\Unit\Wp8\LegacyRemovalSource)
+ ✔ Every controller removal is gated before any effect
+ ✔ The three a 5 gates are exactly where the plan says
+ ✔ The checkers detect mutations
+
+Legacy Retail Price (Reseller\Tests\Unit\Wp3b\LegacyRetailPrice)
+ ✔ Accepted
+ ✔ Refused without normalisation
+
+Migration Definitions (Reseller\Tests\Unit\MigrationDefinitions)
+ ✔ Ordered gap free ids
+ ✔ Only legacy change is customer ownership and later migrations only create tables
+ ✔ Every foreign key is restrict never cascade
+ ✔ User references are unsigned and customer plan references signed
+ ✔ AllNewMoneyIsDecimal18 2
+ ✔ No voucher commerce schema
+ ✔ Timestamps are datetime 6 without server defaults
+ ✔ Every down step has existence guard and reverse order
+
+Migration Redefines (Reseller\Tests\Unit\MigrationRedefines)
+ ✔ Well formed redefinition loads
+ ✔ Malformed redefinition is rejected with data set "redefines not an array"
+ ✔ Malformed redefinition is rejected with data set "table without columns"
+ ✔ Malformed redefinition is rejected with data set "columns not an array"
+ ✔ Malformed redefinition is rejected with data set "numeric table key"
+ ✔ Malformed redefinition is rejected with data set "invalid table identifier"
+ ✔ Malformed redefinition is rejected with data set "quoted table identifier"
+ ✔ Malformed redefinition is rejected with data set "upper-case table identifier"
+ ✔ Malformed redefinition is rejected with data set "numeric column key"
+ ✔ Malformed redefinition is rejected with data set "invalid column identifier"
+ ✔ Malformed redefinition is rejected with data set "entry not an array"
+ ✔ Malformed redefinition is rejected with data set "missing from"
+ ✔ Malformed redefinition is rejected with data set "missing to"
+ ✔ Malformed redefinition is rejected with data set "missing data_guard"
+ ✔ Malformed redefinition is rejected with data set "extra key"
+ ✔ Malformed redefinition is rejected with data set "empty from"
+ ✔ Malformed redefinition is rejected with data set "empty to"
+ ✔ Malformed redefinition is rejected with data set "non-string to"
+ ✔ Malformed redefinition is rejected with data set "from equals to"
+ ✔ Malformed redefinition is rejected with data set "empty data_guard"
+ ✔ Redefining migration may not also create tables or parts
+ ✔ Mutating or non select data guard is rejected with data set "not a select"
+ ✔ Mutating or non select data guard is rejected with data set "leading space"
+ ✔ Mutating or non select data guard is rejected with data set "update"
+ ✔ Mutating or non select data guard is rejected with data set "delete"
+ ✔ Mutating or non select data guard is rejected with data set "insert"
+ ✔ Mutating or non select data guard is rejected with data set "drop"
+ ✔ Mutating or non select data guard is rejected with data set "alter"
+ ✔ Mutating or non select data guard is rejected with data set "truncate"
+ ✔ Mutating or non select data guard is rejected with data set "second statement"
+ ✔ Mutating or non select data guard is rejected with data set "trailing separator"
+ ✔ Mutating or non select data guard is rejected with data set "select into outfile"
+ ✔ Mutating or non select data guard is rejected with data set "select into variable"
+ ✔ Mutating or non select data guard is rejected with data set "locking read"
+ ✔ Mutating or non select data guard is rejected with data set "share lock"
+ ✔ Mutating or non select data guard is rejected with data set "sleep"
+ ✔ Mutating or non select data guard is rejected with data set "benchmark"
+ ✔ Mutating or non select data guard is rejected with data set "named lock"
+ ✔ Mutating or non select data guard is rejected with data set "line comment"
+ ✔ Mutating or non select data guard is rejected with data set "hash comment"
+ ✔ Mutating or non select data guard is rejected with data set "block comment"
+ ✔ Mutating or non select data guard is rejected with data set "executable comment"
+ ✔ Mutating or non select data guard is rejected with data set "backslash escape"
+ ✔ Mutating or non select data guard is rejected with data set "replace"
+ ✔ Mutating or non select data guard is rejected with data set "set"
+ ✔ Read only guards accepted
+
+Money (Reseller\Tests\Unit\Wp3a\Money)
+ ✔ Exact smallest unit and canonical forms
+ ✔ Largest decimal 1802 value is exact
+ ✔ Intermediate beyond one column is valid
+ ✔ Checked int 64 never overflows
+ ✔ No floating point drift
+ ✔ Malformed inputs are rejected with data set "NaN"
+ ✔ Malformed inputs are rejected with data set "nan"
+ ✔ Malformed inputs are rejected with data set "INF"
+ ✔ Malformed inputs are rejected with data set "Infinity"
+ ✔ Malformed inputs are rejected with data set "-INF"
+ ✔ Malformed inputs are rejected with data set "exponent"
+ ✔ Malformed inputs are rejected with data set "exponent2"
+ ✔ Malformed inputs are rejected with data set "plus sign"
+ ✔ Malformed inputs are rejected with data set "leading space"
+ ✔ Malformed inputs are rejected with data set "trailing space"
+ ✔ Malformed inputs are rejected with data set "trailing newline"
+ ✔ Malformed inputs are rejected with data set "dot only"
+ ✔ Malformed inputs are rejected with data set "trailing dot"
+ ✔ Malformed inputs are rejected with data set "leading dot"
+ ✔ Malformed inputs are rejected with data set "leading zero"
+ ✔ Malformed inputs are rejected with data set "leading zero int"
+ ✔ Malformed inputs are rejected with data set "thousands"
+ ✔ Malformed inputs are rejected with data set "comma decimal"
+ ✔ Malformed inputs are rejected with data set "three decimals"
+ ✔ Malformed inputs are rejected with data set "three decimals zero"
+ ✔ Malformed inputs are rejected with data set "17 int digits"
+ ✔ Malformed inputs are rejected with data set "17 digits max"
+ ✔ Malformed inputs are rejected with data set "arabic digits"
+ ✔ Malformed inputs are rejected with data set "fullwidth"
+ ✔ Malformed inputs are rejected with data set "hex"
+ ✔ Malformed inputs are rejected with data set "empty"
+ ✔ Malformed inputs are rejected with data set "negative"
+ ✔ Malformed inputs are rejected with data set "negative zero"
+ ✔ Malformed inputs are rejected with data set "underscore"
+ ✔ Malformed inputs are rejected with data set "float"
+ ✔ Malformed inputs are rejected with data set "int"
+ ✔ Malformed inputs are rejected with data set "null"
+ ✔ Malformed inputs are rejected with data set "bool"
+ ✔ Malformed inputs are rejected with data set "array"
+ ✔ Malformed inputs are rejected with data set "nul byte"
+ ✔ Malformed inputs are rejected with data set "tab"
+ ✔ Column values are strict
+ ✔ Comparisons and json
+
+Pace Xhr Csrf Guard (Reseller\Tests\Unit\HotfixPaceXhrCsrf\PaceXhrCsrfGuard)
+ ✔ The patch target is the prototype real instances inherit
+ ✔ Only open and send are patched and the constructor is never replaced
+ ✔ The token line is central same origin guarded and before the gate
+ ✔ No runtime caller manually sets the csrf header
+ ✔ Vendor files are byte identical
+ ✔ The accepted script order is unchanged
+ ✔ No retry queue replay or storage in the shim
+
+Permission Model (Reseller\Tests\Unit\Wp2\PermissionModel)
+ ✔ Every mapped capability is defined and every scope known
+ ✔ Reserved finance capabilities are never granted
+ ✔ Agent and sales have no service capability
+ ✔ Report has no data access
+ ✔ Admin super admin boundary
+ ✔ Scopes by role
+ ✔ Non enrolled and inconsistent have no tree scope
+ ✔ Frozen actor keeps read only
+ ✔ Schema not ready fails closed for every role
+ ✔ Non staff and denied contexts hold nothing
+
+Pricing Capability (Reseller\Tests\Unit\Wp3b\PricingCapability)
+ ✔ Classification
+ ✔ Exact role matrix
+ ✔ Frozen inconsistent non enrolled and not ready
+ ✔ Non staff hold nothing
+
+Pricing Read Model (Reseller\Tests\Unit\Wp3b\PricingReadModel)
+ ✔ Admin sees everything
+ ✔ Agent sees only its part of the chain
+
+Pricing Snapshot (Reseller\Tests\Unit\Wp3b\PricingSnapshot)
+ ✔ Canonical bytes and completeness
+ ✔ Decode refuses tampering and partial rows
+ ✔ Invariants are enforced on seal
+ ✔ Plan snapshot excludes scripts
+
+Pricing Source Guard (Reseller\Tests\Unit\Wp3b\PricingSourceGuard)
+ ✔ Pricing tables have only the approved writer
+ ✘ Activation snapshots are write once
+   │
+   │ only the approved files reference the activation table (WP5A owner decision A1: the activation store and reconciliation)
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │      3 => 'system/autoload/Reseller/Finance/LedgerService.php',
+   │      4 => 'system/autoload/Reseller/Finance/ReservationService.php',
+   │      5 => 'system/autoload/Reseller/Finance/SettlementReadModel.php',
+   │ +    6 => 'system/reseller/health.php',
+   │  ]
+   │
+   │ /repo/tests/Unit/Wp3b/PricingSourceGuardTest.php:106
+   │
+ ✔ One settlement authority
+ ✔ Pricing code writes no money
+ ✔ No entrypoint or route
+ ✔ Plan delete is guarded before any side effect
+ ✔ Plan reference writers hold the tree lock
+
+Pwa Manifest (Reseller\Tests\Unit\Wp7\PwaManifest)
+ ✔ Manifest fields for a root and a subdirectory installation
+ ✔ Names language and fallback
+ ✔ Icons are the interim replaceable assets
+
+Radius Packet (Reseller\Tests\Unit\Wp4\RadiusPacket)
+ ✔ Disconnect request authenticator and message authenticator
+ ✔ Access request hides the password
+ ✔ Response verification
+ ✔ Chap response and malformed packets
+
+Radius Policy Builder (Reseller\Tests\Unit\Wp4\RadiusPolicyBuilder)
+ ✔ Pppoe static address policy
+ ✔ Pppoe dynamic pool and fallbacks
+ ✔ Hotspot shared users rate burst and terminate time
+ ✔ Port limit is hotspot only
+ ✔ Hotspot quotas are not overwritten by the expiry
+ ✔ Group reply uses the upload rate for xmit
+ ✔ Invalid input is refused
+ ✔ Managed attribute sets cover every policy attribute
+
+Radius Source Guard (Reseller\Tests\Unit\Wp4\RadiusSourceGuard)
+ ✔ Virtual server requires message authenticator on access request only
+ ✔ Accounting history is never deleted or rewritten
+ ✔ No shell in any radius path
+ ✔ No interpolated sql in the endpoint and radius classes
+ ✔ Radius code makes no finance or billing writes
+ ✔ Nas secret is never rendered
+ ✔ Endpoint gate runs before any action
+ ✔ Package calls the device after saving the recharge
+
+Radius State (Reseller\Tests\Unit\Wp5a\RadiusState)
+ ✔ The target is the provisioner contract without the password
+ ✔ Equality is exact and canonical
+ ✔ Pre a 1 target differs from an a 1 write only by the port limit
+ ✔ Diff names components never values
+
+Rename Old Session Unit (Reseller\Tests\Unit\Wp5b\RenameOldSessionUnit)
+ ✔ Session state with data set "ACK + Stop"
+ ✔ Session state with data set "ACK, no Stop"
+ ✔ Session state with data set "NAK 503"
+ ✔ Session state with data set "NAK 406 / other"
+ ✔ Session state with data set "no answer"
+ ✔ Session state with data set "NAS unknown"
+ ✔ Session state with data set "unexpected reply"
+ ✔ Session state with data set "exception"
+ ✔ Session state with data set "a Stop never turns a NAK into proof"
+ ✔ Identity state and worst of
+ ✔ The radius rename captures before and after and defers the disconnect
+ ✔ The service contacts the nas only after the tree lock is released
+ ✔ The disconnect targets a captured row and the drift kind exists
+ ✔ Old session notice type
+ ✔ Rename pairs drop pairs that keep the key
+ ✔ The target check is inside the rename transaction
+ ✔ The drift ignores refusals
+
+Route Map (Reseller\Tests\Unit\Wp2\RouteMap)
+ ✔ Every controller is mapped
+ ✔ Every action label is mapped and no stale entries
+ ✔ Every rule is known and every alias resolves
+ ✔ Variants and api allowlist refer to mapped entries
+ ✔ Fall through entries are not wider than their targets
+ ✔ Pages write and reset are a code surface
+ ✔ Resolution of keys variants and methods
+
+Session Guard Source (Reseller\Tests\Unit\Wp4\SessionGuardSource)
+ ✔ The policy is the gate tested policy at the start of post auth
+ ✔ Discriminator key and decision are fail closed
+ ✔ Exec module has no shell no environment and a bounded timeout
+ ✔ Guard program keeps the gate tested logic
+ ✔ Stale sessions are never zapped and start scripts use the permanent files
+
+Settlement Failure (Reseller\Tests\Unit\Wp3b\SettlementFailure)
+ ✔ Classification
+ ✔ Messages are sanitized
+
+Settlement Math (Reseller\Tests\Unit\Wp3b\SettlementMath)
+ ✔ Exact settlement with data set "one level, override"
+ ✔ Exact settlement with data set "no override (base)"
+ ✔ Exact settlement with data set "two levels 10->12->15"
+ ✔ Exact settlement with data set "spec 10->12->15->17"
+ ✔ Exact settlement with data set "inherited middle earns the gap"
+ ✔ Exact settlement with data set "equal adjacent explicit"
+ ✔ Exact settlement with data set "all inherit base"
+ ✔ Exact settlement with data set "base 0, owner example 0->5->8"
+ ✔ Exact settlement with data set "base 0, top inherits 0"
+ ✔ Exact settlement with data set "cents"
+ ✔ Exact settlement with data set "deep chain"
+ ✔ Exact settlement with data set "maximum"
+ ✔ Zero leaf wholesale is never sealed
+ ✔ No float drift across many cents
+
+Source Guard (Reseller\Tests\Unit\Wp3a\SourceGuard)
+ ✔ Scan covers the runtime
+ ✔ Ledger has no update or delete path and one writer
+ ✔ Wallet writers
+ ✔ Reservation and transfer writers
+ ✔ No orm access to finance tables
+ ✔ Finance code is separated from legacy money and input
+ ✔ No entrypoint reaches the finance services
+ ✔ Fault hook is never assigned at runtime
+ ✔ No generic ledger writer
+ ✔ Accepted files are byte identical
+
+U0Source Guard (Reseller\Tests\Unit\Wp9\U0SourceGuard)
+ ✔ Every acquiring write runs inside the identity lock
+ ✔ Checker detects a write moved out of its hold
+ ✔ Creation takes tree then identity then transaction
+ ✔ Customer identity only reads and never touches a device
+ ✔ Runtime named locks and seams
+ ✔ Every policy writer checks single ownership first
+ ✔ No recharge notification carries a voucher only credential
+ ✔ Ownership count inside an open transaction without the lock fails closed
+ ✔ Voucher only grant needs this grants confirmed write
+ ✔ The voucher only login gate never records the typed code
+ ✔ Every voucher only serving entry point checks the voucher state
+ ✔ The voucher only service decision uses the canonical identity
+
+W9Check Expression (Reseller\Tests\Unit\Wp9\W9CheckExpression)
+ ✔ Every declared check matches both engines exactly
+ ✔ Different expressions never compare equal with data set "grouping"
+ ✔ Different expressions never compare equal with data set "operator"
+ ✔ Different expressions never compare equal with data set "constant"
+ ✔ Different expressions never compare equal with data set "negation"
+ ✔ Different expressions never compare equal with data set "in list"
+ ✔ Different expressions never compare equal with data set "string"
+ ✔ Different expressions never compare equal with data set "column"
+ ✔ Different expressions never compare equal with data set "arith order"
+ ✔ Different expressions never compare equal with data set "not"
+ ✔ Different expressions never compare equal with data set "tautology"
+ ✔ Equivalent renderings compare equal
+ ✔ Unparseable expression is null
+
+W9External Asset Integrity (Reseller\Tests\Unit\Wp9\W9ExternalAssetIntegrity)
+ ✔ Every external script and stylesheet is pinned with integrity
+
+W9No Shell Source (Reseller\Tests\Unit\Wp9\W9NoShellSource)
+ ✔ No runtime file starts a process
+
+Wp5b Source Guard (Reseller\Tests\Unit\Wp5b\Wp5bSourceGuard)
+ ✔ Single voucher redemption path
+ ✔ Voucher deletes are conditional on status
+ ✔ Hardened balance paths never call balance
+ ✔ Device grants are default deny
+ ✔ Reprovision controllers never pre save
+ ✔ Single gateway resolver
+ ✔ Hardened controllers never call balance
+ ✔ Reversal and hook guards
+ ✔ Voucher generation uses the csprng
+
+Wp6a Source Guard (Reseller\Tests\Unit\Wp6a\Wp6aSourceGuard)
+ ✔ Every variable is escaped or allow listed
+ ✔ Confirmations use dialogs not window confirm
+ ✔ No external assets beyond the documented residuals
+ ✔ Activation flow never shows the legacy plan price
+ ✔ Ui helpers stay outside finance and translation stays local
+
+Wp6b Boundary (Reseller\Tests\Unit\Wp6b\Wp6bBoundary)
+ ✔ Nothing wp 6b adds is api reachable
+ ✔ Backoffice is a gateway only
+ ✔ Controllers stay thin
+ ✔ Pricing pages take one tree lock per page
+ ✔ Finance read models are read only
+
+Wp6b Template Guard (Reseller\Tests\Unit\Wp6b\Wp6bTemplateGuard)
+ ✔ Every variable is escaped
+ ✔ Every wp 6b string has an arabic entry
+
+Wp6c Guard (Reseller\Tests\Unit\Wp6c\Wp6cGuard)
+ ✔ No device detection in the shell script
+ ✔ No new external assets in the shell
+ ✔ Viewport allows zoom and covers safe areas
+ ✔ Tables switch by component width with a fallback
+ ✔ No hover only reveal in staff templates
+ ✔ No smarty comment inside a literal block
+ ✔ Up registry lives in the ui layer
+ ✔ Wp 6c components escape their output
+ ✔ No inline widths in wp 6c components
+ ✔ Every wp 6c string has an arabic entry
+
+Wp7Guard (Reseller\Tests\Unit\Wp7\Wp7Guard)
+ ✔ Pwa routes are public get only and never api allowed
+ ✔ The pwa controller has no business or mutating code
+ ✔ The pwa builder is pure and user neutral
+ ✔ The service worker stores only the literal precache list
+ ✔ One version for worker client and builder
+ ✔ The offline document is static and generic
+ ✔ The pwa client uses feature detection only
+ ✔ The csrf shim hook can only stop a request
+ ✔ The gate blocks only confirmed offline or reconnecting non get requests
+ ✔ Install is user initiated only
+ ✔ Update is user chosen deferred in critical flows and reloads only this tab once
+ ✔ Every wp 7 string has an arabic entry
+ ✔ The heartbeat bypasses the csrf shim and nothing else does
+ ✔ Prune stays inside the installation namespace
+
+FAILURES!
+Tests: 398, Assertions: 50110, Failures: 1.
+
+exit=1 end: 2026-10-16T21:29:21Z

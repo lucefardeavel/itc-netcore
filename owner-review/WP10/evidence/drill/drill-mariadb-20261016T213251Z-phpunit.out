@@ -1,0 +1,35 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F                                                                   1 / 1 (100%)
+
+Time: 00:08.274, Memory: 12.00 MB
+
+Backup Restore Drill (Reseller\Tests\Lab\BackupRestoreDrill)
+ ✘ Drill
+   │
+   │ taking the backup changed nothing
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │      ],
+   │      'tbl_appconfig' => Array &15 [
+   │          'ddl' => '812526407bb1ea8adc6e7fa0f8d8ed13af8f0c4efd4d5ccb223b6f1e65379dff',
+   │ -        'rows' => 13,
+   │ -        'data' => '28323f1559f19b94fb41a2ae21431ebca640aa0ead3badc08348038585ffc848',
+   │ +        'rows' => 14,
+   │ +        'data' => '2cb7cf5d7919e3bb8ba210d7ce355e5ebb93b303eb19b679ada1fbe8bc432305',
+   │      ],
+   │      'tbl_bandwidth' => Array &16 [
+   │          'ddl' => 'c8402ea9a4cb6e5853b7c83a2faa8f6a2c2fc19df10fcb6630cb069d82c37752',
+   │
+   │ /repo/dev/wp10/BackupRestoreDrillTest.php:211
+   │
+
+FAILURES!
+Tests: 1, Assertions: 58, Failures: 1.
+
+exit=1
