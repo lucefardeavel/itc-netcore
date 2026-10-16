@@ -18,6 +18,10 @@
 -- It prints exactly one line: "nuxr_admission_release=RELEASED" or "nuxr_admission_release=REFUSED". The claim is
 -- released only if it is still PENDING with exactly that token (a newer claim is never touched), and every decision -
 -- released or refused - is appended to nuxr_admission_audit with the operator, reason and evidence.
+-- WP9 AV-3: the operator name is a declaration; the audit row also records the identity the DATABASE attests -
+-- CURRENT_USER() (the authenticated account) and CONNECTION_ID() - at the start of the evidence column, which no
+-- client can choose. Run it with a dedicated operator account (never the FreeRADIUS account), so a release made
+-- through the FreeRADIUS credentials is visible as such (WP10 least-privilege accounts).
 START TRANSACTION;
 SET @nuxr_valid := (CHAR_LENGTH(COALESCE(@nuxr_operator, '')) BETWEEN 2 AND 64
     AND CHAR_LENGTH(COALESCE(@nuxr_reason, '')) BETWEEN 10 AND 255
@@ -35,6 +39,6 @@ VALUES (UTC_TIMESTAMP(6), 'release_pending', IF(@nuxr_released = 1, 'RELEASED', 
         LEFT(CONVERT(COALESCE(@nuxr_username, '') USING utf8mb4), 64),
         IF(COALESCE(@nuxr_token, '') REGEXP '^[0-9a-f]{32}$', CONVERT(@nuxr_token USING ascii), '-'),
         LEFT(CONVERT(COALESCE(@nuxr_operator, '') USING utf8mb4), 64), LEFT(CONVERT(COALESCE(@nuxr_reason, '') USING utf8mb4), 255),
-        LEFT(CONVERT(COALESCE(@nuxr_evidence, '') USING utf8mb4), 1024));
+        LEFT(CONCAT('[db_account=', CONVERT(CURRENT_USER() USING utf8mb4), ' connection=', CONNECTION_ID(), '] ', CONVERT(COALESCE(@nuxr_evidence, '') USING utf8mb4)), 1024));
 COMMIT;
 SELECT IF(@nuxr_released = 1, 'nuxr_admission_release=RELEASED', 'nuxr_admission_release=REFUSED') AS nuxr_admission_release;

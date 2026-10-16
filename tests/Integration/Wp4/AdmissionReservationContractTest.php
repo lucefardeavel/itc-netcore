@@ -398,7 +398,11 @@ final class AdmissionReservationContractTest extends TestCase
         $this->assertSame('nuxr_admission_release=REFUSED', $run($vars), 'only once');
         $st = self::$pdo->prepare('SELECT outcome, operator, reason, evidence FROM nuxr_admission_audit WHERE username = ? ORDER BY id');
         $st->execute([$key]);
-        $this->assertSame(['REFUSED', 'REFUSED', 'RELEASED', 'REFUSED'], array_column($st->fetchAll(\PDO::FETCH_ASSOC), 'outcome'), 'every decision is audited');
+        $audit = $st->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertSame(['REFUSED', 'REFUSED', 'RELEASED', 'REFUSED'], array_column($audit, 'outcome'), 'every decision is audited');
+        // WP9 AV-3: the database-attested account and connection precede the declared evidence (not chosen by the client)
+        $this->assertMatchesRegularExpression('/^\[db_account=root@[^ ]+ connection=[0-9]+\] NAS rebooted after created_at \(lab test\)$/', (string) $audit[2]['evidence']);
+        $this->assertSame('noc-test', $audit[2]['operator'], 'the declared operator name is kept as declared');
         [$r2, $b] = $this->login($u, 'A2r-rec-1');
         $t2 = $this->assertAccept($r2, 'admitted after the release');
         self::$w->pppoeAccounting($u, $b, 'Start', hex2bin('6e75787231' . $t2));

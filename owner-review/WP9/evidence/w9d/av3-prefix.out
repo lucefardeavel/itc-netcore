@@ -1,0 +1,53 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Integration/Wp4/AdmissionReservationContractTest.php start 2026-10-16T19:57:35Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........F.                                                       11 / 11 (100%)
+Time: 00:57.739, Memory: 10.00 MB
+Admission Reservation Contract (Reseller\Tests\Integration\Wp4\AdmissionReservationContract)
+ ✔ Upgrade is idempotent and the readiness check detects an incomplete schema
+ ✔ No distinct subscribers collide under the lookup collation
+ ✔ First login claims one reservation with a per attempt token
+ ✔ Concurrent different attempts exactly one is accepted
+ ✔ Retransmission reuses the claim and a new attempt is refused
+ ✔ Attempt identity and methods fail closed
+ ✔ Accounting transitions are token nas and identity bound
+ ✔ S 1 equivalent spellings share one reservation
+ ✔ Creator releases only an unused late claim and a missing table fails closed
+ ✘ Operator recovery releases only that pending claim and audits every decision
+   │
+   │ Failed asserting that 'NAS rebooted after created_at (lab test)' matches PCRE pattern "/^\[db_account=root@[^ ]+ connection=[0-9]+\] NAS rebooted after created_at \(lab test\)$/".
+   │
+   │ /repo/tests/Integration/Wp4/AdmissionReservationContractTest.php:404
+   │
+ ✔ Hotspot is not touched by the admission
+FAILURES!
+Tests: 11, Assertions: 191, Failures: 1.
+exit=1
+== mysql tests/Integration/Wp4/AdmissionReservationContractTest.php start 2026-10-16T19:58:35Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.........F.                                                       11 / 11 (100%)
+Time: 00:59.802, Memory: 10.00 MB
+Admission Reservation Contract (Reseller\Tests\Integration\Wp4\AdmissionReservationContract)
+ ✔ Upgrade is idempotent and the readiness check detects an incomplete schema
+ ✔ No distinct subscribers collide under the lookup collation
+ ✔ First login claims one reservation with a per attempt token
+ ✔ Concurrent different attempts exactly one is accepted
+ ✔ Retransmission reuses the claim and a new attempt is refused
+ ✔ Attempt identity and methods fail closed
+ ✔ Accounting transitions are token nas and identity bound
+ ✔ S 1 equivalent spellings share one reservation
+ ✔ Creator releases only an unused late claim and a missing table fails closed
+ ✘ Operator recovery releases only that pending claim and audits every decision
+   │
+   │ Failed asserting that 'NAS rebooted after created_at (lab test)' matches PCRE pattern "/^\[db_account=root@[^ ]+ connection=[0-9]+\] NAS rebooted after created_at \(lab test\)$/".
+   │
+   │ /repo/tests/Integration/Wp4/AdmissionReservationContractTest.php:404
+   │
+ ✔ Hotspot is not touched by the admission
+FAILURES!
+Tests: 11, Assertions: 191, Failures: 1.
+exit=1
