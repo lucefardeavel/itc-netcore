@@ -160,7 +160,7 @@
                             <td data-label="{Lang::T('Code')}">{include file="admin/nuxr/secret.tpl" nuxr_secret=$coupon['code'] nuxr_secret_label=Lang::T('Code')}</td>
                             <td data-label="{Lang::T('Type')}">{$coupon['type']}</td>
                             <td data-label="{Lang::T('Value')}">{$coupon['value']}</td>
-                            <td data-label="{Lang::T('Description')}">{$coupon['description']}</td>
+                            <td data-label="{Lang::T('Description')}">{$coupon['description']|escape}</td>
                             <td data-label="{Lang::T('Max Usage')}">{$coupon['max_usage']}</td>
                             <td data-label="{Lang::T('Usage Count')}">{$coupon['usage_count']}</td>
                             <td data-label="{Lang::T('Status')}">

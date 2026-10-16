@@ -9,7 +9,7 @@
             {foreach $devices  as $d}
                 <div class="col-md-3">
                     <div class="panel panel-primary">
-                        <div class="panel-heading"><b>{$d['title']}</b> <small>by {$d['author']}</small></div>
+                        <div class="panel-heading"><b>{$d['title']|escape}</b> <small>by {$d['author']|escape}</small></div>
                         <div class="panel-body" style="overflow-y: scroll;">
                             <div style="max-height: 50px; min-height: 50px;">{nl2br(strip_tags($d['description']))}</div>
                         </div>

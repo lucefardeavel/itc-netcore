@@ -78,7 +78,7 @@
                                     <span
                                         style="color: whitesmoke;">&nbsp;{Lang::moneyFormat($_user['balance'])}&nbsp;</span>
                                 {else}
-                                    <span>{$_user['fullname']}</span>
+                                    <span>{$_user['fullname']|escape}</span>
                                 {/if}
                                 <img src="{$app_url}/{$UPLOAD_PATH}{$_user['photo']}.thumb.jpg"
                                     onerror="this.src='{$app_url}/{$UPLOAD_PATH}/user.default.jpg'" class="user-image"
@@ -91,9 +91,9 @@
                                         alt="User Image">
 
                                     <p>
-                                        {$_user['fullname']}
-                                        <small>{$_user['phonenumber']}<br>
-                                            {$_user['email']}</small>
+                                        {$_user['fullname']|escape}
+                                        <small>{$_user['phonenumber']|escape}<br>
+                                            {$_user['email']|escape}</small>
                                     </p>
                                 </li>
                                 <li class="user-body">

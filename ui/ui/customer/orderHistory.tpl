@@ -26,7 +26,7 @@
                                 <tr>
                                     <td><a href="{Text::url('order/view/')}{$ds['id']}">{$ds['plan_name']}</a></td>
                                     <td>{$ds['gateway']}</td>
-                                    <td>{$ds['routers']}</td>
+                                    <td>{$ds['routers']|escape}</td>
                                     <td>{$ds['payment_channel']}</td>
                                     <td>{Lang::moneyFormat($ds['price'])}</td>
                                     <td class="text-primary">{date("{$_c['date_format']} H:i",

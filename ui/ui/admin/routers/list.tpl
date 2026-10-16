@@ -55,15 +55,15 @@
                                 <tr {if $ds['enabled'] !=1}class="danger" title="disabled" {/if}>
                                     <td data-label="{Lang::T('Router Name')}">
                                         {if $ds['coordinates']}
-                                            <a href="https://www.google.com/maps/dir//{$ds['coordinates']}/" target="_blank"
-                                                class="btn btn-default btn-xs" title="{$ds['coordinates']}"><i
+                                            <a href="https://www.google.com/maps/dir//{$ds['coordinates']|escape}/" target="_blank"
+                                                class="btn btn-default btn-xs" title="{$ds['coordinates']|escape}"><i
                                                     class="glyphicon glyphicon-map-marker"></i></a>
                                         {/if}
-                                        {$ds['name']}
+                                        {$ds['name']|escape}
                                     </td>
                                     <td data-label="{Lang::T('IP Address')}">{include file="admin/nuxr/secret.tpl" nuxr_secret=$ds['ip_address'] nuxr_secret_label=Lang::T('IP Address')}</td>
                                     <td data-label="{Lang::T('Username')}">{include file="admin/nuxr/secret.tpl" nuxr_secret=$ds['username'] nuxr_secret_label=Lang::T('Username')}</td>
-                                    <td data-label="{Lang::T('Description')}">{$ds['description']}</td>
+                                    <td data-label="{Lang::T('Description')}">{$ds['description']|escape}</td>
                                     {if $_c['router_check']}
                                         <td data-label="{Lang::T('Online Status')}">
                                             <span

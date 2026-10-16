@@ -47,7 +47,7 @@
                     <div class="form-group">
                         <label for="nxf-description" class="col-md-2 control-label">{Lang::T('Description')}</label>
                         <div class="col-md-6">
-                            <textarea id="nxf-description" class="form-control" name="description" required>{$coupon['description']}</textarea>
+                            <textarea id="nxf-description" class="form-control" name="description" required>{$coupon['description']|escape}</textarea>
                             <p class="help-block"><small>{Lang::T('Brief explanation of the coupon')}</small></p>
                         </div>
                     </div>

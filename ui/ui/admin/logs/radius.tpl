@@ -52,7 +52,7 @@
                                 <tr>
                                     <td width="30px">{$ds['id']}</td>
                                     <td width="200px">{Lang::dateTimeFormat($ds['authdate'])}</td>
-                                    <td width="100px">{$ds['username']}</td>
+                                    <td width="100px">{$ds['username']|escape}</td>
                                     <td width="10px"><span class="nuxr-muted" title="WP9-D / N-11">{Lang::T('Password')}: ••••••</span></td>
                                     <td>{$ds['reply']}</td>
                                 </tr>

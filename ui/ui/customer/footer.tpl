@@ -60,11 +60,11 @@
         var Tawk_API = {
             onLoad: function() {
                 Tawk_API.setAttributes({
-                    'username'    : '{$_user['username']}',
+                    'username'    : '{$_user['username']|escape}',
                     'service'    : '{$_user['service_type']}',
                     'balance'    : '{$_user['balance']}',
                     'account'    : '{$_user['account_type']}',
-                    'phone'    : '{$_user['phonenumber']}'
+                    'phone'    : '{$_user['phonenumber']|escape}'
                 }, function(error) {
                     console.log(error)
                 });
@@ -73,9 +73,9 @@
             };
             var Tawk_LoadStart = new Date();
             Tawk_API.visitor = {
-                name: '{$_user['fullname']}',
-                email: '{$_user['email']}',
-                phone: '{$_user['phonenumber']}'
+                name: '{$_user['fullname']|escape}',
+                email: '{$_user['email']|escape}',
+                phone: '{$_user['phonenumber']|escape}'
             };
             (function() {
                 var s1 = document.createElement("script"),

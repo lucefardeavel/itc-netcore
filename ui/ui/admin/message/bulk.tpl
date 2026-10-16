@@ -19,7 +19,7 @@
                                 <option value="radius">{Lang::T('Radius')}</option>
                                 {/if}
                                 {foreach $routers as $router}
-                                <option value="{$router['id']}">{$router['name']}</option>
+                                <option value="{$router['id']}">{$router['name']|escape}</option>
                                 {/foreach}
                             </select>
                         </div>

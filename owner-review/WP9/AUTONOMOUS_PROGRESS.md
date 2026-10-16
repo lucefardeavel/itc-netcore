@@ -23,4 +23,16 @@ Resume rule: read `AUTONOMOUS_EXECUTION_PLAN.md`, then the last rows here. Never
 | 14 | Release profile (legacy MikroTik-API + rlm_rest disabled) | DONE | cf19e04e | Package.php re-pinned 9759fca7 -> 51e8c47b; harness opts in ($legacy_devices_enabled) |
 | 15 | W9-OPS recovery tools + runbook | DONE | 558acddc | finance-check (IntegrityCheck), voucher-review/resolve, admission-pending/release; docs/OPERATOR_RECOVERY_RUNBOOK.md |
 | 16 | LPDB grants + preflight + CHECK via SHOW CREATE TABLE | DONE | 58f5eadf | MariaDB hides CHECK_CONSTRAINTS from table grants (finding fixed) |
-| next | R-FC-1, N-10, P3 R-15, P1 lock gate, N6/N7, W8-14, W8-17, OBS-S7-4, red team (WP9-C), full harness, CHR regression | | | |
+| 17 | P3 R-15 sealed bandwidth terms | DONE | 27a3a81f | BANDWIDTH_TERMS_CHANGED |
+| 18 | P1 lock gate (stale policy session) | DONE | c0d7f8ab | drift SESSION_POLICY_STALE + session-end CLI |
+| 19 | W8-14 same-key Hotspot + PPPoE | DONE | ca168b7d | RADIUS_KEY_SHARED (forbid the configuration) |
+| 20 | Red team HTTP / API batch | DONE | d75a07a5, 7ab1e52f | arrays in safedata; no-shell scan; OBS-S7-4 re-test (held at base) |
+| 21 | N6 / N7 | DONE | 95ae997f | DB-stored secrets redacted; NAS onboarding / rotation runbook |
+| 22 | D-S8-4 lock docs sync | DONE | dc4b0176, e918be9d | cherry-pick 8b0ee336, manifest 10/10 OK; dated status lines refreshed |
+| 23 | D-S8-6 stale comments | DONE AT BASE | 704031c6 | phpunit.xml + ConcurrentFirstLoginGateTest docblock already corrected; nothing to change |
+| 24 | SC-1 CDN Subresource Integrity | DONE | 9a6c12e5 | 30 tags; pre-fix 30 findings, post 0 |
+| 25 | Full harness run 1 (95ae997f) | FAILED (kept) | 1dc37552 (log) | MariaDB 1476 / 8 failures (source guards, deterministic); MySQL not completed (stopped, superseded) |
+| 26 | Source-guard regressions fixed in code (no list / assertion change) | DONE | 1dc37552 | IntegrityCheck -> SettlementReadModel; DriftReport via AccountingService; execute switch in body; CLI guards first |
+| 27 | SEC-17 staff hashes, INST-1 installer, SESS-1/HDR-1 cookies + headers, W8-17 legacy rename audit | DONE | ad3b6bf3, b0184aaa, cf1bdfec, 13182b37 | all test-first (pre-fix failing both engines); 5 format-bound assertions restated (SEC-17 contract change, listed in the commit) |
+| 28 | WP10 prep: health, drill, load, runbooks, licenses | DONE (dev) | 29d374ea | drill PASS both engines; load PASS both engines (peak 15/151) |
+| next | full harness run 2 on 29d374ea (running), then CHR regression, UI audit (PWA lab), REPORT, final package | | | |

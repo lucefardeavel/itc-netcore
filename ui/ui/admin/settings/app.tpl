@@ -58,7 +58,7 @@
                 <div class="form-group">
                     <label for="phone" class="col-md-3 control-label">{Lang::T('Phone Number')}</label>
                     <div class="col-md-5">
-                        <input type="text" class="form-control" id="phone" name="phone" value="{$_c['phone']}">
+                        <input type="text" class="form-control" id="phone" name="phone" value="{$_c['phone']|escape}">
                     </div>
                 </div>
                 <div class="form-group">
@@ -729,8 +729,8 @@
                         <select class="form-control" onchange="document.getElementById('sms_url').value = this.value">
                             <option value="">{Lang::T('Select Router')}</option>
                             {foreach $r as $rs}
-                                <option value="{$rs['name']}" {if $rs['name']==$_c['sms_url']}selected{/if}>
-                                    {$rs['name']}</option>
+                                <option value="{$rs['name']|escape}" {if $rs['name']==$_c['sms_url']}selected{/if}>
+                                    {$rs['name']|escape}</option>
                             {/foreach}
                         </select>
                     </div>

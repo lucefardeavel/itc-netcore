@@ -3,7 +3,7 @@
         {foreach $_bills as $_bill}
             {if $_bill['routers'] != 'radius'}
                 <div class="box-header">
-                    <h3 class="box-title">{$_bill['routers']}</h3>
+                    <h3 class="box-title">{$_bill['routers']|escape}</h3>
                     <div class="btn-group pull-right">
                         {if $_bill['type'] == 'Hotspot'}
                             {if $_c['hotspot_plan']==''}Hotspot Plan{else}{$_c['hotspot_plan']}{/if}
@@ -35,7 +35,7 @@
                         <tr>
                             <td class="small text-primary text-uppercase text-normal">{Lang::T('Bandwidth')}</td>
                             <td class="small mb15">
-                                {$_bill['name_bw']}
+                                {$_bill['name_bw']|escape}
                             </td>
                         </tr>
                     {/if}

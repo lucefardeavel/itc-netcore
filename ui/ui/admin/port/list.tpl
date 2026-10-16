@@ -50,7 +50,7 @@
                                     <td data-label="{Lang::T('Port Name')}">{$ds['port_name']}</td>
                                     <td data-label="{Lang::T('Public IP')}">{$ds['public_ip']}</td>
                                     <td data-label="{Lang::T('Range Port')}">{$ds['range_port']}</td>
-                                    <td data-label="{Lang::T('Routers')}">{$ds['routers']}</td>
+                                    <td data-label="{Lang::T('Routers')}">{$ds['routers']|escape}</td>
                                     <td data-label="{Lang::T('Manage')}" align="center">
                                         <a href="{Text::url('')}pool/edit-port/{$ds['id']}" class="btn btn-info btn-xs">{Lang::T('Edit')}</a>
                                         <a data-method="post" href="{Text::url('')}pool/delete-port/{$ds['id']}" id="{$ds['id']}"

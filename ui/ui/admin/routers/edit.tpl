@@ -24,7 +24,7 @@
                         <label for="name" class="col-md-2 control-label">{Lang::T('Router Name / Location')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="name" name="name" maxlength="32"
-                                value="{$d['name']}">
+                                value="{$d['name']|escape}">
                             <p class="help-block">{Lang::T('Name of Area that router operated')}</p>
                         </div>
                     </div>
@@ -39,7 +39,7 @@
                         <label for="username" class="col-md-2 control-label">{Lang::T('Username')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="username" name="username"
-                                value="{$d['username']}">
+                                value="{$d['username']|escape}">
                         </div>
                     </div>
                     <div class="form-group">
@@ -54,14 +54,14 @@
                         <label for="description" class="col-md-2 control-label">{Lang::T('Description')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="description"
-                                name="description">{$d['description']}</textarea>
+                                name="description">{$d['description']|escape}</textarea>
                             <p class="help-block">{Lang::T('Explain Coverage of router')}</p>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="coordinates" class="col-md-2 control-label">{Lang::T('Coordinates')}</label>
                         <div class="col-md-6">
-                            <input name="coordinates" id="coordinates" class="form-control" value="{$d['coordinates']}"
+                            <input name="coordinates" id="coordinates" class="form-control" value="{$d['coordinates']|escape}"
                                 placeholder="6.465422, 3.406448">
                             <button type="button" class="nuxr-btn" data-nuxr-map="map" data-nuxr-map-init="nuxrMapStart"><i class="fa fa-map-marker" aria-hidden="true"></i> {Lang::T('Show map')}</button>
                             <div id="map" style="width: '100%'; height: 200px; min-height: 150px;" hidden></div>
@@ -139,7 +139,7 @@
         window.nuxrMapStart = function() {
         {/literal}
         {if $d['coordinates']}
-            setupMap({$d['coordinates']});
+            setupMap({$d['coordinates']|escape});
         {else}
             getLocation();
         {/if}

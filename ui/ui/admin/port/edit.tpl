@@ -31,7 +31,7 @@
 					<div class="form-group">
 						<label for="routers" class="col-md-2 control-label">{Lang::T('Routers')}</label>
 						<div class="col-md-6">
-							<input type="text" class="form-control" id="routers" name="routers" value="{$d['routers']}"
+							<input type="text" class="form-control" id="routers" name="routers" value="{$d['routers']|escape}"
 								readonly>
 						</div>
 					</div>

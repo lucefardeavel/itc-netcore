@@ -44,15 +44,15 @@
                         <tbody>
                             {foreach $d as $ds}
                                 <tr>
-                                    <td data-label="{Lang::T('Name')}">{$ds['name']}</td>
+                                    <td data-label="{Lang::T('Name')}">{$ds['name']|escape}</td>
                                     <td data-label="{Lang::T('Port Amount')}">{$ds['port_amount']}</td>
                                     <td data-label="{Lang::T('Attenuation')}">{$ds['attenuation']}</td>
-                                    <td data-label="{Lang::T('Address')}">{$ds['address']}</td>
+                                    <td data-label="{Lang::T('Address')}">{$ds['address']|escape}</td>
                                     <td data-label="{Lang::T('Covarage')}">{$ds['coverage']} m</td>
                                     <td data-label="{Lang::T('Coordinates')}" align="center">
                                         {if $ds['coordinates']}
-                                        <a href="https://www.google.com/maps/dir//{$ds['coordinates']}/" target="_blank"
-                                            class="btn btn-default btn-xs" title="{$ds['coordinates']}"><i
+                                        <a href="https://www.google.com/maps/dir//{$ds['coordinates']|escape}/" target="_blank"
+                                            class="btn btn-default btn-xs" title="{$ds['coordinates']|escape}"><i
                                                 class="glyphicon glyphicon-map-marker"></i></a>
                                         {/if}
                                     </td>

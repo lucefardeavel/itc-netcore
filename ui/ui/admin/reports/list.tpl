@@ -114,14 +114,14 @@
                         <tbody>
                             {foreach $d as $ds}
                                 <tr>
-                                    <td>{$ds['username']}</td>
+                                    <td>{$ds['username']|escape}</td>
                                     <td>{$ds['type']}</td>
                                     <td>{$ds['plan_name']}</td>
                                     <td class="text-right">{Lang::moneyFormat($ds['price'])}</td>
                                     <td>{Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])}</td>
                                     <td>{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])}</td>
                                     <td>{$ds['method']}</td>
-                                    <td>{$ds['routers']}</td>
+                                    <td>{$ds['routers']|escape}</td>
                                 </tr>
                             {/foreach}
                             <tr>

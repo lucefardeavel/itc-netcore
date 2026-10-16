@@ -24,14 +24,14 @@
                     </li>
                     <li class="list-group-item">
                         <b>{Lang::T('Username')}</b>
-                        <span class="pull-right">&nbsp;<a href="{Text::url('customers/viewu/')}{$pg['username']}"
-                                class="text-black">{$pg['username']}</a>&nbsp;</span>
+                        <span class="pull-right">&nbsp;<a href="{Text::url('customers/viewu/')}{$pg['username']|escape}"
+                                class="text-black">{$pg['username']|escape}</a>&nbsp;</span>
                     </li>
                     <li class="list-group-item">
                         <b>{Lang::T('Plan Name')}</b> <span class="pull-right">&nbsp;{$pg['plan_name']}&nbsp;</span>
                     </li>
                     <li class="list-group-item">
-                        <b>{Lang::T('Routers')}</b> <span class="pull-right">&nbsp;{$pg['routers']}&nbsp;</span>
+                        <b>{Lang::T('Routers')}</b> <span class="pull-right">&nbsp;{$pg['routers']|escape}&nbsp;</span>
                     </li>
                     <li class="list-group-item">
                         <b>{Lang::T('Price')}</b> <span

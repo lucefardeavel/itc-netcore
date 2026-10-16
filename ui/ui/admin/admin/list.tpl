@@ -52,12 +52,12 @@
                         <tbody>
                             {foreach $d as $ds}
                                 <tr {if $ds['status'] != 'Active'}class="danger"{/if}>
-                                    <td>{$ds['username']}</td>
-                                    <td>{$ds['fullname']}</td>
-                                    <td>{$ds['phone']}</td>
-                                    <td>{$ds['email']}</td>
+                                    <td>{$ds['username']|escape}</td>
+                                    <td>{$ds['fullname']|escape}</td>
+                                    <td>{$ds['phone']|escape}</td>
+                                    <td>{$ds['email']|escape}</td>
                                     <td>{$ds['user_type']}</td>
-                                    <td>{$ds['city']}, {$ds['subdistrict']}, {$ds['ward']}</td>
+                                    <td>{$ds['city']|escape}, {$ds['subdistrict']|escape}, {$ds['ward']|escape}</td>
                                 <td>{if $ds['root']}{* WP6C fix round 1: a parent account the actor may not view is plain text *}
                                     {if $nuxr_parent_view[$ds['root']]|default:false}<a href="{Text::url('settings/users-view/', $ds['root'])}">{$admins[$ds['root']]|escape}</a>{else}{$admins[$ds['root']]|escape}{/if}{/if}</td>
                         <td>{if $ds['last_login']}{Lang::timeElapsed($ds['last_login'])}{/if}</td>

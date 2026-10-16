@@ -11,7 +11,7 @@
 					<div class="form-group">
 						<label for="name" class="col-md-3 control-label">{Lang::T('Bandwidth Name')}</label>
 						<div class="col-md-9">
-							<input type="text" class="form-control" id="name" name="name" value="{$d['name_bw']}">
+							<input type="text" class="form-control" id="name" name="name" value="{$d['name_bw']|escape}">
 						</div>
 					</div>
 					<div class="form-group">

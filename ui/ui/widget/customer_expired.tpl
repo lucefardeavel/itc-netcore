@@ -30,13 +30,13 @@
                     <tr>
                         <td><a href="{Text::url('customers/view/',$expired['id'])}">
                                 {if $cookie['expdef'] == 'fullname'}
-                                    {$expired['fullname']}
+                                    {$expired['fullname']|escape}
                                 {elseif $cookie['expdef'] == 'phone'}
-                                    {$expired['phonenumber']}
+                                    {$expired['phonenumber']|escape}
                                 {elseif $cookie['expdef'] == 'email'}
-                                    {$expired['email']}
+                                    {$expired['email']|escape}
                                 {else}
-                                    {$expired['username']}
+                                    {$expired['username']|escape}
                                 {/if}
                             </a></td>
                         <td><small data-toggle="tooltip" data-placement="top"
@@ -46,7 +46,7 @@
                                 title="{Lang::dateAndTimeFormat($expired['expiration'],$expired['time'])}">{Lang::timeElapsed($rem_exp)}</span>
                         </td>
                         <td>{$expired['namebp']}</td>
-                        <td>{$expired['routers']}</td>
+                        <td>{$expired['routers']|escape}</td>
                     </tr>
                 {/foreach}
             </tbody>

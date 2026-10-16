@@ -87,20 +87,20 @@
                                     <td>
                                         {if $ds['customer_id'] == '0'}
                                             <a
-                                                href="{Text::url('plan/voucher/&search=')}{$ds['username']}">{$ds['username']}</a>
+                                                href="{Text::url('plan/voucher/&search=')}{$ds['username']|escape}">{$ds['username']|escape}</a>
                                         {else}
-                                            <a href="{Text::url('customers/viewu/')}{$ds['username']}">{$ds['username']}</a>
+                                            <a href="{Text::url('customers/viewu/')}{$ds['username']|escape}">{$ds['username']|escape}</a>
                                         {/if}
                                     </td>
                                     <td>
                                         {if $ds['type'] == 'Hotspot'}
                                             {if $nuxr_can.plans}<a href="{Text::url('')}services/edit/{$ds['plan_id']}">{$ds['namebp']}</a>{else}{$ds['namebp']}{/if}
                                             <span
-                                                api-get-text="{Text::url('')}autoload/customer_is_active/{$ds['username']}/{$ds['plan_id']}"></span>
+                                                api-get-text="{Text::url('')}autoload/customer_is_active/{$ds['username']|escape}/{$ds['plan_id']}"></span>
                                         {elseif $ds['type'] == 'PPPOE'}
                                             {if $nuxr_can.plans}<a href="{Text::url('')}services/pppoe-edit/{$ds['plan_id']}">{$ds['namebp']}</a>{else}{$ds['namebp']}{/if}
                                             <span
-                                                api-get-text="{Text::url('')}autoload/customer_is_active/{$ds['username']}/{$ds['plan_id']}"></span>
+                                                api-get-text="{Text::url('')}autoload/customer_is_active/{$ds['username']|escape}/{$ds['plan_id']}"></span>
                                         {elseif $ds['type'] == 'VPN'}
                                             {if $nuxr_can.plans}<a href="{Text::url('')}services/vpn-edit/{$ds['plan_id']}">{$ds['namebp']}</a>{else}{$ds['namebp']}{/if}
                                         {/if}
@@ -110,7 +110,7 @@
                                     <td>{Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])}</td>
                                     <td>{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])}</td>
                                     <td>{$ds['method']}</td>
-                                    <td>{$ds['routers']}</td>
+                                    <td>{$ds['routers']|escape}</td>
                                     <td>
                                         {if $nuxr_can.edit}<a href="{Text::url('')}plan/edit/{$ds['id']}" class="btn btn-warning btn-xs"
                                             style="color: black;">{Lang::T("Edit")}</a>{/if}

@@ -37,7 +37,7 @@
 						<tbody>
 							{foreach $d as $ds}
 								<tr {if $ds['enabled'] != 1}class="danger" title="disabled" {/if}>
-									<td data-label="{Lang::T('Package Name')}">{$ds['name_plan']}</td>
+									<td data-label="{Lang::T('Package Name')}">{$ds['name_plan']|escape}</td>
 									<td data-label="{Lang::T('Package Price')}">{Lang::moneyFormat($ds['price'])}{if !empty($ds['price_old'])}
 											<sup
 												style="text-decoration: line-through; color: red">{Lang::moneyFormat($ds['price_old'])}</sup>

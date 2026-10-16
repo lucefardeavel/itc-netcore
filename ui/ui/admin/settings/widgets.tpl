@@ -18,7 +18,7 @@
                 {foreach $widgets as $w}
                     {if $w['position'] == $pos}
                         <div class="panel panel-{if $w['enabled']}default{else}danger{/if}">
-                            <div class="panel-heading"><b>{$w['title']}</b></div>
+                            <div class="panel-heading"><b>{$w['title']|escape}</b></div>
                             <div class="panel-body">{ucwords(str_replace('.php', '', str_replace('_', ' ', $w['widget'])))}</div>
                             <table class="table table-bordered table-condensed">
                                 <tr>

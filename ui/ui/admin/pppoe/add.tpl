@@ -79,7 +79,7 @@
                             <select id="id_bw" name="id_bw" class="form-control select2">
                                 <option value="">{Lang::T('Select Bandwidth')}...</option>
                                 {foreach $d as $ds}
-                                    <option value="{$ds['id']}">{$ds['name_bw']}</option>
+                                    <option value="{$ds['id']}">{$ds['name_bw']|escape}</option>
                                 {/foreach}
                             </select>
                         </div>
@@ -131,7 +131,7 @@
                             <select id="routers" name="routers" required class="form-control select2">
                                 <option value=''>{Lang::T('Select Routers')}</option>
                                 {foreach $r as $rs}
-                                    <option value="{$rs['name']}">{$rs['name']}</option>
+                                    <option value="{$rs['name']|escape}">{$rs['name']|escape}</option>
                                 {/foreach}
                             </select>
                             <p class="help-block">{Lang::T('Cannot be change after saved')}</p>

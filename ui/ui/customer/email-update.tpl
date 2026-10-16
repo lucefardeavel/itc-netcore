@@ -13,7 +13,7 @@
                 <div class="col-md-6">
                     <div class="input-group">
                         <span class="input-group-addon" id="basic-addon1">+</span>
-                        <input type="text" class="form-control" name="email" value="{$_user['email']}" readonly
+                        <input type="text" class="form-control" name="email" value="{$_user['email']|escape}" readonly
                             placeholder="{Lang::T('Email')}">
                     </div>
                 </div>

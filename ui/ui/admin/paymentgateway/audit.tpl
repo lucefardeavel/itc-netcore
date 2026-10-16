@@ -37,11 +37,11 @@
                             <td>{$pg['id']}</td>
                             <td><a href="{Text::url('paymentgateway/audit-view/')}{$pg['id']}"
                                     class="text-black">{$pg['gateway_trx_id']}</a></td>
-                            <td><a href="{Text::url('customers/viewu/')}{$pg['username']}"
-                                    class="text-black">{$pg['username']}</a>
+                            <td><a href="{Text::url('customers/viewu/')}{$pg['username']|escape}"
+                                    class="text-black">{$pg['username']|escape}</a>
                             </td>
                             <td>{$pg['plan_name']}</td>
-                            <td>{$pg['routers']}</td>
+                            <td>{$pg['routers']|escape}</td>
                             <td>{Lang::moneyFormat($pg['price'])}</td>
                             <td>
                                 {if $pg['pg_url_payment']}

@@ -24,7 +24,7 @@
                         <label for="title" class="col-md-3 control-label">{Lang::T("Title")}</label>
                         <div class="col-md-5">
                             <input type="text" class="form-control" required id="title" name="title"
-                                value="{$widget['title']}">
+                                value="{$widget['title']|escape}">
                         </div>
                         <span class="help-block col-md-4">&nbsp;</span>
                     </div>

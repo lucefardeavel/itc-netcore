@@ -11,7 +11,7 @@
 					<div class="form-group">
 						<label for="name" class="col-md-2 control-label">{Lang::T('Name Pool')}</label>
 						<div class="col-md-6">
-							<input type="text" class="form-control" id="name" name="name" value="{$d['pool_name']}"
+							<input type="text" class="form-control" id="name" name="name" value="{$d['pool_name']|escape}"
 								readonly>
 						</div>
 					</div>
@@ -32,7 +32,7 @@
 					<div class="form-group">
 						<label for="routers" class="col-md-2 control-label">{Lang::T('Routers')}</label>
 						<div class="col-md-6">
-							<input type="text" class="form-control" id="routers" name="routers" value="{$d['routers']}"
+							<input type="text" class="form-control" id="routers" name="routers" value="{$d['routers']|escape}"
 								readonly>
 						</div>
 						{if $_c['radius_enable']}

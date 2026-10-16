@@ -38,7 +38,7 @@
     <script type="text/javascript" src="/ui/ui/scripts/md5.js"></script>
     <script type="text/javascript">
         var hostname = "http://{$hostname}/login";
-        var user = "{$_user['username']}";
+        var user = "{$_user['username']|escape}";
         var pass = "{$_user['password']}";
         var dst = "{$apkurl}";
         var authdly = "2";

@@ -47,10 +47,10 @@
                         <tbody>
                             {foreach $d as $ds}
                                 <tr>
-                                    <td data-label="{Lang::T('Name Pool')}">{$ds['pool_name']}</td>
+                                    <td data-label="{Lang::T('Name Pool')}">{$ds['pool_name']|escape}</td>
                                     <td data-label="{Lang::T('Local IP')}">{$ds['local_ip']}</td>
                                     <td data-label="{Lang::T('Range IP')}">{$ds['range_ip']}</td>
-                                    <td data-label="{Lang::T('Routers')}">{$ds['routers']}</td>
+                                    <td data-label="{Lang::T('Routers')}">{$ds['routers']|escape}</td>
                                     <td data-label="{Lang::T('Manage')}" align="center">
                                         <a href="{Text::url('')}pool/edit/{$ds['id']}"
                                             class="btn btn-info btn-xs">{Lang::T('Edit')}</a>

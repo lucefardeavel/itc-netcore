@@ -3,5 +3,5 @@
     <option value="radius">Radius</option>
 {/if}
 {foreach $d as $ds}
-	<option value="{$ds['name']}">{$ds['name']}</option>
+	<option value="{$ds['name']|escape}">{$ds['name']|escape}</option>
 {/foreach}

@@ -4,7 +4,7 @@
     <div class="col-md-3"></div>
     <div class="col-md-6">
         <div class="box box-solid box-default">
-            <div class="box-header">{$plan['name_plan']}</div>
+            <div class="box-header">{$plan['name_plan']|escape}</div>
             <div class="table-responsive">
                 <table class="table table-bordered table-striped">
                     <tbody>

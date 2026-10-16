@@ -14,7 +14,7 @@
                     <div class="input-group">
                         <span class="input-group-addon" id="basic-addon1">+</span>
                         <input type="text" class="form-control" name="phonenumber" id="phonenumber"
-                            value="{$_user['phonenumber']}" readonly placeholder="{Lang::T('Phone Number')}">
+                            value="{$_user['phonenumber']|escape}" readonly placeholder="{Lang::T('Phone Number')}">
                     </div>
                 </div>
             </div>

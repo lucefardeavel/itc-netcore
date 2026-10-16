@@ -84,7 +84,7 @@
                         <div class="form-group">
                             <label class="col-md-4 control-label">{Lang::T("Name")}</label>
                             <div class="col-md-8">
-                                <input type="text" class="form-control" aria-label="{Lang::T("Name")}" name="name[]" style="width: 100%" placeholder="Your Salary" value="{$field['name']}">
+                                <input type="text" class="form-control" aria-label="{Lang::T("Name")}" name="name[]" style="width: 100%" placeholder="Your Salary" value="{$field['name']|escape}">
                             </div>
                         </div>
                         <div class="form-group">

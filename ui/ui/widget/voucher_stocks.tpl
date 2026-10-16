@@ -13,7 +13,7 @@
                 <tbody>
                     {foreach $plans as $stok}
                         <tr>
-                            <td>{$stok['name_plan']}</td>
+                            <td>{$stok['name_plan']|escape}</td>
                             <td>{$stok['unused']}</td>
                             <td>{$stok['used']}</td>
                         </tr>

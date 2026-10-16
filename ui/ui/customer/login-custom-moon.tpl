@@ -645,8 +645,8 @@
                 if (!isLoggedIn) {
                     isLoggedIn = true;
                     window.Tawk_API.login({
-                        name: '{$_user['fullname']}',
-                        email: '{$_user['email']}',
+                        name: '{$_user['fullname']|escape}',
+                        email: '{$_user['email']|escape}',
                         userId: '{$_user['id']}'
                         }, function (error) {
                         //do something if there's an error
@@ -654,18 +654,18 @@
                 }
                 Tawk_API.setAttributes({
                     'id': '{$_user['id']}',
-                    'username': '{$_user['username']}',
+                    'username': '{$_user['username']|escape}',
                     'service_type': '{$_user['service_type']}',
                     'balance': '{$_user['balance']}',
                     'account_type': '{$_user['account_type']}',
-                    'phone': '{$_user['phonenumber']}'
+                    'phone': '{$_user['phonenumber']|escape}'
                 }, function (error) { });
             }
         };
         var Tawk_LoadStart = new Date();
         Tawk_API.visitor = {
-            name: '{$_user['fullname']}',
-            email: '{$_user['email']}',
+            name: '{$_user['fullname']|escape}',
+            email: '{$_user['email']|escape}',
             userId: '{$_user['id']}'
         };
         (function () {

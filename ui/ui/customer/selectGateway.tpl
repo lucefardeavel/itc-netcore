@@ -19,13 +19,13 @@
                     <ul class="list-group list-group-unbordered">
                         <li class="list-group-item">
                             <b>{Lang::T('Package Name')}</b>
-                            <span class="pull-right">{$plan['name_plan']}</span>
+                            <span class="pull-right">{$plan['name_plan']|escape}</span>
                         </li>
 
                         {if $plan['is_radius'] or $plan['routers']}
                             <li class="list-group-item">
                                 <b>{Lang::T('Location')}</b>
-                                <span class="pull-right">{if $plan['is_radius']}Radius{else}{$plan['routers']}{/if}</span>
+                                <span class="pull-right">{if $plan['is_radius']}Radius{else}{$plan['routers']|escape}{/if}</span>
                             </li>
                         {/if}
 

@@ -11,7 +11,7 @@
                     <div class="form-group">
 						<label for="name" class="col-md-2 control-label">{Lang::T('Name')}</label>
 						<div class="col-md-6">
-							<input type="text" class="form-control" id="name" name="name" value="{$d['name']}" readonly>
+							<input type="text" class="form-control" id="name" name="name" value="{$d['name']|escape}" readonly>
 						</div>
                     </div>
                     <div class="form-group">
@@ -29,14 +29,14 @@
                     <div class="form-group">
                         <label for="address" class="col-md-2 control-label">{Lang::T('Address')}</label>
                         <div class="col-md-6">
-                            <textarea name="address" id="address" class="form-control">{$d['address']}</textarea>
+                            <textarea name="address" id="address" class="form-control">{$d['address']|escape}</textarea>
                         </div>
                     </div>
                     <div class="form-group">
 						<label for="coordinates" class="col-md-2 control-label">{Lang::T('Coordinates')}</label>
 						<div class="col-md-6">
 							<input type="text" name="coordinates" id="coordinates" class="form-control"
-                                   placeholder="6.465422, 3.406448" value="{$d['coordinates']}">
+                                   placeholder="6.465422, 3.406448" value="{$d['coordinates']|escape}">
                             <button type="button" class="nuxr-btn" data-nuxr-map="map" data-nuxr-map-init="nuxrMapStart"><i class="fa fa-map-marker" aria-hidden="true"></i> {Lang::T('Show map')}</button>
                             <div id="map" class="mt-2" style="width: 100%; height: 200px; min-height: 150px;" hidden></div>
 						</div>
@@ -97,8 +97,8 @@
         window.nuxrMapStart = function() {
             {/literal}
             {if $d['coordinates']}
-                setupMap({$d['coordinates']});
-                document.getElementById('coordinates').value = "{$d['coordinates']}";
+                setupMap({$d['coordinates']|escape});
+                document.getElementById('coordinates').value = "{$d['coordinates']|escape}";
             {else}
                 getLocation();
             {/if}

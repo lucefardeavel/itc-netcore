@@ -21,7 +21,7 @@
                     </tr>
                     <tr>
                         <td>{Lang::T('Routers')}</td>
-                        <td>{$unpaid['routers']}</td>
+                        <td>{$unpaid['routers']|escape}</td>
                     </tr>
                 </tbody>
             </table> &nbsp;

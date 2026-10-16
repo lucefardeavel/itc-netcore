@@ -74,7 +74,7 @@
                     <td>Plans <select id="plan_id" name="planid" style="width:50px">
                             <option value="0">--all--</option>
                             {foreach $plans as $plan}
-                                <option value="{$plan['id']}" {if $plan['id']==$planid}selected{/if}>{$plan['name_plan']}
+                                <option value="{$plan['id']}" {if $plan['id']==$planid}selected{/if}>{$plan['name_plan']|escape}
                                 </option>
                             {/foreach}
                         </select></td>

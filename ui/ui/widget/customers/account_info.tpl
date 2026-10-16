@@ -6,7 +6,7 @@
         <table class="table table-bordered table-striped table-bordered table-hover mb-0" style="margin-bottom: 0px;">
             <tr>
                 <td class="small text-success text-uppercase text-normal">{Lang::T('Usernames')}</td>
-                <td class="small mb15">{$_user['username']}</td>
+                <td class="small mb15">{$_user['username']|escape}</td>
             </tr>
             <tr>
                 <td class="small text-success text-uppercase text-normal">{Lang::T('Password')}</td>

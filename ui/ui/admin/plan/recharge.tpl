@@ -13,8 +13,8 @@
                                 name="id_customer" style="width: 100%"
                                 data-placeholder="{Lang::T('Select a customer')}...">
                                 {if $cust}
-                                    <option value="{$cust['id']}">{$cust['username']} &bull; {$cust['fullname']} &bull;
-                                        {$cust['email']}</option>
+                                    <option value="{$cust['id']}">{$cust['username']|escape} &bull; {$cust['fullname']|escape} &bull;
+                                        {$cust['email']|escape}</option>
                                 {/if}
                             </select>
                         </div>

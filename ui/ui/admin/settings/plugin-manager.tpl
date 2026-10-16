@@ -60,10 +60,10 @@
                     <div class="col-md-4">
                         <div class="box box-hovered mb20 box-primary">
                             <div class="box-header">
-                                <h3 class="box-title text1line">{$plugin['name']}</h3>
+                                <h3 class="box-title text1line">{$plugin['name']|escape}</h3>
                             </div>
                             <div class="box-body" style="overflow-y: scroll;">
-                                <div style="max-height: 50px; min-height: 50px;">{$plugin['description']}</div>
+                                <div style="max-height: 50px; min-height: 50px;">{$plugin['description']|escape}</div>
                             </div>
                             <div class="box-footer">
                                 <center><small><i>@{$plugin['author']} Last update: {$plugin['last_update']}</i></small>
@@ -99,10 +99,10 @@
                     <div class="col-md-4">
                         <div class="box box-hovered mb20 box-primary">
                             <div class="box-header">
-                                <h3 class="box-title text1line">{$pg['name']}</h3>
+                                <h3 class="box-title text1line">{$pg['name']|escape}</h3>
                             </div>
                             <div class="box-body" style="overflow-y: scroll;">
-                                <div style="max-height: 50px; min-height: 50px;">{$pg['description']}</div>
+                                <div style="max-height: 50px; min-height: 50px;">{$pg['description']|escape}</div>
                             </div>
                             <div class="box-footer ">
                                 <center><small><i>@{$pg['author']} Last update: {$pg['last_update']}</i></small>
@@ -134,10 +134,10 @@
                     <div class="col-md-4">
                         <div class="box box-hovered mb20 box-primary">
                             <div class="box-header">
-                                <h3 class="box-title text1line">{$dvc['name']}</h3>
+                                <h3 class="box-title text1line">{$dvc['name']|escape}</h3>
                             </div>
                             <div class="box-body" style="overflow-y: scroll;">
-                                <div style="max-height: 50px; min-height: 50px;">{$dvc['description']}</div>
+                                <div style="max-height: 50px; min-height: 50px;">{$dvc['description']|escape}</div>
                             </div>
                             <div class="box-footer ">
                                 <center><small><i>@{$dvc['author']} Last update: {$dvc['last_update']}</i></small>

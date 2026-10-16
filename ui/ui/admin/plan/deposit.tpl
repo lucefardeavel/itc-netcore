@@ -27,7 +27,7 @@
                                 <option></option>
                                 {foreach $p as $pl}
                                     <option value="{$pl['id']}">{if $pl['enabled'] neq 1}DISABLED PLAN &bull;
-                                        {/if}{$pl['name_plan']} - {Lang::moneyFormat($pl['price'])}</option>
+                                        {/if}{$pl['name_plan']|escape} - {Lang::moneyFormat($pl['price'])}</option>
                                 {/foreach}
                             </select>
                             <span class="help-block">{Lang::T('Or custom balance amount below')}</span>

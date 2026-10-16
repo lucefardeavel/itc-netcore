@@ -45,7 +45,7 @@
                                 <option value="">Bandwidth</option>
                                 {foreach $bws as $b}
                                     <option value="{$b['id']}" {if $bandwidth eq $b['id'] }selected{/if}>
-                                        {$b['name_bw']}
+                                        {$b['name_bw']|escape}
                                     </option>
                                 {/foreach}
                             </select>
@@ -137,9 +137,9 @@
                             {foreach $d as $ds}
                                 <tr {if $ds['enabled'] !=1}class="danger" title="disabled" {elseif $ds['prepaid'] !='yes'
                                             }class="warning" title="Postpaid" {/if}>
-                                    <td data-label="{Lang::T('Name')}" class="headcol">{$ds['name_plan']}</td>
+                                    <td data-label="{Lang::T('Name')}" class="headcol">{$ds['name_plan']|escape}</td>
                                     <td data-label="{Lang::T('Type')}">{if $ds['prepaid'] == no}<b>Postpaid</b>{else}Prepaid{/if} {$ds['plan_type']}</td>
-                                    <td data-label="Bandwidth">{$ds['name_bw']}</td>
+                                    <td data-label="Bandwidth">{$ds['name_bw']|escape}</td>
                                     <td data-label="{Lang::T('Category')}">{$ds['typebp']}</td>
                                     <td data-label="{Lang::T('Price')}">{Lang::moneyFormat($ds['price'])}
                                         {if !empty($ds['price_old'])}
@@ -155,7 +155,7 @@
                                             <span class="label label-primary">RADIUS</span>
                                         {else}
                                             {if $ds['routers']!=''}
-                                                <a href="{Text::url('routers/edit/0&name=')}{$ds['routers']}">{$ds['routers']}</a>
+                                                <a href="{Text::url('routers/edit/0&name=')}{$ds['routers']|escape}">{$ds['routers']|escape}</a>
                                             {/if}
                                         {/if}
                                     </td>

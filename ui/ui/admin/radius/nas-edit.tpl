@@ -70,8 +70,8 @@
                             <select id="routers" name="routers" class="form-control select2">
                                 <option value="">No Router</option>
                                 {foreach $routers as $rs}
-                                    <option {if $rs['name'] == $d['routers']}selected{/if} value="{$rs['name']}">
-                                        {$rs['name']}</option>
+                                    <option {if $rs['name'] == $d['routers']}selected{/if} value="{$rs['name']|escape}">
+                                        {$rs['name']|escape}</option>
                                 {/foreach}
                             </select>
                         </div>

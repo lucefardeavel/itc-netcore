@@ -29,33 +29,33 @@
                         <label for="fullname" class="col-md-3 control-label">{Lang::T('Full Name')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="fullname" name="fullname"
-                                value="{$d['fullname']}">
+                                value="{$d['fullname']|escape}">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="phone" class="col-md-3 control-label">{Lang::T('Phone')}</label>
                         <div class="col-md-9">
-                            <input type="number" class="form-control" id="phone" name="phone" value="{$d['phone']}">
+                            <input type="number" class="form-control" id="phone" name="phone" value="{$d['phone']|escape}">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="email" class="col-md-3 control-label">{Lang::T('Email')}</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" id="email" name="email" value="{$d['email']}">
+                            <input type="text" class="form-control" id="email" name="email" value="{$d['email']|escape}">
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="col-md-4">
                             <input type="text" class="form-control" id="city" name="city" aria-label="{Lang::T('City')}"
-                                placeholder="{Lang::T('City')}" value="{$d['city']}">
+                                placeholder="{Lang::T('City')}" value="{$d['city']|escape}">
                         </div>
                         <div class="col-md-4">
                             <input type="text" class="form-control" id="subdistrict" name="subdistrict" aria-label="{Lang::T('Sub District')}"
-                                placeholder="{Lang::T('Sub District')}" value="{$d['subdistrict']}">
+                                placeholder="{Lang::T('Sub District')}" value="{$d['subdistrict']|escape}">
                         </div>
                         <div class="col-md-4">
                             <input type="text" class="form-control" id="ward" name="ward" aria-label="{Lang::T('Ward')}"
-                                placeholder="{Lang::T('Ward')}" value="{$d['ward']}">
+                                placeholder="{Lang::T('Ward')}" value="{$d['ward']|escape}">
                         </div>
                     </div>
                 </div>
@@ -98,7 +98,7 @@
                         <label for="username" class="col-md-3 control-label">{Lang::T('Username')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="username" name="username"
-                                value="{$d['username']}">
+                                value="{$d['username']|escape}">
                         </div>
                     </div>
                     <div class="form-group">

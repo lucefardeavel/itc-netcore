@@ -167,7 +167,7 @@
                     </tr>
                     <tr>
                         <th>{Lang::pad(Lang::T('Username'), ' ', 2)}</th>
-                        <td>{$in['username']}</td>
+                        <td>{$in['username']|escape}</td>
                     </tr>
                     <tr>
                         <th>{Lang::pad(Lang::T('Password'), ' ', 2)}</th>

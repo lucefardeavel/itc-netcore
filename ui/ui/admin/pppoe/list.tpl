@@ -45,7 +45,7 @@
                                 <option value="">Bandwidth</option>
                                 {foreach $bws as $b}
                                     <option value="{$b['id']}" {if $bandwidth eq $b['id'] }selected{/if}>
-                                        {$b['name_bw']}
+                                        {$b['name_bw']|escape}
                                     </option>
                                 {/foreach}
                             </select>
@@ -132,13 +132,13 @@
                         <tbody>
                             {foreach $d as $ds}
                                 <tr {if $ds['enabled'] !=1}class="danger" title="disabled" {/if}>
-                                    <td data-label="{Lang::T('Name')}">{$ds['name_plan']}</td>
+                                    <td data-label="{Lang::T('Name')}">{$ds['name_plan']|escape}</td>
                                     <td data-label="{Lang::T('Type')}">{$ds['plan_type']} {if $ds['prepaid'] !=
                                         'yes'}<b>{Lang::T('Postpaid')}</b>
                                     {else}
                                         {Lang::T('Prepaid')}
                                     {/if}</td>
-                                <td data-label="{Lang::T('Bandwidth')}">{$ds['name_bw']}</td>
+                                <td data-label="{Lang::T('Bandwidth')}">{$ds['name_bw']|escape}</td>
                                 <td data-label="{Lang::T('Price')}">{Lang::moneyFormat($ds['price'])}{if !empty($ds['price_old'])}
                                         <sup
                                             style="text-decoration: line-through; color: red">{Lang::moneyFormat($ds['price_old'])}</sup>
@@ -155,7 +155,7 @@
                                         <span class="label label-primary">RADIUS</span>
                                     {else}
                                         {if $ds['routers']!=''}
-                                            <a href="{Text::url('routers/edit/0&name=')}{$ds['routers']}">{$ds['routers']}</a>
+                                            <a href="{Text::url('routers/edit/0&name=')}{$ds['routers']|escape}">{$ds['routers']|escape}</a>
                                         {/if}
                                     {/if}
                                 </td>

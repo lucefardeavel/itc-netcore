@@ -34,7 +34,7 @@
                                     <span class="input-group-addon" id="basic-addon1"><i
                                             class="glyphicon glyphicon-user"></i></span>
                                 {/if}
-                                <input type="text" id="nxf-username" class="form-control" name="username" value="{$d['username']}"
+                                <input type="text" id="nxf-username" class="form-control" name="username" value="{$d['username']|escape}"
                                     required
                                     placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']} {Lang::T('Phone Number')}{else}{Lang::T('Usernames')}{/if}">
                             </div>
@@ -44,13 +44,13 @@
                         <label for="fullname" class="col-md-3 control-label">{Lang::T('Full Name')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="fullname" name="fullname"
-                                value="{$d['fullname']}">
+                                value="{$d['fullname']|escape}">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="email" class="col-md-3 control-label">{Lang::T('Email')}</label>
                         <div class="col-md-9">
-                            <input type="email" class="form-control" id="email" name="email" value="{$d['email']}">
+                            <input type="email" class="form-control" id="email" name="email" value="{$d['email']|escape}">
                         </div>
                     </div>
                     <div class="form-group">
@@ -63,7 +63,7 @@
                                     <span class="input-group-addon" id="basic-addon1"><i
                                             class="glyphicon glyphicon-phone-alt"></i></span>
                                 {/if}
-                                <input type="text" id="nxf-phonenumber" class="form-control" name="phonenumber" value="{$d['phonenumber']}"
+                                <input type="text" id="nxf-phonenumber" class="form-control" name="phonenumber" value="{$d['phonenumber']|escape}"
                                     placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']}{/if} {Lang::T('Phone Number')}">
                             </div>
                         </div>
@@ -80,7 +80,7 @@
                     <div class="form-group">
                         <label for="address" class="col-md-3 control-label">{Lang::T('Home Address')}</label>
                         <div class="col-md-9">
-                            <textarea name="address" id="address" class="form-control">{$d['address']}</textarea>
+                            <textarea name="address" id="address" class="form-control">{$d['address']|escape}</textarea>
                         </div>
                     </div>
                     <div class="form-group">
@@ -109,7 +109,7 @@
                     <div class="form-group">
                         <label for="coordinates" class="col-md-3 control-label">{Lang::T('Coordinates')}</label>
                         <div class="col-md-9">
-                            <input name="coordinates" id="coordinates" class="form-control" value="{$d['coordinates']}"
+                            <input name="coordinates" id="coordinates" class="form-control" value="{$d['coordinates']|escape}"
                                 placeholder="6.465422, 3.406448">
                             <button type="button" class="nuxr-btn" data-nuxr-map="map" data-nuxr-map-init="nuxrMapStart"><i class="fa fa-map-marker" aria-hidden="true"></i> {Lang::T('Show map')}</button>
                             <div id="map" style="width: '100%'; height: 200px; min-height: 150px;" hidden></div>
@@ -213,7 +213,7 @@
                     <div class="form-group">
                         <label for="city" class="col-md-3 control-label">{Lang::T('City')}</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" id="city" name="city" value="{$d['city']}">
+                            <input type="text" class="form-control" id="city" name="city" value="{$d['city']|escape}">
                             <small class="form-text text-muted">{Lang::T('City of Resident')}</small>
                         </div>
                     </div>
@@ -221,7 +221,7 @@
                         <label for="district" class="col-md-3 control-label">{Lang::T('District')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="district" name="district"
-                                value="{$d['district']}">
+                                value="{$d['district']|escape}">
                             <small class="form-text text-muted">{Lang::T('District')}</small>
                         </div>
                     </div>
@@ -314,7 +314,7 @@
         window.nuxrMapStart = function() {
         {/literal}
         {if $d['coordinates']}
-            setupMap({$d['coordinates']});
+            setupMap({$d['coordinates']|escape});
         {else}
             getLocation();
         {/if}

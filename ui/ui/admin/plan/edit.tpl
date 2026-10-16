@@ -13,7 +13,7 @@
                         <label for="username" class="col-md-2 control-label">{Lang::T('Select Account')}</label>
                         <div class="col-md-6">
                             <input type="text" class="form-control" id="username" name="username"
-                                value="{$d['username']}" readonly>
+                                value="{$d['username']|escape}" readonly>
                         </div>
                     </div>
 
@@ -25,7 +25,7 @@
                                 {foreach $p as $ps}
                                     <option value="{$ps['id']}" {if $d['plan_id'] eq $ps['id']} selected {/if}>
                                         {if $ps['enabled'] neq 1}DISABLED PLAN &bull; {/if}
-                                        {$ps['name_plan']} &bull;
+                                        {$ps['name_plan']|escape} &bull;
                                         {Lang::moneyFormat($ps['price'])}
                                         {if $ps['prepaid'] neq 'yes'} &bull; POSTPAID {/if}
                                     </option>

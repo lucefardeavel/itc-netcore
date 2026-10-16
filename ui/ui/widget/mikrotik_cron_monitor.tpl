@@ -6,7 +6,7 @@
                 <tbody>
                     {foreach $routeroffs as $ros}
                         <tr>
-                            <td><a href="{Text::url('routers/edit/',$ros['id'])}" class="text-bold text-red">{$ros['name']}</a></td>
+                            <td><a href="{Text::url('routers/edit/',$ros['id'])}" class="text-bold text-red">{$ros['name']|escape}</a></td>
                             <td data-toggle="tooltip" data-placement="top" class="text-red"
                                     title="{Lang::dateTimeFormat($ros['last_seen'])}">{Lang::timeElapsed($ros['last_seen'])}
                             </td>

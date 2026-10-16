@@ -10,19 +10,19 @@
                     <center><b>{Lang::T('Customer')}</b></center>
                     <ul class="list-group list-group-unbordered">
                         <li class="list-group-item">
-                            <b>{Lang::T('Username')}</b> <span class="pull-right">{$cust['username']}</span>
+                            <b>{Lang::T('Username')}</b> <span class="pull-right">{$cust['username']|escape}</span>
                         </li>
                         <li class="list-group-item">
-                            <b>{Lang::T('Name')}</b> <span class="pull-right">{$cust['fullname']}</span>
+                            <b>{Lang::T('Name')}</b> <span class="pull-right">{$cust['fullname']|escape}</span>
                         </li>
                         <li class="list-group-item">
-                            <b>{Lang::T('Phone Number')}</b> <span class="pull-right">{$cust['phonenumber']}</span>
+                            <b>{Lang::T('Phone Number')}</b> <span class="pull-right">{$cust['phonenumber']|escape}</span>
                         </li>
                         <li class="list-group-item">
-                            <b>{Lang::T('Email')}</b> <span class="pull-right">{$cust['email']}</span>
+                            <b>{Lang::T('Email')}</b> <span class="pull-right">{$cust['email']|escape}</span>
                         </li>
                         <li class="list-group-item">
-                            <b>{Lang::T('Address')}</b> <span class="pull-right">{$cust['address']}</span>
+                            <b>{Lang::T('Address')}</b> <span class="pull-right">{$cust['address']|escape}</span>
                         </li>
                         <li class="list-group-item">
                             <b>{Lang::T('Balance')}</b> <span
@@ -32,11 +32,11 @@
                     <center><b>{Lang::T('Plan')}</b></center>
                     <ul class="list-group list-group-unbordered">
                         <li class="list-group-item">
-                            <b>{Lang::T('Plan Name')}</b> <span class="pull-right">{$plan['name_plan']}</span>
+                            <b>{Lang::T('Plan Name')}</b> <span class="pull-right">{$plan['name_plan']|escape}</span>
                         </li>
                         <li class="list-group-item">
                             <b>{Lang::T('Location')}</b> <span
-                                class="pull-right">{if $plan['is_radius']}Radius{else}{$plan['routers']}{/if}</span>
+                                class="pull-right">{if $plan['is_radius']}Radius{else}{$plan['routers']|escape}{/if}</span>
                         </li>
                         <li class="list-group-item">
                             <b>{Lang::T('Type')}</b> <span
@@ -109,7 +109,7 @@
                                         class="pull-right"><b>{Lang::moneyFormat($add_cost)}</b></span>
                                 </li>
                                 <li class="list-group-item">
-                                    <b>{$plan['name_plan']}</b> <span
+                                    <b>{$plan['name_plan']|escape}</b> <span
                                         class="pull-right">{if $using eq 'zero'}{Lang::moneyFormat(0)}{else}{Lang::moneyFormat($plan['price'])}{/if}</span>
                                 </li>
                                 <li class="list-group-item">
@@ -153,7 +153,7 @@
                                         class="pull-right"><b>{Lang::moneyFormat($add_cost)}</b></span>
                                 </li>
                                 <li class="list-group-item">
-                                    <b>{$plan['name_plan']}</b> <span
+                                    <b>{$plan['name_plan']|escape}</b> <span
                                         class="pull-right">{if $using eq 'zero'}{Lang::moneyFormat(0)}{else}{Lang::moneyFormat($plan['price'])}{/if}</span>
                                 </li>
                                 <li class="list-group-item">

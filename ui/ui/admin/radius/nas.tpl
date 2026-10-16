@@ -51,7 +51,7 @@
                                     <td data-label="Port">{$ds['ports']}</td>
                                     <td data-label="Server">{$ds['server']}</td>
                                     <td data-label="Community">{$ds['community']}</td>
-                                    <td data-label="Routers">{$ds['routers']}</td>
+                                    <td data-label="Routers">{$ds['routers']|escape}</td>
                                     <td data-label="{Lang::T('Manage')}" align="center">
                                         <a href="{Text::url('')}radius/nas-edit/{$ds['id']}"
                                             class="btn btn-info btn-xs">{Lang::T('Edit')}</a>

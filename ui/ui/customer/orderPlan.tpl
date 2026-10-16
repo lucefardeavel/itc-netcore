@@ -16,7 +16,7 @@
                         {foreach $radius_pppoe as $plan}
                             <div class="col col-md-4">
                                 <div class="box box-primary">
-                                    <div class="box-header text-bold">{$plan['name_plan']}</div>
+                                    <div class="box-header text-bold">{$plan['name_plan']|escape}</div>
                                     <div class="table-responsive">
                                         <div style="margin-left: 5px; margin-right: 5px;">
                                             <table class="table table-bordered table-striped">
@@ -73,7 +73,7 @@
                         {foreach $radius_hotspot as $plan}
                             <div class="col col-md-4">
                                 <div class="box box-primary">
-                                    <div class="box-header text-bold">{$plan['name_plan']}</div>
+                                    <div class="box-header text-bold">{$plan['name_plan']|escape}</div>
                                     <div class="table-responsive">
                                         <div style="margin-left: 5px; margin-right: 5px;">
                                             <table class="table table-bordered table-striped">
@@ -131,7 +131,7 @@
                         {foreach $radius_pppoe as $plan}
                             <div class="col col-md-4">
                                 <div class="box box-primary">
-                                    <div class="box-header text-bold">{$plan['name_plan']}</div>
+                                    <div class="box-header text-bold">{$plan['name_plan']|escape}</div>
                                     <div class="table-responsive">
                                         <div style="margin-left: 5px; margin-right: 5px;">
                                             <table class="table table-bordered table-striped">
@@ -187,7 +187,7 @@
                         {foreach $radius_hotspot as $plan}
                             <div class="col col-md-4">
                                 <div class="box box-primary">
-                                    <div class="box-header text-bold">{$plan['name_plan']}</div>
+                                    <div class="box-header text-bold">{$plan['name_plan']|escape}</div>
                                     <div class="table-responsive">
                                         <div style="margin-left: 5px; margin-right: 5px;">
                                             <table class="table table-bordered table-striped">
@@ -242,10 +242,10 @@
                                                                                                                 $router['name']) || Validator::isRouterHasPlan($plans_vpn,
                                                                                                                 $router['name'])}
             <div class="box box-solid box-primary bg-gray">
-                <div class="box-header text-white text-bold">{$router['name']}</div>
+                <div class="box-header text-white text-bold">{$router['name']|escape}</div>
                 {if $router['description'] != ''}
                     <div class="box-body">
-                        {$router['description']}
+                        {$router['description']|escape}
                     </div>
                 {/if}
                 {if $_user['service_type'] == 'Hotspot' && Validator::countRouterPlan($plans_hotspot, $router['name'])>0}
@@ -256,7 +256,7 @@
                             {if $router['name'] eq $plan['routers']}
                                 <div class="col col-md-4">
                                     <div class="box box-primary">
-                                        <div class="box-header text-center text-bold">{$plan['name_plan']}</div>
+                                        <div class="box-header text-center text-bold">{$plan['name_plan']|escape}</div>
                                         <div class="table-responsive">
                                             <div style="margin-left: 5px; margin-right: 5px;">
                                                 <table class="table table-bordered table-striped">
@@ -312,7 +312,7 @@
                             {if $router['name'] eq $plan['routers']}
                                 <div class="col col-md-4">
                                     <div class="box box- box-primary">
-                                        <div class="box-header text-bold text-center">{$plan['name_plan']}</div>
+                                        <div class="box-header text-bold text-center">{$plan['name_plan']|escape}</div>
                                         <div class="table-responsive">
                                             <div style="margin-left: 5px; margin-right: 5px;">
                                                 <table class="table table-bordered table-striped">
@@ -368,7 +368,7 @@
                             {if $router['name'] eq $plan['routers']}
                                 <div class="col col-md-4">
                                     <div class="box box- box-primary">
-                                        <div class="box-header text-bold text-center">{$plan['name_plan']}</div>
+                                        <div class="box-header text-bold text-center">{$plan['name_plan']|escape}</div>
                                         <div class="table-responsive">
                                             <div style="margin-left: 5px; margin-right: 5px;">
                                                 <table class="table table-bordered table-striped">
@@ -428,7 +428,7 @@
                         {if $router['name'] eq $plan['routers']}
                             <div class="col col-md-4">
                                 <div class="box box-primary">
-                                    <div class="box-header text-center text-bold">{$plan['name_plan']}</div>
+                                    <div class="box-header text-center text-bold">{$plan['name_plan']|escape}</div>
                                     <div class="table-responsive">
                                         <div style="margin-left: 5px; margin-right: 5px;">
                                             <table class="table table-bordered table-striped">
@@ -482,7 +482,7 @@
                         {if $router['name'] eq $plan['routers']}
                             <div class="col col-md-4">
                                 <div class="box box- box-primary">
-                                    <div class="box-header text-bold text-center">{$plan['name_plan']}</div>
+                                    <div class="box-header text-bold text-center">{$plan['name_plan']|escape}</div>
                                     <div class="table-responsive">
                                         <div style="margin-left: 5px; margin-right: 5px;">
                                             <table class="table table-bordered table-striped">
@@ -536,7 +536,7 @@
                         {if $router['name'] eq $plan['routers']}
                             <div class="col col-md-4">
                                 <div class="box box- box-primary">
-                                    <div class="box-header text-bold text-center">{$plan['name_plan']}</div>
+                                    <div class="box-header text-bold text-center">{$plan['name_plan']|escape}</div>
                                     <div class="table-responsive">
                                         <div style="margin-left: 5px; margin-right: 5px;">
                                             <table class="table table-bordered table-striped">

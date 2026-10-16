@@ -9,9 +9,9 @@
             {if !in_array($trx['routers'],['balance','radius'])}
                 <div class="panel-body">
                     <div class="panel panel-primary panel-hovered">
-                        <div class="panel-heading">{$router['name']}</div>
+                        <div class="panel-heading">{$router['name']|escape}</div>
                         <div class="panel-body">
-                            {$router['description']}
+                            {$router['description']|escape}
                         </div>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                             {/if}
                             <tr>
                                 <td>{Lang::T('Package Name')}</td>
-                                <td>{$plan['name_plan']}</td>
+                                <td>{$plan['name_plan']|escape}</td>
                             </tr>
                             {if $add_cost!=0}
                                 {foreach $bills as $k => $v}
@@ -126,7 +126,7 @@
                                 {if $_c['show_bandwidth_plan'] == 'yes'}
                                     <tr>
                                         <td>{Lang::T('Bandwidth Plans')}</td>
-                                        <td>{$bandw['name_bw']}<br>{$bandw['rate_down']}{$bandw['rate_down_unit']}/{$bandw['rate_up']}{$bandw['rate_up_unit']}
+                                        <td>{$bandw['name_bw']|escape}<br>{$bandw['rate_down']}{$bandw['rate_down_unit']}/{$bandw['rate_up']}{$bandw['rate_up_unit']}
                                         </td>
                                     </tr>
                                 {/if}

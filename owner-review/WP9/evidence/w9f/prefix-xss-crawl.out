@@ -1,0 +1,73 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Http/W9StoredXssCrawlTest.php start 2026-10-16T21:48:16Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F                                                                   1 / 1 (100%)
+Time: 00:16.700, Memory: 10.00 MB
+W9Stored Xss Crawl (Reseller\Tests\Http\W9StoredXssCrawl)
+ ✘ Lower privilege text never renders as markup
+   │
+   │ lower-privilege text rendered as markup
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'sa: customers/edit/9 (HTTP 200)',
+   │ +    1 => 'sa: settings/users-view/15 (HTTP 200)',
+   │ +    2 => 'sa: settings/users-edit/15 (HTTP 200)',
+   │ +    3 => 'sa: logs/list (HTTP 200)',
+   │ +    4 => 'sa: customers/edit (HTTP 200)',
+   │ +    5 => 'ad: customers/edit/9 (HTTP 200)',
+   │ +    6 => 'ad: settings/users-view/15 (HTTP 200)',
+   │ +    7 => 'ad: settings/users-edit/15 (HTTP 200)',
+   │ +    8 => 'ad: logs/list (HTTP 200)',
+   │ +    9 => 'ad: customers/edit (HTTP 200)',
+   │ +    10 => 'A: settings/users (HTTP 200)',
+   │ +    11 => 'A: settings/users-view/15 (HTTP 200)',
+   │ +    12 => 'A: settings/users-edit/15 (HTTP 200)',
+   │ +]
+   │
+   │ /repo/tests/Http/W9StoredXssCrawlTest.php:91
+   │
+FAILURES!
+Tests: 1, Assertions: 12, Failures: 1.
+exit=1
+== mysql tests/Http/W9StoredXssCrawlTest.php start 2026-10-16T21:48:34Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+F                                                                   1 / 1 (100%)
+Time: 00:28.814, Memory: 10.00 MB
+W9Stored Xss Crawl (Reseller\Tests\Http\W9StoredXssCrawl)
+ ✘ Lower privilege text never renders as markup
+   │
+   │ lower-privilege text rendered as markup
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'sa: customers/edit/9 (HTTP 200)',
+   │ +    1 => 'sa: settings/users-view/15 (HTTP 200)',
+   │ +    2 => 'sa: settings/users-edit/15 (HTTP 200)',
+   │ +    3 => 'sa: logs/list (HTTP 200)',
+   │ +    4 => 'sa: customers/edit (HTTP 200)',
+   │ +    5 => 'ad: customers/edit/9 (HTTP 200)',
+   │ +    6 => 'ad: settings/users-view/15 (HTTP 200)',
+   │ +    7 => 'ad: settings/users-edit/15 (HTTP 200)',
+   │ +    8 => 'ad: logs/list (HTTP 200)',
+   │ +    9 => 'ad: customers/edit (HTTP 200)',
+   │ +    10 => 'A: settings/users (HTTP 200)',
+   │ +    11 => 'A: settings/users-view/15 (HTTP 200)',
+   │ +    12 => 'A: settings/users-edit/15 (HTTP 200)',
+   │ +]
+   │
+   │ /repo/tests/Http/W9StoredXssCrawlTest.php:91
+   │
+FAILURES!
+Tests: 1, Assertions: 12, Failures: 1.
+exit=1

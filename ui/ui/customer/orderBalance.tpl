@@ -9,7 +9,7 @@
                     {foreach $plans_balance as $plan}
                         <div class="col col-md-4">
                             <div class="box box-solid box-default">
-                                <div class="box-header text-bold">{$plan['name_plan']}</div>
+                                <div class="box-header text-bold">{$plan['name_plan']|escape}</div>
                                 <div class="table-responsive">
                                     <div style="margin-left: 5px; margin-right: 5px;">
                                         <table class="table table-bordered table-striped">

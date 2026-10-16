@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-md-6">
             <div class="panel panel-primary panel-hovered panel-stacked mb30">
-                <div class="panel-heading">{Lang::T('Edit Service Package')} || {$d['name_plan']}</div>
+                <div class="panel-heading">{Lang::T('Edit Service Package')} || {$d['name_plan']|escape}</div>
                 <div class="panel-body">
                     <input type="hidden" name="id" value="{$d['id']}">
                     <div class="form-group">
@@ -75,7 +75,7 @@
                         <label for="name" class="col-md-3 control-label">{Lang::T('Package Name')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="name" name="name" maxlength="40"
-                                value="{$d['name_plan']}">
+                                value="{$d['name_plan']|escape}">
                         </div>
                     </div>
                     <div class="form-group">
@@ -143,7 +143,7 @@
                             <select id="id_bw" name="id_bw" class="form-control select2">
                                 {foreach $b as $bs}
                                     <option value="{$bs['id']}" {if $d['id_bw'] eq $bs['id']} selected {/if}>
-                                        {$bs['name_bw']}</option>
+                                        {$bs['name_bw']|escape}</option>
                                 {/foreach}
                             </select>
                         </div>
@@ -231,7 +231,7 @@
                                     href="{Text::url('routers/add')}">{Lang::T('Router Name')}</a></label>
                             <div class="col-md-9">
                                 <input type="text" class="form-control" id="routers" name="routers"
-                                    value="{$d['routers']}" readonly>
+                                    value="{$d['routers']|escape}" readonly>
                             </div>
                         </div>
                     </span>
@@ -243,7 +243,7 @@
                                 <option value='0'>{Lang::T('Default - Remove Customer')}</option>
                                 {foreach $exps as $exp}
                                     <option value="{$exp['id']}" {if $d['plan_expired'] eq $exp['id']} selected {/if}>
-                                        {$exp['name_plan']}</option>
+                                        {$exp['name_plan']|escape}</option>
                                 {/foreach}
                             </select>
                             <p class="help-block">

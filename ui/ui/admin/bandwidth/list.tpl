@@ -39,7 +39,7 @@
 						<tbody>
 							{foreach $d as $ds}
 								<tr>
-									<td data-label="{Lang::T('Bandwidth Name')}">{$ds['name_bw']}</td>
+									<td data-label="{Lang::T('Bandwidth Name')}">{$ds['name_bw']|escape}</td>
 									<td data-label="{Lang::T('Rate')}">{$ds['rate_down']} {$ds['rate_down_unit']} / {$ds['rate_up']} {$ds['rate_up_unit']}
 									</td>
 									<td data-label="Burst">{$ds['burst']}</td>

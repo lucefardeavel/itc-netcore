@@ -95,8 +95,8 @@
                             <td><input type="checkbox" name="voucher_ids[]" value="{$ds['id']|escape}" aria-label="{Lang::T('Select')} #{$ds['id']|escape}"></td>
                             <td>{$ds['id']}</td>
                             <td>{$ds['type']}</td>
-                            <td>{$ds['routers']}</td>
-                            <td>{$ds['name_plan']}</td>
+                            <td>{$ds['routers']|escape}</td>
+                            <td>{$ds['name_plan']|escape}</td>
                             <td>{include file="admin/nuxr/secret.tpl" nuxr_secret=$ds['code'] nuxr_secret_label=Lang::T('Code Voucher')}</td>
                             <td>{if $ds['status'] eq '0'} <label class="btn-tag btn-tag-success"> Not Use
                                 </label> {elseif $ds['status'] eq 'CLAIMED'} <label class="btn-tag btn-tag-warning">{Lang::T('Claimed - under review')}</label>
