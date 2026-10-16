@@ -1,0 +1,29 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4/post/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp8
+start: 2026-10-16T13:26:35Z
+ Container nuxbill-reseller-test-php82-run-888f6afa0a88 Creating 
+ Container nuxbill-reseller-test-php82-run-888f6afa0a88 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..........                                                        10 / 10 (100%)
+
+Time: 00:00.144, Memory: 12.00 MB
+
+Driver Classification Source (Reseller\Tests\Unit\Wp8\DriverClassificationSource)
+ ✔ Class a stays empty
+ ✔ Every driver grant method starts with the default deny guard
+ ✔ The call site inventory is pinned and every grant or removal is gated
+ ✔ The recharge funnel refuses before any write
+ ✔ The pre write checker detects mutations
+ ✔ The static mikrotik class has no caller
+ ✔ The checkers detect mutations
+
+Legacy Removal Source (Reseller\Tests\Unit\Wp8\LegacyRemovalSource)
+ ✔ Every controller removal is gated before any effect
+ ✔ The three a 5 gates are exactly where the plan says
+ ✔ The checkers detect mutations
+
+OK (10 tests, 83 assertions)
+exit=0 end: 2026-10-16T13:26:37Z

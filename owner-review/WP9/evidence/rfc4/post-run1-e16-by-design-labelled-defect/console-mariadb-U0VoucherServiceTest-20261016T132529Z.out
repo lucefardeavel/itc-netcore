@@ -1,0 +1,20 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4/post/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0VoucherServiceTest.php
+start: 2026-10-16T13:25:29Z
+ Container nuxbill-reseller-test-php82-run-d8e4bb39ed7c Creating 
+ Container nuxbill-reseller-test-php82-run-d8e4bb39ed7c Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...                                                                 3 / 3 (100%)
+
+Time: 00:04.243, Memory: 10.00 MB
+
+U0Voucher Service (Reseller\Tests\Integration\Wp9\U0VoucherService)
+ ✔ A code the radius key rules refuse is never reported granted
+ ✔ A bypass insert during the grant is never reported granted
+ ✔ A normal grant is unchanged
+
+OK (3 tests, 16 assertions)
+exit=0 end: 2026-10-16T13:25:35Z

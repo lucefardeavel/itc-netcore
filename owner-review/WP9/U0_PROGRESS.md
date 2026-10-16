@@ -39,3 +39,14 @@ Resume rule: read this file, `U0_DESIGN.md` and `REPORT.md` §U0; `git log --one
 | fc-4 N-07 | DONE | `21858d4c` | `evidence/fc/pre-run2`, `pre-login`, `post`, `post-login` | Package.php limited exception + re-pin (`d4567f66…` → `9759fca7…`); login.php gate record; 1/11 + 2/10 both engines |
 | Full validation | DONE | docs commit | `evidence/fc/final`, `full-run1-stopped-scope-extended`, `clionly-classification` | first run stopped (scope extended to login.php); run 1: MySQL clean, MariaDB 1 known `CliOnlyTest` counter flake (10/10 isolated passes); **run 2 (final, `21858d4c`): 1351 tests per engine, 0 failures / errors / warnings, 104 lab-incomplete, registry OK, exit 0**; fingerprint `4e62cacd…` unchanged; lint 581 OK; manifest 42/42; pins 23/23 (Package re-pinned only) |
 | Final report | DONE | docs commit | `REPORT.md` §FC | `WP9_U0_FINAL_OWNER_ACCEPTANCE_PACKAGE` — `PRODUCTION_NOT_AUTHORIZED` |
+
+## R-FC-4 round (2026-10-16, `WP9_U0_INDEPENDENT_ACCEPTANCE_ON_HOLD — R_FC_4_VERIFICATION_AUTHORIZED`)
+
+| Unit | State | Commit | Evidence | Notes |
+|---|---|---|---|---|
+| Investigation | DONE | — | REPORT §RFC4.1 | 4 serving entry points without a voucher state check (E12, device guard, E16, E15) |
+| Test-first | DONE | — | `evidence/rfc4/pre*` | defect confirmed both engines (reviewed / CLAIMED / unused+orphan served; RADIUS policy written); kept: name clash, short REST secret |
+| Fix | DONE | `9b96b4e3` | `evidence/rfc4/post*`, `race-rc` | `voucherOnlyServiceRefusal()` at the shared device guard, login E12, radius.php E15 / E16; 4/22 both engines; static guard 11/300 |
+| Full harness | DONE | docs commit | `evidence/rfc4/final` | 1356 / 70846 per engine, 0 failures, 104 lab-incomplete, registry OK, exit 0; fingerprint `6bd6403b…` unchanged |
+| Review pack v2 | DONE | — | `/root/Downloads/WP9_U0_INDEPENDENT_OWNER_REVIEW_PACK_v2` (outside the repository) | v1 kept unchanged |
+

@@ -769,3 +769,82 @@ Applied: the pack's `DEFINITION_OF_DONE.md` and PLAN §16 gates (the "MASTER FIN
 
 **`WP9_U0_FINAL_OWNER_ACCEPTANCE_PACKAGE`** — `PRODUCTION_NOT_AUTHORIZED` — `STOPPED_WAITING_OWNER_REVIEW`.
 
+
+## RFC4 — R-FC-4 targeted security verification and closure (2026-10-16)
+
+Owner decision: `WP9_U0_INDEPENDENT_ACCEPTANCE_ON_HOLD — R_FC_4_VERIFICATION_AUTHORIZED`. Baseline `8646f0ac3c6b75b43a89a4ddb3b0e55d06c6f33f`, clean tree, SourceGuard pins 23/23, no remote `wp9` branch. The independent review pack v1 (`WP9_U0_INDEPENDENT_OWNER_REVIEW_PACK`, outside the repository) is kept unchanged; v2 is a separate folder. **Result: §RFC4.9.**
+
+### RFC4.1 Investigation (every path that serves a voucher-only identity from its recharge row)
+| Entry point | Code | Serves from | Voucher state checked before? |
+|---|---|---|---|
+| E12 public voucher-only login, existing recharge branch | `system/controllers/login.php` (`$tur` with `customer_id 0`) → device `add_customer()` | recharge row (status `on`) | **no** |
+| Any device grant of a voucher-only row (plugin / legacy caller; the E12 branch above) | `LegacyReprovisionService::assertDeviceAllowed()`, called first by `add_customer` / `sync_customer` of every driver (Radius, RadiusRest, MikrotikHotspot / Pppoe / Vpn) | the row passed in | **no** |
+| E16 RADIUS REST authenticate | `radius.php` | voucher row + `radius_active_recharge()` | **no** (status `0` OR active recharge) |
+| E15 RADIUS REST authorize | `radius.php` (`$tur = radius_recharge()` → `process_radiust_rest()`) | any recharge row of the username | **no** |
+| E13 voucher + username login | `login.php` | voucher row | yes: re-login only for status `1` and the same customer; CLAIMED → "Voucher Not Valid" |
+| Redemption (P6 / P3, voucher portal, E15 new redemption) | `VoucherRedemptionService` | atomic claim | yes (state machine) |
+| Admin sync-all | `plan.php` `sync` | `findOne(customer_id 0)` fails → "Customer NOT FOUND" | not reachable |
+| Admin plan edit / extend of a voucher-only row | `plan.php` | customer lookup by id 0 fails → no device step; the row's plan / expiry can change (an operator action) | not a device path (E15 still checks after the fix) |
+| Cron expiry | `cron.php` → `remove_customer` | removal only | not a grant |
+| Accounting | `radius.php` `accounting` | accounting only | not a grant |
+| FreeRADIUS `rlm_sql` reading `radcheck` | — | RADIUS policy rows already present | not an application path (see RFC4.7) |
+
+### RFC4.2 Test-first result (`U0VoucherReactivationTest`, synthetic data, `evidence/rfc4/pre`, both engines) — **defect confirmed**
+| State | E12 login | E16 authenticate | E15 authorize | Device grant | State change |
+|---|---|---|---|---|---|
+| `CLAIMED_REVIEW` from the real flow (confirmed device failure; Package left 1 invoice + 1 recharge row, no RADIUS rows) | **served** | **204** | **200** | **served** | **RADIUS policy written (3 rows)**; voucher still `CLAIMED`; no new invoice / recharge |
+| CLAIMED voucher + recharge row on a RadiusRest plan | **served** | **204** | **200** | — | none (REST serves from the row) |
+| Unused voucher (`0`) + orphan voucher-only recharge row | **served** | 204 (by design: authorize redeems) | **200** | **served** | **RADIUS policy written**; voucher still `0` |
+| Controls: voucher granted voucher-only + active recharge | served | 204 | 200 | served | no new invoice / recharge; own policy |
+| Controls: legacy voucher-only recharge, no voucher row | served | 401 (unchanged: E16 needs a voucher row) | 200 | — | — |
+| Controls: expired recharge | "Expired" | — | 401 | — | — |
+| Controls: ordinary customer (REST authorize) | — | — | 200 | — | — |
+Root cause: the re-activation paths derive service from the voucher-only **recharge row** (written by `Package` before its device step, and kept when a grant ends in review) without consulting the voucher state machine. No second invoice, recharge or voucher state change occurs — the defect is **service activation outside the state machine** (unauthorised service, voucher state bypass, finance / service drift: the voucher in review, no confirmed grant, service live).
+Kept runs: `pre-run1-name-clash` (test helper name clash with the harness, nothing ran), `pre-run2-rest-secret-too-short` (the test REST secret was below the endpoint's 32-character minimum, so every REST call was refused by the gate — a test defect). The final test revision was also run against the pre-fix code (`pre-final-test`, product files temporarily restored to `8646f0ac` and re-verified by SHA-256 afterwards): 3 defect tests fail, the control test passes, both engines.
+
+### RFC4.3 Fix (commit `9b96b4e3`; product +60 / −1, no pinned file, no schema, no finance change)
+- `VoucherRedemptionService::voucherOnlyServiceRefusal(string)` (read only): a voucher-only identity may be served only when a voucher row of the code was granted voucher-only (status `1`, user `0`), or no voucher row remains (legacy / deleted vouchers), or the request is that code's own grant (an in-flight permit set around `Package::rechargeUser` in `grant()` and cleared in `finally`). Otherwise `VOUCHER_IN_REVIEW` (a row is CLAIMED: under review or in flight elsewhere), `VOUCHER_NOT_REDEEMED`, or `VOUCHER_STATE_UNAVAILABLE` (read error — fail closed).
+- Shared point: `LegacyReprovisionService::assertDeviceAllowed()` refuses a voucher-only row (no customer id) with `ProvisionFailure VOUCHER_NOT_SERVABLE` — after the WP8 owned-name refusal, before the ownership check; logs `device.voucher_refused reason=…` without the code. Covers every driver.
+- `login.php` E12: the same check before the device step (user message "Voucher Not Valid", CRLF preserved).
+- `radius.php` E16 (an active recharge authenticates only when the check passes) and E15 (a `customer_id 0` recharge row is answered only when the check passes; otherwise Reject 401).
+- Nothing is cleaned up (no invoice, recharge, voucher or RADIUS change); recovery of a reviewed voucher stays an operator decision (no new recovery path was created).
+
+### RFC4.4 After the fix (`evidence/rfc4/post`, both engines)
+`U0VoucherReactivationTest` **4 / 22, exit 0, MariaDB and MySQL**: every entry point refuses the reviewed voucher (E12 "Voucher Not Valid", E16 401, E15 401, device `VOUCHER_NOT_SERVABLE`), the CLAIMED RadiusRest state and the unused + orphan state (E16 204 for an unused voucher is the unchanged E16 contract and is reported, not counted as service); no state change in any refused case; controls unchanged (granted re-activation served with no new invoice / recharge, legacy served, expired refused, customer 200); replay of the reviewed voucher `NOT_VALID`. Related suites, both engines: `Wp4/RadiusRestEndpointTest` 6 / 68, `U0GrantConfirmationTest` 7 / 41, `U0VoucherServiceTest` 3 / 16, `Unit/Wp5b` 26 / 638, `Unit/Wp4` 53 / 800, `Unit/Wp8` 10 / 83, `Unit/Wp9` incl. the new mutation-checked guard `testEveryVoucherOnlyServingEntryPointChecksTheVoucherState` 11 / 300 (U0SourceGuardTest), `U0RaceTest` READ COMMITTED 23 / 96. Kept: `post-run1-e16-by-design-labelled-defect` (the evidence record counted the by-design E16 204 as service although the assertion excluded it; the label was corrected).
+
+### RFC4.5 Voucher state matrix (after the fix)
+| Voucher row(s) of the code | Voucher-only recharge row | Redemption (P6 / E15 new) | E12 re-activation | E16 authenticate | E15 authorize | Device grant |
+|---|---|---|---|---|---|---|
+| `0` unused | none | claim → grant (state machine) | redemption path | 204 (authorize redeems) | redeems | n/a |
+| `0` unused | yes (released / legacy) | REFUSED (the recharge row is a live identity, U0) | **refused** (was served) | 204 (unchanged contract) | **401** (was 200) | **refused** (was served) |
+| `CLAIMED` — this request's own grant | being written | in flight | — | — | — | **allowed** (own grant) |
+| `CLAIMED` — another request / `CLAIMED_REVIEW` | yes | `NOT_VALID` (replay) | **refused** (was served) | **401** (was 204) | **401** (was 200) | **refused** (was served) |
+| `1`, user `0` (GRANTED voucher-only) | on, not expired | `NOT_VALID` (replay) | served (re-activation) | 204 | 200 | served |
+| `1`, user `0` | off / expired | `NOT_VALID` | "Expired" | 401 | 401 | refused by billing period |
+| `1`, user = a customer (customer path) | yes (inconsistent data) | `NOT_VALID` | refused (`VOUCHER_NOT_REDEEMED`) | 401 | 401 | refused |
+| no voucher row (deleted) | on | — | served (legacy) | 401 (unchanged) | 200 | served |
+Evidence: rows 2, 4, 5 (on), 6 (E12 / E15) and 8 are test-proven (E4, both engines); row 1 and the own-grant row by the existing redemption / grant suites (E4); row 7 and the expired device column are code reads (E1). Device failure during a grant → `CLAIMED_REVIEW` (§FC.5); expiration handled by the recharge row as before; reconciliation state = the voucher stays `CLAIMED` until an operator acts.
+
+### RFC4.6 Existing evidence anomalies
+- **4-assertion difference (MariaDB 70 808 in run 1 vs 70 804 in run 2 of §FC.8; MySQL 70 808 both):** proven = run-dependent on one engine with identical code (fingerprint `4e62cacd…`), same test count (1 351), same incomplete count (104), nothing skipped; not proven = which test (no per-test assertion log was recorded). Most likely `Wp5b/ActivationReversalRaceTest::testReversalStartAndActivationOpenNeverBothProceed` (2 vs 4 assertions per round depending on the race winner, plus `addToAssertionCount(count($outcomes))`); possible `U0V4Test` (0–3 by random codes). Not investigated further (no new runs for this).
+- **`CliOnlyTest::testNewPhpFilesRefuseHttpExecution`:** kept as a flaky, not fully diagnosed harness test (global `Connections` counter vs the compose healthcheck; 10/10 isolated passes; unchanged).
+
+### RFC4.7 Residuals (documented, not changed)
+- A reviewed voucher whose RADIUS write **did** commit (`CLAIMED_REVIEW:DEVICE_UNKNOWN`), or whose rows were written outside the application, can still be served by FreeRADIUS `rlm_sql` from `radcheck` — that is the uncertain write itself, not a re-activation path; removing rows automatically is not allowed (owner): operator reconciliation.
+- An operator can edit / extend a voucher-only recharge row (plan edit / extend); E15 still refuses a reviewed voucher regardless of the row.
+- Plugins calling the RADIUS repository directly bypass the device guard (D-U0-R2).
+- E16 still authenticates an unused voucher (authorize decides) — unchanged WP4 contract.
+
+### RFC4.8 Full harness (product code changed) and integrity
+| Gate | MariaDB 10.11 | MySQL 8.0 |
+|---|---|---|
+| `dev/test/run-tests.sh --do-not-cache-result` at `9b96b4e3`, fingerprint `6bd6403b…` identical before / after | **1 356 tests / 70 846 assertions, 0 failures, 0 errors, 0 warnings, 104 incomplete** | **1 356 / 70 846, 0 failures, 0 errors, 0 warnings, 104 incomplete** |
+| Variant registry / exit | matches / 0 | |
+- Reconciliation: +5 tests (4 R-FC-4 + 1 static guard) and +38 assertions (22 + 16) over the previous 1 351 / 70 808; both engines equal this time.
+- The 104 incomplete tests are the WP8 real-NAS lab tests (not passes; no WP8 integration test changed); CHR not started — no RouterOS / RADIUS attribute contract changed (the fix only refuses before serving).
+- Lint 582 files, 0 errors; manifest 42 / 42; SourceGuard pins 23 / 23 (no pin changed, no new protected file touched); line endings preserved (`login.php` CRLF 299 → 303, all CRLF); secret sweep 0 hits; protected remote refs unchanged; no remote `wp9` branch; 0 containers / networks / volumes left.
+- Covered inside the harness (both engines): V1 / V2 / V4 (A1, U0 race / identity / V4 suites), O-U0-1 and grant confirmation, U0 locks, voucher state machine (WP5B voucher suites, `U0VoucherServiceTest`), replay, no phantom GRANTED, no duplicate invoice (one transaction row per grant in every voucher test), no unauthorised service (`U0VoucherReactivationTest`, ownership guard), WP5B / WP8 contracts.
+
+### RFC4.9 Result
+Commits: `9b96b4e3` (fix + tests); docs / evidence commit (see git log). Rollback: `git revert 9b96b4e3` (no data migration). Open production blockers unchanged from §FC.10 (OBS-1 existing duplicates, D-U0-R2, D-U0-R3, A2-R, CLAIMED_REVIEW operator recovery, P1–P5, NEW-7 / NEW-8, WP1-CHECK, T1-B…T4, WP10), plus the RFC4.7 residuals.
+**`WP9_U0_RFC4_FINAL_VERIFICATION_PACKAGE`** — R-FC-4 **confirmed and closed for the application entry points**; `PRODUCTION_NOT_AUTHORIZED`; `STOPPED_WAITING_OWNER_REVIEW`.

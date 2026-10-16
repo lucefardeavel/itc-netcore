@@ -1,0 +1,8 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4/pre/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0VoucherReactivationTest.php
+start: 2026-10-16T13:22:32Z
+ Container nuxbill-reseller-test-php82-run-f83eec5ffe22 Creating 
+ Container nuxbill-reseller-test-php82-run-f83eec5ffe22 Created 
+
+Fatal error: Cannot make non static method Reseller\Tests\Support\Wp2HttpTestCase::snapshot() static in class Reseller\Tests\Integration\Wp9\U0VoucherReactivationTest in /repo/tests/Integration/Wp9/U0VoucherReactivationTest.php on line 89
+
+exit=255 end: 2026-10-16T13:22:34Z

@@ -1,0 +1,82 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4/pre/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0VoucherReactivationTest.php
+start: 2026-10-16T13:23:32Z
+ Container nuxbill-reseller-test-php82-run-50b2e331595b Creating 
+ Container nuxbill-reseller-test-php82-run-50b2e331595b Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FFFF                                                                4 / 4 (100%)
+
+Time: 00:03.875, Memory: 10.00 MB
+
+U0Voucher Reactivation (Reseller\Tests\Integration\Wp9\U0VoucherReactivation)
+ ✘ A voucher in review is not served by any entry point
+   │
+   │ no entry point serves a voucher in review {"entry_points":{"E12 login":"SERVED","E16 REST authenticate":204,"E15 REST authorize":200,"DEV device grant":"SERVED"},"served_by":["E12 login","E16 REST authenticate","E15 REST authorize","DEV device grant"],"state_changed":["radius policy"],"voucher_after":{"status":"CLAIMED","user":"0"},"policy_rows_after":3,"invoices":1,"recharge_rows":1}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'E12 login',
+   │ +    1 => 'E16 REST authenticate',
+   │ +    2 => 'E15 REST authorize',
+   │ +    3 => 'DEV device grant',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherReactivationTest.php:152
+   │
+ ✘ A claimed voucher with a recharge on the rest device is not served
+   │
+   │ {"entry_points":{"E12 login":"SERVED","E16 REST authenticate":204,"E15 REST authorize":200},"served_by":["E12 login","E16 REST authenticate","E15 REST authorize"],"state_changed":[],"voucher_after":{"status":"CLAIMED","user":"0"},"policy_rows_after":0,"invoices":0,"recharge_rows":1}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'E12 login',
+   │ +    1 => 'E16 REST authenticate',
+   │ +    2 => 'E15 REST authorize',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherReactivationTest.php:167
+   │
+ ✘ An unused voucher next to an orphan voucher only recharge is not served
+   │
+   │ {"entry_points":{"E12 login":"SERVED","E16 REST authenticate":204,"E15 REST authorize":200,"DEV device grant":"SERVED"},"served_by":["E12 login","E16 REST authenticate","E15 REST authorize","DEV device grant"],"state_changed":["radius policy"],"voucher_after":{"status":"0","user":"0"},"policy_rows_after":3,"invoices":0,"recharge_rows":1}
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'E12 login',
+   │ +    1 => 'E15 REST authorize',
+   │ +    2 => 'DEV device grant',
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherReactivationTest.php:179
+   │
+ ✘ Legitimate reactivation is unchanged
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    'E12 login' => 'REFUSED_EXPIRED',
+   │ +    'E12 login' => 'OTHER',
+   │      'E15 REST authorize' => 401,
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp9/U0VoucherReactivationTest.php:216
+   │
+
+FAILURES!
+Tests: 4, Assertions: 14, Failures: 4.
+
+exit=1 end: 2026-10-16T13:23:38Z

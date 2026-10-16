@@ -1,0 +1,3 @@
+scope: every tracked or new non-vendor .php file
+files: 582
+lint-done

@@ -1,0 +1,21 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/rfc4/post/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/U0VoucherReactivationTest.php
+start: 2026-10-16T13:26:56Z
+ Container nuxbill-reseller-test-php82-run-d8ddf611dc1a Creating 
+ Container nuxbill-reseller-test-php82-run-d8ddf611dc1a Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....                                                                4 / 4 (100%)
+
+Time: 00:04.990, Memory: 10.00 MB
+
+U0Voucher Reactivation (Reseller\Tests\Integration\Wp9\U0VoucherReactivation)
+ ✔ A voucher in review is not served by any entry point
+ ✔ A claimed voucher with a recharge on the rest device is not served
+ ✔ An unused voucher next to an orphan voucher only recharge is not served
+ ✔ Legitimate reactivation is unchanged
+
+OK (4 tests, 22 assertions)
+exit=0 end: 2026-10-16T13:27:04Z
