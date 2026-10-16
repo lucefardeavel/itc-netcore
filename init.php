@@ -108,13 +108,18 @@ if (file_exists($UPLOAD_PATH . DIRECTORY_SEPARATOR . "notifications.json")) {
 $_notifmsg_default = json_decode(file_get_contents($UPLOAD_PATH . DIRECTORY_SEPARATOR . 'notifications.default.json'), true);
 
 //register all plugin
-foreach (glob(File::pathFixer($PLUGIN_PATH . DIRECTORY_SEPARATOR . '*.php')) as $filename) {
-    try {
-        include $filename;
-    } catch (Throwable $e) {
-        //ignore plugin error
-    } catch (Exception $e) {
-        //ignore plugin error
+// WP9-B / N-02 (OD-W9-9 B2): plugins are fully trusted, in-process code (there is no sandbox; only reviewed plugins
+// may be installed - inventory: php system/reseller/plugins.php). A plugin that fails to load no longer fails
+// silently: the error is reported (generic reference, no secrets) and the remaining plugins still load.
+// radius.php defines NUXR_DEFER_PLUGINS and loads the plugins itself, only AFTER its FreeRADIUS RestGate
+// authentication. Plugins are included at global scope exactly as before.
+if (!defined('NUXR_DEFER_PLUGINS')) {
+    foreach (glob(File::pathFixer($PLUGIN_PATH . DIRECTORY_SEPARATOR . '*.php')) as $filename) {
+        try {
+            include $filename;
+        } catch (Throwable $e) {
+            \Reseller\Security\ErrorReporter::report($e, 'plugin-load ' . basename($filename));
+        }
     }
 }
 

@@ -1,0 +1,22 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/phaseb-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/W9PhaseBAuthorityTest.php
+start: 2026-10-16T18:54:54Z
+ Container nuxbill-reseller-test-php82-run-a8636090df53 Creating 
+ Container nuxbill-reseller-test-php82-run-a8636090df53 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:03.131, Memory: 10.00 MB
+
+W9Phase BAuthority (Reseller\Tests\Http\W9PhaseBAuthority)
+ ✔ Customer add plan refuses reseller owned customers
+ ✔ Caller cannot inject an expired plan
+ ✔ Reseller owned customer never gets a sellable plan as fallback
+ ✔ Throwing plugin is reported
+ ✔ Radius rest loads no plugin before authentication
+
+OK (5 tests, 14 assertions)
+exit=0 end: 2026-10-16T18:54:59Z

@@ -1,0 +1,31 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/phaseb-postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp4/RadiusDeviceLifecycleTest.php
+start: 2026-10-16T18:55:32Z
+ Container nuxbill-reseller-test-php82-run-319386a60771 Creating 
+ Container nuxbill-reseller-test-php82-run-319386a60771 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...F..                                                              6 / 6 (100%)
+
+Time: 00:02.329, Memory: 10.00 MB
+
+Radius Device Lifecycle (Reseller\Tests\Integration\Wp4\RadiusDeviceLifecycle)
+ ✔ Expiration is the saved billing expiry
+ ✔ No active recharge refuses without writing
+ ✔ No lifecycle path touches accounting history
+ ✘ Expired plan and suspension semantics
+   │
+   │ deactivation scrambles the password
+   │ Failed asserting that 'pw-wp4c6f3cd3' matches PCRE pattern "/^[0-9a-f]{48}$/".
+   │
+   │ /repo/tests/Integration/Wp4/RadiusDeviceLifecycleTest.php:152
+   │
+ ✔ Pppoe key and rename across all tables
+ ✔ Plan group and nas through the device
+
+FAILURES!
+Tests: 6, Assertions: 32, Failures: 1.
+
+exit=1 end: 2026-10-16T18:55:36Z

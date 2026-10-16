@@ -72,12 +72,9 @@ class Radius
     function remove_customer($customer, $plan)
     {
         $pppoe = ($plan['type'] ?? '') == 'PPPOE';
-        if (!empty($plan['plan_expired'])) {
+        if (($expired = self::expiredPlan($customer, $plan)) !== null) {
             // the plan's "expired plan": the subscriber keeps a restricted profile without an end date (legacy)
-            $p = ORM::for_table("tbl_plans")->find_one($plan['plan_expired']);
-            if ($p) {
-                $this->provision($customer, $p->as_array(), null);
-            }
+            $this->provision($customer, $expired, null);
         } else {
             $this->customerDeactivate(RadiusPolicyBuilder::key(self::row($customer), $pppoe), true);
         }
@@ -279,6 +276,9 @@ class Radius
      */
     public function customerAddPlan($customer, $plan, $expired = '')
     {
+        // WP9-B / N-01 (OD-W9-9 B1'): this public grant method had no guard; it now applies the same device default
+        // deny as add_customer (reseller-owned customers are served only through the activation path)
+        \Reseller\Domain\LegacyReprovisionService::assertDeviceAllowed($customer);
         $expiry = $expired !== '' ? new DateTimeImmutable((string) $expired) : null;
         $this->provision($customer, self::row($plan), $expiry);
         return true;
@@ -307,6 +307,45 @@ class Radius
             ErrorReporter::report($e, 'radius-disconnect');
         }
         return $out;
+    }
+
+    /**
+     * WP9-B / N-01: the expired plan that remove_customer() applies. The caller can only NARROW the choice (an empty
+     * plan_expired means "deactivate"); the plan id itself always comes from the stored plan, never from the
+     * caller-supplied array. For a reseller-owned customer a resale-enabled (sellable) plan is never applied as the
+     * free fallback profile: the customer is deactivated instead.
+     *
+     * @return array<string,mixed>|null the stored expired plan, or null to deactivate
+     */
+    private static function expiredPlan($customer, $plan): ?array
+    {
+        if (empty($plan['plan_expired']) || empty($plan['id'])) {
+            return null;
+        }
+        $stored = ORM::for_table('tbl_plans')->find_one((int) $plan['id']);
+        $expiredId = $stored ? (int) $stored['plan_expired'] : 0;
+        if ($expiredId <= 0) {
+            return null;
+        }
+        $p = ORM::for_table('tbl_plans')->find_one($expiredId);
+        if (!$p) {
+            return null;
+        }
+        $row = self::row($customer);
+        // an unmigrated schema has no reseller-owned customer (same rule as the WP8 device guard)
+        if (\Reseller\Domain\SchemaReadiness::isReady()
+            && (\Reseller\Domain\ServiceGate::isBlockedCustomerId($row['id'] ?? null) || \Reseller\Domain\ServiceGate::isBlockedUsername((string) ($row['username'] ?? '')))) {
+            try {
+                $sellable = ORM::for_table('tbl_reseller_plan_base_costs')->where('plan_id', $expiredId)->where('is_resale_enabled', 1)->count() > 0;
+            } catch (\Throwable $e) {
+                $sellable = true; // fail closed: unknown -> no free fallback
+            }
+            if ($sellable) {
+                ErrorReporter::log('radius.expired_plan_refused', 'reason=resale_enabled_plan_for_reseller_owned_customer');
+                return null;
+            }
+        }
+        return $p->as_array();
     }
 
     /** @param array<string,mixed> $plan */

@@ -1,0 +1,23 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9b/phaseb-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp4/RadiusDeviceLifecycleTest.php
+start: 2026-10-16T18:56:16Z
+ Container nuxbill-reseller-test-php82-run-18ab1a77bc55 Creating 
+ Container nuxbill-reseller-test-php82-run-18ab1a77bc55 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......                                                              6 / 6 (100%)
+
+Time: 00:00.980, Memory: 10.00 MB
+
+Radius Device Lifecycle (Reseller\Tests\Integration\Wp4\RadiusDeviceLifecycle)
+ ✔ Expiration is the saved billing expiry
+ ✔ No active recharge refuses without writing
+ ✔ No lifecycle path touches accounting history
+ ✔ Expired plan and suspension semantics
+ ✔ Pppoe key and rename across all tables
+ ✔ Plan group and nas through the device
+
+OK (6 tests, 32 assertions)
+exit=0 end: 2026-10-16T18:56:18Z

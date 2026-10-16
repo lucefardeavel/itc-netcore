@@ -1,0 +1,135 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Http/W9PhaseBAuthorityTest.php start 2026-10-16T18:54:43Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FFFFF                                                               5 / 5 (100%)
+Time: 00:03.299, Memory: 10.00 MB
+W9Phase BAuthority (Reseller\Tests\Http\W9PhaseBAuthority)
+ ✘ Customer add plan refuses reseller owned customers
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'RESELLER_OWNED_REFUSED'
+   │ +'ran'
+   │
+   │ /repo/tests/Http/W9PhaseBAuthorityTest.php:54
+   │
+ ✘ Caller cannot inject an expired plan
+   │
+   │ cA2: a caller-supplied plan_expired must not be applied
+   │ Failed asserting that an array does not contain 'plan_2'.
+   │
+   │ /repo/tests/Http/W9PhaseBAuthorityTest.php:65
+   │
+ ✘ Reseller owned customer never gets a sellable plan as fallback
+   │
+   │ reseller-owned: no sellable fallback
+   │ Failed asserting that an array does not contain 'plan_2'.
+   │
+   │ /repo/tests/Http/W9PhaseBAuthorityTest.php:74
+   │
+ ✘ Throwing plugin is reported
+   │
+   │ the plugin load error is reported
+   │ Failed asserting that '[17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Announcement')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered function "file_exists" in a template is deprecated and will be removed in a future release. Use Smarty::registerPlugin to explicitly register a custom modifier. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templatecompilerbase.php on line 663\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Log in to Member Panel')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Text::url('login/post')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Phone Number')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Email')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Usernames')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Phone Number')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Email')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Usernames')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Password')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Password')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Text::url('register')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Register')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Login')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Text::url('forgot')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:47 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Forgot Password')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_bfdb310df0/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ ' [ASCII](length: 6229) contains "plugin-load w9_throwing.php" [ASCII](length: 27).
+   │
+   │ /repo/tests/Http/W9PhaseBAuthorityTest.php:92
+   │
+ ✘ Radius rest loads no plugin before authentication
+   │
+   │ no plugin code before RestGate
+   │ Failed asserting that '/radius.php\n
+   │ ' [ASCII](length: 12) does not contain "radius.php" [ASCII](length: 10).
+   │
+   │ /repo/tests/Http/W9PhaseBAuthorityTest.php:107
+   │
+FAILURES!
+Tests: 5, Assertions: 8, Failures: 5.
+exit=1
+== mysql tests/Http/W9PhaseBAuthorityTest.php start 2026-10-16T18:54:48Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+FFFFF                                                               5 / 5 (100%)
+Time: 00:05.187, Memory: 10.00 MB
+W9Phase BAuthority (Reseller\Tests\Http\W9PhaseBAuthority)
+ ✘ Customer add plan refuses reseller owned customers
+   │
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'RESELLER_OWNED_REFUSED'
+   │ +'ran'
+   │
+   │ /repo/tests/Http/W9PhaseBAuthorityTest.php:54
+   │
+ ✘ Caller cannot inject an expired plan
+   │
+   │ cA2: a caller-supplied plan_expired must not be applied
+   │ Failed asserting that an array does not contain 'plan_2'.
+   │
+   │ /repo/tests/Http/W9PhaseBAuthorityTest.php:65
+   │
+ ✘ Reseller owned customer never gets a sellable plan as fallback
+   │
+   │ reseller-owned: no sellable fallback
+   │ Failed asserting that an array does not contain 'plan_2'.
+   │
+   │ /repo/tests/Http/W9PhaseBAuthorityTest.php:74
+   │
+ ✘ Throwing plugin is reported
+   │
+   │ the plugin load error is reported
+   │ Failed asserting that '[17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Announcement')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered function "file_exists" in a template is deprecated and will be removed in a future release. Use Smarty::registerPlugin to explicitly register a custom modifier. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templatecompilerbase.php on line 663\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Log in to Member Panel')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Text::url('login/post')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Phone Number')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Email')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Usernames')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Phone Number')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Email')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Usernames')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Password')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Password')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Text::url('register')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Register')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Login')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Text::url('forgot')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ [17-Oct-2026 01:54:53 Asia/Jakarta] PHP Deprecated:  Using unregistered static method "Lang::T('Forgot Password')" in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. in /tmp/wp2_app_dd4a1177c3/system/vendor/smarty/smarty/libs/sysplugins/smarty_internal_templateparser.php on line 2428\n
+   │ ' [ASCII](length: 6229) contains "plugin-load w9_throwing.php" [ASCII](length: 27).
+   │
+   │ /repo/tests/Http/W9PhaseBAuthorityTest.php:92
+   │
+ ✘ Radius rest loads no plugin before authentication
+   │
+   │ no plugin code before RestGate
+   │ Failed asserting that '/radius.php\n
+   │ ' [ASCII](length: 12) does not contain "radius.php" [ASCII](length: 10).
+   │
+   │ /repo/tests/Http/W9PhaseBAuthorityTest.php:107
+   │
+FAILURES!
+Tests: 5, Assertions: 8, Failures: 5.
+exit=1

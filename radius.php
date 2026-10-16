@@ -19,12 +19,21 @@
 
 header("Content-Type: application/json");
 
+// WP9-B / N-02: no plugin code runs before the FreeRADIUS request is authenticated
+define('NUXR_DEFER_PLUGINS', true);
 include "init.php";
 
 $nuxrRefusal = \Reseller\Radius\RestGate::refusal($radius_rest_secret ?? null, $radius_rest_allow ?? null, $_SERVER);
 if ($nuxrRefusal !== null) {
     \Reseller\Security\ErrorReporter::log('radius.rest_refused', 'reason=' . $nuxrRefusal);
     show_radius_result(["control:Auth-Type" => "Reject", "reply:Reply-Message" => 'Unauthorized'], 401);
+}
+foreach (glob(File::pathFixer($PLUGIN_PATH . DIRECTORY_SEPARATOR . '*.php')) as $filename) {
+    try {
+        include $filename;
+    } catch (Throwable $e) {
+        \Reseller\Security\ErrorReporter::report($e, 'plugin-load ' . basename($filename));
+    }
 }
 
 $action = $_SERVER['HTTP_X_FREERADIUS_SECTION'] ?? '';

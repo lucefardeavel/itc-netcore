@@ -95,8 +95,9 @@ final class RadiusDeviceLifecycleTest extends RadiusTestCase
     /** C17: every lifecycle path that reaches RADIUS provisioning leaves radacct byte-identical. */
     public function testNoLifecyclePathTouchesAccountingHistory(): void
     {
-        $plan = self::plan('PPPOE');
+        // WP9-B / N-01: the expired plan is read from the stored plan (a caller can only narrow it to 0)
         $expired = self::plan('Hotspot', ['name_plan' => 'wp4_expired_' . bin2hex(random_bytes(2))]);
+        $plan = self::plan('PPPOE', ['plan_expired' => $expired['id']]);
         $c = self::customer(['pppoe_username' => '', 'pppoe_password' => 'ppp-secret', 'pppoe_ip' => '']);
         self::recharge($c, $plan, '2031-01-01', '00:00:00');
         foreach (['h1' => gmdate('Y-m-d H:i:s'), 'h2' => gmdate('Y-m-d H:i:s'), 'open' => null] as $session => $stop) {
@@ -118,7 +119,7 @@ final class RadiusDeviceLifecycleTest extends RadiusTestCase
                 $dev->add_customer($c, $plan);
             },
             'expiry to the expired plan' => fn() => $dev->remove_customer($c, $plan + ['plan_expired' => $expired['id']]),
-            'deactivate (remove_customer)' => fn() => $dev->remove_customer($c, $plan + ['plan_expired' => 0]),
+            'deactivate (remove_customer)' => fn() => $dev->remove_customer($c, ['plan_expired' => 0] + $plan),
             'username change' => fn() => $dev->change_username($plan, $c['username'], $c['username'] . 'x'),
             'username change back' => fn() => $dev->change_username($plan, $c['username'] . 'x', $c['username']),
             'plan update' => fn() => $dev->update_plan($plan['name_plan'], $plan),
@@ -135,8 +136,9 @@ final class RadiusDeviceLifecycleTest extends RadiusTestCase
 
     public function testExpiredPlanAndSuspensionSemantics(): void
     {
-        $plan = self::plan('Hotspot');
+        // WP9-B / N-01: the expired plan is read from the stored plan (a caller can only narrow it to 0)
         $expired = self::plan('Hotspot', ['shared_users' => 1]);
+        $plan = self::plan('Hotspot', ['plan_expired' => $expired['id']]);
         $c = self::customer();
         self::recharge($c, $plan, '2031-01-01', '00:00:00');
         $dev = new \Radius();
@@ -146,7 +148,7 @@ final class RadiusDeviceLifecycleTest extends RadiusTestCase
         $this->assertSame('pw-' . $c['username'], $after['Cleartext-Password'], 'the expired plan keeps the login (legacy behaviour)');
         $this->assertArrayNotHasKey('Expiration', $after, 'restricted expired-plan profile without an end date (legacy behaviour)');
         $this->assertSame(['plan_' . $expired['id']], array_column(static::rows('SELECT groupname FROM radusergroup WHERE username = ?', [$c['username']]), 'groupname'));
-        $dev->remove_customer($c, $plan + ['plan_expired' => 0]);
+        $dev->remove_customer($c, ['plan_expired' => 0] + $plan);
         $this->assertMatchesRegularExpression('/^[0-9a-f]{48}$/', self::check($c['username'])['Cleartext-Password'], 'deactivation scrambles the password');
     }
 
