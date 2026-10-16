@@ -414,15 +414,24 @@ final class RenameOldSessionTest extends ActivationTestCase
         $old = 'a3b' . bin2hex(random_bytes(4));
         [$plan, $leaf, $c] = $this->activated(['username' => $old]);
         $this->customer(null, null, ['pppoe_username' => strtoupper($old)]);   // legacy data: an equivalent PPPoE username elsewhere
-        $this->open($old, 'a3amb02');
+        $session = $this->open($old, 'a3amb02');
         $stub = $this->stub('ack');
         // WP9 U0 final hardening (owner D-U0-R1, 2026-10-16): the old key has two logical owners (this customer and the
         // legacy PPPoE holder), so its RADIUS rows are never moved - the rename is refused before any write. Before
-        // D-U0-R1 (WP8 A3) the rename ran and the old session was left UNCONFIRMED; "nothing is sent" is unchanged
-        $before = static::$db->rows('SELECT username FROM tbl_customers WHERE id = ?', [$c]);
+        // D-U0-R1 (WP8 A3) the rename ran and the old session was left UNCONFIRMED; "nothing is sent" is unchanged.
+        // Owner D-FH-1 = APPROVED - FAIL_CLOSED_RENAME_PRECEDENCE (2026-10-16): the refusal precedes every RADIUS policy
+        // write and every Disconnect - the old key's policy rows (all three tables, exact bytes), the open session, the
+        // customer row and the NAS are untouched
+        $policy = fn(): array => array_map(fn(string $t): array => static::$db->rows("SELECT * FROM {$t} WHERE CAST(username AS BINARY) = CAST(? AS BINARY) ORDER BY id", [$old]),
+            ['radcheck' => 'radcheck', 'radreply' => 'radreply', 'radusergroup' => 'radusergroup']);
+        $rowsBefore = $policy();
+        $this->assertNotSame([], $rowsBefore['radcheck'], 'control: the old key has its policy');
+        $before = static::$db->rows('SELECT * FROM tbl_customers WHERE id = ?', [$c]);
         $this->expectExceptionReason('RENAME_AMBIGUOUS_IDENTITY', fn() => R::run($this->ctx('ad'), $c, R::IDENTITY_EDIT, ['username' => 'a3n' . bin2hex(random_bytes(4)), 'password' => '']));
-        $this->assertSame([], $stub->received());
-        $this->assertSame($before, static::$db->rows('SELECT username FROM tbl_customers WHERE id = ?', [$c]), 'nothing written');
+        $this->assertSame([], $stub->received(), 'no Disconnect sent');
+        $this->assertSame($before, static::$db->rows('SELECT * FROM tbl_customers WHERE id = ?', [$c]), 'nothing written');
+        $this->assertSame($rowsBefore, $policy(), 'no RADIUS policy write');
+        $this->assertNull(static::$db->value('SELECT acctstoptime FROM radacct WHERE radacctid = ?', [$session]), 'the old session is untouched');
     }
 
     // ------------------------------------------------------------------ I12 / I13: partial failure keeps the audit
