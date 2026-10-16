@@ -308,7 +308,7 @@ class Message
 
     public static function sendInvoice($cust, $trx)
     {
-        global $config, $db_pass;
+        global $config;
         $textInvoice = Lang::getNotifText('invoice_paid');
         $textInvoice = str_replace('[[company_name]]', $config['CompanyName'], $textInvoice);
         $textInvoice = str_replace('[[address]]', $config['address'], $textInvoice);
@@ -334,7 +334,7 @@ class Message
         $textInvoice = str_replace('[[expired_date]]', Lang::dateAndTimeFormat($trx['expiration'], $trx['time']), $textInvoice);
         $textInvoice = str_replace('[[footer]]', $config['note'], $textInvoice);
 
-        $inv_url = "?_route=voucher/invoice/$trx[id]/" . md5($trx['id'] . $db_pass);
+        $inv_url = "?_route=voucher/invoice/$trx[id]/" . (\Reseller\Security\AppKey::voucherInvoiceSignature($trx['id']) ?? '');
         $textInvoice = str_replace('[[invoice_link]]', $inv_url, $textInvoice);
 
         // Calculate bills and additional costs

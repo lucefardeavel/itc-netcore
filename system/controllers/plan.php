@@ -361,7 +361,7 @@ switch ($action) {
             $ui->assign('hlogo', $height);
         }
 
-        $ui->assign('public_url', getUrl("voucher/invoice/$id/".md5($id. $db_pass)));
+        $ui->assign('public_url', getUrl("voucher/invoice/$id/" . (\Reseller\Security\AppKey::voucherInvoiceSignature($id) ?? '')));
         $ui->assign('logo', $logo);
         $ui->assign('_title', 'View Invoice');
         $ui->display('admin/plan/invoice.tpl');

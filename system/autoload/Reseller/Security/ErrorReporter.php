@@ -101,7 +101,9 @@ final class ErrorReporter
     private static function secretValues(): array
     {
         $out = [];
-        foreach (['db_pass', 'api_secret', 'radius_pass'] as $g) {
+        // WP9-D / NEW-7 + N-11: every configured secret of this installation, incl. the application key and the
+        // FreeRADIUS rlm_rest secret
+        foreach (['db_pass', 'api_secret', 'radius_pass', 'app_secret', 'radius_rest_secret'] as $g) {
             if (isset($GLOBALS[$g]) && is_string($GLOBALS[$g]) && strlen($GLOBALS[$g]) >= 4) {
                 $out[] = $GLOBALS[$g];
             }

@@ -8,22 +8,93 @@
 
 class User
 {
+    /*
+     * WP9-D / NEW-7 + N-03 + NEW-6 (owner decision O7-A): customer tokens are signed with purpose subkeys
+     * of the dedicated application key ($app_secret, Reseller\Security\AppKey), never with $db_pass.
+     *   remember cookie  c3.{uid}.{iat}.{exp}.{mac}   purpose customer-cookie, at most 30 days
+     *   login link       l3.{uid}.{iat}.{exp}.{mac}   purpose customer-link, at most 30 days (?uid= only)
+     *   mac = HMAC(subkey, "<kind>|uid|iat|exp|<stored password>"): a password change revokes every token
+     * Verification is constant-time; a future issue time (60 s skew), an expired token, an unknown or
+     * malformed token and a token of the other kind are refused. Without a valid application key no
+     * token is issued or accepted (fail closed). The cookie is HttpOnly + SameSite=Lax (+ Secure on HTTPS).
+     */
+    public const TOKEN_MAX_AGE = 2592000;
+    public const TOKEN_FUTURE_SKEW = 60;
+
     public static function getID()
     {
-        global $db_pass;
         if (isset($_SESSION['uid']) && !empty($_SESSION['uid'])) {
             return $_SESSION['uid'];
         } else if (isset($_COOKIE['uid'])) {
-            // id.time.sha1
-            $tmp = explode('.', $_COOKIE['uid']);
-            if (sha1($tmp[0] . '.' . $tmp[1] . '.' . $db_pass) == $tmp[2]) {
-                if (time() - $tmp[1] < 86400 * 30) {
-                    $_SESSION['uid'] = $tmp[0];
-                    return $tmp[0];
+            $uid = self::verifyToken($_COOKIE['uid'], 'c3');
+            if ($uid > 0) {
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    session_regenerate_id(true);
                 }
+                $_SESSION['uid'] = $uid;
+                return $uid;
             }
+            self::removeCookie();
         }
         return 0;
+    }
+
+    /** ?uid= login link (boot.php): only an l3 link token is accepted, never a cookie token. */
+    public static function loginWithLink($token)
+    {
+        $uid = self::verifyToken($token, 'l3');
+        if ($uid <= 0) {
+            return 0;
+        }
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
+        $_SESSION['uid'] = $uid;
+        return $uid;
+    }
+
+    /** @return int customer id of a valid token of $kind, or 0 */
+    public static function verifyToken($token, $kind, $now = null)
+    {
+        if (!is_string($token) || strlen($token) > 200) {
+            return 0;
+        }
+        $p = explode('.', $token);
+        if (count($p) !== 5 || $p[0] !== $kind || !in_array($kind, ['c3', 'l3'], true)
+            || !preg_match('/^[1-9][0-9]{0,9}$/', $p[1]) || !preg_match('/^[1-9][0-9]{0,11}$/', $p[2]) || !preg_match('/^[1-9][0-9]{0,11}$/', $p[3])) {
+            return 0;
+        }
+        $now = $now ?? time();
+        $iat = (int) $p[2];
+        $exp = (int) $p[3];
+        if ($iat > $now + self::TOKEN_FUTURE_SKEW || $exp <= $now || $exp - $iat > self::TOKEN_MAX_AGE || $exp <= $iat) {
+            return 0;
+        }
+        $row = ORM::for_table('tbl_customers')->select('id')->select('password')->find_one((int) $p[1]);
+        if (!$row) {
+            return 0;
+        }
+        $purpose = $kind === 'c3' ? \Reseller\Security\AppKey::CUSTOMER_COOKIE : \Reseller\Security\AppKey::CUSTOMER_LINK;
+        $msg = $kind . '|' . (int) $row['id'] . '|' . $iat . '|' . $exp . '|' . (string) $row['password'];
+        return \Reseller\Security\AppKey::verify($purpose, $msg, $p[4]) ? (int) $row['id'] : 0;
+    }
+
+    /** @return string|null signed token of $kind valid for $seconds, or null (no key / unknown customer) */
+    public static function issueToken($uid, $kind, $seconds, $now = null)
+    {
+        $now = $now ?? time();
+        $seconds = max(60, min((int) $seconds, self::TOKEN_MAX_AGE));
+        if (!in_array($kind, ['c3', 'l3'], true)) {
+            return null;
+        }
+        $row = ORM::for_table('tbl_customers')->select('id')->select('password')->find_one((int) $uid);
+        if (!$row) {
+            return null;
+        }
+        $exp = $now + $seconds;
+        $purpose = $kind === 'c3' ? \Reseller\Security\AppKey::CUSTOMER_COOKIE : \Reseller\Security\AppKey::CUSTOMER_LINK;
+        $mac = \Reseller\Security\AppKey::mac($purpose, $kind . '|' . (int) $row['id'] . '|' . $now . '|' . $exp . '|' . (string) $row['password']);
+        return $mac === null ? null : $kind . '.' . (int) $row['id'] . '.' . $now . '.' . $exp . '.' . $mac;
     }
 
     public static function getTawkToHash($email)
@@ -166,29 +237,30 @@ class User
         return [];
     }
 
+    /**
+     * Login-link token for messages / invoices (?uid=), valid for $validDays days (1..30).
+     * WP9-D / NEW-6: the legacy token stayed valid for up to 59 days; it is now exactly $validDays.
+     * @return array{time:int,token:string}
+     */
     public static function generateToken($uid, $validDays = 30)
     {
-        global $db_pass;
-        if ($validDays >= 30) {
-            $time = time();
-        } else {
-            // for customer, deafult expired is 30 days
-            $time = strtotime('+ ' . (30 - $validDays) . ' days');
-        }
-
+        $days = max(1, min(30, (int) $validDays));
+        $time = time();
         return [
             'time' => $time,
-            'token' => $uid . '.' . $time . '.' . sha1($uid . '.' . $time . '.' . $db_pass)
+            'token' => (string) self::issueToken($uid, 'l3', $days * 86400, $time),
         ];
     }
 
     public static function setCookie($uid)
     {
-        global $db_pass;
         if (isset($uid)) {
-            $token = self::generateToken($uid);
-            setcookie('uid', $token['token'], time() + 86400 * 30, "/");
-            return $token;
+            $token = self::issueToken($uid, 'c3', self::TOKEN_MAX_AGE);
+            if ($token === null) {
+                return false;
+            }
+            setcookie('uid', $token, self::cookieOptions(time() + self::TOKEN_MAX_AGE));
+            return ['time' => time(), 'token' => $token];
         } else {
             return false;
         }
@@ -197,8 +269,19 @@ class User
     public static function removeCookie()
     {
         if (isset($_COOKIE['uid'])) {
-            setcookie('uid', '', time() - 86400, "/");
+            setcookie('uid', '', self::cookieOptions(time() - 86400));
         }
+    }
+
+    private static function cookieOptions($expires)
+    {
+        return [
+            'expires' => $expires,
+            'path' => '/',
+            'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ];
     }
 
     public static function _info($id = 0)

@@ -44,7 +44,10 @@ switch ($do) {
                     }
                     showResult(false, Lang::T('Invalid Username or Password'));
                 }
-                Admin::setCookie($d['id']);
+                // WP9-D / NEW-7: no staff session without the dedicated application key ($app_secret)
+                if (Admin::setCookie($d['id']) === '') {
+                    _alert(Lang::T('Login is unavailable: the application key is not configured') . '.', 'danger', "admin");
+                }
                 _alert(Lang::T('Login Successful'), 'success', "dashboard");
             } else {
                 if ($d) {

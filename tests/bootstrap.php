@@ -11,6 +11,10 @@ foreach (['Outcome', 'Db', 'SchemaInspector', 'Grants', 'MigrationDefinition', '
 if (!defined('NUXR_RUNTIME')) {
     define('NUXR_RUNTIME', true);
 }
+// WP9-D / NEW-7: in-process runtime code signs with the dedicated application key (never $db_pass)
+if (!isset($GLOBALS['app_secret'])) {
+    $GLOBALS['app_secret'] = bin2hex(random_bytes(32));
+}
 spl_autoload_register(static function (string $class) use ($root): void {
     if (preg_match('/^Reseller\\\\(Security|Domain|Audit|Finance|Radius|Activation)\\\\[A-Za-z0-9]+$/', $class)) {
         $file = $root . '/system/autoload/' . str_replace('\\', '/', $class) . '.php';

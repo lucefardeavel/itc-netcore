@@ -35,7 +35,7 @@ class Admin
         $session_timeout_duration = $config['session_timeout_duration'] ? intval($config['session_timeout_duration'] * 60) : intval(60 * 60); // Convert minutes to seconds
         if (!empty($_SESSION['aid'])) {
             $row = self::activeRow($_SESSION['aid']);
-            if ($row === null || !hash_equals(self::sessionFingerprint($row), (string) ($_SESSION['aid_pwfp'] ?? ''))) {
+            if ($row === null || !\Reseller\Security\AppKey::available() || !hash_equals(self::sessionFingerprint($row), (string) ($_SESSION['aid_pwfp'] ?? ''))) {
                 self::logoutSession();
                 return 0;
             }
@@ -61,7 +61,7 @@ class Admin
             $tmp = explode('.', $_COOKIE['aid']);
             if (count($tmp) === 3 && preg_match('/^[1-9][0-9]{0,9}$/', $tmp[0]) && preg_match('/^[1-9][0-9]{0,11}$/', $tmp[1])) {
                 $row = self::activeRow($tmp[0]);
-                if ($row !== null
+                if ($row !== null && \Reseller\Security\AppKey::available()
                     && hash_equals(self::cookieMac((int) $tmp[0], (int) $tmp[1], (string) $row['password']), $tmp[2])
                     && time() - (int) $tmp[1] < 86400 * 7 && (int) $tmp[1] <= time() + 60
                     && self::validateToken($row['id'], $_COOKIE['aid'])) {
@@ -93,7 +93,8 @@ class Admin
         $session_timeout_duration = intval($config['session_timeout_duration']) * 60; // Convert minutes to seconds
 
         $row = self::activeRow($aid, true);
-        if ($row === null) {
+        // WP9-D / NEW-7: no staff session or cookie without the dedicated application key (fail closed)
+        if ($row === null || !\Reseller\Security\AppKey::available()) {
             return '';
         }
         $time = time();
@@ -220,15 +221,15 @@ class Admin
         self::$verified = [];
     }
 
+    // WP9-D / NEW-7 (O7-A): purpose subkeys of the dedicated application key, never $db_pass; callers check
+    // AppKey::available() first, the '' fallback never verifies
     private static function sessionFingerprint(array $row)
     {
-        global $db_pass;
-        return hash_hmac('sha256', 'nuxr-admin-session|' . $row['id'] . '|' . $row['password'], (string) $db_pass);
+        return \Reseller\Security\AppKey::mac(\Reseller\Security\AppKey::STAFF_SESSION, 'nuxr-admin-session|' . $row['id'] . '|' . $row['password']) ?? '';
     }
 
     private static function cookieMac(int $id, int $time, string $passwordHash)
     {
-        global $db_pass;
-        return hash_hmac('sha256', 'nuxr-admin-cookie|v2|' . $id . '|' . $time . '|' . $passwordHash, (string) $db_pass);
+        return \Reseller\Security\AppKey::mac(\Reseller\Security\AppKey::STAFF_COOKIE, 'nuxr-admin-cookie|v3|' . $id . '|' . $time . '|' . $passwordHash) ?? '';
     }
 }

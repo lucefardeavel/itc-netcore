@@ -52,7 +52,7 @@ switch ($do) {
 
         // OTP verification if OTP is enabled
         if ($_c['sms_otp_registration'] == 'yes') {
-            $otpPath .= sha1("$phone_number$db_pass") . ".txt";
+            $otpPath .= \Reseller\Security\AppKey::otpStem((string) $phone_number) . ".txt";
             run_hook('validate_otp'); #HOOK
             // Expire after 10 minutes
             if (file_exists($otpPath) && time() - filemtime($otpPath) > 1200) {
@@ -217,7 +217,7 @@ switch ($do) {
                     mkdir($otpPath);
                     touch($otpPath . 'index.html');
                 }
-                $otpPath .= sha1($phone_number . $db_pass) . ".txt";
+                $otpPath .= \Reseller\Security\AppKey::otpStem((string) $phone_number) . ".txt";
                 if (file_exists($otpPath) && time() - filemtime($otpPath) < 600) {
                     $ui->assign('phone_number', $phone_number);
                     $ui->assign('notify', 'Please wait ' . (600 - (time() - filemtime($otpPath))) . ' seconds before sending another SMS');

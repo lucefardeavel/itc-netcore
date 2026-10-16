@@ -1,0 +1,35 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/new7-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/W9KeySeparationTest.php
+start: 2026-10-16T18:33:56Z
+ Container nuxbill-reseller-test-php82-run-f41c642fb948 Creating 
+ Container nuxbill-reseller-test-php82-run-f41c642fb948 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...F......                                                        10 / 10 (100%)
+
+Time: 00:05.561, Memory: 10.00 MB
+
+W9Key Separation (Reseller\Tests\Http\W9KeySeparation)
+ ✔ Customer login positive control
+ ✔ Legacy customer cookie signed with db pass is refused
+ ✔ Legacy login link signed with db pass is refused
+ ✘ Legacy staff cookie signed with db pass is refused
+   │
+   │ legacy db_pass staff cookie must not authenticate: 302 http://127.0.0.1:22833/?_route=login 
+   │ Failed asserting that false is true.
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:80
+   │
+ ✔ Staff login positive control
+ ✔ Legacy voucher invoice signature is refused and new one works
+ ✔ New customer cookie contract
+ ✔ New login link contract
+ ✔ Password change revokes customer tokens
+ ✔ Customer cookie flags
+
+FAILURES!
+Tests: 10, Assertions: 27, Failures: 1.
+
+exit=1 end: 2026-10-16T18:34:04Z

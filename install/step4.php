@@ -51,6 +51,9 @@ $db_name	    = "' . $db_name . '";
 // Dedicated API signing secret (WP2 / OD-3): never derived from the database password
 $api_secret     = "' . bin2hex(random_bytes(32)) . '";
 
+// Dedicated application key (WP9-D / NEW-7): signs sessions, links and OTP names; never the database password
+$app_secret     = "' . bin2hex(random_bytes(32)) . '";
+
 // Database Radius
 $radius_host	    = "' . $db_host . '";
 $radius_user        = "' . $db_user . '";
@@ -84,6 +87,9 @@ $db_name	    = "' . $db_name . '";
 
 // Dedicated API signing secret (WP2 / OD-3): never derived from the database password
 $api_secret     = "' . bin2hex(random_bytes(32)) . '";
+
+// Dedicated application key (WP9-D / NEW-7): signs sessions, links and OTP names; never the database password
+$app_secret     = "' . bin2hex(random_bytes(32)) . '";
 
 if($_app_stage!="Live"){
     error_reporting(E_ERROR);

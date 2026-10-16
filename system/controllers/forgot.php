@@ -28,7 +28,7 @@ if ($step == 1) {
         setcookie('forgot_username', $username, time() + 3600, '/');
         $user = ORM::for_table('tbl_customers')->selects(['phonenumber', 'email'])->where('username', $username)->find_one();
         if ($user) {
-            $otpPath .= sha1($username . $db_pass) . ".txt";
+            $otpPath .= \Reseller\Security\AppKey::otpStem((string) $username) . ".txt";
             if (file_exists($otpPath) && time() - filemtime($otpPath) < 600) {
                 $sec = time() - filemtime($otpPath);
                 $ui->assign('notify_t', 's');
@@ -67,7 +67,7 @@ if ($step == 1) {
     $username = _post('username');
     $otp_code = _post('otp_code');
     if (!empty($username) && !empty($otp_code)) {
-        $otpPath .= sha1($username . $db_pass) . ".txt";
+        $otpPath .= \Reseller\Security\AppKey::otpStem((string) $username) . ".txt";
         if (file_exists($otpPath) && time() - filemtime($otpPath) <= 600) {
             $stored = file_get_contents($otpPath);
             // Backward/forward compatible: "<otp>" or "<otp>|<attempts_left>".
@@ -125,7 +125,7 @@ if ($step == 1) {
         if (!file_exists($otpPath)) {
             mkdir($otpPath);
         }
-        $otpPath .= sha1($find . $db_pass) . ".txt";
+        $otpPath .= \Reseller\Security\AppKey::otpStem((string) $find) . ".txt";
         $users = ORM::for_table('tbl_customers')->selects(['username', 'phonenumber', 'email'])->where('phonenumber', $find)->find_array();
         if ($users) {
             // prevent flooding only can request every 10 minutes

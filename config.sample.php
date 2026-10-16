@@ -18,6 +18,14 @@ $db_user    = "root"; # Database Username
 $db_pass    = ""; # Database Password
 $db_name    = "phpnuxbill"; # Database Name
 
+// Dedicated application key (WP9-D / NEW-7): signs staff and customer sessions, login links, public invoice
+// links and OTP file names. At least 32 random characters, never the database password, the API secret or the
+// FreeRADIUS secret. Without it staff login, remember cookies, login links, invoice links and OTP fail closed.
+// Generate once per installation: php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'
+$app_secret = "";
+// Dedicated API signing secret (WP2 / OD-3): at least 32 characters; without it the API fails closed.
+// $api_secret = "";
+
 // FreeRADIUS rlm_rest endpoint (radius.php) - OFF unless a secret of at least 32 characters is set.
 // See install/freeradius/README.md. The secret is the HTTP Basic password of the FreeRADIUS rest module.
 // $radius_rest_secret = "";

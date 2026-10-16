@@ -93,8 +93,9 @@ if ($handler == '') {
     $handler = 'default';
 }
 try {
-    if (!empty($_GET['uid'])) {
-        $_COOKIE['uid'] = $_GET['uid'];
+    // WP9-D / NEW-7 + N-03: ?uid= accepts only a signed, short-lived login-link token (never a cookie token)
+    if (!empty($_GET['uid']) && is_string($_GET['uid'])) {
+        User::loginWithLink($_GET['uid']);
     }
     $admin = Admin::_info();
 

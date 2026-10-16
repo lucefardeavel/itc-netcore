@@ -110,7 +110,7 @@ PHP;
         }
     }
 
-    /** @param array{api_secret?:string|null,extra_config?:string} $opts */
+    /** @param array{api_secret?:string|null,app_secret?:string|null,extra_config?:string} $opts */
     public static function create(TestDatabase $db, array $opts = []): self
     {
         $root = dirname(__DIR__, 2);
@@ -142,18 +142,35 @@ PHP;
         // an unmapped controller (must be denied for every role by RouteGuard)
         file_put_contents($dir . '/system/controllers/wp2probe.php', "<?php\n@file_put_contents(__DIR__ . '/../../wp2_probe/controller.log', \"ran\\n\", FILE_APPEND);\necho 'WP2PROBE_CONTROLLER';\n");
         $app = new self($db, $dir);
-        $app->writeConfig(array_key_exists('api_secret', $opts) ? $opts['api_secret'] : bin2hex(random_bytes(32)), $opts['extra_config'] ?? '');
+        $app->writeConfig(array_key_exists('api_secret', $opts) ? $opts['api_secret'] : bin2hex(random_bytes(32)), $opts['extra_config'] ?? '', array_key_exists('app_secret', $opts) ? $opts['app_secret'] : false);
         return $app;
     }
 
-    public function writeConfig(?string $apiSecret, string $extra = ''): void
+    /** WP9-D / NEW-7: the dedicated application key of this app copy (stable across config rewrites) */
+    private ?string $appSecret = null;
+    private bool $appSecretSet = false;
+
+    public function writeConfig(?string $apiSecret, string $extra = '', string|false|null $appSecret = false): void
     {
+        if ($appSecret !== false) {
+            $this->appSecret = $appSecret;
+            $this->appSecretSet = true;
+        } elseif (!$this->appSecretSet) {
+            $this->appSecret = bin2hex(random_bytes(32));
+            $this->appSecretSet = true;
+        }
         $cfg = "<?php\n\$protocol = 'http://';\n\$host = \$_SERVER['HTTP_HOST'] ?? '127.0.0.1';\ndefine('APP_URL', \$protocol . \$host);\n"
             . "\$_app_stage = 'Live';\n\$db_host = " . var_export($this->db->host, true) . ";\n\$db_user = 'root';\n"
             . "\$db_pass = " . var_export(TestDatabase::rootPassword(), true) . ";\n\$db_name = " . var_export($this->db->name, true) . ";\n"
             . ($apiSecret !== null ? "\$api_secret = " . var_export($apiSecret, true) . ";\n" : '')
+            . ($this->appSecret !== null ? "\$app_secret = " . var_export($this->appSecret, true) . ";\n" : '')
             . "error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);\nini_set('display_errors', 1);\n" . $extra;
         file_put_contents($this->dir . '/config.php', $cfg);
+    }
+
+    public function appSecret(): ?string
+    {
+        return $this->appSecret;
     }
 
     public function apiSecret(): ?string

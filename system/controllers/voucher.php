@@ -12,10 +12,11 @@ $action = $routes['1'];
 if(!_auth(false)){
     if($action== 'invoice'){
         // WP2 / NEW-5: the public invoice link requires a positive integer id and a matching signature
-        // (constant-time); an empty id never selects "the latest transaction of any customer"
+        // (constant-time; WP9-D / NEW-7: an AppKey purpose subkey, never $db_pass); an empty id never selects "the latest transaction of any customer"
         $id = $routes[2] ?? '';
         $sign = $routes[3] ?? '';
-        if (!is_string($id) || !preg_match('/^[1-9][0-9]{0,18}$/', $id) || !is_string($sign) || !hash_equals(md5($id . $db_pass), $sign)) {
+        if (!is_string($id) || !preg_match('/^[1-9][0-9]{0,18}$/', $id) || !is_string($sign)
+            || ($nuxrSig = \Reseller\Security\AppKey::voucherInvoiceSignature($id)) === null || !hash_equals($nuxrSig, $sign)) {
             http_response_code(404);
             $ui->display('customer/404.tpl');
             die();
@@ -33,7 +34,7 @@ if(!_auth(false)){
                 $ui->assign('wlogo', $width);
                 $ui->assign('hlogo', $height);
             }
-            $ui->assign('public_url', getUrl("voucher/invoice/$id/".md5($id. $db_pass)));
+            $ui->assign('public_url', getUrl("voucher/invoice/$id/" . (\Reseller\Security\AppKey::voucherInvoiceSignature($id) ?? '')));
             $ui->assign('logo', $logo);
             $ui->display('customer/invoice-customer.tpl');
             die();
@@ -114,7 +115,7 @@ switch ($action) {
                 $ui->assign('wlogo', $width);
                 $ui->assign('hlogo', $height);
             }
-            $ui->assign('public_url', getUrl("voucher/invoice/$id/".md5($id. $db_pass)));
+            $ui->assign('public_url', getUrl("voucher/invoice/$id/" . (\Reseller\Security\AppKey::voucherInvoiceSignature($id) ?? '')));
             $ui->assign('logo', $logo);
             $ui->display('customer/invoice-customer.tpl');
         } else {

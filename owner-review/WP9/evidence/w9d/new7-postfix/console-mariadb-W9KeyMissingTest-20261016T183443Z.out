@@ -1,0 +1,19 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9d/new7-postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/W9KeyMissingTest.php
+start: 2026-10-16T18:34:43Z
+ Container nuxbill-reseller-test-php82-run-44c9e1cf0b2c Creating 
+ Container nuxbill-reseller-test-php82-run-44c9e1cf0b2c Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:02.375, Memory: 10.00 MB
+
+W9Key Missing (Reseller\Tests\Http\W9KeyMissing)
+ ✔ Staff login fails closed
+ ✔ Customer gets no remember cookie and links are refused
+
+OK (2 tests, 5 assertions)
+exit=0 end: 2026-10-16T18:34:47Z

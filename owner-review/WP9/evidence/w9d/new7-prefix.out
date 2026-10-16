@@ -1,0 +1,132 @@
+== mariadb
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.FFF.FEEEF                                                        10 / 10 (100%)
+Time: 00:02.939, Memory: 10.00 MB
+W9Key Separation (Reseller\Tests\Http\W9KeySeparation)
+ ✔ Customer login positive control
+ ✘ Legacy customer cookie signed with db pass is refused
+   │
+   │ legacy db_pass cookie must not authenticate
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:62
+   │
+ ✘ Legacy login link signed with db pass is refused
+   │
+   │ legacy db_pass ?uid= token must not authenticate
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:70
+   │
+ ✘ Legacy staff cookie signed with db pass is refused
+   │
+   │ legacy db_pass staff cookie must not authenticate: 200   Dashboard - PHPNuxBill var appUrl = 'http://127.0.0.1:26524'; Skip to content P PHPNuxBill Dashboard Search subscribers / S Staff A Staff AAgent My Account Change Password العربية Light / dark theme Install app Logout Dashboard WP2 Fail PDOWP2 Fail Type Subscribers All subscribers Activations Add subscriber Active Customers Finance Wallet overview Wallets Ledger Transfers Resellers Reselle
+   │ Failed asserting that false is true.
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:80
+   │
+ ✔ Staff login positive control
+ ✘ Legacy voucher invoice signature is refused and new one works
+   │
+   │ legacy md5(id . db_pass) link must be refused
+   │ Failed asserting that 200 is identical to 404.
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:94
+   │
+ ✘ New customer cookie contract
+   │
+   │ Error: Call to undefined method Reseller\Tests\Support\AppServer::appSecret()
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:33
+   │ /repo/tests/Http/W9KeySeparationTest.php:104
+   │
+ ✘ New login link contract
+   │
+   │ Error: Call to undefined method Reseller\Tests\Support\AppServer::appSecret()
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:33
+   │ /repo/tests/Http/W9KeySeparationTest.php:121
+   │
+ ✘ Password change revokes customer tokens
+   │
+   │ Error: Call to undefined method Reseller\Tests\Support\AppServer::appSecret()
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:33
+   │ /repo/tests/Http/W9KeySeparationTest.php:130
+   │
+ ✘ Customer cookie flags
+   │
+   │ Failed asserting that 'uid=6.1792175656.41c92b7988c4a8819130ca21e6b3429e35584c53; expires=Sun, 15 Nov 2026 18:34:16 GMT; Max-Age=2592000; path=/' matches PCRE pattern "/^uid=c3\.\d+\.\d+\.\d+\.[0-9a-f]{64};/".
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:148
+   │
+ERRORS!
+Tests: 10, Assertions: 10, Errors: 3, Failures: 5.
+== mysql
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.FFF.FEEEF                                                        10 / 10 (100%)
+Time: 00:05.286, Memory: 10.00 MB
+W9Key Separation (Reseller\Tests\Http\W9KeySeparation)
+ ✔ Customer login positive control
+ ✘ Legacy customer cookie signed with db pass is refused
+   │
+   │ legacy db_pass cookie must not authenticate
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:62
+   │
+ ✘ Legacy login link signed with db pass is refused
+   │
+   │ legacy db_pass ?uid= token must not authenticate
+   │ Failed asserting that true is false.
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:70
+   │
+ ✘ Legacy staff cookie signed with db pass is refused
+   │
+   │ legacy db_pass staff cookie must not authenticate: 200   Dashboard - PHPNuxBill var appUrl = 'http://127.0.0.1:22010'; Skip to content P PHPNuxBill Dashboard Search subscribers / S Staff A Staff AAgent My Account Change Password العربية Light / dark theme Install app Logout Dashboard WP2 Fail PDOWP2 Fail Type Subscribers All subscribers Activations Add subscriber Active Customers Finance Wallet overview Wallets Ledger Transfers Resellers Reselle
+   │ Failed asserting that false is true.
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:80
+   │
+ ✔ Staff login positive control
+ ✘ Legacy voucher invoice signature is refused and new one works
+   │
+   │ legacy md5(id . db_pass) link must be refused
+   │ Failed asserting that 200 is identical to 404.
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:94
+   │
+ ✘ New customer cookie contract
+   │
+   │ Error: Call to undefined method Reseller\Tests\Support\AppServer::appSecret()
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:33
+   │ /repo/tests/Http/W9KeySeparationTest.php:104
+   │
+ ✘ New login link contract
+   │
+   │ Error: Call to undefined method Reseller\Tests\Support\AppServer::appSecret()
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:33
+   │ /repo/tests/Http/W9KeySeparationTest.php:121
+   │
+ ✘ Password change revokes customer tokens
+   │
+   │ Error: Call to undefined method Reseller\Tests\Support\AppServer::appSecret()
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:33
+   │ /repo/tests/Http/W9KeySeparationTest.php:130
+   │
+ ✘ Customer cookie flags
+   │
+   │ Failed asserting that 'uid=6.1792175663.5f9286d9ff1d57916cc6cf49e4c32cacc31a353b; expires=Sun, 15 Nov 2026 18:34:23 GMT; Max-Age=2592000; path=/' matches PCRE pattern "/^uid=c3\.\d+\.\d+\.\d+\.[0-9a-f]{64};/".
+   │
+   │ /repo/tests/Http/W9KeySeparationTest.php:148
+   │
+ERRORS!
+Tests: 10, Assertions: 10, Errors: 3, Failures: 5.

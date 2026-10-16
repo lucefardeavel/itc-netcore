@@ -220,8 +220,8 @@ switch ($action) {
             mkdir($otpPath);
             touch($otpPath . 'index.html');
         }
-        $otpFile = $otpPath . sha1($username . $db_pass) . ".txt";
-        $phoneFile = $otpPath . sha1($username . $db_pass) . "_phone.txt";
+        $otpFile = $otpPath . \Reseller\Security\AppKey::otpStem((string) $username) . ".txt";
+        $phoneFile = $otpPath . \Reseller\Security\AppKey::otpStem((string) $username) . "_phone.txt";
 
         // expired 10 minutes
         if (file_exists($otpFile) && time() - filemtime($otpFile) < 600) {
@@ -264,8 +264,8 @@ switch ($action) {
             r2(getUrl('accounts/phone-update'), 'e', Lang::T('SMS server not Available, Please try again later'));
         }
 
-        $otpFile = $otpPath . sha1($username . $db_pass) . ".txt";
-        $phoneFile = $otpPath . sha1($username . $db_pass) . "_phone.txt";
+        $otpFile = $otpPath . \Reseller\Security\AppKey::otpStem((string) $username) . ".txt";
+        $phoneFile = $otpPath . \Reseller\Security\AppKey::otpStem((string) $username) . "_phone.txt";
 
         // Check if OTP file exists
         if (!file_exists($otpFile)) {
@@ -339,8 +339,8 @@ switch ($action) {
             mkdir($otpPath);
             touch($otpPath . 'index.html');
         }
-        $otpFile = $otpPath . sha1($username . $db_pass) . ".txt";
-        $emailFile = $otpPath . sha1($username . $db_pass) . "_email.txt";
+        $otpFile = $otpPath . \Reseller\Security\AppKey::otpStem((string) $username) . ".txt";
+        $emailFile = $otpPath . \Reseller\Security\AppKey::otpStem((string) $username) . "_email.txt";
 
         // expired 10 minutes
         if (file_exists($otpFile) && time() - filemtime($otpFile) < 600) {
@@ -377,8 +377,8 @@ switch ($action) {
             r2(getUrl('accounts/email-update'), 'e', Lang::T('Email server not Available, Please ask admin to configure it'));
         }
 
-        $otpFile = $otpPath . sha1($username . $db_pass) . ".txt";
-        $emailFile = $otpPath . sha1($username . $db_pass) . "_email.txt";
+        $otpFile = $otpPath . \Reseller\Security\AppKey::otpStem((string) $username) . ".txt";
+        $emailFile = $otpPath . \Reseller\Security\AppKey::otpStem((string) $username) . "_email.txt";
 
         // Check if OTP file exists
         if (!file_exists($otpFile)) {
