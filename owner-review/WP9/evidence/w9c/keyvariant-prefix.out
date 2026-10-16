@@ -1,0 +1,21 @@
+pre-fix tree: 7e46758114545dd4a6d2b0179e9d5d7ceb60e643 (+ the new test files only)
+== mariadb tests/Http/W9KeyVariantDeviceTest.php start 2026-10-16T20:46:18Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.                                                                   1 / 1 (100%)
+Time: 00:03.330, Memory: 10.00 MB
+W9Key Variant Device (Reseller\Tests\Http\W9KeyVariantDevice)
+ ✔ Whitespace variants never reach the owned key
+OK (1 test, 22 assertions)
+exit=0
+== mysql tests/Http/W9KeyVariantDeviceTest.php start 2026-10-16T20:46:23Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.                                                                   1 / 1 (100%)
+Time: 00:06.356, Memory: 10.00 MB
+W9Key Variant Device (Reseller\Tests\Http\W9KeyVariantDevice)
+ ✔ Whitespace variants never reach the owned key
+OK (1 test, 22 assertions)
+exit=0

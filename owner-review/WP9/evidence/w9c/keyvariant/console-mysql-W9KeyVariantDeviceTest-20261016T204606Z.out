@@ -1,0 +1,18 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP9/evidence/w9c/keyvariant/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/W9KeyVariantDeviceTest.php
+start: 2026-10-16T20:46:06Z
+ Container nuxbill-reseller-test-php82-run-5106c9ed6422 Creating 
+ Container nuxbill-reseller-test-php82-run-5106c9ed6422 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:08.277, Memory: 10.00 MB
+
+W9Key Variant Device (Reseller\Tests\Http\W9KeyVariantDevice)
+ ✔ Whitespace variants never reach the owned key
+
+OK (1 test, 22 assertions)
+exit=0 end: 2026-10-16T20:46:16Z
