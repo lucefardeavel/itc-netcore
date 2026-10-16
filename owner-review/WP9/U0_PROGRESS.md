@@ -60,3 +60,7 @@ Resume rule: read this file, `U0_DESIGN.md` and `REPORT.md` §U0; `git log --one
 | Full harness | DONE | docs commit | `evidence/rfc4e/final` | 1368 per engine, 0 failures, 104 lab-incomplete, registry OK, exit 0; MySQL 3 assertions fewer (run-dependent, see §RFC4E.6) |
 | Review pack v3 | DONE | — | `/root/Downloads/WP9_U0_INDEPENDENT_OWNER_REVIEW_PACK_v3` | v1 / v2 unchanged |
 
+## Acceptance (2026-10-16)
+
+**`WP9_U0_DEVELOPMENT_ACCEPTED_WITH_NOTES`** at `30ceaa09` (owner, after the review of pack v3). U0 is closed as a development unit. Do not re-open it without new evidence of a real defect. The remaining work is listed in `WP8_WP9_UNIFIED_CLOSURE_AND_RELEASE_ROADMAP.md` §5.
+

@@ -906,3 +906,19 @@ Kept: `pre-run1-run-name-clash` (the test's helper `run()` clashed with PHPUnit'
 ### RFC4E.7 Result
 Commits: `ec9d695f` (fix + tests); docs / evidence commit (see git log). Rollback: `git revert ec9d695f` (restores the byte-exact R-FC-4 guard; no data migration). Independent review pack v3: `/root/Downloads/WP9_U0_INDEPENDENT_OWNER_REVIEW_PACK_v3` (v1 / v2 unchanged). Open production blockers unchanged from §FC.10 / §RFC4.9, plus §RFC4E.5.
 **`WP9_U0_RFC4E_READY_FOR_FINAL_OWNER_REVIEW`** — `PRODUCTION_NOT_AUTHORIZED`; `STOPPED_WAITING_OWNER_REVIEW`.
+
+## U0-ACC — U0 development acceptance record (2026-10-16)
+
+Owner decision **`WP9_U0_DEVELOPMENT_ACCEPTED_WITH_NOTES`**, after the independent review of `WP9_U0_INDEPENDENT_OWNER_REVIEW_PACK_v3` (code, tests, patches).
+- **Accepted HEAD:** `30ceaa09ad34cf4b6ba052d9d06dd54b3b72e0b1` (verified before recording). The last product change is `ec9d695f`.
+- **Earlier sections:** §T0 … §RFC4E stay as written.
+- **Closed within the demonstrated application scope:** V1, V2, V4, R-FC-4, R-FC-4E. Also N-14, O-U0-1 / grant confirmation, the open-transaction guard, N-07 voucher credential exposure (N-07b), and D-FH-1 (approved).
+- **Open:**
+  - OBS-1 overall (existing duplicate data, external writers);
+  - CHR / real-NAS tests (104 incomplete);
+  - A2-R (`UNVERIFIED_SECURITY_RISK — PRODUCTION BLOCKER`);
+  - operational recovery;
+  - all other WP9 and WP10 items.
+
+The unified WP8 / WP9 reconciliation, the open-findings matrix and the remaining plan are in `WP8_WP9_UNIFIED_CLOSURE_AND_RELEASE_ROADMAP.md`. **WP9 is not accepted; production is not authorized.**
+
