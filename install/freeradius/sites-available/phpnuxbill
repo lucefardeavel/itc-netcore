@@ -53,6 +53,50 @@ authorize {
 	# Max-All-Session / Max-Data quotas of the current billing period
 	nuxr_timecounter
 	nuxr_datacounter
+	#
+	#  V1 DATA QUOTA INSIDE THE SESSION (owner QUOTA_V1_GB_SUPPORT_APPROVED, 2026-10-17). The NAS itself limits the
+	#  session to the subscriber's per-session share of the REMAINING period quota:
+	#    share = (Max-Data - usage of the sessions started in the current period) / Simultaneous-Use
+	#  sent as Mikrotik-Total-Limit (the Hotspot enforces the total) and Mikrotik-Recv-Limit / Mikrotik-Xmit-Limit
+	#  (PPPoE: RouterOS 7.24.5 ignores Total-Limit and enforces these per direction), each with its Gigawords part
+	#  (measured on the lab CHR: dev/wp8/quota_gate.py). The PPPoE upload + download total is closed by the accounting
+	#  enforcer system/reseller/quota.php. (No braces inside %{sql:...}: FreeRADIUS ends the expansion at the first "}".)
+	#  FAIL CLOSED: the computation is ONE statement over ONE parameter row whose
+	#  values are validated by the database (an emptied expansion - the WP8 A2-R failure mode - or an error gives
+	#  anything but "q=<n>,<n>"), and a share of 0 is never sent (RouterOS reads 0 as "no limit"): both reject.
+	#
+	#  The quota rows PHPNuxBill wrote must be exactly what FreeRADIUS loaded: at most one Max-Data / Max-All-Session row
+	#  each, digits only, equal to the control value. A malformed row (e.g. "1e9", which the integer parser can read as a
+	#  different number) or a row that was not loaded would otherwise give a wrong quota or none: reject (fail closed;
+	#  an emptied expansion also rejects).
+	#
+	if ("%{sql:SELECT IF((COALESCE(SUM(attribute = 'Max-Data'), 0) = 0 OR (SUM(attribute = 'Max-Data') = 1 AND MAX(IF(attribute = 'Max-Data', value, NULL)) REGEXP '^[0-9]+$' AND MAX(IF(attribute = 'Max-Data', value, NULL)) = '%{control:Max-Data}')) AND (COALESCE(SUM(attribute = 'Max-All-Session'), 0) = 0 OR (SUM(attribute = 'Max-All-Session') = 1 AND MAX(IF(attribute = 'Max-All-Session', value, NULL)) REGEXP '^[0-9]+$' AND MAX(IF(attribute = 'Max-All-Session', value, NULL)) = '%{control:Max-All-Session}')), 'ok', 'bad') FROM radcheck WHERE username = '%{User-Name}' AND attribute IN ('Max-Data', 'Max-All-Session')}" != "ok") {
+		update reply {
+			&Reply-Message := "Quota unavailable"
+		}
+		reject
+	}
+	if (&control:Max-Data) {
+		update request {
+			&Nuxr-Quota-Share := "%{sql:SELECT IF(y.u = '' OR y.m NOT REGEXP '^[0-9]+$' OR CHAR_LENGTH(y.m) > 19 OR y.t NOT REGEXP '^[0-9]+$' OR CHAR_LENGTH(y.t) > 12 OR y.n NOT REGEXP '^[1-9][0-9]*$' OR CHAR_LENGTH(y.n) > 6, 'invalid', CONCAT('q=', y.x DIV 4294967296, ',', y.x MOD 4294967296)) FROM (SELECT p.u, p.m, p.t, p.n, FLOOR(GREATEST(0, CAST(p.m AS DECIMAL(20,0)) - (SELECT IFNULL(SUM(IFNULL(r.acctinputoctets, 0) + IFNULL(r.acctoutputoctets, 0)), 0) FROM radacct r WHERE r.username = p.u AND r.acctstarttime >= FROM_UNIXTIME(CAST(p.t AS UNSIGNED)))) / CAST(p.n AS UNSIGNED)) AS x FROM (SELECT '%{User-Name}' AS u, '%{control:Max-Data}' AS m, '%{%{control:Nuxr-Period-Start}:-0}' AS t, '%{%{control:Simultaneous-Use}:-1}' AS n) AS p) AS y}"
+		}
+		if ((&Nuxr-Quota-Share =~ /^q=([0-9]+),([0-9]+)$/) && (&Nuxr-Quota-Share != "q=0,0")) {
+			update reply {
+				&Mikrotik-Total-Limit-Gigawords := "%{1}"
+				&Mikrotik-Total-Limit := "%{2}"
+				&Mikrotik-Recv-Limit-Gigawords := "%{1}"
+				&Mikrotik-Recv-Limit := "%{2}"
+				&Mikrotik-Xmit-Limit-Gigawords := "%{1}"
+				&Mikrotik-Xmit-Limit := "%{2}"
+			}
+		}
+		else {
+			update reply {
+				&Reply-Message := "Data quota exhausted or unavailable"
+			}
+			reject
+		}
+	}
 	pap
 }
 
@@ -72,7 +116,19 @@ preacct {
 
 accounting {
 	# accounting history (radacct): written by FreeRADIUS only
-	sql
+	#
+	#  V1 data quota - usage never decreases: an Interim-Update that is stale (re-ordered or retransmitted late: smaller
+	#  counters than already stored, or after the Stop of its session) is acknowledged but NOT written; the stock
+	#  interim query would overwrite the stored counters with it. Start, Stop and a first Interim-Update (no row yet:
+	#  the stock query inserts it) are written as before. A failed check also skips the write (a skipped interim only
+	#  delays the usage; a lowered usage would give quota back).
+	#
+	if ((&Acct-Status-Type == Interim-Update) && ("%{sql:SELECT IF(COUNT(*) = 0, 'fresh', 'stale') FROM radacct WHERE acctuniqueid = '%{Acct-Unique-Session-Id}' AND (acctstoptime IS NOT NULL OR acctinputoctets > ((%{%{Acct-Input-Gigawords}:-0} << 32) | %{%{Acct-Input-Octets}:-0}) OR acctoutputoctets > ((%{%{Acct-Output-Gigawords}:-0} << 32) | %{%{Acct-Output-Octets}:-0}))}" != "fresh")) {
+		ok
+	}
+	else {
+		sql
+	}
 	#
 	#  WP8 A2-R - PPPoE ADMISSION RESERVATION, accounting side. Only an accounting request that carries the per-attempt
 	#  Class token of this deployment (0x6e75787231 = "nuxr1" + 16 random bytes) may change a reservation, and only the

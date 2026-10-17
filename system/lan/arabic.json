@@ -1552,5 +1552,6 @@
   "Slow_connection": "اتصال بطيء",
   "The_app_was_updated_in_another_tab__Reload_this_page_when_convenient_": "تم تحديث التطبيق في علامة تبويب أخرى. أعد تحميل هذه الصفحة عندما يناسبك.",
   "The_installed_app_opens_the_same_pages__sign_in__permissions_and_every_operation_stay_exactly_the_same__and_the_browser_keeps_working_as_before_": "يفتح التطبيق المثبّت الصفحات نفسها: تسجيل الدخول والصلاحيات وكل العمليات تبقى كما هي تماماً، ويستمر المتصفح بالعمل كما كان.",
-  "You_are_offline__Changes_cannot_be_sent__and_the_information_on_screen_may_not_be_current_": "أنت غير متصل. لا يمكن إرسال التغييرات، وقد لا تكون المعلومات المعروضة محدّثة."
+  "You_are_offline__Changes_cannot_be_sent__and_the_information_on_screen_may_not_be_current_": "أنت غير متصل. لا يمكن إرسال التغييرات، وقد لا تكون المعلومات المعروضة محدّثة.",
+  "A_limited_plan_needs_a_positive_time_or_data_limit": "الباقة المحدودة تحتاج إلى حد زمني أو حد بيانات بقيمة موجبة"
 }

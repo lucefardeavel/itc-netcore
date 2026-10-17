@@ -43,13 +43,16 @@ final class RadiusPacket
         'Acct-Terminate-Cause' => [49, 'integer'], 'Acct-Input-Gigawords' => [52, 'integer'], 'Acct-Output-Gigawords' => [53, 'integer'],
         'Event-Timestamp' => [55, 'date'], 'CHAP-Challenge' => [60, 'octets'], 'NAS-Port-Type' => [61, 'integer'],
         'Port-Limit' => [62, 'integer'], 'Message-Authenticator' => [80, 'octets'], 'Framed-Pool' => [88, 'string'],
-        'Error-Cause' => [101, 'integer'],
+        'Acct-Interim-Interval' => [85, 'integer'], 'Error-Cause' => [101, 'integer'],
     ];
 
     /** Vendor-Specific (26): name => [vendor id, vendor type, type] */
     public const VENDOR = [
         'Mikrotik-Rate-Limit' => [14988, 8, 'string'], 'Mikrotik-Total-Limit' => [14988, 17, 'integer'],
         'Mikrotik-Total-Limit-Gigawords' => [14988, 18, 'integer'],
+        // V1 data quota: RouterOS enforces only these two (per direction) for PPPoE; Total-Limit for Hotspot
+        'Mikrotik-Recv-Limit' => [14988, 1, 'integer'], 'Mikrotik-Xmit-Limit' => [14988, 2, 'integer'],
+        'Mikrotik-Recv-Limit-Gigawords' => [14988, 14, 'integer'], 'Mikrotik-Xmit-Limit-Gigawords' => [14988, 15, 'integer'],
         'WISPr-Bandwidth-Max-Up' => [14122, 7, 'integer'], 'WISPr-Bandwidth-Max-Down' => [14122, 8, 'integer'],
         'WISPr-Session-Terminate-Time' => [14122, 9, 'string'],
     ];

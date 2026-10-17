@@ -264,6 +264,11 @@ switch ($action) {
         if ($name == '' or $id_bw == '' or $price == '' or $validity == '') {
             $msg .= Lang::T('All field is required') . '<br>';
         }
+        // V1 (QuotaPolicy, owner QUOTA_V1_GB_SUPPORT_APPROVED): a Limited plan needs a positive time / data limit in a known unit
+        if (\Reseller\Radius\QuotaPolicy::problem(['typebp' => $typebp, 'limit_type' => $limit_type, 'time_limit' => $time_limit, 'time_unit' => $time_unit,
+            'data_limit' => $data_limit, 'data_unit' => $data_unit]) !== null) {
+            $msg .= Lang::T('A limited plan needs a positive time or data limit') . '<br>';
+        }
         if (empty($radius)) {
             if ($routers == '') {
                 $msg .= Lang::T('All field is required') . '<br>';
@@ -286,10 +291,10 @@ switch ($action) {
             $d->typebp = $typebp;
             $d->plan_type = $plan_type;
             $d->limit_type = $limit_type;
-            $d->time_limit = $time_limit;
-            $d->time_unit = $time_unit;
-            $d->data_limit = $data_limit;
-            $d->data_unit = $data_unit;
+            $d->time_limit = \Reseller\Radius\QuotaPolicy::hasTime(['typebp' => $typebp, 'limit_type' => $limit_type]) ? $time_limit : 0;   // V1: an unused limit is 0 (an empty one is refused by strict SQL)
+            $d->time_unit = $time_unit === 'Hrs' ? 'Hrs' : 'Mins';   // stored as QuotaPolicy reads it (a missing unit: minutes)
+            $d->data_limit = \Reseller\Radius\QuotaPolicy::hasData(['typebp' => $typebp, 'limit_type' => $limit_type]) ? $data_limit : 0;
+            $d->data_unit = $data_unit === 'GB' ? 'GB' : 'MB';       // (a missing unit: MB)
             $d->validity = $validity;
             $d->validity_unit = $validity_unit;
             $d->shared_users = $sharedusers;
@@ -366,6 +371,11 @@ switch ($action) {
         if ($name == '' or $id_bw == '' or $price == '' or $validity == '') {
             $msg .= Lang::T('All field is required') . '<br>';
         }
+        // V1 (QuotaPolicy, owner QUOTA_V1_GB_SUPPORT_APPROVED): a Limited plan needs a positive time / data limit in a known unit
+        if (\Reseller\Radius\QuotaPolicy::problem(['typebp' => $typebp, 'limit_type' => $limit_type, 'time_limit' => $time_limit, 'time_unit' => $time_unit,
+            'data_limit' => $data_limit, 'data_unit' => $data_unit]) !== null) {
+            $msg .= Lang::T('A limited plan needs a positive time or data limit') . '<br>';
+        }
         $d = ORM::for_table('tbl_plans')->where('id', $id)->find_one();
         $old = ORM::for_table('tbl_plans')->where('id', $id)->find_one();
         if ($d) {
@@ -405,11 +415,11 @@ switch ($action) {
             $d->price_old = $price_old;
             $d->typebp = $typebp;
             $d->limit_type = $limit_type;
-            $d->time_limit = $time_limit;
-            $d->time_unit = $time_unit;
-            $d->data_limit = $data_limit;
+            $d->time_limit = \Reseller\Radius\QuotaPolicy::hasTime(['typebp' => $typebp, 'limit_type' => $limit_type]) ? $time_limit : 0;   // V1: an unused limit is 0 (an empty one is refused by strict SQL)
+            $d->time_unit = $time_unit === 'Hrs' ? 'Hrs' : 'Mins';   // stored as QuotaPolicy reads it (a missing unit: minutes)
+            $d->data_limit = \Reseller\Radius\QuotaPolicy::hasData(['typebp' => $typebp, 'limit_type' => $limit_type]) ? $data_limit : 0;
             $d->plan_type = $plan_type;
-            $d->data_unit = $data_unit;
+            $d->data_unit = $data_unit === 'GB' ? 'GB' : 'MB';       // (a missing unit: MB)
             $d->validity = $validity;
             $d->validity_unit = $validity_unit;
             $d->shared_users = $sharedusers;
@@ -650,6 +660,13 @@ switch ($action) {
         $enabled = _post('enabled');
         $prepaid = _post('prepaid');
         $expired_date = _post('expired_date');
+        // V1: PPPoE plans may carry a time and / or data quota (owner QUOTA_V1_GB_SUPPORT_APPROVED)
+        $typebp = _post('typebp', 'Unlimited') === 'Limited' ? 'Limited' : 'Unlimited';
+        $limit_type = _post('limit_type');
+        $time_limit = _post('time_limit');
+        $time_unit = _post('time_unit');
+        $data_limit = _post('data_limit');
+        $data_unit = _post('data_unit');
 
 
         $msg = '';
@@ -664,6 +681,11 @@ switch ($action) {
         }
         if ($name == '' or $id_bw == '' or $price == '' or $validity == '' or $pool == '') {
             $msg .= Lang::T('All field is required') . '<br>';
+        }
+        // V1 (QuotaPolicy, owner QUOTA_V1_GB_SUPPORT_APPROVED): a Limited plan needs a positive time / data limit in a known unit
+        if (\Reseller\Radius\QuotaPolicy::problem(['typebp' => $typebp, 'limit_type' => $limit_type, 'time_limit' => $time_limit, 'time_unit' => $time_unit,
+            'data_limit' => $data_limit, 'data_unit' => $data_unit]) !== null) {
+            $msg .= Lang::T('A limited plan needs a positive time or data limit') . '<br>';
         }
         if (empty($radius)) {
             if ($routers == '') {
@@ -704,6 +726,12 @@ switch ($action) {
             $d->validity = $validity;
             $d->validity_unit = $validity_unit;
             $d->pool = $pool;
+            $d->typebp = $typebp;
+            $d->limit_type = $typebp === 'Limited' ? $limit_type : null;
+            $d->time_limit = $typebp === 'Limited' && \Reseller\Radius\QuotaPolicy::hasTime(['typebp' => $typebp, 'limit_type' => $limit_type]) ? $time_limit : 0;
+            $d->time_unit = $time_unit === 'Hrs' ? 'Hrs' : 'Mins';   // stored as QuotaPolicy reads it (a missing unit: minutes)
+            $d->data_limit = $typebp === 'Limited' && \Reseller\Radius\QuotaPolicy::hasData(['typebp' => $typebp, 'limit_type' => $limit_type]) ? $data_limit : 0;
+            $d->data_unit = $data_unit === 'GB' ? 'GB' : 'MB';       // (a missing unit: MB)
             if (!empty($radius)) {
                 $d->is_radius = 1;
                 $d->routers = '';
@@ -757,6 +785,13 @@ switch ($action) {
         $expired_date = _post('expired_date');
         $on_login = _post('on_login');
         $on_logout = _post('on_logout');
+        // V1: PPPoE plans may carry a time and / or data quota (owner QUOTA_V1_GB_SUPPORT_APPROVED)
+        $typebp = _post('typebp', 'Unlimited') === 'Limited' ? 'Limited' : 'Unlimited';
+        $limit_type = _post('limit_type');
+        $time_limit = _post('time_limit');
+        $time_unit = _post('time_unit');
+        $data_limit = _post('data_limit');
+        $data_unit = _post('data_unit');
 
         $msg = '';
         if ($device !== '' && !\Reseller\Domain\ReleaseProfile::deviceEnabled((string) $device)) { // WP9 release profile
@@ -770,6 +805,11 @@ switch ($action) {
         }
         if ($name == '' or $id_bw == '' or $price == '' or $validity == '' or $pool == '') {
             $msg .= Lang::T('All field is required') . '<br>';
+        }
+        // V1 (QuotaPolicy, owner QUOTA_V1_GB_SUPPORT_APPROVED): a Limited plan needs a positive time / data limit in a known unit
+        if (\Reseller\Radius\QuotaPolicy::problem(['typebp' => $typebp, 'limit_type' => $limit_type, 'time_limit' => $time_limit, 'time_unit' => $time_unit,
+            'data_limit' => $data_limit, 'data_unit' => $data_unit]) !== null) {
+            $msg .= Lang::T('A limited plan needs a positive time or data limit') . '<br>';
         }
 
         if ($price_old <= $price) {
@@ -812,6 +852,12 @@ switch ($action) {
             $d->validity_unit = $validity_unit;
             $d->routers = $routers;
             $d->pool = $pool;
+            $d->typebp = $typebp;
+            $d->limit_type = $typebp === 'Limited' ? $limit_type : null;
+            $d->time_limit = $typebp === 'Limited' && \Reseller\Radius\QuotaPolicy::hasTime(['typebp' => $typebp, 'limit_type' => $limit_type]) ? $time_limit : 0;
+            $d->time_unit = $time_unit === 'Hrs' ? 'Hrs' : 'Mins';   // stored as QuotaPolicy reads it (a missing unit: minutes)
+            $d->data_limit = $typebp === 'Limited' && \Reseller\Radius\QuotaPolicy::hasData(['typebp' => $typebp, 'limit_type' => $limit_type]) ? $data_limit : 0;
+            $d->data_unit = $data_unit === 'GB' ? 'GB' : 'MB';       // (a missing unit: MB)
             $d->plan_expired = $plan_expired;
             $d->enabled = $enabled;
             $d->prepaid = $prepaid;

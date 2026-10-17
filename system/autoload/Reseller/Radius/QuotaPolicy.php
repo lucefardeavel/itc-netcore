@@ -1,0 +1,72 @@
+<?php
+namespace Reseller\Radius;
+
+// Runtime class: loaded only through init.php (NUXR_RUNTIME); never executable on its own.
+if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
+
+/**
+ * V1 plan quota contract (owner QUOTA_V1_GB_SUPPORT_APPROVED, 2026-10-17). Pure: no database, no clock.
+ *
+ * A Limited plan (Hotspot or PPPoE) carries a time quota (minutes / hours of session time per billing period), a data
+ * quota (MB / GB, decimal, download + upload per billing period) or both. A Limited plan whose limit is zero, negative,
+ * non-numeric or in an unknown unit is invalid: it is refused when saved and never provisioned (a 0 quota would lock the
+ * subscriber out; a dropped quota would sell an unlimited service). Unlimited plans ignore the limit fields.
+ */
+final class QuotaPolicy
+{
+    public const LIMIT_TYPES = ['Time_Limit', 'Data_Limit', 'Both_Limit'];
+
+    /** interim accounting requested from the NAS for a data-quota session (input of the accounting enforcer) */
+    public const INTERIM_SECONDS = 60;
+
+    public static function limited(array $plan): bool
+    {
+        return ($plan['typebp'] ?? '') === 'Limited';
+    }
+
+    public static function hasTime(array $plan): bool
+    {
+        return self::limited($plan) && in_array($plan['limit_type'] ?? '', ['Time_Limit', 'Both_Limit'], true);
+    }
+
+    public static function hasData(array $plan): bool
+    {
+        return self::limited($plan) && in_array($plan['limit_type'] ?? '', ['Data_Limit', 'Both_Limit'], true);
+    }
+
+    /** null when the plan's quota is valid (or the plan is unlimited), otherwise the problem code */
+    public static function problem(array $plan): ?string
+    {
+        if (!self::limited($plan)) {
+            return null;
+        }
+        if (!in_array($plan['limit_type'] ?? '', self::LIMIT_TYPES, true)) {
+            return 'LIMIT_TYPE_INVALID';
+        }
+        // a missing unit keeps the legacy default (minutes / MB: the database columns are nullable); a wrong unit is refused
+        if (self::hasTime($plan) && (!self::positive($plan['time_limit'] ?? null) || !in_array($plan['time_unit'] ?? '', ['', 'Mins', 'Hrs'], true))) {
+            return 'TIME_LIMIT_INVALID';
+        }
+        if (self::hasData($plan) && (!self::positive($plan['data_limit'] ?? null) || !in_array($plan['data_unit'] ?? '', ['', 'MB', 'GB'], true))) {
+            return 'DATA_LIMIT_INVALID';
+        }
+        return null;
+    }
+
+    /** the time quota in seconds (valid plans only) */
+    public static function seconds(array $plan): int
+    {
+        return (int) $plan['time_limit'] * (($plan['time_unit'] ?? '') === 'Hrs' ? 3600 : 60);
+    }
+
+    /** the data quota in bytes, decimal units as the legacy device used them (valid plans only) */
+    public static function bytes(array $plan): int
+    {
+        return (int) $plan['data_limit'] * (($plan['data_unit'] ?? '') === 'GB' ? 1_000_000_000 : 1_000_000);
+    }
+
+    private static function positive(mixed $v): bool
+    {
+        return (is_int($v) && $v > 0 && $v < 1_000_000_000) || (is_string($v) && preg_match('/^[1-9][0-9]{0,8}$/D', $v) === 1);
+    }
+}

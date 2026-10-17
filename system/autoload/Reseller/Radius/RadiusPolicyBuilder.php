@@ -14,8 +14,8 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  *
  * Attribute placement:
  *  - check (radcheck): Cleartext-Password, Simultaneous-Use, Expiration, Max-All-Session (time quota,
- *    sqlcounter "nuxr_timecounter"), Max-Data (data quota, sqlcounter "nuxr_datacounter") and, with a
- *    quota, Nuxr-Period-Start (epoch of the billing period start): the counters sum only the sessions of
+ *    sqlcounter "nuxr_timecounter"), Max-Data (data quota, sqlcounter "nuxr_datacounter"; Hotspot and, since V1,
+ *    PPPoE Limited plans - QuotaPolicy) and, with a quota, Nuxr-Period-Start (epoch of the billing period start): the counters sum only the sessions of
  *    the current period, because accounting history is no longer deleted at renewal (C17);
  *  - reply (radreply): Mikrotik-Rate-Limit; PPPoE static Framed-IP-Address OR Framed-Pool (never 0.0.0.0,
  *    never both); Hotspot WISPr-Session-Terminate-Time and Port-Limit = Simultaneous-Use (max(1, shared_users));
@@ -48,17 +48,19 @@ final class RadiusPolicyBuilder
         if ($expiry !== null) {
             $check[] = ['Expiration', ':=', $expiry->format('d M Y H:i:s')];
         }
-        if ($type === 'Hotspot' && ($plan['typebp'] ?? '') === 'Limited') {
-            $limit = (string) ($plan['limit_type'] ?? '');
-            if ($limit === 'Time_Limit' || $limit === 'Both_Limit') {
-                $check[] = ['Max-All-Session', ':=', (string) self::seconds($plan)];
+        // V1 quotas (owner QUOTA_V1_GB_SUPPORT_APPROVED): Hotspot AND PPPoE plans; an invalid Limited plan is never provisioned
+        $quota = ($type === 'Hotspot' || $pppoe) && QuotaPolicy::limited($plan);
+        if ($quota && QuotaPolicy::problem($plan) !== null) {
+            throw new \InvalidArgumentException('POLICY_QUOTA_INVALID');
+        }
+        if ($quota) {
+            if (QuotaPolicy::hasTime($plan)) {
+                $check[] = ['Max-All-Session', ':=', (string) QuotaPolicy::seconds($plan)];
             }
-            if ($limit === 'Data_Limit' || $limit === 'Both_Limit') {
-                $check[] = ['Max-Data', ':=', self::bytes($plan)];
+            if (QuotaPolicy::hasData($plan)) {
+                $check[] = ['Max-Data', ':=', (string) QuotaPolicy::bytes($plan)];
             }
-            if (in_array($limit, ['Time_Limit', 'Data_Limit', 'Both_Limit'], true)) {
-                $check[] = ['Nuxr-Period-Start', ':=', (string) ($periodStart?->getTimestamp() ?? 0)];
-            }
+            $check[] = ['Nuxr-Period-Start', ':=', (string) ($periodStart?->getTimestamp() ?? 0)];
         }
 
         $reply = [];
@@ -72,6 +74,11 @@ final class RadiusPolicyBuilder
             } elseif (trim((string) ($plan['pool'] ?? '')) !== '') {
                 $reply[] = ['Framed-Pool', ':=', trim((string) $plan['pool'])];
             }
+        }
+        if ($quota && QuotaPolicy::hasData($plan)) {
+            // the in-session data limit itself is computed by FreeRADIUS at every authentication (remaining share of the
+            // period); interim accounting feeds the enforcer that closes the PPPoE upload + download total
+            $reply[] = ['Acct-Interim-Interval', ':=', (string) QuotaPolicy::INTERIM_SECONDS];
         }
         if ($type === 'Hotspot' && $expiry !== null) {
             $reply[] = ['WISPr-Session-Terminate-Time', ':=', $expiry->format('Y-m-d\TH:i:sP')];
@@ -152,16 +159,5 @@ final class RadiusPolicyBuilder
         };
     }
 
-    private static function seconds(array $plan): int
-    {
-        $limit = max(0, (int) ($plan['time_limit'] ?? 0));
-        return ($plan['time_unit'] ?? '') === 'Hrs' ? $limit * 3600 : $limit * 60;
-    }
 
-    /** Decimal bytes as a string (64-bit safe; the legacy device used the same decimal units). */
-    private static function bytes(array $plan): string
-    {
-        $limit = max(0, (int) ($plan['data_limit'] ?? 0));
-        return (string) ($limit * (($plan['data_unit'] ?? '') === 'GB' ? 1000000000 : 1000000));
-    }
 }

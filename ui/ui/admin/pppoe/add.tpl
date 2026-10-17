@@ -72,6 +72,52 @@
                             <input type="text" class="form-control" id="name_plan" maxlength="40" name="name_plan">
                         </div>
                     </div>
+                    <!-- V1 (owner QUOTA_V1_GB_SUPPORT_APPROVED): PPPoE plans may carry a time and / or data (MB / GB) quota -->
+                    <div class="form-group">
+                        <label class="col-md-2 control-label">{Lang::T('Package Type')}</label>
+                        <div class="col-md-10">
+                            <label class="radio-inline"><input type="radio" id="Unlimited" name="typebp" value="Unlimited" checked> {Lang::T('Unlimited')}</label>
+                            <label class="radio-inline"><input type="radio" id="Limited" name="typebp" value="Limited"> {Lang::T('Limited')}</label>
+                        </div>
+                    </div>
+                    <div style="display:none;" id="Type">
+                        <div class="form-group">
+                            <label class="col-md-2 control-label">{Lang::T('Limit Type')}</label>
+                            <div class="col-md-10">
+                                <label class="radio-inline"><input type="radio" id="Time_Limit" name="limit_type" value="Time_Limit" checked> {Lang::T('Time Limit')}</label>
+                                <label class="radio-inline"><input type="radio" id="Data_Limit" name="limit_type" value="Data_Limit"> {Lang::T('Data Limit')}</label>
+                                <label class="radio-inline"><input type="radio" id="Both_Limit" name="limit_type" value="Both_Limit"> {Lang::T('Both Limit')}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:none;" id="TimeLimit">
+                        <div class="form-group">
+                            <label for="time_limit" class="col-md-2 control-label">{Lang::T('Time Limit')}</label>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" id="time_limit" name="time_limit" value="0">
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-control" id="time_unit" name="time_unit" aria-label="{Lang::T('Time Limit')} ({Lang::T('Unit')})">
+                                    <option value="Hrs">{Lang::T('Hrs')}</option>
+                                    <option value="Mins">{Lang::T('Mins')}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:none;" id="DataLimit">
+                        <div class="form-group">
+                            <label for="data_limit" class="col-md-2 control-label">{Lang::T('Data Limit')}</label>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" id="data_limit" name="data_limit" value="0">
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-control" id="data_unit" name="data_unit" aria-label="{Lang::T('Data Limit')} ({Lang::T('Unit')})">
+                                    <option value="GB">GBs</option>
+                                    <option value="MB">MBs</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="id_bw" class="col-md-2 control-label"><a
                                 href="{Text::url('')}bandwidth/add">{Lang::T('Bandwidth Name')}</a></label>

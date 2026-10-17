@@ -77,6 +77,52 @@
                                 value="{$d['name_plan']|escape}">
                         </div>
                     </div>
+                    <!-- V1 (owner QUOTA_V1_GB_SUPPORT_APPROVED): PPPoE plans may carry a time and / or data (MB / GB) quota -->
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">{Lang::T('Package Type')}</label>
+                        <div class="col-md-9">
+                            <label class="radio-inline"><input type="radio" id="Unlimited" name="typebp" value="Unlimited" {if $d['typebp'] neq 'Limited'}checked{/if}> {Lang::T('Unlimited')}</label>
+                            <label class="radio-inline"><input type="radio" id="Limited" name="typebp" value="Limited" {if $d['typebp'] eq 'Limited'}checked{/if}> {Lang::T('Limited')}</label>
+                        </div>
+                    </div>
+                    <div {if $d['typebp'] neq 'Limited'} style="display:none;"{/if} id="Type">
+                        <div class="form-group">
+                            <label class="col-md-3 control-label">{Lang::T('Limit Type')}</label>
+                            <div class="col-md-9">
+                                <label class="radio-inline"><input type="radio" id="Time_Limit" name="limit_type" value="Time_Limit" {if $d['limit_type'] eq 'Time_Limit'}checked{/if}> {Lang::T('Time Limit')}</label>
+                                <label class="radio-inline"><input type="radio" id="Data_Limit" name="limit_type" value="Data_Limit" {if $d['limit_type'] eq 'Data_Limit'}checked{/if}> {Lang::T('Data Limit')}</label>
+                                <label class="radio-inline"><input type="radio" id="Both_Limit" name="limit_type" value="Both_Limit" {if $d['limit_type'] eq 'Both_Limit'}checked{/if}> {Lang::T('Both Limit')}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div {if $d['typebp'] neq 'Limited' or $d['limit_type'] eq 'Data_Limit'} style="display:none;"{/if} id="TimeLimit">
+                        <div class="form-group">
+                            <label for="time_limit" class="col-md-3 control-label">{Lang::T('Time Limit')}</label>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control" id="time_limit" name="time_limit" value="{$d['time_limit']|escape}">
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-control" id="time_unit" name="time_unit" aria-label="{Lang::T('Time Limit')} ({Lang::T('Unit')})">
+                                    <option value="Hrs" {if $d['time_unit'] eq 'Hrs'}selected{/if}>{Lang::T('Hrs')}</option>
+                                    <option value="Mins" {if $d['time_unit'] eq 'Mins'}selected{/if}>{Lang::T('Mins')}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div {if $d['typebp'] neq 'Limited' or $d['limit_type'] eq 'Time_Limit'} style="display:none;"{/if} id="DataLimit">
+                        <div class="form-group">
+                            <label for="data_limit" class="col-md-3 control-label">{Lang::T('Data Limit')}</label>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control" id="data_limit" name="data_limit" value="{$d['data_limit']|escape}">
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-control" id="data_unit" name="data_unit" aria-label="{Lang::T('Data Limit')} ({Lang::T('Unit')})">
+                                    <option value="GB" {if $d['data_unit'] eq 'GB'}selected{/if}>GBs</option>
+                                    <option value="MB" {if $d['data_unit'] eq 'MB'}selected{/if}>MBs</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="id_bw" class="col-md-3 control-label"><a
                                 href="{Text::url('')}bandwidth/add">{Lang::T('Bandwidth Name')}</a></label>

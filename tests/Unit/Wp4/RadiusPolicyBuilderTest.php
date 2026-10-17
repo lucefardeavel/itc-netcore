@@ -88,7 +88,9 @@ final class RadiusPolicyBuilderTest extends TestCase
             ['id' => 4, 'type' => 'Hotspot', 'typebp' => 'Limited', 'limit_type' => 'Both_Limit', 'time_limit' => 30, 'time_unit' => 'Mins', 'data_limit' => 500, 'data_unit' => 'MB'], null, null);
         $this->assertSame(['1800', '500000000'], [$both->checkMap()['Max-All-Session'], $both->checkMap()['Max-Data']]);
         $pppoe = RadiusPolicyBuilder::build(['username' => 'q4', 'password' => 'p'], ['id' => 4, 'type' => 'PPPOE', 'typebp' => 'Limited', 'limit_type' => 'Time_Limit', 'time_limit' => 1], null, null);
-        $this->assertArrayNotHasKey('Max-All-Session', $pppoe->checkMap(), 'quotas are Hotspot-only (legacy contract)');
+        // owner decision QUOTA_V1_GB_SUPPORT_APPROVED (2026-10-17) replaced the WP4 "quotas are Hotspot-only" contract:
+        // PPPoE Limited plans carry their quota too (V1QuotaPolicyTest)
+        $this->assertSame('60', $pppoe->checkMap()['Max-All-Session'], 'V1: PPPoE time quota (1, legacy default unit: minutes)');
     }
 
     public function testGroupReplyUsesTheUploadRateForXmit(): void

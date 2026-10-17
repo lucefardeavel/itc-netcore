@@ -6,3 +6,8 @@
 # The nuxr_* counters (mods-available/nuxr_counters) count only accounting sessions started since then, so a
 # renewal starts a fresh quota without deleting accounting history.
 ATTRIBUTE	Nuxr-Period-Start		3101	integer
+#
+# V1 data quota (2026-10-17): internal attribute (never sent on the wire) holding the result of the in-session limit
+# computation of the phpnuxbill virtual server: "q=<gigawords>,<bytes>" = the per-session share of the remaining
+# period quota, or anything else (an error, an emptied SQL expansion) -> the request is rejected.
+ATTRIBUTE	Nuxr-Quota-Share		3102	string

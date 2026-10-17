@@ -23,6 +23,8 @@ final class RadiusPolicy
     public const MANAGED_REPLY = [
         'Mikrotik-Rate-Limit', 'Framed-Pool', 'Framed-IP-Address', 'Framed-IP-Netmask', 'WISPr-Session-Terminate-Time',
         'Port-Limit', 'Mikrotik-Wireless-Comment',
+        // V1 data quota: interim accounting for the enforcer (the in-session byte limits are FreeRADIUS replies, not rows)
+        'Acct-Interim-Interval',
     ];
 
     /**
