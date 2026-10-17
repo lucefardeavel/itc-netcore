@@ -47,6 +47,20 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         return $limit + (int) ($traffic['measured_kbps'] * 125);
     }
 
+    /**
+     * The attribution boundary is the period start minus QuotaPolicy::PERIOD_SKEW_SECONDS (10 s): a session that started
+     * inside that allowance before a renewal is DELIBERATELY also counted in the new period (documented cost). The lab
+     * renewal tests therefore let the old session age past the allowance, so what they prove ("old usage is not mixed
+     * into the new period") does not depend on timing.
+     */
+    private function ageSessionPastTheAllowance(float $since): void
+    {
+        $need = QuotaPolicy::PERIOD_SKEW_SECONDS + 2 - (microtime(true) - $since);
+        if ($need > 0) {
+            usleep((int) ($need * 1_000_000));
+        }
+    }
+
     private function used(array $row): int
     {
         return (int) $row['acctinputoctets'] + (int) $row['acctoutputoctets'];
@@ -217,7 +231,9 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         $user = $this->username($cust);
         $this->assertSame('COMPLETED', $this->activate($h['sales'], $cust, $plan, 'NEW')['status']);
         $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Q-rn-pass'])['ok']);
+        $loginAt = microtime(true);
         Wp8Lab::agent('traffic', ['client' => 'c1', 'direction' => 'down', 'seconds' => 4, 'kbps_offer' => 4000]);
+        $this->ageSessionPastTheAllowance($loginAt);
         $debits = static fn() => (int) static::$db->value("SELECT COUNT(*) FROM tbl_manager_ledger WHERE entry_type = 'ACTIVATION_DEBIT' AND manager_id = ?", [$h['C']]);
         $d0 = $debits();
 
@@ -230,12 +246,14 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         $this->assertGreaterThan(1_000_000, $this->used($old), 'the old session carried usage of the previous period');
         $this->assertTrue(Wp8Lab::agent('pppoe_wait_down', ['client' => 'c1'])['down']);
         $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Q-rn-pass'])['ok']);
+        $loginAt = microtime(true);
         $limit = Wp8Lab::ros('/ppp/active/print', '=detail=', '?name=' . $user)[0]['limit-bytes-out'] ?? null;
         $this->assertSame('10000000', $limit, 'new period: the old usage is not counted again (no mixing)');
         $this->assertSame($d0 + 1, $debits(), 'RENEW settled exactly once');
 
         // CHANGE_PLAN to the 20 MB plan during the new session: ended + confirmed, next session gets the new plan's quota
         Wp8Lab::agent('traffic', ['client' => 'c1', 'direction' => 'down', 'seconds' => 3, 'kbps_offer' => 4000]);
+        $this->ageSessionPastTheAllowance($loginAt);
         $cp = $this->activate($h['sales'], $cust, $plan2, 'CHANGE_PLAN');
         $this->assertSame('COMPLETED', $cp['status']);
         $cpAnn = json_decode((string) static::$db->value("SELECT e.metadata FROM tbl_reseller_activation_events e JOIN tbl_reseller_activations a ON a.id = e.activation_id WHERE a.reference = ? AND e.event_type = 'ANNOTATION' ORDER BY e.sequence_no DESC LIMIT 1", [$cp['reference']]), true);
@@ -247,6 +265,34 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         $this->assertCount(3, $this->acct($user), 'accounting history kept: one row per session');
         Wp8Lab::evidence('V1.renew-change-plan-live', ['renew' => ['annotation' => $ann, 'old_session_used' => $this->used($old), 'new_limit' => $limit],
             'change_plan' => ['annotation' => $cpAnn], 'debits' => $debits() - $d0, 'acct_rows' => count($this->acct($user))]);
+    }
+
+    public function testHotspotRenewalEndsAndConfirmsTheSessionAndGivesTheNewPeriodsFullShare(): void
+    {
+        $h = $this->hierarchy('1000.00', '400.00', '300.00');
+        $plan = $this->dataPlan($h, 'Hotspot', 6, self::BW_FAST, ['shared_users' => 1]);
+        $cust = $this->labCustomer($h['C'], $h['sales'], 'Q-hr-pass', 'Hotspot');
+        $user = $this->username($cust);
+        $this->assertSame('COMPLETED', $this->activate($h['sales'], $cust, $plan, 'NEW')['status']);
+        $this->assertTrue($this->hsUp('c2', $user, 'Q-hr-pass')['ok']);
+        $loginAt = microtime(true);
+        $this->assertSame('6000000', Wp8Lab::hotspotActive($user)[0]['limit-bytes-total'] ?? null);
+        Wp8Lab::agent('traffic', ['client' => 'c2', 'direction' => 'down', 'seconds' => 3, 'kbps_offer' => 4000]);
+        $this->ageSessionPastTheAllowance($loginAt);
+        $debits = static fn() => (int) static::$db->value("SELECT COUNT(*) FROM tbl_manager_ledger WHERE entry_type = 'ACTIVATION_DEBIT' AND manager_id = ?", [$h['C']]);
+        $d0 = $debits();
+        $renew = $this->activate($h['sales'], $cust, $plan, 'RENEW');
+        $this->assertSame('COMPLETED', $renew['status']);
+        $ann = json_decode((string) static::$db->value("SELECT e.metadata FROM tbl_reseller_activation_events e JOIN tbl_reseller_activations a ON a.id = e.activation_id WHERE a.reference = ? AND e.event_type = 'ANNOTATION' ORDER BY e.sequence_no DESC LIMIT 1", [$renew['reference']]), true);
+        $this->assertSame([['CONFIRMED', true]], array_map(static fn($e) => [$e['state'], $e['confirmed']], $ann['sessions'] ?? []), 'ACK + Accounting-Stop');
+        $this->assertSame([], Wp8Lab::hotspotActive($user), 'the Hotspot session is gone on the NAS');
+        $old = $this->stopped($user, 0);
+        $this->assertGreaterThan(300_000, $this->used($old), 'the old session carried usage of the previous period');
+        $this->assertTrue($this->hsUp('c2', $user, 'Q-hr-pass')['ok'], 're-authentication under the renewed period');
+        $this->assertSame('6000000', Wp8Lab::hotspotActive($user)[0]['limit-bytes-total'] ?? null, 'new period: the full share, the old usage is not mixed in');
+        $this->assertSame($d0 + 1, $debits(), 'RENEW settled exactly once');
+        $this->assertCount(2, $this->acct($user), 'accounting history kept');
+        Wp8Lab::evidence('V1.hotspot-renewal', ['annotation' => $ann, 'old_session_used' => $this->used($old), 'new_limit' => '6000000', 'debits' => $debits() - $d0]);
     }
 
     public function testFaultsTheNasLimitHoldsAndTheEnforcerNeverFabricates(): void
