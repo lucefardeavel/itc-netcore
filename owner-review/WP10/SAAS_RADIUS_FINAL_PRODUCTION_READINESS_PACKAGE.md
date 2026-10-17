@@ -160,6 +160,8 @@ Each code commit body records:
 | `29d374ea` | wp10(prep): health telemetry, backup / restore / rollback drill, bounded load test, runbooks, licenses |
 | `b5b441d4` | wp9(xss-1): escape lower-privilege free text in the legacy templates (stored XSS across roles) |
 | `c298b21d` | wp10(ui): final UI / browser audit; customer page language and zoom |
+| `46624cd8` | wp9(chr): final CHR regression; OptionG trace parser reads the decisive probe value; Q1-Q4 characterisation (**final tested tree**) |
+| `5313cd60` + this commit | docs(wp10): this package, final full-run evidence, progress ledger |
 
 
 ---
