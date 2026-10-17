@@ -22,6 +22,7 @@ if (PHP_SAPI !== 'cli') {
  *  balance_held       legacy balance operations HELD                                                    WARN
  *  accounting         newest radacct update (accounting freshness; WARN when > 15 minutes while sessions are open)
  *  coa_failures       Disconnect / CoA results that were not SUCCESS in the last hour (activation annotations)  WARN
+ *  quota_enforcer     quota subscribers online and the quota enforcer silent > 3 min (CRIT); over-quota open session (WARN)
  *  finance (--finance) whole-database finance integrity (DriftReport::financeIntegrity; expensive, run hourly)         CRITICAL
  */
 
@@ -110,6 +111,17 @@ $run('coa_failures', static function () use ($set, $q): void {
     $n = (int) $q("SELECT COUNT(*) FROM tbl_reseller_activation_events WHERE event_type = 'ANNOTATION' AND created_at > UTC_TIMESTAMP(6) - INTERVAL 1 HOUR
         AND metadata LIKE '%\"disconnect\"%' AND (metadata LIKE '%UNKNOWN%' OR metadata LIKE '%FAILED%' OR metadata LIKE '%ERROR%')");
     $set('coa_failures', $n > 0 ? 1 : 0, "{$n} Disconnect / CoA outcome(s) not confirmed in the last hour (drift SESSION_POLICY_STALE)", (float) $n);
+});
+$run('quota_enforcer', static function () use ($set, $radius, $q): void {
+    // V1 data / time quota: the accounting enforcer (system/reseller/quota.php, cron every minute) must be alive while
+    // quota subscribers are online; an over-quota open session is a WARNING (ended within one pass normally)
+    $r = $radius();
+    $online = (int) $r->query("SELECT COUNT(DISTINCT a.username) FROM radacct a JOIN radcheck q ON q.username = a.username AND q.attribute IN ('Max-Data', 'Max-All-Session') WHERE a.acctstoptime IS NULL")->fetchColumn();
+    $beat = $q("SELECT value FROM tbl_appconfig WHERE setting = 'nuxr_quota_enforcer_heartbeat'");
+    $age = $beat === false || $beat === null ? null : (int) $q('SELECT TIMESTAMPDIFF(SECOND, ?, UTC_TIMESTAMP())', [(string) $beat]);
+    $over = count((new \Reseller\Radius\QuotaEnforcer($r))->overQuota());
+    $dead = $online > 0 && ($age === null || $age > 180);
+    $set('quota_enforcer', $dead ? 2 : ($over > 0 ? 1 : 0), "{$online} quota subscriber(s) online, enforcer last pass " . ($age === null ? 'never' : "{$age}s ago") . ", {$over} over quota with an open session (quota.php report)", (float) $over);
 });
 if (in_array('--finance', $args, true)) {
     $run('finance', static function () use ($set): void {

@@ -8,7 +8,8 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  * Failure-injection points inside the RADIUS writers (WP4 failure tests). A no-op unless a test assigns
  * $hook; runtime code never assigns it (enforced by a source guard).
  *  - radius.after_write: inside the transaction, before COMMIT (an exception there rolls back: FAILED);
- *  - radius.commit_lost: right after COMMIT (an exception there models a lost acknowledgement: UNKNOWN).
+ *  - radius.commit_lost: right after COMMIT (an exception there models a lost acknowledgement: UNKNOWN);
+ *  - session.after_disconnect: SessionTermination, after the Disconnects were sent (a test may record the NAS's Stop).
  */
 final class RadiusFaults
 {

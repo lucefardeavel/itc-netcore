@@ -155,7 +155,15 @@ final class U0SourceGuardTest extends TestCase
         // ownership check (L-3) through Package::rechargeUser - order nuxr_bop_ -> L-3, never the reverse
         // WP9-B / R-4: + nuxr_svc_ (per-customer service lock, OUTERMOST: never taken inside a transaction or under the
         // tree / identity lock - ServiceLock::acquire refuses that order)
-        $this->assertSame(['nuxr_bop_', 'nuxr_identity_', 'nuxr_mig_', 'nuxr_svc_', 'nuxr_tree_', 'nuxr_user_'], array_keys($names), 'runtime named locks');
+        // V1 quota (owner QUOTA_V1_GB_SUPPORT_APPROVED, 2026-10-17): + nuxr_quota_ (one accounting quota enforcer at a time,
+        // system/reseller/quota.php, RADIUS connection). It never nests: no other named lock, no identity / tree / service
+        // acquirer and no activation is taken under it (asserted below)
+        $this->assertSame(['nuxr_bop_', 'nuxr_identity_', 'nuxr_mig_', 'nuxr_quota_', 'nuxr_svc_', 'nuxr_tree_', 'nuxr_user_'], array_keys($names), 'runtime named locks');
+        $quota = self::src('system/reseller/quota.php');
+        $this->assertSame(1, preg_match_all("/'nuxr_[a-z]+_'/", $quota), 'quota.php: its own lock only');
+        foreach (['system/reseller/quota.php', 'system/autoload/Reseller/Radius/QuotaEnforcer.php', 'system/autoload/Reseller/Radius/SessionTermination.php'] as $rel) {
+            $this->assertDoesNotMatchRegularExpression('/CustomerIdentity::|TreeSerialization::|ServiceLock::|VoucherRedemptionService::|ActivationService::|CustomerService::create\(|LegacyReprovisionService::run\(|GET_LOCK\(\?/', self::src($rel), "{$rel}: nothing nests under the quota lock");
+        }
         $svc = self::src('system/autoload/Reseller/Domain/ServiceLock.php');
         $this->assertStringContainsString('$pdo->inTransaction() || TreeSerialization::held($pdo) || CustomerIdentity::held($pdo)', $svc);
         foreach (['system/autoload/Reseller/Domain/LegacyCustomerBalanceService.php', 'system/reseller/Migration/Runner.php', 'system/autoload/Reseller/Domain/SchemaReadiness.php'] as $rel) {
