@@ -120,6 +120,45 @@ final class V1QuotaOperationsTest extends ActivationTestCase
         $this->assertSame('CRITICAL', $this->healthQuota()['status'] ?? null);
     }
 
+    /**
+     * Existing data: a Limited Radius plan saved before V1 may hold a zero / unusable quota. Such a plan can no longer be
+     * saved, and a sale of it fails closed (never unlimited, never a 0 quota). The release preflight lists them (WARN,
+     * read-only) so the operator edits or disables them before launch; valid plans (any of the four types) PASS.
+     */
+    public function testPreflightListsLimitedPlansWithAnInvalidQuota(): void
+    {
+        $plan = static fn(string $name, array $q): int => static::$db->insertRow('tbl_plans', $q + ['name_plan' => $name, 'price' => '5', 'type' => 'Hotspot', 'typebp' => 'Limited',
+            'limit_type' => 'Data_Limit', 'time_limit' => 0, 'time_unit' => 'Hrs', 'data_limit' => 1, 'data_unit' => 'GB', 'validity' => 30, 'validity_unit' => 'Days',
+            'shared_users' => 1, 'routers' => 'radius', 'is_radius' => 1, 'pool' => '', 'enabled' => 1, 'prepaid' => 'yes', 'plan_type' => 'Personal', 'device' => 'Radius']);
+        $ids = [$plan('v1pf_ok_data', []), $plan('v1pf_ok_time', ['limit_type' => 'Time_Limit', 'time_limit' => 5, 'data_limit' => 0]),
+            $plan('v1pf_ok_both', ['limit_type' => 'Both_Limit', 'time_limit' => 5, 'data_limit' => 2, 'data_unit' => 'MB'])];
+        $run = function (): array {
+            $r = RunnerProcess::exec([PHP_BINARY, '-d', 'error_log=/dev/null', self::$app->dir . '/system/reseller/preflight.php', '--json']);
+            $j = json_decode(substr((string) $r['raw'], (int) strpos((string) $r['raw'], '{')), true);
+            $this->assertIsArray($j, (string) $r['raw']);
+            return array_column($j['results'], null, 'check')['quota.plans'] ?? [];
+        };
+        $count = static function (array $c): array {
+            preg_match('/^(\d+) enabled .*?, (\d+) with an invalid quota/', (string) ($c['detail'] ?? ''), $m);
+            self::assertCount(3, $m, json_encode($c));
+            return [(int) $m[1], (int) $m[2]];
+        };
+        try {
+            $ok = $run();
+            $this->assertSame('PASS', $ok['status'] ?? null, json_encode($ok));
+            [$n0, $b0] = $count($ok);
+            $this->assertSame(0, $b0);
+            $ids[] = $plan('v1pf_bad_zero', ['data_limit' => 0]);
+            $ids[] = $plan('v1pf_bad_time', ['limit_type' => 'Time_Limit', 'time_limit' => 0, 'data_limit' => 0]);   // (the unit columns are ENUMs: a bad unit cannot be stored)
+            $ids[] = $plan('v1pf_off_bad', ['data_limit' => 0, 'enabled' => 0]);   // disabled: not sold, not counted
+            $bad = $run();
+            $this->assertSame('WARN', $bad['status'] ?? null, json_encode($bad));
+            $this->assertSame([$n0 + 2, 2], $count($bad), 'two enabled invalid plans; the disabled one is not counted');
+        } finally {
+            static::$db->exec('DELETE FROM tbl_plans WHERE id IN (' . implode(',', array_map('intval', $ids)) . ')');
+        }
+    }
+
     public function testUsageAndCliOnly(): void
     {
         $this->assertSame(5, $this->cli('quota.php')['exit']);

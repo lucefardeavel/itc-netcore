@@ -1,0 +1,29 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/preflight/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1QuotaOperationsTest.php
+start: 2026-10-17T13:50:53Z
+ Container nuxbill-reseller-test-php82-run-2ca50241322c Creating 
+ Container nuxbill-reseller-test-php82-run-2ca50241322c Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.E.                                                                 3 / 3 (100%)
+
+Time: 00:08.560, Memory: 10.00 MB
+
+V1Quota Operations (Reseller\Tests\Integration\Wp10\V1QuotaOperations)
+ ✔ Enforcer cli audit heartbeat lock and health
+ ✘ Preflight lists limited plans with an invalid quota
+   │
+   │ PDOException: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'data_unit' at row 1
+   │
+   │ /repo/tests/Support/TestDatabase.php:142
+   │ /repo/tests/Integration/Wp10/V1QuotaOperationsTest.php:130
+   │ /repo/tests/Integration/Wp10/V1QuotaOperationsTest.php:152
+   │
+ ✔ Usage and cli only
+
+ERRORS!
+Tests: 3, Assertions: 44, Errors: 1.
+
+exit=2 end: 2026-10-17T13:51:04Z

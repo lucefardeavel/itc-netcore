@@ -1,0 +1,32 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/voucher/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1VoucherQuotaTest.php
+start: 2026-10-17T13:47:15Z
+ Container nuxbill-reseller-test-php82-run-8c8207bd9d9f Creating 
+ Container nuxbill-reseller-test-php82-run-8c8207bd9d9f Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.F                                                                  2 / 2 (100%)
+
+Time: 00:07.416, Memory: 10.00 MB
+
+V1Voucher Quota (Reseller\Tests\Integration\Wp10\V1VoucherQuota)
+ ✔ Gb voucher provisions the quota policy
+ ✘ Voucher of an invalid quota plan is not granted and writes nothing
+   │
+   │ the voucher stays redeemable (the grant never started)
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'0'
+   │ +'CLAIMED'
+   │
+   │ /repo/tests/Integration/Wp10/V1VoucherQuotaTest.php:77
+   │
+
+FAILURES!
+Tests: 2, Assertions: 13, Failures: 1.
+
+exit=1 end: 2026-10-17T13:47:24Z

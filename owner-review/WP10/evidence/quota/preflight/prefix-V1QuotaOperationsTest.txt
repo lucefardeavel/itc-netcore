@@ -1,0 +1,39 @@
+pre-fix tree: 37c1aead32adf90b69c5da83a7b3c7d817c6cb01 (+ the new test files only)
+== mariadb tests/Integration/Wp10/V1QuotaOperationsTest.php start 2026-10-17T13:49:37Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.F.                                                                 3 / 3 (100%)
+Time: 00:05.684, Memory: 10.00 MB
+V1Quota Operations (Reseller\Tests\Integration\Wp10\V1QuotaOperations)
+ ✔ Enforcer cli audit heartbeat lock and health
+ ✘ Preflight lists limited plans with an invalid quota
+   │
+   │ []
+   │ Failed asserting that null is identical to 'PASS'.
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaOperationsTest.php:148
+   │
+ ✔ Usage and cli only
+FAILURES!
+Tests: 3, Assertions: 42, Failures: 1.
+exit=1
+== mysql tests/Integration/Wp10/V1QuotaOperationsTest.php start 2026-10-17T13:49:44Z
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+.F.                                                                 3 / 3 (100%)
+Time: 00:06.430, Memory: 10.00 MB
+V1Quota Operations (Reseller\Tests\Integration\Wp10\V1QuotaOperations)
+ ✔ Enforcer cli audit heartbeat lock and health
+ ✘ Preflight lists limited plans with an invalid quota
+   │
+   │ []
+   │ Failed asserting that null is identical to 'PASS'.
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaOperationsTest.php:148
+   │
+ ✔ Usage and cli only
+FAILURES!
+Tests: 3, Assertions: 42, Failures: 1.
+exit=1

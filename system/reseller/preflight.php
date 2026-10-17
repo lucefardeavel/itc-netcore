@@ -19,6 +19,7 @@ if (PHP_SAPI !== 'cli') {
  *  schema          SchemaReadiness (migrations, tables, CHECK expressions and enforcement - WP1-CHECK)
  *  radius_checks   nuxr_admission / nuxr_hs_admission CHECK constraints: exact expressions and enforcement, also the
  *                  GLOBAL MariaDB check_constraint_checks used by the FreeRADIUS sessions (A2-R hardening L4)
+ *  quota_plans     V1: enabled Limited Radius plans whose quota is invalid (zero / unusable) are listed (WARN): a sale fails closed
  *  identity        OBS-1 survey on this database: no canonical identity with more than one holder (FAIL), stored names
  *                  that are not canonical (WARN)
  *  profile         release profile: legacy MikroTik-API / rlm_rest devices disabled (WARN when enabled)
@@ -115,6 +116,20 @@ $try('radius_checks', static function () use ($add, $isMaria): void {
         $problems[] = 'GLOBAL check_constraint_checks is not 1 (FreeRADIUS sessions would not enforce the CHECK constraints)';
     }
     $add('radius_checks', $problems === [] ? 'PASS' : 'FAIL', $problems === [] ? 'admission CHECK constraints exact and enforced' : implode('; ', $problems));
+});
+$try('quota_plans', static function () use ($add, $pdo): void {
+    // V1 (owner QUOTA_V1_GB_SUPPORT_APPROVED): a Limited Radius plan with an invalid quota (zero / negative / non-numeric /
+    // unknown unit) is refused when saved and never provisioned. Plans saved before V1 may hold such values: their sales
+    // fail closed (the voucher / activation is held for the operator), so list them before launch. Read-only.
+    $n = 0;
+    $bad = 0;
+    foreach ($pdo->query("SELECT typebp, limit_type, time_limit, time_unit, data_limit, data_unit FROM tbl_plans WHERE typebp = 'Limited' AND device = 'Radius' AND enabled = 1")->fetchAll(PDO::FETCH_ASSOC) as $p) {
+        $n++;
+        if (\Reseller\Radius\QuotaPolicy::problem($p) !== null) {
+            $bad++;
+        }
+    }
+    $add('quota.plans', $bad === 0 ? 'PASS' : 'WARN', "{$n} enabled Limited Radius plan(s), {$bad} with an invalid quota" . ($bad === 0 ? '' : ' (zero / unusable limit or unit: edit the plan in Services, or disable it; selling it fails closed)'));
 });
 $try('identity', static function () use ($add, $pdo): void {
     $trim = "'^[ \\\\t\\\\n\\\\r\\\\x0B\\\\x00]+|[ \\\\t\\\\n\\\\r\\\\x0B\\\\x00]+$'";
