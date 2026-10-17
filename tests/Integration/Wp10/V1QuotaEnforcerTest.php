@@ -139,6 +139,33 @@ final class V1QuotaEnforcerTest extends ActivationTestCase
         $this->assertNotEquals(0, $old + $done);
     }
 
+    /**
+     * Full chain (ActivationService -> the stored boundary -> the enforcer): a PPPoE / Hotspot session whose NAS-stamped
+     * start is 2 s before the activation's period start belongs to the new period; one that started minutes before does not.
+     */
+    public function testSessionStampedJustBeforeTheActivationIsEnforcedInTheNewPeriod(): void
+    {
+        [$plan, [, $leaf]] = $this->pricedChain(['12', '15'], '10', '20');
+        static::$db->exec("UPDATE tbl_plans SET typebp = 'Limited', limit_type = 'Data_Limit', data_limit = 1, data_unit = 'MB', time_limit = 0, time_unit = 'Hrs' WHERE id = {$plan}");
+        $c = $this->customer($leaf);
+        $before = time();
+        $this->assertSame('COMPLETED', $this->activate($leaf, $c, $plan, 'NEW')['status']);
+        $user = $this->username($c);
+        $this->assertSame('1000000', (string) static::$db->value("SELECT value FROM radcheck WHERE username = ? AND attribute = 'Max-Data'", [$user]));
+        $near = $this->session($user, time() - ($before - 2), 800_000, 400_000);      // started $before - 2: before the period start
+        $far = $this->session($user, time() - ($before - 120), 5_000_000, 5_000_000);  // started 2 minutes before: the previous period
+        try {
+            $report = (new QuotaEnforcer(static::$svc, static fn(array $r): array => []))->overQuota();
+            $this->assertSame([[$user, '1000000', '1200000', [$near]]], array_map(static fn($o) => [$o['username'], $o['limit'], $o['usage'],
+                array_map(static fn($s) => (int) $s['radacctid'], $o['sessions'])], $report), 'only the near-boundary session is in the new period');
+            $this->assertNotSame($near, $far);
+        } finally {
+            // the enforcer reads the whole accounting table: this customer is not a 'v1q' user, remove its rows (test data only)
+            static::$db->exec('DELETE FROM radacct WHERE username = ' . static::$db->db()->pdo->quote($user));
+            static::$db->exec('DELETE FROM radcheck WHERE username = ' . static::$db->db()->pdo->quote($user));
+        }
+    }
+
     public function testTimeQuotaAcrossConcurrentSessions(): void
     {
         $u = $this->user();

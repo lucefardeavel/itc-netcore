@@ -89,6 +89,7 @@ This checklist is for an operator deploying one isolated instance. Tick every li
 | H2 | `/radius incoming accept=yes port=3799` (or `nas.ports` set to the NAS's port); CoA allowed only from the application host | one Disconnect from the application |
 | H3 | `require-message-auth=yes-for-request-resp`; RADIUS timeout per WP8 (3 s) | `/radius print detail` |
 | H4 | PPP AAA accounting with interim updates; no local `/ppp secret` or hotspot users that shadow RADIUS identities | `/ppp secret print` |
+| H8 | NAS clock: NTP enabled on every NAS, offset from the application host < 5 s (V1 quota attribution allows 10 s: `QuotaPolicy::PERIOD_SKEW_SECONDS`). RouterOS: `/system ntp client` | `/system clock print` against `date -u`; Accounting-Start `Event-Timestamp` vs arrival |
 | H7 | V1 quota: the NAS accepts the RADIUS `Acct-Interim-Interval` (PPP AAA / Hotspot profile: no fixed interim that overrides it) and the `Mikrotik-*-Limit` replies; RouterOS 7.24.5 validated | a GB plan login: `/ppp active print detail` `limit-bytes-in/out`, `/ip hotspot active print detail` `limit-bytes-total` |
 | H5 | The RouterOS API is not used in the release profile. If it is ever enabled, it runs only over a private management path (OBS-W8-4). | — |
 | H6 | Per-NAS secret: unique, 32+ characters, rotated as documented | rotation log |

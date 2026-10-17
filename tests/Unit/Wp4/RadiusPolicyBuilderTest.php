@@ -79,7 +79,9 @@ final class RadiusPolicyBuilderTest extends TestCase
         $time = RadiusPolicyBuilder::build(['username' => 'q1', 'password' => 'p'],
             ['id' => 4, 'type' => 'Hotspot', 'typebp' => 'Limited', 'limit_type' => 'Time_Limit', 'time_limit' => 2, 'time_unit' => 'Hrs'], null, self::expiry(), $start);
         $this->assertSame('7200', $time->checkMap()['Max-All-Session'], 'the time quota (the legacy device replaced it by the seconds to expiry)');
-        $this->assertSame((string) $start->getTimestamp(), $time->checkMap()['Nuxr-Period-Start']);
+        // V1 (2026-10-17, measured NAS Event-Timestamp lag of 1.1 - 1.7 s on RouterOS CHR 7.24.5): the stored attribution boundary
+        // is the period start minus the NAS clock allowance; the contract that the counters read the stored value is unchanged
+        $this->assertSame((string) ($start->getTimestamp() - \Reseller\Radius\QuotaPolicy::PERIOD_SKEW_SECONDS), $time->checkMap()['Nuxr-Period-Start']);
         $data = RadiusPolicyBuilder::build(['username' => 'q2', 'password' => 'p'],
             ['id' => 4, 'type' => 'Hotspot', 'typebp' => 'Limited', 'limit_type' => 'Data_Limit', 'data_limit' => 3, 'data_unit' => 'GB'], null, null);
         $this->assertSame('3000000000', $data->checkMap()['Max-Data']);

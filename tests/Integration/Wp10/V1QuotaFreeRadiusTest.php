@@ -160,6 +160,25 @@ final class V1QuotaFreeRadiusTest extends TestCase
         $this->assertSame(1, (int) self::$pdo->query('SELECT COUNT(*) FROM radacct WHERE username = ' . self::$pdo->quote($u))->fetchColumn(), 'history kept');
     }
 
+    /**
+     * The lab NAS stamps Accounting-Start up to ~2 s before the host's clock (measured 1.1 - 1.7 s). The session of a
+     * subscriber who logs in right after the renewal must count against the NEW period; a session that really started
+     * before the renewal must not.
+     */
+    public function testSessionStampedJustBeforeThePeriodStartIsCountedInTheNewPeriod(): void
+    {
+        $plan = ['limit_type' => 'Data_Limit', 'data_limit' => 1, 'data_unit' => 'GB', 'shared_users' => 4];
+        $u = $this->provision($plan, 'Pw-12', new \DateTimeImmutable('now'));
+        $near = bin2hex(random_bytes(6));
+        self::acct($u, 1, $near, [['Event-Timestamp', time() - 2]]);
+        self::acct($u, 3, $near, [['Event-Timestamp', time()], ['Acct-Session-Time', 2], ['Acct-Output-Octets', 400_000_000]]);
+        $old = bin2hex(random_bytes(6));
+        self::acct($u, 1, $old, [['Event-Timestamp', time() - 3600]]);
+        self::acct($u, 3, $old, [['Event-Timestamp', time() - 1800], ['Acct-Session-Time', 1800], ['Acct-Output-Octets', 300_000_000]]);
+        $this->assertSame(150_000_000, self::limits(RadiusClient::access($u, 'Pw-12'))[0],
+            '(1 GB - 400 MB of the session stamped 2 s before the period start) / 4; the real previous-period session (300 MB) is not counted');
+    }
+
     public function testDuplicateWrapMultiNasMalformedAndTimeQuota(): void
     {
         $plan = ['limit_type' => 'Data_Limit', 'data_limit' => 10, 'data_unit' => 'GB', 'shared_users' => 4];

@@ -19,6 +19,23 @@ final class QuotaPolicy
     /** interim accounting requested from the NAS for a data-quota session (input of the accounting enforcer) */
     public const INTERIM_SECONDS = 60;
 
+    /**
+     * Allowance for the NAS clock when a session is attributed to a billing period (acctstarttime >= boundary).
+     * acctstarttime is the NAS's integer-second Event-Timestamp; measured on RouterOS CHR 7.24.5 it is 1.1 - 1.7 s EARLIER
+     * than the host's receive time, so a login within ~2 s of the period start (a PPPoE client redials right after the
+     * renewal Disconnect) would be booked to the PREVIOUS period and escape the new quota. The stored boundary
+     * (Nuxr-Period-Start) is the period start minus this many seconds. Cost: a session that started up to this many
+     * seconds BEFORE a renewal is also counted in the new period (its end is forced by the renewal, so at most this many
+     * seconds of its traffic). The NAS clock must be within this allowance (NTP): production checklist H8.
+     */
+    public const PERIOD_SKEW_SECONDS = 10;
+
+    /** the stored attribution boundary (UNIX seconds) for a billing period starting at $periodStart; 0 = since the beginning */
+    public static function boundary(?int $periodStart): int
+    {
+        return $periodStart === null ? 0 : max(0, $periodStart - self::PERIOD_SKEW_SECONDS);
+    }
+
     public static function limited(array $plan): bool
     {
         return ($plan['typebp'] ?? '') === 'Limited';

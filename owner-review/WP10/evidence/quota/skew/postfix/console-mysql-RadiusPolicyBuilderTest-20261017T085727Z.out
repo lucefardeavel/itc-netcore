@@ -1,0 +1,25 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/skew/postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp4/RadiusPolicyBuilderTest.php
+start: 2026-10-17T08:57:27Z
+ Container nuxbill-reseller-test-php82-run-b717ab975e75 Creating 
+ Container nuxbill-reseller-test-php82-run-b717ab975e75 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+........                                                            8 / 8 (100%)
+
+Time: 00:00.009, Memory: 10.00 MB
+
+Radius Policy Builder (Reseller\Tests\Unit\Wp4\RadiusPolicyBuilder)
+ ✔ Pppoe static address policy
+ ✔ Pppoe dynamic pool and fallbacks
+ ✔ Hotspot shared users rate burst and terminate time
+ ✔ Port limit is hotspot only
+ ✔ Hotspot quotas are not overwritten by the expiry
+ ✔ Group reply uses the upload rate for xmit
+ ✔ Invalid input is refused
+ ✔ Managed attribute sets cover every policy attribute
+
+OK (8 tests, 42 assertions)
+exit=0 end: 2026-10-17T08:57:28Z

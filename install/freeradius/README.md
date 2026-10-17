@@ -498,6 +498,19 @@ session is re-sent a Disconnect at most every 60 s; one enforcer at a time (data
 - `health.php` check `quota_enforcer`: CRITICAL when quota subscribers are online and the enforcer has not completed a
   pass for 3 minutes; WARNING while an over-quota session is still open.
 
+**Period attribution and the NAS clock.** A session counts against the period in which it **started**, by the NAS's
+`Event-Timestamp` (`acctstarttime >= Nuxr-Period-Start`). Measured on RouterOS CHR 7.24.5, that stamp is **1.1 - 1.7 s
+earlier** than the host's receive time (integer seconds + NAS clock lag), and a PPPoE client redials right after the
+renewal Disconnect, so a strict comparison booked the first new session to the previous period and its traffic escaped
+the new quota. PHPNuxBill therefore stores `Nuxr-Period-Start` = the period start **minus 10 s**
+(`QuotaPolicy::PERIOD_SKEW_SECONDS`); the counters, the FreeRADIUS share and the enforcer all read that one value.
+- Cost: a session that started up to 10 s **before** a renewal is also counted in the new period (the renewal ends it,
+  so at most 10 s of its traffic).
+- Requirement: the NAS clock must be within the allowance (**NTP on every NAS**, checklist H8). A NAS clock that lags by
+  more than 10 s re-opens the gap for sessions that start within that lag of the period start.
+- Database session zone is not involved: every connection is UTC (preflight `time.sql_session_zone`), writer and readers
+  agree (WP8 A4); the finding was verified against a time-zone mismatch hypothesis and refuted.
+
 **Accounting integrity.** An Interim-Update that is stale (after its session's Stop, or with smaller counters than
 already stored: re-ordered or late retransmission) is acknowledged but not written, so usage never decreases. A
 duplicate Start / Stop is handled by the stock queries (`acctuniqueid`). Counters are 64-bit (Gigawords combined).

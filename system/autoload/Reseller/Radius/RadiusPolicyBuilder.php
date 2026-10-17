@@ -15,7 +15,7 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  * Attribute placement:
  *  - check (radcheck): Cleartext-Password, Simultaneous-Use, Expiration, Max-All-Session (time quota,
  *    sqlcounter "nuxr_timecounter"), Max-Data (data quota, sqlcounter "nuxr_datacounter"; Hotspot and, since V1,
- *    PPPoE Limited plans - QuotaPolicy) and, with a quota, Nuxr-Period-Start (epoch of the billing period start): the counters sum only the sessions of
+ *    PPPoE Limited plans - QuotaPolicy) and, with a quota, Nuxr-Period-Start (epoch of the billing period start minus QuotaPolicy::PERIOD_SKEW_SECONDS, the NAS clock allowance): the counters sum only the sessions of
  *    the current period, because accounting history is no longer deleted at renewal (C17);
  *  - reply (radreply): Mikrotik-Rate-Limit; PPPoE static Framed-IP-Address OR Framed-Pool (never 0.0.0.0,
  *    never both); Hotspot WISPr-Session-Terminate-Time and Port-Limit = Simultaneous-Use (max(1, shared_users));
@@ -60,7 +60,7 @@ final class RadiusPolicyBuilder
             if (QuotaPolicy::hasData($plan)) {
                 $check[] = ['Max-Data', ':=', (string) QuotaPolicy::bytes($plan)];
             }
-            $check[] = ['Nuxr-Period-Start', ':=', (string) ($periodStart?->getTimestamp() ?? 0)];
+            $check[] = ['Nuxr-Period-Start', ':=', (string) QuotaPolicy::boundary($periodStart?->getTimestamp())];   // period start - NAS clock allowance
         }
 
         $reply = [];

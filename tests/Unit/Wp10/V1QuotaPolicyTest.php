@@ -33,7 +33,7 @@ final class V1QuotaPolicyTest extends TestCase
         $gb = RadiusPolicyBuilder::build(self::CUST, self::plan('PPPOE', ['limit_type' => 'Data_Limit', 'data_limit' => 50, 'data_unit' => 'GB']), self::BW, $expiry, $start);
         $this->assertSame('ppp-q1', $gb->username);
         $this->assertSame('50000000000', $gb->checkMap()['Max-Data'], 'PPPoE GB plan: 50 GB (decimal) per period');
-        $this->assertSame('1790000000', $gb->checkMap()['Nuxr-Period-Start']);
+        $this->assertSame((string) (1790000000 - QuotaPolicy::PERIOD_SKEW_SECONDS), $gb->checkMap()['Nuxr-Period-Start'], 'period start minus the NAS clock allowance');
         $this->assertSame('1', $gb->checkMap()['Simultaneous-Use']);
         $this->assertSame('60', $gb->replyMap()['Acct-Interim-Interval'], 'data quota: 60 s interim accounting');
         $this->assertSame('5M/20M', $gb->replyMap()['Mikrotik-Rate-Limit']);
@@ -46,6 +46,24 @@ final class V1QuotaPolicyTest extends TestCase
         $both = RadiusPolicyBuilder::build(self::CUST, self::plan('PPPOE', ['limit_type' => 'Both_Limit', 'time_limit' => 90, 'time_unit' => 'Mins', 'data_limit' => 500, 'data_unit' => 'MB']), self::BW, $expiry, $start);
         $this->assertSame(['5400', '500000000'], [$both->checkMap()['Max-All-Session'], $both->checkMap()['Max-Data']], 'composite: time + data + speed + validity');
         $this->assertSame('60', $both->replyMap()['Acct-Interim-Interval']);
+    }
+
+    /**
+     * Measured on the lab RouterOS CHR 7.24.5: the NAS stamps Accounting-Start 1.1 - 1.7 s EARLIER than the host receives
+     * it (integer-second Event-Timestamp + NAS clock lag). Sessions are attributed by acctstarttime >= Nuxr-Period-Start,
+     * so a login within ~2 s of the period start (the PPPoE client redials right after the renewal Disconnect) was booked
+     * to the PREVIOUS period and its traffic escaped the new quota. The stored boundary is therefore the period start
+     * minus PERIOD_SKEW_SECONDS (one write; the counters, the FreeRADIUS share and the enforcer all read it).
+     */
+    public function testAttributionBoundaryAllowsForNasClockSkew(): void
+    {
+        $this->assertGreaterThanOrEqual(5, QuotaPolicy::PERIOD_SKEW_SECONDS, 'covers the measured 1.7 s with margin');
+        $this->assertLessThanOrEqual(30, QuotaPolicy::PERIOD_SKEW_SECONDS, 'an over-count is bounded by this many seconds of one session');
+        $plan = self::plan('PPPOE', ['limit_type' => 'Data_Limit', 'data_limit' => 5, 'data_unit' => 'GB']);
+        $p = RadiusPolicyBuilder::build(self::CUST, $plan, self::BW, new \DateTimeImmutable('2027-01-31 23:59:59'), new \DateTimeImmutable('@1790000000'));
+        $this->assertSame((string) (1790000000 - QuotaPolicy::PERIOD_SKEW_SECONDS), $p->checkMap()['Nuxr-Period-Start']);
+        $this->assertSame('0', RadiusPolicyBuilder::build(self::CUST, $plan, self::BW, null, new \DateTimeImmutable('@3'))->checkMap()['Nuxr-Period-Start'], 'never negative');
+        $this->assertSame('0', RadiusPolicyBuilder::build(self::CUST, $plan, self::BW, null, null)->checkMap()['Nuxr-Period-Start'], 'unknown start: since the beginning');
     }
 
     public function testHotspotDataPlanAsksForInterimAccounting(): void

@@ -56,7 +56,7 @@ It replies `Mikrotik-Total-Limit(+Gigawords)`, `Mikrotik-Recv-Limit(+Gigawords)`
 ## 3. Renewal contract (Q1, P2 Option B)
 
 - **Period boundary:**
-  - a RENEW starts the new quota period at the renewal instant (`Nuxr-Period-Start`), as before;
+  - a RENEW starts the new quota period at the renewal instant; the stored attribution boundary `Nuxr-Period-Start` is that instant **minus `QuotaPolicy::PERIOD_SKEW_SECONDS` (10 s)**: measured on CHR 7.24.5 the NAS stamps Accounting-Start 1.1 - 1.7 s before the host receives it, so a strict comparison booked a session that logs in within ~2 s of the renewal (the Option B redial) to the previous period (found by the CHR mixed-traffic test; the suspected DB time-zone mismatch was checked and refuted: all sessions UTC);
   - usage is attributed to the period in which its **session started**, so old and new usage never mix;
   - accounting history is never deleted.
 - **Ending the old session:** after the new period is provisioned and verified, every open session of the subscriber that started **before** the new period is sent a Disconnect, and its end is **confirmed** (Accounting-Stop within the bound, or NAK 503 "no such session"). A Disconnect-ACK alone is not proof. RouterOS 7.24.5 answers NAK 406 (never 503) for a session it no longer has: that stays unconfirmed (fail closed). This applies to:

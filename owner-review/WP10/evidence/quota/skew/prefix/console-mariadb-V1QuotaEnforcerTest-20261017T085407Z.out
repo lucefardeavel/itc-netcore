@@ -1,0 +1,44 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/skew/prefix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1QuotaEnforcerTest.php
+start: 2026-10-17T08:54:07Z
+ Container nuxbill-reseller-test-php82-run-6ffce57d7e69 Creating 
+ Container nuxbill-reseller-test-php82-run-6ffce57d7e69 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..F..                                                               5 / 5 (100%)
+
+Time: 00:10.682, Memory: 12.00 MB
+
+V1Quota Enforcer (Reseller\Tests\Integration\Wp10\V1QuotaEnforcer)
+ ✔ Confirmation needs nas evidence
+ ✔ Enforcer ends only over quota sessions of the current period
+ ✘ Session stamped just before the activation is enforced in the new period
+   │
+   │ only the near-boundary session is in the new period
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 [
+   │ -    0 => Array &1 [
+   │ -        0 => 'c5a784f7521',
+   │ -        1 => '1000000',
+   │ -        2 => '1200000',
+   │ -        3 => Array &2 [
+   │ -            0 => 9,
+   │ -        ],
+   │ -    ],
+   │ -]
+   │ +Array &0 []
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaEnforcerTest.php:158
+   │
+ ✔ Time quota across concurrent sessions
+ ✔ Malformed quota rows are skipped not enforced
+
+FAILURES!
+Tests: 5, Assertions: 37, Failures: 1.
+
+exit=1 end: 2026-10-17T08:54:19Z

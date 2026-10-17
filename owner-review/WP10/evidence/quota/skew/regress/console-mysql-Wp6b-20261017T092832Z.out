@@ -1,0 +1,75 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/skew/regress/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp6b
+start: 2026-10-17T09:28:32Z
+ Container nuxbill-reseller-test-php82-run-679d05e78f23 Creating 
+ Container nuxbill-reseller-test-php82-run-679d05e78f23 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......................................                            38 / 38 (100%)
+
+Time: 05:31.842, Memory: 14.00 MB
+
+Activation Action Matrix (Reseller\Tests\Integration\Wp6b\ActivationActionMatrix)
+ ✔ Every state renders exactly the accepted operations
+ ✔ The operation table mirrors the accepted primitives
+
+Debt Limit Reviewed Writer (Reseller\Tests\Integration\Wp6b\DebtLimitReviewedWriter)
+ ✔ The writer refuses a stale expected current and writes nothing
+ ✔ Matching expectation applies the accepted rules unchanged
+ ✔ The expectation is compared under the writers own locks
+ ✔ The web reviewed execute uses the conditional writer
+
+Export Cap (Reseller\Tests\Integration\Wp6b\ExportCap)
+ ✔ Performance export is complete at the cap and refused above it
+ ✔ Pricing catalog export is complete at the cap and refused above it
+
+Finance Correction (Reseller\Tests\Integration\Wp6b\FinanceCorrection)
+ ✔ Debt line review typed decrease and exposure floor
+ ✔ Adjustments are explicit and never open a wallet
+ ✔ Only an existing reversible transfer can be reversed
+ ✔ Corrections are admin only
+ ✔ A stale debt line review never changes its risk direction
+
+Finance Mutation (Reseller\Tests\Integration\Wp6b\FinanceMutation)
+ ✔ Provider funding review execute and replay
+ ✔ A tampered review is refused before any service call
+ ✔ Withdrawal needs the typed username
+ ✔ Agent sends only from its own wallet to a direct child
+ ✔ Roles without the capability are denied
+
+Finance Navigation (Reseller\Tests\Integration\Wp6b\FinanceNavigation)
+ ✔ Destinations follow the role
+ ✔ Primary navigation and quick actions
+ ✔ Dashboard finance tiles are role specific
+
+Finance Read (Reseller\Tests\Integration\Wp6b\FinanceRead)
+ ✔ Scopes follow the accepted capabilities
+ ✔ Identities above the viewer are role labels and in scope reasons stay
+ ✔ Exports equal the screen and are audited without contents
+ ✔ Read pages write nothing
+
+Operations Center (Reseller\Tests\Integration\Wp6b\OperationsCenter)
+ ✔ Only admins reach the operations center
+ ✔ Cancel is refused while fresh and cancels once stale
+ ✔ Resume of a stale activation completes it
+ ✔ An attention item is never listed twice
+ ✔ Informational items carry no action buttons
+
+Pricing Ux (Reseller\Tests\Integration\Wp6b\PricingUx)
+ ✔ Agents see only their projection and admin sees everything
+ ✔ The accepted setters stay authoritative
+ ✔ Admin base cost resale and retail warnings
+
+Reseller Workspace (Reseller\Tests\Integration\Wp6b\ResellerWorkspace)
+ ✔ Tree scope drill down and no money
+ ✔ Detail is scoped and masks accounts above the viewer
+ ✔ Subscriber filters only narrow the scope
+
+Settlement Report (Reseller\Tests\Integration\Wp6b\SettlementReport)
+ ✔ The settlement card follows the role projection
+ ✔ Reports and exports follow the same scopes
+
+OK (38 tests, 850 assertions)
+exit=0 end: 2026-10-17T09:34:06Z
