@@ -11,7 +11,8 @@ use Reseller\Domain\Tx;
 use Reseller\Finance\FinanceTx;
 use Reseller\Finance\PricingService;
 use Reseller\Finance\ReservationService;
-use Reseller\Radius\CoAClient;
+use Reseller\Radius\AccountingService;
+use Reseller\Radius\SessionTermination;
 use Reseller\Radius\ProvisionResult;
 use Reseller\Radius\RadiusPolicy;
 use Reseller\Radius\RadiusPolicyBuilder;
@@ -439,7 +440,9 @@ final class ActivationService
         }
         self::tx(static fn(\PDO $pdo) => ActivationStore::transition($pdo, $id, [ActivationState::VERIFYING], ActivationState::VERIFIED, $actor,
             ['event_type' => 'VERIFICATION_RESULT', 'provisioning_result' => ProvisionResult::SUCCESS]));
-        if (in_array($row['action'], ['CHANGE_PLAN', 'REACTIVATE'], true)) {
+        // V1 / owner RENEWAL_OPTION_B_APPROVED: a renewal ends the old period's session too (CHANGE_PLAN / REACTIVATE
+        // already did), and the end is CONFIRMED (SessionTermination), never assumed from a Disconnect-ACK
+        if (in_array($row['action'], ['CHANGE_PLAN', 'REACTIVATE', 'RENEW'], true)) {
             self::endSessions($id, $policy->username, $actor);
         }
     }
@@ -709,11 +712,11 @@ final class ActivationService
         return $day >= 1 ? $day : 20;
     }
 
-    /** Ends the customer's sessions so a changed policy applies (best effort; UNKNOWN never undoes provisioning). */
     /**
-     * WP9 lock gate P1: operator re-send of the Disconnect of a COMPLETED CHANGE_PLAN / REACTIVATE whose first Disconnect
-     * did not succeed (DriftReport SESSION_POLICY_STALE). Operator-initiated only (never automatic); a Disconnect of a
-     * session that already ended is answered NAK / not found and changes nothing. The summary is annotated.
+     * WP9 lock gate P1 / V1 Option B: operator re-send of the session end of a COMPLETED CHANGE_PLAN / REACTIVATE / RENEW
+     * whose first end was not confirmed (DriftReport SESSION_POLICY_STALE). Operator-initiated only (never automatic);
+     * only sessions that started before the activation's period are targeted; a session that already ended is answered
+     * NAK 503 / not found and changes nothing. The outcome is annotated.
      *
      * @return list<string> per-session "<status>:<code>"
      */
@@ -721,41 +724,64 @@ final class ActivationService
     {
         $pdo = FinanceTx::pdo();
         $act = ActivationStore::byReference($pdo, $reference) ?? throw new DomainError('NOT_FOUND');
-        if ($act['status'] !== ActivationState::COMPLETED || !in_array($act['action'], ['CHANGE_PLAN', 'REACTIVATE'], true)) {
+        if ($act['status'] !== ActivationState::COMPLETED || !in_array($act['action'], ['CHANGE_PLAN', 'REACTIVATE', 'RENEW'], true)) {
             throw new DomainError('ACTIVATION_STATE_CONFLICT');
         }
         $username = ActivationStore::radius($pdo, (int) $act['id'])['target']['username'] ?? throw new DomainError('ACTIVATION_STATE_CONFLICT');
-        $summary = [];
-        try {
-            foreach (CoAClient::connection()->disconnect((string) $username) as $r) {
-                $summary[] = $r->status . ':' . $r->code;
-            }
-        } catch (\Throwable $e) {
-            $summary[] = 'ERROR';
-            \Reseller\Security\ErrorReporter::report($e, 'activation-disconnect');
-        }
-        self::tx(static function (\PDO $pdo) use ($act, $actor, $summary): void {
+        $outcome = self::endPeriodSessions((string) $username, self::periodStartEpoch($pdo, (int) $act['id']));
+        self::tx(static function (\PDO $pdo) use ($act, $actor, $outcome): void {
             ActivationStore::lock($pdo, (int) $act['id']);
-            ActivationStore::event($pdo, (int) $act['id'], ActivationState::COMPLETED, ActivationState::COMPLETED, $actor, ['event_type' => 'ANNOTATION', 'metadata' => ['disconnect' => $summary, 'operator' => 'session-end']]);
+            ActivationStore::event($pdo, (int) $act['id'], ActivationState::COMPLETED, ActivationState::COMPLETED, $actor, ['event_type' => 'ANNOTATION', 'metadata' => $outcome + ['operator' => 'session-end']]);
         });
-        return $summary;
+        return $outcome['disconnect'];
     }
 
+    /**
+     * Ends the sessions that may still run the previous policy so the new one applies (UNKNOWN never undoes provisioning
+     * or finance). Called after the provisioning is verified: every session that started before NOW (not only before the
+     * period start) authenticated under the previous policy - a re-login between the activation's start and the RADIUS
+     * commit is ended too.
+     */
     private static function endSessions(int $id, string $username, ActivationActor $actor): void
     {
-        $summary = [];
-        try {
-            foreach (CoAClient::connection()->disconnect($username) as $r) {
-                $summary[] = $r->status . ':' . $r->code;
-            }
-        } catch (\Throwable $e) {
-            $summary[] = 'ERROR';
-            \Reseller\Security\ErrorReporter::report($e, 'activation-disconnect');
-        }
-        self::tx(static function (\PDO $pdo) use ($id, $actor, $summary): void {
+        $outcome = self::endPeriodSessions($username, max(self::periodStartEpoch(FinanceTx::pdo(), $id), time()));
+        self::tx(static function (\PDO $pdo) use ($id, $actor, $outcome): void {
             ActivationStore::lock($pdo, $id);
-            ActivationStore::event($pdo, $id, ActivationState::VERIFIED, ActivationState::VERIFIED, $actor, ['event_type' => 'ANNOTATION', 'metadata' => ['disconnect' => $summary]]);
+            ActivationStore::event($pdo, $id, ActivationState::VERIFIED, ActivationState::VERIFIED, $actor, ['event_type' => 'ANNOTATION', 'metadata' => $outcome]);
         });
+    }
+
+    /**
+     * The open sessions of $username that started before $periodStart get a Disconnect each, and their end is confirmed
+     * (Accounting-Stop after the ACK, or NAK 503). Never throws.
+     *
+     * @return array{disconnect:list<string>,sessions:list<array<string,mixed>>,confirmed:bool}
+     */
+    private static function endPeriodSessions(string $username, int $periodStart): array
+    {
+        try {
+            $rows = array_values(array_filter(AccountingService::connection()->openSessions($username),
+                static fn(array $r): bool => $r['acctstart_epoch'] === null || (int) $r['acctstart_epoch'] < $periodStart));
+        } catch (\Throwable $e) {
+            \Reseller\Security\ErrorReporter::report($e, 'activation-disconnect');
+            return ['disconnect' => ['ERROR'], 'sessions' => [], 'confirmed' => false];
+        }
+        $ended = SessionTermination::end($rows);
+        return ['disconnect' => array_column($ended, 'result'), 'sessions' => $ended, 'confirmed' => !in_array(false, array_column($ended, 'confirmed'), true)];
+    }
+
+    /** the activation's service period start as a UNIX timestamp (now when unknown: every open session is from before) */
+    private static function periodStartEpoch(\PDO $pdo, int $id): int
+    {
+        try {
+            $meta = ActivationStore::period($pdo, $id)['period'] ?? null;
+        } catch (\LogicException) {
+            $meta = null;
+        }
+        if (!is_array($meta) || !isset($meta['start'], $meta['timezone'])) {
+            return time();
+        }
+        return (new \DateTimeImmutable((string) $meta['start'], new \DateTimeZone((string) $meta['timezone'])))->getTimestamp();
     }
 
     /** The application time zone (legacy wall clock), now. */

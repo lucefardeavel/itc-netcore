@@ -92,7 +92,9 @@ final class RealLifecycleTest extends Wp8ActivationLabCase
         $r0 = $this->rechargeRow($cust);
         $exp0 = $this->policy($user)['check']['Expiration'];
 
-        // A. RENEW: expiry extended from the current expiry, policy updated, settled again, the live session continues
+        // A. RENEW: expiry extended from the current expiry, policy updated, settled again. Owner RENEWAL_OPTION_B_APPROVED
+        // (2026-10-17; before: the live session continued with its old Session-Timeout): the session of the previous
+        // period is ended and its end CONFIRMED (Disconnect-ACK + Accounting-Stop), then the subscriber re-authenticates
         $renew = $this->activate($h['sales'], $cust, $plan1, 'RENEW');
         $this->assertSame(['COMPLETED', 'RENEW'], [$renew['status'], $renew['action']]);
         $r1 = $this->rechargeRow($cust);
@@ -100,16 +102,23 @@ final class RealLifecycleTest extends Wp8ActivationLabCase
         $exp1 = $this->policy($user)['check']['Expiration'];
         $this->assertNotSame($exp0, $exp1);
         $this->assertSame((new \DateTimeImmutable($r1['expiration'] . ' ' . $r1['time']))->format('d M Y H:i:s'), $exp1, 'RADIUS Expiration = saved billing expiry');
-        $this->assertNull($this->annotation($renew['reference']), 'RENEW does not disconnect');
-        $this->assertSame($sid1, Wp8Lab::pppActive($user)[0]['session-id'] ?? null, 'same live session after RENEW');
-        $this->assertCount(1, $this->acct($user), 'accounting: still one session');
+        $renewAnn = $this->annotation($renew['reference']);
+        $this->assertSame(['SUCCESS:COA_ACK'], $renewAnn['disconnect'] ?? null, 'RENEW disconnects the previous-period session');
+        $this->assertSame([['CONFIRMED', true]], array_map(static fn($e) => [$e['state'], $e['confirmed']], $renewAnn['sessions'] ?? []), 'ACK + Accounting-Stop: confirmed');
+        $this->assertTrue($renewAnn['confirmed'] ?? null);
+        $this->assertTrue(Wp8Lab::agent('pppoe_wait_down', ['client' => 'c1'])['down'], 'the old session is gone on the NAS');
+        $this->assertNotNull($this->acct($user)[0]['acctstoptime'], 'its Accounting-Stop is recorded');
+        $s1b = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'S5-life-pass']);
+        $this->assertTrue($s1b['ok'], 'the subscriber re-authenticates under the renewed period');
+        $this->assertNotSame($sid1, Wp8Lab::pppActive($user)[0]['session-id'] ?? null, 'a new session after RENEW');
+        $this->assertCount(2, $this->acct($user), 'accounting: the old session (stopped, kept) + the new one');
         $renewC = $this->conserved($renew['reference']);
 
         // B. CHANGE_PLAN, rate only: accepted model = policy update + Disconnect (no live rate CoA in the activation path)
         $cp = $this->activate($h['sales'], $cust, $plan2, 'CHANGE_PLAN');
         $this->assertSame(['COMPLETED', 'CHANGE_PLAN'], [$cp['status'], $cp['action']]);
         $this->assertSame('128K/1M', $this->policy($user)['reply']['Mikrotik-Rate-Limit']);
-        $this->assertSame(['disconnect' => ['SUCCESS:COA_ACK']], $this->annotation($cp['reference']), 'the old session was disconnected (ACK)');
+        $this->assertSame([['SUCCESS:COA_ACK'], true], [$this->annotation($cp['reference'])['disconnect'] ?? null, $this->annotation($cp['reference'])['confirmed'] ?? null], 'the old session was disconnected (ACK + Stop: confirmed)');
         $this->assertTrue(Wp8Lab::agent('pppoe_wait_down', ['client' => 'c1'])['down']);
         $s2 = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'S5-life-pass']);
         $this->assertTrue($s2['ok']);
@@ -122,17 +131,17 @@ final class RealLifecycleTest extends Wp8ActivationLabCase
         $cp2 = $this->activate($h['sales'], $cust, $plan3, 'CHANGE_PLAN');
         $this->assertSame('COMPLETED', $cp2['status']);
         $this->assertSame('nuxr_wp8_pool_dyn2', $this->policy($user)['reply']['Framed-Pool']);
-        $this->assertSame(['disconnect' => ['SUCCESS:COA_ACK']], $this->annotation($cp2['reference']));
+        $this->assertSame([['SUCCESS:COA_ACK'], true], [$this->annotation($cp2['reference'])['disconnect'] ?? null, $this->annotation($cp2['reference'])['confirmed'] ?? null]);
         $this->assertTrue(Wp8Lab::agent('pppoe_wait_down', ['client' => 'c1'])['down']);
         $s3 = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'S5-life-pass']);
         $this->assertMatchesRegularExpression('/^10\.88\.10\.(1[5-9]\d)$/', (string) $s3['ip'], 'address from the new pool after re-authentication');
-        $rows = Wp8Lab::until(fn() => count($r = $this->acct($user)) === 3 && $r[0]['acctstoptime'] && $r[1]['acctstoptime'] ? $r : null, 30, 2);
-        $this->assertSame([$s1['ip'], $s2['ip'], $s3['ip']], array_column($rows, 'framedipaddress'), 'one radacct row per session; history kept');
-        $this->assertSame(['NAS-Request', 'NAS-Request'], [$rows[0]['acctterminatecause'], $rows[1]['acctterminatecause']]);
+        $rows = Wp8Lab::until(fn() => count($r = $this->acct($user)) === 4 && $r[0]['acctstoptime'] && $r[1]['acctstoptime'] && $r[2]['acctstoptime'] ? $r : null, 30, 2);
+        $this->assertSame([$s1['ip'], $s1b['ip'], $s2['ip'], $s3['ip']], array_column($rows, 'framedipaddress'), 'one radacct row per session; history kept');
+        $this->assertSame(['NAS-Request', 'NAS-Request', 'NAS-Request'], [$rows[0]['acctterminatecause'], $rows[1]['acctterminatecause'], $rows[2]['acctterminatecause']]);
         $cp2C = $this->conserved($cp2['reference']);
         $this->assertSame(4, (int) static::$db->value("SELECT COUNT(*) FROM tbl_manager_ledger WHERE entry_type = 'ACTIVATION_DEBIT' AND manager_id = ?", [$h['C']]), 'four activations, four debits, none duplicated');
         Wp8Lab::evidence('S5.renew-change-plan', ['renew' => ['expiry_before' => $r0['expiration'] . ' ' . $r0['time'], 'expiry_after' => $r1['expiration'] . ' ' . $r1['time'],
-            'radius_expiration' => [$exp0, $exp1], 'session' => [$sid1, 'unchanged'], 'conservation' => $renewC],
+            'radius_expiration' => [$exp0, $exp1], 'session_end' => $renewAnn, 'conservation' => $renewC],
             'change_plan_rate' => ['annotation' => $this->annotation($cp['reference']), 'queue_after' => '128000/1000000', 'legs' => $this->legs($cp['reference']), 'conservation' => $cpC],
             'change_plan_pool' => ['annotation' => $this->annotation($cp2['reference']), 'addresses' => array_column($rows, 'framedipaddress'), 'conservation' => $cp2C]]);
     }
@@ -161,7 +170,8 @@ final class RealLifecycleTest extends Wp8ActivationLabCase
         // E. REACTIVATE (expired recharge of the same plan): accepted action, new period from now, settled
         $re = $this->activate($h['sales'], $cust, $plan, 'REACTIVATE');
         $this->assertSame(['COMPLETED', 'REACTIVATE'], [$re['status'], $re['action']]);
-        $this->assertSame(['disconnect' => []], $this->annotation($re['reference']) ?? ['disconnect' => []], 'no open session to disconnect');
+        $reAnn = $this->annotation($re['reference']) ?? ['disconnect' => [], 'sessions' => []];
+        $this->assertSame([[], []], [$reAnn['disconnect'], $reAnn['sessions'] ?? []], 'no open session to disconnect');
         $back = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'S5-exp-pass']);
         $this->assertTrue($back['ok'], 'service restored after REACTIVATE');
         $reC = $this->conserved($re['reference']);

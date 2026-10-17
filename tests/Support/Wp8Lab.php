@@ -45,6 +45,40 @@ final class Wp8Lab
         throw new \RuntimeException("lab agent {$op}: no answer within {$timeout}s");
     }
 
+    /**
+     * Starts an agent operation without waiting (the agent runs operations one at a time; the test keeps working
+     * meanwhile with the database / CoA). @return string the request id for agentResult()
+     */
+    public static function agentStart(string $op, array $args = []): string
+    {
+        $id = sprintf('%.6f-%s', microtime(true), bin2hex(random_bytes(4)));
+        $tmp = "/wp8ctl/req/.{$id}.tmp";
+        file_put_contents($tmp, json_encode(['op' => $op, 'args' => (object) $args]));
+        chmod($tmp, 0666);
+        rename($tmp, "/wp8ctl/req/{$id}.json");
+        return $id;
+    }
+
+    /** the result of an agentStart() operation (waits up to $timeout seconds) */
+    public static function agentResult(string $id, int $timeout = 180): array
+    {
+        $res = "/wp8ctl/res/{$id}.json";
+        $deadline = microtime(true) + $timeout;
+        while (microtime(true) < $deadline) {
+            clearstatcache(true, $res);
+            if (is_file($res)) {
+                $out = json_decode((string) file_get_contents($res), true);
+                @unlink($res);
+                if (!is_array($out) || ($out['ok_call'] ?? false) !== true) {
+                    throw new \RuntimeException('lab agent: ' . ($out['error'] ?? 'invalid response'));
+                }
+                return $out['result'];
+            }
+            usleep(150000);
+        }
+        throw new \RuntimeException("lab agent: no answer within {$timeout}s");
+    }
+
     /** RouterOS command on the lab CHR through its management path; @return list<array<string,string>> rows */
     public static function ros(string ...$words): array
     {

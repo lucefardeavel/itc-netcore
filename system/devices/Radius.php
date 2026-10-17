@@ -375,8 +375,28 @@ class Radius
             break;
         }
         self::check($result);
-        // a new policy takes effect at the next session: end the current one (best effort, never retried)
-        $this->disconnectCustomer($policy->username);
+        // a new policy takes effect at the next session: end the current ones (one Disconnect each, never retried).
+        // V1 / owner RENEWAL_OPTION_B_APPROVED (legacy recharge and voucher renewal included): the end is CONFIRMED
+        // (Accounting-Stop after the ACK, or NAK 503); an unconfirmed end is logged and never undoes the provisioning
+        $this->endSessions($policy->username);
+    }
+
+    /** Disconnect + confirmation of every open session of $key (SessionTermination; never throws). */
+    private function endSessions(string $key): void
+    {
+        global $_app_stage;
+        if ($_app_stage == 'demo' || $_app_stage == 'Demo') {
+            return;
+        }
+        try {
+            foreach (\Reseller\Radius\SessionTermination::end(\Reseller\Radius\AccountingService::connection()->openSessions($key)) as $e) {
+                if (!$e['confirmed']) {
+                    ErrorReporter::log('radius.disconnect', 'result=' . $e['result'] . ' state=' . $e['state'] . ' radacctid=' . $e['radacctid']);
+                }
+            }
+        } catch (Throwable $e) {
+            ErrorReporter::report($e, 'radius-disconnect');
+        }
     }
 
     /**

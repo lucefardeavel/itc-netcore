@@ -262,7 +262,7 @@ final class ActivationFailureTest extends ActivationTestCase
         $secret = 'wp5a-coa-' . bin2hex(random_bytes(4));
         $stub = new StubNas($secret, 'silent');
         $nas = static::$db->insertRow('nas', ['nasname' => '127.0.0.1', 'shortname' => 'wp5a-stub', 'type' => 'other', 'ports' => $stub->port, 'secret' => $secret, 'description' => 'wp5a']);
-        static::$db->insertRow('radacct', [
+        $acctId = static::$db->insertRow('radacct', [
             'acctsessionid' => 'wp5a-open', 'acctuniqueid' => substr(md5($u . 'wp5a-open'), 0, 32), 'username' => $u, 'nasipaddress' => '127.0.0.1',
             'acctstarttime' => gmdate('Y-m-d H:i:s', time() - 600), 'acctstoptime' => null, 'acctsessiontime' => 60, 'acctinputoctets' => 0, 'acctoutputoctets' => 0,
             'framedipaddress' => '10.0.0.9', 'calledstationid' => '', 'callingstationid' => '', 'acctterminatecause' => '', 'acctauthentic' => '',
@@ -277,7 +277,10 @@ final class ActivationFailureTest extends ActivationTestCase
         $this->assertSame('COMPLETED', $out['status'], 'a silent NAS does not block the activation');
         $this->assertCount(3, $got, 'one Disconnect-Request and two identical retransmissions, never a new request');
         $note = static::$db->value("SELECT e.metadata FROM tbl_reseller_activation_events e JOIN tbl_reseller_activations a ON a.id = e.activation_id WHERE a.reference = ? AND e.event_type = 'ANNOTATION'", [$out['reference']]);
-        $this->assertSame(['disconnect' => ['UNKNOWN:COA_NO_RESPONSE']], json_decode((string) $note, true), 'the outcome is on the timeline');
+        // V1 / owner RENEWAL_OPTION_B_APPROVED: the annotation also records, per session, whether its end was confirmed
+        // (additive: the 'disconnect' outcome list is unchanged)
+        $this->assertSame(['disconnect' => ['UNKNOWN:COA_NO_RESPONSE'], 'sessions' => [['radacctid' => $acctId, 'acct_session_id' => 'wp5a-open', 'nas' => '127.0.0.1',
+            'result' => 'UNKNOWN:COA_NO_RESPONSE', 'state' => 'COA_NO_RESPONSE', 'confirmed' => false]], 'confirmed' => false], json_decode((string) $note, true), 'the outcome is on the timeline');
         $this->assertSame(['985.00', '1003.00'], [$this->balance($leaf), $this->balance($top)]);
     }
 

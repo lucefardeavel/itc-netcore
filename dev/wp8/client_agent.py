@@ -224,6 +224,26 @@ def traffic(client, direction, seconds=8, kbps_offer=2000):
             'measured_kbps': round(n * 8 / dur / 1000, 1) if dur > 0 else 0.0}
 
 
+def traffic_mixed(client, seconds=60, kbps_up=1500, kbps_down=1500):
+    """V1 quota lab (owner QUOTA_V1_GB_SUPPORT_APPROVED): upload and download at the same time (PPPoE mixed traffic,
+    the case RouterOS does not cap natively); each direction as traffic()"""
+    import threading
+    out = {}
+
+    def run(direction, kbps):
+        try:
+            out[direction] = traffic(client, direction, seconds, kbps)
+        except Exception as e:  # reported, never hidden
+            out[direction] = {'error': f'{type(e).__name__}: {e}'[:200]}
+    th = [threading.Thread(target=run, args=('up', kbps_up)), threading.Thread(target=run, args=('down', kbps_down))]
+    for t in th:
+        t.start()
+        time.sleep(0.3)
+    for t in th:
+        t.join(seconds + 60)
+    return out
+
+
 # ---------------------------------------------------------------- CHR, FreeRADIUS, captures
 def ros_cmd(words):
     r = ros(); rows = r.talk(words); r.close()
@@ -481,7 +501,7 @@ def pppoe_race(clients, user, password, offset_ms=0, observe=20, interval=0.15, 
 
 OPS = {'option_g': option_g, 'guard_invoke': guard_invoke, 'fr_canaries': fr_canaries, 'checkrad_state': checkrad_state, 'checkrad_trace': checkrad_trace, 'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_start': pppoe_start, 'pppoe_race': pppoe_race, 'watch_active': watch_active, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
        'pppoe_wait_down': pppoe_wait_down, 'hs_dhcp': hs_dhcp, 'hs_login': hs_login, 'hs_logout': hs_logout, 'http_probe': http_probe,
-       'traffic': traffic, 'ros': ros_cmd, 'fr': fr, 'nas_link': nas_link, 'fr_log': fr_log, 'capture_start': capture_start, 'capture_stop': capture_stop}
+       'traffic': traffic, 'traffic_mixed': traffic_mixed, 'ros': ros_cmd, 'fr': fr, 'nas_link': nas_link, 'fr_log': fr_log, 'capture_start': capture_start, 'capture_stop': capture_stop}
 
 
 def main():

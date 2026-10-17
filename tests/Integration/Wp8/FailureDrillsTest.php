@@ -98,6 +98,19 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
         return [$cust, $user, $new['reference']];
     }
 
+    /**
+     * V1 / owner RENEWAL_OPTION_B_APPROVED: the session-end annotation records the Disconnect outcomes (unchanged) and,
+     * additively, the per-session confirmation; an unanswered Disconnect is never confirmed.
+     */
+    private function assertUnconfirmed(string $reference, string $why): array
+    {
+        $ann = $this->annotation($reference);
+        $this->assertSame(['UNKNOWN:COA_NO_RESPONSE'], $ann['disconnect'] ?? null, $why);
+        $this->assertSame([['COA_NO_RESPONSE', false]], array_map(static fn($e) => [$e['state'], $e['confirmed']], $ann['sessions'] ?? []), $why);
+        $this->assertFalse($ann['confirmed'] ?? null, $why);
+        return $ann;
+    }
+
     private function annotation(string $reference): ?array
     {
         $m = static::$db->value("SELECT e.metadata FROM tbl_reseller_activation_events e JOIN tbl_reseller_activations a ON a.id = e.activation_id WHERE a.reference = ? AND e.event_type = 'ANNOTATION' ORDER BY e.sequence_no DESC LIMIT 1", [$reference]);
@@ -303,7 +316,7 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
         Wp8Lab::agent('nas_link', ['state' => 'up']);
         $s = $this->inspect($out['reference'], $user, $h);
         $this->assertSame('COMPLETED', $s['status'], 'the disconnect is best effort: the paid change completes');
-        $this->assertSame(['disconnect' => ['UNKNOWN:COA_NO_RESPONSE']], $this->annotation($out['reference']), 'UNKNOWN recorded, nothing fabricated');
+        $this->assertUnconfirmed($out['reference'], 'UNKNOWN recorded, nothing fabricated');
         $this->invariants($s);
         $this->assertSame($sid, Wp8Lab::pppActive($user)[0]['session-id'] ?? null, 'the old session (old policy) is still up on the NAS');
         // drill 10: path restored -> the operator repeats the disconnect explicitly (never retried automatically)
@@ -329,8 +342,7 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
         Wp8Lab::ros('/radius/incoming/set', '=accept=yes', '=port=3799');
         $s = $this->inspect($out['reference'], $user, $h);
         $this->assertSame('COMPLETED', $s['status']);
-        $ann = $this->annotation($out['reference']);
-        $this->assertSame(['disconnect' => ['UNKNOWN:COA_NO_RESPONSE']], $ann, 'the NAS does not answer: UNKNOWN');
+        $ann = $this->assertUnconfirmed($out['reference'], 'the NAS does not answer: UNKNOWN');
         $this->assertCount(3, $pk, 'original + 2 identical retransmissions, no new request');
         $this->assertCount(1, array_unique(array_column($pk, 'id')));
         $this->invariants($s);
@@ -526,7 +538,7 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
         $this->unblockAll();
         $s = $this->inspect($out['reference'], $user, $h);
         $this->assertSame('COMPLETED', $s['status']);
-        $this->assertSame(['disconnect' => ['UNKNOWN:COA_NO_RESPONSE']], $this->annotation($out['reference']), 'no answer -> UNKNOWN, even though the NAS acted');
+        $this->assertUnconfirmed($out['reference'], 'no answer -> UNKNOWN (never confirmed), even though the NAS acted');
         $this->assertTrue(Wp8Lab::agent('pppoe_wait_down', ['client' => 'c1'])['down'], 'the NAS did disconnect the subscriber');
         $stop = Wp8Lab::until(fn() => ($r = $this->acct($user)) && $r[0]['acctstoptime'] ? $r[0] : null, 30, 2);
         $this->assertSame('NAS-Request', $stop['acctterminatecause'] ?? null, 'Stop accounting written');

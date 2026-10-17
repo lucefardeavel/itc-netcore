@@ -27,8 +27,9 @@ use Reseller\Radius\ProvisionResult;
  *  - OLD_SESSION_UNCONFIRMED (WP8 A3): a rename whose old-identity sessions are not confirmed ended (state UNCONFIRMED),
  *    or whose confirmation was never recorded (state CONFIRMATION_MISSING);
  *  - BALANCE_HELD: a legacy balance operation HELD for review;
- *  - SESSION_POLICY_STALE (WP9, lock gate P1): the latest CHANGE_PLAN / REACTIVATE of a reseller-owned customer whose
- *    Disconnect of the running session did not succeed (UNKNOWN / FAILED / error), while a session that started before
+ *  - SESSION_POLICY_STALE (WP9, lock gate P1; V1 Option B adds RENEW): the latest CHANGE_PLAN / REACTIVATE / RENEW of a
+ *    reseller-owned customer whose session end was not confirmed (Disconnect UNKNOWN / FAILED / error, or ACK without
+ *    the Accounting-Stop), while a session that started before
  *    the change is still open - it runs with the previous plan's policy until it ends. Operator: disconnect it
  *    (reconcile.php session-end <ACT>, or on the NAS); the Session-Timeout of the previous period bounds it.
  */
@@ -125,7 +126,7 @@ final class DriftReport
         $acct = \Reseller\Radius\AccountingService::connection();
         foreach ($owned as $c) {
             $latest = ActivationStore::latest($pdo, (int) $c['id'], ActivationState::COMPLETED);
-            if ($latest === null || !in_array($latest['action'], ['CHANGE_PLAN', 'REACTIVATE'], true)) {
+            if ($latest === null || !in_array($latest['action'], ['CHANGE_PLAN', 'REACTIVATE', 'RENEW'], true)) {
                 continue;
             }
             $failed = false;
@@ -139,6 +140,10 @@ final class DriftReport
                         if (!str_starts_with((string) $r, ProvisionResult::SUCCESS)) {
                             $failed = true;
                         }
+                    }
+                    // V1 Option B: an ACK without the session's Accounting-Stop is not an ended session
+                    if (($meta['confirmed'] ?? true) === false) {
+                        $failed = true;
                     }
                     $since = $since ?? (string) $e['created_at'];
                 }
