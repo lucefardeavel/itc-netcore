@@ -16,10 +16,10 @@ Owner instruction `CONTINUOUS_AUTONOMOUS_EXECUTION_APPROVED` (2026-10-17). Resum
 
 | # | Task | State | Evidence |
 |---|---|---|---|
-| Q1 | **N2** exact period ownership (server-side arrival order, `radacctid`) instead of NAS-clock time; clock-skew / NTP-drift / delayed Start / late Interim / cross-period / reconnect / duplicate matrix; NTP + max drift in preflight and health | IN PROGRESS: implemented (PeriodBoundary, builder, 3 callers, counters, share SQL, enforcer, dictionary), V1PeriodOwnershipTest 7/113 green both engines (failing-first in evidence/quota/n2/prefix). TODO: fix V1QuotaEnforcerTest full-chain setup (insert the old session BEFORE the activation), finish MySQL regression (evidence/quota/n2/regress), health `nas_clock`, CHR verification, docs (README, checklist H8, WP4 model, plan) | owner-review/WP10/N2_PERIOD_OWNERSHIP.md |
-| Q2 | **N1** PPPoE overshoot: measure on the CHR (interim, rate, quota, fault), model, reduce safely (interim configuration, adaptive interim if RouterOS supports it, pass interval), state the exact guarantee; options + recommendation for the owner | TODO | |
+| Q1 | **N2** exact period ownership | DONE: code + tests both engines + docs + health `nas_clock` (`0ec84def`); real NAS: `V1QuotaLabTest` 9 tests / 220 assertions OK incl. `testRenewalIsExactEvenWhenTheOldSessionStartedSecondsBefore` | N2_PERIOD_OWNERSHIP.md, evidence/quota/n2/{regress,chr} |
+| Q2 | **N1** PPPoE overshoot | DONE (engineering): levers `ae99c89e`; CHR matrix `V1OvershootLabTest` 10 tests / 219 assertions OK (9 matrix + early-cross + CoA-fault retry); CoA cannot change interim or byte limits (probe); analysis `N1_PPPOE_OVERSHOOT.md`; DECISIONS N1 row filled. Owner decides the customer-facing semantics (final package) | N1_PPPOE_OVERSHOOT.md, evidence/quota/n1/chr |
 | Q3 | Re-verify every WP8 / WP9 / WP10 roadmap item against the actual code (closure matrix) | TODO | |
-| Q4 | Target-environment preparation: acceptance procedures, evidence templates, preflight additions (nothing marked PASS without a real target run) | TODO | |
+| Q4 | Target-environment preparation: acceptance procedures, evidence templates, preflight additions (nothing marked PASS without a real target run) | DONE: docs/V1_TARGET_ACCEPTANCE.md (TA-01..10, all NOT_RUN) | |
 | Q5 | Frozen-candidate full verification (both engines, CHR, UI/PWA, drill, load, guards, secrets) | TODO | |
 | Q6 | `SAAS_RADIUS_V1_FINAL_OWNER_RELEASE_DECISION_PACKAGE` (14 sections) | TODO | |
 
@@ -27,7 +27,10 @@ Owner instruction `CONTINUOUS_AUTONOMOUS_EXECUTION_APPROVED` (2026-10-17). Resum
 None known at this checkpoint.
 
 ## Next exact action
-Wait for the N2 regression (`scratchpad/regress_n2.log`, evidence/quota/n2/regress) to finish; do NOT edit system/ or tests/ while it runs. Then fix the V1QuotaEnforcerTest setup, rerun Wp10 on both engines, then Q1 remaining items.
+Q5: with the CHR lab still up run the CHR gates + wp8-integration + V1 lab suites (`scratchpad/chr_gates_final.sh`, edit `EV=`), then `chr_down.sh`; then the frozen-candidate full dual-engine harness with `--testdox` in the snapshot worktree; UI audit + PWA suite; drill; load; guards. Then Q3 (`closure_check.py --testdox`) and Q6.
+
+## Lab hygiene (learned)
+- The lab agent runs ONE operation at a time: a `Wp8Lab::ros()` issued while a traffic job runs is queued and executes AFTER it (a queued `/radius/incoming accept=no` silently broke later CoA). After any aborted CHR test run `/radius/incoming/print` and restore `accept=yes port=3799`.
 
 ## Blockers / dependencies
 None. Non-delegable decisions are collected for the final package: N1, N2 acceptance, D1, D2, D4 – D10.

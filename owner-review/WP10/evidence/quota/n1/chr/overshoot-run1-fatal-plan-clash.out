@@ -1,0 +1,6 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-15c65be6ffbd Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-15c65be6ffbd Created 
+
+Fatal error: Access level to Reseller\Tests\Integration\Wp8\V1OvershootLabTest::plan() must be protected (as in class Reseller\Tests\Support\PricingTestCase) or weaker in /repo/tests/Integration/Wp8/V1OvershootLabTest.php on line 30
+

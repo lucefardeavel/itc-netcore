@@ -1,0 +1,1 @@
+{"t": "2026-10-17T19:48:36Z", "case": "coa_pppoe_interim_interval", "up": true, "coa": {"code": "CoA-ACK", "ms": 233}, "distinct_updates": 1, "updates": ["2026-10-17 19:47:53"], "verdict": "CoA-ACK; NOT_APPLIED: 1 distinct acctupdatetime values in 40 s (interim 60 at login, 5 by CoA)"}

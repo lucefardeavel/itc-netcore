@@ -104,7 +104,7 @@ This checklist is for an operator deploying one isolated instance. Tick every li
 | I3 | `php system/reseller/health.php --json` → monitoring (exit 1 WARNING, 2 CRITICAL, 3 UNKNOWN) | every 5 minutes |
 | I4 | `php system/reseller/health.php --json --finance` | hourly |
 | I5 | Backup (F1) | nightly |
-| I6 | `php system/reseller/quota.php enforce --loop=55` (V1 data / time quota enforcer: ends over-quota sessions; `install/freeradius/README.md` "V1 data and time quota"). Required as soon as one Limited plan is sold. | every minute |
+| I6 | `php system/reseller/quota.php enforce --loop=55 --every=5` (V1 data / time quota enforcer: ends over-quota sessions; `install/freeradius/README.md` "V1 data and time quota"). Required as soon as one Limited plan is sold. | every minute |
 
 ## J. Monitoring and alerting **[H]**
 

@@ -1,0 +1,26 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-d5e305d31c1b Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-d5e305d31c1b Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..........                                                        10 / 10 (100%)
+
+Time: 27:12.862, Memory: 14.00 MB
+
+V1Overshoot Lab (Reseller\Tests\Integration\Wp8\V1OvershootLab)
+ ✔ Detection latency follows the model with data set "I60 P5 400"
+ ✔ Detection latency follows the model with data set "I60 P5 900"
+ ✔ Detection latency follows the model with data set "I30 P5 400"
+ ✔ Detection latency follows the model with data set "I30 P5 900"
+ ✔ Detection latency follows the model with data set "I15 P5 400"
+ ✔ Detection latency follows the model with data set "I15 P5 900"
+ ✔ Detection latency follows the model with data set "I10 P5 400"
+ ✔ Detection latency follows the model with data set "I10 P5 900"
+ ✔ Detection latency follows the model with data set "I30 P15 900"
+ ✔ A quota crossed before the first interim is cut by the nas cap
+
+OK, but there were issues!
+Tests: 10, Assertions: 219, PHPUnit Deprecations: 1.

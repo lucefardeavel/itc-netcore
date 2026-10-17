@@ -470,11 +470,12 @@ FreeRADIUS 3.2.8 (`dev/wp8/quota_gate.py`; `owner-review/WP10/V1_QUOTA_RENEWAL_P
 | `Session-Timeout` in Access-Accept | enforced | enforced |
 | `Acct-Interim-Interval` in Access-Accept | honoured | honoured |
 | CoA changing a byte limit mid-session | ACKed, **not applied** | NAKed |
+| CoA changing `Acct-Interim-Interval` | ACKed, **not applied** | not tested |
 
 **At every authentication** (`authorize`, after the period counters), when `Max-Data` is set, FreeRADIUS replies the
 session's share of the remaining quota, `share = floor((Max-Data - period usage) / Simultaneous-Use)`, as
 `Mikrotik-Total-Limit`, `Mikrotik-Recv-Limit` and `Mikrotik-Xmit-Limit` (each with its Gigawords part), and PHPNuxBill
-adds `Acct-Interim-Interval = 60`. The time quota becomes `Session-Timeout` (the remaining time; the counter module).
+adds `Acct-Interim-Interval` (default 60 s; the setting `nuxr_quota_interim_seconds` in `config.php`, 10 - 300, shortens it for sessions that authenticate afterwards, at the price of one accounting UPDATE per online quota subscriber per interval). The time quota becomes `Session-Timeout` (the remaining time; the counter module).
 - Hotspot: the session is cut by the router at its share: a hard cap per session, but **not byte-exact** (the NAS cuts on its own
   timer; measured on CHR 7.24.5 the recorded usage ended 0.3 % - 4.4 % past the share at ~1 Mbps, i.e. 0.2 - 0.7 s of line rate).
 - PPPoE: each direction is cut at the share (= the whole remaining quota; PPPoE has Simultaneous-Use 1). Traffic in
@@ -490,10 +491,11 @@ adds `Acct-Interim-Interval = 60`. The time quota becomes `Session-Timeout` (the
 15 s it ends the open sessions of subscribers whose current-period usage reached `Max-Data` or `Max-All-Session`
 (PPPoE upload + download; several concurrent Hotspot sessions): Disconnect-Request to the session's NAS and a confirmed
 end (the Accounting-Stop seen within 6 s, or NAK 503). One audit record `quota.enforced` per subscriber and pass; a
-session is re-sent a Disconnect at most every 60 s; one enforcer at a time (database lock); accounting is only read.
+session whose Disconnect got no answer / no Stop is retried after 15 s, one that was answered NAK after 60 s (one termination call per pass for all subscribers; a NAS that stayed silent is asked once per call); one enforcer at a time (database lock); accounting is only read.
 `quota.php report` lists over-quota open sessions (read-only).
 - **This is not a byte-exact cap.** Overshoot past the quota is bounded by
-  `min(share at authentication, rate x (interim 60 s + pass 15 s + Disconnect <= 6 s))`, measured on CHR.
+  `min(share at authentication, rate x (interim + pass + Disconnect <= 6 s))`, measured on CHR (`owner-review/WP10/N1_PPPOE_OVERSHOOT.md`:
+  the model, the measured matrix, the cost of a shorter interval and the options). Never advertise it as byte-exact.
 - If the enforcer, FreeRADIUS, the database or the NAS link is down, the router's own limits still hold
   (PPPoE worst case: the share in each direction, i.e. 2 x the remaining quota).
 - `health.php` check `quota_enforcer`: CRITICAL when quota subscribers are online and the enforcer has not completed a
