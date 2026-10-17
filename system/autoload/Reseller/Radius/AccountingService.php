@@ -38,6 +38,15 @@ final class AccountingService
         return new self(\ORM::get_db('radius'));
     }
 
+    /**
+     * N2: the highest accounting row id (radacct.radacctid, server-side arrival order; 0 for an empty table). A billing
+     * period that starts now owns every row with a LARGER id (Nuxr-Period-Acct-Id), whatever the NAS clock says.
+     */
+    public function maxRowId(): int
+    {
+        return (int) $this->pdo->query('SELECT IFNULL(MAX(radacctid), 0) FROM radacct')->fetchColumn();
+    }
+
     /** @return list<array<string,mixed>> open sessions (no stop time) of one subscriber, oldest first */
     public function openSessions(string $username): array
     {

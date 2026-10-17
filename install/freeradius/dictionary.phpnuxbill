@@ -11,3 +11,5 @@ ATTRIBUTE	Nuxr-Period-Start		3101	integer
 # computation of the phpnuxbill virtual server: "q=<gigawords>,<bytes>" = the per-session share of the remaining
 # period quota, or anything else (an error, an emptied SQL expansion) -> the request is rejected.
 ATTRIBUTE	Nuxr-Quota-Share		3102	string
+# N2: the accounting row id at the start of the billing period (radacct.radacctid): the period owns the rows that arrived after it
+ATTRIBUTE	Nuxr-Period-Acct-Id		3103	string

@@ -499,18 +499,27 @@ session is re-sent a Disconnect at most every 60 s; one enforcer at a time (data
 - `health.php` check `quota_enforcer`: CRITICAL when quota subscribers are online and the enforcer has not completed a
   pass for 3 minutes; WARNING while an over-quota session is still open.
 
-**Period attribution and the NAS clock.** A session counts against the period in which it **started**, by the NAS's
-`Event-Timestamp` (`acctstarttime >= Nuxr-Period-Start`). Measured on RouterOS CHR 7.24.5, that stamp is **1.1 - 1.7 s
-earlier** than the host's receive time (integer seconds + NAS clock lag), and a PPPoE client redials right after the
-renewal Disconnect, so a strict comparison booked the first new session to the previous period and its traffic escaped
-the new quota. PHPNuxBill therefore stores `Nuxr-Period-Start` = the period start **minus 10 s**
-(`QuotaPolicy::PERIOD_SKEW_SECONDS`); the counters, the FreeRADIUS share and the enforcer all read that one value.
-- Cost: a session that started up to 10 s **before** a renewal is also counted in the new period (the renewal ends it,
-  so at most 10 s of its traffic).
-- Requirement: the NAS clock must be within the allowance (**NTP on every NAS**, checklist H8). A NAS clock that lags by
-  more than 10 s re-opens the gap for sessions that start within that lag of the period start.
-- Database session zone is not involved: every connection is UTC (preflight `time.sql_session_zone`), writer and readers
-  agree (WP8 A4); the finding was verified against a time-zone mismatch hypothesis and refuted.
+**Period attribution (exact, independent of the NAS clock).** A session counts against the billing period in which its
+accounting row **arrived**: a period that starts now owns every `radacct` row whose `radacctid` is larger than the table's
+highest id at that moment (`Nuxr-Period-Acct-Id`, written by PHPNuxBill with the quota). The NAS clock plays no part. Measured on
+RouterOS CHR 7.24.5, the NAS stamps Accounting-Start **1.1 - 1.7 s earlier** than the host receives it, and a PPPoE client redials
+right after the renewal Disconnect, so a comparison of the NAS stamp with the period start booked the first new session to the
+previous period (its traffic escaped the new quota); a 10 s allowance fixed that but also counted a session opened just *before* a
+renewal in the new period. Ownership by arrival order has neither error (`owner-review/WP10/N2_PERIOD_OWNERSHIP.md`).
+- The id is paired with its period: a re-provision of the same period (password, rename, re-sync) keeps it, so usage is never
+  reset; a renewal / plan change / reactivation takes the table's current end. A period provisioned before this change has no id
+  and keeps the **time rule** (`Nuxr-Period-Start` = the period start minus 10 s, `QuotaPolicy::PERIOD_SKEW_SECONDS`) until it ends.
+- A late Interim, a duplicate Start or a retransmitted Stop updates its own row: a row never moves between periods.
+- The counters, the FreeRADIUS share and the enforcer trust the id only when it is well-formed and not beyond the table's end (an
+  accounting table restored from an older backup falls back to the time rule); a malformed id rejects the login.
+- A login accepted just before the renewal whose Start arrives just after it is counted in the new period (it can only add usage).
+- **Install:** the dictionary now defines `Nuxr-Period-Acct-Id`: install `dictionary.phpnuxbill`, `mods-available/nuxr_counters`
+  and `sites-available/phpnuxbill` together, and restart FreeRADIUS, **before** the first quota plan is provisioned (an unknown
+  attribute in `radcheck` makes FreeRADIUS reject the subscriber).
+- Clocks: attribution no longer needs the NAS clock, but accounting times (display, freshness) and the time-rule fallback do.
+  Every host must be UTC and NTP-synchronised (preflight `time`: SQL session zone UTC, database-vs-PHP skew < 5 s); every NAS
+  should run NTP (health `nas_clock` reports interim stamps in the future by more than 120 s; operations tolerate 60 s of drift).
+- The database session zone is not involved: every connection is UTC (WP8 A4); a zone mismatch was investigated and refuted.
 
 **Accounting integrity.** An Interim-Update that is stale (after its session's Stop, or with smaller counters than
 already stored: re-ordered or late retransmission) is acknowledged but not written, so usage never decreases. A

@@ -15,7 +15,7 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  * Attribute placement:
  *  - check (radcheck): Cleartext-Password, Simultaneous-Use, Expiration, Max-All-Session (time quota,
  *    sqlcounter "nuxr_timecounter"), Max-Data (data quota, sqlcounter "nuxr_datacounter"; Hotspot and, since V1,
- *    PPPoE Limited plans - QuotaPolicy) and, with a quota, Nuxr-Period-Start (epoch of the billing period start minus QuotaPolicy::PERIOD_SKEW_SECONDS, the NAS clock allowance): the counters sum only the sessions of
+ *    PPPoE Limited plans - QuotaPolicy) and, with a quota, Nuxr-Period-Acct-Id (N2: the accounting row id at the period start - a session belongs to the period by the order its row arrived) and Nuxr-Period-Start (epoch of the billing period start minus QuotaPolicy::PERIOD_SKEW_SECONDS, the NAS clock allowance; the rule when there is no id): the counters sum only the sessions of
  *    the current period, because accounting history is no longer deleted at renewal (C17);
  *  - reply (radreply): Mikrotik-Rate-Limit; PPPoE static Framed-IP-Address OR Framed-Pool (never 0.0.0.0,
  *    never both); Hotspot WISPr-Session-Terminate-Time and Port-Limit = Simultaneous-Use (max(1, shared_users));
@@ -33,7 +33,11 @@ final class RadiusPolicyBuilder
      * @param array<string,mixed>      $plan     tbl_plans row
      * @param array<string,mixed>|null $bandwidth tbl_bandwidth row of the plan
      */
-    public static function build(array $customer, array $plan, ?array $bandwidth, ?\DateTimeImmutable $expiry, ?\DateTimeImmutable $periodStart = null): RadiusPolicy
+    /**
+     * @param (\Closure(string,int):?int)|null $acctBoundary N2: resolves the arrival-order boundary of the period for
+     *        (RADIUS key, time boundary) - PeriodBoundary::resolver(); null = none (the time boundary alone applies)
+     */
+    public static function build(array $customer, array $plan, ?array $bandwidth, ?\DateTimeImmutable $expiry, ?\DateTimeImmutable $periodStart = null, ?\Closure $acctBoundary = null): RadiusPolicy
     {
         $type = (string) ($plan['type'] ?? '');
         $pppoe = $type === 'PPPOE';
@@ -60,7 +64,12 @@ final class RadiusPolicyBuilder
             if (QuotaPolicy::hasData($plan)) {
                 $check[] = ['Max-Data', ':=', (string) QuotaPolicy::bytes($plan)];
             }
-            $check[] = ['Nuxr-Period-Start', ':=', (string) QuotaPolicy::boundary($periodStart?->getTimestamp())];   // period start - NAS clock allowance
+            $timeBoundary = QuotaPolicy::boundary($periodStart?->getTimestamp());
+            $check[] = ['Nuxr-Period-Start', ':=', (string) $timeBoundary];   // period start - NAS clock allowance (the fallback rule)
+            // N2: the exact rule - the rows that arrived after the period started. Unknown period start: since the beginning.
+            if ($acctBoundary !== null && $periodStart !== null && ($id = $acctBoundary($username, $timeBoundary)) !== null) {
+                $check[] = ['Nuxr-Period-Acct-Id', ':=', (string) $id];
+            }
         }
 
         $reply = [];

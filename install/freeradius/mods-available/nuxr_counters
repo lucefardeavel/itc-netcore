@@ -7,9 +7,11 @@
 #  Hotspot plans with a time / data quota. Defining them here makes them known to FreeRADIUS: stock
 #  FreeRADIUS rejects every subscriber whose radcheck rows contain an unknown attribute.
 #
-#  Both counters sum only the sessions started in the current billing period (control Nuxr-Period-Start,
-#  written by PHPNuxBill; 0 = since the beginning). Accounting history (radacct) is never deleted by
-#  PHPNuxBill, so a quota must not be "reset" by deleting rows.
+#  Both counters sum only the rows of the current billing period, written by PHPNuxBill: the rows that ARRIVED after
+#  the period started (control Nuxr-Period-Acct-Id: radacct.radacctid > the id; exact, independent of the NAS clock),
+#  or - when the id is absent, malformed or beyond the table's end - the sessions started since the time boundary
+#  (control Nuxr-Period-Start, the period start minus 10 s; 0 = since the beginning). Accounting history (radacct)
+#  is never deleted by PHPNuxBill, so a quota must not be "reset" by deleting rows.
 #
 #  Do not enable the stock "noresetcounter" together with nuxr_timecounter (both define Max-All-Session).
 #
@@ -22,7 +24,7 @@ sqlcounter nuxr_timecounter {
 	reply_name = Session-Timeout
 	key = User-Name
 	reset = never
-	query = "SELECT IFNULL(SUM(acctsessiontime),0) FROM radacct WHERE username='%{${key}}' AND acctstarttime >= FROM_UNIXTIME(%{%{control:Nuxr-Period-Start}:-0})"
+	query = "SELECT IFNULL(SUM(acctsessiontime),0) FROM radacct WHERE username='%{${key}}' AND IF('%{%{control:Nuxr-Period-Acct-Id}:-}' REGEXP '^[0-9]+$' AND CHAR_LENGTH('%{%{control:Nuxr-Period-Acct-Id}:-}') < 19 AND CAST('%{%{control:Nuxr-Period-Acct-Id}:-}' AS UNSIGNED) <= (SELECT IFNULL(MAX(radacctid), 0) FROM radacct), radacctid > CAST('%{%{control:Nuxr-Period-Acct-Id}:-}' AS UNSIGNED), acctstarttime >= FROM_UNIXTIME(%{%{control:Nuxr-Period-Start}:-0}))"
 }
 
 sqlcounter nuxr_datacounter {
@@ -32,5 +34,5 @@ sqlcounter nuxr_datacounter {
 	check_name = Max-Data
 	key = User-Name
 	reset = never
-	query = "SELECT IFNULL(SUM(acctinputoctets),0) + IFNULL(SUM(acctoutputoctets),0) FROM radacct WHERE username='%{${key}}' AND acctstarttime >= FROM_UNIXTIME(%{%{control:Nuxr-Period-Start}:-0})"
+	query = "SELECT IFNULL(SUM(acctinputoctets),0) + IFNULL(SUM(acctoutputoctets),0) FROM radacct WHERE username='%{${key}}' AND IF('%{%{control:Nuxr-Period-Acct-Id}:-}' REGEXP '^[0-9]+$' AND CHAR_LENGTH('%{%{control:Nuxr-Period-Acct-Id}:-}') < 19 AND CAST('%{%{control:Nuxr-Period-Acct-Id}:-}' AS UNSIGNED) <= (SELECT IFNULL(MAX(radacctid), 0) FROM radacct), radacctid > CAST('%{%{control:Nuxr-Period-Acct-Id}:-}' AS UNSIGNED), acctstarttime >= FROM_UNIXTIME(%{%{control:Nuxr-Period-Start}:-0}))"
 }

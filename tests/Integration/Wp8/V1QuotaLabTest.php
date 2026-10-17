@@ -295,6 +295,42 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         Wp8Lab::evidence('V1.hotspot-renewal', ['annotation' => $ann, 'old_session_used' => $this->used($old), 'new_limit' => '6000000', 'debits' => $debits() - $d0]);
     }
 
+    /**
+     * N2 on the real NAS: the renewal comes only seconds after the login (inside the old 10 s time allowance) and the redial
+     * follows at once (the NAS stamps its Start up to ~2 s early). Ownership by arrival order must (a) NOT charge the old
+     * session's traffic to the new period (the time rule would: the new share would be 10 MB minus the old usage) and (b) count
+     * the redialled session in the new period.
+     */
+    public function testRenewalIsExactEvenWhenTheOldSessionStartedSecondsBefore(): void
+    {
+        $h = $this->hierarchy('1000.00', '400.00', '300.00');
+        $plan = $this->dataPlan($h, 'PPPOE', 10);
+        $cust = $this->labCustomer($h['C'], $h['sales'], 'Q-ex-pass');
+        $user = $this->username($cust);
+        $this->assertSame('COMPLETED', $this->activate($h['sales'], $cust, $plan, 'NEW')['status']);
+        $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Q-ex-pass'])['ok']);
+        $loginAt = microtime(true);
+        Wp8Lab::agent('traffic', ['client' => 'c1', 'direction' => 'down', 'seconds' => 3, 'kbps_offer' => 4000]);
+        $renew = $this->activate($h['sales'], $cust, $plan, 'RENEW');   // at once: the old session is a few seconds old
+        $this->assertSame('COMPLETED', $renew['status']);
+        $this->assertLessThan(\Reseller\Radius\QuotaPolicy::PERIOD_SKEW_SECONDS, microtime(true) - $loginAt, 'the renewal is inside the old allowance window');
+        $old = $this->stopped($user, 0);
+        $this->assertGreaterThan(100_000, $this->used($old), 'the old session carried traffic');
+        $this->assertTrue(Wp8Lab::agent('pppoe_wait_down', ['client' => 'c1'])['down']);
+        $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Q-ex-pass'])['ok'], 'the immediate redial');
+        $this->assertSame('10000000', Wp8Lab::ros('/ppp/active/print', '=detail=', '?name=' . $user)[0]['limit-bytes-out'] ?? null,
+            'exact: the old session (opened seconds before the renewal) is not charged to the new period');
+        Wp8Lab::agent('traffic', ['client' => 'c1', 'direction' => 'down', 'seconds' => 3, 'kbps_offer' => 4000]);
+        Wp8Lab::agent('pppoe_down', ['client' => 'c1']);
+        $new = $this->stopped($user, 1);
+        $this->assertGreaterThan(100_000, $this->used($new));
+        $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Q-ex-pass'])['ok']);
+        $this->assertSame((string) (10_000_000 - $this->used($new)), Wp8Lab::ros('/ppp/active/print', '=detail=', '?name=' . $user)[0]['limit-bytes-out'] ?? null,
+            'the redialled session IS counted in the new period, whatever its NAS stamp says');
+        Wp8Lab::evidence('V1.n2-exact-renewal', ['old_session_used' => $this->used($old), 'new_session_used' => $this->used($new),
+            'old_start' => $old['acctstarttime'], 'new_start' => $new['acctstarttime']]);
+    }
+
     public function testFaultsTheNasLimitHoldsAndTheEnforcerNeverFabricates(): void
     {
         $h = $this->hierarchy();

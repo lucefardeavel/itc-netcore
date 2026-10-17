@@ -953,7 +953,7 @@ final class LegacyReprovisionService
                     $zone = new \DateTimeZone(date_default_timezone_get());
                     $expiry = new \DateTimeImmutable($b['expiration'] . ' ' . ($b['time'] ?: '23:59:59'), $zone);
                     $start = new \DateTimeImmutable($b['recharged_on'] . ' ' . ($b['recharged_time'] ?: '00:00:00'), $zone);
-                    $policy = RadiusPolicyBuilder::build($c, $p, $bw ? $bw->as_array() : null, $expiry, $start);
+                    $policy = RadiusPolicyBuilder::build($c, $p, $bw ? $bw->as_array() : null, $expiry, $start, \Reseller\Radius\PeriodBoundary::forConnection());
                     $verified = $verified && RadiusState::sameSubscriber(RadiusState::read($policy->username, (int) $p['id'], 'reprovision'),
                         RadiusState::target($policy, $bw ? $bw->as_array() : null, 'reprovision'));
                 } catch (\Throwable $e) {

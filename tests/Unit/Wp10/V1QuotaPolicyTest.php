@@ -66,6 +66,33 @@ final class V1QuotaPolicyTest extends TestCase
         $this->assertSame('0', RadiusPolicyBuilder::build(self::CUST, $plan, self::BW, null, null)->checkMap()['Nuxr-Period-Start'], 'unknown start: since the beginning');
     }
 
+    /** N2: the builder stores the arrival-order boundary of the period, only for a quota plan with a known period start */
+    public function testBuilderStoresTheArrivalOrderBoundaryOfThePeriod(): void
+    {
+        $calls = [];
+        $resolver = static function (string $user, int $timeBoundary) use (&$calls): ?int {
+            $calls[] = [$user, $timeBoundary];
+            return 4711;
+        };
+        $plan = self::plan('PPPOE', ['limit_type' => 'Data_Limit', 'data_limit' => 5, 'data_unit' => 'GB']);
+        $expiry = new \DateTimeImmutable('2027-01-31 23:59:59');
+        $p = RadiusPolicyBuilder::build(self::CUST, $plan, self::BW, $expiry, new \DateTimeImmutable('@1790000000'), $resolver);
+        $this->assertSame('4711', $p->checkMap()['Nuxr-Period-Acct-Id']);
+        $this->assertSame([['ppp-q1', 1790000000 - QuotaPolicy::PERIOD_SKEW_SECONDS]], $calls, 'asked for the RADIUS key and the time boundary of the period');
+        // the resolver keeps an unchanged period as it is (or has no boundary for it): no attribute
+        $none = RadiusPolicyBuilder::build(self::CUST, $plan, self::BW, $expiry, new \DateTimeImmutable('@1790000000'), static fn(string $u, int $t): ?int => null);
+        $this->assertArrayNotHasKey('Nuxr-Period-Acct-Id', $none->checkMap());
+        // 0 is a valid boundary (an empty table: every row is new)
+        $zero = RadiusPolicyBuilder::build(self::CUST, $plan, self::BW, $expiry, new \DateTimeImmutable('@1790000000'), static fn(string $u, int $t): ?int => 0);
+        $this->assertSame('0', $zero->checkMap()['Nuxr-Period-Acct-Id']);
+        // unknown period start, unlimited plan: the resolver is never asked
+        $calls = [];
+        RadiusPolicyBuilder::build(self::CUST, $plan, self::BW, $expiry, null, $resolver);
+        RadiusPolicyBuilder::build(self::CUST, ['typebp' => 'Unlimited'] + $plan, self::BW, $expiry, new \DateTimeImmutable('@1790000000'), $resolver);
+        $this->assertSame([], $calls);
+        $this->assertContains('Nuxr-Period-Acct-Id', \Reseller\Radius\RadiusPolicy::MANAGED_CHECK, 'managed: replaced and removed with the rest of the policy');
+    }
+
     public function testHotspotDataPlanAsksForInterimAccounting(): void
     {
         $p = RadiusPolicyBuilder::build(self::CUST, self::plan('Hotspot', ['limit_type' => 'Data_Limit', 'data_limit' => 2, 'data_unit' => 'GB', 'shared_users' => 2]), self::BW, null, new \DateTimeImmutable('@1790000000'));

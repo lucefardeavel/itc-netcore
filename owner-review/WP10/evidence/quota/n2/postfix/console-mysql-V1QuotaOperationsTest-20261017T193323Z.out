@@ -1,0 +1,21 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/n2/postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1QuotaOperationsTest.php
+start: 2026-10-17T19:33:23Z
+ Container nuxbill-reseller-test-php82-run-a511c4842dd0 Creating 
+ Container nuxbill-reseller-test-php82-run-a511c4842dd0 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....                                                                4 / 4 (100%)
+
+Time: 00:09.557, Memory: 10.00 MB
+
+V1Quota Operations (Reseller\Tests\Integration\Wp10\V1QuotaOperations)
+ ✔ Enforcer cli audit heartbeat lock and health
+ ✔ Preflight lists limited plans with an invalid quota
+ ✔ Health reports a nas whose clock is ahead
+ ✔ Usage and cli only
+
+OK (4 tests, 62 assertions)
+exit=0 end: 2026-10-17T19:33:34Z

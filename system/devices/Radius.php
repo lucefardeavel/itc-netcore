@@ -356,9 +356,13 @@ class Radius
     {
         $bw = ORM::for_table('tbl_bandwidth')->find_one($plan['id_bw']);
         try {
-            $policy = RadiusPolicyBuilder::build(self::row($customer), $plan, $bw ? $bw->as_array() : null, $expiry, $periodStart);
+            $policy = RadiusPolicyBuilder::build(self::row($customer), $plan, $bw ? $bw->as_array() : null, $expiry, $periodStart, \Reseller\Radius\PeriodBoundary::forConnection());
         } catch (InvalidArgumentException $e) {
             throw new ProvisionFailure(ProvisionResult::failed($e->getMessage(), 'The customer data cannot be provisioned.', false));
+        } catch (PDOException $e) {
+            // N2: the period boundary is read from the RADIUS database
+            ErrorReporter::report($e, 'radius-period-boundary');
+            throw new ProvisionFailure(ProvisionResult::failed('RADIUS_DB_ERROR', 'The RADIUS database is unavailable; nothing was applied.', true));
         }
         self::singleOwner($policy->username);
         // WP9 U0 final hardening: concurrent policy writes for different keys can deadlock (InnoDB 1213: the transaction

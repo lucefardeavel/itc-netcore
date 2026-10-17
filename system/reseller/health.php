@@ -21,6 +21,7 @@ if (PHP_SAPI !== 'cli') {
  *  vouchers_review    vouchers left CLAIMED (operator review)                                           WARN
  *  balance_held       legacy balance operations HELD                                                    WARN
  *  accounting         newest radacct update (accounting freshness; WARN when > 15 minutes while sessions are open)
+ *  nas_clock          open sessions whose accounting stamp is > 120 s in the future (a NAS clock that is ahead)       WARN
  *  coa_failures       Disconnect / CoA results that were not SUCCESS in the last hour (activation annotations)  WARN
  *  quota_enforcer     quota subscribers online and the quota enforcer silent > 3 min (CRIT); over-quota open session (WARN)
  *  finance (--finance) whole-database finance integrity (DriftReport::financeIntegrity; expensive, run hourly)         CRITICAL
@@ -106,6 +107,12 @@ $run('accounting', static function () use ($set, $radius): void {
     $age = $r->query('SELECT TIMESTAMPDIFF(SECOND, MAX(COALESCE(acctupdatetime, acctstarttime)), UTC_TIMESTAMP()) FROM radacct WHERE acctstoptime IS NULL')->fetchColumn();
     $age = $age === null ? 0 : (int) $age;
     $set('accounting', $open > 0 && $age > 900 ? 1 : 0, "{$open} open session(s), newest accounting update {$age}s ago", (float) $age);
+});
+$run('nas_clock', static function () use ($set, $radius): void {
+    // N2: quota attribution no longer uses the NAS clock (a period owns the rows that arrived after it started), but accounting
+    // times (display, freshness, the time-rule fallback) do. A NAS whose stamps lie more than 120 s in the future is ahead.
+    $n = (int) $radius()->query('SELECT COUNT(*) FROM radacct WHERE acctstoptime IS NULL AND COALESCE(acctupdatetime, acctstarttime) > UTC_TIMESTAMP() + INTERVAL 120 SECOND')->fetchColumn();
+    $set('nas_clock', $n > 0 ? 1 : 0, "{$n} open session(s) with an accounting stamp more than 120 s in the future (a NAS clock that is ahead: check NTP on the NAS)", (float) $n);
 });
 $run('coa_failures', static function () use ($set, $q): void {
     $n = (int) $q("SELECT COUNT(*) FROM tbl_reseller_activation_events WHERE event_type = 'ANNOTATION' AND created_at > UTC_TIMESTAMP(6) - INTERVAL 1 HOUR

@@ -46,7 +46,8 @@
 | `Max-All-Session` | radcheck | Limited Time / Both (Hotspot; PPPoE since V1, owner QUOTA_V1_GB_SUPPORT_APPROVED): the time quota in seconds. It is no longer overwritten by the seconds until expiry. |
 | `Max-Data` | radcheck | Limited Data / Both (Hotspot; PPPoE since V1): bytes, decimal units as in the legacy code (1 GB = 10^9). FreeRADIUS replies the per-session share of the remaining quota as `Mikrotik-Total-Limit` / `Recv-Limit` / `Xmit-Limit` (+ Gigawords); `install/freeradius/README.md` "V1 data and time quota". A Limited plan with an invalid limit is never provisioned (`POLICY_QUOTA_INVALID`). |
 | `Acct-Interim-Interval` | radreply | V1: 60 with a data quota (input of the accounting enforcer `system/reseller/quota.php`). |
-| `Nuxr-Period-Start` | radcheck | Written with a quota: the attribution boundary = the UNIX start of the billing period **minus 10 s** (V1: the NAS stamps session starts up to ~2 s early; `QuotaPolicy::PERIOD_SKEW_SECONDS`, §4). |
+| `Nuxr-Period-Acct-Id` | radcheck | V1.1 (N2): written with a quota: the highest `radacct.radacctid` when the period started; the period owns the rows that arrived after it (exact, independent of the NAS clock); kept by a re-provision of the same period. |
+| `Nuxr-Period-Start` | radcheck | Written with a quota: the fallback attribution boundary (rows without an id) = the UNIX start of the billing period **minus 10 s** (V1: the NAS stamps session starts up to ~2 s early; `QuotaPolicy::PERIOD_SKEW_SECONDS`, §4). |
 | `Mikrotik-Rate-Limit` | radreply | `up/down` plus the burst tail. The burst is kept only when it consists of MikroTik rate tokens. |
 | `Framed-IP-Address` | radreply | PPPoE with a valid IPv4 `pppoe_ip` (static). Never `0.0.0.0`. |
 | `Framed-Pool` | radreply | PPPoE without a static address, when the plan has a pool (dynamic). Never written together with a static address. |

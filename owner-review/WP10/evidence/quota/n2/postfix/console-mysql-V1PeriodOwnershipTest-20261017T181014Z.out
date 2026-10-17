@@ -1,0 +1,24 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/n2/postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1PeriodOwnershipTest.php
+start: 2026-10-17T18:10:14Z
+ Container nuxbill-reseller-test-php82-run-58f81d9030e7 Creating 
+ Container nuxbill-reseller-test-php82-run-58f81d9030e7 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......                                                             7 / 7 (100%)
+
+Time: 00:24.401, Memory: 10.00 MB
+
+V1Period Ownership (Reseller\Tests\Integration\Wp10\V1PeriodOwnership)
+ ✔ Clock skew never moves a session between periods
+ ✔ The time rule alone over counts a session started just before the renewal
+ ✔ Late interim and duplicate start never move a row
+ ✔ Reprovision of the same period keeps the boundary and a renewal moves it
+ ✔ A period provisioned before this change keeps the time rule
+ ✔ An impossible id falls back to the time rule and a malformed id fails closed
+ ✔ Enforcer uses the same ownership
+
+OK (7 tests, 113 assertions)
+exit=0 end: 2026-10-17T18:10:40Z

@@ -403,6 +403,10 @@ final class ActivationService
             $policy = self::policy($row);
         } catch (\InvalidArgumentException) {
             return null;
+        } catch (\PDOException $e) {
+            // N2: the period boundary is read from the RADIUS database; unreadable = the attempt does not start (resumable)
+            \Reseller\Security\ErrorReporter::report($e, 'activation-capture');
+            return false;
         }
         $plan = self::plan($row);
         $bw = Tx::row(FinanceTx::pdo(), 'SELECT * FROM tbl_bandwidth WHERE id = ?', [(int) $plan['id_bw']]);
@@ -520,9 +524,15 @@ final class ActivationService
     public static function provision(array $act): array
     {
         try {
-            $policy = self::policy($act);
+            // N2: capture() recorded this attempt's exact target (including the period's arrival-order boundary): the policy
+            // written and the policy verified are that target, even when accounting rows arrived in between
+            $recorded = self::recordedBoundary($act);
+            $policy = self::policy($act, $recorded !== null ? static fn(string $user, int $timeBoundary): ?int => $recorded['id'] : null);
         } catch (\InvalidArgumentException $e) {
             return [ProvisionResult::failed($e->getMessage(), 'The customer data cannot be provisioned.', false), null];
+        } catch (\PDOException $e) {
+            \Reseller\Security\ErrorReporter::report($e, 'activation-provision');
+            return [ProvisionResult::failed('RADIUS_DB_ERROR', 'The RADIUS database is unavailable; nothing was applied.', true), null];
         }
         // WP9 U0 final hardening (D-U0-R1): a key with more than one logical owner (grandfathered duplicate) is never
         // written - FAILED before any RADIUS change (WP5A: reservation released); a check that cannot run is retryable
@@ -549,8 +559,30 @@ final class ActivationService
         return [$provisioner->provision($policy), $policy];
     }
 
-    /** @return RadiusPolicy the policy this activation must leave in RADIUS */
-    public static function policy(array $act): RadiusPolicy
+    /**
+     * N2: the arrival-order boundary (Nuxr-Period-Acct-Id) in the target the latest provisioning attempt captured.
+     *
+     * @return array{id:?int}|null null = no target captured yet (the boundary is then resolved against the table)
+     */
+    private static function recordedBoundary(array $act): ?array
+    {
+        $target = ActivationStore::radius(FinanceTx::pdo(), (int) $act['id'])['target'] ?? null;
+        if (!is_array($target)) {
+            return null;
+        }
+        foreach (is_array($target['subscriber']['check'] ?? null) ? $target['subscriber']['check'] : [] as $r) {
+            if (is_array($r) && ($r[0] ?? '') === 'Nuxr-Period-Acct-Id') {
+                return ['id' => preg_match('/^[0-9]{1,18}$/D', (string) ($r[2] ?? '')) === 1 ? (int) $r[2] : null];
+            }
+        }
+        return ['id' => null];
+    }
+
+    /**
+     * @param (\Closure(string,int):?int)|null $boundary N2: the period boundary resolver (default: against the accounting table)
+     * @return RadiusPolicy the policy this activation must leave in RADIUS
+     */
+    public static function policy(array $act, ?\Closure $boundary = null): RadiusPolicy
     {
         $pdo = FinanceTx::pdo();
         $customer = Tx::row($pdo, 'SELECT * FROM tbl_customers WHERE id = ?', [(int) $act['customer_id']]) ?? throw new \InvalidArgumentException('CUSTOMER_MISSING');
@@ -560,7 +592,7 @@ final class ActivationService
         $zone = new \DateTimeZone((string) $meta['period']['timezone']);
         $start = ServicePeriod::at(substr($meta['period']['start'], 0, 10), substr($meta['period']['start'], 11), $zone);
         $expiry = ServicePeriod::at(substr($meta['period']['expiry'], 0, 10), substr($meta['period']['expiry'], 11), $zone);
-        return RadiusPolicyBuilder::build($customer, $plan, $bw, $expiry, $start);
+        return RadiusPolicyBuilder::build($customer, $plan, $bw, $expiry, $start, $boundary ?? \Reseller\Radius\PeriodBoundary::forConnection());
     }
 
     /**

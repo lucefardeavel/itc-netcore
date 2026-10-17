@@ -266,6 +266,25 @@ def coa_pppoe_session_timeout():
 
 
 @case
+def coa_pppoe_interim_interval():
+    """N1: can the interim interval be changed on a LIVE PPPoE session by CoA (an adaptive interim near the quota)?"""
+    user, pw = new('cii')
+    provision(user, pw, reply=[('Acct-Interim-Interval', '60')])
+    up = ag.pppoe_up('c1', user, pw)
+    sess = acct(user)
+    r = coa(43, [('User-Name', user), ('Acct-Session-Id', sess[0]['acctsessionid'] if sess else ''), ('Acct-Interim-Interval', '5')])
+    seen = []
+    t0 = time.time()
+    while time.time() - t0 < 40:
+        rows = acct(user)
+        if rows and rows[0]['update'] not in seen:
+            seen.append(rows[0]['update'])
+        time.sleep(1)
+    record('coa_pppoe_interim_interval', {'up': up.get('ok'), 'coa': r, 'distinct_updates': len(seen), 'updates': seen,
+                                          'verdict': f'{r["code"]}; {"APPLIED" if len(seen) >= 5 else "NOT_APPLIED"}: {len(seen)} distinct acctupdatetime values in 40 s (interim 60 at login, 5 by CoA)'})
+
+
+@case
 def coa_pppoe_total_limit():
     user, pw = new('ctl')
     provision(user, pw, reply=[('Mikrotik-Rate-Limit', '8M/8M')])

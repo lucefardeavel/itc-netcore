@@ -1,0 +1,281 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/n2/regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http
+start: 2026-10-17T18:32:30Z
+ Container nuxbill-reseller-test-php82-run-0a2bf1c8134a Creating 
+ Container nuxbill-reseller-test-php82-run-0a2bf1c8134a Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............................................................  63 / 186 ( 33%)
+............................................................... 126 / 186 ( 67%)
+............................................................    186 / 186 (100%)
+
+Time: 08:01.248, Memory: 16.00 MB
+
+Api (Reseller\Tests\Http\Api)
+ ✔ Valid token works and responses are sanitized
+ ✔ Invalid tokens are refused
+ ✔ Password change revokes earlier tokens
+ ✔ Disabled user token is refused
+ ✔ Api inherits the actor scope and allowlist
+
+Api No Secret (Reseller\Tests\Http\ApiNoSecret)
+ ✔ Api fails closed
+
+Api Secret Equals Db Pass (Reseller\Tests\Http\ApiSecretEqualsDbPass)
+ ✔ Api fails closed when secret equals db pass
+
+Api Short Secret (Reseller\Tests\Http\ApiShortSecret)
+ ✔ Api fails closed
+
+App Server Lifecycle (Reseller\Tests\Http\AppServerLifecycle)
+ ✔ Starts a master and four workers in its own group and stop removes them all
+ ✔ Restart serves the same copy from a new process group
+ ✔ A busy port is never reused and a foreign listener is never touched
+ ✔ Orphaned workers of an earlier server are neither reused nor left behind
+ ✔ A failed start leaves no process and no listener
+ ✔ Four workers serve requests in parallel
+
+Audit (Reseller\Tests\Http\Audit)
+ ✔ Audit rows carry context and never secrets
+ ✔ No runtime code mutates the audit table
+
+Auth Session (Reseller\Tests\Http\AuthSession)
+ ✔ Inactive staff cannot login and gets the same message
+ ✔ Disabled mid session is cut off immediately
+ ✔ Password change invalidates other sessions and cookies
+ ✔ Remember cookie works and is bound to user and password
+ ✔ Session id regenerated on login and logout clears everything
+ ✔ Deleted user session is unauthenticated
+ ✔ Default credential must be changed first
+
+Csrf (Reseller\Tests\Http\Csrf)
+ ✔ Csrf enforced even when legacy switch is off
+ ✔ Token is stable per session and rotates on login
+ ✔ Get on mutating routes is refused
+ ✔ Public login flows with and without token
+ ✔ Public register flow
+ ✔ Public forgot flow
+ ✔ Public voucher activation flow
+ ✔ Api is not subject to csrf but callbacks are exempt
+ ✔ Browser cookie gives no authority through the api
+
+Customer Ownership (Reseller\Tests\Http\CustomerOwnership)
+ ✔ Sales creates for its manager and self ignoring forged fields
+ ✔ Agent creates for self with optional own sales
+ ✔ Admin creates unassigned or for an enrolled agent
+ ✔ Report and non enrolled cannot create
+ ✔ Sales assignment inside scope
+ ✔ Owner transfer is admin only and clears foreign sales
+ ✔ Explicit legacy owner assignment only
+ ✔ Customer delete has reference pre check and is audited
+ ✔ Customer referenced by reseller domain is not deleted
+
+Error Handling (Reseller\Tests\Http\ErrorHandling)
+ ✔ Staff of every role gets generic error with reference
+ ✔ Customer and anonymous get generic error
+ ✔ Api errors are generic
+ ✔ Display errors forced off even if config enables it
+
+Hierarchy (Reseller\Tests\Http\Hierarchy)
+ ✔ Seed tree is consistent
+ ✔ Explicit placement of legacy accounts
+ ✔ Move rules cycle self parent and roles
+ ✔ Move subtree keeps closure consistent and clears mismatched sales assignments
+ ✔ Agent disables strict descendants only
+ ✔ Frozen descendant is read only
+ ✔ Concurrent cross moves cannot create a cycle
+
+Legacy Removal Gate (Reseller\Tests\Http\LegacyRemovalGate)
+ ✔ P 1 plan delete is refused for a reseller customer before any effect
+ ✔ P 2 customer deactivate is refused for a reseller customer before any effect
+ ✔ P 3 portal self deactivation is refused for a reseller customer before any effect
+ ✔ P 3 is refused when the matched recharge belongs to a reseller customer
+ ✔ Positive control the stub nas sees the disconnect when the device removal runs
+ ✔ The activation stays reversible after the refusals
+ ✔ Unassigned legacy customers keep todays behaviour
+ ✔ Schema not ready refuses for every customer
+ ✔ The api is refused and agent and sales stay forbidden
+ ✔ An ownership transfer keeps the refusal
+ ✔ P 1 never falls back to the impersonated customer
+ ✔ P 2 never falls back to the impersonated customer
+ ✔ The gate fails closed when the ownership read fails
+
+Pages Boundary (Reseller\Tests\Http\PagesBoundary)
+ ✔ Admin may read a page without write controls
+ ✔ Admin forged write and reset are denied
+ ✔ Denied reset performs no remote fetch or write
+ ✔ Super admin writes an allowed page
+ ✔ Super admin reset only on canonical pages
+ ✔ Other roles have no pages access
+ ✔ Api never exposes pages
+
+Reseller Lifecycle (Reseller\Tests\Http\ResellerLifecycle)
+ ✔ Super admin cannot delete an enrolled agent
+ ✔ Super admin cannot delete an unreferenced non enrolled agent
+ ✔ The same agent can be disabled and reactivated
+ ✔ No role can bypass the rule
+ ✔ Permitted deletions of other roles are unchanged
+
+Restore Guard (Reseller\Tests\Http\RestoreGuard)
+ ✔ Restore is refused before mutation on reseller installation
+ ✔ Only super admin reaches backup and restore and csrf is required
+
+Restore Legacy Install (Reseller\Tests\Http\RestoreLegacyInstall)
+ ✔ Hardened legacy restore
+
+Route Matrix (Reseller\Tests\Http\RouteMatrix)
+ ✔ Role route matrix
+ ✔ Mutating routes refuse get
+ ✔ Unmapped routes are denied for everyone
+
+Schema Drift (Reseller\Tests\Http\SchemaDrift)
+ ✔ Failed partial migration
+ ✔ Checksum drift
+ ✔ Missing migration and unknown entry
+ ✔ Missing required table
+ ✔ Migration run in progress
+
+Schema Not Migrated (Reseller\Tests\Http\SchemaNotMigrated)
+ ✔ Dependent mutations fail closed for every role
+ ✔ Own profile password and logout remain
+
+Scope Isolation (Reseller\Tests\Http\ScopeIsolation)
+ ✔ Customer object scope without existence oracle
+ ✔ Customer lists search and pickers are scoped
+ ✔ Derived objects invoices recharges vouchers are scoped
+ ✔ Messaging is scoped all or nothing
+ ✔ Staff directory is scoped
+
+Security Routes (Reseller\Tests\Http\SecurityRoutes)
+ ✔ Plugin dispatch requires registered authorized function
+ ✔ Updater is disabled
+ ✔ Installer is disabled once configured
+ ✔ Search user requires staff and scope
+ ✔ Raw sql parameters are inert
+ ✔ Agent and sales cannot generate vouchers
+ ✔ Pages traversal is rejected
+ ✔ Language cookie traversal is ignored
+ ✔ Public invoice signature
+ ✔ Print content is escaped
+ ✔ Wp 2 files refuse direct http execution
+
+Service Gate (Reseller\Tests\Http\ServiceGate)
+ ✔ Agent and sales cannot grant service to their own in scope customer
+ ✔ Agent and sales cannot grant service through the api
+ ✔ Super admin and admin are refused on reseller owned customers
+ ✔ Core guards refuse direct calls for reseller owned customers
+ ✔ Cron skips reseller owned auto renewal and renews unassigned
+ ✔ Customer portal refuses service for reseller owned customer
+ ✔ Public voucher activation refused and password unchanged
+ ✔ Customer edit refuses reprovisioning changes for reseller owned
+ ✔ Bulk plan sync skips reseller owned customers
+ ✔ Unassigned customers keep admin service compatibility
+
+Staff Management (Reseller\Tests\Http\StaffManagement)
+ ✔ Role escalation on create is rejected
+ ✔ Agent creates only direct children and parent is never taken from the form
+ ✔ Admin creates tree accounts under valid parents only
+ ✔ Self cannot change own type status or parent
+ ✔ Edit targets are scoped
+ ✔ Delete rules
+ ✔ Role change is tree safe and last super admin protected
+
+W9Autoload Exposure (Reseller\Tests\Http\W9AutoloadExposure)
+ ✔ Tree scoped staff get no router plan or bandwidth metadata
+ ✔ Admin keeps legacy metadata
+ ✔ Device query only for a plan the customer holds
+
+W9Csv Export Injection (Reseller\Tests\Http\W9CsvExportInjection)
+ ✔ Customer exports are structurally safe
+ ✔ Log export is structurally safe
+
+W9Installer Post Install (Reseller\Tests\Http\W9InstallerPostInstall)
+ ✔ Step 5 does nothing on an installed application
+ ✔ Step 5 still copies the pages during a fresh installation
+
+W9Key Missing (Reseller\Tests\Http\W9KeyMissing)
+ ✔ Staff login fails closed
+ ✔ Customer gets no remember cookie and links are refused
+
+W9Key Separation (Reseller\Tests\Http\W9KeySeparation)
+ ✔ Customer login positive control
+ ✔ Legacy customer cookie signed with db pass is refused
+ ✔ Legacy login link signed with db pass is refused
+ ✔ Legacy staff cookie signed with db pass is refused
+ ✔ Staff login positive control
+ ✔ Legacy voucher invoice signature is refused and new one works
+ ✔ New customer cookie contract
+ ✔ New login link contract
+ ✔ Password change revokes customer tokens
+ ✔ Customer cookie flags
+
+W9Key Variant Device (Reseller\Tests\Http\W9KeyVariantDevice)
+ ✔ Whitespace variants never reach the owned key
+
+W9Page Sandbox (Reseller\Tests\Http\W9PageSandbox)
+ ✔ Plain page and allowlisted helpers render
+ ✔ Secret configuration is not available
+ ✔ Hostile template is refused without leaking with data set "static ORM read of a staff password hash"
+ ✔ Hostile template is refused without leaking with data set "php function"
+ ✔ Hostile template is refused without leaking with data set "php function via modifier"
+ ✔ Hostile template is refused without leaking with data set "include a local file"
+ ✔ Hostile template is refused without leaking with data set "fetch"
+ ✔ Hostile template is refused without leaking with data set "constant"
+ ✔ Hostile template is refused without leaking with data set "super global"
+ ✔ Hostile template is refused without leaking with data set "php tag"
+ ✔ Hostile template is refused without leaking with data set "template object"
+ ✔ Hostile template is refused without leaking with data set "unlisted static method of an allowed class"
+
+W9Phase BAuthority (Reseller\Tests\Http\W9PhaseBAuthority)
+ ✔ Customer add plan refuses reseller owned customers
+ ✔ Caller cannot inject an expired plan
+ ✔ Reseller owned customer never gets a sellable plan as fallback
+ ✔ Throwing plugin is reported
+ ✔ Radius rest loads no plugin before authentication
+
+W9Preflight Grants (Reseller\Tests\Http\W9PreflightGrants)
+ ✔ Preflight and least privilege account
+
+W9Red Team Http (Reseller\Tests\Http\W9RedTeamHttp)
+ ✔ R 1 foreign id answers exactly like a nonexistent one
+ ✔ R 2 unassigned legacy customer is unreachable for resellers
+ ✔ R 4 malformed and foreign ids are refused without change
+ ✔ R 5 privilege escalation through staff edit is refused
+ ✔ R 6 forged money fields are ignored
+ ✔ R 8 idempotency conflicts and user scoped nonces
+ ✔ R 9 hierarchy move by agent is refused on web and api
+ ✔ N 10 api never returns configuration secrets
+ ✔ R 13 legacy recharge with junk ids writes nothing
+ ✔ R f c 1 voucher codes in methods are not visible to reseller staff
+
+W9Release Profile (Reseller\Tests\Http\W9ReleaseProfile)
+ ✔ Disabled drivers refuse construction
+ ✔ Legacy recharge of a disabled device plan writes nothing
+ ✔ Plan forms and device page follow the profile
+
+W9Secret Redaction (Reseller\Tests\Http\W9SecretRedaction)
+ ✔ Database secrets are redacted from reports
+
+W9Secret Rendering (Reseller\Tests\Http\W9SecretRendering)
+ ✔ Settings page never renders stored secrets
+ ✔ Empty secret submission keeps the stored value
+ ✔ Router password is write only
+ ✔ Post auth passwords are never rendered or exported
+
+W9Session Cookie Hardening (Reseller\Tests\Http\W9SessionCookieHardening)
+ ✔ Session cookie and framing headers
+ ✔ Client chosen session id is not adopted
+
+W9Staff Password Storage (Reseller\Tests\Http\W9StaffPasswordStorage)
+ ✔ Magic hashes are compared strictly
+ ✔ Legacy sha 1 logs in once and is upgraded
+ ✔ Changed and created passwords use modern hashing
+ ✔ Default credential is not upgraded and stays locked
+
+W9Stored Xss Crawl (Reseller\Tests\Http\W9StoredXssCrawl)
+ ✔ Lower privilege text never renders as markup
+
+OK (186 tests, 7015 assertions)
+exit=0 end: 2026-10-17T18:40:34Z

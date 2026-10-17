@@ -16,7 +16,7 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
 final class RadiusPolicy
 {
     public const MANAGED_CHECK = [
-        'Cleartext-Password', 'Simultaneous-Use', 'Expiration', 'Max-All-Session', 'Max-Data', 'Nuxr-Period-Start',
+        'Cleartext-Password', 'Simultaneous-Use', 'Expiration', 'Max-All-Session', 'Max-Data', 'Nuxr-Period-Start', 'Nuxr-Period-Acct-Id',
         // legacy rows written into radcheck by the pre-WP4 device (reply attributes in the control list)
         'Mikrotik-Rate-Limit', 'Port-Limit', 'Mikrotik-Wireless-Comment', 'WISPr-Session-Terminate-Time', 'access-period', 'Max-Volume',
     ];

@@ -11,8 +11,9 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  * direction). What the NAS cannot see is closed here, from accounting:
  *  - PPPoE upload + download together reaching the data quota (RouterOS enforces only per direction);
  *  - several concurrent Hotspot sessions of one subscriber together reaching the data or time quota;
- * A subscriber whose usage in the CURRENT period (sessions started since Nuxr-Period-Start, the same rule as the
- * FreeRADIUS counters) has reached its Max-Data / Max-All-Session gets every open session of that period ended
+ * A subscriber whose usage in the CURRENT period (the same ownership rule as the FreeRADIUS counters: the rows that arrived
+ * after Nuxr-Period-Acct-Id - exact, independent of the NAS clock - or, without a usable id, the sessions started since
+ * Nuxr-Period-Start) has reached its Max-Data / Max-All-Session gets every open session of that period ended
  * (SessionTermination: Disconnect + confirmed Accounting-Stop). Overshoot is bounded by the interim interval
  * (QuotaPolicy::INTERIM_SECONDS), the pass interval and the Disconnect time - this is NOT a byte-exact cap.
  * Accounting history and quota rows are only read; nothing is deleted.
@@ -37,8 +38,11 @@ final class QuotaEnforcer
      */
     public function overQuota(): array
     {
-        $rows = $this->radius->query("SELECT q.username AS u, q.attribute AS a, q.value AS v, IFNULL(p.value, '0') AS t FROM radcheck q
+        // N2: an accounting-row id beyond the table's end cannot have been produced by it (a restore of an older table): ignored
+        $maxId = (int) $this->radius->query('SELECT IFNULL(MAX(radacctid), 0) FROM radacct')->fetchColumn();
+        $rows = $this->radius->query("SELECT q.username AS u, q.attribute AS a, q.value AS v, IFNULL(p.value, '0') AS t, i.value AS i FROM radcheck q
             LEFT JOIN radcheck p ON p.username = q.username AND p.attribute = 'Nuxr-Period-Start'
+            LEFT JOIN radcheck i ON i.username = q.username AND i.attribute = 'Nuxr-Period-Acct-Id'
             WHERE q.attribute IN ('Max-Data', 'Max-All-Session') AND EXISTS (SELECT 1 FROM radacct a WHERE a.username = q.username AND a.acctstoptime IS NULL)
             ORDER BY q.username, q.attribute")->fetchAll(\PDO::FETCH_ASSOC);
         $out = [];
@@ -47,17 +51,19 @@ final class QuotaEnforcer
                 continue; // a malformed quota row: FreeRADIUS refuses the login (fail closed); nothing to measure here
             }
             $expr = $r['a'] === 'Max-Data' ? 'IFNULL(acctinputoctets, 0) + IFNULL(acctoutputoctets, 0)' : 'IFNULL(acctsessiontime, 0)';
+            $acctId = $r['i'] !== null && preg_match('/^[0-9]{1,18}$/D', (string) $r['i']) === 1 && (int) $r['i'] <= $maxId ? (int) $r['i'] : null;
+            [$owned, $ownedArg] = $acctId !== null ? ['radacctid > ?', $acctId] : ['acctstarttime >= FROM_UNIXTIME(?)', (int) $r['t']];
             // 64-bit arithmetic and the comparison in the database (no PHP integer / float rounding)
             $st = $this->radius->prepare("SELECT CAST(u.s AS CHAR) AS s, u.s >= CAST(? AS DECIMAL(20,0)) AS reached FROM (SELECT IFNULL(SUM({$expr}), 0) AS s FROM radacct
-                WHERE username = ? AND acctstarttime >= FROM_UNIXTIME(?)) AS u");
-            $st->execute([(string) $r['v'], $r['u'], (int) $r['t']]);
+                WHERE username = ? AND {$owned}) AS u");
+            $st->execute([(string) $r['v'], $r['u'], $ownedArg]);
             $m = $st->fetch(\PDO::FETCH_ASSOC);
             $usage = (string) $m['s'];
             if ((int) $m['reached'] !== 1) {
                 continue;
             }
-            $open = $this->radius->prepare('SELECT * FROM radacct WHERE username = ? AND acctstoptime IS NULL AND acctstarttime >= FROM_UNIXTIME(?) ORDER BY radacctid');
-            $open->execute([$r['u'], (int) $r['t']]);
+            $open = $this->radius->prepare("SELECT * FROM radacct WHERE username = ? AND acctstoptime IS NULL AND {$owned} ORDER BY radacctid");
+            $open->execute([$r['u'], $ownedArg]);
             $sessions = $open->fetchAll(\PDO::FETCH_ASSOC);
             if ($sessions !== []) {
                 $out[] = ['username' => (string) $r['u'], 'quota' => (string) $r['a'], 'limit' => (string) $r['v'], 'usage' => $usage, 'period_start' => (int) $r['t'], 'sessions' => $sessions];

@@ -1,0 +1,35 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/n2/prefix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp10/V1QuotaPolicyTest.php
+start: 2026-10-17T18:06:43Z
+ Container nuxbill-reseller-test-php82-run-59c3c1f3ced0 Creating 
+ Container nuxbill-reseller-test-php82-run-59c3c1f3ced0 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..F...                                                              6 / 6 (100%)
+
+Time: 00:00.016, Memory: 10.00 MB
+
+V1Quota Policy (Reseller\Tests\Unit\Wp10\V1QuotaPolicy)
+ ✔ Pppoe data time and composite plans
+ ✔ Attribution boundary allows for nas clock skew
+ ✘ Builder stores the arrival order boundary of the period
+   │
+   │ Failed asserting that null is identical to '4711'.
+   │
+   │ /repo/tests/Unit/Wp10/V1QuotaPolicyTest.php:80
+   │
+ ✔ Hotspot data plan asks for interim accounting
+ ✔ Unlimited plans carry no quota
+ ✔ Invalid limits are refused
+
+1 test triggered 1 PHP warning:
+
+1) /repo/tests/Unit/Wp10/V1QuotaPolicyTest.php:80
+Undefined array key "Nuxr-Period-Acct-Id"
+
+FAILURES!
+Tests: 6, Assertions: 61, Failures: 1, Warnings: 1.
+
+exit=1 end: 2026-10-17T18:06:44Z

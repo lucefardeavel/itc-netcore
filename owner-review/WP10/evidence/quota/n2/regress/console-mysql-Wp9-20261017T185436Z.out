@@ -1,0 +1,326 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/n2/regress/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9
+start: 2026-10-17T18:54:36Z
+ Container nuxbill-reseller-test-php82-run-828fd13c5139 Creating 
+ Container nuxbill-reseller-test-php82-run-828fd13c5139 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............................................................  63 / 246 ( 25%)
+............................................................... 126 / 246 ( 51%)
+............................................................... 189 / 246 ( 76%)
+.........................................................       246 / 246 (100%)
+
+Time: 10:12.828, Memory: 20.00 MB
+
+A1Voucher Identity Guard (Reseller\Tests\Integration\Wp9\A1VoucherIdentityGuard)
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "V1 reproduced: code = username (exact)"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "code = username (upper case)"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "stored username with a leading space"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "stored username with a trailing space"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "stored username with a trailing TAB"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "accent (stored é, code e)"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "code with a trailing space = username"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "cross-field: code = PPPoE username"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "cross-field: code = PPPoE username (upper case)"
+ ✔ Voucher only redemption colliding with a customer identity is refused before any write with data set "cross-field: stored PPPoE username with a leading space"
+ ✔ Legitimate voucher only grant is unchanged
+ ✔ Existing customer voucher path is unchanged even when the code equals another customers name
+ ✔ Reseller owned refusal is unchanged
+ ✔ A refused voucher stays redeemable and is granted once the identity is free
+ ✔ Voucher generation never issues a code equal to a customer identity
+ ✔ Remaining check to grant window is characterised
+
+T1a Identity Characterization (Reseller\Tests\Integration\Wp9\T1aIdentityCharacterization)
+ ✔ Deployed identity column collations
+ ✔ Equality matrix of the identity columns
+ ✔ Equality under other collations
+ ✔ Php trim versus sql trim
+ ✔ Read only historical survey on synthetic duplicates
+ ✔ P 1 creation path current behaviour
+ ✔ P 5 rename path current behaviour
+
+T1a Legacy Paths (Reseller\Tests\Integration\Wp9\T1aLegacyPaths)
+ ✔ P 2 public registration current behaviour
+ ✔ P 3 voucher with new username current behaviour
+ ✔ P 4 admin edit of an unassigned customer current behaviour
+ ✔ V 3 voucher code equal to an owned name is refused
+ ✔ V 2 customer created over a live voucher only identity
+ ✔ Bounded concurrent creation p 1 versus p 3
+
+T1a Voucher V1 (Reseller\Tests\Integration\Wp9\T1aVoucherV1)
+ ✔ V 1 voucher code equal to an unassigned customers username
+
+U0Grant Confirmation (Reseller\Tests\Integration\Wp9\U0GrantConfirmation)
+ ✔ Stale foreign rows of a colliding identity are not a grant
+ ✔ Partial rows are not a grant
+ ✔ A confirmed device failure with pre existing rows is not a grant
+ ✔ An unknown device outcome is not a grant
+ ✔ Foreign rows before the claim refuse the redemption untouched
+ ✔ Parallel grants with deadlock retry all end granted with their own policy
+ ✔ Controls are unchanged
+
+U0Identity (Reseller\Tests\Integration\Wp9\U0Identity)
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Admin vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Agent vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Agent vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Agent vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Sales vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Sales vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P1 Sales vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P2 vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P3 vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P4 vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P5 vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs customer username (other case)"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs stored leading-space username"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs stored trailing-TAB PPPoE username"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs accent"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs CLAIMED voucher"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs voucher-only recharge row"
+ ✔ Every acquirer is refused for every identity class with data set "P6 vs leftover RADIUS rows"
+ ✔ Every acquirer is refused for every identity class with data set "P6 RADIUS vs customer PPPoE username (cross-field)"
+ ✔ Every acquirer is refused for every identity class with data set "P6 RADIUS vs live voucher-only identity"
+ ✔ Every acquirer is refused for every identity class with data set "P6 RADIUS vs leftover RADIUS rows"
+ ✔ A fresh name is accepted with data set "P1 Admin"
+ ✔ A fresh name is accepted with data set "P1 Agent"
+ ✔ A fresh name is accepted with data set "P1 Sales"
+ ✔ A fresh name is accepted with data set "P2"
+ ✔ A fresh name is accepted with data set "P3"
+ ✔ A fresh name is accepted with data set "P4"
+ ✔ A fresh name is accepted with data set "P5"
+ ✔ A fresh name is accepted with data set "P6"
+ ✔ A fresh name is accepted with data set "P6 RADIUS"
+ ✔ An unused voucher code is not an identity with data set "P1 Admin"
+ ✔ An unused voucher code is not an identity with data set "P1 Agent"
+ ✔ An unused voucher code is not an identity with data set "P1 Sales"
+ ✔ An unused voucher code is not an identity with data set "P2"
+ ✔ An unused voucher code is not an identity with data set "P3"
+ ✔ An unused voucher code is not an identity with data set "P4"
+ ✔ An unused voucher code is not an identity with data set "P5"
+ ✔ An unused voucher code is not an identity with data set "P6"
+ ✔ An unused voucher code is not an identity with data set "P6 RADIUS"
+ ✔ Case only self rename is accepted
+ ✔ Same customer username equals pppoe is accepted
+ ✔ Grandfathered duplicates stay editable
+ ✔ P 5 revert never restores a name taken meanwhile
+ ✔ Public registration refusal is generic
+
+U0Lock (Reseller\Tests\Integration\Wp9\U0Lock)
+ ✔ Hold refuses inside a transaction and assert outside the lock
+ ✔ Mutual exclusion across processes
+ ✔ Nested reentrant hold under the tree lock is released
+ ✔ Release on exception and rollback of an open transaction
+ ✔ Release on process exit and fatal error
+ ✔ Timeout fails closed for every acquirer without blind retry
+ ✔ Inverted order is resolved and the writer completes
+ ✔ Parallel mixed acquirers never deadlock
+ ✔ Statement time bound and candidate bound fail closed
+
+U0Notification Credential (Reseller\Tests\Integration\Wp9\U0NotificationCredential)
+ ✔ No notification carries a voucher credential
+
+U0Open Transaction Guard (Reseller\Tests\Integration\Wp9\U0OpenTransactionGuard)
+ ✔ A stale read view inside an open transaction never authorizes a policy write
+ ✔ An uncommitted owner inside an open transaction cannot race the acquirer
+ ✔ With the identity lock held the count and the write are serialized
+ ✔ Controls outside a transaction are unchanged
+
+U0Ownership Guard (Reseller\Tests\Integration\Wp9\U0OwnershipGuard)
+ ✔ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (other case)"
+ ✔ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (stored leading space)"
+ ✔ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (trailing TAB)"
+ ✔ Legacy recharge of a grandfathered duplicate is refused before any write with data set "customer vs customer (accent)"
+ ✔ Legacy recharge of a grandfathered duplicate is refused before any write with data set "cross-field (duplicate PPPoE = username)"
+ ✔ Legacy recharge of a customer over a live voucher identity is refused
+ ✔ Deactivation of a grandfathered duplicate never suspends the other owner
+ ✔ Customer add plan on an ambiguous key is refused
+ ✔ Legacy rename of an ambiguous key is refused before the save
+ ✔ Ownership check runs under the identity lock and fails closed
+ ✔ Single owners are unchanged
+
+U0Perf (Reseller\Tests\Integration\Wp9\U0Perf)
+ ✔ Observed cost of the identity lock by customer count
+
+U0Race (Reseller\Tests\Integration\Wp9\U0Race)
+ ✔ Application session isolation level
+ ✔ A 1 voucher in flight versus p 1 creation and provisioning
+ ✔ A 2 voucher in flight versus p 2 public registration
+ ✔ A 3 voucher in flight versus p 3 voucher with new username
+ ✔ A 4 voucher in flight versus p 4 rename into the name
+ ✔ A 5 voucher in flight versus p 5 owned rename into the name
+ ✔ B 1 p1 before commit versus voucher
+ ✔ B 2 p2 before insert versus voucher
+ ✔ B 3 p3 before insert versus voucher
+ ✔ B 4 p4 before save versus voucher
+ ✔ B 5 p5 before write versus voucher
+ ✔ C 1 voucher in flight versus an equal code with data set "case"
+ ✔ C 1 voucher in flight versus an equal code with data set "accent"
+ ✔ C 1 voucher in flight versus an equal code with data set "trailing space"
+ ✔ C 2 simultaneous redemptions of equal codes
+ ✔ D 1 p1 before commit versus p 2
+ ✔ D 2 p1 before commit versus p 3
+ ✔ D 3 p2 before insert versus p 3
+ ✔ D 4 p4 before save versus p 1 cross field
+ ✔ D 5 p5 before write versus p 1 cross field
+ ✔ G 1 p4 rename away versus voucher of the old name
+ ✔ G 2 p5 rename away versus voucher of the old name
+ ✔ G 3 p4 rename away versus p 1 creation of the old name
+
+U0Reverse Direction (Reseller\Tests\Integration\Wp9\U0ReverseDirection)
+ ✔ A colliding owned identity cannot be created or renamed any more
+ ✔ Grandfathered colliding owned customer activation is refused before any write
+ ✔ A non colliding owned activation still completes
+ ✔ Owned rename of an ambiguous key is refused
+
+U0Survey (Reseller\Tests\Integration\Wp9\U0Survey)
+ ✔ Canonical survey reports every duplicate class and only reads
+
+U0V4 (Reseller\Tests\Integration\Wp9\U0V4)
+ ✔ A second code of the same radius identity is refused with data set "upper case"
+ ✔ A second code of the same radius identity is refused with data set "accent"
+ ✔ A second code of the same radius identity is refused with data set "trailing space"
+ ✔ A second code of the same radius identity is refused with data set "leading space"
+ ✔ A second code of the same radius identity is refused with data set "trailing TAB"
+ ✔ A second code of the same radius identity is refused with data set "exact duplicate row"
+ ✔ Generation of collation equal unused codes is observed
+
+U0Voucher Equivalence (Reseller\Tests\Integration\Wp9\U0VoucherEquivalence)
+ ✔ A case variant of a voucher in review is not served
+ ✔ A trailing whitespace variant of a voucher in review is not served
+ ✔ An accent variant of a voucher in review is not served
+ ✔ A granted voucher with an equivalent voucher in review is not served
+ ✔ A granted voucher is not served under a variant name
+ ✔ An unused voucher with an old recharge is not served under a variant name
+ ✔ A granted voucher next to an equivalent unused voucher
+ ✔ A legacy recharge without a voucher row
+ ✔ An empty identity is never allowed
+ ✔ A read error fails closed
+ ✔ More equivalent voucher rows than the bound fail closed
+
+U0Voucher Log (Reseller\Tests\Integration\Wp9\U0VoucherLog)
+ ✔ No voucher code or its short hash is logged or echoed
+ ✔ The voucher only login gate refusal does not record the code
+
+U0Voucher Reactivation (Reseller\Tests\Integration\Wp9\U0VoucherReactivation)
+ ✔ A voucher in review is not served by any entry point
+ ✔ A claimed voucher with a recharge on the rest device is not served
+ ✔ An unused voucher next to an orphan voucher only recharge is not served
+ ✔ Legitimate reactivation is unchanged
+
+U0Voucher Service (Reseller\Tests\Integration\Wp9\U0VoucherService)
+ ✔ A code the radius key rules refuse is never reported granted
+ ✔ A bypass insert during the grant is never reported granted
+ ✔ A normal grant is unchanged
+
+W10Health Check (Reseller\Tests\Integration\Wp9\W10HealthCheck)
+ ✔ Health reports consistent and degraded states without record content
+ ✔ Health is cli only
+
+W9Admission Hardening (Reseller\Tests\Integration\Wp9\W9AdmissionHardening)
+ ✔ L 1 a claim with an emptied value is refused with data set "key UNHEX(empty)"
+ ✔ L 1 a claim with an emptied value is refused with data set "token"
+ ✔ L 1 a claim with an emptied value is refused with data set "session user"
+ ✔ L 1 a claim with an emptied value is refused with data set "nas"
+ ✔ L 1 a claim with an emptied value is refused with data set "acct session id"
+ ✔ L 1 a claim with an emptied value is refused with data set "calling station"
+ ✔ L 1 a claim with an emptied value is refused with data set "nas port"
+ ✔ L 1 a claim with an emptied value is refused with data set "request authenticator"
+ ✔ L 1 a well formed claim is stored and empty token never matches
+ ✔ L 1 guarded upgrade of a pre wp 9 table and violating rows
+ ✔ L 2 echo turns an emptied input into a reject
+
+W9Bandwidth Terms (Reseller\Tests\Integration\Wp9\W9BandwidthTerms)
+ ✔ Bandwidth edit after confirmation is not provisioned
+
+W9Check Constraint Integrity (Reseller\Tests\Integration\Wp9\W9CheckConstraintIntegrity)
+ ✔ Freshly migrated database verifies and is ready
+ ✔ Same name weakened check is drift and not ready with data set "wallet floor allows overdraft"
+ ✔ Same name weakened check is drift and not ready with data set "ledger amount may be negative"
+ ✔ Same name weakened check is drift and not ready with data set "tree depth rule removed"
+ ✔ Same name weakened check is drift and not ready with data set "base cost may be negative"
+ ✔ Restored exact check verifies again
+ ✔ Missing check is not ready
+ ✔ Mysql not enforced check is drift and not ready
+ ✔ Mariadb session without check enforcement is not ready
+ ✔ Record engine check clauses
+
+W9Cron Renewal Race (Reseller\Tests\Integration\Wp9\W9CronRenewalRace)
+ ✔ Order a reactivation in flight while cron expires
+ ✔ Order b cron first then reactivation
+
+W9Legacy Rename Audit (Reseller\Tests\Integration\Wp9\W9LegacyRenameAudit)
+ ✔ Unconfirmed legacy rename is audited and shown as a warning
+ ✔ Confirmed legacy rename is audited as confirmed
+ ✔ An edit without rename records nothing
+
+W9Owner Policy (Reseller\Tests\Integration\Wp9\W9OwnerPolicy)
+ ✔ P 1 replay after lost authority does not progress
+ ✔ P 2 admin disabled account is reactivated by an administrator only
+ ✔ P 3 password reset of direct sub accounts only
+ ✔ P 4 only the owner reassigns sales
+ ✔ P 5 new owner sales does not see previous owner activations
+
+W9Plugin Inventory (Reseller\Tests\Integration\Wp9\W9PluginInventory)
+ ✔ Inventory and drift
+
+W9Reconcile Cli Guard (Reseller\Tests\Integration\Wp9\W9ReconcileCliGuard)
+ ✔ Live in flight activation is not reconciled through a lowered floor
+ ✔ Resume requires a stale activation
+
+W9Recovery Tools (Reseller\Tests\Integration\Wp9\W9RecoveryTools)
+ ✔ Finance check is clean and detects tampering
+ ✔ Voucher review decisions follow the evidence
+ ✔ Admission release is safety gated and audited
+
+W9Shared Radius Key (Reseller\Tests\Integration\Wp9\W9SharedRadiusKey)
+ ✔ Second service type on the same key is refused
+
+W9Stale Policy Session (Reseller\Tests\Integration\Wp9\W9StalePolicySession)
+ ✔ Reactivation whose disconnect failed is reported until the old session ends
+
+OK (246 tests, 1301 assertions)
+exit=0 end: 2026-10-17T19:04:52Z

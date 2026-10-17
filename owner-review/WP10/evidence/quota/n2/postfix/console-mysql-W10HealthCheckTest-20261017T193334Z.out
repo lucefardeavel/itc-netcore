@@ -1,0 +1,19 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/n2/postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/W10HealthCheckTest.php
+start: 2026-10-17T19:33:34Z
+ Container nuxbill-reseller-test-php82-run-6b6159f126bf Creating 
+ Container nuxbill-reseller-test-php82-run-6b6159f126bf Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:10.295, Memory: 12.00 MB
+
+W10Health Check (Reseller\Tests\Integration\Wp9\W10HealthCheck)
+ ✔ Health reports consistent and degraded states without record content
+ ✔ Health is cli only
+
+OK (2 tests, 44 assertions)
+exit=0 end: 2026-10-17T19:33:46Z

@@ -148,12 +148,16 @@ final class V1QuotaEnforcerTest extends ActivationTestCase
         [$plan, [, $leaf]] = $this->pricedChain(['12', '15'], '10', '20');
         static::$db->exec("UPDATE tbl_plans SET typebp = 'Limited', limit_type = 'Data_Limit', data_limit = 1, data_unit = 'MB', time_limit = 0, time_unit = 'Hrs' WHERE id = {$plan}");
         $c = $this->customer($leaf);
+        $user = $this->username($c);
+        // N2: a period owns the rows that ARRIVED after it started. A session that started 2 minutes before the activation was
+        // recorded before it, so it is inserted before; the first session of the new period is recorded after the activation
+        // even though a lagging NAS stamps its start 2 s earlier than the period start
+        $far = $this->session($user, 120, 5_000_000, 5_000_000);
         $before = time();
         $this->assertSame('COMPLETED', $this->activate($leaf, $c, $plan, 'NEW')['status']);
-        $user = $this->username($c);
         $this->assertSame('1000000', (string) static::$db->value("SELECT value FROM radcheck WHERE username = ? AND attribute = 'Max-Data'", [$user]));
-        $near = $this->session($user, time() - ($before - 2), 800_000, 400_000);      // started $before - 2: before the period start
-        $far = $this->session($user, time() - ($before - 120), 5_000_000, 5_000_000);  // started 2 minutes before: the previous period
+        $this->assertNotNull(static::$db->value("SELECT value FROM radcheck WHERE username = ? AND attribute = 'Nuxr-Period-Acct-Id'", [$user]), 'the period has its arrival-order boundary');
+        $near = $this->session($user, time() - ($before - 2), 800_000, 400_000);      // started $before - 2: before the period start (NAS stamp)
         try {
             $report = (new QuotaEnforcer(static::$svc, static fn(array $r): array => []))->overQuota();
             $this->assertSame([[$user, '1000000', '1200000', [$near]]], array_map(static fn($o) => [$o['username'], $o['limit'], $o['usage'],

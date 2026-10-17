@@ -1,0 +1,68 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/n2/prefix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1PeriodOwnershipTest.php
+start: 2026-10-17T18:06:44Z
+ Container nuxbill-reseller-test-php82-run-cdd6ac6d4c97 Creating 
+ Container nuxbill-reseller-test-php82-run-cdd6ac6d4c97 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+EEEEEEE                                                             7 / 7 (100%)
+
+Time: 00:08.817, Memory: 10.00 MB
+
+V1Period Ownership (Reseller\Tests\Integration\Wp10\V1PeriodOwnership)
+ ✘ Clock skew never moves a session between periods
+   │
+   │ Error: Class "Reseller\Radius\PeriodBoundary" not found
+   │
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:56
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:103
+   │
+ ✘ The time rule alone over counts a session started just before the renewal
+   │
+   │ Error: Class "Reseller\Radius\PeriodBoundary" not found
+   │
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:56
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:124
+   │
+ ✘ Late interim and duplicate start never move a row
+   │
+   │ Error: Class "Reseller\Radius\PeriodBoundary" not found
+   │
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:56
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:136
+   │
+ ✘ Reprovision of the same period keeps the boundary and a renewal moves it
+   │
+   │ Error: Class "Reseller\Radius\PeriodBoundary" not found
+   │
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:56
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:158
+   │
+ ✘ A period provisioned before this change keeps the time rule
+   │
+   │ Error: Class "Reseller\Radius\PeriodBoundary" not found
+   │
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:56
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:179
+   │
+ ✘ An impossible id falls back to the time rule and a malformed id fails closed
+   │
+   │ Error: Class "Reseller\Radius\PeriodBoundary" not found
+   │
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:56
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:190
+   │
+ ✘ Enforcer uses the same ownership
+   │
+   │ Error: Class "Reseller\Radius\PeriodBoundary" not found
+   │
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:56
+   │ /repo/tests/Integration/Wp10/V1PeriodOwnershipTest.php:205
+   │
+
+ERRORS!
+Tests: 7, Assertions: 0, Errors: 7.
+
+exit=2 end: 2026-10-17T18:06:55Z

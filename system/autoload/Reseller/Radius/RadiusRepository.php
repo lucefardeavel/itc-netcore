@@ -54,6 +54,22 @@ final class RadiusRepository
         });
     }
 
+    /**
+     * N2: the period markers stored for one subscriber: the time boundary (Nuxr-Period-Start) and the arrival-order
+     * boundary (Nuxr-Period-Acct-Id), each null when there is no row. A duplicate row reads as the lowest id's value.
+     *
+     * @return array{start:?string,acct:?string}
+     */
+    public function periodState(string $username): array
+    {
+        $out = ['start' => null, 'acct' => null];
+        foreach ($this->rows("SELECT attribute, value FROM radcheck WHERE username = ? AND attribute IN ('Nuxr-Period-Start', 'Nuxr-Period-Acct-Id') ORDER BY id", [$username]) as $r) {
+            $key = $r['attribute'] === 'Nuxr-Period-Start' ? 'start' : 'acct';
+            $out[$key] ??= (string) $r['value'];
+        }
+        return $out;
+    }
+
     /** @return array{check:array<string,string>,reply:array<string,string>,groups:list<string>} */
     public function readUser(string $username): array
     {

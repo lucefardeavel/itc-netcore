@@ -159,6 +159,38 @@ final class V1QuotaOperationsTest extends ActivationTestCase
         }
     }
 
+    /** a health check by name */
+    private function healthCheck(string $name): array
+    {
+        $r = $this->cli('health.php', '--json');
+        $j = json_decode(trim($r['raw']), true);
+        $this->assertIsArray($j, $r['raw']);
+        return array_column($j['checks'], null, 'check')[$name] ?? [];
+    }
+
+    /**
+     * N2: quota attribution no longer uses the NAS clock, but accounting times (display, freshness, the time-rule fallback) do.
+     * A NAS whose interim stamps lie more than 120 s in the future (clock ahead) is reported; counts only, never a name.
+     */
+    public function testHealthReportsANasWhoseClockIsAhead(): void
+    {
+        $this->assertSame('OK', $this->healthCheck('nas_clock')['status'] ?? null, 'no open session: nothing to report');
+        $user = 'v1nc' . bin2hex(random_bytes(3));
+        $id = static::$db->insertRow('radacct', ['acctsessionid' => 'v1nc' . bin2hex(random_bytes(3)), 'acctuniqueid' => bin2hex(random_bytes(16)), 'username' => $user,
+            'nasipaddress' => '127.0.0.1', 'acctstarttime' => gmdate('Y-m-d H:i:s', time() - 30), 'acctupdatetime' => gmdate('Y-m-d H:i:s', time() + 600),
+            'framedipaddress' => '10.43.0.9']);
+        try {
+            $c = $this->healthCheck('nas_clock');
+            $this->assertSame('WARNING', $c['status'] ?? null, json_encode($c));
+            $this->assertStringContainsString('1 open session', (string) $c['detail']);
+            $this->assertStringNotContainsString($user, json_encode($c), 'counts only');
+            static::$db->exec("UPDATE radacct SET acctupdatetime = UTC_TIMESTAMP() WHERE radacctid = {$id}");
+            $this->assertSame('OK', $this->healthCheck('nas_clock')['status'] ?? null, 'a normal stamp is fine');
+        } finally {
+            static::$db->exec("DELETE FROM radacct WHERE radacctid = {$id}");
+        }
+    }
+
     public function testUsageAndCliOnly(): void
     {
         $this->assertSame(5, $this->cli('quota.php')['exit']);
