@@ -46,4 +46,4 @@ Resume rule: read `AUTONOMOUS_EXECUTION_PLAN.md`, then the last rows here. Never
 | 37 | Voucher GB path; preflight quota.plans; lab determinism + Hotspot renewal | DONE | 37c1aead, 9a869280, 3bf52486 | V1VoucherQuotaTest 2/14; preflight WARN for pre-V1 invalid plans (checklist E8) |
 | 38 | Drill, load, UI audit (136 loads), PWA 32/32, final CHR (gates 10/216; integration 109/2055, 13 skipped) | DONE | a4ca655c, 32cdc92d | evidence/quota/{final,chr-final} |
 | 39 | Final full harness on the final commit (32cdc92d: MariaDB 1521/76375, MySQL 1521/76381, 0 failures, 112 lab-incomplete) + acceptance package | DONE | (this commit) | owner-review/WP10/SAAS_RADIUS_V1_GB_QUOTA_AND_RENEWAL_FINAL_ACCEPTANCE_PACKAGE.md: READY_FOR_PRODUCTION_OWNER_APPROVAL (not Production Ready); decisions N1, N2, D1, D2, D4-D10 |
-| sync | Basic Memory: trial expired, NOT synced. Google Drive: package uploaded to the project folder (see final message) | | | |
+| sync | Basic Memory: trial expired, NOT synced. Google Drive: the previous round's package was uploaded; the V1 acceptance package (row 39) was NOT uploaded (nothing was sent to an external service this round) | | | |
