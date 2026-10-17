@@ -89,6 +89,7 @@ This checklist is for an operator deploying one isolated instance. Tick every li
 | H2 | `/radius incoming accept=yes port=3799` (or `nas.ports` set to the NAS's port); CoA allowed only from the application host | one Disconnect from the application |
 | H3 | `require-message-auth=yes-for-request-resp`; RADIUS timeout per WP8 (3 s) | `/radius print detail` |
 | H4 | PPP AAA accounting with interim updates; no local `/ppp secret` or hotspot users that shadow RADIUS identities | `/ppp secret print` |
+| H7 | V1 quota: the NAS accepts the RADIUS `Acct-Interim-Interval` (PPP AAA / Hotspot profile: no fixed interim that overrides it) and the `Mikrotik-*-Limit` replies; RouterOS 7.24.5 validated | a GB plan login: `/ppp active print detail` `limit-bytes-in/out`, `/ip hotspot active print detail` `limit-bytes-total` |
 | H5 | The RouterOS API is not used in the release profile. If it is ever enabled, it runs only over a private management path (OBS-W8-4). | — |
 | H6 | Per-NAS secret: unique, 32+ characters, rotated as documented | rotation log |
 
@@ -101,6 +102,7 @@ This checklist is for an operator deploying one isolated instance. Tick every li
 | I3 | `php system/reseller/health.php --json` → monitoring (exit 1 WARNING, 2 CRITICAL, 3 UNKNOWN) | every 5 minutes |
 | I4 | `php system/reseller/health.php --json --finance` | hourly |
 | I5 | Backup (F1) | nightly |
+| I6 | `php system/reseller/quota.php enforce --loop=55` (V1 data / time quota enforcer: ends over-quota sessions; `install/freeradius/README.md` "V1 data and time quota"). Required as soon as one Limited plan is sold. | every minute |
 
 ## J. Monitoring and alerting **[H]**
 
@@ -111,6 +113,8 @@ Page the operator on CRITICAL, and on any WARNING that lasts more than 30 minute
 - `vouchers_review`, `balance_held`: operator review queue.
 - `accounting`: accounting stopped while sessions are open (FreeRADIUS / NAS problem).
 - `coa_failures`: Disconnect / CoA not confirmed (session policy may be stale; drift `SESSION_POLICY_STALE`).
+- `quota_enforcer`: CRITICAL = the quota enforcer (I6) is not running while quota subscribers are online (only the
+  router's per-session / per-direction limits apply); WARNING = an over-quota session is still open (`quota.php report`).
 
 ## K. Go-live sign-off
 

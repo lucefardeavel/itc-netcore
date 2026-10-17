@@ -1,0 +1,58 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1QuotaEnforcerTest.php
+start: 2026-10-17T06:41:59Z
+ Container nuxbill-reseller-test-php82-run-667ad51815c0 Creating 
+ Container nuxbill-reseller-test-php82-run-667ad51815c0 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FEEE                                                                4 / 4 (100%)
+
+Time: 00:02.937, Memory: 10.00 MB
+
+V1Quota Enforcer (Reseller\Tests\Integration\Wp10\V1QuotaEnforcer)
+ ✘ Confirmation needs nas evidence
+   │
+   │ an ACK alone is not proof
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      0 => Array &1 [
+   │ -        0 => 'ACK_WITHOUT_STOP',
+   │ +        0 => 'COA_NO_RESPONSE',
+   │          1 => false,
+   │      ],
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaEnforcerTest.php:92
+   │
+ ✘ Enforcer ends only over quota sessions of the current period
+   │
+   │ PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'over FROM (SELECT IFNULL(SUM(IFNULL(acctinputoctets, 0) + IFNULL(acctoutputoc...' at line 1
+   │
+   │ /repo/system/autoload/Reseller/Radius/QuotaEnforcer.php:53
+   │ /repo/tests/Integration/Wp10/V1QuotaEnforcerTest.php:129
+   │
+ ✘ Time quota across concurrent sessions
+   │
+   │ PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'over FROM (SELECT IFNULL(SUM(IFNULL(acctinputoctets, 0) + IFNULL(acctoutputoc...' at line 1
+   │
+   │ /repo/system/autoload/Reseller/Radius/QuotaEnforcer.php:53
+   │ /repo/system/autoload/Reseller/Radius/QuotaEnforcer.php:84
+   │ /repo/tests/Integration/Wp10/V1QuotaEnforcerTest.php:150
+   │
+ ✘ Malformed quota rows are skipped not enforced
+   │
+   │ PDOException: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'over FROM (SELECT IFNULL(SUM(IFNULL(acctinputoctets, 0) + IFNULL(acctoutputoc...' at line 1
+   │
+   │ /repo/system/autoload/Reseller/Radius/QuotaEnforcer.php:53
+   │ /repo/tests/Integration/Wp10/V1QuotaEnforcerTest.php:159
+   │
+
+ERRORS!
+Tests: 4, Assertions: 3, Errors: 3, Failures: 1.
+
+exit=2 end: 2026-10-17T06:42:03Z

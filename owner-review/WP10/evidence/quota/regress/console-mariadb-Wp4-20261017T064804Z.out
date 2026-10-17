@@ -1,0 +1,161 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp4
+start: 2026-10-17T06:48:04Z
+ Container nuxbill-reseller-test-php82-run-6e95aff65105 Creating 
+ Container nuxbill-reseller-test-php82-run-6e95aff65105 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............................................................  63 / 113 ( 55%)
+..................................................              113 / 113 (100%)
+
+Time: 03:44.967, Memory: 14.00 MB
+
+Accounting Time Contract (Reseller\Tests\Integration\Wp4\AccountingTimeContract)
+ ✔ The time zone tables are present
+ ✔ The free radius writer and the application reader share one time reference
+ ✔ From unixtime and unix timestamp convert exactly in every non dst zone
+ ✔ Stale sessions is the same for every database zone and application zone
+ ✔ Subscriber session state and display are the same instant in every zone combination
+ ✔ Changing the application zone between write and read changes nothing
+ ✔ Accounting interruption with the real writer
+ ✔ A zone mismatch shifts every epoch exactly and voids the freshness guarantee
+ ✔ Mixed history written before and after a database zone change is read never rewritten
+ ✔ Dst transitions are characterised and utc has no ambiguity
+ ✔ The stale query keeps the access path of the previous query
+
+Admission Reservation Contract (Reseller\Tests\Integration\Wp4\AdmissionReservationContract)
+ ✔ Upgrade is idempotent and the readiness check detects an incomplete schema
+ ✔ No distinct subscribers collide under the lookup collation
+ ✔ First login claims one reservation with a per attempt token
+ ✔ Concurrent different attempts exactly one is accepted
+ ✔ Retransmission reuses the claim and a new attempt is refused
+ ✔ Attempt identity and methods fail closed
+ ✔ Accounting transitions are token nas and identity bound
+ ✔ S 1 equivalent spellings share one reservation
+ ✔ Creator releases only an unused late claim and a missing table fails closed
+ ✔ Operator recovery releases only that pending claim and audits every decision
+ ✔ Hotspot is not touched by the admission
+
+Co AClient (Reseller\Tests\Integration\Wp4\CoAClient)
+ ✔ Disconnect ack ends only open sessions and keeps history
+ ✔ Nak is failed and session not found is success
+ ✔ Silence is unknown with identical retransmissions only
+ ✔ Forged reply is ignored
+ ✔ Coa request changes the rate
+ ✔ Offline subscriber and unknown nas
+ ✔ No shell is involved
+
+Free Radius Contract (Reseller\Tests\Integration\Wp4\FreeRadiusContract)
+ ✔ Pppoe pap and chap with static address and rate
+ ✔ Pppoe dynamic pool
+ ✔ Hotspot group rate and simultaneous use
+ ✔ Expiration
+ ✔ Time quota per period keeps history
+ ✔ Data quota per period keeps history
+ ✔ Suspended and removed subscribers are rejected and history kept
+ ✔ Message authenticator is required for authentication only
+
+Hotspot Admission Contract (Reseller\Tests\Integration\Wp4\HotspotAdmissionContract)
+ ✔ Limit one claim accounting and release
+ ✔ Concurrent logins never exceed the limit
+ ✔ An exact retransmission reuses its claim and a new attempt does not
+ ✔ Strict mode an old pending slot is never released
+ ✔ An active slot is kept when its nas cannot be verified
+ ✔ Accounting is bound to its token nas session and mac
+ ✔ Limit decrease and increase
+ ✔ Concurrent logins during a limit decrease never exceed the new limit
+ ✔ Fail closed identity limit and schema
+ ✔ The stock simultaneous use check still runs for every non hotspot request
+ ✔ Migration is additive idempotent and checkable
+ ✔ Pppoe is not touched by the hotspot slots
+
+Hotspot Spelling Contract (Reseller\Tests\Integration\Wp4\HotspotSpellingContract)
+ ✔ Exact spelling is admitted with the unchanged policy
+ ✔ Equivalent spellings authenticate but are refused for hotspot
+ ✔ The refusal looks like a wrong password and an unknown user
+ ✔ An ambiguous stored identity is refused for every spelling
+ ✔ Shared users two keeps its port limit for the exact spelling
+
+Radius Admin Flow (Reseller\Tests\Integration\Wp4\RadiusAdminFlow)
+ ✔ Recharge renewal and edit provision the saved billing expiry
+ ✔ Radius plan delete removes the group rows
+ ✔ Nas secret is never rendered and input is validated
+
+Radius Device Lifecycle (Reseller\Tests\Integration\Wp4\RadiusDeviceLifecycle)
+ ✔ Expiration is the saved billing expiry
+ ✔ No active recharge refuses without writing
+ ✔ No lifecycle path touches accounting history
+ ✔ Expired plan and suspension semantics
+ ✔ Pppoe key and rename across all tables
+ ✔ Plan group and nas through the device
+
+Radius Legacy Rename (Reseller\Tests\Integration\Wp4\RadiusLegacyRename)
+ ✔ Username rename across several plans runs once and equals a fresh sync
+ ✔ Ambiguous rename is refused before the customer is saved
+ ✔ Pppoe username held by another customer is refused before the save
+ ✔ A policy under the new name that is not the customers is refused before the save
+ ✔ A numeric looking pppoe username is compared strictly
+
+Radius Rename Integrity (Reseller\Tests\Integration\Wp4\RadiusRenameIntegrity)
+ ✔ Ordinary rename moves exactly the source rows
+ ✔ Equivalent rename updates in place and never deletes the source
+ ✔ Another key equivalent to the source refuses before any write
+ ✔ Another key equivalent to the target refuses before any write
+ ✔ The exact target key is still replaced as before
+ ✔ An existing exact target is refused when the caller does not own it
+
+Radius Repository (Reseller\Tests\Integration\Wp4\RadiusRepository)
+ ✔ Apply is exact and idempotent and leaves unmanaged rows alone
+ ✔ Plan change replaces the policy completely
+ ✔ Rename moves all three tables and keeps history
+ ✔ Suspend and remove never touch accounting
+ ✔ Plan group rows
+ ✔ Failure before commit is failed and rolled back
+ ✔ Lost commit is unknown
+ ✔ Verify mismatch is unknown
+
+Radius Repository Separate Db (Reseller\Tests\Integration\Wp4\RadiusRepositorySeparateDb)
+ ✔ Apply is exact and idempotent and leaves unmanaged rows alone
+ ✔ Plan change replaces the policy completely
+ ✔ Rename moves all three tables and keeps history
+ ✔ Suspend and remove never touch accounting
+ ✔ Plan group rows
+ ✔ Failure before commit is failed and rolled back
+ ✔ Lost commit is unknown
+ ✔ Verify mismatch is unknown
+ ✔ The radius tables are only in the separate database
+
+Radius Rest Disabled (Reseller\Tests\Integration\Wp4\RadiusRestDisabled)
+ ✔ Every action is refused
+
+Radius Rest Endpoint (Reseller\Tests\Integration\Wp4\RadiusRestEndpoint)
+ ✔ Refused without or with a wrong secret
+ ✔ Injection payloads have no effect
+ ✔ Voucher authentication
+ ✔ Chap verifies the response
+ ✔ Accounting counters per session
+ ✔ Radius runtime classes refuse direct http
+
+Session Guard Contract (Reseller\Tests\Integration\Wp4\SessionGuardContract)
+ ✔ First pppoe login without an open row needs no verification
+ ✔ Open row on an unverifiable nas rejects and keeps the history
+ ✔ Open row on a nas without credentials rejects
+ ✔ Multi nas any unverifiable nas rejects
+ ✔ An open row on a nas of type other stays with the stock layer
+ ✔ Hotspot never reaches the guard and carries the port limit
+ ✔ Hostile usernames are matched on the stock sql key
+
+Stub Nas Reliability (Reseller\Tests\Integration\Wp4\StubNasReliability)
+ ✔ Every answered request is recorded over many exchanges
+ ✔ Silent mode records every retransmission
+ ✔ Nak modes and forged replies still answer as before
+ ✔ A bind failure and a port in use are retried on another port and cleaned
+ ✔ No usable port fails loudly and leaves nothing
+ ✔ A timeout fails loudly and stops only its own stub
+ ✔ Malformed or incomplete logs are rejected
+ ✔ Received is idempotent and cleans up
+
+OK (113 tests, 1734 assertions)
+exit=0 end: 2026-10-17T06:51:51Z

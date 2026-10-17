@@ -148,15 +148,33 @@ ACTIVE claims are never released by hand. The A1 NAS verification ends them when
 
   The drift line disappears once no open row of the old name remains.
 
-## 4a. A plan change whose running session kept the old policy (SESSION_POLICY_STALE, lock gate P1)
+## 4a. A plan change or renewal whose running session kept the old policy (SESSION_POLICY_STALE, lock gate P1 / P2)
 
-A CHANGE_PLAN or REACTIVATE ends the running session (Disconnect) so that the next login gets the new policy. If the
+A CHANGE_PLAN, REACTIVATE or RENEW (owner RENEWAL_OPTION_B_APPROVED) ends the running session of the previous period
+(Disconnect) and confirms the end (its Accounting-Stop, or NAK 503) so that the next login gets the new policy. The
+outcome is recorded on the activation (annotation `confirmed: true|false`). If the
 Disconnect was not confirmed (UNKNOWN / FAILED) and a session that started before the change is still open, that
 session runs with the previous plan's rate until it ends (bounded by the previous period's Session-Timeout).
 - Detect: `reconcile.php drift` -> `SESSION_POLICY_STALE` with the activation reference.
 - Act: `php system/reseller/reconcile.php session-end <ACT>` (re-sends the Disconnect; annotated on the activation),
   or disconnect the session on the NAS. Never automatic; repeating it is harmless (an ended session is not found).
 - The finding clears when the old session's accounting Stop arrives.
+- RouterOS answers a Disconnect for a session it no longer has with NAK 406 (unconfirmed). If the NAS shows no such
+  session (`/ppp active`, `/ip hotspot active`) the Accounting-Stop was lost: the accounting row stays open (it is never
+  closed or deleted by PHPNuxBill) and the finding stays until FreeRADIUS receives a Stop; record the NAS evidence on
+  the activation. The renewal / settlement is never undone or repeated.
+
+## 4b. Data / time quota (V1, `quota.php`)
+
+- `health.php` `quota_enforcer` CRITICAL: the enforcer cron (`php system/reseller/quota.php enforce --loop=55`, every
+  minute) is not running. Restart it; until then only the router's own limits apply (Hotspot: per-session cap; PPPoE:
+  per direction).
+- `quota_enforcer` WARNING: `php system/reseller/quota.php report` lists the over-quota subscribers and their open
+  sessions. The enforcer re-sends the Disconnect every 60 s (audit `quota.enforced`); a NAS that does not answer
+  is a NAS / CoA problem (`install/freeradius/README.md` "Disconnect / CoA"). Never edit `radacct` or the quota rows.
+- A subscriber refused with "Data quota exhausted or unavailable" has used the period quota, or the RADIUS database
+  query failed (fail closed). "Quota unavailable" means a `Max-Data` / `Max-All-Session` row in `radcheck` is malformed
+  or duplicated (written outside PHPNuxBill): re-save the customer's plan through the application, never by hand.
 
 ## 5. Legacy balance operations (HELD)
 

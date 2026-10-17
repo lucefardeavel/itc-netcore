@@ -1,0 +1,43 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp6c
+start: 2026-10-17T07:01:26Z
+ Container nuxbill-reseller-test-php82-run-dcaf9cdd627b Creating 
+ Container nuxbill-reseller-test-php82-run-dcaf9cdd627b Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..................                                                18 / 18 (100%)
+
+Time: 00:43.836, Memory: 10.00 MB
+
+Action Parity (Reseller\Tests\Integration\Wp6c\ActionParity)
+ ✔ Every rendered action is allowed for the role
+ ✔ Rendered object links open for the target
+ ✔ Active customers and vouchers offer only permitted actions
+
+Adaptive Shell (Reseller\Tests\Integration\Wp6c\AdaptiveShell)
+ ✔ Up leads to the parent the actor may open
+ ✔ Denied and missing pages stay inside the shell
+ ✔ Viewport declares safe areas
+
+Legacy Adaptive (Reseller\Tests\Integration\Wp6c\LegacyAdaptive)
+ ✔ Converted forms keep their contract and gain the adaptive layer
+ ✔ Daily lists render the adaptive pair with real links
+ ✔ Admin config lists stack with labels and no hover only data
+ ✔ Audit defects are fixed
+ ✔ A converted form still posts through its controller
+
+Pricing Editor (Reseller\Tests\Integration\Wp6c\PricingEditor)
+ ✔ One row level edit opens the rows accepted forms
+ ✔ The editor offers only what the projection allows
+
+Target Parity (Reseller\Tests\Integration\Wp6c\TargetParity)
+ ✔ Admin is not offered delete for a sales account
+ ✔ Admin keeps delete for a report account and usable links
+ ✔ Sales gets no link to its parent agent
+ ✔ Voucher generator links only to viewable staff
+ ✔ Voucher customer links only to customers in scope
+
+OK (18 tests, 543 assertions)
+exit=0 end: 2026-10-17T07:02:12Z

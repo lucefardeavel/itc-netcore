@@ -1,0 +1,160 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1QuotaEnforcerTest.php
+start: 2026-10-17T06:44:06Z
+ Container nuxbill-reseller-test-php82-run-1372be07323a Creating 
+ Container nuxbill-reseller-test-php82-run-1372be07323a Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..FF                                                                4 / 4 (100%)
+
+Time: 00:13.747, Memory: 10.00 MB
+
+V1Quota Enforcer (Reseller\Tests\Integration\Wp10\V1QuotaEnforcer)
+ ✔ Confirmation needs nas evidence
+ ✔ Enforcer ends only over quota sessions of the current period
+ ✘ Time quota across concurrent sessions
+   │
+   │ both concurrent sessions of the exhausted time quota
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    0 => 9,
+   │ -    1 => 10,
+   │ +    0 => 6,
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaEnforcerTest.php:151
+   │
+ ✘ Malformed quota rows are skipped not enforced
+   │
+   │ FreeRADIUS refuses such a login (fail closed); nothing to measure
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => Array &1 [
+   │ +        'username' => 'v1q368fccd0',
+   │ +        'quota' => 'Max-All-Session',
+   │ +        'limit' => '3600',
+   │ +        'usage' => '3700',
+   │ +        'period_start' => 1792212261,
+   │ +        'sessions' => Array &2 [
+   │ +            0 => Array &3 [
+   │ +                'radacctid' => 9,
+   │ +                'acctsessionid' => 'v1q1e3d7e',
+   │ +                'acctuniqueid' => '744f840d89e35e356400548a333a4152',
+   │ +                'username' => 'v1q368fccd0',
+   │ +                'realm' => '',
+   │ +                'nasipaddress' => '127.0.0.1',
+   │ +                'nasportid' => null,
+   │ +                'nasporttype' => null,
+   │ +                'acctstarttime' => '2026-10-17 05:54:21',
+   │ +                'acctupdatetime' => '2026-10-17 06:43:51',
+   │ +                'acctstoptime' => null,
+   │ +                'acctinterval' => null,
+   │ +                'acctsessiontime' => 2000,
+   │ +                'acctauthentic' => null,
+   │ +                'connectinfo_start' => null,
+   │ +                'connectinfo_stop' => null,
+   │ +                'acctinputoctets' => 1,
+   │ +                'acctoutputoctets' => 1,
+   │ +                'calledstationid' => '',
+   │ +                'callingstationid' => '',
+   │ +                'acctterminatecause' => '',
+   │ +                'servicetype' => null,
+   │ +                'framedprotocol' => null,
+   │ +                'framedipaddress' => '10.40.0.114',
+   │ +                'framedipv6address' => '',
+   │ +                'framedipv6prefix' => '',
+   │ +                'framedinterfaceid' => '',
+   │ +                'delegatedipv6prefix' => '',
+   │ +                'class' => null,
+   │ +            ],
+   │ +            1 => Array &4 [
+   │ +                'radacctid' => 10,
+   │ +                'acctsessionid' => 'v1qa3271b',
+   │ +                'acctuniqueid' => '7f22b4029cfdd9028df528926ff8d24f',
+   │ +                'username' => 'v1q368fccd0',
+   │ +                'realm' => '',
+   │ +                'nasipaddress' => '127.0.0.1',
+   │ +                'nasportid' => null,
+   │ +                'nasporttype' => null,
+   │ +                'acctstarttime' => '2026-10-17 06:02:41',
+   │ +                'acctupdatetime' => '2026-10-17 06:43:51',
+   │ +                'acctstoptime' => null,
+   │ +                'acctinterval' => null,
+   │ +                'acctsessiontime' => 1700,
+   │ +                'acctauthentic' => null,
+   │ +                'connectinfo_start' => null,
+   │ +                'connectinfo_stop' => null,
+   │ +                'acctinputoctets' => 1,
+   │ +                'acctoutputoctets' => 1,
+   │ +                'calledstationid' => '',
+   │ +                'callingstationid' => '',
+   │ +                'acctterminatecause' => '',
+   │ +                'servicetype' => null,
+   │ +                'framedprotocol' => null,
+   │ +                'framedipaddress' => '10.40.0.36',
+   │ +                'framedipv6address' => '',
+   │ +                'framedipv6prefix' => '',
+   │ +                'framedinterfaceid' => '',
+   │ +                'delegatedipv6prefix' => '',
+   │ +                'class' => null,
+   │ +            ],
+   │ +        ],
+   │ +    ],
+   │ +    1 => Array &5 [
+   │ +        'username' => 'v1q54aaa766',
+   │ +        'quota' => 'Max-Data',
+   │ +        'limit' => '1000000',
+   │ +        'usage' => '1050000',
+   │ +        'period_start' => 1792215861,
+   │ +        'sessions' => Array &6 [
+   │ +            0 => Array &7 [
+   │ +                'radacctid' => 6,
+   │ +                'acctsessionid' => 'v1qf5cfef',
+   │ +                'acctuniqueid' => '1c65140d70e5f965f0ea7f5a712f2988',
+   │ +                'username' => 'v1q54aaa766',
+   │ +                'realm' => '',
+   │ +                'nasipaddress' => '127.0.0.1',
+   │ +                'nasportid' => null,
+   │ +                'nasporttype' => null,
+   │ +                'acctstarttime' => '2026-10-17 06:34:21',
+   │ +                'acctupdatetime' => '2026-10-17 06:43:51',
+   │ +                'acctstoptime' => null,
+   │ +                'acctinterval' => null,
+   │ +                'acctsessiontime' => 60,
+   │ +                'acctauthentic' => null,
+   │ +                'connectinfo_start' => null,
+   │ +                'connectinfo_stop' => null,
+   │ +                'acctinputoctets' => 300000,
+   │ +                'acctoutputoctets' => 150000,
+   │ +                'calledstationid' => '',
+   │ +                'callingstationid' => '',
+   │ +                'acctterminatecause' => '',
+   │ +                'servicetype' => null,
+   │ +                'framedprotocol' => null,
+   │ +                'framedipaddress' => '10.40.0.212',
+   │ +                'framedipv6address' => '',
+   │ +                'framedipv6prefix' => '',
+   │ +                'framedinterfaceid' => '',
+   │ +                'delegatedipv6prefix' => '',
+   │ +                'class' => null,
+   │ +            ],
+   │ +        ],
+   │ +    ],
+   │ +]
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaEnforcerTest.php:159
+   │
+
+FAILURES!
+Tests: 4, Assertions: 21, Failures: 2.
+
+exit=1 end: 2026-10-17T06:44:22Z

@@ -1,0 +1,28 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/regress/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp7
+start: 2026-10-17T07:32:48Z
+ Container nuxbill-reseller-test-php82-run-813250d300f4 Creating 
+ Container nuxbill-reseller-test-php82-run-813250d300f4 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.........                                                           9 / 9 (100%)
+
+Time: 00:16.570, Memory: 10.00 MB
+
+Pwa Csrf Gate (Reseller\Tests\Integration\Wp7\PwaCsrfGate)
+ ✔ Staff pages load the gate before the shim and keep token injection
+ ✔ Customer and public pages have no gate
+ ✔ Server side csrf is unchanged
+
+Pwa Routes (Reseller\Tests\Integration\Wp7\PwaRoutes)
+ ✔ Manifest is user neutral and complete
+ ✔ Manifest encodes any company name as valid json
+ ✔ Ping is a fixed no store marker and leaves no anonymous session
+ ✔ Manifest leaves no anonymous session and never touches a cookie session
+ ✔ Only two get actions exist and nothing mutates
+ ✔ The api refuses the pwa controller
+
+OK (9 tests, 159 assertions)
+exit=0 end: 2026-10-17T07:33:06Z

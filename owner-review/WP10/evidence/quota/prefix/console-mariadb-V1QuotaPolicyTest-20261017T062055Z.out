@@ -1,0 +1,47 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/prefix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp10/V1QuotaPolicyTest.php
+start: 2026-10-17T06:20:55Z
+ Container nuxbill-reseller-test-php82-run-1b7783586dd3 Creating 
+ Container nuxbill-reseller-test-php82-run-1b7783586dd3 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FF.E                                                                4 / 4 (100%)
+
+Time: 00:00.128, Memory: 10.00 MB
+
+V1Quota Policy (Reseller\Tests\Unit\Wp10\V1QuotaPolicy)
+ ✘ Pppoe data time and composite plans
+   │
+   │ PPPoE GB plan: 50 GB (decimal) per period
+   │ Failed asserting that null is identical to '50000000000'.
+   │
+   │ /repo/tests/Unit/Wp10/V1QuotaPolicyTest.php:35
+   │
+ ✘ Hotspot data plan asks for interim accounting
+   │
+   │ Failed asserting that null is identical to '60'.
+   │
+   │ /repo/tests/Unit/Wp10/V1QuotaPolicyTest.php:55
+   │
+ ✔ Unlimited plans carry no quota
+ ✘ Invalid limits are refused
+   │
+   │ Error: Class "Reseller\Radius\QuotaPolicy" not found
+   │
+   │ /repo/tests/Unit/Wp10/V1QuotaPolicyTest.php:84
+   │
+
+2 tests triggered 2 PHP warnings:
+
+1) /repo/tests/Unit/Wp10/V1QuotaPolicyTest.php:35
+Undefined array key "Max-Data"
+
+2) /repo/tests/Unit/Wp10/V1QuotaPolicyTest.php:55
+Undefined array key "Acct-Interim-Interval"
+
+ERRORS!
+Tests: 4, Assertions: 12, Errors: 1, Failures: 2, Warnings: 2.
+
+exit=2 end: 2026-10-17T06:20:57Z

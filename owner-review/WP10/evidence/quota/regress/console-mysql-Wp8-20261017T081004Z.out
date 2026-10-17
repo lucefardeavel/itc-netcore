@@ -1,0 +1,27 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/regress/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp8
+start: 2026-10-17T08:10:04Z
+ Container nuxbill-reseller-test-php82-run-46a2713a3a76 Creating 
+ Container nuxbill-reseller-test-php82-run-46a2713a3a76 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+I...I..
+
+Time: 00:17.782, Memory: 18.00 MB
+
+Device Guard Key Collision (Reseller\Tests\Integration\Wp8\DeviceGuardKeyCollision)
+ ✔ An unassigned row carrying the owned username as pppoe username is refused
+ ✔ An unassigned row carrying the owned pppoe username as pppoe username is refused
+ ✔ A non colliding unassigned customer keeps the legacy device behaviour
+ ✔ The permitted reprovision of an owned pppoe identity still works and the permit ends
+
+Recharge Pre Write Refusal (Reseller\Tests\Integration\Wp8\RechargePreWriteRefusal)
+ ✔ A colliding legacy recharge is refused before any write
+ ✔ Allowed recharges keep the wp 4 order and the legacy behaviour
+ ✔ Voucher only and owned customer paths are unchanged
+
+OK, but there were issues!
+Tests: 7, Assertions: 95, Incomplete: 110.
+exit=0 end: 2026-10-17T08:10:26Z

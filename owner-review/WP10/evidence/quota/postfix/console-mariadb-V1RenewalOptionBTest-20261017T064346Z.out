@@ -1,0 +1,20 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1RenewalOptionBTest.php
+start: 2026-10-17T06:43:46Z
+ Container nuxbill-reseller-test-php82-run-176ef420eb06 Creating 
+ Container nuxbill-reseller-test-php82-run-176ef420eb06 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...                                                                 3 / 3 (100%)
+
+Time: 00:18.440, Memory: 12.00 MB
+
+V1Renewal Option B (Reseller\Tests\Integration\Wp10\V1RenewalOptionB)
+ ✔ Renewal ends and confirms the previous period session
+ ✔ Unconfirmed end is reported and the operator ends it
+ ✔ New activation ends nothing
+
+OK (3 tests, 53 assertions)
+exit=0 end: 2026-10-17T06:44:06Z

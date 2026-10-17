@@ -1,0 +1,167 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/regress/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5b
+start: 2026-10-17T07:21:13Z
+ Container nuxbill-reseller-test-php82-run-d58e0f295f51 Creating 
+ Container nuxbill-reseller-test-php82-run-d58e0f295f51 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...............................................................  63 / 121 ( 52%)
+..........................................................      121 / 121 (100%)
+
+Time: 04:12.340, Memory: 16.00 MB
+
+Activation Reversal (Reseller\Tests\Integration\Wp5b\ActivationReversal)
+ ✔ Full reversal of a new activation
+ ✔ Reversal of a renewal restores the previous recharge row exactly
+ ✔ Later activation refuses without any write
+ ✔ External radius edit refuses without any write
+ ✔ Legacy recharge drift refuses without any write
+ ✔ Activation without captured context is not reversible
+ ✔ Financial preflight refusal writes nothing
+ ✔ Unrestorable prior secret is refused before any write
+ ✔ Only admin and super admin may reverse and a reason is required
+ ✔ Crash after start resumes with the radius compensation
+ ✔ Crash after the restore records the evidence without a second write
+ ✔ Financial commit failure after the restore holds and resumes without a second radius write
+ ✔ Financial refusal after the restore keeps reversal pending for the operator
+ ✔ Radius is read and restored with no database transaction open
+
+Activation Reversal Race (Reseller\Tests\Integration\Wp5b\ActivationReversalRace)
+ ✔ Reversal start and activation open never both proceed
+ ✔ Reversal start and reprovision are serialized
+
+Cron Hardening (Reseller\Tests\Integration\Wp5b\CronHardening)
+ ✔ Cron is not reachable over the web
+ ✔ Reseller owned auto renew is unavailable exactly once per obligation
+ ✔ Unassigned auto renew is exactly once per obligation
+ ✔ Held obligation is skipped and never retried
+
+Drift Report (Reseller\Tests\Integration\Wp5b\DriftReport)
+ ✔ A clean activation has no finding and direct writes are reported
+
+Legacy Balance Atomicity (Reseller\Tests\Integration\Wp5b\LegacyBalanceAtomicity)
+ ✔ Duplicate usernames change at most one row
+ ✔ Legacy credit never overwrites a concurrent hardened debit
+
+Legacy Customer Balance (Reseller\Tests\Integration\Wp5b\LegacyCustomerBalance)
+ ✔ Purchase is exactly once and replays without a second debit or grant
+ ✔ Concurrent same key debits once
+ ✔ Insufficient balance writes nothing
+ ✔ Proven pre write refusal is refunded once
+ ✔ Interrupted grant is held for the operator and resolved once
+ ✔ Reseller owned payer or target is refused
+ ✔ Transfer is atomic and validated
+ ✔ Concurrent transfers never overdraw
+ ✔ Operator resolution waits for the live dispatcher with data set "A: refund"
+ ✔ Operator resolution waits for the live dispatcher with data set "B: completed"
+ ✔ Abandoned held operation is resolvable once its lock is gone
+ ✔ Finalizer that loses its conditional update reports the persisted state
+
+Legacy Entrypoint Closure (Reseller\Tests\Integration\Wp5b\LegacyEntrypointClosure)
+ ✔ Admin recharge of a reseller owned customer continues at the activation
+ ✔ Admin balance recharge of an unassigned customer is exactly once
+ ✔ Customer balance purchase gift and transfer are post only and replay safe
+ ✔ Payment check and cancel are post only
+ ✔ Reseller owned reprovision goes through the service
+ ✔ The activation reverse route is admin only and post only
+
+Legacy Reprovision (Reseller\Tests\Integration\Wp5b\LegacyReprovision)
+ ✔ Tree serialization is the same lock as the finance tree lock
+ ✔ Admin sync reprovisions without touching billing
+ ✔ Refused while an activation is in flight without any device call
+ ✔ Password change by the customer is applied and verified
+ ✔ Confirmed device failure reverts the database
+ ✔ Unknown device outcome keeps the new values and is reported
+ ✔ Identity edit renames the subscriber and never activates
+ ✔ Authorization and ownership
+ ✔ Device default deny for reseller owned customers
+ ✔ Activation open and admin sync are serialized
+ ✔ Activation open and password change are serialized
+ ✔ Partial success across targets is unconfirmed and never reverted
+ ✔ Rename applied then add failed is unconfirmed and never reverted
+ ✔ First operation failed is still reverted
+
+Mikrotik Device (Reseller\Tests\Integration\Wp5b\MikrotikDevice)
+ ✔ Hotspot rename really renames the existing user
+ ✔ Expiry of a reseller owned customer applies the restricted plan without the grant guard
+ ✔ The primitive is private and not a bypass
+
+Payment Hardening (Reseller\Tests\Integration\Wp5b\PaymentHardening)
+ ✔ Only a configured gateway inside the directory is used
+ ✔ Posted discount is ignored
+ ✔ A paid row is never cancelled or checked again
+ ✔ Resolver unit
+ ✔ A valid coupon is consumed once with the payment row
+ ✔ A stale coupon never discounts with data set "A: disabled before buy"
+ ✔ A stale coupon never discounts with data set "B: expired before buy"
+ ✔ A stale coupon never discounts with data set "C: exhausted before buy"
+ ✔ Concurrent buys cannot both consume the last use
+ ✔ Percent coupon uses the invoice override as its basis
+ ✔ Minimum order is checked against the invoice override
+ ✔ Buy reads the current invoice override
+ ✔ Without an override the percent coupon uses the plan price
+
+Plugin Bypass (Reseller\Tests\Integration\Wp5b\PluginBypass)
+ ✔ Core writers and device grants refuse reseller owned customers
+
+Rename Integrity (Reseller\Tests\Integration\Wp5b\RenameIntegrity)
+ ✔ Username rename across several plans runs once and equals a fresh sync
+ ✔ Equivalent rename keeps the policy
+ ✔ Ambiguous rename is refused before any write with data set "equivalent to the old name"
+ ✔ Ambiguous rename is refused before any write with data set "equivalent to the new name"
+
+Rename Old Session (Reseller\Tests\Integration\Wp5b\RenameOldSession)
+ ✔ Ack with stop is confirmed and only the old row is targeted
+ ✔ Ack without stop is unconfirmed after the bound and status stays done
+ ✔ Nak 503 is confirmed for that session and nak 406 is not
+ ✔ No answer and unknown nas are unconfirmed without retry or revert
+ ✔ No open row is no accounting evidence and nothing is sent
+ ✔ Pppoe username old to new targets the old pppoe key
+ ✔ Pppoe username empty to set and set to empty target the former pppoe key
+ ✔ Username and pppoe together give per identity results and the worst wins
+ ✔ The same old key is disconnected once across plans
+ ✔ Equivalent rename targets only the sessions open before the rename
+ ✔ Non equivalent rename targets every recorded spelling of the old name only
+ ✔ Another subscriber with an equivalent name means nothing is sent
+ ✔ Another customer holding the old name means nothing is sent
+ ✔ Rename failed is reverted and nothing is sent
+ ✔ Rename applied then add failed still records the old session
+ ✔ Unconfirmed rename is an unconfirmed old session
+ ✔ A missing confirmation event is reported by the drift report
+ ✔ Disconnects run without the tree lock or a transaction and keep the captured identity
+ ✔ Legacy unassigned rename also ends the old session
+ ✔ Password change is not applicable
+
+Rename Remediation (Reseller\Tests\Integration\Wp5b\RenameRemediation)
+ ✔ F 1 a refusal never hides an earlier unconfirmed
+ ✔ F 3 chained pairs of one edit are not ambiguous
+ ✔ F 3 a foreign equivalent key is still refused in a chained edit
+ ✔ F 4 a pair that keeps the key is not a rename
+ ✔ F 5 one disconnect per session when two pairs share the old key
+ ✔ F 7 an unreadable radius database is reported as such and refused
+ ✔ F 8 an old identity that cannot be targeted is logged
+ ✔ D 3 a pppoe username held by another customer is refused before any write
+ ✔ D 3 a foreign or orphan policy under the new name is refused before any write
+ ✔ D 3 the customers own old key may still be replaced
+ ✔ D 3 race between the pre check and the write is closed r 1
+ ✔ D 3 race between the pre check and the write is closed r 2 device
+ ✔ R 1 the target of a pair renamed only once is still checked
+ ✔ R 2 a key of a later pair is not exempt for an earlier pair
+ ✔ R 5 one disconnect per session inside a legacy rename scope
+
+Voucher Redemption (Reseller\Tests\Integration\Wp5b\VoucherRedemption)
+ ✔ Portal redemption claims once and is audited for the customer
+ ✔ Reseller owned target is refused and the voucher untouched
+ ✔ Proven not started grant releases the voucher
+ ✔ Interrupted grant keeps the voucher claimed forever
+ ✔ Concurrent redemptions of one code grant once
+ ✔ New username voucher creates one customer and never touches an existing one
+ ✔ New username proven not started removes the provisional customer and ambiguous keeps it
+ ✔ Concurrent new username vouchers create at most one customer
+ ✔ Claimed vouchers cannot be deleted
+ ✔ Generated codes use the csprng and never duplicate
+
+OK (121 tests, 1676 assertions)
+exit=0 end: 2026-10-17T07:25:27Z

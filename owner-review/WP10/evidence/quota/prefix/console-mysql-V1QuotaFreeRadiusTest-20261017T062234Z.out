@@ -1,0 +1,74 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/prefix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1QuotaFreeRadiusTest.php
+start: 2026-10-17T06:22:34Z
+ Container nuxbill-reseller-test-php82-run-ca76a0dc6f9d Creating 
+ Container nuxbill-reseller-test-php82-run-ca76a0dc6f9d Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+FFFFF                                                               5 / 5 (100%)
+
+Time: 00:28.768, Memory: 10.00 MB
+
+V1Quota Free Radius (Reseller\Tests\Integration\Wp10\V1QuotaFreeRadius)
+ ✘ In session limit is the remaining share
+   │
+   │ fresh period: the whole quota / 4 sessions, every limit
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    0 => 250000000,
+   │ -    1 => 250000000,
+   │ -    2 => 250000000,
+   │ +    0 => 0,
+   │ +    1 => 0,
+   │ +    2 => 0,
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaFreeRadiusTest.php:85
+   │
+ ✘ Gigawords and shared users
+   │
+   │ 10 GB = 2 x 2^32 + 1 410 065 408
+   │ Failed asserting that 0 is identical to 2.
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaFreeRadiusTest.php:99
+   │
+ ✘ Exhausted and zero share are rejected
+   │
+   │ zero share is never sent as a limit
+   │ Failed asserting that 2 is identical to 3.
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaFreeRadiusTest.php:120
+   │
+ ✘ Stale interim never lowers usage and gigawords count
+   │
+   │ a stale interim never lowers the usage
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │ -    0 => '5000',
+   │ -    1 => '4294976296',
+   │ +    0 => '1000',
+   │ +    1 => '2000',
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaFreeRadiusTest.php:138
+   │
+ ✘ Q 1 cross period session stays in its own period
+   │
+   │ old period: 700 MB used, 300 MB / 4
+   │ Failed asserting that 0 is identical to 75000000.
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaFreeRadiusTest.php:156
+   │
+
+FAILURES!
+Tests: 5, Assertions: 23, Failures: 5.
+
+exit=1 end: 2026-10-17T06:23:05Z

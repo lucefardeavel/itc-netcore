@@ -1,0 +1,27 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/postfix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/W9QuotaGateCharacterisationTest.php
+start: 2026-10-17T06:31:31Z
+ Container nuxbill-reseller-test-php82-run-bab5b50a7ea8 Creating 
+ Container nuxbill-reseller-test-php82-run-bab5b50a7ea8 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.F                                                                  2 / 2 (100%)
+
+Time: 00:16.208, Memory: 10.00 MB
+
+W9Quota Gate Characterisation (Reseller\Tests\Integration\Wp9\W9QuotaGateCharacterisation)
+ ✔ Q 1 cross period session is attributed to the previous period
+ ✘ Q 2 time quota ends the session but data quota has no in session limit
+   │
+   │ Q2 data fact: no in-session data limit is sent
+   │ Failed asserting that 333333 is null.
+   │
+   │ /repo/tests/Integration/Wp9/W9QuotaGateCharacterisationTest.php:96
+   │
+
+FAILURES!
+Tests: 2, Assertions: 15, Failures: 1.
+
+exit=1 end: 2026-10-17T06:31:49Z

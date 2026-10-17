@@ -1,0 +1,45 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10
+start: 2026-10-17T07:52:49Z
+ Container nuxbill-reseller-test-php82-run-cf72b40436cd Creating 
+ Container nuxbill-reseller-test-php82-run-cf72b40436cd Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..................                                                18 / 18 (100%)
+
+Time: 01:37.447, Memory: 14.00 MB
+
+V1Legacy Renewal (Reseller\Tests\Integration\Wp10\V1LegacyRenewal)
+ ✔ Legacy renewal ends and confirms the running sessions
+
+V1Plan Quota Form (Reseller\Tests\Integration\Wp10\V1PlanQuotaForm)
+ ✔ Invalid quotas are refused
+ ✔ Valid quotas are stored as the radius policy reads them
+
+V1Quota Enforcer (Reseller\Tests\Integration\Wp10\V1QuotaEnforcer)
+ ✔ Confirmation needs nas evidence
+ ✔ Enforcer ends only over quota sessions of the current period
+ ✔ Time quota across concurrent sessions
+ ✔ Malformed quota rows are skipped not enforced
+
+V1Quota Free Radius (Reseller\Tests\Integration\Wp10\V1QuotaFreeRadius)
+ ✔ In session limit is the remaining share
+ ✔ Gigawords and shared users
+ ✔ Exhausted and zero share are rejected
+ ✔ Stale interim never lowers usage and gigawords count
+ ✔ Q 1 cross period session stays in its own period
+ ✔ Duplicate wrap multi nas malformed and time quota
+
+V1Quota Operations (Reseller\Tests\Integration\Wp10\V1QuotaOperations)
+ ✔ Enforcer cli audit heartbeat lock and health
+ ✔ Usage and cli only
+
+V1Renewal Option B (Reseller\Tests\Integration\Wp10\V1RenewalOptionB)
+ ✔ Renewal ends and confirms the previous period session
+ ✔ Unconfirmed end is reported and the operator ends it
+ ✔ New activation ends nothing
+
+OK (18 tests, 261 assertions)
+exit=0 end: 2026-10-17T07:54:28Z

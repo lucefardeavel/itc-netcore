@@ -10,7 +10,7 @@ It is tested with FreeRADIUS **3.2.8** (`freeradius/freeradius-server:3.2.8`) on
 
 | File | Install as | Purpose |
 |---|---|---|
-| `dictionary.phpnuxbill` | `/etc/freeradius/dictionary.phpnuxbill`, plus the line `$INCLUDE dictionary.phpnuxbill` in `/etc/freeradius/dictionary` | defines the internal attribute `Nuxr-Period-Start` |
+| `dictionary.phpnuxbill` | `/etc/freeradius/dictionary.phpnuxbill`, plus the line `$INCLUDE dictionary.phpnuxbill` in `/etc/freeradius/dictionary` | defines the internal attributes `Nuxr-Period-Start` and `Nuxr-Quota-Share` (V1 data quota; never sent to a NAS) |
 | `mods-available/nuxr_counters` | `mods-enabled/nuxr_counters` | `Max-All-Session` / `Max-Data` counters for the **current billing period** |
 | `mods-available/sql.example` | adapt into `mods-available/sql`, then link it in `mods-enabled/` | SQL module on the PHPNuxBill RADIUS database (`read_groups = yes`) |
 | `sites-available/phpnuxbill` | `sites-enabled/phpnuxbill`, replacing `default` | authorize / authenticate (PAP, CHAP) / accounting / session / post-auth (PPPoE session guard) |
@@ -455,6 +455,61 @@ authorize {
 - NAS firmware floor: **MikroTik RouterOS 7.15** or later sends `Message-Authenticator` in Access-Request; WP8 validated
   **RouterOS 7.24.5** (CHR). Older RouterOS (for example 7.12.1) cannot authenticate subscribers against this server.
 - Do not relax this with `require_message_authenticator = auto` or `no`.
+
+## V1 data and time quota (owner QUOTA_V1_GB_SUPPORT_APPROVED, 2026-10-17)
+
+Limited plans (Hotspot **and** PPPoE) carry a time quota (`Max-All-Session`), a data quota (`Max-Data`, decimal: 1 GB =
+10^9 bytes, download + upload) or both, per billing period (`Nuxr-Period-Start`). A session's usage belongs to the period
+in which the session **started**; accounting history is never deleted. Capabilities measured on RouterOS CHR 7.24.5 with
+FreeRADIUS 3.2.8 (`dev/wp8/quota_gate.py`; `owner-review/WP10/V1_QUOTA_RENEWAL_PLAN.md` §1):
+
+| Mechanism | PPPoE | Hotspot |
+|---|---|---|
+| `Mikrotik-Total-Limit(-Gigawords)` in Access-Accept | ignored | enforced (hard cap per session) |
+| `Mikrotik-Recv-Limit` / `Xmit-Limit(-Gigawords)` in Access-Accept | enforced **per direction** | supported |
+| `Session-Timeout` in Access-Accept | enforced | enforced |
+| `Acct-Interim-Interval` in Access-Accept | honoured | honoured |
+| CoA changing a byte limit mid-session | ACKed, **not applied** | NAKed |
+
+**At every authentication** (`authorize`, after the period counters), when `Max-Data` is set, FreeRADIUS replies the
+session's share of the remaining quota, `share = floor((Max-Data - period usage) / Simultaneous-Use)`, as
+`Mikrotik-Total-Limit`, `Mikrotik-Recv-Limit` and `Mikrotik-Xmit-Limit` (each with its Gigawords part), and PHPNuxBill
+adds `Acct-Interim-Interval = 60`. The time quota becomes `Session-Timeout` (the remaining time; the counter module).
+- Hotspot: the session is cut by the router at its share: an exact cap per session.
+- PPPoE: each direction is cut at the share (= the whole remaining quota; PPPoE has Simultaneous-Use 1). Traffic in
+  one direction only is capped exactly; upload + download together can pass the quota and is closed by the enforcer.
+- **Fail closed.** A share of 0 is never sent (RouterOS reads 0 as "no limit"); an exhausted quota, a malformed quota
+  row or a failed / emptied SQL expansion rejects the login ("Data quota exhausted or unavailable"). Every login also
+  checks that the `Max-Data` / `Max-All-Session` rows in `radcheck` are exactly what FreeRADIUS loaded (one row each,
+  digits only, equal to the control value): a malformed row such as `1e9` (the integer parser would read another
+  number) or a row that was not loaded rejects ("Quota unavailable"). A Limited plan with
+  a zero, negative, non-numeric or unknown-unit limit cannot be saved and is never provisioned (`POLICY_QUOTA_INVALID`).
+
+**Accounting enforcer** (`php system/reseller/quota.php enforce --loop=55`, cron every minute, as the PHP user). Every
+15 s it ends the open sessions of subscribers whose current-period usage reached `Max-Data` or `Max-All-Session`
+(PPPoE upload + download; several concurrent Hotspot sessions): Disconnect-Request to the session's NAS and a confirmed
+end (the Accounting-Stop seen within 6 s, or NAK 503). One audit record `quota.enforced` per subscriber and pass; a
+session is re-sent a Disconnect at most every 60 s; one enforcer at a time (database lock); accounting is only read.
+`quota.php report` lists over-quota open sessions (read-only).
+- **This is not a byte-exact cap.** Overshoot past the quota is bounded by
+  `min(share at authentication, rate x (interim 60 s + pass 15 s + Disconnect <= 6 s))`, measured on CHR.
+- If the enforcer, FreeRADIUS, the database or the NAS link is down, the router's own limits still hold
+  (PPPoE worst case: the share in each direction, i.e. 2 x the remaining quota).
+- `health.php` check `quota_enforcer`: CRITICAL when quota subscribers are online and the enforcer has not completed a
+  pass for 3 minutes; WARNING while an over-quota session is still open.
+
+**Accounting integrity.** An Interim-Update that is stale (after its session's Stop, or with smaller counters than
+already stored: re-ordered or late retransmission) is acknowledged but not written, so usage never decreases. A
+duplicate Start / Stop is handled by the stock queries (`acctuniqueid`). Counters are 64-bit (Gigawords combined).
+
+**Renewal (owner RENEWAL_OPTION_B_APPROVED).** A RENEW, CHANGE_PLAN or REACTIVATE activation ends the open sessions
+that started **before** the new period; a legacy recharge / voucher renewal (the Radius device: a new policy takes
+effect at the next session) ends every open session of the subscriber. One Disconnect per session, and the end is
+confirmed. A Disconnect-ACK
+alone is not proof; RouterOS 7.24.5 answers a Disconnect for a session it no longer has with **NAK 406** (not 503),
+which stays unconfirmed. An unconfirmed end never undoes the renewal (it settles exactly once); it is reported as
+drift `SESSION_POLICY_STALE` until the session's Stop arrives (`docs/OPERATOR_RECOVERY_RUNBOOK.md` §4a). The old
+session can never use more than its own grant (its Session-Timeout and per-session byte limits).
 
 ## Disconnect / CoA
 
