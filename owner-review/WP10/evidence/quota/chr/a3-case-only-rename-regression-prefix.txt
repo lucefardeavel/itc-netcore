@@ -1,0 +1,9 @@
+A3 regression found by the full wp8-integration run on the real CHR (2026-10-17, tree e4162092):
+  RenameOldSessionLabTest::testCaseOnlyRenameEndsThePreRenameSessionAndKeepsThePolicy
+  expected ['DONE','CONFIRMED'], actual ['DONE','UNCONFIRMED']   (deterministic on rerun)
+
+Diagnostic (stored A3 confirmation of the rerun; identities are synthetic lab names):
+DIAG {"old_session":"UNCONFIRMED","operation":"IDENTITY_EDIT","reprovision_outcome":"DONE","identities":[{"from":"nuxr_wp8_cust_3551b3","to":"NUXR_WP8_CUST_3551B3","equivalent":true,"state":"UNCONFIRMED","reason":"COA_NAK","sessions":[{"radacctid":201,"acct_session_id":"810000ea","nas":"10.88.0.2","nas_id":"1","result":"COA_NAK","stop_seen":null,"state":"COA_NAK"}]}]}
+
+Reading: A3's own Disconnect for the captured row 201 was answered NAK (RouterOS 7.24.5: 406, session not found) because the
+session had already been ended by the device provision() of the same reprovision run (new Stop-confirmed termination, V1).

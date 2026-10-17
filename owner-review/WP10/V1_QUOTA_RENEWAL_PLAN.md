@@ -28,8 +28,8 @@ Tool: `dev/wp8/quota_gate.py`. Raw evidence: `$NUXR_WP8_STATE/evidence/quota-gat
 - `share = floor(remaining / Simultaneous-Use)`.
 
 It replies `Mikrotik-Total-Limit(+Gigawords)`, `Mikrotik-Recv-Limit(+Gigawords)` and `Mikrotik-Xmit-Limit(+Gigawords)`, each equal to `share`, plus `Acct-Interim-Interval = 60`.
-- **Hotspot:** the router enforces `share` on the session's total traffic: a **hard cap per session**. With `shared_users = n`, every concurrent session gets 1/n of the remaining quota.
-- **PPPoE:** the router enforces `share` (= the remaining quota; PPPoE always has Simultaneous-Use 1) **per direction**. Traffic in one direction only is capped exactly. Mixed upload + download can reach the quota before either direction hits its limit; the accounting enforcer closes that gap.
+- **Hotspot:** the router enforces `share` on the session's total traffic: a **hard cap per session**, not byte-exact (measured overshoot 0.3 % - 4.4 % at ~1 Mbps = 0.2 - 0.7 s of line rate; the lab tests assert the share + 1 s of the measured rate). With `shared_users = n`, every concurrent session gets 1/n of the remaining quota.
+- **PPPoE:** the router enforces `share` (= the remaining quota; PPPoE always has Simultaneous-Use 1) **per direction**. Traffic in one direction only is capped by the NAS (same overshoot as Hotspot). Mixed upload + download can reach the quota before either direction hits its limit; the accounting enforcer closes that gap.
 - **Fail closed:**
   - a share of 0 is never sent (RouterOS reads 0 as unlimited): the request is rejected;
   - a missing / emptied SQL expansion (the A2-R failure mode) or a malformed result rejects;
@@ -62,6 +62,7 @@ It replies `Mikrotik-Total-Limit(+Gigawords)`, `Mikrotik-Recv-Limit(+Gigawords)`
 - **Ending the old session:** after the new period is provisioned and verified, every open session of the subscriber that started **before** the new period is sent a Disconnect, and its end is **confirmed** (Accounting-Stop within the bound, or NAK 503 "no such session"). A Disconnect-ACK alone is not proof. RouterOS 7.24.5 answers NAK 406 (never 503) for a session it no longer has: that stays unconfirmed (fail closed). This applies to:
   - activation RENEW, CHANGE_PLAN and REACTIVATE;
   - the legacy recharge / voucher renewal path (implemented as the legacy device rule: every open session of the subscriber is ended, one Disconnect each, now confirmed; no second Disconnect).
+- **One Disconnect per session (A3 coordination):** inside a rename operation (reseller `run()` and the legacy Admin form) the device re-provision ends the running sessions with the Stop-confirmed termination, and A3 also targets the sessions it captured before the rename. A session the device already ended **and confirmed** (exact radacctid + NAS + Acct-Session-Id, recorded in the rename scope; a prior Stop alone, or any NAK / timeout / unknown, is never evidence) is not sent a second Disconnect; A3 still reads the Accounting-Stop from accounting itself. Found by the real-NAS run: the old fire-and-forget Disconnect only passed A3 by racing the PPPoE teardown, and RouterOS answers NAK 406 for a vanished session.
 - **No session under the new policy while the old one may still run:**
   - PPPoE: Simultaneous-Use 1 + the Option G / A2-R admission guard refuse a second session while the old one is open or unverified.
   - Hotspot: the old session keeps its old per-session cap (old period's allowance); new sessions get the new period's share.

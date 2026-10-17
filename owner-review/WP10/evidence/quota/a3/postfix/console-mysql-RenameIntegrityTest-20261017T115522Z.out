@@ -1,0 +1,21 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/a3/postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp5b/RenameIntegrityTest.php
+start: 2026-10-17T11:55:22Z
+ Container nuxbill-reseller-test-php82-run-c2a5dd8c4303 Creating 
+ Container nuxbill-reseller-test-php82-run-c2a5dd8c4303 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....                                                                4 / 4 (100%)
+
+Time: 00:06.676, Memory: 12.00 MB
+
+Rename Integrity (Reseller\Tests\Integration\Wp5b\RenameIntegrity)
+ ✔ Username rename across several plans runs once and equals a fresh sync
+ ✔ Equivalent rename keeps the policy
+ ✔ Ambiguous rename is refused before any write with data set "equivalent to the old name"
+ ✔ Ambiguous rename is refused before any write with data set "equivalent to the new name"
+
+OK (4 tests, 67 assertions)
+exit=0 end: 2026-10-17T11:55:31Z

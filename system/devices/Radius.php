@@ -390,7 +390,10 @@ class Radius
         }
         try {
             foreach (\Reseller\Radius\SessionTermination::end(\Reseller\Radius\AccountingService::connection()->openSessions($key)) as $e) {
-                if (!$e['confirmed']) {
+                if ($e['confirmed']) {
+                    // inside a rename operation the A3 confirmation reuses this evidence instead of a second Disconnect
+                    \Reseller\Domain\LegacyReprovisionService::recordEnded($e);
+                } else {
                     ErrorReporter::log('radius.disconnect', 'result=' . $e['result'] . ' state=' . $e['state'] . ' radacctid=' . $e['radacctid']);
                 }
             }

@@ -84,6 +84,16 @@ final class LegacyReprovisionService
     private static ?array $renameOwn = null;
     /** @var array<int,true> radacctids already sent a Disconnect inside the current rename scope (legacy path) */
     private static array $scopeSent = [];
+    /**
+     * V1 (owner RENEWAL_OPTION_B_APPROVED): the sessions the device re-provision of this rename operation already ended AND
+     * confirmed (Disconnect-ACK + its Accounting-Stop, or NAK 503), by exact radacctid with the NAS and Acct-Session-Id they
+     * were ended on. A3's own Disconnect for such a captured row is not sent again (a vanished session answers NAK 406 and
+     * would turn a confirmed end into UNCONFIRMED). Opened with the scope, kept past its close (the confirmation runs after
+     * it), cleared by the next scope and after the confirmation.
+     *
+     * @var array<int,array{nas:string,sid:string}>
+     */
+    private static array $scopeEnded = [];
 
     /**
      * WP8 A3: `old_session` is reported separately from the re-provision status and never changes it:
@@ -354,6 +364,32 @@ final class LegacyReprovisionService
     {
         self::$renameOwn = $oldIdentity === null ? null : self::ownKeys($oldIdentity);
         self::$scopeSent = [];
+        if ($oldIdentity !== null) {
+            self::$scopeEnded = [];   // closing the scope keeps the evidence for the confirmation that follows
+        }
+    }
+
+    /**
+     * V1: the Radius device reports a session it ended inside the open rename scope (SessionTermination result). Only a
+     * CONFIRMED end is evidence; anything else (ACK without Stop, NAK 406, no answer, unknown) is ignored here and the
+     * session stays A3's to disconnect and judge. Ignored when no rename scope is open.
+     *
+     * @param array<string,mixed> $ended radacctid, acct_session_id, nas, confirmed
+     */
+    public static function recordEnded(array $ended): void
+    {
+        $rid = (int) ($ended['radacctid'] ?? 0);
+        if (self::$renameOwn === null || $rid <= 0 || ($ended['confirmed'] ?? false) !== true) {
+            return;
+        }
+        self::$scopeEnded[$rid] = ['nas' => (string) ($ended['nas'] ?? ''), 'sid' => (string) ($ended['acct_session_id'] ?? '')];
+    }
+
+    /** V1: true only for the exact accounting row (radacctid + NAS + Acct-Session-Id) that was ended and confirmed in this operation. */
+    public static function endedInScope(array $row): bool
+    {
+        $e = self::$scopeEnded[(int) ($row['radacctid'] ?? 0)] ?? null;
+        return $e !== null && $e['nas'] !== '' && $e['nas'] === (string) ($row['nasipaddress'] ?? '') && $e['sid'] === (string) ($row['acctsessionid'] ?? '');
     }
 
     public static function targetReplaceable(string $to): bool
@@ -442,6 +478,12 @@ final class LegacyReprovisionService
         foreach ($capture['targets'] as $row) {
             // WP8 A3 (FIX-4): inside one rename scope (legacy path: sent at once) a session is sent one Disconnect
             $rid = (int) ($row['radacctid'] ?? 0);
+            if (self::endedInScope($row)) {
+                // V1: ended and confirmed by this operation's device re-provision (exact row, NAS and Acct-Session-Id): no
+                // second Disconnect; the Accounting-Stop is still read from accounting by the confirmation
+                $out[] = ['row' => $row, 'result' => ProvisionResult::success('COA_ACK', 'Ended and confirmed by the device re-provision of this operation (Disconnect-ACK and Accounting-Stop).')];
+                continue;
+            }
             if (self::$renameOwn !== null) {
                 if (isset(self::$scopeSent[$rid])) {
                     continue;
@@ -608,6 +650,7 @@ final class LegacyReprovisionService
             $out[] = ['from' => (string) $c['from'], 'to' => (string) $c['to'], 'equivalent' => $c['equivalent'], 'state' => $state, 'reason' => $reason, 'sessions' => $sessions];
         }
         $overall = self::worstOldSession($states);
+        self::$scopeEnded = [];   // the evidence belongs to this operation only
         try {
             AuditLog::record('rename.old_session', $a, [
                 'target_type' => 'customer', 'target_customer_id' => (int) $customer['id'],

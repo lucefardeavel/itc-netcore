@@ -1,0 +1,20 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/a3/postfix/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp9/W9LegacyRenameAuditTest.php
+start: 2026-10-17T11:55:47Z
+ Container nuxbill-reseller-test-php82-run-718a2c8031d0 Creating 
+ Container nuxbill-reseller-test-php82-run-718a2c8031d0 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...                                                                 3 / 3 (100%)
+
+Time: 00:25.483, Memory: 10.00 MB
+
+W9Legacy Rename Audit (Reseller\Tests\Integration\Wp9\W9LegacyRenameAudit)
+ ✔ Unconfirmed legacy rename is audited and shown as a warning
+ ✔ Confirmed legacy rename is audited as confirmed
+ ✔ An edit without rename records nothing
+
+OK (3 tests, 30 assertions)
+exit=0 end: 2026-10-17T11:56:13Z

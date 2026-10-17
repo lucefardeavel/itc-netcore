@@ -375,6 +375,68 @@ final class RenameOldSessionTest extends ActivationTestCase
         $this->customersChanged();
     }
 
+    // ------------------------------------------------------------------ V1 (owner RENEWAL_OPTION_B_APPROVED): one Disconnect per session
+
+    /**
+     * V1: the device re-provision of a rename run now ends the running sessions with a Stop-CONFIRMED termination
+     * (SessionTermination). For a case-only (equivalent) rename that is the very session A3 captured; A3's own later
+     * Disconnect found it gone (RouterOS answers NAK 406 for a vanished session) and the rename was reported UNCONFIRMED -
+     * found by the real-NAS wp8-integration run (RenameOldSessionLabTest case-only, baseline CONFIRMED). The sessions the
+     * device already ended AND confirmed inside the rename scope are not sent a second Disconnect: their end is the
+     * recorded evidence of the exact radacctid / NAS / Acct-Session-Id, and A3 still derives the state from accounting.
+     */
+    public function testSessionEndedAndConfirmedByTheDeviceIsNotSentASecondDisconnect(): void
+    {
+        $lower = 'a3d' . bin2hex(random_bytes(4));
+        [, , $c] = $this->activated(['username' => $lower]);
+        $row = $this->open($lower, 'a3dd01');
+        // RouterOS-like: the first Disconnect ends the session, nothing answers a second one (the stub serves ONE request)
+        $stub = $this->stub('ack');
+        RadiusFaults::$hook = static function (string $p) use ($row): void {
+            if ($p === 'session.after_disconnect') {   // the NAS's Accounting-Stop after the device's Disconnect-ACK
+                static::$db->exec("UPDATE radacct SET acctstoptime = UTC_TIMESTAMP(), acctterminatecause = 'Admin-Reset' WHERE radacctid = {$row}");
+            }
+        };
+        try {
+            $r = R::run($this->ctx('ad'), $c, R::IDENTITY_EDIT, ['username' => strtoupper($lower), 'password' => '']);
+        } finally {
+            RadiusFaults::$hook = null;
+        }
+        $this->customersChanged();
+        $this->assertSame('DONE', $r['status']);
+        $conf = $this->confirmations($c)[0];
+        $this->assertSame('CONFIRMED', $conf['old_session'], json_encode($conf));
+        $this->assertSame([[$row, 'COA_ACK', true, 'CONFIRMED']], array_map(static fn(array $s): array => [$s['radacctid'], $s['result'], $s['stop_seen'], $s['state']], $conf['identities'][0]['sessions']));
+        $this->assertCount(1, $stub->received(), 'one Disconnect-Request for the session, not a second one');
+        $this->assertSame(1, (int) static::$db->value('SELECT COUNT(*) FROM radacct WHERE radacctid = ?', [$row]), 'accounting history kept');
+    }
+
+    /** The recorded end is evidence only for the EXACT session (radacctid + NAS + Acct-Session-Id), only when confirmed, only from a rename scope. */
+    public function testScopeEvidenceIsExactConfirmedAndScoped(): void
+    {
+        $row = ['radacctid' => 5, 'acctsessionid' => 'sess-5', 'nasipaddress' => '10.0.0.1'];
+        R::renameScope(['username' => 'x', 'pppoe_username' => '']);
+        try {
+            R::recordEnded(['radacctid' => 5, 'acct_session_id' => 'sess-5', 'nas' => '10.0.0.1', 'confirmed' => true]);
+            R::recordEnded(['radacctid' => 6, 'acct_session_id' => 'sess-6', 'nas' => '10.0.0.1', 'confirmed' => false]);   // not conclusive
+            $this->assertTrue(R::endedInScope($row));
+            $this->assertFalse(R::endedInScope(['radacctid' => 6, 'acctsessionid' => 'sess-6', 'nasipaddress' => '10.0.0.1']), 'an unconfirmed end is never evidence');
+            $this->assertFalse(R::endedInScope(['radacctid' => 5, 'acctsessionid' => 'sess-5', 'nasipaddress' => '10.0.0.2']), 'another NAS');
+            $this->assertFalse(R::endedInScope(['radacctid' => 5, 'acctsessionid' => 'other', 'nasipaddress' => '10.0.0.1']), 'another Acct-Session-Id');
+            $this->assertFalse(R::endedInScope(['radacctid' => 7, 'acctsessionid' => 'sess-5', 'nasipaddress' => '10.0.0.1']), 'another accounting row');
+        } finally {
+            R::renameScope(null);
+        }
+        // the confirmation runs after the scope was closed (reseller run() and the legacy Admin form): the evidence survives the close ...
+        $this->assertTrue(R::endedInScope($row));
+        // ... a recording outside any rename scope is ignored, and a new scope starts empty
+        R::recordEnded(['radacctid' => 8, 'acct_session_id' => 'sess-8', 'nas' => '10.0.0.1', 'confirmed' => true]);
+        $this->assertFalse(R::endedInScope(['radacctid' => 8, 'acctsessionid' => 'sess-8', 'nasipaddress' => '10.0.0.1']), 'no scope open: not recorded');
+        R::renameScope(['username' => 'y', 'pppoe_username' => '']);
+        R::renameScope(null);
+        $this->assertFalse(R::endedInScope($row), 'a new rename scope starts without the previous evidence');
+    }
+
     public function testNonEquivalentRenameTargetsEveryRecordedSpellingOfTheOldNameOnly(): void
     {
         $old = 'a3s' . bin2hex(random_bytes(4));
