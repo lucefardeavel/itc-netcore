@@ -1,0 +1,21 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-02dc87516faf Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-02dc87516faf Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......                                                              6 / 6 (100%)
+
+Time: 01:19.220, Memory: 12.00 MB
+
+Rename Old Session Lab (Reseller\Tests\Integration\Wp8\RenameOldSessionLab)
+ ✔ Pppoe rename ends the old session and the new name works
+ ✔ Hotspot old sessions on two nas are both ended
+ ✔ Pppoe username set and cleared end the former key session
+ ✔ Case only rename ends the pre rename session and keeps the policy
+ ✔ Coa not accepted is unconfirmed and visible in drift
+ ✔ Lost accounting start is no accounting evidence not confirmed
+
+OK (6 tests, 141 assertions)
