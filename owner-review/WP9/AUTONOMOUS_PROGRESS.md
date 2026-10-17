@@ -35,4 +35,9 @@ Resume rule: read `AUTONOMOUS_EXECUTION_PLAN.md`, then the last rows here. Never
 | 26 | Source-guard regressions fixed in code (no list / assertion change) | DONE | 1dc37552 | IntegrityCheck -> SettlementReadModel; DriftReport via AccountingService; execute switch in body; CLI guards first |
 | 27 | SEC-17 staff hashes, INST-1 installer, SESS-1/HDR-1 cookies + headers, W8-17 legacy rename audit | DONE | ad3b6bf3, b0184aaa, cf1bdfec, 13182b37 | all test-first (pre-fix failing both engines); 5 format-bound assertions restated (SEC-17 contract change, listed in the commit) |
 | 28 | WP10 prep: health, drill, load, runbooks, licenses | DONE (dev) | 29d374ea | drill PASS both engines; load PASS both engines (peak 15/151) |
-| next | full harness run 2 on 29d374ea (running), then CHR regression, UI audit (PWA lab), REPORT, final package | | | |
+| 29 | XSS-1 stored XSS across roles (final red team) | DONE | b5b441d4 | 249 outputs escaped; pre-fix 13 renderings both engines, post 0 |
+| 30 | UI audit + customer a11y; PWA suite; row #15 history | DONE | c298b21d | 130 loads clean (staff); PWA 32/32; history PASS |
+| 31 | CHR final regression (W9-E2) | DONE | 46624cd8 | security gates 10/216; integration 87 pass / 13 mode skips / 1 parser failure fixed, re-run 15/15 |
+| 32 | Final full harness (W9-E1) | DONE | 46624cd8 | MariaDB 1493/75946, MySQL 1493/75949, 0 failures, 104 incomplete (lab classes) |
+| 33 | Final package | DONE | (this commit) | owner-review/WP10/SAAS_RADIUS_FINAL_PRODUCTION_READINESS_PACKAGE.md: RELEASE_BLOCKED_WITH_EVIDENCE; one decision requested (WP9 acceptance + D3 quota contract) |
+| sync | Basic Memory: trial expired, NOT synced. Google Drive: package uploaded to the project folder (see final message) | | | |
