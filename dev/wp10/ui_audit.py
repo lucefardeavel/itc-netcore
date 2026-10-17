@@ -26,7 +26,7 @@ LAYOUTS = {
 ROLE_PAGES = {
     'sa': ['dashboard', 'customers/list', 'customers/add', 'activation/list', 'finance/overview', 'finance/wallets', 'finance/transfers',
            'operations/overview', 'operations/drift', 'operations/held', 'pricing/plans', 'reseller/tree', 'plan/list', 'plan/voucher',
-           'services/hotspot', 'services/pppoe', 'settings/app', 'settings/users', 'settings/change-password', 'reports/by-date', 'radius/nas-list', 'logs/list'],
+           'services/hotspot', 'services/add', 'services/pppoe', 'services/pppoe-add', 'settings/app', 'settings/users', 'settings/change-password', 'reports/by-date', 'radius/nas-list', 'logs/list'],
     'ad': ['dashboard', 'customers/list', 'activation/list', 'finance/overview', 'operations/overview', 'settings/users'],
     'A': ['dashboard', 'customers/list', 'customers/add', 'activation/list', 'finance/overview', 'finance/send', 'finance/wallets',
           'pricing/catalog', 'reseller/tree', 'settings/users', 'settings/app'],

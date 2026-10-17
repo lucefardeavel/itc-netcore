@@ -1,0 +1,30 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-9e412eb6063d Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-9e412eb6063d Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F......                                                             7 / 7 (100%)
+
+Time: 07:20.149, Memory: 12.00 MB
+
+V1Quota Lab (Reseller\Tests\Integration\Wp8\V1QuotaLab)
+ ✘ Hotspot data plan is capped per session and in total
+   │
+   │ exact per-session cap (1 % accounting granularity)
+   │ Failed asserting that 2039552 is equal to 2020000.0 or is less than 2020000.0.
+   │
+   │ /repo/tests/Integration/Wp8/V1QuotaLabTest.php:76
+   │
+ ✔ Hotspot data plan exhausts and refuses the login
+ ✔ Pppoe data plan download is capped natively
+ ✔ Pppoe mixed traffic is ended by the enforcer within the bound
+ ✔ Pppoe time plan uses session timeout
+ ✔ Renew and change plan during a live data session
+ ✔ Faults the nas limit holds and the enforcer never fabricates
+
+FAILURES!
+Tests: 7, Assertions: 161, Failures: 1.
+

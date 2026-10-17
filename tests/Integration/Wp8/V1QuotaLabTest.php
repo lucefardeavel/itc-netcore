@@ -37,6 +37,16 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
             'limit_type' => 'Data_Limit', 'data_limit' => $mb, 'data_unit' => 'MB', 'time_limit' => 0, 'time_unit' => 'Hrs']);
     }
 
+    /**
+     * The NAS cuts a session at its limit on its own timer, not byte-exactly: measured on RouterOS CHR 7.24.5 the
+     * recorded usage ended 0.3 % - 4.4 % past the limit on the lab's ~1 Mbps path (about 0.2 - 0.7 s of line rate).
+     * The asserted bound is the limit plus ONE SECOND of the measured line rate, never a percentage of the limit.
+     */
+    private function capBound(int $limit, array $traffic): int
+    {
+        return $limit + (int) ($traffic['measured_kbps'] * 125);
+    }
+
     private function used(array $row): int
     {
         return (int) $row['acctinputoctets'] + (int) $row['acctoutputoctets'];
@@ -73,7 +83,7 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         $tr1 = Wp8Lab::agent('traffic', ['client' => 'c2', 'direction' => 'down', 'seconds' => 12, 'kbps_offer' => 4000]);
         $this->assertNotNull(Wp8Lab::until(fn() => Wp8Lab::hotspotActive($user) === [] ? true : null, 20, 0.5), 'the NAS ended the session at its share');
         $s1 = $this->stopped($user);
-        $this->assertLessThanOrEqual(2_000_000 * 1.01, $this->used($s1), 'exact per-session cap (1 % accounting granularity)');
+        $this->assertLessThanOrEqual($this->capBound(2_000_000, $tr1), $this->used($s1), 'hard per-session cap: the limit + 1 s of line rate');
 
         // session 2 (second device): share of the REMAINING quota
         $this->assertTrue($this->hsUp('c4', $user, 'Q-hs-pass')['ok']);
@@ -83,30 +93,33 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         Wp8Lab::until(fn() => Wp8Lab::hotspotActive($user) === [] ? true : null, 20, 0.5);
         $s2 = $this->stopped($user);
         $total = $this->used($s1) + $this->used($s2);
-        $this->assertLessThanOrEqual(4_000_000 * 1.01, $total, 'the quota is never exceeded in total');
+        $this->assertLessThanOrEqual(4_000_000, $total, 'the quota is never exceeded in total (the 2nd share is taken from what is left)');
 
-        // exhaust the rest, then the login is refused
-        $exhausted = false;
-        for ($i = 0; $i < 8 && !$exhausted; $i++) {
-            $l = $this->hsUp('c2', $user, 'Q-hs-pass');
-            if (!$l['ok']) {
-                $exhausted = true;
-                break;
-            }
-            Wp8Lab::agent('traffic', ['client' => 'c2', 'direction' => 'down', 'seconds' => 6, 'kbps_offer' => 4000]);
-            Wp8Lab::until(fn() => Wp8Lab::hotspotActive($user) === [] ? true : null, 20, 0.5);
-            $this->stopped($user);
-        }
-        $rows = $this->acct($user);
-        $sum = array_sum(array_map(fn($r) => $this->used($r), $rows));
-        $this->assertLessThanOrEqual(4_000_000 * 1.01, $sum, 'total over every session within the quota');
-        Wp8Lab::evidence('V1.hotspot-data', ['quota' => 4_000_000, 'shared_users' => 2, 'session1' => ['share' => 2_000_000, 'used' => $this->used($s1), 'cause' => $s1['acctterminatecause'], 'traffic' => $tr1],
-            'session2' => ['share' => $share2, 'used' => $this->used($s2)], 'sessions' => count($rows), 'total_used' => $sum, 'login_refused_when_exhausted' => $exhausted,
-            'last_reply' => self::lastReply($user)]);
-        if (!$exhausted) {
-            $this->markTestIncomplete('quota not exhausted within 8 sessions (shares halve): recorded, not passed');
-        }
-        $this->assertSame('Access-Reject', self::lastReply($user)['code']);
+        $sum = $this->used($s1) + $this->used($s2);
+        $this->assertLessThanOrEqual(4_000_000, $sum, 'total over every session within the quota');
+        Wp8Lab::evidence('V1.hotspot-data-shared', ['quota' => 4_000_000, 'shared_users' => 2, 'session1' => ['share' => 2_000_000, 'used' => $this->used($s1), 'cause' => $s1['acctterminatecause'], 'traffic' => $tr1],
+            'session2' => ['share' => $share2, 'used' => $this->used($s2)], 'total_used' => $sum]);
+    }
+
+    public function testHotspotDataPlanExhaustsAndRefusesTheLogin(): void
+    {
+        $h = $this->hierarchy();
+        $plan = $this->dataPlan($h, 'Hotspot', 3, self::BW_FAST, ['shared_users' => 1]);
+        $cust = $this->labCustomer($h['C'], $h['sales'], 'Q-hx-pass', 'Hotspot');
+        $user = $this->username($cust);
+        $this->assertSame('COMPLETED', $this->activate($h['sales'], $cust, $plan, 'NEW')['status']);
+        $this->assertTrue($this->hsUp('c2', $user, 'Q-hx-pass')['ok']);
+        $this->assertSame('3000000', Wp8Lab::hotspotActive($user)[0]['limit-bytes-total'] ?? null, 'one user: the whole remaining quota');
+        $tr = Wp8Lab::agent('traffic', ['client' => 'c2', 'direction' => 'down', 'seconds' => 40, 'kbps_offer' => 4000], 120);
+        $this->assertNotNull(Wp8Lab::until(fn() => Wp8Lab::hotspotActive($user) === [] ? true : null, 20, 0.5), 'the NAS ended the session at the quota');
+        $s = $this->stopped($user);
+        $this->assertLessThanOrEqual($this->capBound(3_000_000, $tr), $this->used($s), 'hard cap for the single Hotspot session: the limit + 1 s of line rate');
+        $this->assertGreaterThanOrEqual(3_000_000, $this->used($s), 'and it was really used up (the NAS cuts at, never before, the limit)');
+        $again = $this->hsUp('c2', $user, 'Q-hx-pass');
+        $this->assertFalse($again['ok'], 'exhausted: the login is refused');
+        $reply = self::lastReply($user);
+        $this->assertSame('Access-Reject', $reply['code']);
+        Wp8Lab::evidence('V1.hotspot-data-exhausted', ['quota' => 3_000_000, 'used' => $this->used($s), 'cause' => $s['acctterminatecause'], 'traffic' => $tr, 'relogin' => $reply]);
     }
 
     public function testPppoeDataPlanDownloadIsCappedNatively(): void
@@ -119,10 +132,11 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Q-pp-pass'])['ok']);
         $detail = Wp8Lab::ros('/ppp/active/print', '=detail=', '?name=' . $user)[0] ?? [];
         $this->assertSame(['3000000', '3000000'], [$detail['limit-bytes-in'] ?? null, $detail['limit-bytes-out'] ?? null], 'per-direction limits = the remaining quota');
-        $tr = Wp8Lab::agent('traffic', ['client' => 'c1', 'direction' => 'down', 'seconds' => 14, 'kbps_offer' => 4000]);
+        // the lab path carries about 1 Mbps: 40 s offer > the 3 MB share
+        $tr = Wp8Lab::agent('traffic', ['client' => 'c1', 'direction' => 'down', 'seconds' => 40, 'kbps_offer' => 4000], 120);
         $this->assertNotNull(Wp8Lab::until(fn() => Wp8Lab::pppActive($user) === [] ? true : null, 20, 0.5), 'the NAS ended the session');
         $s = $this->stopped($user);
-        $this->assertLessThanOrEqual(3_000_000 * 1.02, $this->used($s), 'native per-direction cap');
+        $this->assertLessThanOrEqual($this->capBound(3_000_000, $tr), $this->used($s), 'native per-direction cap: the limit + 1 s of line rate');
         $again = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Q-pp-pass', 'wait' => 25]);
         $this->assertFalse($again['ok'], 'exhausted: refused');
         $reply = self::lastReply($user);
@@ -134,14 +148,16 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
     public function testPppoeMixedTrafficIsEndedByTheEnforcerWithinTheBound(): void
     {
         $h = $this->hierarchy();
-        $quota = 10_000_000;
-        $plan = $this->dataPlan($h, 'PPPOE', 10, self::BW_1M);
+        // sized so the total crosses the quota (~45 s) and the first interim (60 s) arrives BEFORE a direction reaches its
+        // native cap (~90 s) at the offered 800 kbps per direction: the enforcer, not the NAS, must end it
+        $quota = 9_000_000;
+        $plan = $this->dataPlan($h, 'PPPOE', 9, self::BW_1M);
         $cust = $this->labCustomer($h['C'], $h['sales'], 'Q-mx-pass');
         $user = $this->username($cust);
         $this->assertSame('COMPLETED', $this->activate($h['sales'], $cust, $plan, 'NEW')['status']);
         $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Q-mx-pass'])['ok']);
         $this->assertSame('60', self::lastReply($user)['attrs']['Acct-Interim-Interval'] ?? null);
-        $job = Wp8Lab::agentStart('traffic_mixed', ['client' => 'c1', 'seconds' => 110, 'kbps_up' => 1500, 'kbps_down' => 1500]);
+        $job = Wp8Lab::agentStart('traffic_mixed', ['client' => 'c1', 'seconds' => 110, 'kbps_up' => 800, 'kbps_down' => 800]);
         $enf = new QuotaEnforcer(static::labRadius());
         $t0 = microtime(true);
         $actions = [];
@@ -245,7 +261,7 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Q-ft-pass'])['ok']);
         Wp8Lab::agent('fr', ['action' => 'pause']);
         try {
-            Wp8Lab::agent('traffic', ['client' => 'c1', 'direction' => 'down', 'seconds' => 14, 'kbps_offer' => 4000]);
+            Wp8Lab::agent('traffic', ['client' => 'c1', 'direction' => 'down', 'seconds' => 40, 'kbps_offer' => 4000], 120);
             $cut = Wp8Lab::until(fn() => Wp8Lab::pppActive($user) === [] ? true : null, 20, 0.5);
         } finally {
             Wp8Lab::agent('fr', ['action' => 'unpause']);

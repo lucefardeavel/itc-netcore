@@ -475,9 +475,10 @@ FreeRADIUS 3.2.8 (`dev/wp8/quota_gate.py`; `owner-review/WP10/V1_QUOTA_RENEWAL_P
 session's share of the remaining quota, `share = floor((Max-Data - period usage) / Simultaneous-Use)`, as
 `Mikrotik-Total-Limit`, `Mikrotik-Recv-Limit` and `Mikrotik-Xmit-Limit` (each with its Gigawords part), and PHPNuxBill
 adds `Acct-Interim-Interval = 60`. The time quota becomes `Session-Timeout` (the remaining time; the counter module).
-- Hotspot: the session is cut by the router at its share: an exact cap per session.
+- Hotspot: the session is cut by the router at its share: a hard cap per session, but **not byte-exact** (the NAS cuts on its own
+  timer; measured on CHR 7.24.5 the recorded usage ended 0.3 % - 4.4 % past the share at ~1 Mbps, i.e. 0.2 - 0.7 s of line rate).
 - PPPoE: each direction is cut at the share (= the whole remaining quota; PPPoE has Simultaneous-Use 1). Traffic in
-  one direction only is capped exactly; upload + download together can pass the quota and is closed by the enforcer.
+  one direction only is capped by the NAS (same overshoot as Hotspot); upload + download together can pass the quota and is closed by the enforcer.
 - **Fail closed.** A share of 0 is never sent (RouterOS reads 0 as "no limit"); an exhausted quota, a malformed quota
   row or a failed / emptied SQL expansion rejects the login ("Data quota exhausted or unavailable"). Every login also
   checks that the `Max-Data` / `Max-All-Session` rows in `radcheck` are exactly what FreeRADIUS loaded (one row each,

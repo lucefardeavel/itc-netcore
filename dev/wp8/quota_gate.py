@@ -172,6 +172,21 @@ def pppoe_recv_xmit_limit():
 
 
 @case
+def pppoe_v1_reply_full():
+    """the exact V1 reply set (Total + Recv + Xmit, each with Gigawords 0): does the NAS end the session at the cap?"""
+    _pppoe_limit_case('pppoe_v1_reply_full', [('Mikrotik-Total-Limit', '2000000'), ('Mikrotik-Total-Limit-Gigawords', '0'),
+                                              ('Mikrotik-Recv-Limit', '2000000'), ('Mikrotik-Recv-Limit-Gigawords', '0'),
+                                              ('Mikrotik-Xmit-Limit', '2000000'), ('Mikrotik-Xmit-Limit-Gigawords', '0')], seconds=24)
+
+
+@case
+def pppoe_v1_reply_no_total():
+    """Recv + Xmit with Gigawords 0, no Total-Limit"""
+    _pppoe_limit_case('pppoe_v1_reply_no_total', [('Mikrotik-Recv-Limit', '2000000'), ('Mikrotik-Recv-Limit-Gigawords', '0'),
+                                                  ('Mikrotik-Xmit-Limit', '2000000'), ('Mikrotik-Xmit-Limit-Gigawords', '0')], seconds=24)
+
+
+@case
 def pppoe_session_timeout():
     user, pw = new('pst')
     provision(user, pw, reply=[('Session-Timeout', '25')])

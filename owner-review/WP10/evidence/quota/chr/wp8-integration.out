@@ -1,0 +1,207 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-c363f2900776 Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-c363f2900776 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.SSSSSSSSSS.................................S............{
+    "pppoe": {
+        "Service-Type": "Framed-User",
+        "Framed-Protocol": "PPP",
+        "NAS-Port": "15728804",
+        "NAS-Port-Type": "Ethernet",
+        "User-Name": "nuxr_wp8_gd_5dd587",
+        "Calling-Station-Id": "CA:80:7E:17:26:BB",
+        "Called-Station-Id": "nuxr_wp8",
+        "NAS-Port-Id": "ether3",
+        "Acct-Session-Id": "810000a4",
+        "CHAP-Challenge": "[omitted]",
+        "CHAP-Password": "[omitted]",
+        "NAS-Identifier": "nuxr_wp8_chr",
+        "NAS-IP-Address": "10.88.0.2",
+        "Message-Authenticator": "[omitted]"
+    },
+    "hotspot": {
+        "NAS-Port-Type": "Wireless-802.11",
+        "Calling-Station-Id": "6E:59:58:28:E8:37",
+        "Called-Station-Id": "nuxr_wp8_hs",
+        "NAS-Port-Id": "ether4",
+        "User-Name": "nuxr_wp8_gdhs_9855e3",
+        "NAS-Port": "2147483667",
+        "Acct-Session-Id": "80000013",
+        "Framed-IP-Address": "10.88.2.199",
+        "Mikrotik-Host-IP": "10.88.2.199",
+        "CHAP-Challenge": "[omitted]",
+        "CHAP-Password": "[omitted]",
+        "Service-Type": "Login-User",
+        "WISPr-Logoff-URL": "http://10.88.2.1/logout",
+        "NAS-Identifier": "nuxr_wp8_chr",
+        "NAS-IP-Address": "10.88.0.2",
+        "Message-Authenticator": "[omitted]"
+    }
+}
+......  63 / 108 ( 58%)
+.........SS......................F...........                   108 / 108 (100%)
+
+Time: 01:01:18.509, Memory: 20.00 MB
+
+Accounting Time Lab (Reseller\Tests\Integration\Wp8\AccountingTimeLab)
+ ✔ The live chr session follows the time contract
+
+Checkrad Gate (Reseller\Tests\Integration\Wp8\CheckradGate)
+ ↩ Snmp gate a healthy live session duplicate is rejected by checkrad
+ ↩ Snmp gate b lost stop gone session allows login and keeps history
+ ↩ Snmp gate c accounting lost live session still protected
+ ↩ Snmp gate d router snmp unreachable decision fails open
+ ↩ Fault walk gate d snmp client unavailable fails open
+ ↩ Fault error gate d checkrad error fails open
+ ↩ Other gate e no nas verification lost stop locks out
+ ↩ Snmp hotspot shared 1
+ ↩ Snmp hotspot shared 2
+ ↩ Snmp hotspot shared 1 accounting lost
+
+Coa Disconnect (Reseller\Tests\Integration\Wp8\CoaDisconnect)
+ ✔ Pppoe disconnect ack session gone stop written single request
+ ✔ Hotspot disconnect ack and reinterception
+ ✔ Rate limit coa changes the effective session rate
+ ✔ Address and pool changes need disconnect and reauthentication
+ ✔ No response gives unknown after identical retransmissions and no success
+ ✔ Error cause 406 investigation
+
+Device Guard Key Collision (Reseller\Tests\Integration\Wp8\DeviceGuardKeyCollision)
+ ✔ An unassigned row carrying the owned username as pppoe username is refused
+ ✔ An unassigned row carrying the owned pppoe username as pppoe username is refused
+ ✔ A non colliding unassigned customer keeps the legacy device behaviour
+ ✔ The permitted reprovision of an owned pppoe identity still works and the permit ends
+
+Driver Contract Lab (Reseller\Tests\Integration\Wp8\DriverContractLab)
+ ✔ The temporary api credential is least privilege and sufficient
+ ✔ Hotspot plan and user contracts
+ ✔ Hotspot local login is not radius and the session methods work
+ ✔ Pppoe profile pool and secret contracts
+ ✔ Pppoe local dial is not radius and removal and expiry work
+ ✔ A radius subscriber still authenticates through radius with its own accounting row
+ ✔ Vpn api objects and nat contracts stay inside the test rules
+ ✔ Api unavailable and router address without port
+
+Driver Fail Closed Lab (Reseller\Tests\Integration\Wp8\DriverFailClosedLab)
+ ✔ Direct driver grants are refused for the reseller owned customer
+ ✔ Name collisions with the owned customers key
+ ✔ The legacy recharge funnel collision leaves the owned customer untouched
+ ✔ A local secret never masks an owned radius subscriber
+ ✔ The permitted path works and the permit ends after success and failure
+ ✔ The permitted path on an owned pppoe identity and the permit ends
+ ✔ The legacy recharge funnel refuses the owned customer
+ ✔ A voucher only grant with the owned username is refused
+ ✔ A 5 removal paths keep the live local session of the owned customer
+ ✔ Canonical cron expiry of the owned customer is allowed
+
+Failure Drills (Reseller\Tests\Integration\Wp8\FailureDrills)
+ ✔ Drill 1and 6 free radius unreachable and authentication timeout
+ ✔ Drill 2 radius database failure before commit
+ ✔ Drill 3 uncertain radius commit goes to reconciliation
+ ✔ Drill 4 nas unavailable for disconnect
+ ✔ Drill 5 coa incoming blocked
+ ↩ Drill 7 lost accounting stop and simultaneous use
+ ✔ Drill 7 guard lost stop relogin is accepted without any repair
+ ✔ Drill 8 router os api unavailable
+ ✔ Drill 9 disconnect processed but response lost
+ ✔ Drill 10 path recovery leaves no drill residue
+
+Free Radius Sql Client (Reseller\Tests\Integration\Wp8\FreeRadiusSqlClient)
+ ✔ Nas clients come from the nas table without any hardened client policy
+ ✔ Ma 1 missing message authenticator gets no response
+ ✔ Ma 2 invalid message authenticator is discarded before authorization
+ ✔ Ma 3 valid message authenticator keeps normal pap and chap behaviour
+ ✔ Accounting without message authenticator still writes start interim stop
+ ✔ Pppoe pool static address rate and simultaneous use on the sql client
+ ✔ Expiration is evaluated in the application time zone
+ ✔ Time and data quotas per period keep the accounting history
+
+Option GGate (Reseller\Tests\Integration\Wp8\OptionGGate)
+ ✔ Discriminator pppoe versus hotspot
+ ✔ Shipped gate a first login no verification
+ ✔ Shipped gate b duplicate rejected by the guard backstop
+ ✔ Shipped gate c lost stop gone session allowed history unchanged
+ ✔ Shipped gate d accounting lost live session rejected
+ ✔ Shipped gate e snmp unreachable rejects
+ ✔ Shipped gate f snmp client unavailable rejects
+ ✔ Shipped gate g wrong community rejects
+ ✔ Shipped gate h missing credentials rejects
+ ✔ Shipped gate h unknown nas and malformed input
+ ✔ Shipped gate i multiple nas
+ ✔ Shipped hostile usernames
+ ✔ Shipped hotspot shared 1
+ ✔ Shipped hotspot shared 2
+ ✔ Shipped hotspot shared 1 accounting lost
+ ↩ Functional gate b stock layer rejects first
+ ↩ Functional snmp unreachable stock fails open guard rejects
+
+Port Limit Gate (Reseller\Tests\Integration\Wp8\PortLimitGate)
+ ✔ Gate pppoe port limit 1 is not enforced by router os
+ ✔ Gate pppoe port limit 1 with accounting lost is not enforced by router os
+ ✔ Observation ppp profile only one
+ ✔ Gate hotspot port limit 1
+ ✔ Gate hotspot port limit 2
+ ✔ Gate hotspot port limit 1 with accounting lost
+
+Real Aaa (Reseller\Tests\Integration\Wp8\RealAaa)
+ ✔ Pppoe dynamic pool rate direction session and accounting
+ ✔ Pppoe static address is assigned exactly and no pool is used
+ ✔ Pppoe simultaneous use allows one session
+ ✔ Pppoe negative cases
+ ✔ Pppoe session ends at expiration and reauthentication is refused
+ ✔ Hotspot http chap login rate accounting logout and reinterception
+ ✔ Hotspot session limit and expiration
+
+Real Lifecycle (Reseller\Tests\Integration\Wp8\RealLifecycle)
+ ✔ Renew then change plan rate then change plan pool
+ ✔ Expiry on the nas then reactivate
+ ✔ Legacy reprovision password and username on the real nas
+
+Recharge Pre Write Refusal (Reseller\Tests\Integration\Wp8\RechargePreWriteRefusal)
+ ✔ A colliding legacy recharge is refused before any write
+ ✔ Allowed recharges keep the wp 4 order and the legacy behaviour
+ ✔ Voucher only and owned customer paths are unchanged
+
+Rename Old Session Lab (Reseller\Tests\Integration\Wp8\RenameOldSessionLab)
+ ✔ Pppoe rename ends the old session and the new name works
+ ✔ Hotspot old sessions on two nas are both ended
+ ✔ Pppoe username set and cleared end the former key session
+ ✘ Case only rename ends the pre rename session and keeps the policy
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      0 => 'DONE',
+   │ -    1 => 'CONFIRMED',
+   │ +    1 => 'UNCONFIRMED',
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp8/RenameOldSessionLabTest.php:173
+   │
+ ✔ Coa not accepted is unconfirmed and visible in drift
+ ✔ Lost accounting start is no accounting evidence not confirmed
+
+Reseller Business Flow (Reseller\Tests\Integration\Wp8\ResellerBusinessFlow)
+ ✔ A to b to c to sales customer activation on the real nas conserves value
+
+Router Os Closure (Reseller\Tests\Integration\Wp8\RouterOsClosure)
+ ✔ Router os 7245 authenticates accounts and disconnects under the hardened policy
+
+V1Quota Lab (Reseller\Tests\Integration\Wp8\V1QuotaLab)
+ ✔ Hotspot data plan is capped per session and in total
+ ✔ Hotspot data plan exhausts and refuses the login
+ ✔ Pppoe data plan download is capped natively
+ ✔ Pppoe mixed traffic is ended by the enforcer within the bound
+ ✔ Pppoe time plan uses session timeout
+ ✔ Renew and change plan during a live data session
+ ✔ Faults the nas limit holds and the enforcer never fabricates
+
+FAILURES!
+Tests: 108, Assertions: 2020, Failures: 1, Skipped: 13.
+
