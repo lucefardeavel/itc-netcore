@@ -16,8 +16,23 @@ final class QuotaPolicy
 {
     public const LIMIT_TYPES = ['Time_Limit', 'Data_Limit', 'Both_Limit'];
 
-    /** interim accounting requested from the NAS for a data-quota session (input of the accounting enforcer) */
+    /** default interim accounting requested from the NAS for a data-quota session (input of the accounting enforcer) */
     public const INTERIM_SECONDS = 60;
+    public const INTERIM_MIN = 10;
+    public const INTERIM_MAX = 300;
+
+    /**
+     * N1: the interim interval of a data-quota session in seconds - the setting `nuxr_quota_interim_seconds` (10 - 300) or the
+     * default 60. A shorter interval lowers the overshoot bound (detection latency = interval + enforcer pass + Disconnect) and
+     * raises the accounting write rate (one Interim-Update per online quota subscriber per interval). Applies to sessions
+     * that authenticate after the policy was written; a running session keeps its interval.
+     */
+    public static function interim(): int
+    {
+        $v = $GLOBALS['config']['nuxr_quota_interim_seconds'] ?? null;
+        return (is_int($v) || (is_string($v) && preg_match('/^[0-9]{1,3}$/D', $v) === 1)) && (int) $v >= self::INTERIM_MIN && (int) $v <= self::INTERIM_MAX
+            ? (int) $v : self::INTERIM_SECONDS;
+    }
 
     /**
      * Allowance for the NAS clock when a session is attributed to a billing period (acctstarttime >= boundary).

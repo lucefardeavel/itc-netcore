@@ -87,7 +87,7 @@ final class RadiusPolicyBuilder
         if ($quota && QuotaPolicy::hasData($plan)) {
             // the in-session data limit itself is computed by FreeRADIUS at every authentication (remaining share of the
             // period); interim accounting feeds the enforcer that closes the PPPoE upload + download total
-            $reply[] = ['Acct-Interim-Interval', ':=', (string) QuotaPolicy::INTERIM_SECONDS];
+            $reply[] = ['Acct-Interim-Interval', ':=', (string) QuotaPolicy::interim()];
         }
         if ($type === 'Hotspot' && $expiry !== null) {
             $reply[] = ['WISPr-Session-Terminate-Time', ':=', $expiry->format('Y-m-d\TH:i:sP')];

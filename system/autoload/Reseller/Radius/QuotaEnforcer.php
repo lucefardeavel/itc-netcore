@@ -15,18 +15,31 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
  * after Nuxr-Period-Acct-Id - exact, independent of the NAS clock - or, without a usable id, the sessions started since
  * Nuxr-Period-Start) has reached its Max-Data / Max-All-Session gets every open session of that period ended
  * (SessionTermination: Disconnect + confirmed Accounting-Stop). Overshoot is bounded by the interim interval
- * (QuotaPolicy::INTERIM_SECONDS), the pass interval and the Disconnect time - this is NOT a byte-exact cap.
+ * (QuotaPolicy::interim()), the pass interval and the Disconnect time - this is NOT a byte-exact cap.
  * Accounting history and quota rows are only read; nothing is deleted.
  */
 final class QuotaEnforcer
 {
-    /** a session already sent a Disconnect is sent another one only after this many seconds */
+    /**
+     * A session whose Disconnect got a definite answer that did not end it (a NAK: the NAS no longer has the session - a lost
+     * Stop) is sent another one only after this many seconds, so a vanished session is not asked about every pass.
+     */
     public const RESEND_SECONDS = 60;
 
-    /** @var array<int,float> radacctid => last Disconnect time (this process) */
+    /**
+     * N1: a Disconnect that got no answer / no Accounting-Stop (a transient loss) is retried after this many seconds: the retry
+     * delay is part of the overshoot bound under a fault.
+     */
+    public const RESEND_AFTER_NO_ANSWER = 15;
+
+    /** outcomes treated as a transient loss (short retry) */
+    private const TRANSIENT = ['COA_NO_RESPONSE', 'ACK_WITHOUT_STOP', 'COA_EXCEPTION', 'COA_NAS_SKIPPED'];
+
+    /** @var array<int,array{0:float,1:int}> radacctid => [time of the last Disconnect (this process), seconds before the next] */
     private array $recent = [];
 
-    public function __construct(private readonly \PDO $radius, private readonly ?\Closure $end = null)
+    /** @param (\Closure():float)|null $clock injectable time (tests) */
+    public function __construct(private readonly \PDO $radius, private readonly ?\Closure $end = null, private readonly ?\Closure $clock = null)
     {
         $this->radius->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
@@ -73,29 +86,50 @@ final class QuotaEnforcer
     }
 
     /**
-     * One enforcement pass: ends the open sessions of every over-quota subscriber (a session is re-sent a Disconnect
-     * only after RESEND_SECONDS). Returns what was done.
+     * One enforcement pass: ends the open sessions of every over-quota subscriber in ONE termination call (the Stop wait is
+     * shared, and a silent NAS is asked once); a session is re-sent a Disconnect after RESEND_AFTER_NO_ANSWER (no answer / no
+     * Stop) or RESEND_SECONDS (any other outcome). Returns what was done.
      *
      * @return list<array{username:string,quota:string,limit:string,usage:string,ended:list<array<string,mixed>>}>
      */
     public function pass(): array
     {
-        $done = [];
-        $now = microtime(true);
-        foreach ($this->recent as $id => $t) {
-            if ($now - $t >= self::RESEND_SECONDS) {
+        $now = $this->clock !== null ? ($this->clock)() : microtime(true);
+        foreach ($this->recent as $id => [$t, $delay]) {
+            if ($now - $t >= $delay) {
                 unset($this->recent[$id]);
             }
         }
+        $work = [];
+        $all = [];
         foreach ($this->overQuota() as $o) {
             $todo = array_values(array_filter($o['sessions'], fn(array $s): bool => !isset($this->recent[(int) $s['radacctid']])));
             if ($todo === []) {
                 continue;
             }
             foreach ($todo as $s) {
-                $this->recent[(int) $s['radacctid']] = $now;
+                $this->recent[(int) $s['radacctid']] = [$now, self::RESEND_SECONDS];
             }
-            $ended = $this->end !== null ? ($this->end)($todo) : SessionTermination::end($todo);
+            $work[] = [$o, $todo];
+            array_push($all, ...$todo);
+        }
+        if ($all === []) {
+            return [];
+        }
+        $results = [];
+        foreach ($this->end !== null ? ($this->end)($all) : SessionTermination::end($all) as $e) {
+            $id = (int) $e['radacctid'];
+            $results[$id] = $e;
+            $this->recent[$id] = [$now, in_array((string) ($e['state'] ?? ''), self::TRANSIENT, true) ? self::RESEND_AFTER_NO_ANSWER : self::RESEND_SECONDS];
+        }
+        $done = [];
+        foreach ($work as [$o, $todo]) {
+            $ended = [];
+            foreach ($todo as $sess) {
+                if (isset($results[(int) $sess['radacctid']])) {
+                    $ended[] = $results[(int) $sess['radacctid']];
+                }
+            }
             $done[] = ['username' => $o['username'], 'quota' => $o['quota'], 'limit' => $o['limit'], 'usage' => $o['usage'], 'ended' => $ended];
         }
         return $done;

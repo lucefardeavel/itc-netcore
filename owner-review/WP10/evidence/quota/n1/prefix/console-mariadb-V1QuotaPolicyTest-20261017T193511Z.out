@@ -1,0 +1,37 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/n1/prefix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp10/V1QuotaPolicyTest.php
+start: 2026-10-17T19:35:11Z
+ Container nuxbill-reseller-test-php82-run-4e1ab5060791 Creating 
+ Container nuxbill-reseller-test-php82-run-4e1ab5060791 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...F...                                                             7 / 7 (100%)
+
+Time: 00:00.044, Memory: 10.00 MB
+
+V1Quota Policy (Reseller\Tests\Unit\Wp10\V1QuotaPolicy)
+ ✔ Pppoe data time and composite plans
+ ✔ Attribution boundary allows for nas clock skew
+ ✔ Builder stores the arrival order boundary of the period
+ ✘ Interim interval is configurable within bounds
+   │
+   │ configured '30'
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'30'
+   │ +'60'
+   │
+   │ /repo/tests/Unit/Wp10/V1QuotaPolicyTest.php:106
+   │
+ ✔ Hotspot data plan asks for interim accounting
+ ✔ Unlimited plans carry no quota
+ ✔ Invalid limits are refused
+
+FAILURES!
+Tests: 7, Assertions: 68, Failures: 1.
+
+exit=1 end: 2026-10-17T19:35:14Z

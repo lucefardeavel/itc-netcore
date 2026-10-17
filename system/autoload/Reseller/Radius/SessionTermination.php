@@ -11,7 +11,8 @@ use Reseller\Security\ErrorReporter;
  * alone is not proof: a session is CONFIRMED only when its Accounting-Stop is recorded after the ACK (bounded wait), or
  * when the NAS answers NAK 503 "session not found" (the WP8 A3 classification). Anything else - ACK without Stop,
  * other NAK, no answer, unknown NAS, no NAS address - is reported as the code that was observed, i.e. not confirmed.
- * One Disconnect-Request per accounting row, to that row's NAS (CoAClient: 1 + 2 identical sends). Never throws.
+ * One Disconnect-Request per accounting row, to that row's NAS (CoAClient: 1 + 2 identical sends); a NAS that stays silent
+ * is not asked again for the other rows of the same call (COA_NAS_SKIPPED). Never throws.
  * Accounting rows are only read.
  */
 final class SessionTermination
@@ -35,12 +36,23 @@ final class SessionTermination
             ErrorReporter::report($e, 'session-termination');
             $coa = null;
         }
+        $silent = [];   // NAS address => it did not answer a Disconnect in this call
         foreach ($rows as $row) {
+            $nas = (string) ($row['nasipaddress'] ?? '');
+            if ($nas !== '' && isset($silent[$nas])) {
+                // N1: each unanswered Disconnect costs the CoA client ~4 s (1 + 2 identical sends); asking a NAS that just stayed
+                // silent for every further session would stretch a pass to minutes during an outage. Not sent, not claimed ended.
+                $sent[] = [$row, ProvisionResult::unknown('COA_NAS_SKIPPED', 'The NAS did not answer an earlier Disconnect in this pass; not asked again.')];
+                continue;
+            }
             try {
                 $r = $coa !== null ? $coa->disconnectSession($row) : ProvisionResult::unknown('COA_EXCEPTION', 'The Disconnect could not be sent.');
             } catch (\Throwable $e) {
                 ErrorReporter::report($e, 'session-termination');
                 $r = ProvisionResult::unknown('COA_EXCEPTION', 'The Disconnect could not be sent.');
+            }
+            if ($nas !== '' && $r->code === 'COA_NO_RESPONSE') {
+                $silent[$nas] = true;
             }
             $sent[] = [$row, $r];
         }

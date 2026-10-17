@@ -108,6 +108,80 @@ final class V1QuotaEnforcerTest extends ActivationTestCase
         $this->assertFalse(SessionTermination::end(static::$db->rows('SELECT * FROM radacct WHERE radacctid = ?', [$id3]))[0]['confirmed']);
     }
 
+    /**
+     * N1: a Disconnect that got no answer / no Stop is retried after QuotaEnforcer::RESEND_AFTER_NO_ANSWER (a transient loss must
+     * not leave an over-quota session running for a minute); a NAK (the NAS no longer has the session: a lost Stop) keeps the
+     * long RESEND_SECONDS so a vanished session is not sent a Disconnect every pass.
+     */
+    public function testResendDelayDependsOnTheOutcome(): void
+    {
+        $u = $this->user();
+        $this->quota($u, ['Max-Data' => 1_000_000, 'Nuxr-Period-Start' => time() - 3600]);
+        $this->session($u, 600, 700_000, 400_000);
+        $now = 1000.0;
+        $state = 'COA_NO_RESPONSE';
+        $sent = 0;
+        $enf = new QuotaEnforcer(static::$svc, static function (array $rows) use (&$sent, &$state): array {
+            $sent++;
+            return array_map(static fn($r) => ['radacctid' => (int) $r['radacctid'], 'state' => $state, 'confirmed' => false], $rows);
+        }, static function () use (&$now): float {
+            return $now;
+        });
+        $this->assertCount(1, $enf->pass(), 't=0: first Disconnect (no answer)');
+        $now += QuotaEnforcer::RESEND_AFTER_NO_ANSWER - 1;
+        $this->assertSame([], $enf->pass(), 'inside the short delay: nothing');
+        $now += 2;
+        $state = 'COA_NAK';
+        $this->assertCount(1, $enf->pass(), 'after the short delay: retried');
+        $now += QuotaEnforcer::RESEND_SECONDS - 1;
+        $this->assertSame([], $enf->pass(), 'a NAK keeps the long delay');
+        $now += 2;
+        $this->assertCount(1, $enf->pass(), 'after the long delay: sent again');
+        $this->assertSame(3, $sent);
+        $this->assertLessThan(QuotaEnforcer::RESEND_SECONDS, QuotaEnforcer::RESEND_AFTER_NO_ANSWER);
+    }
+
+    /** N1: one termination call per pass for every over-quota subscriber (the Stop wait is shared, not added up per user) */
+    public function testOnePassOneTerminationCallForAllSubscribers(): void
+    {
+        $a = $this->user();
+        $b = $this->user();
+        foreach ([$a, $b] as $u) {
+            $this->quota($u, ['Max-Data' => 1_000_000, 'Nuxr-Period-Start' => time() - 3600]);
+        }
+        $ia = $this->session($a, 600, 700_000, 400_000);
+        $ib = $this->session($b, 600, 900_000, 400_000);
+        $calls = [];
+        $enf = new QuotaEnforcer(static::$svc, static function (array $rows) use (&$calls): array {
+            $calls[] = array_map(static fn($r) => (int) $r['radacctid'], $rows);
+            return array_map(static fn($r) => ['radacctid' => (int) $r['radacctid'], 'state' => 'CONFIRMED', 'confirmed' => true], $rows);
+        });
+        $actions = $enf->pass();
+        $this->assertCount(1, $calls, 'one call');
+        $this->assertEqualsCanonicalizing([$ia, $ib], $calls[0], 'with every session');
+        $by = [];
+        foreach ($actions as $x) {
+            $by[$x['username']] = array_map(static fn($e) => $e['radacctid'], $x['ended']);
+        }
+        $expected = [$a => [$ia], $b => [$ib]];
+        ksort($by);
+        ksort($expected);
+        $this->assertSame($expected, $by, 'results go back to their subscriber');
+    }
+
+    /** N1: a NAS that did not answer one Disconnect is not asked again for the other sessions of the same call (a NAS outage cannot stretch a pass to minutes) */
+    public function testASilentNasIsAskedOncePerCall(): void
+    {
+        $u = $this->user();
+        $a = $this->session($u, 600, 1, 1);
+        $b = $this->session($u, 500, 1, 1);
+        $silent = $this->stub('silent');
+        $r = SessionTermination::end(static::$db->rows('SELECT * FROM radacct WHERE radacctid IN (?, ?) ORDER BY radacctid', [$a, $b]), null, null, 1.0);
+        $this->assertSame(['COA_NO_RESPONSE', 'COA_NAS_SKIPPED'], array_column($r, 'state'));
+        $this->assertSame([false, false], array_column($r, 'confirmed'), 'neither is claimed ended');
+        $this->assertCount(3, $silent->received(), 'one request + two identical retransmissions, for the first session only');
+    }
+
     public function testEnforcerEndsOnlyOverQuotaSessionsOfTheCurrentPeriod(): void
     {
         $start = time() - 3600;

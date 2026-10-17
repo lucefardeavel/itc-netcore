@@ -1,0 +1,63 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/quota/n1/prefix/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1QuotaEnforcerTest.php
+start: 2026-10-17T19:35:14Z
+ Container nuxbill-reseller-test-php82-run-b8de74cdf8e0 Creating 
+ Container nuxbill-reseller-test-php82-run-b8de74cdf8e0 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.EFF....                                                            8 / 8 (100%)
+
+Time: 00:21.740, Memory: 12.00 MB
+
+V1Quota Enforcer (Reseller\Tests\Integration\Wp10\V1QuotaEnforcer)
+ ✔ Confirmation needs nas evidence
+ ✘ Resend delay depends on the outcome
+   │
+   │ Error: Undefined constant Reseller\Radius\QuotaEnforcer::RESEND_AFTER_NO_ANSWER
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaEnforcerTest.php:131
+   │
+ ✘ One pass one termination call for all subscribers
+   │
+   │ one call with every session
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      0 => Array &1 [
+   │ +        0 => 6,
+   │ +    ],
+   │ +    1 => Array &2 [
+   │          0 => 5,
+   │ -        1 => 6,
+   │      ],
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaEnforcerTest.php:160
+   │
+ ✘ A silent nas is asked once per call
+   │
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      0 => 'COA_NO_RESPONSE',
+   │ -    1 => 'COA_NAS_SKIPPED',
+   │ +    1 => 'COA_NO_RESPONSE',
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaEnforcerTest.php:172
+   │
+ ✔ Enforcer ends only over quota sessions of the current period
+ ✔ Session stamped just before the activation is enforced in the new period
+ ✔ Time quota across concurrent sessions
+ ✔ Malformed quota rows are skipped not enforced
+
+ERRORS!
+Tests: 8, Assertions: 45, Errors: 1, Failures: 2.
+
+exit=2 end: 2026-10-17T19:35:38Z
