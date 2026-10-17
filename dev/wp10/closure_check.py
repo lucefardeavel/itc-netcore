@@ -79,6 +79,8 @@ ITEMS = [
      [('system/autoload/Reseller/Radius/PeriodBoundary.php', r'class PeriodBoundary'), ('install/freeradius/mods-available/nuxr_counters', r'Nuxr-Period-Acct-Id')], ['V1PeriodOwnershipTest']),
     # real-NAS proof (lab classes; they self-mark incomplete without the lab and are run on the CHR)
     ('LAB-V1', 'Real RouterOS CHR: V1 quota, renewal, faults', 'LAB', [('tests/Integration/Wp8/V1QuotaLabTest.php', r'class')], ['V1QuotaLabTest']),
+    ('LAB-N1', 'Real RouterOS CHR: PPPoE overshoot matrix (interim x rate x quota), CoA-fault retry', 'LAB',
+     [('tests/Integration/Wp8/V1OvershootLabTest.php', r'class V1OvershootLabTest')], ['V1OvershootLabTest']),
     ('LAB-A3', 'Real RouterOS CHR: rename / old session', 'LAB', [('tests/Integration/Wp8/RenameOldSessionLabTest.php', r'class')], ['RenameOldSessionLabTest']),
     ('LAB-G', 'Real RouterOS CHR: Option G, Port-Limit, equivalence, A2-R race gates', 'LAB', [('install/freeradius/README.md', r'Option G')],
      ['OptionGGateTest', 'PortLimitGateTest', 'UsernameEquivalenceGateTest', 'HotspotEquivalenceGateTest', 'ConcurrentFirstLoginGateTest']),
