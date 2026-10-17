@@ -922,3 +922,23 @@ Owner decision **`WP9_U0_DEVELOPMENT_ACCEPTED_WITH_NOTES`**, after the independe
 
 The unified WP8 / WP9 reconciliation, the open-findings matrix and the remaining plan are in `WP8_WP9_UNIFIED_CLOSURE_AND_RELEASE_ROADMAP.md`. **WP9 is not accepted; production is not authorized.**
 
+
+## AUTO — Autonomous closure round (owner `WP8_WP9_WP10_AUTONOMOUS_EXECUTION_AUTHORIZED`, 2026-10-16)
+
+- **Plan and decisions:** `AUTONOMOUS_EXECUTION_PLAN.md` (W9-0 batch under the owner's pre-authorization).
+- **Handoff ledger:** `AUTONOMOUS_PROGRESS.md`.
+- **Complete results:**
+  - matrix of every open roadmap item;
+  - closed findings and the commit list;
+  - risks / open owner decisions;
+  - both engines, CHR, red team (T1-B…T4), finance, UI, load, backup / restore / rollback;
+  - runbooks, checklist and the release decision.
+
+  All of these are in **`owner-review/WP10/SAAS_RADIUS_FINAL_PRODUCTION_READINESS_PACKAGE.md`**.
+
+**Summary of this round:**
+- WP9 security work: WP1-CHECK, NEW-7, NEW-8, N-07a, N-11, R-HF-CARRY-01, Phase B, R-4, P1–P5, N-06, A2-R (defensive; no reproduction), AV-3, release profile, W9-OPS tools, LPDB + preflight, P3, P1 gate, W8-14, the red-team HTTP batch, N6 / N7, SC-1, SEC-17, INST-1, SESS-1 / HDR-1, **XSS-1** (stored script injection across roles, found and closed in the final red team), and W8-17.
+  - Every defect fix is test-first: the defect is reproduced on the base tree on both engines before the fix.
+- Full-harness run 1 (`95ae997f`) failed 8 accepted source guards. The failures were fixed in the code, without changing a guard (`1dc37552`). The log is kept.
+- Format-bound test assertions: the staff hash `sha1(...)` comparisons in 5 places were restated as verification, because SEC-17 deliberately changes the storage format. They are listed in `ad3b6bf3`.
+- **WP9 status: READY_FOR_OWNER_ACCEPTANCE. Not accepted.** The ledger row is unchanged.

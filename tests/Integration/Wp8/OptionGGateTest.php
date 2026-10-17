@@ -214,7 +214,9 @@ final class OptionGGateTest extends TestCase
         $own = array_map(static fn($l) => preg_replace("/'[^']{60,}'/", "'…'", $l), $own);
         $runs = array_values(array_filter($lines, static fn($l) => str_starts_with($l, '[wp8-checkrad]') && str_contains($l, 'user=' . $user . ' ')));
         return ['request' => $req, 'reply' => $sent ? preg_replace('/.*Sent (Access-\w+).*/', '$1', end($sent)) : null, 'reply_attrs' => $replyAttrs,
-            'open_rows' => (static function () use ($own) { foreach ($own as $l) { if (preg_match('/Tmp-String-8 := "?([^"]*?)"?$/', $l, $m)) { return $m[1]; } } return null; })(),
+            // the value the decision used: the LAST assignment (WP9 A2-R: the open-session probe first carries its echo
+            // ";u=...;k=..." and is normalised back to "n=...;list" before the decision), as Wp8LabHelpers reads it
+            'open_rows' => (static function () use ($own) { $v = null; foreach ($own as $l) { if (preg_match('/Tmp-String-8 := "?(n=[^"]*?)"?$/', $l, $m)) { $v = $m[1]; } } return $v; })(),
             // the PPPoE guard by name: since WP8 H-2B a refused Hotspot login may run the (different) Hotspot slot verifier
             'guard_ran' => (bool) array_filter($own, static fn($l) => str_contains($l, 'nuxr_pppoe_session_guard') && (str_contains($l, 'Program returned code') || str_contains($l, 'Program executed') || str_contains($l, 'nuxr_pppoe_session_guard ('))),
             'hotspot_verifier_ran' => (bool) array_filter($own, static fn($l) => str_contains($l, 'nuxr_hotspot_slot_verifier') && (str_contains($l, 'Program returned code') || str_contains($l, 'Program executed'))),
