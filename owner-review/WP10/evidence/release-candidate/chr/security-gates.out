@@ -1,0 +1,29 @@
+ Container nuxbill-reseller-test-freeradius-wp8-1 Running 
+ Container nuxbill-reseller-test-php82-wp8-run-46bcebd96455 Creating 
+ Container nuxbill-reseller-test-php82-wp8-run-46bcebd96455 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..........                                                        10 / 10 (100%)
+
+Time: 34:25.960, Memory: 12.00 MB
+
+Concurrent First Login Gate (Reseller\Tests\Integration\Wp8\ConcurrentFirstLoginGate)
+ ✔ A FirstLoginBaselineWindow
+ ✔ B0 ConcurrentSameNas
+ ✔ Bscan StaggeredSecondLogin
+ ✔ C LostAccountingStartWindow
+ ✔ E1 StaleRowAndSnmpFailureConcurrent
+ ✔ E2 StaleRowAndHealthySnmpConcurrent
+ ✔ E3 MissingAccountingAndSnmpFailureConcurrent
+
+Hotspot Equivalence Gate (Reseller\Tests\Integration\Wp8\HotspotEquivalenceGate)
+ ✔ Equivalent spellings never open an extra hotspot session
+ ✔ Shared users two admits two stored spelling sessions and no variant
+
+Username Equivalence Gate (Reseller\Tests\Integration\Wp8\UsernameEquivalenceGate)
+ ✔ Equivalent spellings never hold two sessions
+
+OK (10 tests, 216 assertions)
