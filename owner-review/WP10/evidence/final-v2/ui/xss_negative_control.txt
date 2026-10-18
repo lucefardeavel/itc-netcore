@@ -1,0 +1,2 @@
+old bulk.tpl (32f0bfd8): executed: 1 imgs: 5
+fixed bulk.tpl:          executed: None imgs: 0

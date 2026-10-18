@@ -1438,6 +1438,21 @@ def t24(browser):
     # the legacy page has two id="status" elements; its jQuery writes to the first
     expect('All batches sent' in pg.evaluate("() => document.getElementById('status').textContent"), 'bulk message UI did not complete')
     notes.append(f'bulk message TEST mode: {len(r)} XHR(s), 200 success, exact token, statuses {sorted(statuses)} (nothing delivered)')
+    # D9 (stored XSS across privilege levels): values that came from a customer record or the gateway are shown as TEXT in the history table.
+    # The server response is replaced by one whose every field carries markup; nothing may execute and the markup must appear literally.
+    evil = '<img src=x onerror="window.__nuxrXss=1">'
+    fake = json.dumps({'status': 'success', 'totalSent': 1, 'totalFailed': 0, 'page': 0, 'hasMore': False,
+                       'batchStatus': [{'name': evil, 'phone': evil, 'status': 'Test Mode ' + evil, 'message': evil, 'router': evil, 'service': evil}]})
+    pg.route(re.compile(r'send_bulk_ajax'), lambda route: route.fulfill(status=200, content_type='application/json', body=fake))
+    pg.evaluate("() => { window.__nuxrXss = undefined; }")
+    pg.locator('#startBulk').click()
+    pg.wait_for_function("() => /All batches sent|Error/.test(document.getElementById('status').textContent)", timeout=30000)
+    pg.wait_for_timeout(500)
+    pg.unroute(re.compile(r'send_bulk_ajax'))
+    expect(pg.evaluate("() => window.__nuxrXss") is None, 'bulk history executed markup that came from a record (stored XSS)')
+    expect(pg.locator('#historyTable img').count() == 0, 'bulk history rendered an element from record data')
+    expect(pg.locator('#historyTable').inner_text().count('<img') >= 5, 'the markup is shown literally (escaped)')
+    notes.append('bulk history escapes record / gateway values: no script ran, 0 injected elements, markup shown literally (D9)')
     # pre-existing upstream legacy errors, unrelated to XHR: coupons/list calls $j('#datatable').DataTable() but never loads
     # DataTables (upstream 2024-12 code); every other page error fails the check
     legacy = [e for e in errors if 'DataTable is not a function' in e]

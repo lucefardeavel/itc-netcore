@@ -39,3 +39,32 @@
 #app a:not(.btn):not([class*="nav"]):not([class*="menu"]):focus {
     color: #23527c;
 }
+
+/* the theme forces its (lighter) colours with !important on button.btn-* / a.btn-* (modern-AdminLTE): same selectors, darker shades */
+button.btn-success,
+a.btn-success {
+    background-color: #2f7d2f !important;
+    border-color: #266626 !important;
+}
+
+button.btn-success:hover,
+a.btn-success:hover,
+button.btn-success:active,
+a.btn-success:active {
+    background-color: #266626 !important;
+    border-color: #1e521e !important;
+}
+
+button.btn-primary,
+a.btn-primary {
+    background-color: #2f7399 !important;
+    border-color: #286090 !important;
+}
+
+button.btn-primary:hover,
+a.btn-primary:hover,
+button.btn-primary:active,
+a.btn-primary:active {
+    background-color: #286090 !important;
+    border-color: #23527c !important;
+}

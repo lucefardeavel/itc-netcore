@@ -1,0 +1,19 @@
+PASS  keys.app_secret            dedicated application key configured
+PASS  keys.api_secret            dedicated API secret configured
+PASS  stage                      stage=Live display_errors=off
+WARN  stage.https                APP_URL scheme http (HTTPS required for production cookies / PWA)
+PASS  engine                     MariaDB 10.11.19-MariaDB-ubu2204
+PASS  isolation                  global=REPEATABLE-READ session=REPEATABLE-READ (contract: REPEATABLE-READ)
+PASS  time.sql_session_zone      session time_zone=SYSTEM offset=0s (contract P-A4-1: UTC for every writer and reader)
+PASS  time.clock_skew            database vs application clock skew 0s (NTP on every host, P-A4-2)
+PASS  schema                     reseller schema ready (incl. CHECK expressions and enforcement)
+FAIL  radius_checks              table nuxr_admission missing (apply install/freeradius/nuxr_admission.sql); table nuxr_hs_admission missing (apply install/freeradius/nuxr_hs_admission.sql)
+PASS  quota.plans                0 enabled Limited Radius plan(s), 0 with an invalid quota
+PASS  identity.collisions        0 canonical identities held by more than one customer / voucher (OBS-1: resolve each before launch; run dev/wp9/identity_survey.sql for the list)
+PASS  identity.non_canonical     0 customer name(s) with edge whitespace / control characters (write-time checks refuse ambiguous use)
+PASS  shared_key                 0 customer(s) with an active Hotspot and PPPoE service on one RADIUS key (set a distinct PPPoE username)
+WARN  profile                    legacy MikroTik-API / rlm_rest devices ENABLED: unsupported configuration with open findings
+WARN  plugins                    1 plugin file(s) installed; plugins are fully trusted code - pass --plugins-approved=<inventory> to verify them
+FAIL  grants                     global / database-wide privileges: ALL PRIVILEGES ON *.* - apply system/reseller/grants.php
+PASS  mac                        0 RADIUS username(s) that look like lower-case MAC addresses (MAC-H1A: MAC auth is refused for them)
+preflight=FAIL (2 failing check(s))
