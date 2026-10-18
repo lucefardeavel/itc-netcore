@@ -1,0 +1,4 @@
+2026-10-18T12:40:43Z ==== load start engine=mariadb 10.11.19-MariaDB-ubu2204
+2026-10-18T12:40:54Z L1 distributed: 96 ops in 8 waves of <= 12, total 10.00 s, 9.6 ops/s, wave p50 1.24 s, wave max 1.52 s, peak Max_used_connections 15 (max_connections 151), outcomes {"OK:COMPLETED":96}
+2026-10-18T12:41:08Z L2 one wallet: 96 ops in 8 waves of <= 12, total 13.01 s, 7.4 ops/s, wave p50 1.39 s, wave max 2.68 s, peak Max_used_connections 15 (max_connections 151), outcomes {"OK:COMPLETED":95,"REFUSED:CONCURRENCY_RETRY":1}
+2026-10-18T12:41:08Z L2 clean refusals (CONCURRENCY_RETRY): 1 of 96

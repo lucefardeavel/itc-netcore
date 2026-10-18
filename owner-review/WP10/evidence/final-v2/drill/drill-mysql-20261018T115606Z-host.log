@@ -1,0 +1,5 @@
+tool: mysqldump  Ver 8.0.46 for Linux on x86_64 (MySQL Community Server - GPL)
+step 1 dump B0-mysql.sql db=wp1_drl_568e2f6b69 ok=true bytes=46240 sha256=7fefbbf639eeadeb0d010e17de8bdcc9a6846f3703fbfe4a5d121f5f887812b1 seconds=1.05
+step 2 dump B1-mysql.sql db=wp1_f_896cccb615 ok=true bytes=165885 sha256=6b617a9f7e98f1ba0d951b3c02fb4800f7e70894560b3fd1dc366ec61e6fa477 seconds=1.01
+step 3 restore B1-mysql.sql db=wp1_rst_f7813c46d6 ok=true bytes=165885 sha256=6b617a9f7e98f1ba0d951b3c02fb4800f7e70894560b3fd1dc366ec61e6fa477 seconds=1.67
+step 4 restore B0-mysql.sql db=wp1_rbk_dea5178a51 ok=true bytes=46240 sha256=7fefbbf639eeadeb0d010e17de8bdcc9a6846f3703fbfe4a5d121f5f887812b1 seconds=1.16

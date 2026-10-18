@@ -1,0 +1,24 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+==== load start engine=mariadb 10.11.19-MariaDB-ubu2204
+L1 distributed: 96 ops in 8 waves of <= 12, total 9.39 s, 10.2 ops/s, wave p50 1.12 s, wave max 1.78 s, peak Max_used_connections 15 (max_connections 151), outcomes {"OK:COMPLETED":95,"REFUSED:CONCURRENCY_RETRY":1}
+F                                                                   1 / 1 (100%)
+
+Time: 00:11.048, Memory: 10.00 MB
+
+Staging Load (Reseller\Tests\Lab\StagingLoad)
+ ✘ Bounded load
+   │
+   │ L1: every activation completes
+   │ Failed asserting that 95 is identical to 96.
+   │
+   │ /repo/dev/wp10/StagingLoadTest.php:105
+   │
+
+FAILURES!
+Tests: 1, Assertions: 25, Failures: 1.
+
+exit=1

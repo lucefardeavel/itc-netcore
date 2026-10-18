@@ -1,0 +1,23 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+==== load start engine=mariadb 10.11.19-MariaDB-ubu2204
+L1 distributed: 96 ops in 8 waves of <= 12, total 10.54 s, 9.1 ops/s, wave p50 1.27 s, wave max 1.61 s, peak Max_used_connections 14 (max_connections 151), outcomes {"OK:COMPLETED":96}
+L1: non-terminal activations: []
+L2 one wallet: 96 ops in 8 waves of <= 12, total 11.54 s, 8.3 ops/s, wave p50 1.48 s, wave max 1.72 s, peak Max_used_connections 15 (max_connections 151), outcomes {"OK:COMPLETED":96}
+L2 clean refusals (CONCURRENCY_RETRY): 0 of 96
+L2: non-terminal activations: []
+L3 one customer: 48 ops in 8 waves of <= 12, total 4.27 s, 11.2 ops/s, wave p50 0.51 s, wave max 0.69 s, peak Max_used_connections 9 (max_connections 151), outcomes {"OK:COMPLETED":8,"REFUSED:ACTIVATION_IN_PROGRESS":40}
+L3: non-terminal activations: []
+==== load PASS
+.                                                                   1 / 1 (100%)
+
+Time: 00:31.900, Memory: 12.00 MB
+
+Staging Load (Reseller\Tests\Lab\StagingLoad)
+ ✔ Bounded load
+
+OK (1 test, 86 assertions)
+exit=0
