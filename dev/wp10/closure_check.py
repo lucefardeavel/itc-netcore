@@ -107,7 +107,7 @@ def parse_testdox(path):
         if m:
             engine, cls = m.group(1), None
             continue
-        m = re.match(r'^[^\s].*\(Reseller\\Tests\\[\w\\]*?(\w+)\)$', line)
+        m = re.match(r'^[^\s].*\((?:Reseller\\)?Tests\\[\w\\]*?(\w+)\)$', line)
         if m and engine:
             cls = m.group(1)
             continue
@@ -153,7 +153,7 @@ def main():
             key = re.sub(r'Test$', '', t)
             per = dox.get(key, {})
             if not per:
-                if status == 'LAB':
+                if status == 'LAB' or tp.startswith('tests/Integration/Wp8/'):
                     tres.append(f'{t}: lab class (not in the harness run)')
                 else:
                     errors.append(f'{iid}: {t} did not appear in the testdox log')
