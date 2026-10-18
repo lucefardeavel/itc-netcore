@@ -4,9 +4,9 @@
     <footer class="main-footer">
         {$_c['CompanyFooter']}
         <div class="pull-right">
-            <a href="javascript:showPrivacy()">Privacy</a>
+            <a href="javascript:showPrivacy()">{Lang::T('Privacy')}</a>
             &bull;
-            <a href="javascript:showTaC()">T &amp; C</a>
+            <a href="javascript:showTaC()">{Lang::T('Terms')}</a>
         </div>
     </footer>
 {else}
@@ -17,9 +17,9 @@
         <bdi>({$_brand.upstream_author|escape}, {$_brand.license|escape})</bdi> &middot; {Lang::T('Interface theme')}
         <a href="https://adminlte.io/" rel="nofollow noreferrer noopener" target="_blank">AdminLTE</a>
         <div class="pull-right">
-            <a href="javascript:showPrivacy()">Privacy</a>
+            <a href="javascript:showPrivacy()">{Lang::T('Privacy')}</a>
             &bull;
-            <a href="javascript:showTaC()">T &amp; C</a>
+            <a href="javascript:showTaC()">{Lang::T('Terms')}</a>
         </div>
     </footer>
 {/if}

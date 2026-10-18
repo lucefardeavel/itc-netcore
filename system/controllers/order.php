@@ -42,7 +42,7 @@ switch ($action) {
         if (strpos($user['email'], '@') === false) {
             r2(getUrl('accounts/profile'), 'e', Lang::T("Please enter your email address"));
         }
-        $ui->assign('_title', 'Top Up');
+        $ui->assign('_title', Lang::T('Top Up'));
         $ui->assign('_system_menu', 'balance');
         $plans_balance = ORM::for_table('tbl_plans')->where('enabled', '1')->where('type', 'Balance')->where('prepaid', 'yes')->find_many();
         $ui->assign('plans_balance', $plans_balance);
@@ -52,7 +52,7 @@ switch ($action) {
         if (strpos($user['email'], '@') === false) {
             r2(getUrl('accounts/profile'), 'e', Lang::T("Please enter your email address"));
         }
-        $ui->assign('_title', 'Order Plan');
+        $ui->assign('_title', Lang::T('Order Plan'));
         $ui->assign('_system_menu', 'package');
         $account_type = $user['account_type'];
         if (empty($account_type)) {
@@ -209,7 +209,7 @@ switch ($action) {
         $ui->assign('router', $router);
         $ui->assign('plan', $plan);
         $ui->assign('bandw', $bandw);
-        $ui->assign('_title', 'TRX #' . $trxid);
+        $ui->assign('_title', Lang::T('TRX') . ' #' . $trxid);
         $ui->display('customer/orderView.tpl');
         break;
     case 'pay':

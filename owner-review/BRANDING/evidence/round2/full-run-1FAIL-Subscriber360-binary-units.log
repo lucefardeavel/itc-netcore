@@ -1,0 +1,547 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+================ engine: mariadb ================
+ Container nuxbill-reseller-test-php82-run-66d5de6b8bab Creating 
+ Container nuxbill-reseller-test-php82-run-66d5de6b8bab Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-13c51e08f2d0 Creating 
+ Container nuxbill-reseller-test-php82-run-13c51e08f2d0 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1699 (  3%)
+.............................................................  122 / 1699 (  7%)
+.............................................................  183 / 1699 ( 10%)
+.............................................................  244 / 1699 ( 14%)
+.............................................................  305 / 1699 ( 17%)
+.............................................................  366 / 1699 ( 21%)
+.............................................................  427 / 1699 ( 25%)
+.............................................................  488 / 1699 ( 28%)
+.............................................................  549 / 1699 ( 32%)
+.............................................................  610 / 1699 ( 35%)
+.............................................................  671 / 1699 ( 39%)
+.............................................................  732 / 1699 ( 43%)
+.............................................................  793 / 1699 ( 46%)
+.............................................................  854 / 1699 ( 50%)
+.............................................................  915 / 1699 ( 53%)
+.............................................................  976 / 1699 ( 57%)
+............................................................. 1037 / 1699 ( 61%)
+............................................................. 1098 / 1699 ( 64%)
+............................................................. 1159 / 1699 ( 68%)
+............................................................. 1220 / 1699 ( 71%)
+............................................................. 1281 / 1699 ( 75%)
+............................................................. 1342 / 1699 ( 78%)
+............................................................. 1403 / 1699 ( 82%)
+...................................................F......... 1464 / 1699 ( 86%)
+............................................................. 1525 / 1699 ( 89%)
+...................................I...I..I......
+
+Time: 27:08.483, Memory: 78.00 MB
+
+There was 1 failure:
+
+1) Reseller\Tests\Integration\Wp6a\Subscriber360Test::testQuotaCardSeparatesActualFromCoveredUsageAndNeverImpliesACharge
+actual: 1 MB + 10 MB
+Failed asserting that '\n
+                                \n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+        \n
+        \n
+            \n
+                &lt;\n
+                \n
+                    &lt;img src=x onerror=alert(1)&gt; سارة\n
+                    cA1 · #1\n
+                    \n
+    Active\n
+    \n
+                        Hotspot\n
+                \n
+            \n
+            \n
+                \n
+                    Phone07003                    Emailca1@example.invalid                    PPPoE usernamesara-pppoe                    Static IP10.9.8.7                                        Account typePersonal\n
+                    Created2026-10-18 22:05:22\n
+                    Created byad                                        Auto RenewalYes\n
+                                                        \n
+                                    \n
+                        Show credentials\n
+                        \n
+                            Password\n
+                                                    \n
+                    \n
+                            \n
+        \n
+\n
+                \n
+            Ownership\n
+            \n
+                \n
+                    Owner (reseller)A\n
+                    SalesA1\n
+                \n
+                                    \n
+                        \n
+                        \n
+                        Sales\n
+                        \n
+                            A1A2                        \n
+                        Assign Sales\n
+                    \n
+                                            \n
+                            \n
+                            \n
+                            Clear Sales\n
+                        \n
+                                                                        Transfer owner\n
+                                            \n
+        \n
+    \n
+\n
+        \n
+        \n
+            \n
+                Service\n
+                                    \n
+                        Renew / change plan\n
+                            \n
+            \n
+                                                                                    \n
+                            \n
+                                wp2_plan\n
+                                Active                            \n
+                            \n
+                                Expires2026-10-28 23:59:59\n
+                                     · 9 days left\n
+                                Speedwp2_bw\n
+                                TypeHotspot · Prepaid\n
+                            \n
+                                                            Deactivate plan\n
+                                \n
+                                    Deactivate plan\n
+                                        \n
+                                    \n
+                                        \n
+                                        \n
+                                            This ends the plan now and makes it expired. Internet access stops for this plan.wp2_plan\n
+                                        Cancel\n
+                                            Deactivate plan\n
+                                    \n
+                                \n
+                                                    \n
+                                                                \n
+        \n
+\n
+                \n
+            Connection\n
+                Online\n
+                            \n
+            \n
+                                                        \n
+                        Online since2026-10-19 05:05:23 UTC+07:00                        Last seen2026-10-19 05:05:23 UTC+07:00\n
+                        IP address100.70.1.2                        MACAA:BB:CC:00:11:22                        NAS192.0.2.77                        Session time1h 00m\n
+                        Download / upload10.5 MB / 1 MB\n
+                    \n
+                            \n
+        \n
+\n
+                        \n
+            Quota this period\n
+            \n
+                \n
+                                            Data quota\n
+                            5 MB\n
+                        Actual usage11.5 MB\n
+                        Covered by the plan5 MB\n
+                        Over the quota6.5 MB                                    \n
+                The usage above the quota was caused by the time the network needs to stop a session. It is not charged and not carried into the next period.            \n
+        \n
+        \n
+        \n
+            Overview\n
+            Activations            Invoices\n
+            Orders\n
+        \n
+\n
+        \n
+                            Recent activations\n
+                    All activations\n
+                                    No reseller activations for this subscriber.\n
+                                                    \n
+\n
+                            \n
+                More actions\n
+                \n
+                    Send message                    Edit                    Synchronize                                            \n
+                            \n
+                            Login as Customer\n
+                        \n
+                                    \n
+                                    \n
+                        Danger zone\n
+                        Delete subscriber\n
+                    \n
+                            \n
+            \n
+\n
+\n
+    \n
+        \n
+            Renew / change plan\n
+    \n
+\n
+\n
+    \n
+        Synchronize\n
+            \n
+        \n
+            \n
+            Write this subscriber's current service to the network again. The result is shown when it finishes; if it cannot be confirmed it is not retried automatically.\n
+            Cancel\n
+                Synchronize\n
+        \n
+    \n
+    \n
+        Delete subscriber\n
+            \n
+        \n
+            \n
+            \n
+                \n
+                    This permanently deletes the subscriber and removes the service from the network.\n
+                        It is refused while financial or activation history references the subscriber.\n
+                Type the username to confirm: cA1\n
+                \n
+            \n
+            Cancel\n
+                Delete subscriber\n
+        \n
+    \n
+    \n
+        Transfer owner\n
+            \n
+        \n
+            \n
+            \n
+            \n
+                Future operations use the new owner's wallet and prices. History stays with the original owner. A Sales that does not belong to the new owner is cleared.\n
+                New owner (reseller)\n
+                \n
+                    B | Staff BC | Staff CF | Staff F                \n
+            \n
+            Cancel\n
+                Transfer owner\n
+        \n
+    \n
+            \n
+        \n
+        ' [UTF-8](length: 6398) contains "11.0 MB" [ASCII](length: 7).
+
+/repo/tests/Integration/Wp6a/Subscriber360Test.php:138
+
+FAILURES!
+Tests: 1574, Assertions: 81148, Failures: 1, PHPUnit Deprecations: 1, Incomplete: 125.
+
+================ engine: mysql ================
+ Container nuxbill-reseller-test-php82-run-39ed69232e32 Creating 
+ Container nuxbill-reseller-test-php82-run-39ed69232e32 Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-80a20975e4b7 Creating 
+ Container nuxbill-reseller-test-php82-run-80a20975e4b7 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1699 (  3%)
+.............................................................  122 / 1699 (  7%)
+.............................................................  183 / 1699 ( 10%)
+.............................................................  244 / 1699 ( 14%)
+.............................................................  305 / 1699 ( 17%)
+.............................................................  366 / 1699 ( 21%)
+.............................................................  427 / 1699 ( 25%)
+.............................................................  488 / 1699 ( 28%)
+.............................................................  549 / 1699 ( 32%)
+.............................................................  610 / 1699 ( 35%)
+.............................................................  671 / 1699 ( 39%)
+.............................................................  732 / 1699 ( 43%)
+.............................................................  793 / 1699 ( 46%)
+.............................................................  854 / 1699 ( 50%)
+.............................................................  915 / 1699 ( 53%)
+.............................................................  976 / 1699 ( 57%)
+............................................................. 1037 / 1699 ( 61%)
+............................................................. 1098 / 1699 ( 64%)
+............................................................. 1159 / 1699 ( 68%)
+............................................................. 1220 / 1699 ( 71%)
+............................................................. 1281 / 1699 ( 75%)
+............................................................. 1342 / 1699 ( 78%)
+............................................................. 1403 / 1699 ( 82%)
+...................................................F......... 1464 / 1699 ( 86%)
+............................................................. 1525 / 1699 ( 89%)
+...................................I...I..I......
+
+Time: 43:38.545, Memory: 78.00 MB
+
+There was 1 failure:
+
+1) Reseller\Tests\Integration\Wp6a\Subscriber360Test::testQuotaCardSeparatesActualFromCoveredUsageAndNeverImpliesACharge
+actual: 1 MB + 10 MB
+Failed asserting that '\n
+                                \n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+\n
+        \n
+        \n
+            \n
+                &lt;\n
+                \n
+                    &lt;img src=x onerror=alert(1)&gt; سارة\n
+                    cA1 · #1\n
+                    \n
+    Active\n
+    \n
+                        Hotspot\n
+                \n
+            \n
+            \n
+                \n
+                    Phone07003                    Emailca1@example.invalid                    PPPoE usernamesara-pppoe                    Static IP10.9.8.7                                        Account typePersonal\n
+                    Created2026-10-18 22:47:52\n
+                    Created byad                                        Auto RenewalYes\n
+                                                        \n
+                                    \n
+                        Show credentials\n
+                        \n
+                            Password\n
+                                                    \n
+                    \n
+                            \n
+        \n
+\n
+                \n
+            Ownership\n
+            \n
+                \n
+                    Owner (reseller)A\n
+                    SalesA1\n
+                \n
+                                    \n
+                        \n
+                        \n
+                        Sales\n
+                        \n
+                            A1A2                        \n
+                        Assign Sales\n
+                    \n
+                                            \n
+                            \n
+                            \n
+                            Clear Sales\n
+                        \n
+                                                                        Transfer owner\n
+                                            \n
+        \n
+    \n
+\n
+        \n
+        \n
+            \n
+                Service\n
+                                    \n
+                        Renew / change plan\n
+                            \n
+            \n
+                                                                                    \n
+                            \n
+                                wp2_plan\n
+                                Active                            \n
+                            \n
+                                Expires2026-10-28 23:59:59\n
+                                     · 9 days left\n
+                                Speedwp2_bw\n
+                                TypeHotspot · Prepaid\n
+                            \n
+                                                            Deactivate plan\n
+                                \n
+                                    Deactivate plan\n
+                                        \n
+                                    \n
+                                        \n
+                                        \n
+                                            This ends the plan now and makes it expired. Internet access stops for this plan.wp2_plan\n
+                                        Cancel\n
+                                            Deactivate plan\n
+                                    \n
+                                \n
+                                                    \n
+                                                                \n
+        \n
+\n
+                \n
+            Connection\n
+                Online\n
+                            \n
+            \n
+                                                        \n
+                        Online since2026-10-19 05:47:53 UTC+07:00                        Last seen2026-10-19 05:47:53 UTC+07:00\n
+                        IP address100.70.1.2                        MACAA:BB:CC:00:11:22                        NAS192.0.2.77                        Session time1h 00m\n
+                        Download / upload10.5 MB / 1 MB\n
+                    \n
+                            \n
+        \n
+\n
+                        \n
+            Quota this period\n
+            \n
+                \n
+                                            Data quota\n
+                            5 MB\n
+                        Actual usage11.5 MB\n
+                        Covered by the plan5 MB\n
+                        Over the quota6.5 MB                                    \n
+                The usage above the quota was caused by the time the network needs to stop a session. It is not charged and not carried into the next period.            \n
+        \n
+        \n
+        \n
+            Overview\n
+            Activations            Invoices\n
+            Orders\n
+        \n
+\n
+        \n
+                            Recent activations\n
+                    All activations\n
+                                    No reseller activations for this subscriber.\n
+                                                    \n
+\n
+                            \n
+                More actions\n
+                \n
+                    Send message                    Edit                    Synchronize                                            \n
+                            \n
+                            Login as Customer\n
+                        \n
+                                    \n
+                                    \n
+                        Danger zone\n
+                        Delete subscriber\n
+                    \n
+                            \n
+            \n
+\n
+\n
+    \n
+        \n
+            Renew / change plan\n
+    \n
+\n
+\n
+    \n
+        Synchronize\n
+            \n
+        \n
+            \n
+            Write this subscriber's current service to the network again. The result is shown when it finishes; if it cannot be confirmed it is not retried automatically.\n
+            Cancel\n
+                Synchronize\n
+        \n
+    \n
+    \n
+        Delete subscriber\n
+            \n
+        \n
+            \n
+            \n
+                \n
+                    This permanently deletes the subscriber and removes the service from the network.\n
+                        It is refused while financial or activation history references the subscriber.\n
+                Type the username to confirm: cA1\n
+                \n
+            \n
+            Cancel\n
+                Delete subscriber\n
+        \n
+    \n
+    \n
+        Transfer owner\n
+            \n
+        \n
+            \n
+            \n
+            \n
+                Future operations use the new owner's wallet and prices. History stays with the original owner. A Sales that does not belong to the new owner is cleared.\n
+                New owner (reseller)\n
+                \n
+                    B | Staff BC | Staff CF | Staff F                \n
+            \n
+            Cancel\n
+                Transfer owner\n
+        \n
+    \n
+            \n
+        \n
+        ' [UTF-8](length: 6398) contains "11.0 MB" [ASCII](length: 7).
+
+/repo/tests/Integration/Wp6a/Subscriber360Test.php:138
+
+FAILURES!
+Tests: 1574, Assertions: 81150, Failures: 1, PHPUnit Deprecations: 1, Incomplete: 125.
+
+================ variant registry reproducibility ================
+ Container nuxbill-reseller-test-php82-run-3112b0aad3e2 Creating 
+ Container nuxbill-reseller-test-php82-run-3112b0aad3e2 Created 
+variant registry matches freshly built fixtures
+  mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mariadb V2_FRESH_INSTALL_UPDATED on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mariadb V3_LONGLIVED_2023_UPDATED on 10.11.19-MariaDB-ubu2204: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+  mysql V1_FRESH_INSTALL on 8.0.46: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mysql V2_FRESH_INSTALL_UPDATED on 8.0.46: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mysql V3_LONGLIVED_2023_UPDATED on 8.0.46: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+exit=1

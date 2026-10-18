@@ -135,8 +135,10 @@ final class Subscriber360Test extends RadiusHttpTestCase
                 $this->assertStringContainsString('Quota this period', $c, $actor);
                 $this->assertStringContainsString('Actual usage', $c);
                 $this->assertStringContainsString('Covered by the plan', $c);
-                $this->assertStringContainsString('11.0 MB', $c, 'actual: 1 MB + 10 MB');
-                $this->assertStringContainsString('4.8 MB', $c, 'covered: the quota (5000000 octets), not the actual');
+                // decimal units, the units the plan quota is defined in (owner-requested fix 2026-10-18: until then the card
+                // divided by 1024 and this test expected '11.0 MB' / '4.8 MB', so a 5 MB quota was shown as 4.8 MB)
+                $this->assertMatchesRegularExpression('/Actual usage\s*11\.5 MB/', $c, 'actual: 11534336 octets');
+                $this->assertMatchesRegularExpression('/Covered by the plan\s*5 MB/', $c, 'covered: the quota (5000000 octets = the plan\'s 5 MB), not the actual');
                 $this->assertStringContainsString('Over the quota', $c);
                 $this->assertStringContainsString('not charged and not carried into the next period', $c);
                 $this->assertDoesNotMatchRegularExpression('/\bdebt\b|\bowed\b|\bpenalty\b/i', $c);

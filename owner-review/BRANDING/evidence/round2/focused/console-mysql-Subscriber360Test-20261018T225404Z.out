@@ -1,0 +1,22 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/BRANDING/evidence/round2/focused/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp6a/Subscriber360Test.php
+start: 2026-10-18T22:54:04Z
+ Container nuxbill-reseller-test-php82-run-7d75e295c526 Creating 
+ Container nuxbill-reseller-test-php82-run-7d75e295c526 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:10.575, Memory: 10.00 MB
+
+Subscriber360 (Reseller\Tests\Integration\Wp6a\Subscriber360)
+ ✔ Actions follow capabilities and nothing rendered is denied
+ ✔ Secrets escaping tokens and assets
+ ✔ Session state comes from accounting only
+ ✔ Quota card separates actual from covered usage and never implies a charge
+ ✔ Operational flags and tabs
+
+OK (5 tests, 175 assertions)
+exit=0 end: 2026-10-18T22:54:16Z

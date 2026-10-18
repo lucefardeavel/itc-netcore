@@ -87,7 +87,7 @@
         </div>
         <br>
         <center>
-            <a href="./pages/Privacy_Policy.html" target="_blank">Privacy</a>
+            <a href="./pages/Privacy_Policy.html" target="_blank">{Lang::T('Privacy')}</a>
             &bull;
             <a href="./pages/Terms_of_Conditions.html" target="_blank">ToC</a>
         </center>

@@ -111,3 +111,28 @@ Recorded in `owner-review/WP10/LEGAL_REVIEW_PACKAGE.md`:
 ## 8. Release state
 
 Unchanged: **`RELEASE_BLOCKED_WITH_EVIDENCE`**. The target acceptance TA-01 … TA-10 must run on the **new** candidate SHA (the staging authorization request names "the candidate SHA in the acceptance package"; that is now this commit). Nothing was pushed.
+
+## 9. Round 2 (2026-10-18): fixes found while writing the product guide
+
+The owner asked for fixes to the faults found while photographing the system for the product guide, and for a guide that explains every part of the system.
+
+| Fault | Fix | Guard |
+|---|---|---|
+| The quota card showed a 50 GB plan as **46.6 GB**: plans define MB / GB in decimal units (`QuotaPolicy::bytes`, 1 GB = 10^9 bytes) while the card divided by 1024 | `Format::bytes` uses decimal units (and drops a trailing ".0"), so the card reads "50 GB"; enforcement was never affected | `QuotaDisplayUnitsTest` |
+| The quota card labels, and **486** other interface strings (templates and application PHP), had no Arabic entry, so parts of the Arabic interface showed English | 486 Arabic entries added to `system/lan/arabic.json`. Three keys with non-ASCII characters are keyed byte-wise, as `Lang::T` sanitises them | `ArabicCatalogueTest`: every `Lang::T` literal in every template and in the application PHP (vendor, plugins, payment gateways excluded) has an Arabic entry; no duplicate or empty key |
+| Page titles written as English literals (NAS, invoice, plan edit, order, payment gateway, plugin manager, pages) and raw labels on the NAS forms and the customer pages (Secret, Ports, Community, Privacy, T & C, Remember me) | wrapped in `Lang::T` with Arabic entries; the NAS "Ports" field is labelled "CoA port", "Community" "SNMP community" | the same catalogue test |
+| The activation result notice showed the raw state code ("ACT-…: COMPLETED") in the Arabic interface | the four notices use the translated state label (`Format::stateLabel`), as one already did | `ArabicCatalogueTest::testActivationNoticesShowTheTranslatedState` |
+
+The guide (an Arabic web page and a PDF, kept outside the repository) covers the 23 areas of the system with 111 screenshots. As the owner asked, the guide's own text carries no credit or test-environment wording. The product itself is unchanged in that respect: footers, the About page, `NOTICE` and `LICENSE` keep the credits.
+
+Tests of this round: see `evidence/round2/`.
+
+| Gate (round 2, final tree) | Result | Evidence (`evidence/round2/`) |
+|---|---|---|
+| Whole `tests/Unit` directory | OK 429 / 54709 | `unit-all.txt` |
+| Full dual-engine harness | MariaDB 1574 / 81148 and MySQL 1574 / 81150. **One failure on each engine, the same test:** `Subscriber360Test` still pinned the old binary display ("11.0 MB", and a 5 MB quota shown as "4.8 MB"). Its expectations were moved to the decimal units of the fix ("11.5 MB", "5 MB"), with a comment; nothing else failed. 125 incomplete and the one PHPUnit deprecation are as before | `full-run-1FAIL-Subscriber360-binary-units.log` |
+| `Subscriber360Test` after the expectation change, both engines | OK 5 / 175 on each | `focused/` |
+| PWA browser suite | 32 / 32 PASS | `pwa-suite.txt` |
+| Brand visual check, both phases | CLEAN | `brand_visual-*.json` |
+
+The product files are byte-identical to the tree the harness ran on (`tested-tree.txt`); only the test file changed after it.

@@ -363,7 +363,7 @@ switch ($action) {
 
         $ui->assign('public_url', getUrl("voucher/invoice/$id/" . (\Reseller\Security\AppKey::voucherInvoiceSignature($id) ?? '')));
         $ui->assign('logo', $logo);
-        $ui->assign('_title', 'View Invoice');
+        $ui->assign('_title', Lang::T('View Invoice'));
         $ui->display('admin/plan/invoice.tpl');
         break;
 
@@ -419,7 +419,7 @@ switch ($action) {
             }
             $ui->assign('p', $ps);
             run_hook('view_edit_customer_plan'); #HOOK
-            $ui->assign('_title', 'Edit Plan');
+            $ui->assign('_title', Lang::T('Edit Plan'));
             $ui->display('admin/plan/edit.tpl');
         } else {
             r2(getUrl('plan/list'), 'e', Lang::T('Account Not Found'));

@@ -24,14 +24,14 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="secret" class="col-md-2 control-label">Secret</label>
+                        <label for="secret" class="col-md-2 control-label">{Lang::T('Secret')}</label>
                         <div class="col-md-6">
                             <input type="password" class="form-control" id="secret" name="secret" required
                                 onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek maxlength="60">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="ports" class="col-md-2 control-label">Ports</label>
+                        <label for="ports" class="col-md-2 control-label">{Lang::T('CoA port')}</label>
                         <div class="col-md-2">
                             <input type="text" class="form-control" id="ports" name="ports" placeholder="null">
                         </div>
@@ -42,11 +42,11 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="server" class="col-md-2 control-label">Server</label>
+                        <label for="server" class="col-md-2 control-label">{Lang::T('Server')}</label>
                         <div class="col-md-2">
                             <input type="text" class="form-control" id="server" name="server" placeholder="null">
                         </div>
-                        <label for="community" class="col-md-2 control-label">Community</label>
+                        <label for="community" class="col-md-2 control-label">{Lang::T('SNMP community')}</label>
                         <div class="col-md-2">
                             <input type="text" class="form-control" id="community" name="community" placeholder="null">
                         </div>

@@ -31,7 +31,7 @@ switch ($action) {
         }
         $pgs = Paginator::findMany($query, ["search" => $search], 50, $append_url);
 
-        $ui->assign('_title', 'Payment Gateway Audit');
+        $ui->assign('_title', Lang::T('Payment Gateway Audit'));
         $ui->assign('pgs', $pgs);
         $ui->assign('pg', $pg);
         $ui->assign('q', $q);
@@ -42,7 +42,7 @@ switch ($action) {
         $d = ORM::for_table('tbl_payment_gateway')->find_one($pg);
         $d['pg_request'] = (!empty($d['pg_request']))? Text::jsonArray21Array(json_decode($d['pg_request'], true)) : [];
         $d['pg_paid_response'] = (!empty($d['pg_paid_response']))? Text::jsonArray21Array(json_decode($d['pg_paid_response'], true)) : [];
-        $ui->assign('_title', 'Payment Gateway Audit View');
+        $ui->assign('_title', Lang::T('Payment Gateway Audit View'));
         $ui->assign('pg', $d);
         $ui->display('admin/paymentgateway/audit-view.tpl');
         break;
@@ -90,7 +90,7 @@ switch ($action) {
                         $pgs[] = str_replace('.php', '', $file);
                     }
                 }
-                $ui->assign('_title', 'Payment Gateway Settings');
+                $ui->assign('_title', Lang::T('Payment Gateway Settings'));
                 $ui->assign('pgs', $pgs);
                 $ui->assign('actives', explode(',', $config['payment_gateway']));
                 $ui->display('admin/paymentgateway/list.tpl');

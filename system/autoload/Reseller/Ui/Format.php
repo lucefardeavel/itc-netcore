@@ -200,17 +200,24 @@ final class Format
         return $n <= 4 ? '****' : mb_substr($code, 0, 2) . '****' . mb_substr($code, -2);
     }
 
-    /** "1.2 GB" style size for octet counters (display only). */
+    /**
+     * "1.2 GB" style size for octet counters (display only). Decimal units (1 GB = 1,000,000,000 bytes), the same units a
+     * plan's data quota is defined in (QuotaPolicy::bytes), so a 50 GB plan reads "50 GB" and never "46.6 GB".
+     */
     public static function bytes(int $n): string
     {
         $u = ['B', 'KB', 'MB', 'GB', 'TB'];
         $i = 0;
         $v = (float) $n;
-        while ($v >= 1024 && $i < count($u) - 1) {
-            $v /= 1024;
+        while ($v >= 1000 && $i < count($u) - 1) {
+            $v /= 1000;
             $i++;
         }
-        return ($i === 0 ? (string) $n : number_format($v, 1, '.', '')) . ' ' . $u[$i];
+        if ($i === 0) {
+            return $n . ' ' . $u[0];
+        }
+        $s = number_format($v, 1, '.', '');
+        return (str_ends_with($s, '.0') ? substr($s, 0, -2) : $s) . ' ' . $u[$i];
     }
 
     /** "2h 05m" style duration (display only). */

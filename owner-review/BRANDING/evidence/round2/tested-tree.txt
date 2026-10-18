@@ -1,0 +1,9 @@
+index tree 4e9816e6c001787fe097b520e64db02860243846 (staged working tree at the start of the full run, 2026-10-18T21:41:50Z)
+system 3846ebdf532c27c67fdaeecf76abd61b8b0c074b
+ui a23038be8b810005ef17b23b798bc1726595f46b
+install 59cbf210d78d1ba16193d4a22d7e150ab2fbe7cc
+tests e4a9f4bdb6622ecc6f55767a4349115ea88a3d40
+nuxr-sw.js 5d7e6d0cfe16fa71b1499130e85daefab6951e7c
+index.php c909b5d48f3c5ae8197bf708ec2ad29dcdcf147e
+init.php 4db024a127ee991370881892e95603b8f0d10bbc
+admin 541ffe3de277803eb2c0b1fb0edbae75fb738918

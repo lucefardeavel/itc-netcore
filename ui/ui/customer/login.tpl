@@ -55,7 +55,7 @@
                         <div class="{$app_url}/ui-checkbox ui-checkbox-primary right">
                             <label>
                                 <input type="checkbox">
-                                <span>Remember me</span>
+                                <span>{Lang::T('Remember me')}</span>
                             </label>
                         </div>
                     </div>
@@ -73,9 +73,9 @@
                     <center>
                         <a href="{Text::url('forgot')}" class="btn btn-link">{Lang::T('Forgot Password')}</a>
                         <br>
-                        <a href="javascript:showPrivacy()">Privacy</a>
+                        <a href="javascript:showPrivacy()">{Lang::T('Privacy')}</a>
                         &bull;
-                        <a href="javascript:showTaC()">T &amp; C</a>
+                        <a href="javascript:showTaC()">{Lang::T('Terms')}</a>
                     </center>
                 </form>
             </div>

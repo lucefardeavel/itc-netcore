@@ -34,9 +34,9 @@
                                 <th>{Lang::T('Name')}</th>
                                 <th>IP</th>
                                 <th>{Lang::T('Type')}</th>
-                                <th>Port</th>
-                                <th>Server</th>
-                                <th>Community</th>
+                                <th>{Lang::T('CoA port')}</th>
+                                <th>{Lang::T('Server')}</th>
+                                <th>{Lang::T('SNMP community')}</th>
                                 <th>Routers</th>
                                 <th>{Lang::T('Manage')}</th>
                                 <th>ID</th>

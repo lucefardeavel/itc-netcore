@@ -52,7 +52,7 @@ switch ($action) {
                 . (\Reseller\Security\DataScope::validId($planId) ? '&plan=' . (int) $planId : ''));
         }
         $type = $out['status'] === 'COMPLETED' ? 's' : ($out['status'] === 'FAILED' ? 'e' : 'w');
-        r2(getUrl('activation/view/' . $out['reference']), $type, Lang::T('Activation') . ' ' . $out['reference'] . ': ' . $out['status']);
+        r2(getUrl('activation/view/' . $out['reference']), $type, Lang::T('Activation') . ' ' . $out['reference'] . ': ' . Lang::T(\Reseller\Ui\Format::stateLabel((string) $out['status'])));
         break;
 
     case 'create':
@@ -136,7 +136,7 @@ switch ($action) {
         } catch (\Reseller\Domain\DomainError $e) {
             $nuxrFail($e, $back);
         }
-        r2(getUrl('activation/view/' . $row['reference']), 's', Lang::T('Activation') . ' ' . $row['reference'] . ': ' . $row['status']);
+        r2(getUrl('activation/view/' . $row['reference']), 's', Lang::T('Activation') . ' ' . $row['reference'] . ': ' . Lang::T(\Reseller\Ui\Format::stateLabel((string) $row['status'])));
         break;
 
     case 'cancel':
@@ -168,6 +168,6 @@ switch ($action) {
             // never presented as "not applied": nothing was released, the operator decides
             r2(getUrl('activation/view/' . $row['reference']), 'w', Lang::T(\Reseller\Activation\ReconciliationService::AMBIGUOUS_MESSAGE));
         }
-        r2(getUrl('activation/view/' . $row['reference']), 's', Lang::T('Activation') . ' ' . $row['reference'] . ': ' . $row['status']);
+        r2(getUrl('activation/view/' . $row['reference']), 's', Lang::T('Activation') . ' ' . $row['reference'] . ': ' . Lang::T(\Reseller\Ui\Format::stateLabel((string) $row['status'])));
         break;
 }

@@ -6,7 +6,7 @@
  **/
 
 _admin();
-$ui->assign('_title', 'Pages');
+$ui->assign('_title', Lang::T('Pages'));
 $ui->assign('_system_menu', 'pages');
 
 $action = $routes['1'];

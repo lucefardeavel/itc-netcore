@@ -25,14 +25,14 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="secret" class="col-md-2 control-label">Secret</label>
+                        <label for="secret" class="col-md-2 control-label">{Lang::T('Secret')}</label>
                         <div class="col-md-6">
                             <input type="password" class="form-control" id="secret" name="secret" autocomplete="new-password"
                                 placeholder="{Lang::T('Leave empty to keep the current secret')}" maxlength="60">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="ports" class="col-md-2 control-label">Ports</label>
+                        <label for="ports" class="col-md-2 control-label">{Lang::T('CoA port')}</label>
                         <div class="col-md-2">
                             <input type="text" class="form-control" id="ports" name="ports" placeholder="null"
                                 value="{$d['ports']}">
@@ -44,12 +44,12 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="server" class="col-md-2 control-label">Server</label>
+                        <label for="server" class="col-md-2 control-label">{Lang::T('Server')}</label>
                         <div class="col-md-2">
                             <input type="text" class="form-control" id="server" name="server" value="{$d['server']}"
                                 placeholder="null">
                         </div>
-                        <label for="community" class="col-md-2 control-label">Community</label>
+                        <label for="community" class="col-md-2 control-label">{Lang::T('SNMP community')}</label>
                         <div class="col-md-2">
                             <input type="text" class="form-control" id="community" name="community"
                                 value="{$d['community']}" placeholder="null">

@@ -597,7 +597,7 @@
                                     <!-- <div class="form-check checkbox-fg">
                                         <input class="form-check-input" type="checkbox" value="" id="remember">
                                         <label class="form-check-label" for="remember">
-                                            Remember me
+                                            {Lang::T('Remember me')}
                                         </label>
                                     </div> -->
                                     <a href="{Text::url('forgot')}">{Lang::T('Forgot Password')}?</a>
@@ -615,7 +615,7 @@
                         {/if}
                         <footer>
                             © {$smarty.now|date_format:"%Y"} {$_brand.company|escape}. All rights reserved. {Lang::T('Powered by')} <bdi>{$_brand.name|escape}</bdi>. <br> <a
-                                href="pages/Privacy_Policy.html">Privacy</a> | <a
+                                href="pages/Privacy_Policy.html">{Lang::T('Privacy')}</a> | <a
                                 href="pages/Terms_and_Conditions.html">Terms
                                 &amp;
                                 Conditions</a>

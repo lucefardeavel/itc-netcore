@@ -20,7 +20,7 @@ switch ($action) {
 
     case 'nas-add':
         $ui->assign('_system_menu', 'radius');
-        $ui->assign('_title', "Network Access Server");
+        $ui->assign('_title', Lang::T('Network Access Server'));
         $ui->assign('routers', ORM::for_table('tbl_routers')->find_many());
         $ui->display('admin/radius/nas-add.tpl');
         break;
@@ -70,7 +70,7 @@ switch ($action) {
         break;
     case 'nas-edit':
         $ui->assign('_system_menu', 'radius');
-        $ui->assign('_title', "Network Access Server");
+        $ui->assign('_title', Lang::T('Network Access Server'));
 
         $id  = $routes['2'];
         $d = ORM::for_table('nas', 'radius')->find_one($id);
@@ -137,7 +137,7 @@ switch ($action) {
         }
     default:
         $ui->assign('_system_menu', 'radius');
-        $ui->assign('_title', "Network Access Server");
+        $ui->assign('_title', Lang::T('Network Access Server'));
         $name = _post('name');
         if (empty($name)) {
             $query = ORM::for_table('nas', 'radius');

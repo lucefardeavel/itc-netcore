@@ -85,3 +85,4 @@ Owner decision: `PRODUCT_NAME_APPROVED = ITC NetCore`, `BRAND = ITC`, `TAGLINE =
 
 The product candidate moved from `9da2015e` to the branding commit (presentation only; no finance / RADIUS / activation / schema file changed). TA-01 .. TA-10 must use the new SHA.
 Release state unchanged: `RELEASE_BLOCKED_WITH_EVIDENCE`. Open: owner B-1 .. B-8 (logo, colour, upstream boxes, banner, file names, default artwork, GitHub text, CompanyName) and counsel Q1 (new fact), Q12 - Q14.
+- Round 4b (2026-10-18): product-guide fixes (decimal quota units, 486 Arabic entries + `ArabicCatalogueTest`, translated titles / labels / notices). The candidate moved again, to the round-4b commit. The guide is published as a private Artifact (outside the repository). Its demo data was made in the isolated lab through the application's own screens (`scratchpad/manual/demo_prep.sh`, `demo_flows.py`).
