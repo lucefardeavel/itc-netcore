@@ -459,8 +459,8 @@ authorize {
 ## V1 data and time quota (owner QUOTA_V1_GB_SUPPORT_APPROVED, 2026-10-17)
 
 Limited plans (Hotspot **and** PPPoE) carry a time quota (`Max-All-Session`), a data quota (`Max-Data`, decimal: 1 GB =
-10^9 bytes, download + upload) or both, per billing period (`Nuxr-Period-Start`). A session's usage belongs to the period
-in which the session **started**; accounting history is never deleted. Capabilities measured on RouterOS CHR 7.24.5 with
+10^9 bytes, download + upload) or both, per billing period. A period owns the accounting rows that **arrived after it started** (`Nuxr-Period-Acct-Id`, independent of the NAS
+clock; `Nuxr-Period-Start` is only the fallback - `docs/TIME_CONTRACT.md`); accounting history is never deleted. Capabilities measured on RouterOS CHR 7.24.5 with
 FreeRADIUS 3.2.8 (`dev/wp8/quota_gate.py`; `owner-review/WP10/V1_QUOTA_RENEWAL_PLAN.md` §1):
 
 | Mechanism | PPPoE | Hotspot |
@@ -488,11 +488,15 @@ adds `Acct-Interim-Interval` (default 60 s; the setting `nuxr_quota_interim_seco
   a zero, negative, non-numeric or unknown-unit limit cannot be saved and is never provisioned (`POLICY_QUOTA_INVALID`).
 
 **Accounting enforcer** (`php system/reseller/quota.php enforce --loop=55`, cron every minute, as the PHP user). Every
-15 s it ends the open sessions of subscribers whose current-period usage reached `Max-Data` or `Max-All-Session`
+`--every` seconds (5 - 15; provisional N1 setting 5) it ends the open sessions of subscribers whose current-period usage reached `Max-Data` or `Max-All-Session`
 (PPPoE upload + download; several concurrent Hotspot sessions): Disconnect-Request to the session's NAS and a confirmed
 end (the Accounting-Stop seen within 6 s, or NAK 503). One audit record `quota.enforced` per subscriber and pass; a
 session whose Disconnect got no answer / no Stop is retried after 15 s, one that was answered NAK after 60 s (one termination call per pass for all subscribers; a NAS that stayed silent is asked once per call); one enforcer at a time (database lock); accounting is only read.
-`quota.php report` lists over-quota open sessions (read-only).
+`quota.php report` lists over-quota open sessions (read-only); `quota.php usage <user>` shows the period's **actual** usage, the **billable** usage
+(`min(actual, quota)`) and the overshoot (read-only).
+- **Option G (owner decision 2026-10-18).** Usage above the quota caused by detection or Disconnect delay is **not charged** and **not carried
+  into the next period**: raw accounting is kept whole, actual and billable usage are separate numbers, no wallet / ledger movement results from an
+  overshoot, and a renewal starts from zero (`owner-review/WP10/N1_G_COMMERCIAL_QUOTA_CONTRACT.md`).
 - **This is not a byte-exact cap.** Overshoot past the quota is bounded by
   `min(share at authentication, rate x (interim + pass + Disconnect <= 6 s))`, measured on CHR (`owner-review/WP10/N1_PPPOE_OVERSHOOT.md`:
   the model, the measured matrix, the cost of a shorter interval and the options). Never advertise it as byte-exact.

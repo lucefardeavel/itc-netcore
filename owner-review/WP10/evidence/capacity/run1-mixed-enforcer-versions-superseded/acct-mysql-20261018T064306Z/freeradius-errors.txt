@@ -1,0 +1,4 @@
+Sun Oct 18 06:28:32 2026 : ERROR: (669) nuxr_pppoe_session_guard: ERROR: Program returned code (2) and output 'Tmp-String-7 = "ERROR",Tmp-String-6 = "192.0.2.11=ERROR:credentials; ms=74"'
+Sun Oct 18 06:28:33 2026 : ERROR: (672) nuxr_pppoe_session_guard: ERROR: Program returned code (2) and output 'Tmp-String-7 = "ERROR",Tmp-String-6 = "192.0.2.11=ERROR:credentials; ms=71"'
+Sun Oct 18 06:28:34 2026 : ERROR: (675) nuxr_pppoe_session_guard: ERROR: Program returned code (2) and output 'Tmp-String-7 = "ERROR",Tmp-String-6 = "192.0.2.11=ERROR:credentials; ms=72"'
+Sun Oct 18 06:28:35 2026 : ERROR: (678) nuxr_pppoe_session_guard: ERROR: Program returned code (2) and output 'Tmp-String-7 = "ERROR",Tmp-String-6 = "192.0.2.11=ERROR:credentials; ms=79"'

@@ -1,0 +1,20 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/capacity/enf-regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp10/LicenseInventoryTest.php
+start: 2026-10-18T07:00:40Z
+ Container nuxbill-reseller-test-php82-run-62a96ef62829 Creating 
+ Container nuxbill-reseller-test-php82-run-62a96ef62829 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...                                                                 3 / 3 (100%)
+
+Time: 00:00.013, Memory: 10.00 MB
+
+License Inventory (Reseller\Tests\Unit\Wp10\LicenseInventory)
+ ✔ Every composer package is in the inventory with its version and license
+ ✔ The packages without a licence file are exactly the listed ones
+ ✔ The application license is gpl v 2
+
+OK (3 tests, 14 assertions)
+exit=0 end: 2026-10-18T07:00:45Z

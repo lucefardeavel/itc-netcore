@@ -47,39 +47,51 @@ final class QuotaEnforcer
     /**
      * Subscribers with an open session whose current-period usage has reached a quota (read-only).
      *
+     * Set-based (capacity, TA-09): one grouped query per quota kind and ownership rule, not one query per subscriber - the pass
+     * time stays flat as the number of online quota subscribers grows. The rules are those of {@see QuotaUsage}: a quota row whose
+     * value or period start is malformed is ignored here (FreeRADIUS refuses the login: fail closed); a boundary id that is
+     * well-formed and not beyond the table's end owns the rows that arrived after it, otherwise the sessions started since the
+     * time boundary; 64-bit sums and the comparison are done by the database (no PHP integer or float rounding).
+     *
      * @return list<array{username:string,quota:string,limit:string,usage:string,period_start:int,sessions:list<array<string,mixed>>}>
      */
     public function overQuota(): array
     {
         // N2: an accounting-row id beyond the table's end cannot have been produced by it (a restore of an older table): ignored
         $maxId = (int) $this->radius->query('SELECT IFNULL(MAX(radacctid), 0) FROM radacct')->fetchColumn();
-        $rows = $this->radius->query("SELECT q.username AS u, q.attribute AS a, q.value AS v, IFNULL(p.value, '0') AS t, i.value AS i FROM radcheck q
-            LEFT JOIN radcheck p ON p.username = q.username AND p.attribute = 'Nuxr-Period-Start'
-            LEFT JOIN radcheck i ON i.username = q.username AND i.attribute = 'Nuxr-Period-Acct-Id'
-            WHERE q.attribute IN ('Max-Data', 'Max-All-Session') AND EXISTS (SELECT 1 FROM radacct a WHERE a.username = q.username AND a.acctstoptime IS NULL)
-            ORDER BY q.username, q.attribute")->fetchAll(\PDO::FETCH_ASSOC);
+        $found = [];
+        foreach (['Max-Data' => 'IFNULL(a.acctinputoctets, 0) + IFNULL(a.acctoutputoctets, 0)', 'Max-All-Session' => 'IFNULL(a.acctsessiontime, 0)'] as $attribute => $expr) {
+            foreach ([true, false] as $byId) {
+                // $byId: the period boundary is a usable row id; otherwise the time boundary decides
+                // digits only: NOT REGEXP '[^0-9]' (a REGEXP '^[0-9]+$' would accept a trailing newline, the PHP readers do not)
+                $usable = "(i.value IS NOT NULL AND CHAR_LENGTH(i.value) BETWEEN 1 AND 18 AND i.value NOT REGEXP '[^0-9]' AND CAST(i.value AS UNSIGNED) <= ?)";
+                $owned = $byId ? 'a.radacctid > CAST(i.value AS UNSIGNED)' : 'a.acctstarttime >= FROM_UNIXTIME(CAST(IFNULL(p.value, \'0\') AS UNSIGNED))';
+                $st = $this->radius->prepare("SELECT q.username AS u, q.value AS v, IFNULL(p.value, '0') AS t, i.value AS iv, CAST(SUM({$expr}) AS CHAR) AS s FROM radcheck q
+                    LEFT JOIN (SELECT DISTINCT username, value FROM radcheck WHERE attribute = 'Nuxr-Period-Start') p ON p.username = q.username
+                    LEFT JOIN (SELECT DISTINCT username, value FROM radcheck WHERE attribute = 'Nuxr-Period-Acct-Id') i ON i.username = q.username
+                    JOIN radacct a ON a.username = q.username AND {$owned}
+                    WHERE q.attribute = ? AND CHAR_LENGTH(q.value) BETWEEN 1 AND 19 AND q.value NOT REGEXP '[^0-9]'
+                      AND CHAR_LENGTH(IFNULL(p.value, '0')) BETWEEN 1 AND 12 AND IFNULL(p.value, '0') NOT REGEXP '[^0-9]'
+                      AND " . ($byId ? $usable : "NOT {$usable}") . "
+                      AND EXISTS (SELECT 1 FROM radacct o WHERE o.username = q.username AND o.acctstoptime IS NULL)
+                    GROUP BY q.id, q.username, q.value, p.value, i.value
+                    HAVING SUM({$expr}) >= CAST(q.value AS DECIMAL(20,0))");
+                $st->execute([$attribute, $maxId]);
+                foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $r) {
+                    $found[] = ['u' => (string) $r['u'], 'a' => $attribute, 'v' => (string) $r['v'], 't' => (int) $r['t'], 's' => (string) $r['s'], 'iv' => $byId ? (int) $r['iv'] : null];
+                }
+            }
+        }
+        usort($found, static fn(array $x, array $y): int => [$x['u'], $x['a'], $x['v']] <=> [$y['u'], $y['a'], $y['v']]);
         $out = [];
-        foreach ($rows as $r) {
-            if (!preg_match('/^[0-9]{1,19}$/D', (string) $r['v']) || !preg_match('/^[0-9]{1,12}$/D', (string) $r['t'])) {
-                continue; // a malformed quota row: FreeRADIUS refuses the login (fail closed); nothing to measure here
-            }
-            $expr = $r['a'] === 'Max-Data' ? 'IFNULL(acctinputoctets, 0) + IFNULL(acctoutputoctets, 0)' : 'IFNULL(acctsessiontime, 0)';
-            $acctId = $r['i'] !== null && preg_match('/^[0-9]{1,18}$/D', (string) $r['i']) === 1 && (int) $r['i'] <= $maxId ? (int) $r['i'] : null;
-            [$owned, $ownedArg] = $acctId !== null ? ['radacctid > ?', $acctId] : ['acctstarttime >= FROM_UNIXTIME(?)', (int) $r['t']];
-            // 64-bit arithmetic and the comparison in the database (no PHP integer / float rounding)
-            $st = $this->radius->prepare("SELECT CAST(u.s AS CHAR) AS s, u.s >= CAST(? AS DECIMAL(20,0)) AS reached FROM (SELECT IFNULL(SUM({$expr}), 0) AS s FROM radacct
-                WHERE username = ? AND {$owned}) AS u");
-            $st->execute([(string) $r['v'], $r['u'], $ownedArg]);
-            $m = $st->fetch(\PDO::FETCH_ASSOC);
-            $usage = (string) $m['s'];
-            if ((int) $m['reached'] !== 1) {
-                continue;
-            }
+        foreach ($found as $r) {
+            // the open sessions of the period (only subscribers over quota reach this point: a handful per pass)
+            [$owned, $ownedArg] = $r['iv'] !== null ? ['radacctid > ?', $r['iv']] : ['acctstarttime >= FROM_UNIXTIME(?)', $r['t']];
             $open = $this->radius->prepare("SELECT * FROM radacct WHERE username = ? AND acctstoptime IS NULL AND {$owned} ORDER BY radacctid");
             $open->execute([$r['u'], $ownedArg]);
             $sessions = $open->fetchAll(\PDO::FETCH_ASSOC);
             if ($sessions !== []) {
-                $out[] = ['username' => (string) $r['u'], 'quota' => (string) $r['a'], 'limit' => (string) $r['v'], 'usage' => $usage, 'period_start' => (int) $r['t'], 'sessions' => $sessions];
+                $out[] = ['username' => $r['u'], 'quota' => $r['a'], 'limit' => $r['v'], 'usage' => $r['s'], 'period_start' => $r['t'], 'sessions' => $sessions];
             }
         }
         return $out;

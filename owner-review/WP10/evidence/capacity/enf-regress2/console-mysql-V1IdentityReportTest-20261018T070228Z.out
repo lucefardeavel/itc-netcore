@@ -1,0 +1,19 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/capacity/enf-regress2/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1IdentityReportTest.php
+start: 2026-10-18T07:02:28Z
+ Container nuxbill-reseller-test-php82-run-a1224597a4c9 Creating 
+ Container nuxbill-reseller-test-php82-run-a1224597a4c9 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:06.115, Memory: 10.00 MB
+
+V1Identity Report (Reseller\Tests\Integration\Wp10\V1IdentityReport)
+ ✔ The report lists a collision and changes nothing
+ ✔ The shipped survey is the tested one and only reads
+
+OK (2 tests, 32 assertions)
+exit=0 end: 2026-10-18T07:02:35Z

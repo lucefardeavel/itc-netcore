@@ -60,9 +60,13 @@ The lab results for 7.24.5 are in `owner-review/WP10/evidence/quota/`; a differe
 
 ### TA-05 GB quota lifecycle with measured overshoot (N1)
 Run the procedure in `owner-review/WP10/N1_PPPOE_OVERSHOOT.md` section "Reproducing on a target": a PPPoE subscriber with mixed traffic at
-the staging line rate, the owner-chosen `nuxr_quota_interim_seconds` and enforcer `--every`. Record per case: quota, rate,
-`t_cross`, `t_stop`, overshoot, termination cause. Pass: overshoot within the bound stated in the N1 document for the configured
-interim; the enforcer ends the session with `CONFIRMED`.
+the staging line rate, `nuxr_quota_interim_seconds` = 30 and enforcer `--every=5` (the owner's provisional N1 = A + G settings; the final
+values are fixed by this test and TA-09). Record per case: quota, rate, `t_cross`, `t_stop`, overshoot, termination cause.
+Pass: (a) overshoot within the bound `min(R, r x (I + P + c))` for the configured values; the enforcer ends the session with `CONFIRMED`;
+(b) **Option G**: `php system/reseller/quota.php usage <user>` shows `actual` > quota and `billable` = quota; the wallet / ledger rows are
+unchanged by the overshoot (`php system/reseller/health.php --finance` OK); a renewal afterwards starts with `actual = 0`;
+(c) normal-operation and failure-operation figures are reported **separately** (enforcer stopped / CoA blocked: overshoot up to the whole quota on PPPoE;
+see `owner-review/WP10/N1_G_COMMERCIAL_QUOTA_CONTRACT.md` section 2.2).
 
 ### TA-06 Renewal (Option B) on the target
 Synthetic subscriber with an open session; renew; verify (a) the previous session is ended and `CONFIRMED`, (b) the next session starts
@@ -80,7 +84,12 @@ chain; `dev/wp10/drill.sh` is the lab reference.
 
 ### TA-09 Capacity on target hardware
 `dev/wp10/load.sh` shape (bounded, paced; never exhaust the SQL pool). Size the FreeRADIUS SQL pool per `install/freeradius/README.md`.
-For N1 also measure the accounting write rate at the chosen interim: `online quota subscribers / interim` interim-updates per second.
+For N1 also measure the accounting write rate at the chosen interim with `dev/wp10/acct_load.sh` shape: `online quota subscribers / interim`
+Interim-Updates per second through the real FreeRADIUS + database, together with the enforcer pass (`--every=5`).
+Pass (all, at the planned peak of simultaneously online quota subscribers): no lost accounting request; p99 latency below 250 ms; enforcer
+pass time below the `--every` interval; no `No connections available` in the FreeRADIUS log; FreeRADIUS SQL pool in use below 50 %;
+database `Threads_connected` far below `max_connections`. The lab numbers (`owner-review/WP10/CAPACITY_AND_ACCOUNTING_LOAD.md`) are not
+a promise for the target hardware.
 
 ### TA-10 Security on the target
 TLS, headers, session cookies, rate limits behind the real reverse proxy; least-privilege database accounts (checklist D); the

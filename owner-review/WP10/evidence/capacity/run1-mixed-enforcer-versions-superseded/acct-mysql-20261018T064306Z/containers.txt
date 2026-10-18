@@ -1,0 +1,8 @@
+06:43:06 nuxbill-reseller-test-freeradius-mysql-1 cpu=0.00% mem=48.38MiB / 47.05GiB
+06:43:06 nuxbill-reseller-test-mysql-1 cpu=2.15% mem=845.4MiB / 47.05GiB
+06:43:12 nuxbill-reseller-test-freeradius-mysql-1 cpu=0.23% mem=48.38MiB / 47.05GiB
+06:43:12 nuxbill-reseller-test-mysql-1 cpu=11.93% mem=845.4MiB / 47.05GiB
+06:43:19 nuxbill-reseller-test-freeradius-mysql-1 cpu=0.17% mem=48.38MiB / 47.05GiB
+06:43:19 nuxbill-reseller-test-mysql-1 cpu=1.90% mem=845.4MiB / 47.05GiB
+06:43:26 nuxbill-reseller-test-freeradius-mysql-1 cpu=0.24% mem=48.38MiB / 47.05GiB
+06:43:26 nuxbill-reseller-test-mysql-1 cpu=9.62% mem=845.4MiB / 47.05GiB

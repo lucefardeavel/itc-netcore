@@ -1,0 +1,416 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/capacity/equiv1/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1QuotaEnforcerEquivalenceTest.php
+start: 2026-10-18T06:57:07Z
+ Container nuxbill-reseller-test-php82-run-d6ce472d66d4 Creating 
+ Container nuxbill-reseller-test-php82-run-d6ce472d66d4 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F                                                                   1 / 1 (100%)
+
+Time: 00:12.680, Memory: 12.00 MB
+
+V1Quota Enforcer Equivalence (Reseller\Tests\Integration\Wp10\V1QuotaEnforcerEquivalence)
+ ✘ Set based over quota equals the reference on random data
+   │
+   │ seed 11: the set-based enforcer reports exactly what the per-subscriber one did
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │  Array &0 [
+   │      0 => Array &1 [
+   │          'u' => 'eqv11_000',
+   │ -        'q' => 'Max-Data',
+   │ -        'l' => '0',
+   │ -        'use' => '100700',
+   │ +        'q' => 'Max-All-Session',
+   │ +        'l' => '123\n
+   │ +',
+   │ +        'use' => '1200',
+   │          'p' => 0,
+   │          's' => Array &2 [
+   │              0 => 1,
+   │ @@ @@
+   │          'u' => 'eqv11_000',
+   │          'q' => 'Max-Data',
+   │          'l' => '0',
+   │ -        'use' => '100700',
+   │ +        'use' => '201400',
+   │          'p' => 0,
+   │          's' => Array &4 [
+   │              0 => 1,
+   │ @@ @@
+   │          ],
+   │      ],
+   │      2 => Array &5 [
+   │ +        'u' => 'eqv11_002',
+   │ +        'q' => 'Max-Data',
+   │ +        'l' => '1',
+   │ +        'use' => '4000100002',
+   │ +        'p' => 55,
+   │ +        's' => Array &6 [
+   │ +            0 => 4,
+   │ +        ],
+   │ +    ],
+   │ +    3 => Array &7 [
+   │ +        'u' => 'eqv11_002',
+   │ +        'q' => 'Max-Data',
+   │ +        'l' => '1',
+   │ +        'use' => '4000100002',
+   │ +        'p' => 55,
+   │ +        's' => Array &8 [
+   │ +            0 => 4,
+   │ +        ],
+   │ +    ],
+   │ +    4 => Array &9 [
+   │ +        'u' => 'eqv11_005',
+   │ +        'q' => 'Max-Data',
+   │ +        'l' => '007',
+   │ +        'use' => '4000100005',
+   │ +        'p' => 55,
+   │ +        's' => Array &10 [
+   │ +            0 => 12,
+   │ +            1 => 13,
+   │ +        ],
+   │ +    ],
+   │ +    5 => Array &11 [
+   │ +        'u' => 'eqv11_005',
+   │ +        'q' => 'Max-Data',
+   │ +        'l' => '007',
+   │ +        'use' => '4000100005',
+   │ +        'p' => 55,
+   │ +        's' => Array &12 [
+   │ +            0 => 12,
+   │ +            1 => 13,
+   │ +        ],
+   │ +    ],
+   │ +    6 => Array &13 [
+   │ +        'u' => 'eqv11_005',
+   │ +        'q' => 'Max-Data',
+   │ +        'l' => '123\n
+   │ +',
+   │ +        'use' => '4000100005',
+   │ +        'p' => 55,
+   │ +        's' => Array &14 [
+   │ +            0 => 12,
+   │ +            1 => 13,
+   │ +        ],
+   │ +    ],
+   │ +    7 => Array &15 [
+   │ +        'u' => 'eqv11_005',
+   │ +        'q' => 'Max-Data',
+   │ +        'l' => '123\n
+   │ +',
+   │ +        'use' => '4000100005',
+   │ +        'p' => 55,
+   │ +        's' => Array &16 [
+   │ +            0 => 12,
+   │ +            1 => 13,
+   │ +        ],
+   │ +    ],
+   │ +    8 => Array &17 [
+   │          'u' => 'eqv11_014',
+   │          'q' => 'Max-Data',
+   │          'l' => '007',
+   │          'use' => '300506',
+   │          'p' => 0,
+   │ -        's' => Array &6 [
+   │ +        's' => Array &18 [
+   │              0 => 29,
+   │          ],
+   │      ],
+   │ -    3 => Array &7 [
+   │ +    9 => Array &19 [
+   │          'u' => 'eqv11_019',
+   │          'q' => 'Max-Data',
+   │          'l' => '1',
+   │          'use' => '3000000711',
+   │          'p' => 1792310238,
+   │ -        's' => Array &8 [
+   │ +        's' => Array &20 [
+   │              0 => 40,
+   │          ],
+   │      ],
+   │ -    4 => Array &9 [
+   │ +    10 => Array &21 [
+   │          'u' => 'eqv11_020',
+   │          'q' => 'Max-All-Session',
+   │          'l' => '400000',
+   │          'use' => '4000003600',
+   │          'p' => 0,
+   │ -        's' => Array &10 [
+   │ +        's' => Array &22 [
+   │              0 => 41,
+   │          ],
+   │      ],
+   │ -    5 => Array &11 [
+   │ +    11 => Array &23 [
+   │          'u' => 'eqv11_020',
+   │          'q' => 'Max-Data',
+   │          'l' => '400000',
+   │          'use' => '3000300700',
+   │          'p' => 0,
+   │ -        's' => Array &12 [
+   │ +        's' => Array &24 [
+   │              0 => 41,
+   │          ],
+   │      ],
+   │ -    6 => Array &13 [
+   │ +    12 => Array &25 [
+   │          'u' => 'eqv11_026',
+   │          'q' => 'Max-All-Session',
+   │          'l' => '400000',
+   │          'use' => '8000000600',
+   │          'p' => 0,
+   │ -        's' => Array &14 [
+   │ +        's' => Array &26 [
+   │              0 => 55,
+   │          ],
+   │      ],
+   │ -    7 => Array &15 [
+   │ +    13 => Array &27 [
+   │          'u' => 'eqv11_030',
+   │          'q' => 'Max-Data',
+   │          'l' => '0',
+   │          'use' => '4000000500',
+   │          'p' => 0,
+   │ -        's' => Array &16 [
+   │ +        's' => Array &28 [
+   │              0 => 61,
+   │          ],
+   │      ],
+   │ -    8 => Array &17 [
+   │ +    14 => Array &29 [
+   │          'u' => 'eqv11_030',
+   │          'q' => 'Max-Data',
+   │ +        'l' => '0',
+   │ +        'use' => '4000000500',
+   │ +        'p' => 55,
+   │ +        's' => Array &30 [
+   │ +            0 => 61,
+   │ +        ],
+   │ +    ],
+   │ +    15 => Array &31 [
+   │ +        'u' => 'eqv11_030',
+   │ +        'q' => 'Max-Data',
+   │          'l' => '400000',
+   │          'use' => '4000000500',
+   │          'p' => 0,
+   │ -        's' => Array &18 [
+   │ +        's' => Array &32 [
+   │              0 => 61,
+   │          ],
+   │      ],
+   │ -    9 => Array &19 [
+   │ -        'u' => 'eqv11_042',
+   │ -        'q' => 'Max-All-Session',
+   │ -        'l' => '0',
+   │ -        'use' => '4000003600',
+   │ -        'p' => 0,
+   │ -        's' => Array &20 [
+   │ -            0 => 88,
+   │ -            1 => 90,
+   │ +    16 => Array &33 [
+   │ +        'u' => 'eqv11_030',
+   │ +        'q' => 'Max-Data',
+   │ +        'l' => '400000',
+   │ +        'use' => '4000000500',
+   │ +        'p' => 55,
+   │ +        's' => Array &34 [
+   │ +            0 => 61,
+   │          ],
+   │      ],
+   │ -    10 => Array &21 [
+   │ +    17 => Array &35 [
+   │          'u' => 'eqv11_042',
+   │          'q' => 'Max-All-Session',
+   │          'l' => '0',
+   │ -        'use' => '4000003600',
+   │ +        'use' => '8000007200',
+   │          'p' => 0,
+   │ -        's' => Array &22 [
+   │ +        's' => Array &36 [
+   │              0 => 88,
+   │              1 => 90,
+   │          ],
+   │      ],
+   │ -    11 => Array &23 [
+   │ +    18 => Array &37 [
+   │          'u' => 'eqv11_046',
+   │          'q' => 'Max-Data',
+   │          'l' => '1',
+   │          'use' => '300505',
+   │          'p' => 1792303038,
+   │ -        's' => Array &24 [
+   │ +        's' => Array &38 [
+   │              0 => 99,
+   │              1 => 100,
+   │          ],
+   │      ],
+   │ -    12 => Array &25 [
+   │ +    19 => Array &39 [
+   │          'u' => 'eqv11_046',
+   │          'q' => 'Max-Data',
+   │          'l' => '1',
+   │ -        'use' => '3000100010',
+   │ +        'use' => '3000301211',
+   │          'p' => 1792303038,
+   │ -        's' => Array &26 [
+   │ -            0 => 100,
+   │ +        's' => Array &40 [
+   │ +            0 => 97,
+   │ +            1 => 99,
+   │ +            2 => 100,
+   │          ],
+   │      ],
+   │ -    13 => Array &27 [
+   │ +    20 => Array &41 [
+   │ +        'u' => 'eqv11_050',
+   │ +        'q' => 'Max-Data',
+   │ +        'l' => '1000',
+   │ +        'use' => '6000200000',
+   │ +        'p' => 1792310238,
+   │ +        's' => Array &42 [
+   │ +            0 => 110,
+   │ +        ],
+   │ +    ],
+   │ +    21 => Array &43 [
+   │          'u' => 'eqv11_061',
+   │          'q' => 'Max-Data',
+   │          'l' => '1000',
+   │          'use' => '101401',
+   │          'p' => 1792303039,
+   │ -        's' => Array &28 [
+   │ +        's' => Array &44 [
+   │              0 => 137,
+   │          ],
+   │      ],
+   │ -    14 => Array &29 [
+   │ +    22 => Array &45 [
+   │          'u' => 'eqv11_061',
+   │          'q' => 'Max-Data',
+   │          'l' => '1000',
+   │          'use' => '101402',
+   │          'p' => 1792303039,
+   │ -        's' => Array &30 [
+   │ +        's' => Array &46 [
+   │              0 => 135,
+   │              1 => 137,
+   │          ],
+   │      ],
+   │ -    15 => Array &31 [
+   │ +    23 => Array &47 [
+   │          'u' => 'eqv11_086',
+   │          'q' => 'Max-Data',
+   │          'l' => '0',
+   │          'use' => '7000000000',
+   │          'p' => 0,
+   │ -        's' => Array &32 [
+   │ +        's' => Array &48 [
+   │              0 => 170,
+   │          ],
+   │      ],
+   │ -    16 => Array &33 [
+   │ +    24 => Array &49 [
+   │          'u' => 'eqv11_086',
+   │          'q' => 'Max-Data',
+   │          'l' => '0',
+   │          'use' => '7000000000',
+   │          'p' => 0,
+   │ -        's' => Array &34 [
+   │ +        's' => Array &50 [
+   │              0 => 170,
+   │          ],
+   │      ],
+   │ -    17 => Array &35 [
+   │ -        'u' => 'eqv11_125',
+   │ +    25 => Array &51 [
+   │ +        'u' => 'eqv11_106',
+   │          'q' => 'Max-Data',
+   │ -        'l' => '007',
+   │ -        'use' => '100706',
+   │ -        'p' => 1792310241,
+   │ -        's' => Array &36 [
+   │ -            0 => 261,
+   │ +        'l' => '0',
+   │ +        'use' => '401402',
+   │ +        'p' => 55,
+   │ +        's' => Array &52 [
+   │ +            0 => 216,
+   │ +            1 => 217,
+   │ +            2 => 219,
+   │          ],
+   │      ],
+   │ -    18 => Array &37 [
+   │ +    26 => Array &53 [
+   │          'u' => 'eqv11_125',
+   │          'q' => 'Max-Data',
+   │          'l' => '007',
+   │ -        'use' => '100706',
+   │ +        'use' => '201412',
+   │          'p' => 1792310241,
+   │ -        's' => Array &38 [
+   │ +        's' => Array &54 [
+   │              0 => 261,
+   │          ],
+   │      ],
+   │ -    19 => Array &39 [
+   │ +    27 => Array &55 [
+   │          'u' => 'eqv11_125',
+   │          'q' => 'Max-Data',
+   │          'l' => '007',
+   │ -        'use' => '3000100706',
+   │ +        'use' => '6000201412',
+   │          'p' => 1792310241,
+   │ -        's' => Array &40 [
+   │ +        's' => Array &56 [
+   │              0 => 258,
+   │              1 => 261,
+   │          ],
+   │      ],
+   │ -    20 => Array &41 [
+   │ -        'u' => 'eqv11_125',
+   │ -        'q' => 'Max-Data',
+   │ -        'l' => '007',
+   │ -        'use' => '3000100706',
+   │ -        'p' => 1792310241,
+   │ -        's' => Array &42 [
+   │ -            0 => 258,
+   │ -            1 => 261,
+   │ -        ],
+   │ -    ],
+   │ -    21 => Array &43 [
+   │ +    28 => Array &57 [
+   │          'u' => 'eqv11_142',
+   │          'q' => 'Max-Data',
+   │          'l' => '007',
+   │          'use' => '705',
+   │          'p' => 1792303041,
+   │ -        's' => Array &44 [
+   │ +        's' => Array &58 [
+   │              0 => 290,
+   │          ],
+   │      ],
+   │ -    22 => Array &45 [
+   │ +    29 => Array &59 [
+   │          'u' => 'eqv11_153',
+   │          'q' => 'Max-Data',
+   │          'l' => '1',
+   │          'use' => '700',
+   │          'p' => 0,
+   │ -        's' => Array &46 [
+   │ +        's' => Array &60 [
+   │              0 => 311,
+   │          ],
+   │      ],
+   │  ]
+   │
+   │ /repo/tests/Integration/Wp10/V1QuotaEnforcerEquivalenceTest.php:111
+   │
+
+FAILURES!
+Tests: 1, Assertions: 1, Failures: 1.
+
+exit=1 end: 2026-10-18T06:57:23Z

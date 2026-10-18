@@ -1,0 +1,32 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/capacity/enf-regress/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1IdentityReportTest.php
+start: 2026-10-18T07:01:54Z
+ Container nuxbill-reseller-test-php82-run-642247a97643 Creating 
+ Container nuxbill-reseller-test-php82-run-642247a97643 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+F.                                                                  2 / 2 (100%)
+
+Time: 00:08.029, Memory: 12.00 MB
+
+V1Identity Report (Reseller\Tests\Integration\Wp10\V1IdentityReport)
+ ✘ The report lists a collision and changes nothing
+   │
+   │ tbl_customers must never change through activation
+   │ Failed asserting that two strings are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -'3517465489'
+   │ +'816431670'
+   │
+   │ /repo/tests/Support/ActivationTestCase.php:62
+   │
+ ✔ The shipped survey is the tested one and only reads
+
+FAILURES!
+Tests: 2, Assertions: 30, Failures: 1.
+
+exit=1 end: 2026-10-18T07:02:04Z

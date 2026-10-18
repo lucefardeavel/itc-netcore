@@ -1,0 +1,9 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/capacity/enf-regress/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/W10HealthCheckTest.php
+start: 2026-10-18T07:00:11Z
+ Container nuxbill-reseller-test-php82-run-80f0dc546baf Creating 
+ Container nuxbill-reseller-test-php82-run-80f0dc546baf Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Test file "tests/Integration/Wp10/W10HealthCheckTest.php" not found
+
+exit=2 end: 2026-10-18T07:00:19Z

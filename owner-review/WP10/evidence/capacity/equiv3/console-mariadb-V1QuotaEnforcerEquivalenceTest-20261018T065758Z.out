@@ -1,0 +1,18 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/capacity/equiv3/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1QuotaEnforcerEquivalenceTest.php
+start: 2026-10-18T06:57:58Z
+ Container nuxbill-reseller-test-php82-run-cc3a9b9427c4 Creating 
+ Container nuxbill-reseller-test-php82-run-cc3a9b9427c4 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:24.886, Memory: 10.00 MB
+
+V1Quota Enforcer Equivalence (Reseller\Tests\Integration\Wp10\V1QuotaEnforcerEquivalence)
+ ✔ Set based over quota equals the reference on random data
+
+OK (1 test, 10 assertions)
+exit=0 end: 2026-10-18T06:58:25Z

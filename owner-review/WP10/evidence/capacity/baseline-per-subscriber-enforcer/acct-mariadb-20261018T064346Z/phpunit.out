@@ -1,0 +1,21 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+{"case":"start","engine":"mariadb","subs":[500,2000,5000],"interims":[60,30],"seconds":40,"slots":8,"max_rate":260,"t":"2026-10-18T06:43:56Z"}
+{"case":"acct-load","engine":"mariadb","subscribers":500,"interim_s":60,"target_rate_per_s":8.3,"requests":333,"ok":333,"lost":0,"loss":0,"achieved_rate_per_s":8.4,"seconds":39.8,"latency_ms":{"p50":3.8,"p95":22.1,"p99":86.3,"max":620.1},"enforcer_passes":8,"enforcer_pass_s":{"avg":0.368,"max":0.607},"enforcer_pass_every_s":5,"db":{"questions_per_s":119.7,"row_lock_waits":0,"row_lock_time_ms":0,"slow_queries":0,"aborted_connects":0,"threads_connected":5,"max_used_connections":17},"spot_check_updated":"14/20","t":"2026-10-18T06:44:40Z"}
+{"case":"acct-load","engine":"mariadb","subscribers":500,"interim_s":30,"target_rate_per_s":16.7,"requests":667,"ok":667,"lost":0,"loss":0,"achieved_rate_per_s":16.7,"seconds":40,"latency_ms":{"p50":4.3,"p95":38,"p99":105.1,"max":287.9},"enforcer_passes":8,"enforcer_pass_s":{"avg":0.562,"max":1.515},"enforcer_pass_every_s":5,"db":{"questions_per_s":136,"row_lock_waits":0,"row_lock_time_ms":0,"slow_queries":0,"aborted_connects":0,"threads_connected":9,"max_used_connections":17},"spot_check_updated":"20/20","t":"2026-10-18T06:45:24Z"}
+{"case":"acct-load","engine":"mariadb","subscribers":2000,"interim_s":60,"target_rate_per_s":33.3,"requests":1333,"ok":1333,"lost":0,"loss":0,"achieved_rate_per_s":33.4,"seconds":40,"latency_ms":{"p50":4.3,"p95":22.6,"p99":96.1,"max":3709.6},"enforcer_passes":6,"enforcer_pass_s":{"avg":2.238,"max":3.69},"enforcer_pass_every_s":5,"db":{"questions_per_s":371,"row_lock_waits":0,"row_lock_time_ms":0,"slow_queries":0,"aborted_connects":0,"threads_connected":9,"max_used_connections":17},"spot_check_updated":"14/20","t":"2026-10-18T06:46:21Z"}
+{"case":"acct-load","engine":"mariadb","subscribers":2000,"interim_s":30,"target_rate_per_s":66.7,"requests":2667,"ok":2667,"lost":0,"loss":0,"achieved_rate_per_s":64.9,"seconds":41.1,"latency_ms":{"p50":4,"p95":18.8,"p99":58.5,"max":1385.1},"enforcer_passes":7,"enforcer_pass_s":{"avg":1.538,"max":3.001},"enforcer_pass_every_s":5,"db":{"questions_per_s":474.8,"row_lock_waits":0,"row_lock_time_ms":0,"slow_queries":0,"aborted_connects":0,"threads_connected":9,"max_used_connections":17},"spot_check_updated":"20/20","t":"2026-10-18T06:47:19Z"}
+{"case":"acct-load","engine":"mariadb","subscribers":5000,"interim_s":60,"target_rate_per_s":83.3,"requests":3333,"ok":3333,"lost":0,"loss":0,"achieved_rate_per_s":79.5,"seconds":41.9,"latency_ms":{"p50":3.6,"p95":13.1,"p99":32,"max":5444.9},"enforcer_passes":5,"enforcer_pass_s":{"avg":4.318,"max":5.442},"enforcer_pass_every_s":5,"db":{"questions_per_s":762.1,"row_lock_waits":0,"row_lock_time_ms":0,"slow_queries":0,"aborted_connects":0,"threads_connected":9,"max_used_connections":17},"spot_check_updated":"14/20","t":"2026-10-18T06:48:43Z"}
+{"case":"acct-load","engine":"mariadb","subscribers":5000,"interim_s":30,"target_rate_per_s":166.7,"requests":6667,"ok":6667,"lost":0,"loss":0,"achieved_rate_per_s":153,"seconds":43.6,"latency_ms":{"p50":3.6,"p95":12.1,"p99":28.3,"max":7822},"enforcer_passes":5,"enforcer_pass_s":{"avg":4.469,"max":7.817},"enforcer_pass_every_s":5,"db":{"questions_per_s":885.6,"row_lock_waits":0,"row_lock_time_ms":0,"slow_queries":0,"aborted_connects":0,"threads_connected":9,"max_used_connections":17},"spot_check_updated":"20/20","t":"2026-10-18T06:50:09Z"}
+.                                                                   1 / 1 (100%)
+
+Time: 06:21.007, Memory: 14.00 MB
+
+Acct Load (Reseller\Tests\Lab\AcctLoad)
+ ✔ Bounded accounting load
+
+OK (1 test, 19 assertions)
+exit=0
