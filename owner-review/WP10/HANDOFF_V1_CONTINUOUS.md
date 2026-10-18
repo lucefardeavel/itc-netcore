@@ -10,7 +10,7 @@ Owner instruction `CONTINUOUS_AUTONOMOUS_EXECUTION_APPROVED` (2026-10-17). Resum
 | Baseline verified | HEAD `c867949432107d2582b1cd76d989b2c080311884` (clean, no processes, no containers, manifest OK) |
 | Protected refs (verified) | `feat/reseller-system-v1` = `wp8/integration-poc` = `704031c6`, `main` = `500d3a2d`, hotfix `6d4f3f96`, wp7 `8e7f0e1c` |
 | Last frozen candidate (previous round) | `32cdc92d` (MariaDB 1521/76375, MySQL 1521/76381, 0 failures) |
-| Current objective | see "Work queue" |
+| Current objective | queue Q1 - Q6 complete; final package written; waiting for the owner decisions and the target evidence |
 
 ## Work queue (state)
 
@@ -18,16 +18,16 @@ Owner instruction `CONTINUOUS_AUTONOMOUS_EXECUTION_APPROVED` (2026-10-17). Resum
 |---|---|---|---|
 | Q1 | **N2** exact period ownership | DONE: code + tests both engines + docs + health `nas_clock` (`0ec84def`); real NAS: `V1QuotaLabTest` 9 tests / 220 assertions OK incl. `testRenewalIsExactEvenWhenTheOldSessionStartedSecondsBefore` | N2_PERIOD_OWNERSHIP.md, evidence/quota/n2/{regress,chr} |
 | Q2 | **N1** PPPoE overshoot | DONE (engineering): levers `ae99c89e`; CHR matrix `V1OvershootLabTest` 10 tests / 219 assertions OK (9 matrix + early-cross + CoA-fault retry); CoA cannot change interim or byte limits (probe); analysis `N1_PPPOE_OVERSHOOT.md`; DECISIONS N1 row filled. Owner decides the customer-facing semantics (final package) | N1_PPPOE_OVERSHOOT.md, evidence/quota/n1/chr |
-| Q3 | Re-verify every WP8 / WP9 / WP10 roadmap item against the actual code (closure matrix) | TODO | |
+| Q3 | Re-verify every WP8 / WP9 / WP10 roadmap item against the actual code (closure matrix) | DONE: `closure_check.py --testdox` 36 items exit 0 (`fe2c4424`) | evidence/release-candidate/closure-matrix-17da628a.md |
 | Q4 | Target-environment preparation: acceptance procedures, evidence templates, preflight additions (nothing marked PASS without a real target run) | DONE: docs/V1_TARGET_ACCEPTANCE.md (TA-01..10, all NOT_RUN) | |
-| Q5 | Frozen-candidate full verification (both engines, CHR, UI/PWA, drill, load, guards, secrets) | TODO | |
-| Q6 | `SAAS_RADIUS_V1_FINAL_OWNER_RELEASE_DECISION_PACKAGE` (14 sections) | TODO | |
+| Q5 | Frozen-candidate full verification (both engines, CHR, UI/PWA, drill, load, guards, secrets) | DONE on frozen product candidate `e34906d6`: CHR 10/216 + 121/2323; MariaDB 1534/76558, MySQL 1534/76560, 0 failures; UI 136 loads, PWA 32/32; drill 128; load PASS; manifest 42/42; lint 1386; sweep 0 hits | evidence/release-candidate/ (README.md) |
+| Q6 | `SAAS_RADIUS_V1_FINAL_OWNER_RELEASE_DECISION_PACKAGE` (14 sections) | DONE: status `RELEASE_BLOCKED_WITH_EVIDENCE` (TA-01..10 NOT_RUN, owner decisions open) | owner-review/WP10/SAAS_RADIUS_V1_FINAL_OWNER_RELEASE_DECISION_PACKAGE.md |
 
 ## Open failures
 None known at this checkpoint.
 
 ## Next exact action
-Q5: with the CHR lab still up run the CHR gates + wp8-integration + V1 lab suites (`scratchpad/chr_gates_final.sh`, edit `EV=`), then `chr_down.sh`; then the frozen-candidate full dual-engine harness with `--testdox` in the snapshot worktree; UI audit + PWA suite; drill; load; guards. Then Q3 (`closure_check.py --testdox`) and Q6.
+Nothing is left that can be done inside the authorized scope. Waiting for the owner: answer section 13 of the final package, authorize a staging target (P1 - P5 of `docs/V1_TARGET_ACCEPTANCE.md`) and run TA-01 .. TA-10. If product code changes after the freeze (`e34906d6`), rerun the affected gates and the final suites (full harness in `/srv/phpnuxbill/wp9-snap`, CHR gates, UI / PWA, drill, load, closure check).
 
 ## Lab hygiene (learned)
 - The lab agent runs ONE operation at a time: a `Wp8Lab::ros()` issued while a traffic job runs is queued and executes AFTER it (a queued `/radius/incoming accept=no` silently broke later CoA). After any aborted CHR test run `/radius/incoming/print` and restore `accept=yes port=3799`.
