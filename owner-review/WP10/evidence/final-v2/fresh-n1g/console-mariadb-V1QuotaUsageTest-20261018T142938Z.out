@@ -1,0 +1,24 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/final-v2/fresh-n1g/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1QuotaUsageTest.php
+start: 2026-10-18T14:29:38Z
+ Container nuxbill-reseller-test-php82-run-61cb5f94647a Creating 
+ Container nuxbill-reseller-test-php82-run-61cb5f94647a Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......                                                             7 / 7 (100%)
+
+Time: 00:01.921, Memory: 12.00 MB
+
+V1Quota Usage (Reseller\Tests\Integration\Wp10\V1QuotaUsage)
+ ✔ Actual billable and overshoot are separate
+ ✔ Below the quota billable equals actual and exact at the quota
+ ✔ Sixty four bit numbers are exact
+ ✔ The previous periods rows are not part of the current one
+ ✔ Malformed quota rows report nothing
+ ✔ An overshoot creates no debt and a renewal settles exactly once
+ ✔ No finance class reads accounting
+
+OK (7 tests, 51 assertions)
+exit=0 end: 2026-10-18T14:29:41Z

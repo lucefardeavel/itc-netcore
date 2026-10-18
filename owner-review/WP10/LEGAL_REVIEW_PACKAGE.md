@@ -54,6 +54,38 @@ finished and is not declared finished by this file.** Status: **`COUNSEL` (open)
 | 5 | State the outbound licence version in the repository (`LICENSE` header / `composer.json`) | **open** - depends on Q1 |
 | 6 | Third-party notices page in the product (About / footer) if counsel requires | **open** |
 
+### 4.1 Where the four missing licence files come from (the maintainers fetch them; nothing is invented here)
+
+| Package | Upstream project to take the licence file and copyright notice from | Composer-declared licence |
+|---|---|---|
+| `mpdf/mpdf` v8.1.6 | the mPDF project repository (`mpdf/mpdf`, tag `v8.1.6`) | GPL-2.0-only |
+| `mpdf/psr-log-aware-trait` v2.0.0 | the mPDF project (`mpdf/psr-log-aware-trait`, tag `v2.0.0`) | MIT |
+| `myclabs/deep-copy` 1.11.1 | the DeepCopy project (`myclabs/DeepCopy`, tag `1.11.1`) | MIT |
+| `setasign/fpdi` v2.3.7 | the FPDI project (`Setasign/FPDI`, tag `v2.3.7`) | MIT |
+
+This session has no network access to those projects; the files are **not** produced or paraphrased by the engineering side.
+
+### 4.2 Tooling for the artifact
+
+`python3 dev/wp10/notices_bundle.py build/THIRD_PARTY_NOTICES.txt` collects every licence text that exists in the packages plus `LICENSE` and the Summernote notice, and exits 1
+while any package is without a licence file (today: the four above). Re-run it after the missing files are added; the exit code 0 closes checklist item 2 (counsel still confirms the content).
+
+## 4.3 Counsel answer sheet (to be completed by counsel; the engineering side leaves it empty)
+
+| Q | Answer | Conditions / follow-up | Reviewer / date |
+|---|---|---|---|
+| Q1 GPL-2.0-only or or-later | | | |
+| Q2 Smarty LGPL-3.0 | | | |
+| Q3 delivery model A / B | | | |
+| Q4 proprietary add-ons | | | |
+| Q5 mPDF / php-facedetection | | | |
+| Q6 `lena512color.jpg` | | | |
+| Q7 FreeRADIUS image / configuration | | | |
+| Q8 trademarks | | | |
+| Q9 MikroTik CHR terms | | | |
+| Q10 fonts / CDN assets | | | |
+| Q11 data protection and telecom regulation | | | |
+
 ## 5. Mechanical guard
 
 `tests/Unit/Wp10/LicenseInventoryTest.php` fails when a package of `system/composer.lock` is missing from `docs/THIRD_PARTY_LICENSES.md`, has another

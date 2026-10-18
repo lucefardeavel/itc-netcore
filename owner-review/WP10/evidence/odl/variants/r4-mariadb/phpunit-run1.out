@@ -1,0 +1,16 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+{"case":"wave-summary","rounds":25,"ops":300,"wave_seconds_avg":1.21,"outcomes":{"OK:COMPLETED":300},"refusals":0,"innodb_deadlocks":41,"refusal_rate_per_op":0,"t":"2026-10-18T14:11:06Z"}
+{"case":"held-detail","config":{"innodb_buffer_pool_size":"134217728","innodb_deadlock_detect":"ON","innodb_lock_wait_timeout":"50","tx_isolation":"REPEATABLE-READ","version":"10.11.19-MariaDB-ubu2204"},"held":[],"t":"2026-10-18T14:11:07Z"}
+{"case":"recovery","resumed":[],"cancelled":[],"operator_wait_floor_s":300,"final":{"completed":300,"committed_reservations":300,"activation_debits":300,"active_reservations":0,"non_terminal":0,"integrity":[]},"t":"2026-10-18T14:11:07Z"}
+.                                                                   1 / 1 (100%)
+
+Time: 00:35.093, Memory: 14.00 MB
+
+Deadlock Study (Reseller\Tests\Lab\DeadlockStudy)
+ ✔ Deadlock refusals and what they leave behind
+
+OK (1 test, 18 assertions)

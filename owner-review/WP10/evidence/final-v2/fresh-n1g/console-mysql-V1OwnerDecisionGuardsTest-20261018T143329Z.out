@@ -1,0 +1,20 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/final-v2/fresh-n1g/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp10/V1OwnerDecisionGuardsTest.php
+start: 2026-10-18T14:33:29Z
+ Container nuxbill-reseller-test-php82-run-37be6016bde8 Creating 
+ Container nuxbill-reseller-test-php82-run-37be6016bde8 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+...                                                                 3 / 3 (100%)
+
+Time: 00:00.051, Memory: 10.00 MB
+
+V1Owner Decision Guards (Reseller\Tests\Unit\Wp10\V1OwnerDecisionGuards)
+ ✔ Admission release is only reachable from the operator cli
+ ✔ Billing code never reads usage or the overshoot
+ ✔ Nas secrets are never command line arguments
+
+OK (3 tests, 14 assertions)
+exit=0 end: 2026-10-18T14:33:31Z

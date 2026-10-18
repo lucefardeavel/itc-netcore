@@ -1,0 +1,16 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+{"case":"wave-summary","rounds":25,"ops":300,"wave_seconds_avg":1.09,"outcomes":{"OK:COMPLETED":299,"REFUSED:CONCURRENCY_RETRY":1},"refusals":1,"innodb_deadlocks":18,"refusal_rate_per_op":0.00333,"t":"2026-10-18T13:56:40Z"}
+{"case":"held-detail","config":{"innodb_buffer_pool_size":"134217728","innodb_deadlock_detect":"ON","innodb_lock_wait_timeout":"50","tx_isolation":"REPEATABLE-READ","version":"10.11.19-MariaDB-ubu2204"},"held":[{"customer":93,"reason":"CONCURRENCY_RETRY","user_message":"The financial operation could not complete because of concurrent activity; please try again.","activations":1,"reference":"ACT-A5DA409C0A585AE2","state":"FUNDS_RESERVED","reservations":["ACTIVE"],"service_rows":0,"ledger_entries":0,"timeline":"->CREATED | CREATED>VALIDATED | VALIDATED>FUNDS_RESERVED","customer_retry":"REFUSED:ACTIVATION_IN_PROGRESS","activations_after_retry":1,"active_reservations_after_retry":1}],"t":"2026-10-18T13:56:41Z"}
+{"case":"recovery","resumed":[{"ms":119,"status":"COMPLETED"}],"cancelled":[],"operator_wait_floor_s":300,"final":{"completed":300,"committed_reservations":300,"activation_debits":300,"active_reservations":0,"non_terminal":0,"integrity":[]},"t":"2026-10-18T13:56:41Z"}
+.                                                                   1 / 1 (100%)
+
+Time: 00:31.620, Memory: 14.00 MB
+
+Deadlock Study (Reseller\Tests\Lab\DeadlockStudy)
+ ✔ Deadlock refusals and what they leave behind
+
+OK (1 test, 30 assertions)
