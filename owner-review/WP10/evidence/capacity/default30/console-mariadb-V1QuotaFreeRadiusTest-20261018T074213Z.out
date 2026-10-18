@@ -1,0 +1,24 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/capacity/default30/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10/V1QuotaFreeRadiusTest.php
+start: 2026-10-18T07:42:13Z
+ Container nuxbill-reseller-test-php82-run-09a7cd1a22b2 Creating 
+ Container nuxbill-reseller-test-php82-run-09a7cd1a22b2 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.......                                                             7 / 7 (100%)
+
+Time: 00:32.693, Memory: 10.00 MB
+
+V1Quota Free Radius (Reseller\Tests\Integration\Wp10\V1QuotaFreeRadius)
+ ✔ In session limit is the remaining share
+ ✔ Gigawords and shared users
+ ✔ Exhausted and zero share are rejected
+ ✔ Stale interim never lowers usage and gigawords count
+ ✔ Q 1 cross period session stays in its own period
+ ✔ Session stamped just before the period start is counted in the new period
+ ✔ Duplicate wrap multi nas malformed and time quota
+
+OK (7 tests, 73 assertions)
+exit=0 end: 2026-10-18T07:42:47Z

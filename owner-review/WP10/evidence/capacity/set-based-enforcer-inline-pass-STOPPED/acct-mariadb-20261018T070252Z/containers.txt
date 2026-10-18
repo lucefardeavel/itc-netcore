@@ -1,0 +1,16 @@
+07:02:52 nuxbill-reseller-test-freeradius-mariadb-1 cpu=0.00% mem=57.21MiB / 47.05GiB
+07:02:52 nuxbill-reseller-test-mariadb-1 cpu=21.72% mem=536MiB / 47.05GiB
+07:02:59 nuxbill-reseller-test-freeradius-mariadb-1 cpu=0.45% mem=57.21MiB / 47.05GiB
+07:02:59 nuxbill-reseller-test-mariadb-1 cpu=28.34% mem=536MiB / 47.05GiB
+07:03:07 nuxbill-reseller-test-freeradius-mariadb-1 cpu=0.22% mem=57.21MiB / 47.05GiB
+07:03:07 nuxbill-reseller-test-mariadb-1 cpu=0.20% mem=536MiB / 47.05GiB
+07:03:14 nuxbill-reseller-test-freeradius-mariadb-1 cpu=2.47% mem=53.99MiB / 47.05GiB
+07:03:14 nuxbill-reseller-test-mariadb-1 cpu=2.20% mem=539.1MiB / 47.05GiB
+07:03:21 nuxbill-reseller-test-freeradius-mariadb-1 cpu=1.37% mem=54MiB / 47.05GiB
+07:03:21 nuxbill-reseller-test-mariadb-1 cpu=1.86% mem=539.1MiB / 47.05GiB
+07:03:28 nuxbill-reseller-test-freeradius-mariadb-1 cpu=1.07% mem=54MiB / 47.05GiB
+07:03:28 nuxbill-reseller-test-mariadb-1 cpu=4.43% mem=539.1MiB / 47.05GiB
+07:03:35 nuxbill-reseller-test-freeradius-mariadb-1 cpu=1.12% mem=54MiB / 47.05GiB
+07:03:35 nuxbill-reseller-test-mariadb-1 cpu=1.75% mem=539.1MiB / 47.05GiB
+07:03:42 nuxbill-reseller-test-freeradius-mariadb-1 cpu=1.11% mem=53.99MiB / 47.05GiB
+07:03:42 nuxbill-reseller-test-mariadb-1 cpu=9.30% mem=539.1MiB / 47.05GiB

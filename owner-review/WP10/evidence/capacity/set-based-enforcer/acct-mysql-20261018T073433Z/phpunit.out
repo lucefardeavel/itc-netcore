@@ -1,0 +1,19 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+{"case":"start","engine":"mysql","subs":[5000,7500],"interims":[60,30],"seconds":40,"slots":8,"max_rate":260,"t":"2026-10-18T07:35:02Z"}
+{"case":"acct-load","engine":"mysql","subscribers":5000,"interim_s":60,"target_rate_per_s":83.3,"requests":3333,"ok":3333,"lost":0,"loss":0,"achieved_rate_per_s":83.3,"seconds":40,"latency_ms":{"p50":9.3,"p95":74.7,"p99":166,"max":308.2},"enforcer_passes":8,"enforcer_pass_s":{"avg":0.304,"max":0.56},"enforcer_pass_every_s":5,"db":{"questions_per_s":176.9,"row_lock_waits":0,"row_lock_time_ms":0,"slow_queries":0,"aborted_connects":0,"threads_connected":10,"max_used_connections":17},"spot_check_updated":"14/20","t":"2026-10-18T07:36:26Z"}
+{"case":"acct-load","engine":"mysql","subscribers":5000,"interim_s":30,"target_rate_per_s":166.7,"requests":6667,"ok":6667,"lost":0,"loss":0,"achieved_rate_per_s":166.7,"seconds":40,"latency_ms":{"p50":7,"p95":58,"p99":141.3,"max":518.8},"enforcer_passes":8,"enforcer_pass_s":{"avg":0.283,"max":0.431},"enforcer_pass_every_s":5,"db":{"questions_per_s":343.5,"row_lock_waits":0,"row_lock_time_ms":0,"slow_queries":0,"aborted_connects":0,"threads_connected":10,"max_used_connections":17},"spot_check_updated":"20/20","t":"2026-10-18T07:37:49Z"}
+{"case":"acct-load","engine":"mysql","subscribers":7500,"interim_s":60,"target_rate_per_s":125,"requests":5000,"ok":5000,"lost":0,"loss":0,"achieved_rate_per_s":125,"seconds":40,"latency_ms":{"p50":5.6,"p95":78,"p99":200.8,"max":464.3},"enforcer_passes":8,"enforcer_pass_s":{"avg":0.41,"max":0.738},"enforcer_pass_every_s":5,"db":{"questions_per_s":264.7,"row_lock_waits":0,"row_lock_time_ms":0,"slow_queries":0,"aborted_connects":0,"threads_connected":9,"max_used_connections":17},"spot_check_updated":"14/20","t":"2026-10-18T07:39:32Z"}
+{"case":"acct-load","engine":"mysql","subscribers":7500,"interim_s":30,"target_rate_per_s":250,"requests":10000,"ok":10000,"lost":0,"loss":0,"achieved_rate_per_s":250,"seconds":40,"latency_ms":{"p50":6.3,"p95":45.1,"p99":95.9,"max":226.2},"enforcer_passes":8,"enforcer_pass_s":{"avg":0.378,"max":0.945},"enforcer_pass_every_s":5,"db":{"questions_per_s":514.9,"row_lock_waits":0,"row_lock_time_ms":0,"slow_queries":0,"aborted_connects":0,"threads_connected":10,"max_used_connections":17},"spot_check_updated":"20/20","t":"2026-10-18T07:41:15Z"}
+.                                                                   1 / 1 (100%)
+
+Time: 06:41.582, Memory: 10.00 MB
+
+Acct Load (Reseller\Tests\Lab\AcctLoad)
+ ✔ Bounded accounting load
+
+OK (1 test, 13 assertions)
+exit=0

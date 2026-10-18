@@ -20,7 +20,7 @@ require_once dirname(__DIR__, 2) . '/Support/Wp8Radius.php';
  *  - Q2: the Access-Accept of a data-quota subscriber carries the in-session limit the NAS enforces - the per-session
  *    share of the remaining period quota (remaining / Simultaneous-Use) as Mikrotik-Total-Limit (Hotspot) and
  *    Mikrotik-Recv-Limit / Mikrotik-Xmit-Limit (PPPoE: RouterOS enforces only these, per direction), each with its
- *    Gigawords part (> 4 GiB), and Acct-Interim-Interval = 60; a share of 0 (RouterOS: unlimited) is never sent:
+ *    Gigawords part (> 4 GiB), and Acct-Interim-Interval = 30; a share of 0 (RouterOS: unlimited) is never sent:
  *    the request is rejected; an exhausted quota is rejected;
  *  - accounting integrity: a stale Interim-Update (smaller counters, or after the Stop) never lowers the stored
  *    usage; 64-bit counters (Gigawords) are counted;
@@ -83,7 +83,7 @@ final class V1QuotaFreeRadiusTest extends TestCase
         $r = RadiusClient::access($u, 'Pw-1');
         $this->assertSame(RadiusPacket::ACCESS_ACCEPT, $r?->code);
         $this->assertSame([250_000_000, 250_000_000, 250_000_000], self::limits($r), 'fresh period: the whole quota / 4 sessions, every limit');
-        $this->assertSame(60, (int) $r->get('Acct-Interim-Interval'));
+        $this->assertSame(30, (int) $r->get('Acct-Interim-Interval'));
         $s = bin2hex(random_bytes(6));
         self::acct($u, 1, $s, [['Event-Timestamp', time() - 300]]);
         self::acct($u, 3, $s, [['Event-Timestamp', time() - 60], ['Acct-Session-Time', 240], ['Acct-Input-Octets', 100_000_000], ['Acct-Output-Octets', 300_000_000]]);

@@ -54,7 +54,7 @@ line rate).
 
 | Lever | Effect | Cost |
 |---|---|---|
-| `nuxr_quota_interim_seconds` (10 - 300, default 60): the `Acct-Interim-Interval` of a data-quota session | lowers I | one Interim-Update per online quota subscriber per interval (section 6) |
+| `nuxr_quota_interim_seconds` (10 - 300, default 30 since 2026-10-18; it was 60 when this analysis was written): the `Acct-Interim-Interval` of a data-quota session | lowers I | one Interim-Update per online quota subscriber per interval (section 6) |
 | Enforcer retry by outcome: a Disconnect with no answer / no Stop is retried after **15 s**, a NAK after 60 s | under a CoA fault the cut comes ~15 s after the path is back instead of up to 60 s | none |
 | One termination call per pass for every over-quota subscriber | the Stop wait (<= 6 s) is shared, not added per subscriber | none |
 | A NAS that stays silent is asked once per call (`COA_NAS_SKIPPED`, not claimed ended) | a NAS outage cannot stretch a pass to minutes | none |
@@ -134,7 +134,7 @@ The percentage is a property of *quota size versus line rate*, not of the mechan
    requires a hard total for PPPoE.
 2. Set `nuxr_quota_interim_seconds` = **30** and the enforcer pass `--every=5` on installations with up to ~2 000 simultaneously
    online quota subscribers (67 Interim-Update/s); keep 60 above that unless the database sizing test (TA-09) shows headroom.
-   The shipped default stays 60 s (no behaviour change without the owner's decision).
+   The shipped default was 60 s when this was written; the owner approved 30 s on 2026-10-18 and it is now the default (E-N1-3).
 3. Customer-facing wording: *"Data quota is enforced by the network equipment and checked continuously; usage can exceed the quota by a
    few seconds of line speed"*. Never "exactly X GB". Choose the plan-level policy for the overshoot (G or counted in the period).
 4. Do **not** approve a percentage; if a figure is required, state it per plan as seconds of line rate (I + P + c), which is what the

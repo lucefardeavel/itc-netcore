@@ -64,7 +64,7 @@ final class V1VoucherQuotaTest extends RadiusHttpTestCase
         $boundary = (int) ($check['Nuxr-Period-Start'] ?? 0);
         $this->assertGreaterThanOrEqual($before - 10 - 2, $boundary, 'the period start minus the NAS clock allowance (10 s)');
         $this->assertLessThanOrEqual(time() - 10 + 2, $boundary);
-        $this->assertSame('60', $this->rows('radreply', $code)['Acct-Interim-Interval'] ?? null, 'a data quota asks for 60 s interim accounting');
+        $this->assertSame('30', $this->rows('radreply', $code)['Acct-Interim-Interval'] ?? null, 'a data quota asks for 30 s interim accounting');
         $this->assertArrayNotHasKey('Max-All-Session', $check, 'a data-only plan has no time quota');
     }
 

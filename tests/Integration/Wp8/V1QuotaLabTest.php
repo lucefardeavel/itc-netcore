@@ -89,7 +89,7 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         $cust = $this->labCustomer($h['C'], $h['sales'], 'Q-hs-pass', 'Hotspot');
         $user = $this->username($cust);
         $this->assertSame('COMPLETED', $this->activate($h['sales'], $cust, $plan, 'NEW')['status']);
-        $this->assertSame(['4000000', '60'], [$this->policy($user)['check']['Max-Data'] ?? null, $this->policy($user)['reply']['Acct-Interim-Interval'] ?? null]);
+        $this->assertSame(['4000000', (string) QuotaPolicy::INTERIM_SECONDS], [$this->policy($user)['check']['Max-Data'] ?? null, $this->policy($user)['reply']['Acct-Interim-Interval'] ?? null]);
 
         // session 1: share = 4 MB / 2 shared users
         $this->assertTrue($this->hsUp('c2', $user, 'Q-hs-pass')['ok']);
@@ -170,7 +170,7 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         $user = $this->username($cust);
         $this->assertSame('COMPLETED', $this->activate($h['sales'], $cust, $plan, 'NEW')['status']);
         $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Q-mx-pass'])['ok']);
-        $this->assertSame('60', self::lastReply($user)['attrs']['Acct-Interim-Interval'] ?? null);
+        $this->assertSame((string) QuotaPolicy::INTERIM_SECONDS, self::lastReply($user)['attrs']['Acct-Interim-Interval'] ?? null);
         $job = Wp8Lab::agentStart('traffic_mixed', ['client' => 'c1', 'seconds' => 110, 'kbps_up' => 800, 'kbps_down' => 800]);
         $enf = new QuotaEnforcer(static::labRadius());
         $t0 = microtime(true);

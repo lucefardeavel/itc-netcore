@@ -74,7 +74,7 @@ retransmissions, reconnects, several sessions of one subscriber.
 
 | Setting | Provisional | Notes |
 |---|---|---|
-| `nuxr_quota_interim_seconds` | 30 | shipped default is 60 until the capacity result below confirms 30; the setting is read when a session is admitted, a running session keeps its interval |
+| `nuxr_quota_interim_seconds` | 30 | **the shipped default** (changed from 60 on 2026-10-18 after the lab capacity result); read when a session is admitted, a running session keeps its interval; TA-05 / TA-09 confirm it on the target |
 | `quota.php enforce --loop=55 --every=5` | 5 s | cron every minute; one enforcer at a time |
 
 The capacity measurements decide whether 30 s / 5 s is safe at the planned number of simultaneously online quota subscribers

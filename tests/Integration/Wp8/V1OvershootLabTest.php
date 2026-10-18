@@ -52,6 +52,7 @@ final class V1OvershootLabTest extends Wp8ActivationLabCase
             unset($GLOBALS['config']['nuxr_quota_interim_seconds']);
         }
         $this->assertSame((string) $interim, self::lastReply($user)['attrs']['Acct-Interim-Interval'] ?? (string) ($this->policy($user)['reply']['Acct-Interim-Interval'] ?? ''), 'the interim of this run is in the policy');
+        $ledgerBefore = [(int) static::$db->value('SELECT COUNT(*) FROM tbl_manager_ledger'), static::$db->rows('SELECT * FROM tbl_manager_wallets ORDER BY manager_id')];
         $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'N1-pass'])['ok']);
         $quota = $mb * 1_000_000;
         $seconds = 150;
@@ -92,11 +93,19 @@ final class V1OvershootLabTest extends Wp8ActivationLabCase
         $rate = $used / $dur;
         $tCross = $quota / $rate;
         $latency = $dur - $tCross;
+        // Option G on the real NAS: the overshoot is reported (actual > quota), the plan covers the quota only, and it cost nothing
+        $g = (new \Reseller\Radius\QuotaUsage(static::labRadius()))->current($user)[0] ?? [];
+        $this->assertSame((string) $quota, $g['limit'] ?? null);
+        $this->assertSame((string) $used, $g['actual'] ?? null, 'actual = the raw accounting of the period');
+        $this->assertSame((string) min($used, $quota), $g['billable'] ?? null, 'billable = min(actual, quota)');
+        $this->assertSame((string) max(0, $used - $quota), $g['overshoot'] ?? null);
+        $this->assertSame($ledgerBefore[0], (int) static::$db->value('SELECT COUNT(*) FROM tbl_manager_ledger'), 'the overshoot created no ledger entry');
+        $this->assertSame($ledgerBefore[1], static::$db->rows('SELECT * FROM tbl_manager_wallets ORDER BY manager_id'), 'and moved no wallet');
         return ['interim' => $interim, 'pass_every' => $every, 'kbps_per_direction' => $kbps, 'quota' => $quota, 'used' => $used, 'overshoot' => $used - $quota,
             'rate_bytes_per_s' => (int) $rate, 't_cross_s' => round($tCross, 1), 't_stop_s' => $dur, 'latency_s' => round($latency, 1),
             'first_record_over_quota_at_s' => $firstSeen, 'enforcer_acted_at_s' => $acted['at'] ?? null, 'confirmed_at_s' => $done['at'] ?? null, 'disconnect_attempts' => $attempts, 'attempt_log' => $log,
             'ended' => ($done ?? $acted)['ended'] ?? [],
-            'model_latency_bound_s' => $interim + $every + self::CUT, 'cause' => $s['acctterminatecause'], 'traffic' => $traffic];
+            'option_g' => $g, 'model_latency_bound_s' => $interim + $every + self::CUT, 'cause' => $s['acctterminatecause'], 'traffic' => $traffic];
     }
 
     private function stopped(string $user): array

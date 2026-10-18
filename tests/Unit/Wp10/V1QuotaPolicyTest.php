@@ -11,7 +11,7 @@ use Reseller\Radius\RadiusPolicyBuilder;
 /**
  * V1 quota contract (owner QUOTA_V1_GB_SUPPORT_APPROVED), policy level:
  *  - PPPoE plans support the same Limited quotas as Hotspot plans (time, data in MB / GB, both);
- *  - a data quota asks the NAS for 60 s interim accounting (the enforcer's input);
+ *  - a data quota asks the NAS for 30 s interim accounting (the enforcer's input);
  *  - Unlimited plans carry no quota attribute;
  *  - a Limited plan with a zero, negative or non-numeric limit is refused (fail closed: never sold as unlimited,
  *    never provisioned as a 0 quota).
@@ -35,7 +35,7 @@ final class V1QuotaPolicyTest extends TestCase
         $this->assertSame('50000000000', $gb->checkMap()['Max-Data'], 'PPPoE GB plan: 50 GB (decimal) per period');
         $this->assertSame((string) (1790000000 - QuotaPolicy::PERIOD_SKEW_SECONDS), $gb->checkMap()['Nuxr-Period-Start'], 'period start minus the NAS clock allowance');
         $this->assertSame('1', $gb->checkMap()['Simultaneous-Use']);
-        $this->assertSame('60', $gb->replyMap()['Acct-Interim-Interval'], 'data quota: 60 s interim accounting');
+        $this->assertSame('30', $gb->replyMap()['Acct-Interim-Interval'], 'data quota: 30 s interim accounting (N1 = A + G)');
         $this->assertSame('5M/20M', $gb->replyMap()['Mikrotik-Rate-Limit']);
 
         $time = RadiusPolicyBuilder::build(self::CUST, self::plan('PPPOE', ['limit_type' => 'Time_Limit', 'time_limit' => 10, 'time_unit' => 'Hrs']), self::BW, $expiry, $start);
@@ -45,7 +45,7 @@ final class V1QuotaPolicyTest extends TestCase
 
         $both = RadiusPolicyBuilder::build(self::CUST, self::plan('PPPOE', ['limit_type' => 'Both_Limit', 'time_limit' => 90, 'time_unit' => 'Mins', 'data_limit' => 500, 'data_unit' => 'MB']), self::BW, $expiry, $start);
         $this->assertSame(['5400', '500000000'], [$both->checkMap()['Max-All-Session'], $both->checkMap()['Max-Data']], 'composite: time + data + speed + validity');
-        $this->assertSame('60', $both->replyMap()['Acct-Interim-Interval']);
+        $this->assertSame('30', $both->replyMap()['Acct-Interim-Interval']);
     }
 
     /**
@@ -93,15 +93,15 @@ final class V1QuotaPolicyTest extends TestCase
         $this->assertContains('Nuxr-Period-Acct-Id', \Reseller\Radius\RadiusPolicy::MANAGED_CHECK, 'managed: replaced and removed with the rest of the policy');
     }
 
-    /** N1: the interim interval (the enforcer's input) is configurable within 10 - 300 s; anything else keeps the default 60 s */
+    /** N1: the interim interval (the enforcer's input) is configurable within 10 - 300 s; anything else keeps the default 30 s */
     public function testInterimIntervalIsConfigurableWithinBounds(): void
     {
         $plan = self::plan('PPPOE', ['limit_type' => 'Data_Limit', 'data_limit' => 5, 'data_unit' => 'GB']);
         $interim = static fn(): string => RadiusPolicyBuilder::build(self::CUST, $plan, self::BW, null, null)->replyMap()['Acct-Interim-Interval'];
         try {
             unset($GLOBALS['config']['nuxr_quota_interim_seconds']);
-            $this->assertSame('60', $interim(), 'default');
-            foreach ([['30', '30'], [15, '15'], ['10', '10'], ['300', '300'], [9, '60'], [301, '60'], ['x', '60'], ['', '60'], [-5, '60'], ['30.5', '60']] as [$configured, $expected]) {
+            $this->assertSame('30', $interim(), 'default');
+            foreach ([['60', '60'], [15, '15'], ['10', '10'], ['300', '300'], [9, '30'], [301, '30'], ['x', '30'], ['', '30'], [-5, '30'], ['30.5', '30']] as [$configured, $expected]) {
                 $GLOBALS['config']['nuxr_quota_interim_seconds'] = $configured;
                 $this->assertSame($expected, $interim(), 'configured ' . var_export($configured, true));
             }
@@ -114,7 +114,7 @@ final class V1QuotaPolicyTest extends TestCase
     {
         $p = RadiusPolicyBuilder::build(self::CUST, self::plan('Hotspot', ['limit_type' => 'Data_Limit', 'data_limit' => 2, 'data_unit' => 'GB', 'shared_users' => 2]), self::BW, null, new \DateTimeImmutable('@1790000000'));
         $this->assertSame('2000000000', $p->checkMap()['Max-Data']);
-        $this->assertSame('60', $p->replyMap()['Acct-Interim-Interval']);
+        $this->assertSame('30', $p->replyMap()['Acct-Interim-Interval']);
         $this->assertSame('2', $p->checkMap()['Simultaneous-Use']);
     }
 

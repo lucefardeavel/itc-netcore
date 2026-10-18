@@ -16,14 +16,18 @@ final class QuotaPolicy
 {
     public const LIMIT_TYPES = ['Time_Limit', 'Data_Limit', 'Both_Limit'];
 
-    /** default interim accounting requested from the NAS for a data-quota session (input of the accounting enforcer) */
-    public const INTERIM_SECONDS = 60;
+    /**
+     * default interim accounting requested from the NAS for a data-quota session (input of the accounting enforcer). 30 s: the owner's N1 = A + G
+     * setting (2026-10-18), confirmed by the accounting-load measurement (owner-review/WP10/CAPACITY_AND_ACCOUNTING_LOAD.md): one UPDATE per online
+     * quota subscriber per 30 s, zero loss up to 7500 subscribers (250 updates/s) in the lab. Target hardware is sized in TA-09.
+     */
+    public const INTERIM_SECONDS = 30;
     public const INTERIM_MIN = 10;
     public const INTERIM_MAX = 300;
 
     /**
      * N1: the interim interval of a data-quota session in seconds - the setting `nuxr_quota_interim_seconds` (10 - 300) or the
-     * default 60. A shorter interval lowers the overshoot bound (detection latency = interval + enforcer pass + Disconnect) and
+     * default 30. A shorter interval lowers the overshoot bound (detection latency = interval + enforcer pass + Disconnect) and
      * raises the accounting write rate (one Interim-Update per online quota subscriber per interval). Applies to sessions
      * that authenticate after the policy was written; a running session keeps its interval.
      */

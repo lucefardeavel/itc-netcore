@@ -475,7 +475,7 @@ FreeRADIUS 3.2.8 (`dev/wp8/quota_gate.py`; `owner-review/WP10/V1_QUOTA_RENEWAL_P
 **At every authentication** (`authorize`, after the period counters), when `Max-Data` is set, FreeRADIUS replies the
 session's share of the remaining quota, `share = floor((Max-Data - period usage) / Simultaneous-Use)`, as
 `Mikrotik-Total-Limit`, `Mikrotik-Recv-Limit` and `Mikrotik-Xmit-Limit` (each with its Gigawords part), and PHPNuxBill
-adds `Acct-Interim-Interval` (default 60 s; the setting `nuxr_quota_interim_seconds` in `config.php`, 10 - 300, shortens it for sessions that authenticate afterwards, at the price of one accounting UPDATE per online quota subscriber per interval). The time quota becomes `Session-Timeout` (the remaining time; the counter module).
+adds `Acct-Interim-Interval` (default 30 s - the owner's N1 = A + G setting; `nuxr_quota_interim_seconds` in `config.php`, 10 - 300, changes it for sessions that authenticate afterwards, at the price of one accounting UPDATE per online quota subscriber per interval). The time quota becomes `Session-Timeout` (the remaining time; the counter module).
 - Hotspot: the session is cut by the router at its share: a hard cap per session, but **not byte-exact** (the NAS cuts on its own
   timer; measured on CHR 7.24.5 the recorded usage ended 0.3 % - 4.4 % past the share at ~1 Mbps, i.e. 0.2 - 0.7 s of line rate).
 - PPPoE: each direction is cut at the share (= the whole remaining quota; PPPoE has Simultaneous-Use 1). Traffic in

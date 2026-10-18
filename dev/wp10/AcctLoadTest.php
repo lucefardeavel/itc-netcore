@@ -10,7 +10,6 @@ namespace Reseller\Tests\Lab;
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
 use PHPUnit\Framework\TestCase;
-use Reseller\Radius\QuotaEnforcer;
 use Reseller\Radius\RadiusPacket;
 use Reseller\Tests\Support\FixtureBuilder;
 use Reseller\Tests\Support\RadiusClient;
@@ -65,7 +64,7 @@ final class AcctLoadTest extends TestCase
      * Sends $total accounting requests built by $make(i) at $rate / s with at most SLOTS in flight.
      *
      * @param \Closure(int):array $make attribute list of request i
-     * @param (\Closure():void)|null $tick called about every 100 ms (the enforcer passes)
+     * @param (\Closure():void)|null $tick called about every 100 ms (unused by the windows: the enforcer is a separate process)
      * @return array{sent:int,ok:int,lost:int,lat:list<float>,seconds:float}
      */
     private static function pace(int $total, float $rate, \Closure $make, ?\Closure $tick = null): array
@@ -185,18 +184,9 @@ final class AcctLoadTest extends TestCase
         $rate = $subs / $interim;
         $total = (int) round($rate * $seconds);
         $before = self::dbStatus();
-        $enforcer = new QuotaEnforcer(self::$pdo, static fn(array $sessions): array => []);
-        $pass = [];
-        $nextPass = microtime(true);
-        $tick = static function () use (&$pass, &$nextPass, $enforcer, $passEvery): void {
-            if (microtime(true) >= $nextPass) {
-                $t = microtime(true);
-                $enforcer->pass();
-                $pass[] = microtime(true) - $t;
-                $nextPass = microtime(true) + $passEvery;
-            }
-        };
-        $n = 0;
+        // the enforcer runs as its own process (as in production), so its scans compete with the accounting writes for the database
+        $passFile = tempnam(sys_get_temp_dir(), 'enf');
+        $worker = proc_open([PHP_BINARY, __DIR__ . '/acct_enforcer_worker.php', (string) ($seconds + 3), (string) $passEvery, $passFile], [1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
         $res = self::pace($total, $rate, static function (int $i) use ($subs, $interim, $sid): array {
             $u = $i % $subs;
             $round = intdiv($i, $subs) + 1;
@@ -204,8 +194,12 @@ final class AcctLoadTest extends TestCase
             return [['Acct-Status-Type', 3], ['User-Name', self::user($u)], ['Acct-Session-Id', $sid($u)], ['NAS-Port', 1000 + $u],
                 ['Framed-IP-Address', '10.50.' . intdiv($u, 250) % 250 . '.' . (2 + $u % 250)], ['Acct-Session-Time', $time], ['Acct-Input-Octets', $time * 10_000],
                 ['Acct-Output-Octets', $time * 90_000], ['Event-Timestamp', time()]];
-        }, $tick);
+        });
         $after = self::dbStatus();
+        proc_terminate($worker);
+        proc_close($worker);
+        $pass = array_map(static fn(string $l): float => (float) (json_decode($l, true)['pass_s'] ?? 0), array_filter(explode("\n", (string) file_get_contents($passFile))));
+        @unlink($passFile);
         $delta = static fn(string $k): int => (int) $after[$k] - (int) $before[$k];
         $row = [
             'case' => 'acct-load', 'engine' => (string) getenv('WP1_DB_HOST'), 'subscribers' => $subs, 'interim_s' => $interim, 'target_rate_per_s' => round($rate, 1),
