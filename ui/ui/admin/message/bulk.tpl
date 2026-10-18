@@ -142,6 +142,12 @@
         responsive: true
     });
 
+    function nuxrEsc(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, function (ch) {
+            return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+        });
+    }
+
     function sendBatch() {
         if (!hasMore) return;
 
@@ -182,14 +188,16 @@
                     `);
 
                     (response.batchStatus || []).forEach(msg => {
-                        let statusClass = msg.status.includes('Failed') ? 'danger' : 'success';
+                        let statusClass = String(msg.status).includes('Failed') ? 'danger' : 'success';
+                        // DataTables renders a cell string as HTML: every value that came from a customer record or the
+                        // sending gateway (names, phone, message text, gateway status) is escaped first
                         historyTable.row.add([
-                            msg.name,
-                            msg.phone,
-                            `<span class="text-${statusClass}">${msg.status}</span>`,
-                            msg.message || 'No message',
-                            msg.router ? msg.router : 'All Router', 
-                            msg.service == 'all' ? 'All Service' : (msg.service || 'No Service')
+                            nuxrEsc(msg.name),
+                            nuxrEsc(msg.phone),
+                            `<span class="text-${statusClass}">${nuxrEsc(msg.status)}</span>`,
+                            nuxrEsc(msg.message || 'No message'),
+                            nuxrEsc(msg.router ? msg.router : 'All Router'),
+                            nuxrEsc(msg.service == 'all' ? 'All Service' : (msg.service || 'No Service'))
                         ]).draw(false); // Add row without redrawing the table
                     });
 

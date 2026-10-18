@@ -1,0 +1,1069 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/d8/run1/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Http/W9RedTeamHttpTest.php
+start: 2026-10-18T06:29:25Z
+ Container nuxbill-reseller-test-php82-run-d830731a1089 Creating 
+ Container nuxbill-reseller-test-php82-run-d830731a1089 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..........F                                                       11 / 11 (100%)
+
+Time: 00:15.800, Memory: 10.00 MB
+
+W9Red Team Http (Reseller\Tests\Http\W9RedTeamHttp)
+ ✔ R 1 foreign id answers exactly like a nonexistent one
+ ✔ R 2 unassigned legacy customer is unreachable for resellers
+ ✔ R 4 malformed and foreign ids are refused without change
+ ✔ R 5 privilege escalation through staff edit is refused
+ ✔ R 6 forged money fields are ignored
+ ✔ R 8 idempotency conflicts and user scoped nonces
+ ✔ R 9 hierarchy move by agent is refused on web and api
+ ✔ N 10 api never returns configuration secrets
+ ✔ R 13 legacy recharge with junk ids writes nothing
+ ✔ R f c 1 voucher codes in methods are not visible to reseller staff
+ ✘ D 8 voucher codes are masked where the full code is not needed
+   │
+   │ reports/by-date: the full code is not rendered
+   │ Failed asserting that '<!DOCTYPE html>\n
+   │ <html lang="en" dir="ltr">\n
+   │ \n
+   │ <head>\n
+   │     <meta charset="utf-8">\n
+   │     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n
+   │     <title>Reports - PHPNuxBill</title>\n
+   │     <link rel="shortcut icon" href="http://127.0.0.1:25442/ui/ui/images/logo.png" type="image/x-icon" />\n
+   │         <link rel="manifest" href="http://127.0.0.1:25442/?_route=pwa/manifest">\n
+   │     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">\n
+   │     <meta name="theme-color" content="#1a202b" media="(prefers-color-scheme: dark)">\n
+   │     <link rel="apple-touch-icon" href="http://127.0.0.1:25442/ui/ui/images/pwa/icon-180.png">\n
+   │ \n
+   │     <script>\n
+   │         var appUrl = 'http://127.0.0.1:25442';\n
+   │     </script>\n
+   │ \n
+   │     <link rel="stylesheet" href="http://127.0.0.1:25442/ui/ui/styles/bootstrap.min.css">\n
+   │     <link rel="stylesheet" href="http://127.0.0.1:25442/ui/ui/fonts/ionicons/css/ionicons.min.css">\n
+   │     <link rel="stylesheet" href="http://127.0.0.1:25442/ui/ui/fonts/font-awesome/css/font-awesome.min.css">\n
+   │     <link rel="stylesheet" href="http://127.0.0.1:25442/ui/ui/styles/modern-AdminLTE.min.css">\n
+   │     <link rel="stylesheet" href="http://127.0.0.1:25442/ui/ui/styles/select2.min.css" />\n
+   │     <link rel="stylesheet" href="http://127.0.0.1:25442/ui/ui/styles/select2-bootstrap.min.css" />\n
+   │     <link rel="stylesheet" href="http://127.0.0.1:25442/ui/ui/styles/sweetalert2.min.css" />\n
+   │     <link rel="stylesheet" href="http://127.0.0.1:25442/ui/ui/styles/plugins/pace.css" />\n
+   │             <link rel="stylesheet" href="http://127.0.0.1:25442/ui/ui/styles/phpnuxbill.css?2025.2.4" />\n
+   │     <link rel="stylesheet" href="http://127.0.0.1:25442/ui/ui/styles/nuxr-shell.css?wp7.1" />\n
+   │     \n
+   │     <script src="http://127.0.0.1:25442/ui/ui/scripts/sweetalert2.all.min.js"></script>\n
+   │                     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js" integrity="sha384-zVyRZ9eQ45iRS7ZRZQSFKGJpypyxssU6clBCysSqzjmdGWNn8//uC8dh9DabpAbK" crossorigin="anonymous"></script>\n
+   │         \n
+   │ </head>\n
+   │ \n
+   │ <body class="hold-transition nuxr-shell">\n
+   │     <a class="nuxr-skip" href="#nuxr-main">Skip to content</a>\n
+   │     <div class="wrapper">\n
+   │         <header class="nuxr-topbar" role="banner">\n
+   │                                     <a href="http://127.0.0.1:25442/?_route=dashboard" class="nuxr-brand" aria-label="Home">\n
+   │                 <span class="nuxr-brand-mark" aria-hidden="true">P</span>\n
+   │                 <span class="nuxr-brand-name">PHPNuxBill</span>\n
+   │             </a>\n
+   │             <span class="nuxr-topbar-title" aria-hidden="true">Reports</span>\n
+   │                             <form class="nuxr-search" role="search" method="get" action="http://127.0.0.1:25442/" data-nuxr-search="http://127.0.0.1:25442/?_route=search_user">\n
+   │                     <input type="hidden" name="_route" value="customers/list">\n
+   │                     <label class="sr-only" for="nuxr-search-input">Search subscribers</label>\n
+   │                     <i class="fa fa-search" aria-hidden="true"></i>\n
+   │                     <input id="nuxr-search-input" class="nuxr-search-input" type="search" name="search" autocomplete="off" minlength="2" maxlength="64"\n
+   │                         placeholder="Name, username, phone, PPPoE, IP or #ID" role="combobox" aria-expanded="false"\n
+   │                         aria-controls="nuxr-search-results" aria-autocomplete="list">\n
+   │                     <kbd class="nuxr-kbd" aria-hidden="true">/</kbd>\n
+   │                     <div id="nuxr-search-results" class="nuxr-search-results" role="listbox" aria-label="Search results" hidden></div>\n
+   │                 </form>\n
+   │                 <button type="button" class="nuxr-icon-btn nuxr-search-open" data-nuxr-open="nuxr-search-sheet" aria-label="Search subscribers">\n
+   │                     <i class="fa fa-search" aria-hidden="true"></i>\n
+   │                 </button>\n
+   │                         <details class="nuxr-menu nuxr-user">\n
+   │                 <summary class="nuxr-icon-btn" aria-label="Account menu">\n
+   │                     <span class="nuxr-avatar nuxr-avatar-initial" aria-hidden="true">S</span>\n
+   │                     <span class="nuxr-user-name">Staff ad</span>\n
+   │                 </summary>\n
+   │                 <div class="nuxr-menu-panel">\n
+   │                     <div class="nuxr-menu-head"><strong>Staff ad</strong><small>Admin</small></div>\n
+   │                     <a href="http://127.0.0.1:25442/?_route=settings/users-view/3"><i class="fa fa-user" aria-hidden="true"></i> My Account</a>\n
+   │                     <a href="http://127.0.0.1:25442/?_route=settings/change-password"><i class="fa fa-key" aria-hidden="true"></i> Change Password</a>\n
+   │                     <button type="button" data-nuxr-lang="arabic"><i class="fa fa-language" aria-hidden="true"></i>\n
+   │                         العربية</button>\n
+   │                     <button type="button" data-nuxr-theme><i class="fa fa-adjust" aria-hidden="true"></i> Light / dark theme</button>\n
+   │                                         <button type="button" data-nuxr-install hidden><i class="fa fa-download" aria-hidden="true"></i> Install app</button>\n
+   │                     <a href="http://127.0.0.1:25442/?_route=logout" class="nuxr-menu-logout"><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>\n
+   │                 </div>\n
+   │             </details>\n
+   │         </header>\n
+   │ \n
+   │                     <aside class="nuxr-sidebar" aria-label="Main navigation">\n
+   │                 <nav>\n
+   │                     <ul class="nuxr-nav">\n
+   │                         <li><a href="http://127.0.0.1:25442/?_route=dashboard" class="nuxr-nav-link">\n
+   │                 <i class="fa fa-home fa-fw" aria-hidden="true"></i><span>Dashboard</span></a></li>\n
+   │                                                                 <li><a href="http://127.0.0.1:25442/?_route=plugin/wp2probe_admin_page"><span class="text">WP2 Probe Admin</span></a></li><li><a href="http://127.0.0.1:25442/?_route=plugin/wp2probe_default_page"><span class="text">WP2 Probe Default</span></a></li><li><a href="http://127.0.0.1:25442/?_route=plugin/wp2probe_fail_pdo"><span class="text">WP2 Fail PDO</span></a></li><li><a href="http://127.0.0.1:25442/?_route=plugin/wp2probe_fail_type"><span class="text">WP2 Fail Type</span></a></li>\n
+   │ </ul>\n
+   │     <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-users fa-fw" aria-hidden="true"></i><span>Subscribers</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=customers/list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-list fa-fw" aria-hidden="true"></i><span>All subscribers</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=activation/list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-bolt fa-fw" aria-hidden="true"></i><span>Activations</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=customers/add" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-user-plus fa-fw" aria-hidden="true"></i><span>Add subscriber</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=plan/list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-signal fa-fw" aria-hidden="true"></i><span>Active Customers</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-credit-card fa-fw" aria-hidden="true"></i><span>Finance</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/overview" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-credit-card fa-fw" aria-hidden="true"></i><span>Wallet overview</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/wallets" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-list fa-fw" aria-hidden="true"></i><span>Wallets</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/transfers" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-exchange fa-fw" aria-hidden="true"></i><span>Transfers</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-sitemap fa-fw" aria-hidden="true"></i><span>Resellers</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=reseller/tree" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-sitemap fa-fw" aria-hidden="true"></i><span>Reseller Tree</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-tags fa-fw" aria-hidden="true"></i><span>Pricing</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pricing/plans" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-tags fa-fw" aria-hidden="true"></i><span>Plans and prices</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-stethoscope fa-fw" aria-hidden="true"></i><span>Operations</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=operations/overview" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-stethoscope fa-fw" aria-hidden="true"></i><span>Operations Center</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-ticket fa-fw" aria-hidden="true"></i><span>Services</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=plan/refill" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-credit-card fa-fw" aria-hidden="true"></i><span>Refill Customer</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=plan/voucher" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-ticket fa-fw" aria-hidden="true"></i><span>Vouchers</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=plan/recharge" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-refresh fa-fw" aria-hidden="true"></i><span>Recharge Customer</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-cube fa-fw" aria-hidden="true"></i><span>Internet Plan</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=services/hotspot" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-wifi fa-fw" aria-hidden="true"></i><span>Hotspot</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=services/pppoe" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-plug fa-fw" aria-hidden="true"></i><span>PPPOE</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=services/vpn" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-lock fa-fw" aria-hidden="true"></i><span>VPN</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=bandwidth/list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-tachometer fa-fw" aria-hidden="true"></i><span>Bandwidth</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-map-marker fa-fw" aria-hidden="true"></i><span>Maps</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=maps/customer" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-user fa-fw" aria-hidden="true"></i><span>Customer</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=maps/routers" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-server fa-fw" aria-hidden="true"></i><span>Routers</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=maps/odp" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-sitemap fa-fw" aria-hidden="true"></i><span>ODPs</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-bar-chart fa-fw" aria-hidden="true"></i><span>Reports</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/sales" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-line-chart fa-fw" aria-hidden="true"></i><span>Sales</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/commissions" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-percent fa-fw" aria-hidden="true"></i><span>Commissions</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/settlement" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-balance-scale fa-fw" aria-hidden="true"></i><span>Provider settlement</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/performance" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-trophy fa-fw" aria-hidden="true"></i><span>Reseller performance</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=reports" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-calendar fa-fw" aria-hidden="true"></i><span>Transactions (legacy)</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=reports/activation" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-history fa-fw" aria-hidden="true"></i><span>Activation History (legacy)</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-comments fa-fw" aria-hidden="true"></i><span>Send Message</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=message/send" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-comment fa-fw" aria-hidden="true"></i><span>Single Customer</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=message/send_bulk" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-bullhorn fa-fw" aria-hidden="true"></i><span>Bulk Customers</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-sitemap fa-fw" aria-hidden="true"></i><span>Network</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=routers" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-server fa-fw" aria-hidden="true"></i><span>Routers</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pool/list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-database fa-fw" aria-hidden="true"></i><span>IP Pool</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pool/port" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-random fa-fw" aria-hidden="true"></i><span>Port Pool</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=odp" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-share-alt fa-fw" aria-hidden="true"></i><span>ODP List</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=radius/nas-list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-database fa-fw" aria-hidden="true"></i><span>Radius NAS</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-file-text-o fa-fw" aria-hidden="true"></i><span>Static Pages</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Order_Voucher" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Order Voucher</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Voucher" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Theme Voucher</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Announcement" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Announcement</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Announcement_Customer" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Customer Announcement</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Registration_Info" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Registration Info</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Payment_Info" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Payment Info</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Privacy_Policy" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Privacy Policy</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Terms_and_Conditions" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Terms and Conditions</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-cog fa-fw" aria-hidden="true"></i><span>Settings</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/app" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-sliders fa-fw" aria-hidden="true"></i><span>General Settings</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/localisation" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-globe fa-fw" aria-hidden="true"></i><span>Localisation</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=customfield" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-list-alt fa-fw" aria-hidden="true"></i><span>Custom Fields</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/miscellaneous" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-wrench fa-fw" aria-hidden="true"></i><span>Miscellaneous</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/maintenance" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-exclamation-triangle fa-fw" aria-hidden="true"></i><span>Maintenance Mode</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=widgets" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-th-large fa-fw" aria-hidden="true"></i><span>Widgets</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/notifications" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-bell fa-fw" aria-hidden="true"></i><span>User Notification</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/devices" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-mobile fa-fw" aria-hidden="true"></i><span>Devices</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/users" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-user-secret fa-fw" aria-hidden="true"></i><span>Administrator Users</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/dbstatus" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-hdd-o fa-fw" aria-hidden="true"></i><span>Backup/Restore</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=paymentgateway" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-credit-card fa-fw" aria-hidden="true"></i><span>Payment Gateway</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pluginmanager" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-puzzle-piece fa-fw" aria-hidden="true"></i><span>Plugin Manager</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-clock-o fa-fw" aria-hidden="true"></i><span>Logs</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=logs/phpnuxbill" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-text fa-fw" aria-hidden="true"></i><span>PhpNuxBill</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=logs/radius" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-text fa-fw" aria-hidden="true"></i><span>Radius</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=logs/message" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-text fa-fw" aria-hidden="true"></i><span>Message</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group">\n
+   │         <summary><i class="fa fa-question-circle fa-fw" aria-hidden="true"></i><span>Help</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/docs" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-book fa-fw" aria-hidden="true"></i><span>Documentation</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=community" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-comments-o fa-fw" aria-hidden="true"></i><span>Community</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │                     </nav>\n
+   │             </aside>\n
+   │             <nav class="nuxr-rail" aria-label="Primary navigation">\n
+   │                 <ul class="nuxr-primary">\n
+   │             <li>\n
+   │                             <a href="http://127.0.0.1:25442/?_route=dashboard" class="nuxr-primary-item">\n
+   │                     <i class="fa fa-home" aria-hidden="true"></i><span>Home</span>\n
+   │                 </a>\n
+   │                     </li>\n
+   │             <li>\n
+   │                             <a href="http://127.0.0.1:25442/?_route=customers/list" class="nuxr-primary-item">\n
+   │                     <i class="fa fa-users" aria-hidden="true"></i><span>Customers</span>\n
+   │                 </a>\n
+   │                     </li>\n
+   │             <li>\n
+   │                             <button type="button" class="nuxr-primary-item nuxr-primary-quick" data-nuxr-open="nuxr-quick-sheet" aria-haspopup="dialog">\n
+   │                     <i class="fa fa-plus" aria-hidden="true"></i><span>New</span>\n
+   │                 </button>\n
+   │                     </li>\n
+   │             <li>\n
+   │                             <a href="http://127.0.0.1:25442/?_route=activation/list" class="nuxr-primary-item">\n
+   │                     <i class="fa fa-bolt" aria-hidden="true"></i><span>Activations</span>\n
+   │                 </a>\n
+   │                     </li>\n
+   │             <li>\n
+   │                             <button type="button" class="nuxr-primary-item" data-nuxr-open="nuxr-more-sheet" aria-haspopup="dialog">\n
+   │                     <i class="fa fa-bars" aria-hidden="true"></i><span>More</span>\n
+   │                 </button>\n
+   │                     </li>\n
+   │     </ul>\n
+   │             </nav>\n
+   │         \n
+   │         <div class="content-wrapper" id="nuxr-main" tabindex="-1">\n
+   │                         <section class="content-header">\n
+   │                                 <h1>Reports</h1>\n
+   │             </section>\n
+   │ \n
+   │             <section class="content">\n
+   │                                 \n
+   │ <!-- pool -->\n
+   │ <div class="row">\n
+   │     <div class="col-sm-12">\n
+   │         <div class="panel panel-hovered mb20 panel-primary">\n
+   │             <div class="panel-heading">\n
+   │                 Activity Log\n
+   │             </div>\n
+   │             <div class="panel-body">\n
+   │                 <div class="text-center" style="padding: 15px">\n
+   │                     <div class="col-md-4">\n
+   │                         <form id="site-search" method="post" action="http://127.0.0.1:25442/?_route=reports/activation">\n
+   │                             <div class="input-group">\n
+   │                                 <div class="input-group-addon">\n
+   │                                     <span class="fa fa-search"></span>\n
+   │                                 </div>\n
+   │                                 <input type="search" name="q" class="form-control" value="" aria-label="Invoice"\n
+   │                                     placeholder="Invoice...">\n
+   │                                 <div class="input-group-btn">\n
+   │                                     <button class="btn btn-success" type="submit">Search</button>\n
+   │                                 </div>\n
+   │                             </div>\n
+   │                         </form>\n
+   │                     </div>\n
+   │                     <div class="col-md-8">\n
+   │ \n
+   │                     </div>&nbsp;\n
+   │                 </div>\n
+   │                 <br>\n
+   │                                 <div class="nuxr-adaptive is-lg">\n
+   │                 <div class="table-responsive nuxr-table-wrap">\n
+   │                     <table id="datatable" class="table table-bordered table-striped">\n
+   │                         <thead>\n
+   │                             <tr>\n
+   │                                 <th>Invoice</th>\n
+   │                                 <th>Username</th>\n
+   │                                 <th>Plan Name</th>\n
+   │                                 <th>Plan Price</th>\n
+   │                                 <th>Type</th>\n
+   │                                 <th>Created On</th>\n
+   │                                 <th>Expires On</th>\n
+   │                                 <th>Method</th>\n
+   │                             </tr>\n
+   │                         </thead>\n
+   │                         <tbody>\n
+   │                                                             <tr>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=plan/view/9">INV-D8D88C04C724F5</a></td>\n
+   │                                     <td>D8****F5</td>\n
+   │                                     <td>w9rt_plan</td>\n
+   │                                     <td>Rp. 20</td>\n
+   │                                     <td>Hotspot</td>\n
+   │                                     <td class="text-success">\n
+   │                                         18 Oct 2026 00:00\n
+   │                                     </td>\n
+   │                                     <td class="text-danger">19 Oct 2026 00:00</td>\n
+   │                                     <td>Voucher - D8****F5</td>\n
+   │                                 </tr>\n
+   │                                                             <tr>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=plan/view/8">INV-W9RFC1</a></td>\n
+   │                                     <td>W9****B2</td>\n
+   │                                     <td>w9rt_plan</td>\n
+   │                                     <td>Rp. 20</td>\n
+   │                                     <td>Hotspot</td>\n
+   │                                     <td class="text-success">\n
+   │                                         18 Oct 2026 00:00\n
+   │                                     </td>\n
+   │                                     <td class="text-danger">19 Oct 2026 00:00</td>\n
+   │                                     <td>Voucher - W9****B2</td>\n
+   │                                 </tr>\n
+   │                                                             <tr>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=plan/view/7">INV-ACT-BFFC38C4E5FE92B6</a></td>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=customers/viewu/cA0">cA0</a></td>\n
+   │                                     <td>w9rt_plan</td>\n
+   │                                     <td>Rp. 20</td>\n
+   │                                     <td>Hotspot</td>\n
+   │                                     <td class="text-success">\n
+   │                                         18 Oct 2026 13:29\n
+   │                                     </td>\n
+   │                                     <td class="text-danger">17 Nov 2026 13:29</td>\n
+   │                                     <td>Reseller - ACT-BFFC38C4E5FE92B6</td>\n
+   │                                 </tr>\n
+   │                                                             <tr>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=plan/view/6">INV-ACT-109951F93BC2AD39</a></td>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=customers/viewu/cA2">cA2</a></td>\n
+   │                                     <td>w9rt_plan</td>\n
+   │                                     <td>Rp. 20</td>\n
+   │                                     <td>Hotspot</td>\n
+   │                                     <td class="text-success">\n
+   │                                         18 Oct 2026 13:29\n
+   │                                     </td>\n
+   │                                     <td class="text-danger">17 Nov 2026 13:29</td>\n
+   │                                     <td>Reseller - ACT-109951F93BC2AD39</td>\n
+   │                                 </tr>\n
+   │                                                             <tr>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=plan/view/5">INV-WP2V0</a></td>\n
+   │                                     <td>VOUCHERONLY</td>\n
+   │                                     <td>wp2_plan</td>\n
+   │                                     <td>Rp. 1.000</td>\n
+   │                                     <td>Hotspot</td>\n
+   │                                     <td class="text-success">\n
+   │                                         18 Oct 2026 00:00\n
+   │                                     </td>\n
+   │                                     <td class="text-danger">28 Oct 2026 23:59</td>\n
+   │                                     <td>Voucher - ****</td>\n
+   │                                 </tr>\n
+   │                                                             <tr>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=plan/view/4">INV-WP27</a></td>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=customers/viewu/cNULL">cNULL</a></td>\n
+   │                                     <td>wp2_plan</td>\n
+   │                                     <td>Rp. 1.000</td>\n
+   │                                     <td>Hotspot</td>\n
+   │                                     <td class="text-success">\n
+   │                                         18 Oct 2026 00:00\n
+   │                                     </td>\n
+   │                                     <td class="text-danger">28 Oct 2026 23:59</td>\n
+   │                                     <td>Admin - seed</td>\n
+   │                                 </tr>\n
+   │                                                             <tr>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=plan/view/3">INV-WP25</a></td>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=customers/viewu/cC1">cC1</a></td>\n
+   │                                     <td>wp2_plan</td>\n
+   │                                     <td>Rp. 1.000</td>\n
+   │                                     <td>Hotspot</td>\n
+   │                                     <td class="text-success">\n
+   │                                         18 Oct 2026 00:00\n
+   │                                     </td>\n
+   │                                     <td class="text-danger">28 Oct 2026 23:59</td>\n
+   │                                     <td>Admin - seed</td>\n
+   │                                 </tr>\n
+   │                                                             <tr>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=plan/view/2">INV-WP24</a></td>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=customers/viewu/cB">cB</a></td>\n
+   │                                     <td>wp2_plan</td>\n
+   │                                     <td>Rp. 1.000</td>\n
+   │                                     <td>Hotspot</td>\n
+   │                                     <td class="text-success">\n
+   │                                         18 Oct 2026 00:00\n
+   │                                     </td>\n
+   │                                     <td class="text-danger">28 Oct 2026 23:59</td>\n
+   │                                     <td>Admin - seed</td>\n
+   │                                 </tr>\n
+   │                                                             <tr>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=plan/view/1">INV-WP21</a></td>\n
+   │                                     <td><a href="http://127.0.0.1:25442/?_route=customers/viewu/cA1">cA1</a></td>\n
+   │                                     <td>wp2_plan</td>\n
+   │                                     <td>Rp. 1.000</td>\n
+   │                                     <td>Hotspot</td>\n
+   │                                     <td class="text-success">\n
+   │                                         18 Oct 2026 00:00\n
+   │                                     </td>\n
+   │                                     <td class="text-danger">28 Oct 2026 23:59</td>\n
+   │                                     <td>Admin - seed</td>\n
+   │                                 </tr>\n
+   │                                                     </tbody>\n
+   │                     </table>\n
+   │                 </div>\n
+   │                 <ul class="nuxr-mlist">\n
+   │                                             <li><div class="nuxr-mcard is-wrap">\n
+   │                             <a href="http://127.0.0.1:25442/?_route=plan/view/9" class="nuxr-mcard-main">\n
+   │                                 <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">INV-D8D88C04C724F5</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">D8****F5</bdi> · w9rt_plan · <bdi dir="ltr">Rp. 20</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">18 Oct 2026 00:00</bdi> → <bdi dir="ltr">19 Oct 2026 00:00</bdi> · Voucher - D8****F5</span>\n
+   │                             </a>\n
+   │                         </div></li>\n
+   │                                             <li><div class="nuxr-mcard is-wrap">\n
+   │                             <a href="http://127.0.0.1:25442/?_route=plan/view/8" class="nuxr-mcard-main">\n
+   │                                 <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">INV-W9RFC1</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">W9****B2</bdi> · w9rt_plan · <bdi dir="ltr">Rp. 20</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">18 Oct 2026 00:00</bdi> → <bdi dir="ltr">19 Oct 2026 00:00</bdi> · Voucher - W9****B2</span>\n
+   │                             </a>\n
+   │                         </div></li>\n
+   │                                             <li><div class="nuxr-mcard is-wrap">\n
+   │                             <a href="http://127.0.0.1:25442/?_route=plan/view/7" class="nuxr-mcard-main">\n
+   │                                 <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">INV-ACT-BFFC38C4E5FE92B6</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">cA0</bdi> · w9rt_plan · <bdi dir="ltr">Rp. 20</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">18 Oct 2026 13:29</bdi> → <bdi dir="ltr">17 Nov 2026 13:29</bdi> · Reseller - ACT-BFFC38C4E5FE92B6</span>\n
+   │                             </a>\n
+   │                         </div></li>\n
+   │                                             <li><div class="nuxr-mcard is-wrap">\n
+   │                             <a href="http://127.0.0.1:25442/?_route=plan/view/6" class="nuxr-mcard-main">\n
+   │                                 <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">INV-ACT-109951F93BC2AD39</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">cA2</bdi> · w9rt_plan · <bdi dir="ltr">Rp. 20</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">18 Oct 2026 13:29</bdi> → <bdi dir="ltr">17 Nov 2026 13:29</bdi> · Reseller - ACT-109951F93BC2AD39</span>\n
+   │                             </a>\n
+   │                         </div></li>\n
+   │                                             <li><div class="nuxr-mcard is-wrap">\n
+   │                             <a href="http://127.0.0.1:25442/?_route=plan/view/5" class="nuxr-mcard-main">\n
+   │                                 <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">INV-WP2V0</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">VOUCHERONLY</bdi> · wp2_plan · <bdi dir="ltr">Rp. 1.000</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">18 Oct 2026 00:00</bdi> → <bdi dir="ltr">28 Oct 2026 23:59</bdi> · Voucher - ****</span>\n
+   │                             </a>\n
+   │                         </div></li>\n
+   │                                             <li><div class="nuxr-mcard is-wrap">\n
+   │                             <a href="http://127.0.0.1:25442/?_route=plan/view/4" class="nuxr-mcard-main">\n
+   │                                 <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">INV-WP27</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">cNULL</bdi> · wp2_plan · <bdi dir="ltr">Rp. 1.000</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">18 Oct 2026 00:00</bdi> → <bdi dir="ltr">28 Oct 2026 23:59</bdi> · Admin - seed</span>\n
+   │                             </a>\n
+   │                         </div></li>\n
+   │                                             <li><div class="nuxr-mcard is-wrap">\n
+   │                             <a href="http://127.0.0.1:25442/?_route=plan/view/3" class="nuxr-mcard-main">\n
+   │                                 <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">INV-WP25</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">cC1</bdi> · wp2_plan · <bdi dir="ltr">Rp. 1.000</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">18 Oct 2026 00:00</bdi> → <bdi dir="ltr">28 Oct 2026 23:59</bdi> · Admin - seed</span>\n
+   │                             </a>\n
+   │                         </div></li>\n
+   │                                             <li><div class="nuxr-mcard is-wrap">\n
+   │                             <a href="http://127.0.0.1:25442/?_route=plan/view/2" class="nuxr-mcard-main">\n
+   │                                 <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">INV-WP24</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">cB</bdi> · wp2_plan · <bdi dir="ltr">Rp. 1.000</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">18 Oct 2026 00:00</bdi> → <bdi dir="ltr">28 Oct 2026 23:59</bdi> · Admin - seed</span>\n
+   │                             </a>\n
+   │                         </div></li>\n
+   │                                             <li><div class="nuxr-mcard is-wrap">\n
+   │                             <a href="http://127.0.0.1:25442/?_route=plan/view/1" class="nuxr-mcard-main">\n
+   │                                 <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">INV-WP21</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">cA1</bdi> · wp2_plan · <bdi dir="ltr">Rp. 1.000</bdi></span>\n
+   │                                 <span class="nuxr-mcard-sub"><bdi dir="ltr">18 Oct 2026 00:00</bdi> → <bdi dir="ltr">28 Oct 2026 23:59</bdi> · Admin - seed</span>\n
+   │                             </a>\n
+   │                         </div></li>\n
+   │                                     </ul>\n
+   │                 </div>\n
+   │                     <center>\n
+   │     <nav aria-label="Page navigation pagination-sm">\n
+   │         <ul class="pagination">\n
+   │             <li class="disabled" >\n
+   │                 <a href="http://127.0.0.1:25442/?_route=reports/by-date&p=0" aria-label="Previous">\n
+   │                     <span aria-hidden="true">Prev</span>\n
+   │                 </a>\n
+   │             </li>\n
+   │                             <li class="active"><a\n
+   │                         href="http://127.0.0.1:25442/?_route=reports/by-date&p=1">1</a></li>\n
+   │                         <li class="disabled" >\n
+   │                 <a href="http://127.0.0.1:25442/?_route=reports/by-date&p=1" aria-label="Next">\n
+   │                     <span aria-hidden="true">Next</span>\n
+   │                 </a>\n
+   │             </li>\n
+   │         </ul>\n
+   │     </nav>\n
+   │     </center>\n
+   │             </div>\n
+   │         </div>\n
+   │     </div>\n
+   │ </div>\n
+   │ \n
+   │             </section>\n
+   │         </div>\n
+   │         <footer class="main-footer nuxr-footer">\n
+   │             <div class="pull-right" id="version" onclick="location.href = 'http://127.0.0.1:25442/?_route=community#latestVersion';"></div>\n
+   │             PHPNuxBill by <a href="https://github.com/hotspotbilling/phpnuxbill" rel="nofollow noreferrer noopener"\n
+   │                 target="_blank">iBNuX</a>, Theme by <a href="https://adminlte.io/" rel="nofollow noreferrer noopener"\n
+   │                 target="_blank">AdminLTE</a>\n
+   │         </footer>\n
+   │     </div>\n
+   │ \n
+   │             <nav class="nuxr-bottomnav" aria-label="Primary navigation">\n
+   │             <ul class="nuxr-primary">\n
+   │             <li>\n
+   │                             <a href="http://127.0.0.1:25442/?_route=dashboard" class="nuxr-primary-item">\n
+   │                     <i class="fa fa-home" aria-hidden="true"></i><span>Home</span>\n
+   │                 </a>\n
+   │                     </li>\n
+   │             <li>\n
+   │                             <a href="http://127.0.0.1:25442/?_route=customers/list" class="nuxr-primary-item">\n
+   │                     <i class="fa fa-users" aria-hidden="true"></i><span>Customers</span>\n
+   │                 </a>\n
+   │                     </li>\n
+   │             <li>\n
+   │                             <button type="button" class="nuxr-primary-item nuxr-primary-quick" data-nuxr-open="nuxr-quick-sheet" aria-haspopup="dialog">\n
+   │                     <i class="fa fa-plus" aria-hidden="true"></i><span>New</span>\n
+   │                 </button>\n
+   │                     </li>\n
+   │             <li>\n
+   │                             <a href="http://127.0.0.1:25442/?_route=activation/list" class="nuxr-primary-item">\n
+   │                     <i class="fa fa-bolt" aria-hidden="true"></i><span>Activations</span>\n
+   │                 </a>\n
+   │                     </li>\n
+   │             <li>\n
+   │                             <button type="button" class="nuxr-primary-item" data-nuxr-open="nuxr-more-sheet" aria-haspopup="dialog">\n
+   │                     <i class="fa fa-bars" aria-hidden="true"></i><span>More</span>\n
+   │                 </button>\n
+   │                     </li>\n
+   │     </ul>\n
+   │         </nav>\n
+   │ \n
+   │         <dialog id="nuxr-more-sheet" class="nuxr-sheet" aria-labelledby="nuxr-more-title">\n
+   │             <div class="nuxr-sheet-head"><h2 id="nuxr-more-title">More</h2>\n
+   │                 <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button></div>\n
+   │             <div class="nuxr-sheet-body"><ul class="nuxr-nav">\n
+   │                         <li><a href="http://127.0.0.1:25442/?_route=dashboard" class="nuxr-nav-link">\n
+   │                 <i class="fa fa-home fa-fw" aria-hidden="true"></i><span>Dashboard</span></a></li>\n
+   │                                                                 <li><a href="http://127.0.0.1:25442/?_route=plugin/wp2probe_admin_page"><span class="text">WP2 Probe Admin</span></a></li><li><a href="http://127.0.0.1:25442/?_route=plugin/wp2probe_default_page"><span class="text">WP2 Probe Default</span></a></li><li><a href="http://127.0.0.1:25442/?_route=plugin/wp2probe_fail_pdo"><span class="text">WP2 Fail PDO</span></a></li><li><a href="http://127.0.0.1:25442/?_route=plugin/wp2probe_fail_type"><span class="text">WP2 Fail Type</span></a></li>\n
+   │ </ul>\n
+   │     <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-users fa-fw" aria-hidden="true"></i><span>Subscribers</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=customers/list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-list fa-fw" aria-hidden="true"></i><span>All subscribers</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=activation/list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-bolt fa-fw" aria-hidden="true"></i><span>Activations</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=customers/add" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-user-plus fa-fw" aria-hidden="true"></i><span>Add subscriber</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=plan/list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-signal fa-fw" aria-hidden="true"></i><span>Active Customers</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-credit-card fa-fw" aria-hidden="true"></i><span>Finance</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/overview" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-credit-card fa-fw" aria-hidden="true"></i><span>Wallet overview</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/wallets" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-list fa-fw" aria-hidden="true"></i><span>Wallets</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/transfers" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-exchange fa-fw" aria-hidden="true"></i><span>Transfers</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-sitemap fa-fw" aria-hidden="true"></i><span>Resellers</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=reseller/tree" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-sitemap fa-fw" aria-hidden="true"></i><span>Reseller Tree</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-tags fa-fw" aria-hidden="true"></i><span>Pricing</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pricing/plans" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-tags fa-fw" aria-hidden="true"></i><span>Plans and prices</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-stethoscope fa-fw" aria-hidden="true"></i><span>Operations</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=operations/overview" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-stethoscope fa-fw" aria-hidden="true"></i><span>Operations Center</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-ticket fa-fw" aria-hidden="true"></i><span>Services</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=plan/refill" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-credit-card fa-fw" aria-hidden="true"></i><span>Refill Customer</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=plan/voucher" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-ticket fa-fw" aria-hidden="true"></i><span>Vouchers</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=plan/recharge" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-refresh fa-fw" aria-hidden="true"></i><span>Recharge Customer</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-cube fa-fw" aria-hidden="true"></i><span>Internet Plan</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=services/hotspot" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-wifi fa-fw" aria-hidden="true"></i><span>Hotspot</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=services/pppoe" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-plug fa-fw" aria-hidden="true"></i><span>PPPOE</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=services/vpn" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-lock fa-fw" aria-hidden="true"></i><span>VPN</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=bandwidth/list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-tachometer fa-fw" aria-hidden="true"></i><span>Bandwidth</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-map-marker fa-fw" aria-hidden="true"></i><span>Maps</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=maps/customer" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-user fa-fw" aria-hidden="true"></i><span>Customer</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=maps/routers" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-server fa-fw" aria-hidden="true"></i><span>Routers</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=maps/odp" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-sitemap fa-fw" aria-hidden="true"></i><span>ODPs</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-bar-chart fa-fw" aria-hidden="true"></i><span>Reports</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/sales" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-line-chart fa-fw" aria-hidden="true"></i><span>Sales</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/commissions" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-percent fa-fw" aria-hidden="true"></i><span>Commissions</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/settlement" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-balance-scale fa-fw" aria-hidden="true"></i><span>Provider settlement</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=finance/performance" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-trophy fa-fw" aria-hidden="true"></i><span>Reseller performance</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=reports" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-calendar fa-fw" aria-hidden="true"></i><span>Transactions (legacy)</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=reports/activation" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-history fa-fw" aria-hidden="true"></i><span>Activation History (legacy)</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-comments fa-fw" aria-hidden="true"></i><span>Send Message</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=message/send" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-comment fa-fw" aria-hidden="true"></i><span>Single Customer</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=message/send_bulk" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-bullhorn fa-fw" aria-hidden="true"></i><span>Bulk Customers</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-sitemap fa-fw" aria-hidden="true"></i><span>Network</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=routers" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-server fa-fw" aria-hidden="true"></i><span>Routers</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pool/list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-database fa-fw" aria-hidden="true"></i><span>IP Pool</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pool/port" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-random fa-fw" aria-hidden="true"></i><span>Port Pool</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=odp" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-share-alt fa-fw" aria-hidden="true"></i><span>ODP List</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=radius/nas-list" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-database fa-fw" aria-hidden="true"></i><span>Radius NAS</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-file-text-o fa-fw" aria-hidden="true"></i><span>Static Pages</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Order_Voucher" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Order Voucher</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Voucher" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Theme Voucher</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Announcement" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Announcement</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Announcement_Customer" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Customer Announcement</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Registration_Info" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Registration Info</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Payment_Info" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Payment Info</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Privacy_Policy" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Privacy Policy</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pages/Terms_and_Conditions" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-o fa-fw" aria-hidden="true"></i><span>Terms and Conditions</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-cog fa-fw" aria-hidden="true"></i><span>Settings</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/app" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-sliders fa-fw" aria-hidden="true"></i><span>General Settings</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/localisation" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-globe fa-fw" aria-hidden="true"></i><span>Localisation</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=customfield" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-list-alt fa-fw" aria-hidden="true"></i><span>Custom Fields</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/miscellaneous" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-wrench fa-fw" aria-hidden="true"></i><span>Miscellaneous</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/maintenance" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-exclamation-triangle fa-fw" aria-hidden="true"></i><span>Maintenance Mode</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=widgets" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-th-large fa-fw" aria-hidden="true"></i><span>Widgets</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/notifications" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-bell fa-fw" aria-hidden="true"></i><span>User Notification</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/devices" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-mobile fa-fw" aria-hidden="true"></i><span>Devices</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/users" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-user-secret fa-fw" aria-hidden="true"></i><span>Administrator Users</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/dbstatus" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-hdd-o fa-fw" aria-hidden="true"></i><span>Backup/Restore</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=paymentgateway" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-credit-card fa-fw" aria-hidden="true"></i><span>Payment Gateway</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=pluginmanager" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-puzzle-piece fa-fw" aria-hidden="true"></i><span>Plugin Manager</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-clock-o fa-fw" aria-hidden="true"></i><span>Logs</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=logs/phpnuxbill" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-text fa-fw" aria-hidden="true"></i><span>PhpNuxBill</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=logs/radius" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-text fa-fw" aria-hidden="true"></i><span>Radius</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=logs/message" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-file-text fa-fw" aria-hidden="true"></i><span>Message</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │         <details class="nuxr-nav-group" open>\n
+   │         <summary><i class="fa fa-question-circle fa-fw" aria-hidden="true"></i><span>Help</span><i class="fa fa-angle-down nuxr-caret" aria-hidden="true"></i></summary>\n
+   │         <ul class="nuxr-nav">\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=settings/docs" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-book fa-fw" aria-hidden="true"></i><span>Documentation</span></a></li>\n
+   │                             <li><a href="http://127.0.0.1:25442/?_route=community" class="nuxr-nav-link">\n
+   │                     <i class="fa fa-comments-o fa-fw" aria-hidden="true"></i><span>Community</span></a></li>\n
+   │                                 </ul>\n
+   │     </details>\n
+   │                                     <ul class="nuxr-sheet-list"><li><button type="button" data-nuxr-install hidden><i class="fa fa-download fa-fw" aria-hidden="true"></i><span>Install app</span></button></li></ul>\n
+   │             </div>\n
+   │         </dialog>\n
+   │ \n
+   │                     <dialog id="nuxr-quick-sheet" class="nuxr-sheet" aria-labelledby="nuxr-quick-title">\n
+   │                 <div class="nuxr-sheet-head"><h2 id="nuxr-quick-title">Quick action</h2>\n
+   │                     <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button></div>\n
+   │                 <ul class="nuxr-sheet-list">\n
+   │                                             <li><a href="http://127.0.0.1:25442/?_route=customers/add"><i class="fa fa-user-plus fa-fw" aria-hidden="true"></i><span>Add subscriber</span><i class="fa fa-angle-right nuxr-dir-icon" aria-hidden="true"></i></a></li>\n
+   │                                             <li><a href="http://127.0.0.1:25442/?_route=activation/create"><i class="fa fa-bolt fa-fw" aria-hidden="true"></i><span>Activate / Renew</span><i class="fa fa-angle-right nuxr-dir-icon" aria-hidden="true"></i></a></li>\n
+   │                                             <li><a href="http://127.0.0.1:25442/?_route=finance/wallets"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><span>Fund reseller</span><i class="fa fa-angle-right nuxr-dir-icon" aria-hidden="true"></i></a></li>\n
+   │                                     </ul>\n
+   │             </dialog>\n
+   │         \n
+   │                     <dialog id="nuxr-search-sheet" class="nuxr-sheet nuxr-sheet-full" aria-labelledby="nuxr-search-title">\n
+   │                 <div class="nuxr-sheet-head"><h2 id="nuxr-search-title">Search subscribers</h2>\n
+   │                     <button type="button" class="nuxr-icon-btn" data-nuxr-close aria-label="Close"><i class="fa fa-times" aria-hidden="true"></i></button></div>\n
+   │                 <form class="nuxr-search nuxr-search-sheet-form" role="search" method="get" action="http://127.0.0.1:25442/" data-nuxr-search="http://127.0.0.1:25442/?_route=search_user">\n
+   │                     <input type="hidden" name="_route" value="customers/list">\n
+   │                     <label class="sr-only" for="nuxr-search-sheet-input">Search subscribers</label>\n
+   │                     <input id="nuxr-search-sheet-input" class="nuxr-search-input" type="search" name="search" autocomplete="off" minlength="2" maxlength="64"\n
+   │                         placeholder="Name, username, phone, PPPoE, IP or #ID" role="combobox" aria-expanded="false"\n
+   │                         aria-controls="nuxr-search-sheet-results" aria-autocomplete="list">\n
+   │                     <div id="nuxr-search-sheet-results" class="nuxr-search-results" role="listbox" aria-label="Search results" hidden></div>\n
+   │                 </form>\n
+   │             </dialog>\n
+   │                 <div class="sr-only" role="status" aria-live="polite" id="nuxr-live"></div>\n
+   │ \n
+   │     <script src="http://127.0.0.1:25442/ui/ui/scripts/jquery.min.js"></script>\n
+   │     <script src="http://127.0.0.1:25442/ui/ui/scripts/bootstrap.min.js"></script>\n
+   │     <script src="http://127.0.0.1:25442/ui/ui/scripts/adminlte.min.js"></script>\n
+   │     <script src="http://127.0.0.1:25442/ui/ui/scripts/plugins/select2.min.js"></script>\n
+   │     <script src="http://127.0.0.1:25442/ui/ui/scripts/pace.min.js"></script>\n
+   │         <script src="http://127.0.0.1:25442/ui/ui/scripts/custom.js?2025.2.5"></script>\n
+   │     <script>\n
+   │         window.nuxrShell = {\n
+   │             searching: 'Searching...',\n
+   │             minChars: 'Type at least 2 characters.',\n
+   │             failed: 'Search is unavailable. Try again.',\n
+   │             working: 'Working...',\n
+   │             show: 'Show',\n
+   │             askTitle: 'Please confirm',\n
+   │             cancel: 'Cancel',\n
+   │             confirm: 'Confirm',\n
+   │             close: 'Close'\n
+   │         };\n
+   │     </script>\n
+   │     <script src="http://127.0.0.1:25442/ui/ui/scripts/nuxr-shell.js?wp6c.3"></script>\n
+   │         <script>\n
+   │     window.nuxrPwa = {\n
+   │         ping: 'http://127.0.0.1:25442/?_route=pwa/ping',\n
+   │         s: {\n
+   │             slow: 'Slow connection',\n
+   │             offline: 'Offline',\n
+   │             reconnecting: 'Reconnecting...',\n
+   │             banner: 'You are offline. Changes cannot be sent, and the information on screen may not be current.',\n
+   │             blocked: 'Not sent: you are offline. Nothing was sent to the server; try again when the connection is back.',\n
+   │             installTitle: 'Install the app',\n
+   │             installText: 'Open your browser menu and choose Install app or Add to Home screen.',\n
+   │             installNote: 'The installed app opens the same pages: sign-in, permissions and every operation stay exactly the same, and the browser keeps working as before.',\n
+   │             updateAvailable: 'A new version of the app is available.',\n
+   │             update: 'Update',\n
+   │             updateDeferred: 'Finish or leave the current task first, then update.',\n
+   │             updated: 'The app was updated in another tab. Reload this page when convenient.',\n
+   │             close: 'Close'\n
+   │         }\n
+   │     };\n
+   │ </script>\n
+   │     <script src="http://127.0.0.1:25442/ui/ui/scripts/nuxr-pwa.js?wp7.1" data-nuxr-sw="http://127.0.0.1:25442/nuxr-sw.js"></script>\n
+   │ \n
+   │         \n
+   │         <script>\n
+   │             var listAttApi;\n
+   │             var posAttApi = 0;\n
+   │             $(document).ready(function() {\n
+   │                 $('.select2').select2({theme: "bootstrap"});\n
+   │                 $('.select2tag').select2({theme: "bootstrap", tags: true});\n
+   │                 setTimeout(() => {\n
+   │                     listAttApi = document.querySelectorAll(`[api-get-text]`);\n
+   │                     apiGetText();\n
+   │                 }, 500);\n
+   │             });\n
+   │ \n
+   │             // legacy pages: window.confirm based confirmation (the WP6A screens use the ConfirmSheet / DangerDialog)\n
+   │             function ask(field, text) {\n
+   │                 return confirm(text);\n
+   │             }\n
+   │ \n
+   │             function apiGetText() {\n
+   │                 var el = listAttApi[posAttApi];\n
+   │                 if (el != undefined) {\n
+   │                     $.get(el.getAttribute('api-get-text'), function(data) {\n
+   │                         el.innerHTML = data;\n
+   │                         posAttApi++;\n
+   │                         if (posAttApi < listAttApi.length) {\n
+   │                             apiGetText();\n
+   │                         }\n
+   │                     });\n
+   │                 }\n
+   │             }\n
+   │ \n
+   │             function setKolaps() {\n
+   │                 var kolaps = getCookie('kolaps');\n
+   │                 if (kolaps) {\n
+   │                     setCookie('kolaps', false, 30);\n
+   │                 } else {\n
+   │                     setCookie('kolaps', true, 30);\n
+   │                 }\n
+   │                 return true;\n
+   │             }\n
+   │ \n
+   │             function setCookie(name, value, days) {\n
+   │                 var expires = "";\n
+   │                 if (days) {\n
+   │                     var date = new Date();\n
+   │                     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));\n
+   │                     expires = "; expires=" + date.toUTCString();\n
+   │                 }\n
+   │                 document.cookie = name + "=" + (value || "") + expires + "; path=/";\n
+   │             }\n
+   │ \n
+   │             function getCookie(name) {\n
+   │                 var nameEQ = name + "=";\n
+   │                 var ca = document.cookie.split(';');\n
+   │                 for (var i = 0; i < ca.length; i++) {\n
+   │                     var c = ca[i];\n
+   │                     while (c.charAt(0) == ' ') c = c.substring(1, c.length);\n
+   │                     if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);\n
+   │                 }\n
+   │                 return null;\n
+   │             }\n
+   │ \n
+   │             $(function() {\n
+   │                 $('[data-toggle="tooltip"]').tooltip()\n
+   │             })\n
+   │             $("[data-toggle=popover]").popover();\n
+   │         </script>\n
+   │     \n
+   │ \n
+   │     <script>\n
+   │     window.nuxrCsrfToken = "5a62cf77a6b52b596c23873fe7331e547b14d1d4cab5e4e4d15af7b3da4a61f7";\n
+   │ </script>\n
+   │ \n
+   │ <script>\n
+   │     (function () {\n
+   │         var token = window.nuxrCsrfToken;\n
+   │         if (!token) { return; }\n
+   │         function sameOrigin(u) {\n
+   │             try { return new URL(u, window.location.href).origin === window.location.origin; } catch (e) { return false; }\n
+   │         }\n
+   │         function addToken(form) {\n
+   │             if (!form || String(form.getAttribute('method') || form.method || '').toLowerCase() !== 'post') { return; }\n
+   │             var existing = form.querySelector('input[name="csrf_token"]');\n
+   │             if (existing) { if (!existing.value) { existing.value = token; } return; }\n
+   │             var input = document.createElement('input');\n
+   │             input.type = 'hidden'; input.name = 'csrf_token'; input.value = token;\n
+   │             form.appendChild(input);\n
+   │         }\n
+   │         function allowed(kind, method, url) {\n
+   │             return typeof window.nuxrMutationGate !== 'function' || window.nuxrMutationGate(kind, method, url) !== false;\n
+   │         }\n
+   │         function addAll() { for (var i = 0; i < document.forms.length; i++) { addToken(document.forms[i]); } }\n
+   │         document.addEventListener('submit', function (e) { addToken(e.target); }, true);\n
+   │         if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', addAll); } else { addAll(); }\n
+   │         var nativeSubmit = HTMLFormElement.prototype.submit;\n
+   │         HTMLFormElement.prototype.submit = function () {\n
+   │             addToken(this);\n
+   │             if (!allowed('form.submit', this.getAttribute('method') || this.method, this.action)) { return; }\n
+   │             return nativeSubmit.apply(this, arguments);\n
+   │         };\n
+   │         // XHR: patch the prototype that real XMLHttpRequest instances inherit (R-WP7-CARRY-01). On staff pages Pace has\n
+   │         // replaced window.XMLHttpRequest with a factory that returns native instances, whose prototype is not the\n
+   │         // replacement's .prototype; a disposable instance (never opened, never sent) reveals the real one. Only open and\n
+   │         // send are patched, once per document; window.XMLHttpRequest itself is never reassigned.\n
+   │         var XP = XMLHttpRequest.prototype;\n
+   │         try {\n
+   │             var probeXhr = new XMLHttpRequest();\n
+   │             var realProto = Object.getPrototypeOf(probeXhr);\n
+   │             if (realProto && typeof realProto.open === 'function' && typeof realProto.send === 'function') { XP = realProto; }\n
+   │         } catch (e) { /* compatibility fallback: the constructor's prototype */ }\n
+   │         if (!XP.__nuxrCsrfXhr) {\n
+   │             try { Object.defineProperty(XP, '__nuxrCsrfXhr', { value: true }); } catch (e) { XP.__nuxrCsrfXhr = true; }\n
+   │             var xOpen = XP.open, xSend = XP.send;\n
+   │             XP.open = function (m, u) { this._nuxrSame = sameOrigin(u); this._nuxrMethod = m; this._nuxrUrl = u; return xOpen.apply(this, arguments); };\n
+   │             XP.send = function () {\n
+   │                 if (this._nuxrSame) { try { this.setRequestHeader('X-CSRF-Token', token); } catch (e) { } }\n
+   │                 if (!allowed('xhr', this._nuxrMethod, this._nuxrUrl)) {\n
+   │                     var x = this; // not sent: report a network error to the caller (jQuery error callbacks run)\n
+   │                     setTimeout(function () { x.dispatchEvent(new ProgressEvent('error')); x.dispatchEvent(new ProgressEvent('loadend')); }, 0);\n
+   │                     return;\n
+   │                 }\n
+   │                 return xSend.apply(this, arguments);\n
+   │             };\n
+   │         }\n
+   │         if (window.fetch) {\n
+   │             var nativeFetch = window.fetch;\n
+   │             window.fetch = function (input, init) {\n
+   │                 var url = (typeof input === 'string') ? input : (input && input.url);\n
+   │                 if (sameOrigin(url)) {\n
+   │                     init = init || {};\n
+   │                     var h = new Headers(init.headers || (typeof input !== 'string' && input.headers) || {});\n
+   │                     h.set('X-CSRF-Token', token);\n
+   │                     init.headers = h;\n
+   │                 }\n
+   │                 var method = (init && init.method) || (typeof input !== 'string' && input && input.method) || 'GET';\n
+   │                 if (!allowed('fetch', method, url)) { return Promise.reject(new TypeError('Not sent: offline')); }\n
+   │                 return nativeFetch.call(this, input, init);\n
+   │             };\n
+   │         }\n
+   │         // POST navigation for script-driven mutations (replaces window.location.href = url)\n
+   │         window.nuxrPost = function (url) {\n
+   │             var form = document.createElement('form');\n
+   │             form.method = 'post';\n
+   │             form.action = url;\n
+   │             form.style.display = 'none';\n
+   │             addToken(form);\n
+   │             if (!allowed('nuxrPost', 'POST', url)) { return; }\n
+   │             document.body.appendChild(form);\n
+   │             nativeSubmit.call(form);\n
+   │         };\n
+   │         document.addEventListener('click', function (e) {\n
+   │             var a = e.target && e.target.closest ? e.target.closest('a[data-method="post"]') : null;\n
+   │             if (!a || e.defaultPrevented) { return; }\n
+   │             e.preventDefault();\n
+   │             var form = document.createElement('form');\n
+   │             form.method = 'post';\n
+   │             form.action = a.href;\n
+   │             if (a.target) { form.target = a.target; }\n
+   │             form.style.display = 'none';\n
+   │             addToken(form);\n
+   │             if (!allowed('data-method', 'POST', a.href)) { return; }\n
+   │             document.body.appendChild(form);\n
+   │             nativeSubmit.call(form);\n
+   │         });\n
+   │     })();\n
+   │ </script>\n
+   │ \n
+   │ </body>\n
+   │ \n
+   │ </html>\n
+   │ ' [UTF-8](length: 75101) does not contain "D88C04C724F5" [ASCII](length: 12).
+   │
+   │ /repo/tests/Http/W9RedTeamHttpTest.php:239
+   │
+
+FAILURES!
+Tests: 11, Assertions: 135, Failures: 1.
+
+exit=1 end: 2026-10-18T06:29:43Z

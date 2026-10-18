@@ -28,7 +28,7 @@
                                     <td>{$ds.type|escape:'html'}</td>
                                     <td>{Lang::dateAndTimeFormat($ds.recharged_on, $ds.recharged_time)}</td>
                                     <td>{Lang::dateAndTimeFormat($ds.expiration, $ds.time)}</td>
-                                    <td>{$ds.method|escape:'html'}</td>
+                                    <td>{NuxrUi::method($ds.method)|escape:'html'}</td>
                                 </tr>
                             {/foreach}
                         </tbody>

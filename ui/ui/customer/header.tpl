@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{$nuxr_lang|default:'en'}" class="has-aside-left has-aside-mobile-transition has-navbar-fixed-top has-aside-expanded">
+<html lang="{$nuxr_lang|default:'en'}" dir="{$nuxr_dir|default:'ltr'}" class="has-aside-left has-aside-mobile-transition has-navbar-fixed-top has-aside-expanded">
 
 <head>
     <meta charset="utf-8">
@@ -18,6 +18,10 @@
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/sweetalert2.min.css" />
     <script src="{$app_url}/ui/ui/scripts/sweetalert2.all.min.js"></script>
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/phpnuxbill.customer.css?2025.2.4" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v1" />
+    {if $nuxr_dir eq 'rtl'}
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?wp6c.2" />
+    {/if}
 
     <style>
 

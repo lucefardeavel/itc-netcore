@@ -136,16 +136,18 @@
     <script>
         window.addEventListener('DOMContentLoaded', function() {
             $.getJSON("./version.json?" + Math.random(), function(data) {
-                var localVersion = data.version;
-                $('#version').html('Version: ' + localVersion);
+                // the remote version file is third-party data: text only, and a restricted token (never HTML)
+                function nuxrSafeVersion(v) { v = String(v); return v.length <= 32 && /^[0-9A-Za-z._-]+$/.test(v) ? v : 'unknown'; }
+                var localVersion = nuxrSafeVersion(data.version);
+                $('#version').text('Version: ' + localVersion);
                 $.getJSON(
                     "https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/version.json?" +
                     Math
                     .random(),
                     function(data) {
-                        var latestVersion = data.version;
+                        var latestVersion = nuxrSafeVersion(data.version);
                         if (localVersion !== latestVersion) {
-                            $('#version').html('Latest Version: ' + latestVersion);
+                            $('#version').text('Latest Version: ' + latestVersion);
                             if (getCookie(latestVersion) != 'done') {
                                 Swal.fire({
                                     icon: 'info',

@@ -114,13 +114,13 @@
                         <tbody>
                             {foreach $d as $ds}
                                 <tr>
-                                    <td>{$ds['username']|escape}</td>
+                                    <td>{NuxrUi::holder($ds['username'],$ds['method'])|escape}</td>
                                     <td>{$ds['type']}</td>
                                     <td>{$ds['plan_name']}</td>
                                     <td class="text-right">{Lang::moneyFormat($ds['price'])}</td>
                                     <td>{Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])}</td>
                                     <td>{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])}</td>
-                                    <td>{$ds['method']}</td>
+                                    <td>{NuxrUi::method($ds['method'])|escape}</td>
                                     <td>{$ds['routers']|escape}</td>
                                 </tr>
                             {/foreach}
@@ -139,8 +139,8 @@
                     <span class="nuxr-mcard-sub"><a href="{Text::url('export/print-by-date&')}{$filter}" target="_blank"><i class="ion ion-printer" aria-hidden="true"></i> {Lang::T('Print')}</a> · <a href="{Text::url('export/pdf-by-date&')}{$filter}"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a></span></div></div></li>
                 {foreach $d as $ds}
                     <li><div class="nuxr-mcard is-wrap"><div class="nuxr-mcard-main">
-                        <span class="nuxr-mcard-title"><bdi dir="ltr">{Lang::moneyFormat($ds['price'])|escape}</bdi> · <bdi dir="ltr">{$ds['username']|escape}</bdi></span>
-                        <span class="nuxr-mcard-sub">{$ds['plan_name']|escape} · {$ds['type']|escape} · {$ds['method']|escape}</span>
+                        <span class="nuxr-mcard-title"><bdi dir="ltr">{Lang::moneyFormat($ds['price'])|escape}</bdi> · <bdi dir="ltr">{NuxrUi::holder($ds['username'],$ds['method'])|escape}</bdi></span>
+                        <span class="nuxr-mcard-sub">{$ds['plan_name']|escape} · {$ds['type']|escape} · {NuxrUi::method($ds['method'])|escape}</span>
                         <span class="nuxr-mcard-sub"><bdi dir="ltr">{Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])|escape}</bdi> → <bdi dir="ltr">{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])|escape}</bdi>{if $ds['routers']} · <bdi dir="ltr">{$ds['routers']|escape}</bdi>{/if}</span>
                     </div></div></li>
                 {foreachelse}

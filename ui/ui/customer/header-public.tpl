@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{$nuxr_lang|default:'en'}">
+<html lang="{$nuxr_lang|default:'en'}" dir="{$nuxr_dir|default:'ltr'}">
 
 <head>
     <meta charset="utf-8">
@@ -14,6 +14,10 @@
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/bootstrap.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/modern-AdminLTE.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/sweetalert2.min.css" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v1" />
+    {if $nuxr_dir eq 'rtl'}
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?wp6c.2" />
+    {/if}
     <script src="{$app_url}/ui/ui/scripts/sweetalert2.all.min.js"></script>
 
 

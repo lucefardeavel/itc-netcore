@@ -35,13 +35,13 @@
                     <th class="text-center">{Lang::T('Routers')}</th>
                     {foreach $d as $ds}
                         <tr>
-                            <td>{$ds['username']|escape}</td>
+                            <td>{NuxrUi::holder($ds['username'],$ds['method'])|escape}</td>
                             <td class="text-center">{$ds['plan_name']}</td>
                             <td class="text-center">{$ds['type']}</td>
                             <td class="text-right">{Lang::moneyFormat($ds['price'])}</td>
                             <td>{Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])}</td>
                             <td>{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])}</td>
-                            <td class="text-center">{$ds['method']}</td>
+                            <td class="text-center">{NuxrUi::method($ds['method'])|escape}</td>
                             <td class="text-center">{$ds['routers']|escape}</td>
                         </tr>
                     {/foreach}

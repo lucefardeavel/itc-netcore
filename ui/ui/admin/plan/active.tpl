@@ -109,7 +109,7 @@
                                     <td>{$ds['type']}</td>
                                     <td>{Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])}</td>
                                     <td>{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])}</td>
-                                    <td>{$ds['method']}</td>
+                                    <td>{NuxrUi::method($ds['method'])|escape}</td>
                                     <td>{$ds['routers']|escape}</td>
                                     <td>
                                         {if $nuxr_can.edit}<a href="{Text::url('')}plan/edit/{$ds['id']}" class="btn btn-warning btn-xs"

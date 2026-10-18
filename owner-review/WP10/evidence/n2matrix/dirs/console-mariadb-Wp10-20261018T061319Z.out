@@ -1,0 +1,78 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/n2matrix/dirs/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp10
+start: 2026-10-18T06:13:19Z
+ Container nuxbill-reseller-test-php82-run-55728f9be210 Creating 
+ Container nuxbill-reseller-test-php82-run-55728f9be210 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................                     45 / 45 (100%)
+
+Time: 01:50.487, Memory: 14.00 MB
+
+V1Legacy Renewal (Reseller\Tests\Integration\Wp10\V1LegacyRenewal)
+ ✔ Legacy renewal ends and confirms the running sessions
+
+V1Period Ownership (Reseller\Tests\Integration\Wp10\V1PeriodOwnership)
+ ✔ Clock skew never moves a session between periods
+ ✔ The time rule alone over counts a session started just before the renewal
+ ✔ Late interim and duplicate start never move a row
+ ✔ Reprovision of the same period keeps the boundary and a renewal moves it
+ ✔ A period provisioned before this change keeps the time rule
+ ✔ An impossible id falls back to the time rule and a malformed id fails closed
+ ✔ Enforcer uses the same ownership
+ ✔ An activation in the same second still opens a new period
+ ✔ Out of order interim stop and start keep one row and never lower the usage
+ ✔ Reconnects add their usage and a retransmitted stop adds nothing
+ ✔ A delayed start after the renewal belongs to the new period
+
+V1Plan Quota Form (Reseller\Tests\Integration\Wp10\V1PlanQuotaForm)
+ ✔ Invalid quotas are refused
+ ✔ Valid quotas are stored as the radius policy reads them
+
+V1Quota Enforcer (Reseller\Tests\Integration\Wp10\V1QuotaEnforcer)
+ ✔ Confirmation needs nas evidence
+ ✔ Resend delay depends on the outcome
+ ✔ One pass one termination call for all subscribers
+ ✔ A silent nas is asked once per call
+ ✔ Enforcer ends only over quota sessions of the current period
+ ✔ Session stamped just before the activation is enforced in the new period
+ ✔ Time quota across concurrent sessions
+ ✔ Malformed quota rows are skipped not enforced
+
+V1Quota Free Radius (Reseller\Tests\Integration\Wp10\V1QuotaFreeRadius)
+ ✔ In session limit is the remaining share
+ ✔ Gigawords and shared users
+ ✔ Exhausted and zero share are rejected
+ ✔ Stale interim never lowers usage and gigawords count
+ ✔ Q 1 cross period session stays in its own period
+ ✔ Session stamped just before the period start is counted in the new period
+ ✔ Duplicate wrap multi nas malformed and time quota
+
+V1Quota Operations (Reseller\Tests\Integration\Wp10\V1QuotaOperations)
+ ✔ Enforcer cli audit heartbeat lock and health
+ ✔ Preflight lists limited plans with an invalid quota
+ ✔ Health reports a nas whose clock is ahead
+ ✔ Usage and cli only
+
+V1Quota Usage (Reseller\Tests\Integration\Wp10\V1QuotaUsage)
+ ✔ Actual billable and overshoot are separate
+ ✔ Below the quota billable equals actual and exact at the quota
+ ✔ Sixty four bit numbers are exact
+ ✔ The previous periods rows are not part of the current one
+ ✔ Malformed quota rows report nothing
+ ✔ An overshoot creates no debt and a renewal settles exactly once
+ ✔ No finance class reads accounting
+
+V1Renewal Option B (Reseller\Tests\Integration\Wp10\V1RenewalOptionB)
+ ✔ Renewal ends and confirms the previous period session
+ ✔ Unconfirmed end is reported and the operator ends it
+ ✔ New activation ends nothing
+
+V1Voucher Quota (Reseller\Tests\Integration\Wp10\V1VoucherQuota)
+ ✔ Gb voucher provisions the quota policy
+ ✔ Voucher of an invalid quota plan is not granted and writes nothing
+
+OK (45 tests, 536 assertions)
+exit=0 end: 2026-10-18T06:15:11Z

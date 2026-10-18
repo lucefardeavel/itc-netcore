@@ -175,6 +175,31 @@ final class Format
         return $d === false ? null : (int) (new \DateTimeImmutable('today'))->diff($d)->format('%r%a');
     }
 
+    /**
+     * D8 (owner V1_OWNER_DECISIONS_APPROVED): a voucher code is a credential. Display surfaces that do not need the full code
+     * (reports, receipts, print views, the customer's activation list) show "Voucher - AB****YZ" for the payment method
+     * "Voucher - <code>"; the stored value is never changed (audit and financial records keep the original) and exports keep it.
+     */
+    public static function method(mixed $method): string
+    {
+        $m = (string) $method;
+        return preg_match('/^(Voucher - )(.+)$/Ds', $m, $x) === 1 ? $x[1] . self::maskCode($x[2]) : $m;
+    }
+
+    /** the holder name of a recharge: a voucher-only recharge is held by its CODE (customer 0, username = code) - masked like {@see method()} */
+    public static function holder(mixed $username, mixed $method): string
+    {
+        $u = (string) $username;
+        return $u !== '' && (string) $method === 'Voucher - ' . $u ? self::maskCode($u) : $u;
+    }
+
+    /** first two and last two characters, never the length of the rest */
+    public static function maskCode(string $code): string
+    {
+        $n = mb_strlen($code);
+        return $n <= 4 ? '****' : mb_substr($code, 0, 2) . '****' . mb_substr($code, -2);
+    }
+
     /** "1.2 GB" style size for octet counters (display only). */
     public static function bytes(int $n): string
     {

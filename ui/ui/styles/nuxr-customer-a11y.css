@@ -1,0 +1,41 @@
+/*
+ * D9 (owner V1_OWNER_DECISIONS_APPROVED): customer-portal contrast, inside the existing visual identity.
+ * The legacy theme's success / primary buttons and links are lighter than WCAG 2 AA allows with white text
+ * (#5cb85c = 2.5:1, #3c8dbc = 3.7:1). Same hues, darker shades (>= 5:1 with white / on white). No layout change.
+ */
+.btn-success,
+.btn-success:focus {
+    background-color: #2f7d2f;
+    border-color: #266626;
+    color: #fff;
+}
+
+.btn-success:hover,
+.btn-success:active {
+    background-color: #266626;
+    border-color: #1e521e;
+    color: #fff;
+}
+
+.btn-primary,
+.btn-primary:focus {
+    background-color: #2f7399;
+    border-color: #286090;
+    color: #fff;
+}
+
+.btn-primary:hover,
+.btn-primary:active {
+    background-color: #286090;
+    border-color: #23527c;
+    color: #fff;
+}
+
+#app a:not(.btn):not([class*="nav"]):not([class*="menu"]) {
+    color: #2f7399;
+}
+
+#app a:not(.btn):not([class*="nav"]):not([class*="menu"]):hover,
+#app a:not(.btn):not([class*="nav"]):not([class*="menu"]):focus {
+    color: #23527c;
+}

@@ -50,7 +50,7 @@
                             {foreach $activation as $ds}
                                 <tr>
                                     <td>{if $nuxr_link_invoice}<a href="{Text::url('plan/view/')}{$ds['id']|escape:'url'}">{$ds['invoice']|escape}</a>{else}{$ds['invoice']|escape}{/if}</td>
-                                    <td>{if $nuxr_link_customer && $nuxr_customer_view[$ds['username']]|default:false}<a href="{Text::url('customers/viewu/')}{$ds['username']|escape:'url'}">{$ds['username']|escape}</a>{else}{$ds['username']|escape}{/if}</td>
+                                    <td>{if $nuxr_link_customer && $nuxr_customer_view[$ds['username']]|default:false}<a href="{Text::url('customers/viewu/')}{$ds['username']|escape:'url'}">{$ds['username']|escape}</a>{else}{NuxrUi::holder($ds['username'],$ds['method'])|escape}{/if}</td>
                                     <td>{$ds['plan_name']}</td>
                                     <td>{Lang::moneyFormat($ds['price'])}</td>
                                     <td>{$ds['type']}</td>
@@ -58,7 +58,7 @@
                                         {Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])}
                                     </td>
                                     <td class="text-danger">{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])}</td>
-                                    <td>{$ds['method']}</td>
+                                    <td>{NuxrUi::method($ds['method'])|escape}</td>
                                 </tr>
                             {/foreach}
                         </tbody>
@@ -69,8 +69,8 @@
                         <li><div class="nuxr-mcard is-wrap">
                             <{if $nuxr_link_invoice}a href="{Text::url('plan/view/')}{$ds['id']|escape:'url'}"{else}div{/if} class="nuxr-mcard-main">
                                 <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">{$ds['invoice']|escape}</bdi></span>
-                                <span class="nuxr-mcard-sub"><bdi dir="ltr">{$ds['username']|escape}</bdi> · {$ds['plan_name']|escape} · <bdi dir="ltr">{Lang::moneyFormat($ds['price'])|escape}</bdi></span>
-                                <span class="nuxr-mcard-sub"><bdi dir="ltr">{Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])|escape}</bdi> → <bdi dir="ltr">{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])|escape}</bdi> · {$ds['method']|escape}</span>
+                                <span class="nuxr-mcard-sub"><bdi dir="ltr">{NuxrUi::holder($ds['username'],$ds['method'])|escape}</bdi> · {$ds['plan_name']|escape} · <bdi dir="ltr">{Lang::moneyFormat($ds['price'])|escape}</bdi></span>
+                                <span class="nuxr-mcard-sub"><bdi dir="ltr">{Lang::dateAndTimeFormat($ds['recharged_on'],$ds['recharged_time'])|escape}</bdi> → <bdi dir="ltr">{Lang::dateAndTimeFormat($ds['expiration'],$ds['time'])|escape}</bdi> · {NuxrUi::method($ds['method'])|escape}</span>
                             </{if $nuxr_link_invoice}a{else}div{/if}>
                         </div></li>
                     {foreachelse}

@@ -1,0 +1,31 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/d8/run4/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp10/VoucherMaskTest.php
+start: 2026-10-18T06:31:46Z
+ Container nuxbill-reseller-test-php82-run-32d021848eb7 Creating 
+ Container nuxbill-reseller-test-php82-run-32d021848eb7 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+EE                                                                  2 / 2 (100%)
+
+Time: 00:00.014, Memory: 10.00 MB
+
+Voucher Mask (Reseller\Tests\Unit\Wp10\VoucherMask)
+ ✘ Method masks only a voucher code
+   │
+   │ Error: Class "Reseller\Ui\Format" not found
+   │
+   │ /repo/tests/Unit/Wp10/VoucherMaskTest.php:15
+   │
+ ✘ Holder masks only a voucher only recharge
+   │
+   │ Error: Class "Reseller\Ui\Format" not found
+   │
+   │ /repo/tests/Unit/Wp10/VoucherMaskTest.php:26
+   │
+
+ERRORS!
+Tests: 2, Assertions: 0, Errors: 2.
+
+exit=2 end: 2026-10-18T06:31:47Z

@@ -258,14 +258,16 @@
 </div>
 </div>
 <script>
+    // the remote version file is third-party data: text only, and a restricted token (never HTML)
+    function nuxrSafeVersion(v) { v = String(v); return v.length <= 32 && /^[0-9A-Za-z._-]+$/.test(v) ? v : 'unknown'; }
     window.addEventListener('DOMContentLoaded', function() {
         $.getJSON("./version.json?" + Math.random(), function(data) {
-            $('#currentVersion').html('Current Version: ' + data.version);
+            $('#currentVersion').text('Current Version: ' + nuxrSafeVersion(data.version));
         });
         $.getJSON("https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/version.json?" + Math
             .random(),
             function(data) {
-                $('#latestVersion').html('Latest Version: ' + data.version);
+                $('#latestVersion').text('Latest Version: ' + nuxrSafeVersion(data.version));
             });
     });
 </script>

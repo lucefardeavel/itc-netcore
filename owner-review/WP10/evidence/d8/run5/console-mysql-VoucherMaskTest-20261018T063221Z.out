@@ -1,0 +1,19 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/d8/run5/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp10/VoucherMaskTest.php
+start: 2026-10-18T06:32:21Z
+ Container nuxbill-reseller-test-php82-run-6ac64a7dd66f Creating 
+ Container nuxbill-reseller-test-php82-run-6ac64a7dd66f Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:00.007, Memory: 10.00 MB
+
+Voucher Mask (Reseller\Tests\Unit\Wp10\VoucherMask)
+ ✔ Method masks only a voucher code
+ ✔ Holder masks only a voucher only recharge
+
+OK (2 tests, 11 assertions)
+exit=0 end: 2026-10-18T06:32:23Z

@@ -221,4 +221,30 @@ PHP);
         }
         $this->assertStringContainsString($code, $this->staff('ad')->get('plan/list')->body, 'by design: global staff (who manage vouchers) see it');
     }
+
+    /**
+     * D8 (owner V1_OWNER_DECISIONS_APPROVED): the voucher code is masked on the report / receipt / print surfaces that do not
+     * need it; the stored records keep the original and the voucher list (where staff manage vouchers) shows it.
+     */
+    public function testD8VoucherCodesAreMaskedWhereTheFullCodeIsNotNeeded(): void
+    {
+        $code = 'D8' . strtoupper(bin2hex(random_bytes(5)));
+        $masked = substr($code, 0, 2) . '****' . substr($code, -2);
+        $today = date('Y-m-d');
+        static::$db->insertRow('tbl_transactions', ['invoice' => 'INV-D8' . bin2hex(random_bytes(4)), 'username' => $code, 'user_id' => 0, 'plan_name' => 'w9rt_plan', 'price' => '20', 'recharged_on' => $today,
+            'recharged_time' => '00:00:00', 'expiration' => date('Y-m-d', time() + 86400), 'time' => '00:00:00', 'method' => 'Voucher - ' . $code, 'routers' => 'radius', 'type' => 'Hotspot']);
+        static::$db->insertRow('tbl_user_recharges', ['customer_id' => 0, 'username' => $code, 'plan_id' => self::$plan, 'namebp' => 'w9rt_plan', 'recharged_on' => $today,
+            'recharged_time' => '00:00:00', 'expiration' => date('Y-m-d', time() + 86400), 'time' => '00:00:00', 'status' => 'on', 'method' => 'Voucher - ' . $code, 'routers' => 'radius', 'type' => 'Hotspot', 'admin_id' => 0]);
+        $ad = $this->staff('ad');
+        foreach (['reports/daily-report', 'reports/by-date', 'reports/activation'] as $route) {
+            $body = $ad->get($route)->body;
+            $this->assertStringNotContainsString($code, $body, "{$route}: the full code is not rendered");
+        }
+        $daily = $ad->get('reports/daily-report')->body;
+        $this->assertStringContainsString('Voucher - ' . $masked, $daily, 'the masked method is shown');
+        $this->assertSame(1, (int) static::$db->value('SELECT COUNT(*) FROM tbl_transactions WHERE method = ?', ['Voucher - ' . $code]), 'the stored record keeps the original');
+        $list = $ad->get('plan/list')->body;
+        $this->assertStringContainsString($code, $list, 'the active-voucher management list still shows the code it acts on');
+        $this->assertStringNotContainsString('Voucher - ' . $code, $list, 'but not as a payment method');
+    }
 }

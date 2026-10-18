@@ -1,0 +1,8 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/d9/run1/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Unit/Wp10/ClientSideSinkInventoryTest.php
+start: 2026-10-18T06:26:52Z
+ Container nuxbill-reseller-test-php82-run-1da6b753c44d Creating 
+ Container nuxbill-reseller-test-php82-run-1da6b753c44d Created 
+
+Fatal error: Cannot override final method PHPUnit\Framework\TestCase::count() in /repo/tests/Unit/Wp10/ClientSideSinkInventoryTest.php on line 36
+
+exit=255 end: 2026-10-18T06:26:53Z

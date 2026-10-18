@@ -167,7 +167,7 @@
                     </tr>
                     <tr>
                         <th>{Lang::pad(Lang::T('Username'), ' ', 2)}</th>
-                        <td>{$in['username']|escape}</td>
+                        <td>{NuxrUi::holder($in['username'],$in['method'])|escape}</td>
                     </tr>
                     <tr>
                         <th>{Lang::pad(Lang::T('Password'), ' ', 2)}</th>
@@ -175,7 +175,7 @@
                     </tr>
                     <tr>
                         <th>{Lang::pad(Lang::T('Payment Method'), ' ', 2)}</th>
-                        <td>{$in['method']}</td>
+                        <td>{NuxrUi::method($in['method'])|escape}</td>
                     </tr>
                     {if $in['type'] != 'Balance'}
                         <tr>

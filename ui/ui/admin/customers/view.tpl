@@ -249,7 +249,7 @@
                             <td>{if $_can['invoice.read']}<a href="{Text::url('plan/view/', $ds['id'])}"><bdi dir="ltr">{$ds['invoice']|escape}</bdi></a>{else}<bdi dir="ltr">{$ds['invoice']|escape}</bdi>{/if}</td>
                             <td>{$ds['plan_name']|escape}</td><td class="is-num"><bdi dir="ltr">{Lang::moneyFormat($ds['price'])}</bdi></td>
                             <td><bdi dir="ltr">{$ds['recharged_on']|escape} {$ds['recharged_time']|escape}</bdi></td><td><bdi dir="ltr">{$ds['expiration']|escape} {$ds['time']|escape}</bdi></td>
-                            <td><bdi dir="ltr">{$ds['method']|escape}</bdi></td></tr>{/foreach}</tbody>
+                            <td><bdi dir="ltr">{NuxrUi::method($ds['method'])|escape}</bdi></td></tr>{/foreach}</tbody>
                     </table></div>
                     <ul class="nuxr-mlist">{foreach $activation as $ds}<li><div class="nuxr-mcard">
                         <span class="nuxr-mcard-main"><span class="nuxr-mcard-title"><bdi dir="ltr">{$ds['invoice']|escape}</bdi></span><span class="nuxr-mcard-sub">{$ds['plan_name']|escape} · <bdi dir="ltr">{$ds['recharged_on']|escape}</bdi></span></span>

@@ -218,4 +218,78 @@ final class V1PeriodOwnershipTest extends TestCase
         $this->assertCount(1, $over);
         $this->assertSame('2000000', $over[0]['usage'], 'only the new-period session is counted');
     }
+
+    /**
+     * Option G / N1: two activations whose start second is the same are two periods (the first period's overshoot rows are
+     * not carried into the second); a re-provision of the same period still keeps its boundary.
+     */
+    public function testAnActivationInTheSameSecondStillOpensANewPeriod(): void
+    {
+        $u = $this->user();
+        $start = new \DateTimeImmutable('now');
+        $this->provision($u, 'Pw-h', $start);                     // the first activation
+        self::session($u, time(), 900_000_000);                   // 900 MB of the first period
+        $this->assertSame(25_000_000, self::share($u, 'Pw-h'));
+        $this->provision($u, 'Pw-h', $start);                     // a re-provision of the SAME period (password / rename): nothing resets
+        $this->assertSame(25_000_000, self::share($u, 'Pw-h'));
+        $repo = new RadiusRepository(self::$pdo);                 // a RENEW whose start second equals the previous start second
+        $policy = RadiusPolicyBuilder::build(['username' => $u, 'password' => 'Pw-h'], self::PLAN + ['id' => 4343, 'type' => 'Hotspot', 'typebp' => 'Limited', 'pool' => ''],
+            self::BW, new \DateTimeImmutable('+1 day'), $start, PeriodBoundary::newPeriod(new AccountingService(self::$pdo)));
+        $this->assertSame('SUCCESS', (new RadiusProvisioner($repo))->provision($policy)->status);
+        $this->assertSame(250_000_000, self::share($u, 'Pw-h'), 'a new activation opens a new period even inside the same second: full quota, no carry-over');
+    }
+
+    /** N2: record ordering - a late smaller Interim after the Stop, and an Interim before the Start, never lower or duplicate the usage */
+    public function testOutOfOrderInterimStopAndStartKeepOneRowAndNeverLowerTheUsage(): void
+    {
+        $u = $this->user();
+        $this->provision($u, 'Pw-i', new \DateTimeImmutable('-1 hour'));
+        $a = bin2hex(random_bytes(6));
+        self::acct($u, 1, $a, [['Event-Timestamp', time() - 60]]);
+        self::acct($u, 3, $a, [['Event-Timestamp', time() - 50], ['Acct-Session-Time', 10], ['Acct-Output-Octets', 100_000_000]]);
+        self::acct($u, 2, $a, [['Event-Timestamp', time() - 40], ['Acct-Session-Time', 20], ['Acct-Output-Octets', 120_000_000]]);
+        self::acct($u, 3, $a, [['Event-Timestamp', time() - 45], ['Acct-Session-Time', 15], ['Acct-Output-Octets', 110_000_000]]);   // late, smaller, after the Stop
+        $this->assertSame(220_000_000, self::share($u, 'Pw-i'), 'the Stop figure (120 MB) stands: (1000 - 120) / 4');
+        // an Interim that arrives before its Start: one row, and the Start does not erase the traffic
+        $b = bin2hex(random_bytes(6));
+        self::acct($u, 3, $b, [['Event-Timestamp', time() - 30], ['Acct-Session-Time', 10], ['Acct-Output-Octets', 30_000_000]]);
+        self::acct($u, 1, $b, [['Event-Timestamp', time() - 40]]);
+        $n = self::$pdo->prepare('SELECT COUNT(*) FROM radacct WHERE username = ? AND acctsessionid = ?');
+        $n->execute([$u, $b]);
+        $this->assertSame(1, (int) $n->fetchColumn(), 'one row per session identity');
+        $this->assertLessThanOrEqual(220_000_000 - 7_500_000 + 1, self::share($u, 'Pw-i'), 'the 30 MB of the early Interim are counted: (1000 - 120 - 30) / 4 at most');
+    }
+
+    /** N2: a reconnect is a new session identity (its usage is added); a retransmitted Stop adds nothing */
+    public function testReconnectsAddTheirUsageAndARetransmittedStopAddsNothing(): void
+    {
+        $u = $this->user();
+        $this->provision($u, 'Pw-j', new \DateTimeImmutable('-1 hour'));
+        $a = bin2hex(random_bytes(6));
+        self::acct($u, 1, $a, [['Event-Timestamp', time() - 100]]);
+        self::acct($u, 2, $a, [['Event-Timestamp', time() - 90], ['Acct-Session-Time', 10], ['Acct-Output-Octets', 100_000_000]]);
+        self::acct($u, 2, $a, [['Event-Timestamp', time() - 90], ['Acct-Session-Time', 10], ['Acct-Output-Octets', 100_000_000]]);   // retransmission
+        $b = bin2hex(random_bytes(6));   // the reconnect
+        self::acct($u, 1, $b, [['Event-Timestamp', time() - 80]]);
+        self::acct($u, 2, $b, [['Event-Timestamp', time() - 70], ['Acct-Session-Time', 10], ['Acct-Output-Octets', 150_000_000]]);
+        $n = self::$pdo->prepare('SELECT COUNT(*) FROM radacct WHERE username = ?');
+        $n->execute([$u]);
+        $this->assertSame(2, (int) $n->fetchColumn());
+        $this->assertSame(187_500_000, self::share($u, 'Pw-j'), '(1000 - 100 - 150) / 4: both sessions counted once');
+    }
+
+    /**
+     * N2: delayed accounting - a Start that is delivered AFTER the renewal (stamped before it by the NAS) belongs to the new
+     * period by arrival order: counted there, never in the old one (conservative; its session was ended by Option B).
+     */
+    public function testADelayedStartAfterTheRenewalBelongsToTheNewPeriod(): void
+    {
+        $u = $this->user();
+        $this->provision($u, 'Pw-k', new \DateTimeImmutable('-1 hour'));
+        $this->provision($u, 'Pw-k', new \DateTimeImmutable('now'));   // the renewal happens first
+        $d = bin2hex(random_bytes(6));
+        self::acct($u, 1, $d, [['Event-Timestamp', time() - 120]]);     // delivered late, stamped 2 minutes earlier
+        self::acct($u, 3, $d, [['Event-Timestamp', time() - 110], ['Acct-Session-Time', 10], ['Acct-Output-Octets', 4_000_000]]);
+        $this->assertSame(249_000_000, self::share($u, 'Pw-k'), 'counted in the new period: (1000 - 4) / 4');
+    }
 }
