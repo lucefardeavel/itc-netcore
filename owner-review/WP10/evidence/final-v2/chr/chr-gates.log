@@ -1,0 +1,8 @@
+== 08:06:15 wp8-security-gates
+rc=0
+OK (10 tests, 216 assertions)
+== 08:39:31 wp8-integration
+rc=1
+FAILURES!
+Tests: 122, Assertions: 2383, Failures: 1, PHPUnit Deprecations: 1, Skipped: 13.
+CHR_GATES_DONE

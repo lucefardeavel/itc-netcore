@@ -311,9 +311,10 @@ final class V1QuotaLabTest extends Wp8ActivationLabCase
         $this->assertTrue(Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Q-ex-pass'])['ok']);
         $loginAt = microtime(true);
         Wp8Lab::agent('traffic', ['client' => 'c1', 'direction' => 'down', 'seconds' => 3, 'kbps_offer' => 4000]);
+        $renewAt = microtime(true);   // the new period starts when the renewal starts (its Disconnect / confirmation work comes after)
         $renew = $this->activate($h['sales'], $cust, $plan, 'RENEW');   // at once: the old session is a few seconds old
         $this->assertSame('COMPLETED', $renew['status']);
-        $this->assertLessThan(\Reseller\Radius\QuotaPolicy::PERIOD_SKEW_SECONDS, microtime(true) - $loginAt, 'the renewal is inside the old allowance window');
+        $this->assertLessThan(\Reseller\Radius\QuotaPolicy::PERIOD_SKEW_SECONDS, $renewAt - $loginAt, 'the renewal starts inside the old allowance window');
         $old = $this->stopped($user, 0);
         $this->assertGreaterThan(100_000, $this->used($old), 'the old session carried traffic');
         $this->assertTrue(Wp8Lab::agent('pppoe_wait_down', ['client' => 'c1'])['down']);
