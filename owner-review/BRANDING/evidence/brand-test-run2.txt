@@ -1,0 +1,41 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.........................                                         25 / 25 (100%)
+
+Time: 00:00.048, Memory: 10.00 MB
+
+Brand Identity (Reseller\Tests\Unit\Wp10\BrandIdentity)
+ ✔ The approved identity
+ ✔ The operator name and the product fallback
+ ✔ Every page frame shows the brand and not the raw setting
+ ✔ The original project stays credited
+ ✔ The licence and internal identifiers are unchanged
+ ✔ No other template names the original product as this one
+ ✔ Every brand string has an arabic entry
+ ✔ The pwa carries the interim text mark
+
+Pwa Manifest (Reseller\Tests\Unit\Wp7\PwaManifest)
+ ✔ Manifest fields for a root and a subdirectory installation
+ ✔ Names language and fallback
+ ✔ Icons are the interim replaceable assets
+
+Wp7Guard (Reseller\Tests\Unit\Wp7\Wp7Guard)
+ ✔ Pwa routes are public get only and never api allowed
+ ✔ The pwa controller has no business or mutating code
+ ✔ The pwa builder is pure and user neutral
+ ✔ The service worker stores only the literal precache list
+ ✔ One version for worker client and builder
+ ✔ The offline document is static and generic
+ ✔ The pwa client uses feature detection only
+ ✔ The csrf shim hook can only stop a request
+ ✔ The gate blocks only confirmed offline or reconnecting non get requests
+ ✔ Install is user initiated only
+ ✔ Update is user chosen deferred in critical flows and reloads only this tab once
+ ✔ Every wp 7 string has an arabic entry
+ ✔ The heartbeat bypasses the csrf shim and nothing else does
+ ✔ Prune stays inside the installation namespace
+
+OK (25 tests, 394 assertions)

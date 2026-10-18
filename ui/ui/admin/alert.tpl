@@ -4,9 +4,9 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{ucwords(Lang::T($type))} - {$_c['CompanyName']}</title>
+    <title>{ucwords(Lang::T($type))} - {$_brand.company|escape}</title>
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <link rel="shortcut icon" href="{$app_url}/ui/ui/images/logo.png" type="image/x-icon" />
+    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/bootstrap.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/modern-AdminLTE.min.css">
     <meta http-equiv="refresh" content="{$time}; url={$url}">
@@ -24,7 +24,7 @@
             </div>
         </div>
         <div class="lockscreen-footer text-center">
-            {$_c['CompanyName']}
+            {$_brand.company|escape}
         </div>
     </div>
 

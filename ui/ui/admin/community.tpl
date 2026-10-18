@@ -1,7 +1,40 @@
 {include file="sections/header.tpl"}
+<div class="itc-about-page">
+
+{* About ITC NetCore (product identity, Reseller\Ui\Brand). The original project's credits, community links and notices
+   below are kept and labelled as the original project's; they are not ITC support channels. *}
+<div class="row">
+    <div class="col-sm-12">
+        <div class="box box-primary mb20 itc-about" id="about">
+            <div class="box-header">
+                <h3 class="box-title">{Lang::T('About')} <bdi>{$_brand.name|escape}</bdi></h3>
+            </div>
+            <div class="box-body">
+                <p class="itc-about-head"><bdi class="itc-wordmark itc-wordmark-lg" dir="ltr"><span class="itc-wm-brand">{$_brand.brand|escape}</span> <span class="itc-wm-product">{$_brand.product|escape}</span></bdi>
+                    <span class="itc-tagline">{Lang::T('ISP Management & Billing Platform')}</span></p>
+                <div>
+                    <table class="table table-bordered itc-facts">
+                        <tbody>
+                            <tr><th scope="row">{Lang::T('Product')}</th><td><bdi>{$_brand.name|escape}</bdi></td></tr>
+                            <tr><th scope="row">{Lang::T('Version')}</th><td><bdi>{$_brand.version|escape}</bdi></td></tr>
+                            <tr><th scope="row">{Lang::T('Developed and maintained by')}</th><td><bdi>{$_brand.vendor|escape}</bdi></td></tr>
+                            <tr><th scope="row">{Lang::T('Based on the open-source project')}</th><td><a href="{$_brand.upstream_url|escape}" target="_blank" rel="noopener noreferrer">{$_brand.upstream|escape}</a>
+                                <bdi>({$_brand.upstream_author|escape})</bdi> {Lang::T('and its contributors')}</td></tr>
+                            <tr><th scope="row">{Lang::T('Base version')}</th><td><bdi dir="ltr">{$_brand.upstream|escape} <span id="currentVersion">-</span></bdi></td></tr>
+                            <tr><th scope="row">{Lang::T('Licence')}</th><td><bdi>{$_brand.license|escape}</bdi> <bdi>({Lang::T('see the LICENSE and NOTICE files')})</bdi></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="itc-muted">{Lang::T('ITC NetCore is a modified version of PHPNuxBill. The copyright notices and licences of the original authors and of every third-party component are kept unchanged.')}</p>
+            </div>
+        </div>
+        <h2 class="itc-section-title">{Lang::T('Original project')}: <bdi>{$_brand.upstream|escape}</bdi></h2>
+        <p class="itc-muted">{Lang::T('The community, donation and support links below belong to the original PHPNuxBill project and its author. They are not ITC support channels.')}</p>
+    </div>
+</div>
 
 <center><a href="https://s.id/standwithpalestine" target="_blank"><img
-            src="https://raw.githubusercontent.com/Safouene1/support-palestine-banner/master/banner-support.svg"
+            src="https://raw.githubusercontent.com/Safouene1/support-palestine-banner/master/banner-support.svg" alt="Support Palestine"
             class="img-responsive"></a></center>
 <br><br>
 
@@ -14,7 +47,7 @@
             </div>
             <div class="box-body">
                 <a href="https://github.com/hotspotbilling/phpnuxbill/graphs/contributors" target="_blank">
-                    <img src="https://contrib.rocks/image?repo=hotspotbilling/phpnuxbill&columns=10" width="100%" />
+                    <img src="https://contrib.rocks/image?repo=hotspotbilling/phpnuxbill&columns=10" width="100%" alt="PHPNuxBill contributors" />
                 </a>
             </div>
         </div>
@@ -141,15 +174,14 @@
     <div class="col-sm-6" id="update">
         <div class="box box-primary box-hovered mb20 activities">
             <div class="box-header">
-                <h3 class="box-title">PHPNUXBILL</h3>
+                <h3 class="box-title">PHPNuxBill ({Lang::T('Original project')})</h3>
             </div>
             <div class="box-body">
                 <b>PHPNuxBill</b>
                 {Lang::T('is a Hotspot and PPPoE billing platform for Mikrotik developed using PHP. The application uses Mikrotik API to communicate with the router, ensuring efficient and easy integration. If you feel you get more benefits from this application, we would greatly appreciate your contribution through donation.')}<br>{Lang::T('Watch project –')} <a
                     href="https://github.com/hotspotbilling/phpnuxbill" target="_blank">{Lang::T('IN HERE')}</a>
             </div>
-            <div class="box-footer" id="currentVersion">ver</div>
-            <div class="box-footer" id="latestVersion">ver</div>
+            <div class="box-footer">{Lang::T('Latest upstream version')}: <bdi id="latestVersion">-</bdi></div>
             <div class="box-footer">
                 {* WP2 / OD-2: the in-app web updater and rollback are disabled; updates are installed through
                    the reviewed release process and schema changes through the project migration runner. *}
@@ -262,13 +294,14 @@
     function nuxrSafeVersion(v) { v = String(v); return v.length <= 32 && /^[0-9A-Za-z._-]+$/.test(v) ? v : 'unknown'; }
     window.addEventListener('DOMContentLoaded', function() {
         $.getJSON("./version.json?" + Math.random(), function(data) {
-            $('#currentVersion').text('Current Version: ' + nuxrSafeVersion(data.version));
+            $('#currentVersion').text(nuxrSafeVersion(data.version));
         });
         $.getJSON("https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/version.json?" + Math
             .random(),
             function(data) {
-                $('#latestVersion').text('Latest Version: ' + nuxrSafeVersion(data.version));
+                $('#latestVersion').text(nuxrSafeVersion(data.version));
             });
     });
 </script>
+</div>
 {include file="sections/footer.tpl"}

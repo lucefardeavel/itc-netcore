@@ -11,7 +11,7 @@ if (file_exists(__DIR__ . '/../config.php') && is_dir(__DIR__ . '/../pages')) {
 <html lang="en">
 
 <head>
-    <title>PHPNuxBill Installer</title>
+    <title>ITC NetCore Installer</title>
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -86,10 +86,10 @@ try {
         <img src="img/logo.png" class="img-responsive" alt="Logo" />
         <hr>
         <div class="span12">
-            <h4> PHPNuxBill Installer </h4>
+            <h4> ITC NetCore Installer </h4>
             <p>
                 <strong>Congratulations!</strong><br>
-                You have just install PHPNuxBill !<br><br>
+                You have just installed ITC NetCore!<br><br>
                 <span class="text-danger">But wait!!<br>
                     <ol>
                         <li>Don't forget to rename folder <b>pages_example</b> to <b>pages</b>.<br>
@@ -115,7 +115,7 @@ try {
             </p>
         </div>
     </div>
-    <div class="footer">Copyright &copy; 2021 PHPNuxBill. All Rights Reserved<br /><br /></div>
+    <div class="footer">ITC NetCore V1.0 &middot; ISP Management &amp; Billing Platform &middot; developed and maintained by ITC<br />Based on PHPNuxBill &mdash; Copyright &copy; 2021 PHPNuxBill. All Rights Reserved<br /><br /></div>
 </body>
 
 </html>

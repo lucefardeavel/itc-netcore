@@ -1,0 +1,35 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......F.                                                            8 / 8 (100%)
+
+Time: 00:00.050, Memory: 10.00 MB
+
+Brand Identity (Reseller\Tests\Unit\Wp10\BrandIdentity)
+ ✔ The approved identity
+ ✔ The operator name and the product fallback
+ ✔ Every page frame shows the brand and not the raw setting
+ ✔ The original project stays credited
+ ✔ The licence and internal identifiers are unchanged
+ ✔ No other template names the original product as this one
+ ✘ Every brand string has an arabic entry
+   │
+   │ brand strings without an Arabic entry
+   │ Failed asserting that two arrays are identical.
+   │ --- Expected
+   │ +++ Actual
+   │ @@ @@
+   │ -Array &0 []
+   │ +Array &0 [
+   │ +    0 => 'In-app updates are disabled for this installation. Updates are installed through the reviewed release process.',
+   │ +]
+   │
+   │ /repo/tests/Unit/Wp10/BrandIdentityTest.php:158
+   │
+ ✔ The pwa carries the interim text mark
+
+FAILURES!
+Tests: 8, Assertions: 219, Failures: 1.
+

@@ -21,12 +21,12 @@
         <div id="collapseGeneral" class="panel-collapse collapse">
             <div class="panel-body">
                 <div class="form-group">
-                    <label for="CompanyName" class="col-md-3 control-label">{Lang::T('Application Name / Company Name')}</label>
+                    <label for="CompanyName" class="col-md-3 control-label">{Lang::T('Company Name')}</label>
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="CompanyName" name="CompanyName"
                             value="{$_c['CompanyName']}">
                     </div>
-                    <span class="help-block col-md-4">{Lang::T('This Name will be shown on the Title')}</span>
+                    <span class="help-block col-md-4">{Lang::T('Your company (ISP) name: shown in the title, to customers and on invoices. While it is empty the product name ITC NetCore is shown.')}</span>
                 </div>
                 <div class="form-group">
                     <label class="col-md-3 control-label">{Lang::T('Company Logo')}</label>

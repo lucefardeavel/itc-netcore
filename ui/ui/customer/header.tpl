@@ -4,13 +4,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{$_title} - {$_c['CompanyName']}</title>
+    <title>{$_title} - {$_brand.company|escape}</title>
 
     <script>
         var appUrl = '{$app_url}';
     </script>
 
-    <link rel="shortcut icon" href="{$app_url}/ui/ui/images/logo.png" type="image/x-icon" />
+    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/bootstrap.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/fonts/ionicons/css/ionicons.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/fonts/font-awesome/css/font-awesome.min.css">
@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/sweetalert2.min.css" />
     <script src="{$app_url}/ui/ui/scripts/sweetalert2.all.min.js"></script>
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/phpnuxbill.customer.css?2025.2.4" />
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v1" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v2" />
     {if $nuxr_dir eq 'rtl'}
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?wp6c.2" />
     {/if}
@@ -37,8 +37,8 @@
     <div class="wrapper">
         <header class="main-header" style="position:fixed; width: 100%">
             <a href="{Text::url('home')}" class="logo">
-                <span class="logo-mini"><b>N</b>uX</span>
-                <span class="logo-lg">{$_c['CompanyName']}</span>
+                <span class="logo-mini"><b>{$_brand.mark|escape}</b></span>
+                <span class="logo-lg"><bdi>{$_brand.company|escape}</bdi></span>
             </a>
             <nav class="navbar navbar-static-top">
                 <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">

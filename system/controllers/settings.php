@@ -90,28 +90,28 @@ switch ($action) {
             if ($_app_stage == 'Demo') {
                 r2(getUrl('settings/app'), 'e', 'You cannot perform this action in Demo mode');
             }
-            $result = Message::sendWhatsapp(_get('testWa'), 'PHPNuxBill Test Whatsapp');
+            $result = Message::sendWhatsapp(_get('testWa'), 'ITC NetCore Test Whatsapp');
             r2(getUrl('settings/app'), 's', 'Test Whatsapp has been send<br>Result: ' . $result);
         }
         if (!empty(_get('testSms'))) {
             if ($_app_stage == 'Demo') {
                 r2(getUrl('settings/app'), 'e', 'You cannot perform this action in Demo mode');
             }
-            $result = Message::sendSMS(_get('testSms'), 'PHPNuxBill Test SMS');
+            $result = Message::sendSMS(_get('testSms'), 'ITC NetCore Test SMS');
             r2(getUrl('settings/app'), 's', 'Test SMS has been send<br>Result: ' . $result);
         }
         if (!empty(_get('testEmail'))) {
             if ($_app_stage == 'Demo') {
                 r2(getUrl('settings/app'), 'e', 'You cannot perform this action in Demo mode');
             }
-            Message::sendEmail(_get('testEmail'), 'PHPNuxBill Test Email', 'PHPNuxBill Test Email Body');
+            Message::sendEmail(_get('testEmail'), 'ITC NetCore Test Email', 'ITC NetCore Test Email Body');
             r2(getUrl('settings/app'), 's', 'Test Email has been send');
         }
         if (!empty(_get('testTg'))) {
             if ($_app_stage == 'Demo') {
                 r2(getUrl('settings/app'), 'e', 'You cannot perform this action in Demo mode');
             }
-            $result = Message::sendTelegram('PHPNuxBill Test Telegram');
+            $result = Message::sendTelegram('ITC NetCore Test Telegram');
             r2(getUrl('settings/app'), 's', 'Test Telegram has been send<br>Result: ' . $result);
         }
 

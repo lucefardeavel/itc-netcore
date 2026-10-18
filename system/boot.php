@@ -22,6 +22,8 @@ function _notify($msg, $type = 'e')
 }
 
 $ui = new Smarty();
+// Product identity (ITC NetCore) and the operator name to show; presentation only (Reseller\Ui\Brand)
+$ui->assign('_brand', \Reseller\Ui\Brand::view(is_array($config ?? null) ? $config : []));
 // WP9-D / NEW-8 (O8-A): editable page templates are rendered only by the sandboxed Smarty instance
 $ui->registerPlugin('function', 'nuxr_page', [\Reseller\Ui\PageTemplate::class, 'plugin']);
 $ui->assign('_kolaps', $_COOKIE['kolaps']);

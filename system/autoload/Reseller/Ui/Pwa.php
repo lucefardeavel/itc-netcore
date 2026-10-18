@@ -14,7 +14,7 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
 final class Pwa
 {
     /** Single PWA asset version: equals the service worker VERSION and the nuxr-pwa.js asset query (guard-tested). */
-    public const VERSION = 'wp7.1';
+    public const VERSION = 'wp7.2';
 
     public const THEME_COLOR = '#ffffff';       // the WP6C top bar
     public const BACKGROUND_COLOR = '#f3f5fa';  // --nx-bg
@@ -40,10 +40,8 @@ final class Pwa
      */
     public static function manifest(array $config, string $appPath): array
     {
-        $name = trim((string) ($config['CompanyName'] ?? ''));
-        if ($name === '') {
-            $name = 'PHPNuxBill';
-        }
+        // the operator's name; the product name (ITC NetCore) when it is not configured
+        $name = Brand::company($config);
         $short = mb_strlen($name) > 12 ? rtrim(mb_substr($name, 0, 12)) : $name;
         $path = rtrim($appPath, '/');
         return [

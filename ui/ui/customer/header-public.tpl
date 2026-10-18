@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{$_title} - {$_c['CompanyName']}</title>
-    <link rel="shortcut icon" href="{$app_url}/ui/ui/images/logo.png" type="image/x-icon" />
+    <title>{$_title} - {$_brand.company|escape}</title>
+    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" />
 
     <script>
         var appUrl = '{$app_url}';
@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/bootstrap.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/modern-AdminLTE.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/sweetalert2.min.css" />
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v1" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v2" />
     {if $nuxr_dir eq 'rtl'}
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?wp6c.2" />
     {/if}
@@ -28,7 +28,7 @@
     <div class="container">
         <div class="form-head mb20">
             <h1 class="site-logo h2 mb5 mt5 text-center text-uppercase text-bold"
-                style="text-shadow: 2px 2px 4px #757575;">{$_c['CompanyName']}</h1>
+                style="text-shadow: 2px 2px 4px #757575;"><bdi>{$_brand.company|escape}</bdi></h1>
             <hr>
         </div>
         {if isset($notify)}

@@ -139,7 +139,7 @@
                 // the remote version file is third-party data: text only, and a restricted token (never HTML)
                 function nuxrSafeVersion(v) { v = String(v); return v.length <= 32 && /^[0-9A-Za-z._-]+$/.test(v) ? v : 'unknown'; }
                 var localVersion = nuxrSafeVersion(data.version);
-                $('#version').text('Version: ' + localVersion);
+                // ITC NetCore: the footer shows the product version; this compares the PHPNuxBill base with the upstream project
                 $.getJSON(
                     "https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/version.json?" +
                     Math
@@ -147,17 +147,16 @@
                     function(data) {
                         var latestVersion = nuxrSafeVersion(data.version);
                         if (localVersion !== latestVersion) {
-                            $('#version').text('Latest Version: ' + latestVersion);
                             if (getCookie(latestVersion) != 'done') {
                                 Swal.fire({
                                     icon: 'info',
-                                    title: "New Version Available\nVersion: " + latestVersion,
+                                    title: "PHPNuxBill (upstream) " + latestVersion + "\n{Lang::T('Updates are installed only through the reviewed release process')|escape:'javascript'}",
                                     toast: true,
                                     position: 'bottom-right',
                                     showConfirmButton: true,
                                     showCloseButton: true,
                                     timer: 30000,
-                                    confirmButtonText: '<a href="{Text::url('community')}#latestVersion" style="color: white;">Update Now</a>',
+                                    confirmButtonText: '<a href="{Text::url('community')}#latestVersion" style="color: white;">{Lang::T('Details')|escape:'javascript'}</a>',
                                     timerProgressBar: true,
                                     didOpen: (toast) => {
                                         toast.addEventListener('mouseenter', Swal.stopTimer)

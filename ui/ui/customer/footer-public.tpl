@@ -1,4 +1,6 @@
 
+        {* product identity (Reseller\Ui\Brand): discreet, under the operator's page *}
+        <p class="text-center text-muted small itc-powered">{Lang::T('Powered by')} <bdi>{$_brand.name|escape}</bdi></p>
     </div>
 
     <!-- Modal -->

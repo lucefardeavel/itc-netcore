@@ -10,7 +10,7 @@ if (file_exists(__DIR__ . '/../config.php')) {
 <html lang="en">
 
 <head>
-    <title>PHPNuxBill Installer</title>
+    <title>ITC NetCore Installer</title>
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -29,12 +29,14 @@ if (file_exists(__DIR__ . '/../config.php')) {
         <!--  contents area start  -->
         <div class="row">
             <div class="col-md-12">
-                <h4> PHPNuxBill Installer </h4>
+                <h4> ITC NetCore Installer </h4>
                 <h5>Please Read Before Continue</h5>
                 <p><strong>Informasi Aplikasi</strong><br>
-                    Application Name: PHPNuxBill <br>
+                    Application Name: ITC NetCore V1.0 (ISP Management &amp; Billing Platform) <br>
+                    Developed and maintained by: ITC<br>
+                    Based on: PHPNuxBill <br>
                     Release Date: 30/10/2015<br>
-                    By: PHPNuxBill [ <a href="https://github.com/hotspotbilling/phpnuxbill" target="_blank">https://github.com/hotspotbilling/phpnuxbill</a> ]<br>
+                    Original project by: PHPNuxBill [ <a href="https://github.com/hotspotbilling/phpnuxbill" target="_blank">https://github.com/hotspotbilling/phpnuxbill</a> ]<br>
                     Donasi Paypal: <b>me@ibnux.et</b><br>
                     <br>
                     <strong>Syarat Penggunaan:</strong><br>
@@ -59,7 +61,7 @@ if (file_exists(__DIR__ . '/../config.php')) {
         </div>
         <!--  contents area end  -->
     </div>
-    <div class="footer">Copyright &copy; 2021 PHPNuxBill. All Rights Reserved<br /><br /></div>
+    <div class="footer">ITC NetCore V1.0 &middot; ISP Management &amp; Billing Platform &middot; developed and maintained by ITC<br />Based on PHPNuxBill &mdash; Copyright &copy; 2021 PHPNuxBill. All Rights Reserved<br /><br /></div>
 </body>
 
 </html>

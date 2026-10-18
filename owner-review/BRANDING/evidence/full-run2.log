@@ -1,0 +1,117 @@
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Creating 
+ Network nuxbill-reseller-test_default Created 
+ Network nuxbill-reseller-test_default Created 
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+================ engine: mariadb ================
+ Container nuxbill-reseller-test-php82-run-0fbdb6b398bf Creating 
+ Container nuxbill-reseller-test-php82-run-0fbdb6b398bf Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-30654f2e846a Creating 
+ Container nuxbill-reseller-test-php82-run-30654f2e846a Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1694 (  3%)
+.............................................................  122 / 1694 (  7%)
+.............................................................  183 / 1694 ( 10%)
+.............................................................  244 / 1694 ( 14%)
+.............................................................  305 / 1694 ( 18%)
+.............................................................  366 / 1694 ( 21%)
+.............................................................  427 / 1694 ( 25%)
+.............................................................  488 / 1694 ( 28%)
+.............................................................  549 / 1694 ( 32%)
+.............................................................  610 / 1694 ( 36%)
+.............................................................  671 / 1694 ( 39%)
+.............................................................  732 / 1694 ( 43%)
+.............................................................  793 / 1694 ( 46%)
+.............................................................  854 / 1694 ( 50%)
+.............................................................  915 / 1694 ( 54%)
+.............................................................  976 / 1694 ( 57%)
+............................................................. 1037 / 1694 ( 61%)
+............................................................. 1098 / 1694 ( 64%)
+............................................................. 1159 / 1694 ( 68%)
+............................................................. 1220 / 1694 ( 72%)
+............................................................. 1281 / 1694 ( 75%)
+............................................................. 1342 / 1694 ( 79%)
+............................................................. 1403 / 1694 ( 82%)
+............................................................. 1464 / 1694 ( 86%)
+............................................................. 1525 / 1694 ( 90%)
+..............................I...I..I......
+
+Time: 26:15.119, Memory: 78.00 MB
+
+OK, but there were issues!
+Tests: 1569, Assertions: 77038, PHPUnit Deprecations: 1, Incomplete: 125.
+================ engine: mysql ================
+ Container nuxbill-reseller-test-php82-run-f19612ee566e Creating 
+ Container nuxbill-reseller-test-php82-run-f19612ee566e Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-a9c4b96bb8b5 Creating 
+ Container nuxbill-reseller-test-php82-run-a9c4b96bb8b5 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1694 (  3%)
+.............................................................  122 / 1694 (  7%)
+.............................................................  183 / 1694 ( 10%)
+.............................................................  244 / 1694 ( 14%)
+.............................................................  305 / 1694 ( 18%)
+.............................................................  366 / 1694 ( 21%)
+.............................................................  427 / 1694 ( 25%)
+.............................................................  488 / 1694 ( 28%)
+.............................................................  549 / 1694 ( 32%)
+.............................................................  610 / 1694 ( 36%)
+.............................................................  671 / 1694 ( 39%)
+.............................................................  732 / 1694 ( 43%)
+.............................................................  793 / 1694 ( 46%)
+.............................................................  854 / 1694 ( 50%)
+.............................................................  915 / 1694 ( 54%)
+.............................................................  976 / 1694 ( 57%)
+............................................................. 1037 / 1694 ( 61%)
+............................................................. 1098 / 1694 ( 64%)
+............................................................. 1159 / 1694 ( 68%)
+............................................................. 1220 / 1694 ( 72%)
+............................................................. 1281 / 1694 ( 75%)
+............................................................. 1342 / 1694 ( 79%)
+............................................................. 1403 / 1694 ( 82%)
+............................................................. 1464 / 1694 ( 86%)
+............................................................. 1525 / 1694 ( 90%)
+..............................I...I..I......
+
+Time: 35:51.017, Memory: 78.00 MB
+
+OK, but there were issues!
+Tests: 1569, Assertions: 77040, PHPUnit Deprecations: 1, Incomplete: 125.
+================ variant registry reproducibility ================
+ Container nuxbill-reseller-test-php82-run-4af7ac7bd907 Creating 
+ Container nuxbill-reseller-test-php82-run-4af7ac7bd907 Created 
+variant registry matches freshly built fixtures
+  mariadb V1_FRESH_INSTALL on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mariadb V2_FRESH_INSTALL_UPDATED on 10.11.19-MariaDB-ubu2204: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mariadb V3_LONGLIVED_2023_UPDATED on 10.11.19-MariaDB-ubu2204: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+  mysql V1_FRESH_INSTALL on 8.0.46: 74 install statements, legacy updates ok=0 failed(ignored by update.php)=0, core fingerprint 3ca25964039129ec2aae54d510c7c8b86a45de2a0001a3174f403aeca92e06b3
+  mysql V2_FRESH_INSTALL_UPDATED on 8.0.46: 74 install statements, legacy updates ok=35 failed(ignored by update.php)=56, core fingerprint 6c2f04ea02b5fc28991fbc2680ab90e53584ef785bb2964d368b28baffb9b1a9
+  mysql V3_LONGLIVED_2023_UPDATED on 8.0.46: 49 install statements, legacy updates ok=87 failed(ignored by update.php)=4, core fingerprint e1a66aa3caf5890f0abbb6e52ddf5280ec289599f2409d699749de5b7cbfaafc
+exit=0

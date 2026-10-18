@@ -1,0 +1,21 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/BRANDING/evidence/focused/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp6a/ShellNavigationTest.php
+start: 2026-10-18T19:46:35Z
+ Container nuxbill-reseller-test-php82-run-fa44d15985fa Creating 
+ Container nuxbill-reseller-test-php82-run-fa44d15985fa Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+....                                                                4 / 4 (100%)
+
+Time: 00:14.140, Memory: 10.00 MB
+
+Shell Navigation (Reseller\Tests\Integration\Wp6a\ShellNavigation)
+ ✔ Every rendered navigation link is authorized for the actor
+ ✔ Primary navigation and quick actions follow capabilities
+ ✔ Document direction language landmarks and assets
+ ✔ Missing translations never leave the server
+
+OK (4 tests, 230 assertions)
+exit=0 end: 2026-10-18T19:46:50Z

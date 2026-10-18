@@ -735,7 +735,9 @@ def t14i(browser):
 
 # ---------------------------------------------------------------- T14-T16 controlled update (amendment K)
 LAB_CONTAINER = 'nuxbill-reseller-test-pwalab'
-NEXT = 'wp7.1-labnext'
+# the shipped worker VERSION (read from the repository, so a version bump needs no edit here)
+CUR = re.search(r"^var VERSION = '([^']+)';", open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'nuxr-sw.js')).read(), re.M).group(1)
+NEXT = CUR + '-labnext'
 
 
 def lab_sw(version=None):
@@ -783,7 +785,7 @@ def t14(browser):
             expect(pg.evaluate('() => window.__nuxrMark === 1 && window.__cc === 0'), 'page reloaded or controller changed without the user')
             expect(pg.evaluate('() => navigator.serviceWorker.controller.scriptURL') == ctrl, 'controller changed')
             keys = pg.evaluate('() => caches.keys()')
-            expect(any(k.endswith(':wp7.1') for k in keys), f'the active version cache was pruned early: {keys}')
+            expect(any(k.endswith(':' + CUR) for k in keys), f'the active version cache was pruned early: {keys}')
             if base == ROOT:
                 pg.screenshot(path=os.path.join(ARGS.out, 'T14-update-available.png'))
             # the offer survives navigation (registration.waiting on the next page)

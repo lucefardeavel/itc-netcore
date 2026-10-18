@@ -5,7 +5,7 @@
  **/
 
 _admin();
-$ui->assign('_title', 'Community');
+$ui->assign('_title', Lang::T('About') . ' ' . \Reseller\Ui\Brand::NAME);
 $ui->assign('_system_menu', 'community');
 
 $action = $routes['1'];

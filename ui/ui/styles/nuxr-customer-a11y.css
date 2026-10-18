@@ -68,3 +68,9 @@ a.btn-primary:active {
     background-color: #286090 !important;
     border-color: #23527c !important;
 }
+
+/* ITC NetCore identity line on the customer pages ("Powered by"): WCAG AA contrast on white (#4a5263: 7.9:1) */
+.itc-powered,
+.itc-powered bdi {
+    color: #4a5263 !important;
+}

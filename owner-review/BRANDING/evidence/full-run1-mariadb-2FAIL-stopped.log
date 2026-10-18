@@ -1,0 +1,96 @@
+ Container nuxbill-reseller-test-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Creating 
+ Container nuxbill-reseller-test-mariadb-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Creating 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Created 
+ Container nuxbill-reseller-test-mysql-1 Created 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Created 
+ Container nuxbill-reseller-test-mariadb-1 Created 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Starting 
+ Container nuxbill-reseller-test-mysql-1 Starting 
+ Container nuxbill-reseller-test-mariadb-1 Starting 
+ Container nuxbill-reseller-test-freeradius-mysql-1 Started 
+ Container nuxbill-reseller-test-freeradius-mariadb-1 Started 
+ Container nuxbill-reseller-test-mysql-1 Started 
+ Container nuxbill-reseller-test-mariadb-1 Started 
+ Image nuxbill-reseller-test-php82 Building 
+ Image nuxbill-reseller-test-php82 Built 
+================ engine: mariadb ================
+ Container nuxbill-reseller-test-php82-run-dea95e6c6379 Creating 
+ Container nuxbill-reseller-test-php82-run-dea95e6c6379 Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-5066d00f569c Creating 
+ Container nuxbill-reseller-test-php82-run-5066d00f569c Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1694 (  3%)
+.............................................................  122 / 1694 (  7%)
+.............................................................  183 / 1694 ( 10%)
+.............................................................  244 / 1694 ( 14%)
+.............................................................  305 / 1694 ( 18%)
+.............................................................  366 / 1694 ( 21%)
+.............................................................  427 / 1694 ( 25%)
+.............................................................  488 / 1694 ( 28%)
+.............................................................  549 / 1694 ( 32%)
+.............................................................  610 / 1694 ( 36%)
+.............................................................  671 / 1694 ( 39%)
+.............................................................  732 / 1694 ( 43%)
+.............................................................  793 / 1694 ( 46%)
+.............................................................  854 / 1694 ( 50%)
+.............................................................  915 / 1694 ( 54%)
+.............................................................  976 / 1694 ( 57%)
+............................................................. 1037 / 1694 ( 61%)
+............................................................. 1098 / 1694 ( 64%)
+............................................................. 1159 / 1694 ( 68%)
+............................................................. 1220 / 1694 ( 72%)
+............................................................. 1281 / 1694 ( 75%)
+............................................................. 1342 / 1694 ( 79%)
+............................................................. 1403 / 1694 ( 82%)
+F......................................F..................... 1464 / 1694 ( 86%)
+............................................................. 1525 / 1694 ( 90%)
+..............................I...I..I......
+
+Time: 32:21.270, Memory: 78.00 MB
+
+There were 2 failures:
+
+1) Reseller\Tests\Unit\Wp6a\Wp6aSourceGuardTest::testEveryVariableIsEscapedOrAllowListed
+unescaped template output
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+-Array &0 []
++Array &0 [
++    0 => 'ui/ui/admin/footer.tpl: {$_brand.upstream_url}',
++]
+
+/repo/tests/Unit/Wp6a/Wp6aSourceGuardTest.php:56
+
+2) Reseller\Tests\Integration\Wp6a\ShellNavigationTest::testEveryRenderedNavigationLinkIsAuthorizedForTheActor
+sa: the shell links community#about but it answers 404
+Failed asserting that an array does not contain 404.
+
+/repo/tests/Integration/Wp6a/ShellNavigationTest.php:54
+
+FAILURES!
+Tests: 1569, Assertions: 76920, Failures: 2, PHPUnit Deprecations: 1, Incomplete: 125.
+
+================ engine: mysql ================
+ Container nuxbill-reseller-test-php82-run-6332223af314 Creating 
+ Container nuxbill-reseller-test-php82-run-6332223af314 Created 
+PHP 8.2.34 (cli) (built: Sep 24 2026 19:16:37) (NTS)
+ Container nuxbill-reseller-test-php82-run-e3a40a2f7e10 Creating 
+ Container nuxbill-reseller-test-php82-run-e3a40a2f7e10 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.............................................................   61 / 1694 (  3%)
+.............................................................  122 / 1694 (  7%)
+.................................

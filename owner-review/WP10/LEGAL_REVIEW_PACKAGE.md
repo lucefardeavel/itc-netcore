@@ -26,6 +26,9 @@ finished and is not declared finished by this file.** Status: **`COUNSEL` (open)
 | FreeRADIUS (GPL-2.0), MariaDB (GPL-2.0), MySQL (GPL-2.0 + FOSS exception, or commercial), PHP (PHP licence) are separate programs, not linked into the application | section 6 of the same file |
 | MikroTik RouterOS CHR is proprietary and was used only in the isolated lab under the free CHR licence level | same |
 | No AGPL component was found | inventory |
+| The original project's README (kept verbatim in `docs/UPSTREAM_PHPNUXBILL_README.md`) says "GNU General Public License version 2 **or later**"; `LICENSE` and the source headers carry no version statement (relevant to Q1; found during the 2026-10-18 rebrand) | `docs/UPSTREAM_PHPNUXBILL_README.md` section "License" |
+| Since 2026-10-18 the visible product name is **ITC NetCore** (brand **ITC**, owner decision). Internal identifiers keep the PHPNuxBill names; footers, About page, installer, README and `NOTICE` credit PHPNuxBill (iBNuX and contributors, GNU GPL v2); `LICENSE` is byte-unchanged (guard `BrandIdentityTest`) | `docs/BRAND_IDENTITY.md`, `NOTICE` |
+| `pages_template/Terms_and_Conditions.html` and `Privacy_Policy.html` (templates an operator publishes to its customers) name "PHPNuxBill" as the contracting party and owner of the website; they were **not** changed by the rebrand | the two files |
 
 ## 3. Questions for counsel (each needs a written answer)
 
@@ -42,6 +45,9 @@ finished and is not declared finished by this file.** Status: **`COUNSEL` (open)
 | Q9 | MikroTik licence terms for using CHR in a test lab and for documentation of RouterOS behaviour | lab evidence |
 | Q10 | Fonts and icon sets (SIL OFL 1.1) and the CDN assets: are the notices sufficient? | notice duties |
 | Q11 | Data-protection and telecom-regulatory obligations for subscriber data and accounting records (retention of `radacct`, vouchers, ledger) in the target jurisdictions | outside software licensing, but part of launch |
+| Q12 | Name clearance for **"ITC NetCore"** and **"ITC"** in the target markets (classes for software and telecom services). "ITC" is used by other companies as a mark; no search was made by the engineering side | the owner's chosen name must not infringe an earlier mark; no registration or clearance is claimed anywhere in the product |
+| Q13 | How to state authorship of the modifications: which entity holds the copyright in ITC's changes (employment / contractor terms), the wording of a copyright line for ITC, and whether GPLv2 section 2(a) needs per-file change notices beyond the Git history and `NOTICE` | the product only says "developed and maintained by ITC"; no copyright line for ITC was added |
+| Q14 | The Terms and Conditions / Privacy Policy templates name PHPNuxBill as the party: replace them with operator-neutral templates (the ISP is the party to its customers), with ITC text, or remove them from the release artifact | customer-facing legal text; not changed without counsel |
 
 ## 4. Release-artifact checklist (the engineering side prepares; counsel confirms)
 
@@ -52,7 +58,7 @@ finished and is not declared finished by this file.** Status: **`COUNSEL` (open)
 | 3 | Remove `lena512color.jpg` from the release artifact (or obtain clearance, Q6) | **open** - decision after Q6 |
 | 4 | Written source offer / source package for GPL components when the delivery model is (B) | **open** - depends on Q3 |
 | 5 | State the outbound licence version in the repository (`LICENSE` header / `composer.json`) | **open** - depends on Q1 |
-| 6 | Third-party notices page in the product (About / footer) if counsel requires | **open** |
+| 6 | Third-party notices page in the product (About / footer) if counsel requires | **partly prepared** (2026-10-18): the About page names the product, ITC, the original project and its contributors, the licence and the notice files; footers credit PHPNuxBill and AdminLTE; counsel decides whether this is sufficient |
 
 ### 4.1 Where the four missing licence files come from (the maintainers fetch them; nothing is invented here)
 
@@ -85,6 +91,9 @@ while any package is without a licence file (today: the four above). Re-run it a
 | Q9 MikroTik CHR terms | | | |
 | Q10 fonts / CDN assets | | | |
 | Q11 data protection and telecom regulation | | | |
+| Q12 name clearance "ITC NetCore" / "ITC" | | | |
+| Q13 authorship statement for ITC's modifications, GPLv2 2(a) notices | | | |
+| Q14 Terms / Privacy templates naming PHPNuxBill | | | |
 
 ## 5. Mechanical guard
 

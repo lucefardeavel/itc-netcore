@@ -23,7 +23,7 @@ class MikrotikPppoe
     {
         return [
             'title' => 'Mikrotik PPPOE',
-            'description' => 'To handle connection between PHPNuxBill with Mikrotik PPPOE',
+            'description' => 'To handle connection between ITC NetCore and Mikrotik PPPOE',
             'author' => 'ibnux',
             'url' => [
                 'Github' => 'https://github.com/hotspotbilling/phpnuxbill/',

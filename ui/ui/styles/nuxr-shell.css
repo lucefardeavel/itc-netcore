@@ -217,6 +217,95 @@ input.ltr, .nuxr-shell input[dir="ltr"] {
     text-overflow: ellipsis;
 }
 
+/* ITC NetCore interim text identity (owner decision 2026-10-18; no final logo). Existing tokens only: the mark is the
+   primary rounded square of the shell; the wordmark is "ITC" bold + "NetCore" regular, always LTR inside RTL text. */
+.nuxr-brand-mark.is-word {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .04em;
+}
+
+.itc-wordmark {
+    display: inline-block;
+    direction: ltr;
+    unicode-bidi: isolate;
+    color: var(--nx-text);
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.itc-wm-brand {
+    color: var(--nx-primary);
+    font-weight: 800;
+    letter-spacing: .04em;
+}
+
+.itc-wordmark-lg {
+    font-size: 26px;
+    line-height: 1.2;
+}
+
+.itc-tagline, .itc-login-tagline {
+    display: block;
+    color: var(--nx-muted);
+    font-size: 13px;
+}
+
+.itc-login-product {
+    margin: 18px 0 0;
+    text-align: center;
+    font-size: 15px;
+}
+
+.itc-about-head {
+    margin: 0 0 14px;
+}
+
+.itc-facts th, .itc-facts td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.itc-facts th {
+    width: 34%;
+    color: var(--nx-muted);
+    font-weight: 600;
+}
+
+.itc-muted {
+    color: var(--nx-muted);
+}
+
+/* links inside text on the About page are underlined (not distinguished by colour alone) */
+.itc-about-page .box-body a:not(.btn), .itc-about-page .itc-muted a {
+    text-decoration: underline;
+}
+
+.itc-sheet-product {
+    margin: 12px 0 0;
+    text-align: center;
+    font-size: 12px;
+}
+
+.itc-sheet-product a {
+    color: var(--nx-muted);
+}
+
+.itc-section-title {
+    margin: 8px 0 6px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.nuxr-footer .itc-footer-product, .nuxr-footer .itc-footer-credits {
+    display: inline-block;
+    margin-inline-end: 8px;
+}
+
+.nuxr-footer .itc-footer-credits {
+    color: var(--nx-muted);
+}
+
 .nuxr-topbar-title {
     display: none;
     flex: 1;

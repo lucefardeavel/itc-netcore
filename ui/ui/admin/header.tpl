@@ -7,8 +7,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>{$_title|escape} - {$_c['CompanyName']|escape}</title>
-    <link rel="shortcut icon" href="{$app_url}/ui/ui/images/logo.png" type="image/x-icon" />
+    <title>{$_title|escape} - {$_brand.company|escape}</title>
+    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" />
     {* WP7: staff PWA - the user-neutral manifest (fetched without credentials) and replaceable interim identity assets *}
     <link rel="manifest" href="{$app_url}/?_route=pwa/manifest">
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
@@ -32,7 +32,7 @@
         <link rel="stylesheet" href="{$app_url}/ui/ui/summernote/summernote.min.css" />
     {/if}
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/phpnuxbill.css?2025.2.4" />
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp7.1" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp7.2" />
     {if $nuxr_dir eq 'rtl'}
         <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?wp6c.2" />
     {/if}
@@ -58,8 +58,8 @@
                     <i class="fa fa-arrow-left nuxr-dir-icon" aria-hidden="true"></i></a>
             {/if}
             <a href="{Text::url('dashboard')}" class="nuxr-brand{if !empty($_nav.up)} has-up{/if}" aria-label="{Lang::T('Home')}">
-                <span class="nuxr-brand-mark" aria-hidden="true">{$_c['CompanyName']|truncate:1:'':true|escape}</span>
-                <span class="nuxr-brand-name">{$_c['CompanyName']|escape}</span>
+                <span class="nuxr-brand-mark{if $_brand.company_is_product} is-word{/if}" aria-hidden="true">{$_brand.mark|escape}</span>
+                <span class="nuxr-brand-name"><bdi>{$_brand.company|escape}</bdi></span>
             </a>
             <span class="nuxr-topbar-title" aria-hidden="true">{$_title|escape}</span>
             {if $_can['customer.read']}

@@ -124,13 +124,13 @@ final class Navigation
             ['pluginmanager', 'Plugin Manager', 'fa-puzzle-piece', $admin],
         ], 'SETTINGS', 'AFTER_SETTINGS');
         $groups[] = self::group('logs', 'Logs', 'fa-clock-o', $a, $current, [
-            ['logs/phpnuxbill', 'PhpNuxBill', 'fa-file-text', $admin],
+            ['logs/phpnuxbill', Brand::NAME, 'fa-file-text', $admin],  // route name unchanged (internal)
             ['logs/radius', 'Radius', 'fa-file-text', $admin && $radius],
             ['logs/message', 'Message', 'fa-file-text', $admin],
         ], 'LOGS', 'AFTER_LOGS');
         $groups[] = self::group('help', 'Help', 'fa-question-circle', $a, $current, [
             ['settings/docs', 'Documentation', 'fa-book', $admin],
-            ['community', 'Community', 'fa-comments-o', $admin],
+            ['community', 'About', 'fa-info-circle', $admin],  // About ITC NetCore (route name unchanged)
         ], null, 'AFTER_COMMUNITY');
         $groups = array_values(array_filter($groups, static fn(array $g): bool => $g['items'] !== []
             || ($g['slot'] !== null && ($plugins[$g['slot']] ?? '') !== '') || ($g['after'] !== null && ($plugins[$g['after']] ?? '') !== '')));

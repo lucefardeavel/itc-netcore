@@ -10,7 +10,7 @@ if (file_exists(__DIR__ . '/../config.php')) {
 <html lang="en">
 
 <head>
-    <title>PHPNuxBill Updaters</title>
+    <title>ITC NetCore Updater</title>
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -28,7 +28,7 @@ if (file_exists(__DIR__ . '/../config.php')) {
         <hr>
 
         <div class="span12">
-            <h4> PHPNuxBill Updater </h4>
+            <h4> ITC NetCore Updater </h4>
             <pre><?php
             include '../config.php';
             try{
@@ -108,7 +108,7 @@ if (file_exists(__DIR__ . '/../config.php')) {
             ?></pre>
         </div>
     </div>
-    <div class="footer">Copyright &copy; 2021 PHPNuxBill. All Rights Reserved<br /><br /></div>
+    <div class="footer">ITC NetCore V1.0 &middot; ISP Management &amp; Billing Platform &middot; developed and maintained by ITC<br />Based on PHPNuxBill &mdash; Copyright &copy; 2021 PHPNuxBill. All Rights Reserved<br /><br /></div>
 </body>
 
 </html>

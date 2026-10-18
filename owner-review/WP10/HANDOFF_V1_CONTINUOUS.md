@@ -71,3 +71,17 @@ share the compose project - `t1a_run.sh down` before `chr_up.sh`; `t1a.env` is r
 | C5 | Closing summary | DONE: `SAAS_RADIUS_V1_FINAL_OPERATIONAL_CLOSURE.md` |
 
 No product code changed after `9da2015e`. Waiting for the owner: the staging authorization request, O-DL record, A2-R option, OBS-1 authorization, counsel, deployment authorization.
+
+## Round 4 - ITC NetCore product identity (owner decision, 2026-10-18)
+
+Owner decision: `PRODUCT_NAME_APPROVED = ITC NetCore`, `BRAND = ITC`, `TAGLINE = ISP Management & Billing Platform`, `VERSION = V1.0`.
+
+| # | Task | State |
+|---|---|---|
+| B1 | Single identity source `Reseller\Ui\Brand` (`$_brand` in every template); operator vs product identities; fallback for an unconfigured / stock CompanyName | DONE |
+| B2 | Staff shell, sign-in, footer, phone More sheet, About, dashboard notice, customer portal, error pages, installer, device texts, settings help, PWA manifest + interim "ITC" icons (`wp7.2`) | DONE |
+| B3 | Arabic entries + `<bdi>` isolation; README, NOTICE, docs/BRAND_IDENTITY.md, upstream README kept verbatim; legal package facts + Q12 - Q14 | DONE |
+| B4 | Tests: BrandIdentityTest (first run failed, kept), unit 150, PWA 32/32, brand visual both phases CLEAN (first runs: findings, kept), full dual-engine harness | see `owner-review/BRANDING/ITC_NETCORE_BRANDING_REPORT.md` |
+
+The product candidate moved from `9da2015e` to the branding commit (presentation only; no finance / RADIUS / activation / schema file changed). TA-01 .. TA-10 must use the new SHA.
+Release state unchanged: `RELEASE_BLOCKED_WITH_EVIDENCE`. Open: owner B-1 .. B-8 (logo, colour, upstream boxes, banner, file names, default artwork, GitHub text, CompanyName) and counsel Q1 (new fact), Q12 - Q14.

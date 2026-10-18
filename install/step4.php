@@ -122,7 +122,7 @@ if($_app_stage!="Live"){
 <html lang="en">
 
 <head>
-    <title>PHPNuxBill Installer</title>
+    <title>ITC NetCore Installer</title>
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -140,7 +140,7 @@ if($_app_stage!="Live"){
         <hr>
 
         <div class="span12">
-            <h4> PHPNuxBill Installer </h4>
+            <h4> ITC NetCore Installer </h4>
             <?php
             if ($cn == '1') {
             ?>
@@ -167,7 +167,7 @@ if($_app_stage!="Live"){
         </div>
     </div>
 
-    <div class="footer">Copyright &copy; 2021 PHPNuxBill. All Rights Reserved<br /><br /></div>
+    <div class="footer">ITC NetCore V1.0 &middot; ISP Management &amp; Billing Platform &middot; developed and maintained by ITC<br />Based on PHPNuxBill &mdash; Copyright &copy; 2021 PHPNuxBill. All Rights Reserved<br /><br /></div>
 </body>
 
 </html>

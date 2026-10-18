@@ -108,3 +108,7 @@ All ten are **prepared** and **NOT_RUN**; none is `PASS`. Execution sheets with 
 Documents: `O_DL_CLASSIFICATION.md`, `N1_G_VERIFICATION.md`, `A2R_OWNER_DECISION_EVIDENCE.md`, the consolidated `TARGET_AUTHORIZATION_REQUEST.md`, `docs/STAGING_DEPLOYMENT_PACKAGE.md`, `docs/OBS1_SURVEY_RUNBOOK.md`, TA execution sheets, the completed `LEGAL_REVIEW_PACKAGE.md`.
 Tooling: `dev/wp10/DeadlockStudyTest.php` / `deadlock_study.sh` / `deadlock_report.py`, `a2r_evidence.py`, `obs1_sheet.py`, `notices_bundle.py`; `dev/staging/ta_eval.py`, `acct_gen.php`, `seed_quota_rows.sql`, `staging_nas.rsc.tpl`.
 Evidence: `evidence/odl/`, `evidence/final-v2/` (fresh N1 + G run, A2-R matrix). No product code changed.
+
+## Addendum (2026-10-18): candidate after the ITC NetCore identity
+
+The owner approved the product name ITC NetCore (brand ITC, V1.0). The identity change is presentation only (no finance, RADIUS, activation, security or schema file changed) and moved the product candidate from `9da2015e` to the branding commit. Its gates and open points: `owner-review/BRANDING/ITC_NETCORE_BRANDING_REPORT.md`. The staging deployment and TA-01 .. TA-10 use the new SHA. The release state is unchanged: `RELEASE_BLOCKED_WITH_EVIDENCE`.

@@ -11,9 +11,11 @@
     </footer>
 {else}
     <footer class="main-footer">
-        PHPNuxBill by <a href="https://github.com/hotspotbilling/phpnuxbill" rel="nofollow noreferrer noopener"
-            target="_blank">iBNuX</a>, Theme by <a href="https://adminlte.io/" rel="nofollow noreferrer noopener"
-            target="_blank">AdminLTE</a>
+        {* product identity (Reseller\Ui\Brand) and the credits of the original project and the theme (kept) *}
+        {Lang::T('Powered by')} <bdi>{$_brand.name|escape}</bdi> &middot; {Lang::T('Based on the open-source project')}
+        <a href="{$_brand.upstream_url|escape}" rel="nofollow noreferrer noopener" target="_blank">{$_brand.upstream|escape}</a>
+        <bdi>({$_brand.upstream_author|escape}, {$_brand.license|escape})</bdi> &middot; {Lang::T('Interface theme')}
+        <a href="https://adminlte.io/" rel="nofollow noreferrer noopener" target="_blank">AdminLTE</a>
         <div class="pull-right">
             <a href="javascript:showPrivacy()">Privacy</a>
             &bull;

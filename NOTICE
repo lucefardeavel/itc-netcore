@@ -1,0 +1,24 @@
+ITC NetCore V1.0 - ISP Management & Billing Platform
+Developed and maintained by ITC.
+
+ITC NetCore is a modified version of PHPNuxBill
+  https://github.com/hotspotbilling/phpnuxbill
+  by Ibnu Maksum (iBNuX) and the PHPNuxBill contributors,
+  distributed under the GNU General Public License version 2 (see LICENSE).
+
+The copyright notices of the original authors in the source files and in the
+installer are kept. The licence text in LICENSE is unchanged. Third-party
+components and their licences are listed in docs/THIRD_PARTY_LICENSES.md.
+
+The modifications made for ITC NetCore (the reseller, wallet, ledger,
+activation, RADIUS, quota, adaptive UI and PWA work) are recorded in the Git
+history of this repository and in docs/ and owner-review/.
+
+Open legal points (not decided by this file): the licence version statement
+(GPL-2.0-only or -or-later), the combination with LGPL-3.0 Smarty, the
+copyright statement for the modifications and the use of the names
+"ITC NetCore", "PHPNuxBill", "MikroTik" and "RouterOS" are with counsel
+(owner-review/WP10/LEGAL_REVIEW_PACKAGE.md, LIC-1).
+
+"ITC NetCore" and "ITC" are the product and brand names chosen by the owner;
+no trademark registration or clearance is stated here.

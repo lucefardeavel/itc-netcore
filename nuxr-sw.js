@@ -16,7 +16,7 @@
  */
 'use strict';
 
-var VERSION = 'wp7.1';
+var VERSION = 'wp7.2';
 var SCOPE = new URL(self.registration.scope);
 var SCOPE_PATH = SCOPE.pathname;
 var OFFLINE = 'nuxr-offline.html';

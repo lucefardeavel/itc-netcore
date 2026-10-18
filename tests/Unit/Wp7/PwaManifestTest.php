@@ -22,6 +22,7 @@ final class PwaManifestTest extends TestCase
         // Lang::getIsoLang() reads this global once (system/lan/country.json); seed it so no file / cwd is involved
         $GLOBALS['isolang'] = json_decode((string) file_get_contents($root . '/system/lan/country.json'), true);
         require_once $root . '/system/autoload/Reseller/Ui/Format.php';
+        require_once $root . '/system/autoload/Reseller/Ui/Brand.php';
         require_once $root . '/system/autoload/Reseller/Ui/Pwa.php';
     }
 
@@ -52,7 +53,11 @@ final class PwaManifestTest extends TestCase
         $this->assertSame('شبكة النور ل', $ar['short_name']);
         $this->assertSame(0, mb_strpos($ar['name'], $ar['short_name']), 'short_name is a prefix of name');
         $none = Pwa::manifest(['CompanyName' => '  '], '');
-        $this->assertSame(['PHPNuxBill', 'PHPNuxBill'], [$none['name'], $none['short_name']]);
+        // owner decision 2026-10-18 (product ITC NetCore): an unconfigured name - empty or the stock PHPNuxBill placeholder -
+        // shows the product name (until then the fallback was 'PHPNuxBill')
+        $this->assertSame(['ITC NetCore', 'ITC NetCore'], [$none['name'], $none['short_name']]);
+        $stock = Pwa::manifest(['CompanyName' => 'PHPNuxBill'], '');
+        $this->assertSame(['ITC NetCore', 'ITC NetCore'], [$stock['name'], $stock['short_name']]);
         $this->assertSame(['en', 'ltr'], [$none['lang'], $none['dir']]);
     }
 

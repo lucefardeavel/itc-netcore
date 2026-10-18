@@ -24,7 +24,7 @@ class MikrotikHotspot
     {
         return [
             'title' => 'Mikrotik Hotspot',
-            'description' => 'To handle connection between PHPNuxBill with Mikrotik Hotspot',
+            'description' => 'To handle connection between ITC NetCore and Mikrotik Hotspot',
             'author' => 'ibnux',
             'url' => [
                 'Github' => 'https://github.com/hotspotbilling/phpnuxbill/',

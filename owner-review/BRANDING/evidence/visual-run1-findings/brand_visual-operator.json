@@ -1,0 +1,328 @@
+[
+ {
+  "capture": "(manifest)",
+  "phase": "operator",
+  "surface": "pwa-manifest",
+  "name": "شبكة النور للإنترنت",
+  "short_name": "شبكة النور ل",
+  "ok": true
+ },
+ {
+  "capture": "B-operator-arabic-desk-staff-login.png",
+  "phase": "operator",
+  "surface": "staff-login",
+  "lang": "arabic",
+  "dir": "rtl",
+  "title": "تسجيل الدخول - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [],
+  "axe_page_serious_critical": [],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-arabic-desk-customer-login.png",
+  "phase": "operator",
+  "surface": "customer-login",
+  "lang": "arabic",
+  "dir": "rtl",
+  "title": "تسجيل الدخول - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [
+   "color-contrast x1 p > bdi"
+  ],
+  "axe_page_serious_critical": [
+   "color-contrast x1 p > bdi"
+  ],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-arabic-desk-dashboard.png",
+  "phase": "operator",
+  "surface": "dashboard",
+  "lang": "arabic",
+  "dir": "rtl",
+  "title": "لوحة التحكم - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [],
+  "axe_page_serious_critical": [],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-arabic-desk-about.png",
+  "phase": "operator",
+  "surface": "about",
+  "lang": "arabic",
+  "dir": "rtl",
+  "title": "حول ITC NetCore - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [
+   "color-contrast x1 .box-body > .text-muted",
+   "link-in-text-block x1 a[rel=\"noopener noreferrer\"]"
+  ],
+  "axe_page_serious_critical": [
+   "color-contrast x1 .box-body > .text-muted",
+   "image-alt x2 .img-responsive | img[width=\"100%\"]",
+   "link-in-text-block x2 a[rel=\"noopener noreferrer\"] | .activities.box-hovered.box > .box-body > a[target=\"_blank\"]",
+   "link-name x2 center > a[target=\"_blank\"] | .col-sm-6:nth-child(1) > .box-hovered.box.mb20 > .box-body > a[target=\"_blank\"]"
+  ],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-arabic-phone-staff-login.png",
+  "phase": "operator",
+  "surface": "staff-login",
+  "lang": "arabic",
+  "dir": "rtl",
+  "title": "تسجيل الدخول - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [],
+  "axe_page_serious_critical": [],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-arabic-phone-customer-login.png",
+  "phase": "operator",
+  "surface": "customer-login",
+  "lang": "arabic",
+  "dir": "rtl",
+  "title": "تسجيل الدخول - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [
+   "color-contrast x1 p > bdi"
+  ],
+  "axe_page_serious_critical": [
+   "color-contrast x1 p > bdi"
+  ],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-arabic-phone-dashboard.png",
+  "phase": "operator",
+  "surface": "dashboard",
+  "lang": "arabic",
+  "dir": "rtl",
+  "title": "لوحة التحكم - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [],
+  "axe_page_serious_critical": [],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-arabic-phone-about.png",
+  "phase": "operator",
+  "surface": "about",
+  "lang": "arabic",
+  "dir": "rtl",
+  "title": "حول ITC NetCore - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [
+   "color-contrast x1 .box-body > .text-muted"
+  ],
+  "axe_page_serious_critical": [
+   "color-contrast x2 .box-body > .text-muted | .col-sm-12 > .text-muted",
+   "image-alt x2 .img-responsive | img[width=\"100%\"]",
+   "link-in-text-block x1 .activities.box-hovered.box > .box-body > a[target=\"_blank\"]",
+   "link-name x2 center > a[target=\"_blank\"] | .col-sm-6:nth-child(1) > .box-hovered.box.mb20 > .box-body > a[target=\"_blank\"]"
+  ],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-english-desk-staff-login.png",
+  "phase": "operator",
+  "surface": "staff-login",
+  "lang": "english",
+  "dir": "ltr",
+  "title": "Login - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [],
+  "axe_page_serious_critical": [],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-english-desk-customer-login.png",
+  "phase": "operator",
+  "surface": "customer-login",
+  "lang": "english",
+  "dir": "ltr",
+  "title": "Login - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [
+   "color-contrast x2 p | p > bdi"
+  ],
+  "axe_page_serious_critical": [
+   "color-contrast x2 p | p > bdi"
+  ],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-english-desk-dashboard.png",
+  "phase": "operator",
+  "surface": "dashboard",
+  "lang": "english",
+  "dir": "ltr",
+  "title": "Dashboard - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [],
+  "axe_page_serious_critical": [],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-english-desk-about.png",
+  "phase": "operator",
+  "surface": "about",
+  "lang": "english",
+  "dir": "ltr",
+  "title": "About ITC NetCore - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [
+   "color-contrast x1 .box-body > .text-muted",
+   "link-in-text-block x1 a[rel=\"noopener noreferrer\"]"
+  ],
+  "axe_page_serious_critical": [
+   "color-contrast x2 .box-body > .text-muted | .col-sm-12 > .text-muted",
+   "image-alt x2 .img-responsive | img[width=\"100%\"]",
+   "link-in-text-block x2 a[rel=\"noopener noreferrer\"] | .activities.box-hovered.box > .box-body > a[target=\"_blank\"]",
+   "link-name x2 center > a[target=\"_blank\"] | .col-sm-6:nth-child(1) > .box-hovered.box.mb20 > .box-body > a[target=\"_blank\"]"
+  ],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-english-phone-staff-login.png",
+  "phase": "operator",
+  "surface": "staff-login",
+  "lang": "english",
+  "dir": "ltr",
+  "title": "Login - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [],
+  "axe_page_serious_critical": [],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-english-phone-customer-login.png",
+  "phase": "operator",
+  "surface": "customer-login",
+  "lang": "english",
+  "dir": "ltr",
+  "title": "Login - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [
+   "color-contrast x2 p | p > bdi"
+  ],
+  "axe_page_serious_critical": [
+   "color-contrast x2 p | p > bdi"
+  ],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-english-phone-dashboard.png",
+  "phase": "operator",
+  "surface": "dashboard",
+  "lang": "english",
+  "dir": "ltr",
+  "title": "Dashboard - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [],
+  "axe_page_serious_critical": [],
+  "console_errors": []
+ },
+ {
+  "capture": "B-operator-english-phone-about.png",
+  "phase": "operator",
+  "surface": "about",
+  "lang": "english",
+  "dir": "ltr",
+  "title": "About ITC NetCore - شبكة النور للإنترنت",
+  "title_ok": true,
+  "mark": "ش",
+  "mark_ok": true,
+  "missing_text": [],
+  "forbidden_text": [],
+  "overflow": false,
+  "axe_identity": [
+   "color-contrast x1 .box-body > .text-muted"
+  ],
+  "axe_page_serious_critical": [
+   "color-contrast x2 .box-body > .text-muted | .col-sm-12 > .text-muted",
+   "image-alt x2 .img-responsive | img[width=\"100%\"]",
+   "link-in-text-block x1 .activities.box-hovered.box > .box-body > a[target=\"_blank\"]",
+   "link-name x2 center > a[target=\"_blank\"] | .col-sm-6:nth-child(1) > .box-hovered.box.mb20 > .box-body > a[target=\"_blank\"]"
+  ],
+  "console_errors": []
+ }
+]

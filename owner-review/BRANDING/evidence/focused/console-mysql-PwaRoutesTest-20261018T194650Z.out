@@ -1,0 +1,23 @@
+command: docker compose run --rm -e WP1_DB_HOST=mysql -e WP9_EVIDENCE=/repo/owner-review/BRANDING/evidence/focused/obs-mysql.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox  tests/Integration/Wp7/PwaRoutesTest.php
+start: 2026-10-18T19:46:50Z
+ Container nuxbill-reseller-test-php82-run-1e36ae9e74b2 Creating 
+ Container nuxbill-reseller-test-php82-run-1e36ae9e74b2 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+......                                                              6 / 6 (100%)
+
+Time: 00:05.918, Memory: 10.00 MB
+
+Pwa Routes (Reseller\Tests\Integration\Wp7\PwaRoutes)
+ ✔ Manifest is user neutral and complete
+ ✔ Manifest encodes any company name as valid json
+ ✔ Ping is a fixed no store marker and leaves no anonymous session
+ ✔ Manifest leaves no anonymous session and never touches a cookie session
+ ✔ Only two get actions exist and nothing mutates
+ ✔ The api refuses the pwa controller
+
+OK (6 tests, 117 assertions)
+exit=0 end: 2026-10-18T19:46:57Z

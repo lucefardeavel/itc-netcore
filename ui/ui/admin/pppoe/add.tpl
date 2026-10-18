@@ -54,9 +54,9 @@
                     {/if}
                     <div class="form-group">
                         <label for="device" class="col-md-2 control-label">{Lang::T('Device')}
-                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("This Device are the logic how PHPNuxBill Communicate with Mikrotik or other Devices")}"
+                            <a tabindex="0" class="btn btn-link btn-xs" role="button" data-toggle="popover" aria-label="{Lang::T("The device type decides how ITC NetCore communicates with MikroTik or other devices")}"
                                 data-trigger="focus" data-container="body"
-                                data-content="{Lang::T("This Device are the logic how PHPNuxBill Communicate with Mikrotik or other Devices")}">?</a>
+                                data-content="{Lang::T("The device type decides how ITC NetCore communicates with MikroTik or other devices")}">?</a>
                         </label>
                         <div class="col-md-6">
                             <select class="form-control" id="device" name="device">

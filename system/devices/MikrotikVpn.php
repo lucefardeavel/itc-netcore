@@ -15,7 +15,7 @@ class MikrotikVpn
     {
         return [
             'title' => 'Mikrotik Vpn',
-            'description' => 'To handle connection between PHPNuxBill with Mikrotik VPN',
+            'description' => 'To handle connection between ITC NetCore and Mikrotik VPN',
             'author' => 'agstr',
             'url' => [
                 'Github' => 'https://github.com/agstrxyz',
