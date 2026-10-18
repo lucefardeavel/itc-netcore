@@ -1,0 +1,13 @@
+{"pages": 136, "with_problems": 11, "external_origins": ["https://cdn.jsdelivr.net"]}
+desktop-en A        settings/app               403 console Failed to load resource: the server responded with a status of 403 (Forbidden)
+desktop-en A1       finance/overview           403 console Failed to load resource: the server responded with a status of 403 (Forbidden)
+desktop-en rp       reports/by-date            403 HTTP 403 || console Failed to load resource: the server responded with a status of 403 (Forbidden)
+desktop-en rp       customers/list             403 HTTP 403 || console Failed to load resource: the server responded with a status of 403 (Forbidden)
+desktop-en customer login                      200 axe color-contrast x4 .btn-success | .btn-primary
+phone-ar   A        settings/app               403 console Failed to load resource: the server responded with a status of 403 (Forbidden)
+phone-ar   A1       finance/overview           403 console Failed to load resource: the server responded with a status of 403 (Forbidden)
+phone-ar   customer login                      200 not RTL: ltr || axe color-contrast x2 a[href="javascript:showPrivacy()"] | a[href="javascript:showTaC()"]
+tablet-ar  A        settings/app               403 console Failed to load resource: the server responded with a status of 403 (Forbidden)
+tablet-ar  A1       finance/overview           403 console Failed to load resource: the server responded with a status of 403 (Forbidden)
+tablet-ar  customer login                      200 not RTL: ltr || axe color-contrast x2 a[href="javascript:showPrivacy()"] | a[href="javascript:showTaC()"]
+rc=0

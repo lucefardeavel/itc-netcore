@@ -1,0 +1,60 @@
+{
+ "result": "PASS",
+ "rows": [
+  {
+   "step": "A viewed customer + finance",
+   "markers_present": [
+    "customer name",
+    "customer username",
+    "A's name"
+   ],
+   "cache_control": "no-store, no-cache, must-revalidate"
+  },
+  {
+   "step": "back x1 online",
+   "url": "login",
+   "leaked": []
+  },
+  {
+   "step": "back x2 online",
+   "url": "login",
+   "leaked": []
+  },
+  {
+   "step": "forward online",
+   "url": "login",
+   "leaked": []
+  },
+  {
+   "step": "back offline",
+   "url": "login",
+   "leaked": []
+  },
+  {
+   "step": "forward offline",
+   "url": "login",
+   "leaked": []
+  },
+  {
+   "step": "A1 back x1",
+   "url": "http://localhost:18099/nuxr-offline.html?reason=unconfirmed",
+   "leaked": []
+  },
+  {
+   "step": "A1 back x2",
+   "url": "dashboard",
+   "leaked": []
+  },
+  {
+   "step": "A1 back x3",
+   "url": "login",
+   "leaked": []
+  },
+  {
+   "step": "A1 back x4",
+   "url": "login",
+   "leaked": []
+  }
+ ]
+}
+rc=0

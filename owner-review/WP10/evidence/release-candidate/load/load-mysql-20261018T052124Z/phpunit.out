@@ -1,0 +1,19 @@
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+==== load start engine=mysql 8.0.46
+L1 distributed: 96 ops in 8 waves of <= 12, total 7.93 s, 12.1 ops/s, wave p50 1.02 s, wave max 1.07 s, peak Max_used_connections 14 (max_connections 151), outcomes {"OK:COMPLETED":96}
+L2 one wallet: 96 ops in 8 waves of <= 12, total 9.14 s, 10.5 ops/s, wave p50 1.09 s, wave max 1.31 s, peak Max_used_connections 15 (max_connections 151), outcomes {"OK:COMPLETED":96}
+L3 one customer: 48 ops in 8 waves of <= 12, total 3.90 s, 12.3 ops/s, wave p50 0.49 s, wave max 0.53 s, peak Max_used_connections 9 (max_connections 151), outcomes {"OK:COMPLETED":8,"REFUSED:ACTIVATION_IN_PROGRESS":40}
+==== load PASS
+.                                                                   1 / 1 (100%)
+
+Time: 00:27.587, Memory: 12.00 MB
+
+Staging Load (Reseller\Tests\Lab\StagingLoad)
+ ✔ Bounded load
+
+OK (1 test, 83 assertions)
+exit=0
