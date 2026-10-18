@@ -400,7 +400,10 @@ final class ActivationService
     private static function capture(array $row): array|null|false
     {
         try {
-            $policy = self::policy($row);
+            // N2: the first attempt of an activation opens a NEW period (table end); a later attempt keeps the boundary its earlier
+            // attempt recorded, so one activation always owns the same rows
+            $recorded = self::recordedBoundary($row);
+            $policy = self::policy($row, $recorded !== null ? static fn(string $user, int $timeBoundary): ?int => $recorded['id'] : null);
         } catch (\InvalidArgumentException) {
             return null;
         } catch (\PDOException $e) {
@@ -592,7 +595,7 @@ final class ActivationService
         $zone = new \DateTimeZone((string) $meta['period']['timezone']);
         $start = ServicePeriod::at(substr($meta['period']['start'], 0, 10), substr($meta['period']['start'], 11), $zone);
         $expiry = ServicePeriod::at(substr($meta['period']['expiry'], 0, 10), substr($meta['period']['expiry'], 11), $zone);
-        return RadiusPolicyBuilder::build($customer, $plan, $bw, $expiry, $start, $boundary ?? \Reseller\Radius\PeriodBoundary::forConnection());
+        return RadiusPolicyBuilder::build($customer, $plan, $bw, $expiry, $start, $boundary ?? \Reseller\Radius\PeriodBoundary::newPeriodForConnection());
     }
 
     /**

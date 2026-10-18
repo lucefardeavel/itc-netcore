@@ -123,6 +123,37 @@ final class Subscriber360Test extends RadiusHttpTestCase
         $this->assertStringContainsString('No session yet', self::content($this->view('ad', 'cNULL')));
     }
 
+    public function testQuotaCardSeparatesActualFromCoveredUsageAndNeverImpliesACharge(): void
+    {
+        // Option G: 11534336 octets recorded (session L1) against a 5 MB quota (5000000): actual, covered by the plan, over
+        static::$db->exec("DELETE FROM radcheck WHERE username = 'sara-pppoe'");
+        static::$db->insertRow('radcheck', ['username' => 'sara-pppoe', 'attribute' => 'Max-Data', 'op' => ':=', 'value' => '5000000']);
+        static::$db->insertRow('radcheck', ['username' => 'sara-pppoe', 'attribute' => 'Nuxr-Period-Start', 'op' => ':=', 'value' => '1']);
+        try {
+            foreach (['ad', 'A', 'A1'] as $actor) {
+                $c = strip_tags(self::content($this->view($actor, 'cA1')));
+                $this->assertStringContainsString('Quota this period', $c, $actor);
+                $this->assertStringContainsString('Actual usage', $c);
+                $this->assertStringContainsString('Covered by the plan', $c);
+                $this->assertStringContainsString('11.0 MB', $c, 'actual: 1 MB + 10 MB');
+                $this->assertStringContainsString('4.8 MB', $c, 'covered: the quota (5000000 octets), not the actual');
+                $this->assertStringContainsString('Over the quota', $c);
+                $this->assertStringContainsString('not charged and not carried into the next period', $c);
+                $this->assertDoesNotMatchRegularExpression('/\bdebt\b|\bowed\b|\bpenalty\b/i', $c);
+            }
+            // below the quota: no "over" line and no note
+            static::$db->exec("UPDATE radcheck SET value = '50000000' WHERE username = 'sara-pppoe' AND attribute = 'Max-Data'");
+            $c = strip_tags(self::content($this->view('ad', 'cA1')));
+            $this->assertStringContainsString('Covered by the plan', $c);
+            $this->assertStringNotContainsString('Over the quota', $c);
+            $this->assertStringNotContainsString('not charged', $c);
+            // a subscriber without a quota row has no card
+            $this->assertStringNotContainsString('Quota this period', strip_tags(self::content($this->view('ad', 'cA2'))));
+        } finally {
+            static::$db->exec("DELETE FROM radcheck WHERE username = 'sara-pppoe'");
+        }
+    }
+
     public function testOperationalFlagsAndTabs(): void
     {
         $id = static::$seed->customers['cA0'];

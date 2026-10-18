@@ -9,6 +9,7 @@ if (PHP_SAPI !== 'cli') {
  *
  *   php system/reseller/quota.php enforce [--loop=55] [--every=15] [--json]   cron: every minute
  *   php system/reseller/quota.php report [--json]                             read-only: over-quota open sessions
+ *   php system/reseller/quota.php usage USERNAME [--json]                     read-only: actual / billable / overshoot (Option G)
  *
  * The NAS already limits every session to its share of the remaining quota (FreeRADIUS replies; see
  * install/freeradius/README.md "V1 data quota"). This enforcer ends, from accounting, the sessions of subscribers
@@ -23,6 +24,11 @@ require dirname(__DIR__, 2) . '/init.php';
 
 $args = array_slice($argv, 1);
 $cmd = $args[0] ?? '';
+$usageUser = null;
+if ($cmd === 'usage' && isset($args[1]) && preg_match('/^[^-][^\s]{0,127}$/D', $args[1])) {
+    $usageUser = $args[1];
+    $args = array_merge([$cmd], array_slice($args, 2));
+}
 $opt = ['loop' => 0, 'every' => 15, 'json' => false];
 foreach (array_slice($args, 1) as $a) {
     if (preg_match('/^--(loop|every)=([0-9]{1,4})$/', $a, $m)) {
@@ -34,8 +40,8 @@ foreach (array_slice($args, 1) as $a) {
         exit(5);
     }
 }
-if (!in_array($cmd, ['enforce', 'report'], true) || $opt['every'] < 5) {
-    fwrite(STDERR, "usage: php system/reseller/quota.php enforce [--loop=55] [--every=15] [--json] | report [--json]\n");
+if (!in_array($cmd, ['enforce', 'report', 'usage'], true) || $opt['every'] < 5 || ($cmd === 'usage' && $usageUser === null)) {
+    fwrite(STDERR, "usage: php system/reseller/quota.php enforce [--loop=55] [--every=15] [--json] | report [--json] | usage USERNAME [--json]\n");
     exit(5);
 }
 
@@ -53,6 +59,12 @@ try {
 $print = static function (array $data) use ($opt): void {
     echo $opt['json'] ? json_encode($data, JSON_UNESCAPED_SLASHES) . "\n" : print_r($data, true);
 };
+
+if ($cmd === 'usage') {
+    // Option G: the raw accounting position of the current period; billable = min(actual, quota); the overshoot is never charged
+    $print(['username' => $usageUser, 'periods' => (new \Reseller\Radius\QuotaUsage($radius))->current($usageUser)]);
+    exit(0);
+}
 
 if ($cmd === 'report') {
     $print(array_map(static fn(array $o): array => ['username' => $o['username'], 'quota' => $o['quota'], 'limit' => $o['limit'], 'usage' => $o['usage'],

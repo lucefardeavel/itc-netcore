@@ -1,0 +1,18 @@
+command: docker compose run --rm -e WP1_DB_HOST=mariadb -e WP9_EVIDENCE=/repo/owner-review/WP10/evidence/optg/prefix-loop/obs-mariadb.jsonl -e WP9_ISOLATION= php82 tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result --testdox --filter testAnOvershootCreatesNoDebt tests/Integration/Wp10/V1QuotaUsageTest.php
+start: 2026-10-18T06:05:50Z
+ Container nuxbill-reseller-test-php82-run-ac02c991ad36 Creating 
+ Container nuxbill-reseller-test-php82-run-ac02c991ad36 Created 
+PHPUnit 11.5.56 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.34
+Configuration: /repo/tests/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:02.875, Memory: 12.00 MB
+
+V1Quota Usage (Reseller\Tests\Integration\Wp10\V1QuotaUsage)
+ ✔ An overshoot creates no debt and a renewal settles exactly once
+
+OK (1 test, 22 assertions)
+exit=0 end: 2026-10-18T06:05:55Z

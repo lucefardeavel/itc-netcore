@@ -111,6 +111,36 @@ final class Subscriber
     }
 
     /**
+     * Option G: the quota position of the current period for the subscriber's RADIUS usernames - actual usage (raw accounting),
+     * billable usage (min(actual, quota)) and the overshoot, which is shown but never charged or carried over. Empty when the
+     * plan has no quota, RADIUS is not configured or the accounting database cannot be read (the card is then simply absent).
+     *
+     * @param array<string,mixed> $customer
+     * @return list<array<string,mixed>>
+     */
+    public static function quota(array $customer): array
+    {
+        global $config;
+        if (empty($config['radius_enable'])) {
+            return [];
+        }
+        $out = [];
+        try {
+            $usage = new \Reseller\Radius\QuotaUsage(\ORM::get_db('radius'));
+            foreach (array_values(array_unique(array_filter([(string) ($customer['username'] ?? ''), (string) ($customer['pppoe_username'] ?? '')]))) as $n) {
+                foreach ($usage->current($n) as $q) {
+                    $out[] = ['username' => $n, 'kind' => $q['quota'] === 'Max-Data' ? 'data' : 'time', 'limit' => (int) $q['limit'], 'actual' => (int) $q['actual'],
+                        'billable' => (int) $q['billable'], 'overshoot' => (int) $q['overshoot'], 'over' => $q['over']];
+                }
+            }
+        } catch (\Throwable $e) {
+            \Reseller\Security\ErrorReporter::report($e, 'subscriber-quota');
+            return [];
+        }
+        return $out;
+    }
+
+    /**
      * State of the newest session from its last accounting instant ($seen: epoch of the latest Interim, else the start):
      * offline when closed; otherwise online only when the time is valid, not older than STALE_SECONDS and not further in
      * the future than the clock tolerance. A missing, invalid or future time is "stale" (shown as status unknown).

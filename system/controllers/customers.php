@@ -440,6 +440,9 @@ switch ($action) {
             }
             $ui->assign('nuxr_can_activate', $nuxrActivate);
             $ui->assign('nuxr_session', \Reseller\Ui\Subscriber::session($customer->as_array(), $nuxrGlobal));
+            $nuxrQuota = \Reseller\Ui\Subscriber::quota($customer->as_array());
+            $ui->assign('nuxr_quota', $nuxrQuota);
+            $ui->assign('nuxr_quota_over', in_array(true, array_column($nuxrQuota, 'over'), true));
             $ui->assign('nuxr_global', $nuxrGlobal);
             if ($nuxrGlobal && $customer['created_by']) {
                 $nuxrCreator = ORM::for_table('tbl_users')->select_many('id', 'username')->find_one((int) $customer['created_by']);

@@ -187,6 +187,25 @@
             </div>
         </section>
 
+        {* Option G: actual usage is shown next to what the plan covers; an overshoot is informational only (never charged, never carried over) *}
+        {if isset($nuxr_quota) && $nuxr_quota}
+        <section class="nuxr-card" aria-labelledby="nuxr-quota">
+            <div class="nuxr-card-head"><h3 id="nuxr-quota">{Lang::T('Quota this period')}</h3></div>
+            <div class="nuxr-card-body">
+                <dl class="nuxr-kv">
+                    {foreach $nuxr_quota as $q}
+                        <div><dt>{if $q.kind eq 'data'}{Lang::T('Data quota')}{else}{Lang::T('Time quota')}{/if}</dt>
+                            <dd><bdi dir="ltr">{if $q.kind eq 'data'}{NuxrUi::bytes($q.limit)}{else}{NuxrUi::duration($q.limit)}{/if}</bdi></dd></div>
+                        <div><dt>{Lang::T('Actual usage')}</dt><dd><bdi dir="ltr">{if $q.kind eq 'data'}{NuxrUi::bytes($q.actual)}{else}{NuxrUi::duration($q.actual)}{/if}</bdi></dd></div>
+                        <div><dt>{Lang::T('Covered by the plan')}</dt><dd><bdi dir="ltr">{if $q.kind eq 'data'}{NuxrUi::bytes($q.billable)}{else}{NuxrUi::duration($q.billable)}{/if}</bdi></dd></div>
+                        {if $q.over}<div><dt>{Lang::T('Over the quota')}</dt><dd><bdi dir="ltr">{if $q.kind eq 'data'}{NuxrUi::bytes($q.overshoot)}{else}{NuxrUi::duration($q.overshoot)}{/if}</bdi></dd></div>{/if}
+                    {/foreach}
+                </dl>
+                {if $nuxr_quota_over}<p class="nuxr-muted" style="margin:6px 0 0">{Lang::T('The usage above the quota was caused by the time the network needs to stop a session. It is not charged and not carried into the next period.')}</p>{/if}
+            </div>
+        </section>
+        {/if}
+
         <nav class="nuxr-tabs" aria-label="{Lang::T('Subscriber sections')}">
             <a href="{Text::url('customers/view/', $d['id'], '/overview')}"{if $v eq 'overview'} aria-current="page"{/if}>{Lang::T('Overview')}</a>
             {if $nuxr_can_activations}<a href="{Text::url('customers/view/', $d['id'], '/activations')}"{if $v eq 'activations'} aria-current="page"{/if}>{Lang::T('Activations')}</a>{/if}

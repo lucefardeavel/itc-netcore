@@ -30,6 +30,24 @@ final class PeriodBoundary
         return static fn(string $username, int $timeBoundary): ?int => self::resolve($repo, $acct, $username, $timeBoundary);
     }
 
+    /**
+     * A NEW period (an activation: NEW, RENEW, CHANGE_PLAN, REACTIVATE) always takes the table's current end, even when its
+     * start second equals the previous period's (two activations inside one second must not merge their periods: the
+     * overshoot of the first would be carried into the second - owner decision N1 = A + G).
+     *
+     * @return \Closure(string,int):?int
+     */
+    public static function newPeriod(AccountingService $acct): \Closure
+    {
+        return static fn(string $username, int $timeBoundary): ?int => $acct->maxRowId();
+    }
+
+    /** {@see newPeriod()} on the configured 'radius' connection */
+    public static function newPeriodForConnection(): \Closure
+    {
+        return static fn(string $username, int $timeBoundary): ?int => AccountingService::connection()->maxRowId();
+    }
+
     /** the resolver on the configured 'radius' connection */
     public static function forConnection(): \Closure
     {
