@@ -1,0 +1,5 @@
+2026-10-18T12:25:54Z ==== load start engine=mariadb 10.11.19-MariaDB-ubu2204
+2026-10-18T12:26:07Z L1 distributed: 96 ops in 8 waves of <= 12, total 12.45 s, 7.7 ops/s, wave p50 1.16 s, wave max 3.36 s, peak Max_used_connections 15 (max_connections 151), outcomes {"OK:COMPLETED":96}
+2026-10-18T12:26:19Z L2 one wallet: 96 ops in 8 waves of <= 12, total 11.09 s, 8.7 ops/s, wave p50 1.30 s, wave max 2.06 s, peak Max_used_connections 15 (max_connections 151), outcomes {"OK:COMPLETED":96}
+2026-10-18T12:26:24Z L3 one customer: 48 ops in 8 waves of <= 12, total 4.63 s, 10.4 ops/s, wave p50 0.63 s, wave max 0.68 s, peak Max_used_connections 9 (max_connections 151), outcomes {"OK:COMPLETED":8,"REFUSED:ACTIVATION_IN_PROGRESS":40}
+2026-10-18T12:26:25Z ==== load PASS
