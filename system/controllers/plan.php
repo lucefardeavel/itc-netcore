@@ -489,6 +489,17 @@ switch ($action) {
             \Reseller\Domain\ServiceGate::guardCustomer($d['customer_id'], 'planEditPost', 'plan/list');
             run_hook('edit_customer_plan'); #HOOK
             $nuxrExpiryChanged = $d['expiration'] != $expiration || $d['time'] != $time;
+            // Lab finding F6-2: for a customer that is not Active, an edit that would provision (turn the recharge on,
+            // change the plan of a live recharge, or move the expiry of a live recharge, which syncs RADIUS) is refused
+            // before anything is saved; data corrections that provision nothing stay possible
+            $nuxrEditCustomer = (int) $d['customer_id'] > 0 ? ORM::for_table('tbl_customers')->findOne($d['customer_id']) : null;
+            if ($nuxrEditCustomer && $nuxrEditCustomer['status'] != 'Active') {
+                $nuxrTurnsOn = $d['status'] == 'off' && strtotime($expiration . ' ' . $time) > time();
+                $nuxrLive = $d['status'] == 'on' && ($oldPlanID != $id_plan || $nuxrExpiryChanged);
+                if ($nuxrTurnsOn || $nuxrLive) {
+                    r2(getUrl('plan/edit/') . $id, 'e', Lang::T('This account status') . ' : ' . Lang::T($nuxrEditCustomer['status']));
+                }
+            }
             $d->expiration = $expiration;
             $d->time = $time;
             if ($d['status'] == 'off') {
@@ -1191,6 +1202,12 @@ switch ($action) {
         // WP2 / OD-11 (E4): no legacy extend for reseller-owned customers
         \Reseller\Domain\ServiceGate::guardCustomer($tur['customer_id'], 'planExtend', 'plan');
         $status = $tur['status'];
+        // Lab finding F6-1: an extend turns the service on and provisions it; like every other recharge path, it is
+        // refused for a customer that is not Active (judged before the one-time extend token is consumed)
+        $nuxrExtendCustomer = (int) $tur['customer_id'] > 0 ? ORM::for_table('tbl_customers')->findOne($tur['customer_id']) : null;
+        if ($nuxrExtendCustomer && $nuxrExtendCustomer['status'] != 'Active') {
+            r2(getUrl('plan'), 'e', Lang::T('This account status') . ' : ' . Lang::T($nuxrExtendCustomer['status']));
+        }
         if ($status == 'off') {
             if (strtotime($tur['expiration'] . ' ' . $tur['time']) > time()) {
                 // not expired
