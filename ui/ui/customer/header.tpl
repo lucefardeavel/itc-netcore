@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/sweetalert2.min.css" />
     <script src="{$app_url}/ui/ui/scripts/sweetalert2.all.min.js"></script>
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/phpnuxbill.customer.css?2025.2.4" />
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v2" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v3" />
     {if $nuxr_dir eq 'rtl'}
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?wp6c.2" />
     {/if}
@@ -42,18 +42,18 @@
             </a>
             <nav class="navbar navbar-static-top">
                 <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
-                    <span class="sr-only">Toggle navigation</span>
+                    <span class="sr-only">{Lang::T('Toggle navigation')}</span>
                 </a>
                 <div class="navbar-custom-menu">
                     <ul class="nav navbar-nav">
                         <li>
-                            <a class="toggle-container" href="#">
-                                <i class="toggle-icon" id="toggleIcon">🌜</i>
+                            <a class="toggle-container" href="#" role="button" aria-label="{Lang::T('Dark mode')}" aria-pressed="false">
+                                <i class="toggle-icon" id="toggleIcon" aria-hidden="true">🌜</i>
                             </a>
                         </li>
                         <li class="dropdown tasks-menu">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-                                <i class="fa fa-flag-o"></i>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true" aria-label="{Lang::T('Language')}">
+                                <i class="fa fa-flag-o" aria-hidden="true"></i>
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
@@ -64,7 +64,8 @@
                         </li>
                         <li class="dropdown notifications-menu">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                                <i class="fa fa-envelope-o"></i>
+                                <i class="fa fa-envelope-o" aria-hidden="true"></i>
+                                <span class="sr-only">{Lang::T('Inbox')}</span>
                                 <span class="label label-warning"
                                     api-get-text="{Text::url('autoload_user/inbox_unread')}"></span>
                             </a>

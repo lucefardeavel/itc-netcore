@@ -121,6 +121,30 @@
             }
         });
     </script>
+    <script>
+        // D-19: the header toggles work from the keyboard (Enter and Space) and the theme toggle exposes its state
+        (function () {
+            var theme = document.querySelector('.toggle-container');
+            if (theme) {
+                theme.setAttribute('aria-pressed', body.classList.contains('dark-mode') ? 'true' : 'false');
+                theme.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (e.target === theme) {
+                        toggleIcon.click();
+                    }
+                    theme.setAttribute('aria-pressed', body.classList.contains('dark-mode') ? 'true' : 'false');
+                });
+            }
+            document.querySelectorAll('a[role="button"]').forEach(function (el) {
+                el.addEventListener('keydown', function (e) {
+                    if (e.key === ' ' || e.key === 'Spacebar') {
+                        e.preventDefault();
+                        el.click();
+                    }
+                });
+            });
+        })();
+    </script>
 
 
 {literal}

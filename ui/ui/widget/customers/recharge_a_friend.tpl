@@ -11,8 +11,9 @@
                 </div>
                 <div class="form-group col-sm-2" align="center">
                     <button class="btn btn-success btn-block" id="sendBtn" type="submit" name="send"
+                        aria-label="{Lang::T('Send')}"
                         onclick="return ask(this, '{Lang::T(" Are You Sure?")}')" value="plan"><i
-                            class="glyphicon glyphicon-send"></i></button>
+                            class="glyphicon glyphicon-send" aria-hidden="true"></i></button>
                 </div>
             </div>
         </form>

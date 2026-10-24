@@ -10,19 +10,19 @@
                     action="{Text::url('accounts/change-password-post')}">
                     <input type="hidden" name="csrf_token" value="{$csrf_token|escape:'html'}">
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Current Password')}</label>
+                        <label class="col-md-2 control-label" for="password">{Lang::T('Current Password')}</label>
                         <div class="col-md-6">
                             <input type="password" class="form-control" id="password" name="password">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('New Password')}</label>
+                        <label class="col-md-2 control-label" for="npass">{Lang::T('New Password')}</label>
                         <div class="col-md-6">
                             <input type="password" class="form-control" id="npass" name="npass">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-2 control-label">{Lang::T('Confirm New Password')}</label>
+                        <label class="col-md-2 control-label" for="cnpass">{Lang::T('Confirm New Password')}</label>
                         <div class="col-md-6">
                             <input type="password" class="form-control" id="cnpass" name="cnpass">
                         </div>

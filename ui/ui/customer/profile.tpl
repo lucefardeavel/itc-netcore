@@ -16,9 +16,9 @@
                             class="img-circle img-responsive" alt="Foto" onclick="return deletePhoto({$d['id']})">
                     </center><br>
                     <div class="form-group">
-                        <label class="col-md-3 col-xs-12 control-label">{Lang::T('Photo')}</label>
+                        <label class="col-md-3 col-xs-12 control-label" for="photo">{Lang::T('Photo')}</label>
                         <div class="col-md-6 col-xs-8">
-                            <input type="file" class="form-control" name="photo" accept="image/*">
+                            <input type="file" class="form-control" name="photo" id="photo" accept="image/*">
                         </div>
                         <div class="form-group col-md-3 col-xs-4" title="Not always Working">
                             <label class=""><input type="checkbox" checked name="faceDetect" value="yes">
@@ -26,7 +26,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Usernames')}</label>
+                        <label class="col-md-3 control-label" for="username">{Lang::T('Usernames')}</label>
                         <div class="col-md-9">
                             <div class="input-group">
                                 {if $_c['registration_username'] == 'phone'}
@@ -46,7 +46,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Full Name')}</label>
+                        <label class="col-md-3 control-label" for="fullname">{Lang::T('Full Name')}</label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="fullname" name="fullname"
                                 value="{$_user['fullname']|escape}">
@@ -54,14 +54,14 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="col-md-3 control-label">{Lang::T('Home Address')}</label>
+                        <label class="col-md-3 control-label" for="address">{Lang::T('Home Address')}</label>
                         <div class="col-md-9">
                             <textarea name="address" id="address" class="form-control">{$_user['address']|escape}</textarea>
                         </div>
                     </div>
                     {if $_c['allow_phone_otp'] != 'yes'}
                         <div class="form-group">
-                            <label class="col-md-3 control-label">{Lang::T('Phone Number')}</label>
+                            <label class="col-md-3 control-label" for="phonenumber">{Lang::T('Phone Number')}</label>
                             <div class="col-md-9">
                                 <div class="input-group">
                                     <span class="input-group-addon" id="basic-addon1"><i
@@ -74,7 +74,7 @@
                         </div>
                     {else}
                         <div class="form-group">
-                            <label class="col-md-3 control-label">{Lang::T('Phone Number')}</label>
+                            <label class="col-md-3 control-label" for="phonenumber">{Lang::T('Phone Number')}</label>
                             <div class="col-md-9">
                                 <div class="input-group">
                                     <span class="input-group-addon" id="basic-addon1"><i
@@ -92,14 +92,14 @@
                     {/if}
                     {if $_c['allow_email_otp'] != 'yes'}
                         <div class="form-group">
-                            <label class="col-md-3 control-label">{Lang::T('Email Address')}</label>
+                            <label class="col-md-3 control-label" for="email">{Lang::T('Email Address')}</label>
                             <div class="col-md-9">
                                 <input type="text" class="form-control" id="email" name="email" value="{$_user['email']|escape}">
                             </div>
                         </div>
                     {else}
                         <div class="form-group">
-                            <label class="col-md-3 control-label">{Lang::T('Email Address')}</label>
+                            <label class="col-md-3 control-label" for="email">{Lang::T('Email Address')}</label>
                             <div class="col-md-9">
                                 <div class="input-group">
                                     <span class="input-group-addon"><i class="glyphicon glyphicon-envelope"></i></span>
