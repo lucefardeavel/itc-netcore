@@ -77,9 +77,10 @@ switch ($action) {
 
     case 'list-activated':
         $ui->assign('_system_menu', 'list-activated');
-        // Lab finding D-2 (F-5): the customer's own rows by id; the username matches only legacy rows written before
-        // user_id existed (user_id = 0), never a row recorded for another customer under a reused username
-        $query = ORM::for_table('tbl_transactions')->where_raw('(`user_id` = ? OR (`user_id` = 0 AND `username` = ?))', [$user['id'], $user['username']])->order_by_desc('id');
+        // Lab finding D-2 (F-5), owner direction D-20: only rows recorded with this customer's id. A legacy row without
+        // an id (user_id = 0) may belong to an earlier holder of a reused username and its ownership cannot be proven,
+        // so the portal fails closed for it; the row itself is kept for staff and authorized recovery (never rewritten)
+        $query = ORM::for_table('tbl_transactions')->where('user_id', $user['id'])->order_by_desc('id');
         $d = Paginator::findMany($query);
 
         $ui->assign('d', $d);
