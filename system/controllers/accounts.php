@@ -55,7 +55,9 @@ switch ($action) {
             $npass = _post('npass');
             $cnpass = _post('cnpass');
             if ($password == $d_pass) {
-                if (!Validator::Length($password, 36, 2)) {
+                // Lab finding D-6: validate the NEW password (it validated the current one; an overlong new password
+                // ended in an HTTP 500 on the 45-character column). Same 2 to 35 rule as the reseller-owned path.
+                if (!Validator::Length($npass, 36, 2)) {
                     r2(getUrl('accounts/change-password'), 'e', 'New Password must be 2 to 35 character');
                 }
                 if ($npass != $cnpass) {
