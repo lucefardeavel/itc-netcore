@@ -1,0 +1,33 @@
+---
+name: v1-quota-renewal-state
+description: "FINAL 2026-10-18: package RELEASE_BLOCKED_WITH_EVIDENCE at candidate e34906d6; V1 GB quota + Option B on wp9/red-team-rc (local, not pushed); 2026-10-17 CONTINUOUS_AUTONOMOUS phase: N2 exact period ownership + N1 levers committed (0ec84def, ae99c89e); handoff in owner-review/WP10/HANDOFF_V1_CONTINUOUS.md; final deliverable SAAS_RADIUS_V1_FINAL_OWNER_RELEASE_DECISION_PACKAGE (14 sections); owner decisions N1, N2, D1, D2, D4-D10 go in ONE consolidated package"
+metadata:
+  node_type: memory
+  type: project
+  originSessionId: ccd890f1-0769-4fe7-b94c-4fb60f2282e1
+  modified: 2026-10-17T17:53:52.805Z
+---
+
+Owner decisions 2026-10-17: QUOTA_V1_GB_SUPPORT_APPROVED, RENEWAL_OPTION_B_APPROVED, AUTONOMOUS_RELEASE_COMPLETION_AUTHORIZED. Work on local branch wp9/red-team-rc, base e45899dd, final c8679494 (nothing pushed; feat 704031c6 / main 500d3a2d untouched). Package: owner-review/WP10/SAAS_RADIUS_V1_GB_QUOTA_AND_RENEWAL_FINAL_ACCEPTANCE_PACKAGE.md (16 sections); plan V1_QUOTA_RENEWAL_PLAN.md; ledger rows 34-39 in owner-review/WP9/AUTONOMOUS_PROGRESS.md. Evidence owner-review/WP10/evidence/quota/*.
+
+Final results: full dual-engine harness on 32cdc92d MariaDB 1521/76375, MySQL 1521/76381, 0 failures, 112 incomplete (real-NAS lab classes, run on CHR); CHR gates 10/216, wp8-integration 109/2055 (13 mode skips); drill 128 asserts, load PASS, UI 136 loads, PWA 32/32.
+
+**Why:** the remaining owner requests are N1 (accept PPPoE upload+download overshoot bound, 60 s interim; PPPoE total is NOT a hard cap: per-direction native cap + accounting enforcer, bound min(R, rate x 81 s)), N2 (10 s NAS-clock attribution allowance + NTP on every NAS), and the old D1, D2, D4-D10 (D3 closed). Status must not be called Production Ready: target-environment tests and legal review (LIC-1) remain.
+
+**How to apply / facts not in the code:**
+- RouterOS 7.24.5: PPPoE ignores Mikrotik-Total-Limit (enforces Recv/Xmit per direction); Hotspot enforces Total-Limit; byte-limit CoA is not applied; Disconnect of a vanished session = NAK 406 (never 503); NAS cuts 0.02-4 % past a limit (assert limit + 1 s line rate, never a percentage).
+- The NAS stamps Accounting-Start 1.1-1.74 s EARLIER than host receive time; sessions are attributed by acctstarttime >= Nuxr-Period-Start, so the builder stores period start minus 10 s (QuotaPolicy::PERIOD_SKEW_SECONDS). A DB time-zone mismatch was suspected and refuted (all sessions UTC).
+- Rename (A3) and the device provision both end sessions: a session the device already ended AND confirmed is not sent a second Disconnect (LegacyReprovisionService::recordEnded/endedInScope, exact radacctid + NAS + Acct-Session-Id); never treat NAK/timeout/unknown as success.
+- Lab: the CHR lab and the focused stack share compose project nuxbill-reseller-test, run one at a time. Lab evidence is written to /wp8ctl/evidence.jsonl (= wp8state/ctl). prefix.sh needs an ABSOLUTE output path; scratch worktrees wp9-prefix and wp9-snap are detached (move with git checkout --detach). tools/commit.sh lints, secret-sweeps and commits; commit trailer from the latest system reminder (Claude Sonnet 5.5).
+- A voucher whose grant fails stays CLAIMED_REVIEW by design (runbook 2), also for an invalid-quota plan; stored plan unit columns are ENUMs (bad units cannot exist, zero limits can).
+- Not uploaded to Drive or Basic Memory this round.
+
+**2026-10-17 continuous phase (owner CONTINUOUS_AUTONOMOUS_EXECUTION_APPROVED):** read owner-review/WP10/HANDOFF_V1_CONTINUOUS.md first (queue Q1-Q6, checkpoint, lab hygiene). N2: periods own accounting rows by arrival order (Nuxr-Period-Acct-Id = max radacctid at period start; time rule only fallback). N1: CoA cannot change PPPoE byte limits NOR interim (measured); levers = nuxr_quota_interim_seconds, enforcer retry 15 s/60 s; analysis N1_PPPOE_OVERSHOOT.md (guarantee is seconds of line rate, never byte-exact). Lab agent runs ONE op at a time: a queued Wp8Lab::ros during a traffic job runs after it (left /radius incoming accept=no once; restore accept=yes port=3799). Never mark target-environment rows PASS (docs/V1_TARGET_ACCEPTANCE.md all NOT_RUN).
+
+**2026-10-18 FINAL:** continuous phase complete. Frozen product candidate e34906d6 (local branch wp9/red-team-rc, HEAD aba467c4 = package commit; nothing pushed, protected refs unchanged). Verified: CHR 10/216 + 121/2323, full harness MariaDB 1534/76558 + MySQL 1534/76560 (0 failures), closure 36 items, UI 136 loads, PWA 32/32, drill 128, load PASS, manifest 42/42, lint, sweep 0. Final package owner-review/WP10/SAAS_RADIUS_V1_FINAL_OWNER_RELEASE_DECISION_PACKAGE.md = **RELEASE_BLOCKED_WITH_EVIDENCE** (docs/V1_TARGET_ACCEPTANCE.md TA-01..10 all NOT_RUN; owner decisions N1, N2, D1, D2, D4-D10 open). Nothing left to do without the owner; do not mark target rows PASS. If product code changes, rerun gates (evidence/release-candidate/README.md lists them).
+
+**2026-10-18 ROUND 2 (owner V1_OWNER_DECISIONS_APPROVED, N1 = A + G, D1-D10):** done; final candidate 9da2015e (HEAD a32fae36+, local, nothing pushed). Package owner-review/WP10/SAAS_RADIUS_V1_TARGET_RELEASE_ACCEPTANCE_PACKAGE.md = **RELEASE_BLOCKED_WITH_EVIDENCE** (TA-01..10 NOT_RUN; OBS-1 real data, legal review, A2-R adoption + C7, deployment authorization, owner decision O-DL open). Facts: default interim now 30 s; enforcer overQuota set-based (old one took 5-9 s at 5000 subs); Option G = QuotaUsage (actual/billable/overshoot, never charged or carried over); an activation always opens a NEW period; load finding = deadlock refusal CONCURRENCY_RETRY under 12-wide single-wallet stampede leaves FUNDS_RESERVED+ACTIVE reservation (pre-existing, locked retry bound 2); harness MariaDB 1561/76805, MySQL 1561/76807; CHR gates 10/216; PWA 32/32. Never pkill -f a script name (kills own shell).
+
+**2026-10-18 CLOSURE ROUND (owner O-DL direction):** no product change after 9da2015e (HEAD ae16fe76+). O-DL = existing MariaDB contention limit, not a regression (old 4/1800 vs new 5/1800 refused, MySQL 0/3600); every refusal leaves FUNDS_RESERVED + 1 ACTIVE reservation (no service, no ledger entry); owner: NO automatic cancellation, locked retry bound (2) untouched; jittered-backoff variant 0/5400 vs 8/5400 documented for separate authorization. Prepared (all NOT_RUN on a target): docs/STAGING_DEPLOYMENT_PACKAGE.md, TARGET_AUTHORIZATION_REQUEST.md, TA sheets 2A + dev/staging/ta_eval.py, acct_gen.php, OBS1 runbook, A2R_OWNER_DECISION_EVIDENCE, legal package (not approved). Summary: owner-review/WP10/SAAS_RADIUS_V1_FINAL_OPERATIONAL_CLOSURE.md. Status stays RELEASE_BLOCKED_WITH_EVIDENCE.
+
+Related: [[wp9-planning-state]], [[owner-stage-workflow]], [[shared-host-avaia-boundary]].

@@ -1,0 +1,17 @@
+- [Shared host: AVAIA prod boundary](shared-host-avaia-boundary.md) — never prune/touch AVAIA; nuxbill-reseller-test project only; AVAIA monitoring is OUT OF SCOPE (owner 2026-10-06), never stop for AVAIA churn
+- [PHPNuxBill dev env + harness quirks](phpnuxbill-dev-env.md) — /srv/phpnuxbill/dev bootstrap, composer via container, CliOnlyTest healthcheck flake, root-only GitHub creds
+- [WP3B implementation state](wp3b-plan-decisions.md) — WP3B on wp3b/pricing-settlement @ 460714de, owner-ACCEPTED 2026-10-02 (recorded locally f2269a06, not pushed); 470/43219 per engine
+- [WP4 state](wp4-planning-state.md) — WP4 ACCEPTED_WITH_NOTES at 58e3e458; feat/reseller-system-v1 = 0c080a7a locally (WP3B+WP4 records), nothing pushed
+- [WP5A state](wp5a-planning-state.md) — WP3B+WP4+WP5A integrated; origin feat = 427799f5 (WP5A acceptance recorded); main 500d3a2d untouched; WP5B awaits owner go
+- [WP5B state](wp5b-planning-state.md) — WP5B ACCEPTED_WITH_NOTES; origin feat = f806a618 (acceptance recorded); main 500d3a2d untouched; WP6 awaits owner go
+- [WP6A state](wp6a-planning-state.md) — WP6A ACCEPTED_WITH_NOTE; origin feat = 81d49243 (acceptance recorded); main 500d3a2d untouched; WP6B awaits owner go
+- [WP6B state](wp6b-planning-state.md) — WP6B ACCEPTED_WITH_NOTES; origin feat = 1148559d (acceptance recorded, canonical baseline); main 500d3a2d untouched; WP7 awaits owner go
+- [WP6C state](wp6c-planning-state.md) — WP6C ACCEPTED_WITH_NOTES; origin feat = 8becd6b9 (acceptance recorded, canonical baseline); wp6c branch frozen 757d8de9; main 500d3a2d untouched; WP7 awaits owner go
+- [WP7 state](wp7-planning-state.md) — WP7 ACCEPTED_WITH_NOTES (acceptance commit 7e3a557c); wp7 frozen 8e7f0e1c; R-WP7-CARRY-01 closed by the Pace/CSRF hotfix (feat now 5bdc5745)
+- [Pace/XHR CSRF hotfix state](hotfix-pace-xhr-csrf-state.md) — hotfix ACCEPTED; origin feat = 5bdc5745 (canonical baseline); hotfix frozen 6d4f3f96; R-HF-CARRY-01 OPEN
+- [WP8 state](wp8-planning-state.md) — WP8 ACCEPTED_WITH_NOTES (dev only, blockers open) @ 44ea45d4; metadata 704031c6; merged to feat (origin feat = 704031c6)
+- [Architecture owner lock 2026-10-09](architecture-owner-lock-2026-10-09.md) — ten axes + Option A locked; docs synced on local branch docs/owner-architecture-lock-2026-10-09 @ 8b0ee336 (not pushed)
+- [Owner stage workflow](owner-stage-workflow.md) — plan→approval→full execution→review→acceptance→commit/push; no commit before acceptance; never auto-start next stage
+- [WP9 state](wp9-planning-state.md) — autonomous round done: wp9/red-team-rc @e45899dd (local, not pushed; final tested 46624cd8, both engines 0 failures, CHR gates 10/216); package RELEASE_BLOCKED_WITH_EVIDENCE; awaiting owner WP9 acceptance + D3 quota contract
+- [V1 quota + renewal state](v1-quota-renewal-state.md) — ROUND 2 done 2026-10-18: candidate 9da2015e, package SAAS_RADIUS_V1_TARGET_RELEASE_ACCEPTANCE_PACKAGE = RELEASE_BLOCKED_WITH_EVIDENCE (TA-01..10 NOT_RUN, OBS-1 real data, legal, A2-R adoption, deploy auth open); nothing pushed
+- [ITC NetCore identity](itc-netcore-brand.md) — product renamed 2026-10-18; candidate fe2d2fbc; Arabic catalogue guard; product guide artifact; open B-1..B-8 / Q12-Q14

@@ -26,6 +26,7 @@ Keep this file short. The details live in the documents linked below.
 ## Before any work
 - Check the WP status in the ledger and in `owner-review/<WP>/`, and the branch, HEAD and working tree.
   - The execution base is the owner-accepted HEAD (`feat/reseller-system-v1`).
-  - Status 2026-10-16: WP8 is `ACCEPTED_WITH_NOTES` (dev only) and merged into `feat/reseller-system-v1` (`704031c6`). WP9 work is on the local branch `wp9/red-team-rc` (see `owner-review/WP9/`).
+  - Status 2026-10-24: the product is **ITC NetCore V1.0** (rules: `docs/BRAND_IDENTITY.md`). The latest code is the branch `wp9/red-team-rc` (pushed). `feat/reseller-system-v1` stays at `704031c6` (WP8) until the owner accepts the next WP. Release state: `RELEASE_BLOCKED_WITH_EVIDENCE`.
+  - **Resume point:** [`owner-review/CURRENT_STATE_AND_OPEN_NOTES.md`](owner-review/CURRENT_STATE_AND_OPEN_NOTES.md) (what is done, what is open, where each record is), then `owner-review/WP10/HANDOFF_V1_CONTINUOUS.md`.
 - Default is no push, merge, tag, deploy, or production action without explicit owner authorization (D038).
 - Never commit secrets, credentials, RouterOS images, or customer data.
