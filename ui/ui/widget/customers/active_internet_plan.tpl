@@ -121,8 +121,9 @@
                         <td class="small text-primary text-uppercase text-normal">
                             {if $_bill['status'] == 'on' && $_bill['prepaid'] != 'YES'}
                                 <a data-method="post" href="{Text::url('home&deactivate=', $_bill['id'])}"
-                                    onclick="return ask(this, '{Lang::T('Deactivate')}?')" class="btn btn-danger btn-xs"><i
-                                        class="glyphicon glyphicon-trash"></i></a>
+                                    onclick="return ask(this, '{Lang::T('Deactivate')}?')" class="btn btn-danger btn-xs"
+                                    aria-label="{Lang::T('Deactivate')}" title="{Lang::T('Deactivate')}"><i
+                                        class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                             {/if}
                         </td>
                         <td class="small row">

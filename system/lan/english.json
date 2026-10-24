@@ -455,5 +455,9 @@
     "Change_title_in_user_Plan_order": "Change title in user Plan order",
     "Hotspot_Package": "Hotspot Package",
     "PPPOE_Package": "PPPOE Package",
-    "VPN_Package": "VPN Package"
+    "VPN_Package": "VPN Package",
+    "Toggle_navigation": "Toggle navigation",
+    "Dark_mode": "Dark mode",
+    "Language": "Language",
+    "Scan_QR_code": "Scan QR code"
 }

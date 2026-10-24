@@ -8,9 +8,9 @@
             <form method="post" role="form" class="form-horizontal" action="{Text::url('voucher/activation-post')}">
                 <div class="input-group">
                     <span class="input-group-btn">
-                        <a class="btn btn-default"
+                        <a class="btn btn-default" aria-label="{Lang::T('Scan QR code')}" title="{Lang::T('Scan QR code')}"
                             href="{$app_url}/scan/?back={urlencode(Text::url('home&code='))}"><i
-                                class="glyphicon glyphicon-qrcode"></i></a>
+                                class="glyphicon glyphicon-qrcode" aria-hidden="true"></i></a>
                     </span>
                     <input type="text" id="code" name="code" class="form-control"
                         placeholder="{Lang::T('Enter voucher code here')}" value="{$code}">

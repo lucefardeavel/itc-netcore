@@ -6,7 +6,7 @@
         <div class="panel mb20 panel-hovered panel-primary">
             <div class="panel-heading">{Lang::T('Transaction History List')}</div>
             <div class="panel-body">
-                <div class="table-responsive">
+                <div class="table-responsive" tabindex="0" role="region" aria-label="{Lang::T('Transaction History List')}">
                     <table id="datatable" class="table table-bordered table-striped table-condensed">
                         <thead>
                             <tr>
