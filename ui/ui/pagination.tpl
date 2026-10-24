@@ -3,7 +3,7 @@
     <nav aria-label="Page navigation pagination-sm">
         <ul class="pagination">
             <li {if empty($paginator['prev'])}class="disabled" {/if}>
-                <a href="{$paginator['url']}{$paginator['prev']}" aria-label="{Lang::T('Prev')}"{if empty($paginator['prev'])} aria-disabled="true"{/if}>
+                <a href="{$paginator['url']}{$paginator['prev']}" aria-label="{Lang::T('Previous')}"{if empty($paginator['prev'])} aria-disabled="true"{/if}>
                     <span aria-hidden="true">{Lang::T('Prev')}</span>
                 </a>
             </li>
