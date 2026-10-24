@@ -25,13 +25,10 @@ switch ($action) {
         break;
     case 'history':
         $ui->assign('_system_menu', 'history');
-        $query = ORM::for_table('tbl_payment_gateway')->where('user_id', $user['id'])->order_by_desc('id');
+        // Lab finding D-2 (F-5): the customer's own orders by id; the username matches only legacy rows written before
+        // user_id existed (user_id = 0), never a row recorded for another customer under a reused username
+        $query = ORM::for_table('tbl_payment_gateway')->where_raw('(`user_id` = ? OR (`user_id` = 0 AND `username` = ?))', [$user['id'], $user['username']])->order_by_desc('id');
         $d = Paginator::findMany($query);
-
-        if (empty($order) || $order < 5) {
-            $query = ORM::for_table('tbl_payment_gateway')->where('username', $user['username'])->order_by_desc('id');
-            $d = Paginator::findMany($query);
-        }
 
         $ui->assign('d', $d);
         $ui->assign('_title', Lang::T('Order History'));
