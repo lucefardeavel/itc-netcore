@@ -70,6 +70,8 @@ switch ($action) {
             r2(getUrl('voucher/list-activated'), 's', Lang::T('Activation Vouchers Successfully'));
         } elseif ($out['status'] === \Reseller\Domain\VoucherRedemptionService::NOT_VALID) {
             r2(getUrl('voucher/activation'), 'e', Lang::T('Voucher Not Valid'));
+        } elseif (($out['reason'] ?? '') === 'CUSTOMER_NOT_ACTIVE') {
+            r2(getUrl('voucher/activation'), 'e', Lang::T('This account status') . ' : ' . Lang::T((string) $out['customer_status']));
         } else {
             r2(getUrl('voucher/activation'), 'e', "Failed to refill account");
         }

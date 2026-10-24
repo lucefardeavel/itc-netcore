@@ -1098,6 +1098,8 @@ switch ($action) {
             $ui->display('admin/plan/invoice.tpl');
         } elseif ($out['status'] === \Reseller\Domain\VoucherRedemptionService::NOT_VALID) {
             r2(getUrl('plan/refill'), 'e', Lang::T('Voucher Not Valid'));
+        } elseif (($out['reason'] ?? '') === 'CUSTOMER_NOT_ACTIVE') {
+            r2(getUrl('plan/refill'), 'e', Lang::T('This account status') . ' : ' . Lang::T((string) $out['customer_status']));
         } else {
             r2(getUrl('plan/refill'), 'e', "Failed to refill account");
         }
