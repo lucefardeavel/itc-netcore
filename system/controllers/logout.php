@@ -20,6 +20,10 @@ if ($logoutAid > 0) {
         $logoutUser->save();
     }
 }
+// D-9: revoke this device's remember cookie server-side (other devices keep theirs)
+if (isset($_COOKIE['aid']) && is_string($_COOKIE['aid'])) {
+    Admin::revokeDevice($_COOKIE['aid']);
+}
 Admin::removeCookie();
 User::removeCookie();
 $_SESSION = [];

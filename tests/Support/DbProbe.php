@@ -21,6 +21,12 @@ final class DbProbe
             if (in_array($t, $exclude, true)) {
                 continue;
             }
+            if ($t === 'tbl_meta') {
+                // D-9: staff remember-cookie device records are login session state (like tbl_users.login_token),
+                // written by every staff login; every OTHER tbl_meta row stays covered by the probe
+                $out[$t] = sha1((string) json_encode($db->rows("SELECT id, tbl, tbl_id, name, value FROM tbl_meta WHERE name <> 'nuxr_staff_device' ORDER BY id")));
+                continue;
+            }
             $row = $db->rows('CHECKSUM TABLE `' . $t . '` EXTENDED');
             $out[$t] = (string) ($row[0]['Checksum'] ?? '');
         }
