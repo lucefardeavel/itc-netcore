@@ -10,7 +10,7 @@ Last updated: 2026-10-24. Read this first when resuming. It lists what is done, 
   - قرارات المالك المفتوحة؛
   - المراجعة القانونية LIC-1.
 - **سجل القبول:** WP0 إلى WP8 مقبولة، وWP9 وWP10 بحالة `PENDING`. عمل WP9 الهندسي مقبول للتطوير مع ملاحظات (قرار D1)، دون تغيير صف السجل.
-- **الفروع المحمية:** `feat/reseller-system-v1` (`704031c6`) و`main` (`500d3a2d`) لم تتغير. تقديمها يحتاج قراراً صريحاً من المالك.
+- **الفروع:** بقرار المالك في 2026-10-24 صار `feat/reseller-system-v1` مطابقاً لآخر نسخة (تقديم fast-forward من `704031c6`). `main` (`500d3a2d`) لم يتغير، وأي تغيير عليه قرار منفصل. تقديم `feat` ليس قبولاً لـWP9 أو WP10 ولا تصريحاً بالتشغيل.
 - **المفتوح:** كل البنود في الأقسام 4 إلى 8 أدناه.
 
 ## 1. Where the code is
@@ -20,7 +20,7 @@ Last updated: 2026-10-24. Read this first when resuming. It lists what is done, 
 | Repository | `lucefardeavel/phpnuxbill-reseller` (private) |
 | Latest code (the version under development) | branch **`wp9/red-team-rc`** (pushed to GitHub 2026-10-24 together with every earlier local commit; the HEAD it carries is the current product candidate) |
 | Product candidate history | `9da2015e` (V1 round 2) → `6abba9fc` (ITC NetCore identity) → `fe2d2fbc` (decimal quota units, complete Arabic interface). The later commits change documents, evidence and tooling only |
-| Canonical integration branch | `feat/reseller-system-v1` = `704031c6` (WP8 metadata). **Not advanced**: the ledger rule is that the canonical base moves only to an owner-accepted WP, and WP9 / WP10 are `PENDING` |
+| Canonical integration branch | `feat/reseller-system-v1` **fast-forwarded to the latest version** by owner decision 2026-10-24 ("خلي feat يطابق آخر نسخة"; was `704031c6`, WP8 metadata). This is a branch decision only: it is **not** a WP9 / WP10 acceptance, it does not change the ledger rows (still `PENDING`), and it authorizes no deploy |
 | `main` | `500d3a2d` (upstream baseline line); untouched |
 | Other branches | frozen WP branches `wp0` … `wp8`, `hotfix/pace-xhr-csrf`; `docs/owner-architecture-lock-2026-10-09` (its content is already contained in `wp9/red-team-rc`, verified file by file) |
 | Working tree | `/srv/phpnuxbill/dev` (dev host). Scratch worktrees `/srv/phpnuxbill/wp9-prefix`, `/srv/phpnuxbill/wp9-snap`, `/srv/phpnuxbill/docs-sync` hold nothing that is not in the branch (an early test draft superseded by the committed test; the A/B load logs, now under `owner-review/WP10/evidence/final-v2/ab-deadlock-investigation/`) |
@@ -81,7 +81,7 @@ Deliberately **not** in Git (rules: no secrets, images, packet captures, custome
 | A2-R | Option **A** (adopt, launch under C1 – C6), **B** (adopt after a staged pilot, C7 second form) or **C** (do not adopt: stays an open P0). The SQL-exhaustion effect is unverified, and its reproduction is forbidden | `owner-review/WP10/A2R_OWNER_DECISION_EVIDENCE.md`, `A2R_RESIDUAL_RISK_CLASSIFICATION.md` |
 | OBS-1 | Separate authorization for the read-only identity survey on an isolated copy of real data; the owner then decides which holder keeps each colliding key | `docs/OBS1_SURVEY_RUNBOOK.md`, `owner-review/WP10/OBS1_SURVEY_AND_REMEDIATION_PACKAGE.md` |
 | Ledger | WP9 and WP10 rows stay `PENDING` until the owner records otherwise (D1 note recorded separately) | the ledger |
-| `feat` / `main` | whether and when to advance `feat/reseller-system-v1` (and later `main`) to the candidate | owner |
+| `main` | whether and when to advance `main` (`feat` was advanced on 2026-10-24) | owner |
 | Brand B-1 … B-8 | final logo; brand colour; the original project's donation / support boxes on the About page; the "Stand with Palestine" banner; `phpnuxbill_*` download file names; default artwork (`favicon.ico`, `logo.png`, `system/uploads/*.default.png`); GitHub description text (suggested in `docs/BRAND_IDENTITY.md` §6); set `CompanyName` before go-live | `owner-review/BRANDING/ITC_NETCORE_BRANDING_REPORT.md` §6 |
 | Guide | the release-status sentence in the guide's last chapter stays unless the owner removes it | `dev/guide/gen.py` |
 

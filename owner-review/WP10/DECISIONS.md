@@ -23,3 +23,9 @@ Scope: decisions an engineer may take inside the accepted contracts (owner `CONT
 | N1 | PPPoE total-quota overshoot semantics (`N1_PPPOE_OVERSHOOT.md`) | (A) keep native per-direction caps + accounting enforcer: overshoot <= min(R, r x (I+P+c)), <= R if the enforcer is down; never byte-exact. (B) directional split: native hard total (overshoot ~1-2 s of line rate) at 5-60 forced reconnects per period. (F) strict quotas on Hotspot only. (G) overshoot not charged / not carried (commercial policy). Interim 60 -> 30 s costs 2x accounting writes. | A with `nuxr_quota_interim_seconds`=30 and enforcer `--every=5` (<= ~2000 online quota subscribers); wording "a few seconds of line speed", no percentage and no "exact GB"; B only if a hard PPPoE total is required |
 | N2 | Period-attribution method and NAS clock requirement (`N2_PERIOD_OWNERSHIP.md`) | Implemented (engineering, E-N2-1..4): ownership by accounting-row arrival order, time rule only as fallback. Owner to accept: NTP + UTC on every host, max drift 5 s app/db/FreeRADIUS, 60 s NAS (health warns > 120 s ahead) as deployment requirements | Accept as implemented; make the clock checks (TA-02) a go-live gate |
 | D1, D2, D4 – D10 | as in `SAAS_RADIUS_V1_GB_QUOTA_AND_RENEWAL_FINAL_ACCEPTANCE_PACKAGE.md` §15 | | |
+
+## Branch decision (2026-10-24)
+
+| ID | Decision | Effect |
+|---|---|---|
+| B-FEAT-1 | Owner: "خلي feat يطابق آخر نسخة" (make `feat` match the latest version) | `feat/reseller-system-v1` fast-forwarded from `704031c6` to the head of `wp9/red-team-rc` (no force, no history rewrite). Not a WP9 / WP10 acceptance: the ledger rows stay `PENDING`, release state `RELEASE_BLOCKED_WITH_EVIDENCE`, no deploy authorized. `main` unchanged (`500d3a2d`) |
