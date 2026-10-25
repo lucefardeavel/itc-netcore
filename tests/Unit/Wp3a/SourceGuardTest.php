@@ -39,7 +39,7 @@ final class SourceGuardTest extends TestCase
         // WP9 release profile (owner WP8_WP9_WP10_AUTONOMOUS_EXECUTION_AUTHORIZED, protected-file exception, 2026-10-16):
         // rechargeUser refuses a plan of a device type disabled in the release profile BEFORE any write
         // (previous pin 9759fca72b5f33236d5a7a00ceaf4ffb9f2dc76b86b16a03a70c6ac145e4aa54)
-        'system/autoload/Package.php' => '51e8c47b0229ab5787d0df5b2d5cfa600cb4df225df2340700f551adc5045122',
+        'system/autoload/Package.php' => 'aca308f3fb8de5a298852abba1007eaab8c6de00baff2ba2c593c3fc53ef2794',
         // accepted WP1 migration runner
         // WP9-D / WP1-CHECK (owner WP8_WP9_WP10_AUTONOMOUS_EXECUTION_AUTHORIZED, protected-file exception, 2026-10-16):
         // migrate.php loads the shared CHECK-expression verifier; Runner::contractDiff verifies every CHECK of a

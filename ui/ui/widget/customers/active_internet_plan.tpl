@@ -123,7 +123,7 @@
                     {/if}
                     <tr>
                         <td class="small text-primary text-uppercase text-normal">
-                            {if $_bill['status'] == 'on' && $_bill['prepaid'] != 'YES' && !$nuxr_owned}
+                            {if $_bill['status'] == 'on' && $_bill['prepaid'] != 'yes' && !$nuxr_owned}
                                 <a data-method="post" href="{Text::url('home&deactivate=', $_bill['id'])}"
                                     onclick="return ask(this, '{Lang::T('Deactivate')}?')" class="btn btn-danger btn-xs"
                                     aria-label="{Lang::T('Deactivate')}" title="{Lang::T('Deactivate')}"><i

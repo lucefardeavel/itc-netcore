@@ -83,13 +83,44 @@ PHP);
         $this->assertSame(1, preg_match('#(\d+) days of paid service \(until ' . preg_quote(self::$expiry, '#') . '\) will be lost#', $html, $m), 'N paid days until the current expiry');
         $this->assertGreaterThanOrEqual(19, (int) $m[1]);
         $this->assertLessThanOrEqual(21, (int) $m[1]);
-        // the warning is display only: the confirmation posts exactly the fields it posted before
+        // the number is display only: the form posts only a required acknowledgement (UX-15, server-checked), never the days
         preg_match('#<form method="post"[^>]*id="nuxr-confirm-form".*?</form>#s', $html, $form);
         preg_match_all('#name="([a-z_]+)"#', $form[0] ?? '', $names);
-        $this->assertSame(['csrf_token', 'customer_id', 'plan_id', 'expected_action', 'nonce', 'preview'], $names[1], 'no lost-days value is ever posted');
+        $this->assertSame(['csrf_token', 'customer_id', 'plan_id', 'expected_action', 'nonce', 'preview', 'ack_loss'], $names[1], 'no lost-days value is ever posted');
+        $this->assertMatchesRegularExpression('#<input type="checkbox" name="ack_loss" value="1" required#', $form[0]);
         // the plan validity reads in words
         $this->assertMatchesRegularExpression('#w10_short \(Hotspot\)[^<]*· 1 day</option>#', $html);
         $this->assertMatchesRegularExpression('#w10_long \(Hotspot\)[^<]*· 30 days</option>#', $html);
+    }
+
+    /** UX-15: the server refuses the plan change without the acknowledgement (nothing reserved), and runs it with it */
+    public function testThePlanChangeNeedsTheAcknowledgementOnTheServer(): void
+    {
+        $cid = static::$seed->customers['cA0'];
+        $html = $this->confirmation($cid, self::$short);
+        preg_match('#name="nonce" value="([^"]+)"#', $html, $n);
+        preg_match('#name="preview" value="([^"]+)"#', $html, $f);
+        $before = (int) static::$db->value('SELECT COUNT(*) FROM tbl_reseller_activations WHERE customer_id = ?', [$cid]);
+        $post = ['customer_id' => $cid, 'plan_id' => self::$short, 'expected_action' => 'CHANGE_PLAN', 'nonce' => $n[1], 'preview' => $f[1]];
+        $c = $this->staff('A');
+        $r = $c->postWithToken('activation/create-post', $post);
+        $this->assertSame(302, $r->status, $r->excerpt());
+        $this->assertStringContainsString('activation/create', (string) $r->location(), 'back to the confirmation');
+        $this->assertSame($before, (int) static::$db->value('SELECT COUNT(*) FROM tbl_reseller_activations WHERE customer_id = ?', [$cid]), 'no activation without the acknowledgement');
+        $again = $c->get('activation/create', ['customer' => $cid, 'plan' => self::$short])->body;
+        $this->assertStringContainsString('Please confirm that the remaining paid time will be lost.', $again);
+        // the operator confirms the (fresh) confirmation with the box ticked
+        preg_match('#name="nonce" value="([^"]+)"#', $again, $n);
+        preg_match('#name="preview" value="([^"]+)"#', $again, $f);
+        $r = $c->postWithToken('activation/create-post', ['nonce' => $n[1], 'preview' => $f[1], 'ack_loss' => '1'] + $post);
+        $this->assertSame(302, $r->status, $r->excerpt());
+        $why = '';
+        if (!str_contains((string) $r->location(), 'activation/view/')) {
+            preg_match("#title: '([^']*)'#", $c->get('activation/create', ['customer' => $cid, 'plan' => self::$short])->body, $t);
+            $why = $t[1] ?? '?';
+        }
+        $this->assertStringContainsString('activation/view/', (string) $r->location(), 'acknowledged: the activation runs ' . $why);
+        $this->assertSame($before + 1, (int) static::$db->value('SELECT COUNT(*) FROM tbl_reseller_activations WHERE customer_id = ?', [$cid]));
     }
 
     public function testARenewalShowsNoLossWarning(): void
@@ -99,6 +130,7 @@ PHP);
         $this->assertStringContainsString('Same plan: the new period continues from the current expiry.', $html);
         $this->assertStringNotContainsString('nuxr-change-loss', $html);
         $this->assertStringNotContainsString('will be lost', $html);
+        $this->assertStringNotContainsString('ack_loss', $html, 'a renewal needs no acknowledgement');
     }
 
     public function testANewActivationShowsNoLossWarning(): void

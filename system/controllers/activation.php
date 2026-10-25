@@ -44,6 +44,20 @@ switch ($action) {
         }
         $customerId = _post('customer_id');
         $planId = _post('plan_id');
+        $nuxrBack = 'activation/create&customer=' . (\Reseller\Security\DataScope::validId($customerId) ? (int) $customerId : 0)
+            . (\Reseller\Security\DataScope::validId($planId) ? '&plan=' . (int) $planId : '');
+        // lab UX-15 (owner delegation 2026-10-25): a plan change that replaces paid time is confirmed explicitly; the
+        // server computes the loss from its own quote (the form value is only the acknowledgement)
+        if (_post('expected_action') === 'CHANGE_PLAN' && _post('ack_loss') !== '1') {
+            try {
+                $nuxrQ = \Reseller\Activation\ActivationPreviewService::quote($nuxrActor, $customerId, $planId, $nuxrPreviewKey);
+            } catch (\Reseller\Domain\DomainError $e) {
+                $nuxrFail($e, $nuxrBack);
+            }
+            if (($nuxrQ['action'] ?? '') === 'CHANGE_PLAN' && \Reseller\Ui\Format::lostDays($nuxrQ['current_expiry'] ?? null, (string) ($nuxrQ['start'] ?? '')) !== null) {
+                r2(getUrl($nuxrBack), 'e', Lang::T('Please confirm that the remaining paid time will be lost.'));
+            }
+        }
         try {
             $out = \Reseller\Activation\ActivationService::create($nuxrActor, $customerId, $planId, _post('expected_action'), _post('nonce'),
                 \Reseller\Activation\PreviewBinding::of(_post('preview'), $nuxrPreviewKey));

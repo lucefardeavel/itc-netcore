@@ -425,7 +425,8 @@ switch ($action) {
         global $root_path;
         // WP2 / NEW-1: only shipped languages (system/lan/<name>.json); no file is ever created
         $selected_language = \Reseller\Security\PathGuard::language(_req('lang', 'english'), $root_path);
-        if ($selected_language === null) {
+        // lab UX-14 (owner delegation 2026-10-25): the portal ships Arabic and English only
+        if ($selected_language === null || !in_array($selected_language, ['arabic', 'english'], true)) {
             r2(getUrl('home'), 'e', Lang::T('Invalid language'));
         }
         $_SESSION['user_language'] = $selected_language;

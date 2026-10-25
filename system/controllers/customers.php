@@ -339,6 +339,11 @@ switch ($action) {
             \Reseller\Domain\LegacyReprovisionService::web(\Reseller\Domain\LegacyReprovisionService::ADMIN_SYNC, $id_customer, [], 'customers/view/' . (int) $id_customer);
         }
         \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'customerSync', 'customers/view/' . (int) $id_customer);
+        // lab F-6 Q3 (owner delegation 2026-10-25): a customer that is not Active is never re-provisioned by the sync
+        $nuxrSyncCustomer = ORM::for_table('tbl_customers')->find_one($id_customer);
+        if ($nuxrSyncCustomer && $nuxrSyncCustomer['status'] !== 'Active') {
+            r2(getUrl('customers/view/') . (int) $id_customer, 'e', Lang::T('The customer is not Active; the service is not re-provisioned.'));
+        }
         $bs = ORM::for_table('tbl_user_recharges')->where('customer_id', $id_customer)->where('status', 'on')->findMany();
         if ($bs) {
             $routers = [];
@@ -377,6 +382,15 @@ switch ($action) {
         }
         $customer = ORM::for_table('tbl_customers')->find_one($id);
         if ($customer) {
+            // lab D-4 (owner delegation 2026-10-25): who opened the portal as which customer is logged and audited
+            _log('Staff opened the customer portal as customer #' . (int) $customer['id'], $admin['user_type'], $admin['id']);
+            try {
+                \Reseller\Audit\AuditLog::record('customer.impersonate', \Reseller\Security\ActorContext::current(), [
+                    'target_type' => 'customer', 'target_customer_id' => (int) $customer['id'], 'reason' => 'staff portal login',
+                ]);
+            } catch (\Throwable $e) {
+                \Reseller\Security\ErrorReporter::report($e, 'customer-impersonate-audit');
+            }
             $_SESSION['uid'] = $id;
             User::setCookie($id);
             _alert("You are logging in as $customer[fullname],<br>don't logout just close tab.", 'info', "home", 10);
