@@ -3,6 +3,11 @@
 {if isset($_c['CompanyFooter'])}
     <footer class="main-footer">
         {$_c['CompanyFooter']}
+        {* brand: the operator footer no longer removes the product and upstream credit (BRAND_IDENTITY section 5) *}
+        <div class="itc-powered">{Lang::T('Powered by')} <bdi>{$_brand.name|escape}</bdi> &middot; {Lang::T('Based on the open-source project')}
+            <a href="{$_brand.upstream_url|escape}" rel="nofollow noreferrer noopener" target="_blank">{$_brand.upstream|escape}</a>
+            <bdi>({$_brand.upstream_author|escape}, {$_brand.license|escape})</bdi> &middot; {Lang::T('Interface theme')}
+            <a href="https://adminlte.io/" rel="nofollow noreferrer noopener" target="_blank">AdminLTE</a></div>
         <div class="pull-right">
             <a href="javascript:showPrivacy()">{Lang::T('Privacy')}</a>
             &bull;

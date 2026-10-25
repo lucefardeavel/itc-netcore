@@ -185,3 +185,27 @@
 [dir="rtl"] .swal2-popup {
     direction: rtl;
 }
+
+/* Lab brand round 2 (2026-10-26): the customer portal frame (AdminLTE 2.4) mirrored for RTL. The vendored layout anchors
+   the sidebar, the header logo and the content offset on the left; body.nuxr-portal only (the staff shell is mirrored by
+   its own logical properties). */
+[dir="rtl"] body.nuxr-portal .main-sidebar { left: auto; right: 0; }
+[dir="rtl"] body.nuxr-portal .main-header .sidebar-toggle { float: right; }
+[dir="rtl"] body.nuxr-portal .main-header .navbar-custom-menu { float: left; }
+[dir="rtl"] body.nuxr-portal .main-header .navbar-custom-menu .dropdown-menu { left: 0; right: auto; }
+[dir="rtl"] body.nuxr-portal .sidebar-menu > li > a > :is(.fa, .glyphicon, .ion) { margin-left: 6px; margin-right: 0; }
+[dir="rtl"] body.nuxr-portal .sidebar-menu > li.active > a, [dir="rtl"] body.nuxr-portal .sidebar-menu > li > a:hover { border-left: 0; }
+@media (min-width: 768px) {
+    [dir="rtl"] body.nuxr-portal .main-header .logo { float: right; }
+    [dir="rtl"] body.nuxr-portal :is(.content-wrapper, .main-footer) { margin-left: 0; margin-right: 230px; }
+    [dir="rtl"] body.nuxr-portal .main-header .navbar { margin-left: 0; margin-right: 230px; }
+    [dir="rtl"] body.nuxr-portal.sidebar-mini.sidebar-collapse :is(.content-wrapper, .main-footer) { margin-left: 0 !important; margin-right: 50px !important; }
+    [dir="rtl"] body.nuxr-portal.sidebar-mini.sidebar-collapse .main-header .navbar { margin-left: 0; margin-right: 50px; }
+    [dir="rtl"] body.nuxr-portal.sidebar-collapse:not(.sidebar-mini) .main-sidebar { transform: translate(230px, 0); }
+    [dir="rtl"] body.nuxr-portal.sidebar-collapse:not(.sidebar-mini) :is(.content-wrapper, .main-footer) { margin-right: 0; }
+}
+@media (max-width: 767px) {
+    [dir="rtl"] body.nuxr-portal .main-sidebar { transform: translate(230px, 0); }
+    [dir="rtl"] body.nuxr-portal.sidebar-open .main-sidebar { transform: translate(0, 0); }
+    [dir="rtl"] body.nuxr-portal.sidebar-open :is(.content-wrapper, .main-footer) { transform: translate(-230px, 0); }
+}

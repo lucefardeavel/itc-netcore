@@ -143,11 +143,11 @@
             <input type="hidden" name="preview" value="{$q.fingerprint|escape}">
             {if $nuxr_lost}
                 {* UX-15: required acknowledgement of the lost paid time (checked again by the server) *}
-                <label class="nuxr-check" style="flex-basis:100%"><input type="checkbox" name="ack_loss" value="1" required aria-describedby="nuxr-change-loss"> {Lang::T('I understand that the remaining paid time will be lost')}</label>
+                <label class="nuxr-check" style="flex-basis:100%"><input type="checkbox" name="ack_loss" value="1" required aria-describedby="nuxr-change-loss"> {Lang::T('I understand that the remaining paid time will be lost')} (<bdi>{NuxrUi::days($nuxr_lost)|escape}</bdi>)</label>
             {/if}
             <a class="nuxr-btn" href="{Text::url('activation/create')}&customer={$nuxr_customer_id}&plan={$nuxr_plan_id}"><i class="fa fa-refresh" aria-hidden="true"></i>{Lang::T('Refresh quote')}</a>
             {* a11y: the Confirm button is described by whichever warning boxes are rendered above (ids only when present) *}
-            <button class="nuxr-btn nuxr-btn-primary" type="submit" {if !$q.credit_sufficient}disabled{/if}{if $nuxr_lost || $nuxr_service_mismatch} aria-describedby="{if $nuxr_lost}nuxr-change-loss{/if}{if $nuxr_lost && $nuxr_service_mismatch} {/if}{if $nuxr_service_mismatch}nuxr-service-mismatch{/if}"{/if}><i class="fa fa-bolt" aria-hidden="true"></i>{Lang::T('Confirm activation')}</button>
+            <button class="nuxr-btn nuxr-btn-primary" type="submit" {if !$q.credit_sufficient || $nuxr_lost}disabled{/if}{if $nuxr_lost} data-nuxr-needs-ack{/if}{if $nuxr_lost || $nuxr_service_mismatch} aria-describedby="{if $nuxr_lost}nuxr-change-loss{/if}{if $nuxr_lost && $nuxr_service_mismatch} {/if}{if $nuxr_service_mismatch}nuxr-service-mismatch{/if}"{/if}><i class="fa fa-bolt" aria-hidden="true"></i>{Lang::T('Confirm activation')}</button>
         </form>
         <p class="nuxr-muted nuxr-card-body" id="nuxr-confirm-note" style="margin:0;padding-top:0" hidden role="status">{Lang::T('Submitting - do not close this page. The result opens when the network has answered.')}</p>
     </section>
@@ -156,6 +156,9 @@
     (function () {
         var f = document.querySelector('[data-nuxr-autosubmit]');
         if (f) { f.addEventListener('change', function (e) { if (e.target.name === 'plan' && e.target.value) { f.submit(); } }); }
+        // UX-15: Confirm is enabled once the loss of paid time is acknowledged (the server checks it again)
+        var ack = document.querySelector('input[name=ack_loss]'), btn = document.querySelector('[data-nuxr-needs-ack]');
+        if (ack && btn) { ack.addEventListener('change', function () { btn.disabled = !ack.checked; }); }
         var c = document.getElementById('nuxr-confirm-form'), note = document.getElementById('nuxr-confirm-note');
         if (c && note) { c.addEventListener('submit', function () { note.hidden = false; }); }
     })();

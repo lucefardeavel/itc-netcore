@@ -47,7 +47,7 @@
                         <td class="small text-info text-uppercase text-normal">{Lang::T('Created On')}</td>
                         <td class="small mb15">
                             {if $_bill['time'] ne ''}
-                                {Lang::dateAndTimeFormat($_bill['recharged_on'],$_bill['recharged_time'])}
+                                <bdi dir="ltr">{Lang::dateAndTimeFormat($_bill['recharged_on'],$_bill['recharged_time'])}</bdi>
                             {/if}
                             &nbsp;</td>
                     </tr>
@@ -55,7 +55,7 @@
                         <td class="small text-danger text-uppercase text-normal">{Lang::T('Expires On')}</td>
                         <td class="small mb15 text-danger">
                             {if $_bill['time'] ne ''}
-                                {Lang::dateAndTimeFormat($_bill['expiration'],$_bill['time'])}
+                                <bdi dir="ltr">{Lang::dateAndTimeFormat($_bill['expiration'],$_bill['time'])}</bdi>
                             {/if}&nbsp;
                         </td>
                     </tr>

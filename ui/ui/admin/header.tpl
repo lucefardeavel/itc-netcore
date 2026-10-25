@@ -8,11 +8,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{$_title|escape} - {$_brand.company|escape}</title>
-    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" />
+    <link rel="icon" href="{$app_url}/ui/ui/images/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" sizes="192x192" />
     {* WP7: staff PWA - the user-neutral manifest (fetched without credentials) and replaceable interim identity assets *}
     <link rel="manifest" href="{$app_url}/?_route=pwa/manifest">
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#1a202b" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#17263d" media="(prefers-color-scheme: dark)">
     <link rel="apple-touch-icon" href="{$app_url}/ui/ui/images/pwa/icon-180.png">
 
     <script>
@@ -32,9 +33,10 @@
         <link rel="stylesheet" href="{$app_url}/ui/ui/summernote/summernote.min.css" />
     {/if}
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/phpnuxbill.css?2025.2.4" />
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp7.2" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.1" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?brand.1" />
     {if $nuxr_dir eq 'rtl'}
-        <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?lab.3" />
+        <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?lab.4" />
     {/if}
 
     <script src="{$app_url}/ui/ui/scripts/sweetalert2.all.min.js"></script>
@@ -49,6 +51,8 @@
 </head>
 
 <body class="hold-transition nuxr-shell{if $_kolaps} nuxr-collapsed{/if}">
+    {* brand: the saved theme applies before the first paint (no light flash; same localStorage key as nuxr-shell.js) *}
+    <script>try { if (localStorage.getItem('mode') === 'dark') { document.body.classList.add('dark-mode'); } } catch (e) { }</script>
     <a class="nuxr-skip" href="#nuxr-main">{Lang::T('Skip to content')}</a>
     <div class="wrapper">
         <header class="nuxr-topbar" role="banner">
@@ -58,7 +62,7 @@
                     <i class="fa fa-arrow-left nuxr-dir-icon" aria-hidden="true"></i></a>
             {/if}
             <a href="{Text::url('dashboard')}" class="nuxr-brand{if !empty($_nav.up)} has-up{/if}" aria-label="{Lang::T('Home')}">
-                <span class="nuxr-brand-mark{if $_brand.company_is_product} is-word{/if}" aria-hidden="true">{$_brand.mark|escape}</span>
+                {if $_brand.company_is_product}<span class="nuxr-brand-mark is-logo" aria-hidden="true"><img class="nc-on-light" src="{$app_url}/ui/ui/images/brand/netcore-mark.svg" alt="" width="36" height="36"><img class="nc-on-dark" src="{$app_url}/ui/ui/images/brand/netcore-mark-white.svg" alt="" width="36" height="36"></span>{else}<span class="nuxr-brand-mark" aria-hidden="true">{$_brand.mark|escape}</span>{/if}
                 <span class="nuxr-brand-name"><bdi>{$_brand.company|escape}</bdi></span>
             </a>
             <span class="nuxr-topbar-title" aria-hidden="true">{$_title|escape}</span>

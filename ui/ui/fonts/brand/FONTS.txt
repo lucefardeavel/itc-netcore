@@ -1,0 +1,12 @@
+# Self-hosted brand fonts (OFL-1.1). Built by scripts/brand/b02_fonts.sh + b03_fonts_woff2.sh from the Ubuntu archive
+# packages fonts-inter 4.0+ds-1 and fonts-noto-core 20201225-2 (apt-get download), subset with fontTools 4.46,
+# all OpenType layout features kept. Licence texts: Inter-LICENSE.txt, NotoSansArabic-LICENSE.txt (Debian copyright files).
+4000340e4644bce44d3093df273a8ced5ea0664a714fe607ddd3fc098b005f89  inter-latin-bold.woff2
+4e0133a3b6cddba75c00c2d09eeae6412805b75622f1c73c102297e42a95922b  inter-latin-medium.woff2
+d46b2e04e2d26b1033cc427e5af45a919a6804261de940b55d0882d09dc233a7  inter-latin-regular.woff2
+3025b60541854fc9754c057821596523ee0fc863aa4c10f94882c1b98a551557  inter-latin-semibold.woff2
+d1cad135d419d8946e3afff2b1be272a117f7db6a4721990a4700ccbef979528  noto-sans-arabic-bold.woff2
+0dd3e029e9b6424bae0635754a2910ba6a6e9104d1aa89c79a8a2405e4826ca0  noto-sans-arabic-regular.woff2
+49e349cb23a25b5a0d03526d0c861ed447b44d6615734a2623d826b370fedf14  FONTS.txt
+781ffde332be9bdb6ccc527e6ccd6d6a586f3960c2d598b5580b8c7d1ae53d66  Inter-LICENSE.txt
+075f91382875da1c4b491f1facf2586f55448705133264d98ce15cab6211b125  NotoSansArabic-LICENSE.txt

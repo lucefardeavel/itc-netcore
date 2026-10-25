@@ -84,7 +84,7 @@
     <script src="{$app_url}/ui/ui/scripts/nuxr-shell.js?wp6c.3"></script>
     {* WP7: staff PWA client (before the CSRF shim, whose mutation paths consult its gate) *}
     {include file="admin/nuxr/pwa-config.tpl"}
-    <script src="{$app_url}/ui/ui/scripts/nuxr-pwa.js?wp7.2" data-nuxr-sw="{$app_url}/nuxr-sw.js"></script>
+    <script src="{$app_url}/ui/ui/scripts/nuxr-pwa.js?wp7.3" data-nuxr-sw="{$app_url}/nuxr-sw.js"></script>
 
     {if isset($xfooter)}
         {$xfooter}

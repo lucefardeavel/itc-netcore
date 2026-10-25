@@ -2078,5 +2078,8 @@
   "I_understand_that_the_remaining_paid_time_will_be_lost": "أفهم أن المدة المدفوعة المتبقية ستُفقد",
   "Please_confirm_that_the_remaining_paid_time_will_be_lost_": "يرجى تأكيد أن المدة المدفوعة المتبقية ستُفقد.",
   "The_customer_is_not_Active__the_service_is_not_re_provisioned_": "المشترك ليس فعّالاً؛ لا تتم إعادة تجهيز الخدمة.",
-  "A_prepaid_plan_cannot_be_deactivated_from_the_portal_": "لا يمكن إيقاف باقة مدفوعة مسبقاً من البوابة."
+  "A_prepaid_plan_cannot_be_deactivated_from_the_portal_": "لا يمكن إيقاف باقة مدفوعة مسبقاً من البوابة.",
+  "Support_Palestine": "ادعم فلسطين",
+  "PHPNuxBill_contributors__GitHub_": "المساهمون في PHPNuxBill (GitHub)",
+  "Upstream_changelog": "سجل تغييرات المشروع الأصلي"
 }

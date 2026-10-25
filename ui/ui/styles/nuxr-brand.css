@@ -1,0 +1,255 @@
+/*
+ * ITC NetCore brand layer (lab/brand-netcore-v1, 2026-10-26). The ONE source of the colour tokens and brand fonts for every
+ * surface: the staff shell (with nuxr-shell.css, loaded after this file), the staff sign-in, the customer portal and the
+ * public customer pages. Primitive -> semantic -> component:
+ *   --nc-*  brand primitives (Brand Direction B "Core Infrastructure", Color Direction B "Network Operations"; values from
+ *           the v0.7 / BR-RC1 corrected candidate, APPROVED_BY_DELEGATION 2026-10-26, contrast matrix 62/62 >= AA);
+ *   --nx-*  the existing semantic token contract (unchanged names; nuxr-shell.css and every component read only these);
+ *   portal  component mapping of the vendored AdminLTE / phpnuxbill.customer.css surfaces onto the semantic tokens.
+ * Dark mode: body.dark-mode (the existing toggle; the same localStorage key "mode" on the staff and customer sides).
+ * Presentation only: no layout of business screens, no routing, no data.
+ */
+
+/* ---------- brand fonts (self-hosted, OFL-1.1, ui/ui/fonts/brand/FONTS.txt) ---------- */
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/brand/inter-latin-regular.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-200B, U+2010-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/brand/inter-latin-medium.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-200B, U+2010-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/brand/inter-latin-semibold.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-200B, U+2010-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 700 900; font-display: swap; src: url("../fonts/brand/inter-latin-bold.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-200B, U+2010-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Noto Sans Arabic"; font-style: normal; font-weight: 100 549; font-display: swap; src: url("../fonts/brand/noto-sans-arabic-regular.woff2") format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+0870-089F, U+08A0-08FF, U+200C-200F, U+2010-2011, U+204F, U+25CC, U+FB50-FDFF, U+FE70-FEFF; }
+@font-face { font-family: "Noto Sans Arabic"; font-style: normal; font-weight: 550 900; font-display: swap; src: url("../fonts/brand/noto-sans-arabic-bold.woff2") format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+0870-089F, U+08A0-08FF, U+200C-200F, U+2010-2011, U+204F, U+25CC, U+FB50-FDFF, U+FE70-FEFF; }
+
+/* ---------- primitives + light semantic tokens ---------- */
+:root {
+    --nc-navy: #193768;
+    --nc-navy-deep: #0f2648;
+    --nc-core-blue: #245d99;
+    --nc-interactive: #3275b5;
+    --nc-teal: #117c88;
+    --nc-teal-text: #0e7480;
+    --nc-mark-gradient: linear-gradient(135deg, #3275b5, #117c88);
+    --nc-fup: #6b55b8;
+    --nc-zombie: #354052;
+    /* solid tones for legacy AdminLTE buttons / labels with white text: the same in both themes (>= 4.5:1 on white text) */
+    --nc-solid-primary: #245d99;
+    --nc-solid-primary-edge: #193768;
+    --nc-solid-success: #147d4c;
+    --nc-solid-success-edge: #0f6640;
+    --nc-solid-danger: #b42318;
+    --nc-solid-danger-edge: #912018;
+    --nc-solid-warning: #a35100;
+    --nc-solid-warning-edge: #844200;
+    --nc-solid-info: #245d99;
+    --nc-solid-info-edge: #193768;
+
+    --nx-bg: #f5f8fc;
+    --nx-surface: #ffffff;
+    --nx-surface-2: #eaf2f9;
+    --nx-border: #dce5ef;
+    --nx-text: #18283e;
+    --nx-muted: #5a6e86;
+    --nx-primary: #245d99;
+    --nx-primary-soft: #eaf2f9;
+    --nx-on-primary: #ffffff;
+    --nx-on-status: #ffffff;
+    --nx-focus: #245d99;
+    --nx-success: #147d4c;
+    --nx-success-soft: #e2f5ea;
+    --nx-warning: #a35100;
+    --nx-warning-soft: #fff2df;
+    --nx-danger: #b42318;
+    --nx-danger-soft: #fce9e6;
+    --nx-info: #245d99;
+    --nx-info-soft: #e6f2fc;
+    --nx-neutral: #4a5568;
+    --nx-neutral-soft: #edf1f6;
+    --nx-processing: #245d99;
+    --nx-processing-soft: #eaf2f9;
+    /* component borders that used to be hard-coded copies of the light palette (nuxr-shell.css money and alert boxes) */
+    --nx-border-primary: #b3cbe3;
+    --nx-border-success: #a6d9bd;
+    --nx-border-warning: #f0c79a;
+    --nx-border-danger: #f0b3ad;
+    --nx-border-info: #b3cbe3;
+    --nx-toast-bg: #18283e;
+    --nx-toast-text: #ffffff;
+    /* the shell header (top bar) and the customer-portal header use the brand navy band on the portal only */
+    --nx-portal-head-bg: #193768;
+    --nx-portal-head-text: #ffffff;
+    --nx-portal-side-bg: #ffffff;
+    --nx-portal-side-text: #18283e;
+    --nx-link: #245d99;
+    --nx-link-hover: #193768;
+    --nx-shadow-portal: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
+    --nx-font: "Inter", "Noto Sans Arabic", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Naskh Arabic", Tahoma, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---------- dark semantic tokens (staff shell and customer portal share the class) ---------- */
+body.dark-mode {
+    --nx-bg: #0c1525;
+    --nx-surface: #17263d;
+    --nx-surface-2: #213653;
+    --nx-border: #334761;
+    --nx-text: #f2f6fc;
+    --nx-muted: #b3c0cf;
+    --nx-primary: #8abbea;
+    --nx-primary-soft: #243d61;
+    --nx-on-primary: #10253c;
+    --nx-on-status: #0c1525;
+    --nx-focus: #8abbea;
+    --nx-success: #72d59c;
+    --nx-success-soft: #1a3c2c;
+    --nx-warning: #ffc078;
+    --nx-warning-soft: #43301a;
+    --nx-danger: #fe938c;
+    --nx-danger-soft: #4a292d;
+    --nx-info: #8abbea;
+    --nx-info-soft: #1b3550;
+    --nx-neutral: #c3cdd9;
+    --nx-neutral-soft: #2a3a50;
+    --nx-processing: #8abbea;
+    --nx-processing-soft: #243d61;
+    --nx-border-primary: #3d5f8a;
+    --nx-border-success: #2f6a4c;
+    --nx-border-warning: #7a5426;
+    --nx-border-danger: #7d3d3d;
+    --nx-border-info: #3d5f8a;
+    --nx-toast-bg: #f2f6fc;
+    --nx-toast-text: #0c1525;
+    --nx-portal-head-bg: #0f2648;
+    --nx-portal-head-text: #f2f6fc;
+    --nx-portal-side-bg: #17263d;
+    --nx-portal-side-text: #f2f6fc;
+    --nx-link: #8abbea;
+    --nx-link-hover: #b9d6f3;
+}
+
+/* ---------- the product mark (L1) ---------- */
+.nc-mark { display: inline-block; flex: none; width: 36px; height: 36px; }
+.nc-mark img, img.nc-mark { display: block; width: 100%; height: 100%; }
+/* F-03 rule: the full-colour / navy artwork only on light surfaces, the reversed white artwork only on dark surfaces */
+.nc-on-dark { display: none !important; }
+body.dark-mode .nc-on-light { display: none !important; }
+body.dark-mode .nc-on-dark { display: inline-block !important; }
+.nc-wordmark { display: block; height: 56px; width: auto; max-width: 100%; }
+.nc-wordmark-sm { height: 36px; }
+/* the shell / sign-in mark slot: the L1 artwork replaces the interim text tile only when the company is the product */
+.nuxr-brand-mark.is-logo { background: transparent; border-radius: 0; padding: 0; }
+.nuxr-brand-mark.is-logo img { display: block; width: 100%; height: 100%; }
+.nc-login-wordmark, .nc-about-wordmark { display: inline-block; direction: ltr; }
+.itc-login-product { text-align: center; }
+.itc-login-product .nc-login-wordmark .nc-wordmark { height: 88px; margin: 0 auto 4px; }
+.nc-about-wordmark .nc-wordmark { height: 72px; }
+body.nuxr-portal .main-header .logo .logo-mini .nc-mark { width: 32px; height: 32px; margin: 9px auto; }
+
+/* ---------- legacy dark theme (phpnuxbill.css / phpnuxbill.customer.css ".dark-mode" rules, fixed greys) -> tokens ----------
+   body.dark-mode outranks the vendored ".dark-mode" selectors; staff legacy pages and the customer portal share them. */
+body.dark-mode { background-color: var(--nx-bg); color: var(--nx-text); }
+body.dark-mode :is(.content, .content-header, .content-wrapper, .right-side) { background-color: var(--nx-bg) !important; }
+body.dark-mode .main-footer { background-color: var(--nx-surface) !important; color: var(--nx-muted) !important; border-top-color: var(--nx-border) !important; }
+body.dark-mode :is(.panel, .box, .bs-callout, .search-container, .nav-tabs-custom, .nav-tabs-custom > .tab-content, .modal-content) { background-color: var(--nx-surface) !important; border-color: var(--nx-border) !important; color: var(--nx-text); }
+body.dark-mode :is(.box-footer, .panel-footer, .modal-header, .modal-footer) { background-color: var(--nx-surface) !important; border-color: var(--nx-border) !important; }
+body.dark-mode :is(.panel-heading, .box-header) { color: var(--nx-text) !important; }
+body.dark-mode .bs-callout h4, body.dark-mode .help-block { color: var(--nx-text) !important; }
+body.dark-mode .text-muted { color: var(--nx-muted) !important; }
+body.dark-mode .searchTerm { background-color: var(--nx-surface-2) !important; color: var(--nx-text) !important; }
+body.dark-mode .table { background-color: transparent !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.dark-mode .table :is(th, td) { background-color: transparent !important; border-color: var(--nx-border) !important; color: var(--nx-text) !important; }
+body.dark-mode .table th, body.dark-mode .table thead td { background-color: var(--nx-surface-2) !important; }
+body.dark-mode :is(th:first-child, td:first-child) { background-color: transparent; }
+body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > :is(td, th) { background-color: color-mix(in srgb, var(--nx-surface-2) 45%, transparent) !important; }
+body.dark-mode .table-hover > tbody > tr:hover > :is(td, th) { background-color: var(--nx-surface-2) !important; color: var(--nx-text) !important; }
+body.dark-mode .table-bordered, body.dark-mode .table-bordered :is(th, td) { border-color: var(--nx-border) !important; }
+body.dark-mode .table > :is(thead, tbody, tfoot) > tr > :is(td, th).danger, body.dark-mode .table > :is(thead, tbody, tfoot) > tr.danger > :is(td, th) { background-color: var(--nx-danger-soft) !important; color: var(--nx-text) !important; }
+body.dark-mode .table > :is(thead, tbody, tfoot) > tr > :is(td, th).warning, body.dark-mode .table > :is(thead, tbody, tfoot) > tr.warning > :is(td, th) { background-color: var(--nx-warning-soft) !important; color: var(--nx-text) !important; }
+body.dark-mode .table > :is(thead, tbody, tfoot) > tr > :is(td, th).success, body.dark-mode .table > :is(thead, tbody, tfoot) > tr.success > :is(td, th) { background-color: var(--nx-success-soft) !important; color: var(--nx-text) !important; }
+body.dark-mode .table a:not(.btn) { color: var(--nx-link); }
+body.dark-mode :is(.breadcrumb) { background-color: var(--nx-surface-2) !important; color: var(--nx-text); }
+body.dark-mode .pagination > li > :is(a, span) { background: var(--nx-surface) !important; color: var(--nx-link) !important; border-color: var(--nx-border) !important; }
+body.dark-mode .pagination > .active > :is(a, span) { background: var(--nx-primary) !important; color: var(--nx-on-primary) !important; border-color: var(--nx-primary) !important; box-shadow: none !important; }
+body.dark-mode .pagination > .disabled > :is(a, span) { background: var(--nx-surface-2) !important; color: var(--nx-muted) !important; }
+body.dark-mode .list-group-item { border-color: var(--nx-border) !important; }
+body.dark-mode :is(.select2-dropdown, .select2-results__option) { background-color: var(--nx-surface) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.dark-mode .select2-results__option--highlighted[aria-selected] { background-color: var(--nx-primary) !important; color: var(--nx-on-primary) !important; }
+body.dark-mode .select2-selection--single { background-color: var(--nx-surface) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.dark-mode .select2-selection__rendered { color: var(--nx-text) !important; }
+body.dark-mode pre { background-color: var(--nx-surface-2) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.dark-mode .container { background-color: transparent !important; }
+body.dark-mode .content .row [class*=col-] .box { box-shadow: var(--nx-shadow, var(--nx-shadow-portal)) !important; }
+body.dark-mode .box.box-solid.box-primary > .box-header { color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.dark-mode .notification-top-bar { background-color: var(--nx-danger-soft) !important; color: var(--nx-danger) !important; }
+body.dark-mode :is(.form-control, .nuxr-input, input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], select, textarea):not([type=checkbox]):not([type=radio]) { background-color: var(--nx-surface) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.dark-mode :is(input, textarea, select):focus:not(#filterNavigateMenu) { color: var(--nx-text) !important; }
+body.dark-mode :is(input, textarea)::placeholder { color: var(--nx-muted) !important; opacity: 1; }
+html:has(> body.dark-mode) { background-color: #0c1525; color-scheme: dark; }
+body.dark-mode .btn-default { background-color: var(--nx-surface-2) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.nuxr-shell .content .box.box-primary { border-top-color: var(--nx-primary); }
+body.nuxr-shell .content .box.box-success { border-top-color: var(--nx-success); }
+body.nuxr-shell .content .box.box-warning { border-top-color: var(--nx-warning); }
+body.nuxr-shell .content .box.box-danger { border-top-color: var(--nx-danger); }
+body.nuxr-shell .content .box.box-info, body.nuxr-shell .content .box.box-default { border-top-color: var(--nx-border); }
+.nuxr-check { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 0 0 8px; font-weight: 600; cursor: pointer; }
+.nuxr-check input[type=checkbox] { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--nx-primary); }
+body.dark-mode .navbar-nav > :is(.notifications-menu, .messages-menu, .tasks-menu) > .dropdown-menu > li.footer > a,
+body.dark-mode .navbar-nav > .user-menu > .dropdown-menu > .user-footer { background: var(--nx-surface) !important; color: var(--nx-text) !important; }
+
+/* ---------- customer portal + public pages: AdminLTE / phpnuxbill.customer.css surfaces mapped onto the tokens ---------- */
+body.nuxr-portal { background: var(--nx-bg); color: var(--nx-text); }
+/* the vendored theme pins its own font with !important (specificity raised by :not(#id)); outrank it as nuxr-shell.css does */
+/* (icon fonts are excluded: Font Awesome, Glyphicons and Ionicons keep their own font-family) */
+body.nuxr-portal, body.nuxr-portal :is(h1, h2, h3, h4, h5, h6, p, a, span, li, td, th, label, input, select, textarea, button, .btn, .main-header .logo, #nuxr-none):not(.fa, .glyphicon, .ion, [class^="ion-"], [class*=" ion-"], .sidebar-toggle) { font-family: var(--nx-font) !important; }
+body.nuxr-portal a:not(.btn) { color: var(--nx-link); }
+body.nuxr-portal a:not(.btn):hover, body.nuxr-portal a:not(.btn):focus { color: var(--nx-link-hover); }
+body.nuxr-portal .main-header .navbar, body.nuxr-portal .main-header .logo { background: var(--nx-portal-head-bg) !important; color: var(--nx-portal-head-text) !important; border-color: transparent !important; }
+body.nuxr-portal .main-header .logo :is(b, span, .logo-lg, .logo-mini), body.nuxr-portal .main-header .navbar :is(.sidebar-toggle, .navbar-nav > li > a, .navbar-nav > li > a > :is(span, i, .fa)) { color: var(--nx-portal-head-text) !important; }
+body.nuxr-portal .main-header .navbar .dropdown-menu { background: var(--nx-surface) !important; border-color: var(--nx-border) !important; }
+body.nuxr-portal .main-header .navbar .dropdown-menu :is(a, li, p, small, span, h4, .text-sm) { color: var(--nx-text) !important; }
+body.nuxr-portal .main-header .navbar .dropdown-menu .menu > li > a:hover, body.nuxr-portal .main-header .navbar .dropdown-menu li.footer > a:hover { background: var(--nx-surface-2) !important; }
+body.nuxr-portal .main-header .navbar .user-menu .user-header { background: var(--nx-portal-head-bg) !important; }
+body.nuxr-portal .main-header .navbar .user-menu .user-header :is(p, small) { color: var(--nx-portal-head-text) !important; }
+body.nuxr-portal .main-header .navbar .user-footer .btn-default { background: var(--nx-surface-2) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.nuxr-portal .main-header :is(a, button):focus-visible { outline-color: var(--nx-portal-head-text) !important; }
+body.nuxr-portal .main-header .dropdown-menu :is(a, button):focus-visible { outline-color: var(--nx-focus) !important; }
+body.nuxr-portal .main-sidebar, body.nuxr-portal .left-side { background: var(--nx-portal-side-bg) !important; border-inline-end: 1px solid var(--nx-border); }
+/* the dark skin paints the inner menu too: every layer of the sidebar takes the token surface */
+body.nuxr-portal :is(.main-sidebar .sidebar, .sidebar-menu, .sidebar-menu > li, .sidebar-menu .treeview-menu) { background: transparent !important; }
+body.nuxr-portal.modern-skin-dark .main-sidebar .sidebar .sidebar-menu li > a:not(:hover) { background: transparent !important; }
+body.nuxr-portal .main-sidebar .sidebar .sidebar-menu li.active > a { background: var(--nx-primary-soft) !important; }
+body.nuxr-portal .btn-link, body.nuxr-portal .btn-link:is(:hover, :focus) { color: var(--nx-link) !important; }
+/* phones: a long customer name is truncated so the header controls keep one row (both directions) */
+@media (max-width: 767px) {
+    body.nuxr-portal .navbar-custom-menu .user-menu > a > span { display: inline-block; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+    body.nuxr-portal .navbar-custom-menu .navbar-nav > li > a { padding-left: 12px; padding-right: 12px; }
+}
+body.nuxr-portal :is(.main-footer, .login-box-footer, .form-head, .panel-footer, .box-footer) a:not(.btn), body.nuxr-portal a[href^="javascript:show"] { color: var(--nx-link) !important; }
+body.nuxr-portal .text-muted, body.nuxr-shell .content .text-muted { color: var(--nx-muted) !important; }
+/* links inside running text are underlined (WCAG 1.4.1), as the shell footer links */
+#latestVersion { text-decoration: underline; }
+/* the original project's donation buttons on the About page: touch-sized on phones (WCAG 2.5.8) */
+@media (max-width: 767px) {
+    body.nuxr-shell .itc-about-page .btn-group-justified { display: flex; flex-wrap: wrap; gap: 6px; }
+    body.nuxr-shell .itc-about-page .btn-group-justified > .btn { flex: 1 1 45%; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+}
+body.nuxr-portal .sidebar-menu > li > a, body.nuxr-portal .sidebar-menu > li > a :is(.text, span, i) { color: var(--nx-portal-side-text) !important; }
+body.nuxr-portal .sidebar-menu > li.active > a :is(.text, span, i), body.nuxr-portal .sidebar-menu > li > a:hover :is(.text, span, i) { color: var(--nx-primary) !important; }
+body.nuxr-portal :is(.form-control, input[type=text], input[type=password], input[type=email], input[type=number], select, textarea) { background-color: var(--nx-surface) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.nuxr-portal :is(.form-control, input, textarea)::placeholder { color: var(--nx-muted) !important; opacity: 1; }
+body.nuxr-portal .sidebar-menu > li.active > a, body.nuxr-portal .sidebar-menu > li > a:hover { background: var(--nx-primary-soft) !important; color: var(--nx-primary) !important; border-inline-start-color: var(--nx-primary) !important; }
+body.nuxr-portal .content-wrapper { background: var(--nx-bg) !important; }
+body.nuxr-portal :is(.box, .panel, .card) { background: var(--nx-surface); border-color: var(--nx-border); color: var(--nx-text); }
+body.nuxr-portal :is(.box-header, .panel-heading) { background: var(--nx-surface-2) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.nuxr-portal .box.box-primary, body.nuxr-portal .panel-primary { border-top-color: var(--nx-primary) !important; }
+body.nuxr-portal .btn-primary { background: var(--nx-primary) !important; border-color: var(--nx-primary) !important; color: var(--nx-on-primary) !important; }
+body.nuxr-portal .btn-success { background: var(--nx-success) !important; border-color: var(--nx-success) !important; color: #ffffff !important; }
+body.nuxr-portal .btn-danger { background: var(--nx-danger) !important; border-color: var(--nx-danger) !important; color: #ffffff !important; }
+body.nuxr-portal .btn-warning { background: var(--nx-warning) !important; border-color: var(--nx-warning) !important; color: #ffffff !important; }
+body.nuxr-portal .btn-info { background: var(--nx-info) !important; border-color: var(--nx-info) !important; color: var(--nx-on-primary) !important; }
+body.dark-mode.nuxr-portal :is(.btn-success, .btn-danger, .btn-warning) { color: var(--nx-bg) !important; }
+body.nuxr-portal :is(.btn-primary, .btn-success, .btn-danger, .btn-warning, .btn-info):is(:hover, :focus) { filter: brightness(.92); }
+body.nuxr-portal :is(.btn, a, input, select, textarea, button):focus-visible { outline: 3px solid var(--nx-focus); outline-offset: 2px; }
+body.nuxr-portal .form-control { background: var(--nx-surface); color: var(--nx-text); border-color: var(--nx-border); }
+body.nuxr-portal .main-footer { background: var(--nx-surface); color: var(--nx-muted); border-top-color: var(--nx-border); }
+body.nuxr-portal :is(.main-footer, .itc-powered) a { text-decoration: underline; }
+body.nuxr-portal .site-logo { text-transform: none !important; text-shadow: none !important; color: var(--nx-text); }
+body.nuxr-portal .site-logo .nc-mark { width: 40px; height: 40px; vertical-align: middle; margin-inline-end: 8px; }
+body.nuxr-portal .main-header .logo .logo-lg .nc-mark { width: 28px; height: 28px; vertical-align: middle; margin-inline-end: 8px; }
+body.nuxr-portal .itc-powered, body.nuxr-portal .itc-powered :is(a, bdi) { color: var(--nx-muted) !important; }
