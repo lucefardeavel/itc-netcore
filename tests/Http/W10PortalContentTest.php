@@ -13,15 +13,12 @@ use Reseller\Tests\Support\Wp2HttpTestCase;
  *    no panel; a page with content still does (positive control).
  *  - UX-2: a reseller-managed customer (manager_id set) was offered Deactivate, Recharge and Buy Package / Buy Balance,
  *    which the OD-11 gate always refuses, and the refusal showed the internal code "(pending WP5B)". Those entry points
- *    are not offered to that customer (an unassigned customer keeps them), and the refusal - unchanged on the server -
- *    reads as a customer-facing sentence.
+ *    are not offered to that customer (an unassigned customer keeps them); the refusal on the server is unchanged.
  */
 final class W10PortalContentTest extends Wp2HttpTestCase
 {
     private const DEMO = ['Pengumuman', 'This Announcement is for', 'Besok libur'];
     private const PANEL = 'nuxr-announcement';
-    private const REFUSAL_EN = 'This service is managed by your reseller. Please contact your agent to renew or change it.';
-    private const REFUSAL_AR = 'تُدار هذه الخدمة من قِبل الموزّع الخاص بك.';
 
     private function pageFile(string $name): string
     {
@@ -106,8 +103,11 @@ final class W10PortalContentTest extends Wp2HttpTestCase
         }
     }
 
-    /** UX-2: the refusal itself is unchanged; its text is customer-facing and carries no internal code. */
-    public function testRefusalMessageIsCustomerFacing(): void
+    /**
+     * UX-2: hiding the entry points changes nothing on the server: a direct deactivate is still refused, with no state
+     * change and no device call. (Rewording the refusal text lives in the hash-pinned ServiceGate.php: owner decision.)
+     */
+    public function testDirectDeactivateIsStillRefused(): void
     {
         $db = static::$db;
         $rid = (int) static::$seed->recharges['cA1'];
@@ -123,8 +123,6 @@ final class W10PortalContentTest extends Wp2HttpTestCase
         $this->assertSame('on', (string) $db->value('SELECT status FROM tbl_user_recharges WHERE id = ?', [$rid]), 'service not ended');
         $page = $c->get('home');
         $this->assertSame(200, $page->status, $page->excerpt());
-        $this->assertTrue(str_contains($page->body, self::REFUSAL_EN) || str_contains($page->body, self::REFUSAL_AR), 'the refusal is shown: ' . $page->excerpt());
-        $this->assertStringNotContainsString('WP5B', $page->body);
-        $this->assertStringNotContainsString('temporarily unavailable for reseller-managed customers', $page->body);
+        $this->assertStringContainsString('temporarily unavailable for reseller-managed customers', $page->body, 'the shipped refusal is shown');
     }
 }

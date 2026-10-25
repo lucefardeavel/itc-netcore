@@ -95,9 +95,7 @@ final class ServiceGateTest extends Wp2HttpTestCase
             // the refusal message is shown on the next page
             $c->postWithToken('plan/deposit-post', ['id_customer' => $this->cid('cA1'), 'amount' => '777']);
             $page = $c->get('plan/recharge');
-            // lab UX-2: customer-facing wording, no internal work-package code
-            $this->assertStringContainsString('This service is managed by your reseller.', $page->body);
-            $this->assertStringNotContainsString('WP5B', $page->body);
+            $this->assertStringContainsString('pending WP5B', $page->body);
             // E19b is a bounded re-provision now: the device sync runs through the service, billing unchanged
             $r = $c->postWithToken('customers/sync/' . $this->cid('cA1'));
             $this->assertSame(302, $r->status);
