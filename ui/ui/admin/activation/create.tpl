@@ -101,7 +101,7 @@
             {if $q.action eq 'CHANGE_PLAN'}{assign var=nuxr_lost value=NuxrUi::lostDays($q.current_expiry, $q.start)}{else}{assign var=nuxr_lost value=null}{/if}
             {if $nuxr_lost}
                 <div class="nuxr-alert is-warning" role="alert" id="nuxr-change-loss" style="margin:0 0 12px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
-                    <div><strong>{Lang::T('Remaining paid time will be lost')}</strong> {NuxrUi::lostDaysNotice($nuxr_lost, $q.current_expiry)|escape}</div></div>
+                    <div><strong>{Lang::T('Warning')}</strong> {NuxrUi::lostDaysNotice($nuxr_lost, $q.current_expiry)|escape}</div></div>
             {/if}
             {if $nuxr_service_mismatch}
                 {* UX-3: a warning only; the activation is not blocked (an owner decision) *}

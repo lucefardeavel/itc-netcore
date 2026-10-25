@@ -78,7 +78,8 @@ PHP);
         $html = $this->confirmation(static::$seed->customers['cA0'], self::$short);
         $this->assertStringContainsString('name="expected_action" value="CHANGE_PLAN"', $html);
         $this->assertMatchesRegularExpression('#<div class="nuxr-alert is-warning" role="alert" id="nuxr-change-loss"#', $html, 'a visible warning box');
-        $this->assertStringContainsString('Remaining paid time will be lost', $html);
+        // the box title is a plain "Warning": the sentence itself says what is lost (no "will be lost ... will be lost")
+        $this->assertStringContainsString('<strong>Warning</strong>', $html);
         $this->assertSame(1, preg_match('#(\d+) days of paid service \(until ' . preg_quote(self::$expiry, '#') . '\) will be lost#', $html, $m), 'N paid days until the current expiry');
         $this->assertGreaterThanOrEqual(19, (int) $m[1]);
         $this->assertLessThanOrEqual(21, (int) $m[1]);

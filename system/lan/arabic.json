@@ -2067,7 +2067,6 @@
   "Language": "اللغة",
   "Scan_QR_code": "مسح رمز QR",
   "Translations_cannot_contain_HTML_markup": "لا يمكن أن تحتوي الترجمات على وسوم HTML",
-  "Remaining_paid_time_will_be_lost": "الوقت المدفوع المتبقي سيُفقد",
   "_days__of_paid_service__until__date___will_be_lost__the_current_period_is_replaced_now_and_the_remaining_time_is_not_refunded_or_carried_over_": "سيُفقد [days] من الخدمة المدفوعة (حتى [date]): تُستبدل الفترة الحالية الآن، ولا يُسترد الوقت المتبقي ولا يُرحَّل.",
   "Radius_Plan": "خطة Radius",
   "VPN_Plan": "خطة VPN",
