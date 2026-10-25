@@ -54,10 +54,6 @@ final class F6ActivationInactiveTest extends ActivationTestCase
      */
     public function testResumeOrReplayAfterSuspensionDoesNotProvision(): void
     {
-        // Lab finding F6-3, confirmed on both engines (lab/f6-probe): the fix is inside the architecture-locked
-        // ActivationService flow and waits for the owner decision (OWNER_ACTION_REQUIRED §1). Marked incomplete, never
-        // counted as PASS; remove this line once a decided fix is integrated.
-        $this->markTestIncomplete('F6-3: owner decision pending (ActivationService resume / replay after suspension)');
         $bad = [];
         foreach (['resume', 'replay'] as $how) {
             foreach (self::NON_ACTIVE as $status) {

@@ -346,7 +346,7 @@ final class ActivationService
         }
     }
 
-    /** @return bool false when provisioning could not start (the prior RADIUS state could not be captured) */
+    /** @return bool false when provisioning could not start (the customer is not Active, or the prior RADIUS state could not be captured) */
     private static function provisionStep(array $row, ActivationActor $actor): bool
     {
         $id = (int) $row['id'];
@@ -354,6 +354,17 @@ final class ActivationService
         if ($row['status'] === ActivationState::RETRY_PENDING && $attempts > self::PROVISION_RETRIES) {
             self::fail($id, [ActivationState::RETRY_PENDING], $actor, 'PROVISION_RETRIES_EXHAUSTED', 'The RADIUS change could not be applied.', 'STATE_TRANSITION', null);
             return true;
+        }
+        // lab F6-3: an activation accepted while the customer was Active is not provisioned once the customer is no longer
+        // Active (operator resume, or the replay of the same request, after a suspension). Nothing changes: the funds stay
+        // reserved for the operator to cancel (reconcile.php cancel) or to resume after the customer is reactivated.
+        $customerStatus = Tx::row(FinanceTx::pdo(), 'SELECT status FROM tbl_customers WHERE id = ?', [(int) $row['customer_id']])['status'] ?? null;
+        if ($customerStatus !== 'Active') {
+            $status = (string) $row['status'];
+            self::tx(static fn(\PDO $pdo) => ActivationStore::note($pdo, $id, $status, $actor,
+                ['event_type' => 'ANNOTATION', 'error_code' => 'CUSTOMER_INACTIVE', 'error_message' => 'The customer is not Active; provisioning did not start.'],
+                ['error_code' => 'CUSTOMER_INACTIVE', 'error_message' => 'The customer is not Active; provisioning did not start. Cancel, or resume after reactivation.']));
+            return false;
         }
         // the prior and target RADIUS states are captured BEFORE any write, durably (owner fix round 1)
         $capture = self::capture($row);
