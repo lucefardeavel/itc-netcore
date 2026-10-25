@@ -15,7 +15,7 @@
                                 {else}
                                     <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
                                 {/if}
-                                <input type="text" readonly class="form-control" name="username" value="{$username}"
+                                <input type="text" readonly class="form-control" name="username" value="{$username|escape}"
                                     placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']} {Lang::T('Phone Number')}{else}{Lang::T('Username')}{/if}">
                             </div>
                         </div>
@@ -44,12 +44,12 @@
                                 {else}
                                     <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
                                 {/if}
-                                <input type="text" readonly class="form-control" name="username" value="{$username}"
+                                <input type="text" readonly class="form-control" name="username" value="{$username|escape}"
                                     placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']} {Lang::T('Phone Number')}{else}{Lang::T('Username')}{/if}">
                             </div>
                         </div>
                         <label>{Lang::T('Your Password has been change to')}</label>
-                        <input type="text" readonly class="form-control" value="{$passsword}" onclick="this.select()">
+                        <input type="text" readonly class="form-control" value="{$passsword|escape}" onclick="this.select()">
                         <p class="help-block">
                             {Lang::T('Use the password to login, and change the password from password change page')}</p>
                     </div>

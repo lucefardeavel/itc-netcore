@@ -41,8 +41,8 @@
 
     <script src="{$app_url}/ui/ui/scripts/sweetalert2.all.min.js"></script>
     {if $_routes[0] eq 'reports' || $nuxr_charts|default:false}
-        {* OD-H residual: Chart.js stays a CDN asset, loaded only by the pages that draw charts *}
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js" integrity="sha384-zVyRZ9eQ45iRS7ZRZQSFKGJpypyxssU6clBCysSqzjmdGWNn8//uC8dh9DabpAbK" crossorigin="anonymous"></script>
+        {* Chart.js, self-hosted (ui/ui/scripts/vendor/VENDOR.txt: the SRI-pinned bytes), loaded only by the pages that draw charts *}
+        <script src="{$app_url}/ui/ui/scripts/vendor/chart-3.5.1.min.js" integrity="sha384-zVyRZ9eQ45iRS7ZRZQSFKGJpypyxssU6clBCysSqzjmdGWNn8//uC8dh9DabpAbK"></script>
     {/if}
     {if isset($xheader)}
         {$xheader}
