@@ -12,10 +12,11 @@
 /system resource print
 
 # 1. RADIUS client: nasname in the application's `nas` table MUST equal src-address (NAS-IP-Address); no NAT between NAS and FreeRADIUS
-/radius add service=ppp,hotspot address=<FREERADIUS_ADDRESS> secret=<STAGING_NAS_SECRET> src-address=<NAS_SOURCE_ADDRESS> authentication-port=1812 accounting-port=1813 timeout=3s comment=nuxr_tgt_radius
+/radius add service=ppp,hotspot address=<FREERADIUS_ADDRESS> secret=<STAGING_NAS_SECRET> src-address=<NAS_SOURCE_ADDRESS> authentication-port=1812 accounting-port=1813 timeout=3s require-message-auth=yes-for-request-resp comment=nuxr_tgt_radius
 # 2. Disconnect / CoA from the application host only
 /radius incoming set accept=yes port=3799
 /ip firewall filter add chain=input protocol=udp dst-port=3799 src-address=<APPLICATION_HOST_ADDRESS> action=accept comment=nuxr_tgt_coa place-before=0
+/ip firewall filter add chain=input protocol=udp dst-port=3799 action=drop comment=nuxr_tgt_coa_drop place-before=1
 # 3. PPP AAA: RADIUS accounting with interim; no local PPP secret or hotspot user may shadow a tgt_* identity
 /ppp aaa set use-radius=yes accounting=yes interim-update=1m
 # 4. PPPoE test server on the isolated interface / VLAN (no customers), profile WITHOUT a local address / pool override
@@ -25,12 +26,14 @@
 /ip hotspot profile add name=nuxr_tgt_hs use-radius=yes radius-accounting=yes radius-interim-update=1m login-by=http-chap
 # (create the hotspot server / address pool on <TEST_INTERFACE> as the target's standard procedure does; objects named nuxr_tgt_*)
 # 6. NTP (TA-02): enabled, UTC or a known offset
-/system ntp client set enabled=yes servers=<NTP_SERVER>
+/system ntp client set enabled=yes servers=<NTP_SERVER_1>,<NTP_SERVER_2>
+# the NAS clock must stay within 10 s of the application host (hard limit); check: /system clock print vs date -u
 /system clock set time-zone-name=UTC
 
 # 9. RESTORE at the end (values captured in section 0): remove only nuxr_tgt_* objects and put /radius incoming, /ppp aaa and the NTP client back
 /radius remove [find comment=nuxr_tgt_radius]
 /ip firewall filter remove [find comment=nuxr_tgt_coa]
+/ip firewall filter remove [find comment=nuxr_tgt_coa_drop]
 /interface pppoe-server server remove [find service-name=nuxr_tgt]
 /ppp profile remove [find name=nuxr_tgt_pppoe]
 /ip hotspot profile remove [find name=nuxr_tgt_hs]
