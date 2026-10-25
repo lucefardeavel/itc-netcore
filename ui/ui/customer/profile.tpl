@@ -26,7 +26,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label" for="username">{Lang::T('Usernames')}</label>
+                        <label class="col-md-3 control-label" for="username">{Lang::T('Username')}</label>
                         <div class="col-md-9">
                             <div class="input-group">
                                 {if $_c['registration_username'] == 'phone'}
