@@ -210,7 +210,7 @@
             </div>
             <h1>{Lang::T('Site is temporarily unavailable.')}</h1>
             <p>{Lang::T('Scheduled maintenance is currently in progress. Please check back soon.')}</p>
-            <p>{Lang::T('We apologize for any inconvenience.')} <br> &mdash; {Lang::T('The ')} {$companyName} {Lang::T('
+            <p>{Lang::T('We apologize for any inconvenience.')} <br> &mdash; {Lang::T('The ')} <bdi>{$companyName|escape}</bdi> {Lang::T('
                 Team.')}</p>
             <br>
             {if $date} <div style="display: flex; flex-direction: row; justify-content: space-between;">
