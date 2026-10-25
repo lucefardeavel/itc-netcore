@@ -11,7 +11,7 @@
 -- utf8mb4_general_ci; a second run (or a run on a correct database) changes nothing. It never drops or deletes
 -- anything: CONVERT TO keeps every row (nasreload holds only NAS addresses and reload times, ASCII). Run it in the
 -- RADIUS database, e.g.  mysql RADIUS_DB < install/freeradius/nuxr_nasreload_collation.sql
--- Verify: the SELECT at the end prints nasreload_collation=READY.
+-- Verify with nuxr_nasreload_collation_check.sql (prints nasreload_collation=READY).
 SET @nuxr_bl09 = IF(
   (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'nasreload'
     AND COLUMN_NAME = 'nasipaddress' AND (CHARACTER_SET_NAME <> 'utf8mb4' OR COLLATION_NAME <> 'utf8mb4_general_ci')) > 0
@@ -21,8 +21,3 @@ SET @nuxr_bl09 = IF(
 PREPARE nuxr_bl09_stmt FROM @nuxr_bl09;
 EXECUTE nuxr_bl09_stmt;
 DEALLOCATE PREPARE nuxr_bl09_stmt;
-SELECT CONCAT('nasreload_collation=', IF(
-  (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'nasreload'
-    AND COLUMN_NAME = 'nasipaddress' AND CHARACTER_SET_NAME = 'utf8mb4' AND COLLATION_NAME = 'utf8mb4_general_ci') = 1
-  AND (SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'nasreload'
-    AND TABLE_COLLATION = 'utf8mb4_general_ci') = 1, 'READY', 'NOT_READY')) AS nuxr_check;

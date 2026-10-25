@@ -103,10 +103,11 @@ final class W10NasreloadCollationTest extends TestCase
             $fx->loadSqlFile($pdo, $upgrade);
             $this->assertSame('utf8mb4_general_ci/utf8mb4_general_ci', $check());
             $this->assertSame($rows, $pdo->query('SELECT nasipaddress, reloadtime FROM nasreload ORDER BY nasipaddress')->fetchAll(PDO::FETCH_NUM));
-            $sql = (string) file_get_contents($upgrade);
-            $this->assertDoesNotMatchRegularExpression('/DROP\s|DELETE\s+FROM|TRUNCATE/i', $sql, 'never destructive');
-            $this->assertSame(1, preg_match("/SELECT CONCAT\\('nasreload_collation=', (.*)\\) AS nuxr_check;/s", $sql, $m));
-            $this->assertSame('nasreload_collation=READY', (string) $pdo->query("SELECT CONCAT('nasreload_collation=', {$m[1]})")->fetchColumn());
+            $this->assertDoesNotMatchRegularExpression('/DROP\s|DELETE\s+FROM|TRUNCATE/i', (string) file_get_contents($upgrade), 'never destructive');
+            $readiness = (string) file_get_contents(dirname(__DIR__, 3) . '/install/freeradius/nuxr_nasreload_collation_check.sql');
+            $this->assertSame('nasreload_collation=READY', (string) $pdo->query($readiness)->fetchColumn(), 'readiness check');
+            $pdo->exec('ALTER TABLE nasreload CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+            $this->assertSame('nasreload_collation=NOT_READY', (string) $pdo->query($readiness)->fetchColumn(), 'the check detects the pre-fix state');
         } finally {
             $admin->exec("DROP DATABASE IF EXISTS `{$name}`");
         }
