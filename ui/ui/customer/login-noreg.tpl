@@ -1,15 +1,19 @@
 {include file="customer/header-public.tpl"}
 <div class="hidden-xs" style="height:100px"></div>
+{* lab UX-1: the announcement panel only when the page has content; otherwise the login forms are centred *}
+{nuxr_page name="Announcement" assign="nuxr_announcement"}
 <div class="row">
+    {if $nuxr_announcement neq ''}
     <div class="col-sm-8">
-        <div class="panel panel-info">
+        <div class="panel panel-info nuxr-announcement">
             <div class="panel-heading">{Lang::T('Announcement')}</div>
             <div class="panel-body">
-                {nuxr_page name="Announcement"}
+                {$nuxr_announcement}
             </div>
         </div>
     </div>
-    <div class="col-sm-4">
+    {/if}
+    <div class="col-sm-4{if $nuxr_announcement eq ''} col-sm-offset-4{/if}">
         <div class="panel panel-primary">
             <div class="panel-heading">{Lang::T('Login / Activate Voucher')}</div>
             <div class="panel-body">

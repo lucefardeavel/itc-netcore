@@ -26,7 +26,8 @@
                     <i class="ion ion-ios-cart"></i>
                     {Lang::T('Order Voucher')}
                 </a>
-                {if $_c['payment_gateway'] != 'none' or $_c['payment_gateway'] == '' }
+                {* lab UX-2: no order link for a reseller-managed customer (manager_id set; refused by the order routes, OD-11) *}
+                {if ($_c['payment_gateway'] != 'none' or $_c['payment_gateway'] == '') && !(isset($_user['manager_id']) && $_user['manager_id'] neq '')}
                     <a href="{Text::url('order/package')}" class="btn btn-default">
                         <i class="ion ion-ios-cart"></i>
                         {Lang::T('Order Package')}

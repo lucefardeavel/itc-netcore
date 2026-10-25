@@ -1,3 +1,6 @@
+{* lab UX-2: a reseller-managed customer (manager_id set) is refused deactivate / extend / recharge / order (OD-11);
+   those entry points are not offered (the server-side refusal is unchanged) *}
+{assign var=nuxr_owned value=isset($_user['manager_id']) && $_user['manager_id'] neq ''}
 {if $_bills}
     <div class="box box-primary box-solid">
         {foreach $_bills as $_bill}
@@ -25,7 +28,9 @@
                         <td class="small text-primary text-uppercase text-normal">{Lang::T('Package Name')}</td>
                         <td class="small mb15">
                             {$_bill['namebp']}
-                            {if $_bill['status'] != 'on'}
+                            {if $_bill['status'] != 'on' && $nuxr_owned}
+                                <span class="label label-danger pull-right">{Lang::T('Expired')}</span>
+                            {elseif $_bill['status'] != 'on'}
                                 <a class="label label-danger pull-right"
                                     href="{Text::url('order/package')}">{Lang::T('Expired')}</a>
                             {/if}
@@ -119,7 +124,7 @@
                     {/if}
                     <tr>
                         <td class="small text-primary text-uppercase text-normal">
-                            {if $_bill['status'] == 'on' && $_bill['prepaid'] != 'YES'}
+                            {if $_bill['status'] == 'on' && $_bill['prepaid'] != 'YES' && !$nuxr_owned}
                                 <a data-method="post" href="{Text::url('home&deactivate=', $_bill['id'])}"
                                     onclick="return ask(this, '{Lang::T('Deactivate')}?')" class="btn btn-danger btn-xs"
                                     aria-label="{Lang::T('Deactivate')}" title="{Lang::T('Deactivate')}"><i
@@ -127,14 +132,16 @@
                             {/if}
                         </td>
                         <td class="small row">
-                            {if $_bill['status'] != 'on' && $_bill['prepaid'] != 'yes' && $_c['extend_expired']}
+                            {if $_bill['status'] != 'on' && $_bill['prepaid'] != 'yes' && $_c['extend_expired'] && !$nuxr_owned}
                                 <a data-method="post" class="btn btn-warning text-black btn-sm"
                                     href="{Text::url('home&extend=', $_bill['id'], '&stoken=', App::getToken())}"
                                     onclick="return ask(this, '{Text::toHex($_c['extend_confirmation'])}')">{Lang::T('Extend')}</a>
                             {/if}
+                            {if !$nuxr_owned}
                             <a class="btn btn-primary pull-right btn-sm"
                                 href="{Text::url('home&recharge=', $_bill['id'], '&stoken=', App::getToken())}"
                                 onclick="return ask(this, '{Lang::T('Recharge')}?')">{Lang::T('Recharge')}</a>
+                            {/if}
                             <a data-method="post" class="btn btn-warning text-black pull-right btn-sm"
                                 href="{Text::url('home&sync=', $_bill['id'], '&stoken=', App::getToken())}"
                                 onclick="return ask(this, '{Lang::T('Sync account if you failed login to internet')}?')"
