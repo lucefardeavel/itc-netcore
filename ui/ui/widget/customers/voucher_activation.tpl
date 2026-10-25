@@ -1,5 +1,7 @@
 
-{if $_c['disable_voucher'] != 'yes'}
+{* lab UX-2: a reseller-managed customer ($nuxr_owned from User::_info) is refused voucher activation and the order routes
+   (OD-11), so the whole box (Recharge form, Order Voucher, Order Package) is not offered; the server refusal is unchanged *}
+{if $_c['disable_voucher'] != 'yes' && !$nuxr_owned}
     <div class="box box-primary box-solid mb30">
         <div class="box-header">
             <h3 class="box-title">{Lang::T('Voucher Activation')}</h3>
@@ -26,8 +28,7 @@
                     <i class="ion ion-ios-cart"></i>
                     {Lang::T('Order Voucher')}
                 </a>
-                {* lab UX-2: no order link for a reseller-managed customer (manager_id set; refused by the order routes, OD-11) *}
-                {if ($_c['payment_gateway'] != 'none' or $_c['payment_gateway'] == '') && !(isset($_user['manager_id']) && $_user['manager_id'] neq '')}
+                {if $_c['payment_gateway'] != 'none' or $_c['payment_gateway'] == ''}
                     <a href="{Text::url('order/package')}" class="btn btn-default">
                         <i class="ion ion-ios-cart"></i>
                         {Lang::T('Order Package')}

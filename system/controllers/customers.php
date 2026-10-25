@@ -175,9 +175,15 @@ switch ($action) {
             $nuxrParent = ORM::for_table('tbl_users')->select_many('id', 'username')->find_one((int) $nuxrActor->managerId);
             $ui->assign('nuxr_parent_owner', $nuxrParent ? $nuxrParent['username'] : null);
         }
-        // UX-12: non-secret fields of a refused add-post, shown once (never a password)
-        $nuxrRefill = $_SESSION['nuxr_customer_add_refill'] ?? null;
+        // UX-12: non-secret fields of a refused add-post, shown once (never a password) and only while fresh: a refill
+        // older than 5 minutes (a later, unrelated add) is dropped, never offered for another subscriber
+        $nuxrStored = $_SESSION['nuxr_customer_add_refill'] ?? null;
         unset($_SESSION['nuxr_customer_add_refill']);
+        $nuxrRefill = null;
+        if (is_array($nuxrStored) && isset($nuxrStored['at'], $nuxrStored['fields']) && is_int($nuxrStored['at'])
+            && is_array($nuxrStored['fields']) && time() - $nuxrStored['at'] >= 0 && time() - $nuxrStored['at'] <= 300) {
+            $nuxrRefill = $nuxrStored['fields'];
+        }
         $nuxrForm = array_fill_keys(['fullname', 'phonenumber', 'email', 'address', 'service_type', 'account_type', 'username', 'pppoe_username', 'pppoe_ip'], '');
         foreach ($nuxrForm as $k => $unused) {
             if (is_array($nuxrRefill) && isset($nuxrRefill[$k]) && is_string($nuxrRefill[$k])) {
@@ -556,6 +562,8 @@ switch ($action) {
         break;
 
     case 'add-post':
+        // UX-12: a refill left by an earlier refused add never outlives the next add attempt
+        unset($_SESSION['nuxr_customer_add_refill']);
 
         $csrf_token = _post('csrf_token');
         if (!Csrf::check($csrf_token)) {
@@ -629,7 +637,7 @@ switch ($action) {
                     'manager_id' => _post('manager_id'), 'assigned_sales_id' => _post('assigned_sales_id'),
                 ], $nuxrFields);
             } catch (\Reseller\Domain\DomainError $e) {
-                $_SESSION['nuxr_customer_add_refill'] = $nuxrRefill;
+                $_SESSION['nuxr_customer_add_refill'] = ['at' => time(), 'fields' => $nuxrRefill];
                 r2(getUrl('customers/add'), 'e', Lang::T($e->getMessage()));
             }
             $d = ORM::for_table('tbl_customers')->find_one($customerId);
@@ -677,7 +685,7 @@ switch ($action) {
             // WP6A: continue on the new subscriber's 360 (Activate now / Later)
             r2(getUrl('customers/view/') . (int) $customerId . '&created=1', 's', Lang::T('Account Created Successfully'));
         } else {
-            $_SESSION['nuxr_customer_add_refill'] = $nuxrRefill;
+            $_SESSION['nuxr_customer_add_refill'] = ['at' => time(), 'fields' => $nuxrRefill];
             r2(getUrl('customers/add'), 'e', $msg);
         }
         break;

@@ -1,3 +1,6 @@
+{* lab UX-2: "recharge a friend" continues on the order routes, which refuse a reseller-managed customer ($nuxr_owned from
+   User::_info, OD-11); the form is not offered to that customer, the server refusal is unchanged *}
+{if !$nuxr_owned}
 <div class="box box-primary box-solid mb30">
     <div class="box-header">
         <h4 class="box-title">{Lang::T("Recharge a friend")}</h4>
@@ -19,3 +22,4 @@
         </form>
     </div>
 </div>
+{/if}

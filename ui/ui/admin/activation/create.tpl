@@ -108,7 +108,8 @@
                 <div class="nuxr-alert is-warning" role="alert" id="nuxr-service-mismatch" style="margin:0 0 12px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
                     <div><strong>{Lang::T('Service type mismatch')}</strong>
                         {Lang::T('The plan type does not match the service type of this subscriber. Check before confirming.')}
-                        <bdi dir="ltr">({Lang::T('Plan')}: {$q.plan_type|escape} · {Lang::T('Service Type')}: {$nuxr_customer.service_type|escape})</bdi></div></div>
+                        {* UX-3 bidi: the labels follow the page direction; only each value is isolated *}
+                        ({Lang::T('Plan')}: <bdi>{$q.plan_type|escape}</bdi> · {Lang::T('Service Type')}: <bdi>{$nuxr_customer.service_type|escape}</bdi>)</div></div>
             {/if}
             <dl class="nuxr-kv">
                 <div><dt>{Lang::T('Plan')}</dt><dd>{$q.plan_name|escape}</dd></div>
@@ -141,7 +142,8 @@
             <input type="hidden" name="nonce" value="{$nuxr_nonce}">
             <input type="hidden" name="preview" value="{$q.fingerprint|escape}">
             <a class="nuxr-btn" href="{Text::url('activation/create')}&customer={$nuxr_customer_id}&plan={$nuxr_plan_id}"><i class="fa fa-refresh" aria-hidden="true"></i>{Lang::T('Refresh quote')}</a>
-            <button class="nuxr-btn nuxr-btn-primary" type="submit" {if !$q.credit_sufficient}disabled{/if}><i class="fa fa-bolt" aria-hidden="true"></i>{Lang::T('Confirm activation')}</button>
+            {* a11y: the Confirm button is described by whichever warning boxes are rendered above (ids only when present) *}
+            <button class="nuxr-btn nuxr-btn-primary" type="submit" {if !$q.credit_sufficient}disabled{/if}{if $nuxr_lost || $nuxr_service_mismatch} aria-describedby="{if $nuxr_lost}nuxr-change-loss{/if}{if $nuxr_lost && $nuxr_service_mismatch} {/if}{if $nuxr_service_mismatch}nuxr-service-mismatch{/if}"{/if}><i class="fa fa-bolt" aria-hidden="true"></i>{Lang::T('Confirm activation')}</button>
         </form>
         <p class="nuxr-muted nuxr-card-body" id="nuxr-confirm-note" style="margin:0;padding-top:0" hidden role="status">{Lang::T('Submitting - do not close this page. The result opens when the network has answered.')}</p>
     </section>

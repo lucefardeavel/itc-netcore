@@ -1,5 +1,7 @@
 
-{if $_c['enable_balance'] == 'yes' && $_c['allow_balance_transfer'] == 'yes'}
+{* lab UX-2: a reseller-managed customer ($nuxr_owned from User::_info) is refused a balance transfer (OD-11, home.php);
+   the form is not offered, the server refusal is unchanged *}
+{if $_c['enable_balance'] == 'yes' && $_c['allow_balance_transfer'] == 'yes' && !$nuxr_owned}
     <div class="box box-primary box-solid mb30">
         <div class="box-header">
             <h4 class="box-title">{Lang::T("Transfer Balance")}</h4>

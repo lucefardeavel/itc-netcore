@@ -103,6 +103,89 @@ final class W10PortalContentTest extends Wp2HttpTestCase
         }
     }
 
+    /** Sets an app setting for this test; returns the previous value (null when the row did not exist). */
+    private function setConfig(string $key, string $value): ?string
+    {
+        $prev = static::$db->rows('SELECT value FROM tbl_appconfig WHERE setting = ?', [$key]);
+        static::$db->pdo->prepare('DELETE FROM tbl_appconfig WHERE setting = ?')->execute([$key]);
+        static::$db->insertRow('tbl_appconfig', ['setting' => $key, 'value' => $value]);
+        return $prev === [] ? null : (string) $prev[0]['value'];
+    }
+
+    private function restoreConfig(string $key, ?string $prev): void
+    {
+        static::$db->pdo->prepare('DELETE FROM tbl_appconfig WHERE setting = ?')->execute([$key]);
+        if ($prev !== null) {
+            static::$db->insertRow('tbl_appconfig', ['setting' => $key, 'value' => $prev]);
+        }
+    }
+
+    /**
+     * UX-2 follow-up: voucher activation (voucher.php) and balance transfer / recharge-a-friend (home.php, order routes)
+     * are refused for a reseller-managed customer, so its portal offers no voucher Recharge form, no Voucher menu link,
+     * no balance-transfer and no recharge-a-friend form; an unassigned customer still has all of them (positive control).
+     */
+    public function testResellerManagedPortalOffersNoVoucherOrBalanceTransferEntryPoints(): void
+    {
+        $saved = [];
+        foreach (['enable_balance' => 'yes', 'allow_balance_transfer' => 'yes', 'disable_voucher' => 'no'] as $k => $v) {
+            $saved[$k] = $this->setConfig($k, $v);
+        }
+        try {
+            $markers = [
+                'voucher/activation-post' => 'the voucher Recharge form',
+                'voucher/activation' => 'the Voucher menu link / Order Voucher button',
+                'name="nuxr_nonce"' => 'the balance-transfer form',
+                'value="balance"' => 'the balance-transfer send button',
+                'value="plan"' => 'the recharge-a-friend form',
+            ];
+            $owned = $this->customerHome('cA1');
+            foreach ($markers as $needle => $what) {
+                $this->assertStringNotContainsString($needle, $owned, "reseller-managed customer home: no {$what}");
+            }
+            $this->assertStringContainsString('voucher/list-activated', $owned, 'the activation history stays in the menu');
+            $legacy = $this->customerHome('cNULL');
+            foreach ($markers as $needle => $what) {
+                $this->assertStringContainsString($needle, $legacy, "unassigned customer home: {$what}");
+            }
+            // the Voucher menu entry is in the shared header: absent on another portal page of the owned customer too
+            $mail = $this->customer('cA1')->get('mail');
+            $this->assertSame(200, $mail->status, $mail->excerpt());
+            $this->assertStringNotContainsString('voucher/activation', $mail->body, 'reseller-managed customer inbox: no Voucher menu link');
+            $mailLegacy = $this->customer('cNULL')->get('mail');
+            $this->assertSame(200, $mailLegacy->status, $mailLegacy->excerpt());
+            $this->assertStringContainsString('voucher/activation', $mailLegacy->body, 'unassigned customer inbox: the Voucher menu link');
+        } finally {
+            foreach ($saved as $k => $prev) {
+                $this->restoreConfig($k, $prev);
+            }
+        }
+    }
+
+    /** UX-2 follow-up: the "Expired" label of an expired plan is plain text for a reseller-managed customer (no order link). */
+    public function testExpiredOwnedPlanLabelDoesNotLinkToOrder(): void
+    {
+        $db = static::$db;
+        $past = gmdate('Y-m-d', time() - 86400 * 3);
+        $ids = [(int) static::$seed->recharges['cA1'], (int) static::$seed->recharges['cNULL']];
+        $before = $db->rows('SELECT id, status, expiration FROM tbl_user_recharges WHERE id IN (' . implode(',', $ids) . ')');
+        try {
+            $db->exec("UPDATE tbl_user_recharges SET status = 'off', expiration = '{$past}' WHERE id IN (" . implode(',', $ids) . ')');
+            $owned = $this->customerHome('cA1');
+            $this->assertMatchesRegularExpression('#<span class="label label-danger pull-right">#', $owned, 'the Expired label is shown');
+            $this->assertStringNotContainsString('order/package', $owned, 'reseller-managed customer: the Expired label is not a link');
+            $this->assertDoesNotMatchRegularExpression('#<a class="label label-danger pull-right"#', $owned);
+            // positive control: an unassigned customer's Expired label still leads to Buy Package
+            $legacy = $this->customerHome('cNULL');
+            $this->assertMatchesRegularExpression('#<a class="label label-danger pull-right"\s+href="[^"]*order/package#', $legacy, 'unassigned customer: the Expired label links to order/package');
+        } finally {
+            $st = $db->pdo->prepare('UPDATE tbl_user_recharges SET status = ?, expiration = ? WHERE id = ?');
+            foreach ($before as $row) {
+                $st->execute([$row['status'], $row['expiration'], $row['id']]);
+            }
+        }
+    }
+
     /**
      * UX-2: hiding the entry points changes nothing on the server: a direct deactivate is still refused, with no state
      * change and no device call. (Rewording the refusal text lives in the hash-pinned ServiceGate.php: owner decision.)
