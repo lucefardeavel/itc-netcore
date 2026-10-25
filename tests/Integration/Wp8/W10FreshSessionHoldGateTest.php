@@ -201,7 +201,8 @@ final class W10FreshSessionHoldGateTest extends TestCase
         $final = $this->reservation($u);
         Wp8Lab::evidence('W10.hold.lost_stop', ['age_ms_after_loss' => (int) $mid['age_ms'], 'inside_hold' => $inside ? ['ok' => $inside['ok'], 'seconds' => $inside['seconds']] : null,
             'retry_ok' => $retry['ok'], 'final' => $final, 'first_token' => $first['token'], 'decisions' => array_map(static fn($d) => [$d['reply'], $d['open_rows'], $d['guard_verdict']], self::accessDecisions($u))]);
-        if ($inside !== null) {
+        // RouterOS retransmits accounting: if a retried Stop got through, the reservation is ENDED and nothing is held
+        if ($inside !== null && $mid['state'] === 'ACTIVE' && $mid['token'] === $first['token']) {
             $this->assertFalse($inside['ok'], 'inside the hold the lost session still blocks a new login');
         }
         $this->assertTrue($retry['ok'], 'after the hold the guard proves the lost session gone and the login is admitted (A1 recovery)');

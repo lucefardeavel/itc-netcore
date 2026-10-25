@@ -48,7 +48,9 @@ switch ($action) {
             . (\Reseller\Security\DataScope::validId($planId) ? '&plan=' . (int) $planId : '');
         // lab UX-15 (owner delegation 2026-10-25): a plan change that replaces paid time is confirmed explicitly; the
         // server computes the loss from its own quote (the form value is only the acknowledgement)
-        if (_post('expected_action') === 'CHANGE_PLAN' && _post('ack_loss') !== '1') {
+        // expert review 2026-10-26: a replay of an existing request (same nonce) is answered by the idempotency path
+        $nuxrReplay = \Reseller\Activation\ActivationService::isReplay($nuxrActor, _post('nonce'));
+        if (!$nuxrReplay && _post('expected_action') === 'CHANGE_PLAN' && _post('ack_loss') !== '1') {
             try {
                 $nuxrQ = \Reseller\Activation\ActivationPreviewService::quote($nuxrActor, $customerId, $planId, $nuxrPreviewKey);
             } catch (\Reseller\Domain\DomainError $e) {

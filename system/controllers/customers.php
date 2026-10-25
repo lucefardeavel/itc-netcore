@@ -393,7 +393,8 @@ switch ($action) {
             }
             $_SESSION['uid'] = $id;
             User::setCookie($id);
-            _alert("You are logging in as $customer[fullname],<br>don't logout just close tab.", 'info', "home", 10);
+            // expert review 2026-10-26: the customer-chosen name is escaped (the alert body is rendered as HTML)
+            _alert('You are logging in as ' . htmlspecialchars((string) $customer['fullname'], ENT_QUOTES, 'UTF-8') . ",<br>don't logout just close tab.", 'info', "home", 10);
         }
         _alert(Lang::T('Customer not found'), 'danger', "customers");
         break;

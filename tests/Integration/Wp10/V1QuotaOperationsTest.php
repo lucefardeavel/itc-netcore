@@ -188,8 +188,10 @@ final class V1QuotaOperationsTest extends ActivationTestCase
             // lab NET-4: 30 s ahead is beyond the 10 s session-end allowance (it was silent below 120 s)
             static::$db->exec("UPDATE radacct SET acctupdatetime = UTC_TIMESTAMP() + INTERVAL 30 SECOND WHERE radacctid = {$id}");
             $this->assertSame('WARNING', $this->healthCheck('nas_clock')['status'] ?? null, 'a NAS 30 s ahead is reported');
-            static::$db->exec("UPDATE radacct SET acctupdatetime = UTC_TIMESTAMP() + INTERVAL 5 SECOND WHERE radacctid = {$id}");
-            $this->assertSame('OK', $this->healthCheck('nas_clock')['status'] ?? null, 'inside the 10 s allowance');
+            static::$db->exec("UPDATE radacct SET acctupdatetime = UTC_TIMESTAMP() + INTERVAL 8 SECOND WHERE radacctid = {$id}");
+            $this->assertSame('WARNING', $this->healthCheck('nas_clock')['status'] ?? null, 'early warning beyond 5 s, before the 10 s hard limit');
+            static::$db->exec("UPDATE radacct SET acctupdatetime = UTC_TIMESTAMP() + INTERVAL 2 SECOND WHERE radacctid = {$id}");
+            $this->assertSame('OK', $this->healthCheck('nas_clock')['status'] ?? null, 'a 2 s stamp is normal');
             static::$db->exec("UPDATE radacct SET acctupdatetime = UTC_TIMESTAMP() WHERE radacctid = {$id}");
             $this->assertSame('OK', $this->healthCheck('nas_clock')['status'] ?? null, 'a normal stamp is fine');
         } finally {
