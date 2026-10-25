@@ -468,5 +468,8 @@
     "Postpaid": "Postpaid",
     "Forgot_Username": "Forgot Username",
     "Account_already_exists": "Account already exists",
-    "Created__UTC_": "Created (UTC)"
+    "Created__UTC_": "Created (UTC)",
+    "Service_type_mismatch": "Service type mismatch",
+    "The_plan_type_does_not_match_the_service_type_of_this_subscriber__Check_before_confirming_": "The plan type does not match the service type of this subscriber. Check before confirming.",
+    "No_active_service_of_this_type": "No active service of this type"
 }
