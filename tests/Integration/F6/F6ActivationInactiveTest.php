@@ -87,4 +87,41 @@ final class F6ActivationInactiveTest extends ActivationTestCase
         $this->assertSame([], $bad, 'FINDING: an activation started while Active completed and provisioned RADIUS after the customer became non-Active '
             . '(ActivationService::execute / replay in open() do not re-check tbl_customers.status): ' . json_encode($bad));
     }
+
+    /**
+     * Expert review 2026-10-26: the refusal changes no money and is noted once. The reservation stays ACTIVE, the wallets
+     * are unchanged, a repeated resume does not move updated_at (the stale-only web Cancel stays available), and the
+     * operator cancel then releases the reserved funds.
+     */
+    public function testTheRefusalKeepsTheReservationIsNotedOnceAndCancelReleasesIt(): void
+    {
+        [$plan, [$top, $leaf]] = $this->pricedChain(['12', '15'], '10', '20');
+        $c = $this->customer($leaf);
+        ActivationFaults::$hook = static function (string $p): void {
+            if ($p === 'activation.before_execute') {
+                throw new \RuntimeException('injected crash before execute');
+            }
+        };
+        try {
+            $this->activate($leaf, $c, $plan, 'NEW', self::nonce());
+            $this->fail('crash expected');
+        } catch (\RuntimeException) {
+        }
+        ActivationFaults::$hook = null;
+        $act = static::$db->rows('SELECT * FROM tbl_reseller_activations WHERE customer_id = ? ORDER BY id DESC LIMIT 1', [$c])[0];
+        $balances = [$this->balance($top), $this->balance($leaf)];
+        $reserved = (int) static::$db->value("SELECT COUNT(*) FROM tbl_manager_wallet_reservations WHERE activation_id = ? AND status = 'ACTIVE'", [(int) $act['id']]);
+        $this->assertSame(1, $reserved, 'fixture: the funds are reserved');
+        $this->setCustomerStatus($c, 'Suspended');
+        ActivationService::execute((int) $act['id'], ActivationActor::system('f6-test'));
+        $first = static::$db->rows('SELECT status, updated_at, error_code FROM tbl_reseller_activations WHERE id = ?', [(int) $act['id']])[0];
+        $this->assertSame(['FUNDS_RESERVED', 'CUSTOMER_INACTIVE'], [$first['status'], $first['error_code']]);
+        ActivationService::execute((int) $act['id'], ActivationActor::system('f6-test'));
+        $second = static::$db->rows('SELECT status, updated_at FROM tbl_reseller_activations WHERE id = ?', [(int) $act['id']])[0];
+        $this->assertSame($first['updated_at'], $second['updated_at'], 'a repeated refusal does not move updated_at');
+        $this->assertSame(1, (int) static::$db->value("SELECT COUNT(*) FROM tbl_reseller_activation_events WHERE activation_id = ? AND error_code = 'CUSTOMER_INACTIVE'", [(int) $act['id']]), 'noted once');
+        $this->assertSame($balances, [$this->balance($top), $this->balance($leaf)], 'no wallet movement');
+        $this->assertSame(1, (int) static::$db->value("SELECT COUNT(*) FROM tbl_manager_wallet_reservations WHERE activation_id = ? AND status = 'ACTIVE'", [(int) $act['id']]), 'still reserved');
+        $this->assertSame([], $this->radcheck($this->username($c)), 'nothing provisioned');
+    }
 }

@@ -89,6 +89,18 @@ final class ActivationService
      *
      * @return array{action:string,start:string,expiry:string,plan:string,customer:string}
      */
+    /**
+     * True when this staff actor already submitted this nonce (expert review 2026-10-26): the controller then leaves the
+     * answer to the idempotency path of create() instead of re-checking form fields. Read only.
+     */
+    public static function isReplay(ActorContext $a, mixed $nonce): bool
+    {
+        if (!is_string($nonce) || !preg_match(self::NONCE, $nonce)) {
+            return false;
+        }
+        return ActivationStore::byKey(FinanceTx::pdo(), 'staff:' . (int) $a->userId . ':' . $nonce) !== null;
+    }
+
     public static function preview(ActorContext $a, mixed $customerId, mixed $planId): array
     {
         self::assertEligible($a);
@@ -361,6 +373,11 @@ final class ActivationService
         $customerStatus = Tx::row(FinanceTx::pdo(), 'SELECT status FROM tbl_customers WHERE id = ?', [(int) $row['customer_id']])['status'] ?? null;
         if ($customerStatus !== 'Active') {
             $status = (string) $row['status'];
+            // expert review 2026-10-26: noted once; a repeated resume / replay changes nothing (no updated_at bump, so the
+            // stale-only web Cancel stays available for the reserved funds)
+            if ((string) ($row['error_code'] ?? '') === 'CUSTOMER_INACTIVE') {
+                return false;
+            }
             self::tx(static fn(\PDO $pdo) => ActivationStore::note($pdo, $id, $status, $actor,
                 ['event_type' => 'ANNOTATION', 'error_code' => 'CUSTOMER_INACTIVE', 'error_message' => 'The customer is not Active; provisioning did not start.'],
                 ['error_code' => 'CUSTOMER_INACTIVE', 'error_message' => 'The customer is not Active; provisioning did not start. Cancel, or resume after reactivation.']));

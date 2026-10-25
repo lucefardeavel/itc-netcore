@@ -44,6 +44,59 @@ final class W10OwnerDecisionsTest extends Wp2HttpTestCase
         }
     }
 
+    /** expert review 2026-10-26: the rule also holds for a reseller-owned customer (LegacyReprovisionService ADMIN_SYNC) */
+    public function testTheResellerSyncRefusesACustomerThatIsNotActive(): void
+    {
+        $cid = $this->cid('cA1');
+        static::$db->exec("UPDATE tbl_customers SET status = 'Suspended' WHERE id = {$cid}");
+        try {
+            $before = static::$app->probe('device');
+            $s = $this->staff('ad');
+            $r = $s->postWithToken('customers/sync/' . $cid, ['token' => $s->token()]);
+            $this->assertContains($r->status, [200, 302], $r->excerpt());
+            $this->assertSame($before, static::$app->probe('device'), 'no device call for a Suspended reseller-owned customer');
+        } finally {
+            static::$db->exec("UPDATE tbl_customers SET status = 'Active' WHERE id = {$cid}");
+        }
+    }
+
+    /** UX-2 / expert review 2026-10-26: a prepaid plan is not deactivated from the portal, also by a direct POST */
+    public function testAPrepaidPlanIsNotDeactivatedFromThePortal(): void
+    {
+        $cid = $this->cid('cNULL');
+        $bw = static::$db->insertRow('tbl_bandwidth', ['name_bw' => 'w10_prepaid_bw', 'rate_down' => 4, 'rate_down_unit' => 'Mbps', 'rate_up' => 1, 'rate_up_unit' => 'Mbps']);
+        $plan = static::$db->insertRow('tbl_plans', ['name_plan' => 'w10_prepaid', 'id_bw' => $bw, 'price' => '10', 'type' => 'Hotspot', 'typebp' => 'Unlimited',
+            'limit_type' => 'Time_Limit', 'time_limit' => 0, 'time_unit' => 'Hrs', 'data_limit' => 0, 'data_unit' => 'MB', 'validity' => 30, 'validity_unit' => 'Days',
+            'shared_users' => 1, 'routers' => 'radius', 'is_radius' => 1, 'pool' => '', 'enabled' => 1, 'prepaid' => 'yes', 'plan_type' => 'Personal', 'device' => 'Radius']);
+        $bill = static::$db->insertRow('tbl_user_recharges', ['customer_id' => $cid, 'username' => 'cNULL', 'plan_id' => $plan, 'namebp' => 'w10_prepaid',
+            'recharged_on' => date('Y-m-d'), 'recharged_time' => '00:00:00', 'expiration' => date('Y-m-d', strtotime('+10 days')), 'time' => '23:59:59',
+            'status' => 'on', 'method' => 'Admin - seed', 'routers' => 'radius', 'type' => 'Hotspot', 'admin_id' => static::$seed->staff['ad']]);
+        try {
+            $c = $this->customer('cNULL');
+            $c->postWithToken('home', [], ['deactivate' => $bill], 'home');
+            $this->assertSame('on', (string) static::$db->value('SELECT status FROM tbl_user_recharges WHERE id = ?', [$bill]), 'the prepaid plan stays on');
+            $this->assertStringContainsString('A prepaid plan cannot be deactivated from the portal.', $c->get('home')->body);
+        } finally {
+            static::$db->exec("DELETE FROM tbl_user_recharges WHERE id = {$bill}");
+        }
+    }
+
+    /** expert review 2026-10-26 (pre-existing): the customer-chosen name is escaped in the impersonation notice */
+    public function testTheImpersonationNoticeEscapesTheCustomerName(): void
+    {
+        $cid = $this->cid('cNULL');
+        $old = (string) static::$db->value('SELECT fullname FROM tbl_customers WHERE id = ?', [$cid]);
+        static::$db->exec("UPDATE tbl_customers SET fullname = '<x-nuxr-xss>' WHERE id = {$cid}");
+        try {
+            $s = $this->staff('sa');
+            $r = $s->postWithToken('customers/login/' . $cid, ['token' => $s->token()]);
+            $this->assertStringNotContainsString('<x-nuxr-xss>', $r->body, 'the marker element never reaches the page unescaped');
+            $this->assertStringContainsString('&lt;x-nuxr-xss&gt;', $r->body);
+        } finally {
+            static::$db->pdo->prepare('UPDATE tbl_customers SET fullname = ? WHERE id = ?')->execute([$old, $cid]);
+        }
+    }
+
     public function testImpersonationIsLoggedAndAudited(): void
     {
         $cid = $this->cid('cNULL');

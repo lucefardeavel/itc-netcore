@@ -121,6 +121,14 @@ PHP);
         }
         $this->assertStringContainsString('activation/view/', (string) $r->location(), 'acknowledged: the activation runs ' . $why);
         $this->assertSame($before + 1, (int) static::$db->value('SELECT COUNT(*) FROM tbl_reseller_activations WHERE customer_id = ?', [$cid]));
+        // expert review 2026-10-26: a replay of the same request (same nonce) without the box is answered by the
+        // idempotency path (the existing activation), never by a new refusal, and creates nothing
+        $view = (string) $r->location();
+        $r = $c->postWithToken('activation/create-post', ['nonce' => $n[1], 'preview' => $f[1]] + $post);
+        $this->assertSame(302, $r->status, $r->excerpt());
+        $this->assertStringContainsString('activation/view/', (string) $r->location(), 'the replay reports the existing activation');
+        $this->assertSame(substr($view, strpos($view, 'activation/view/')), substr((string) $r->location(), strpos((string) $r->location(), 'activation/view/')));
+        $this->assertSame($before + 1, (int) static::$db->value('SELECT COUNT(*) FROM tbl_reseller_activations WHERE customer_id = ?', [$cid]));
     }
 
     public function testARenewalShowsNoLossWarning(): void

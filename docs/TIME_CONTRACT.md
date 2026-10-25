@@ -56,6 +56,7 @@ The application never parses accounting times as PHP-local strings: it reads epo
 ## 5. Target acceptance (not run here)
 
 - **TA-02** clock discipline on the real hosts and the real NAS (`chronyc tracking` / `timedatectl`, `/system ntp client print`, comparison with
-  the Accounting-Start arrival; more than 60 s is a FAIL).
+  the Accounting-Start arrival; more than 10 s is a FAIL). The database clock must slew, never step backwards: the
+  fresh-session hold (10 s) is measured on it.
 - **TA-06** renewal on the target NAS, including a re-dial inside 10 s of the renewal and an accounting delay.
 - Until both pass the time contract is **documented and lab-verified**, not production-ready.
