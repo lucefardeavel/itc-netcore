@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/phpnuxbill.customer.css?2025.2.4" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v2" />
     {if $nuxr_dir eq 'rtl'}
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?wp6c.2" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?lab.3" />
     {/if}
 
     <style>
