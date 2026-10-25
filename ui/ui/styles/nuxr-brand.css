@@ -181,7 +181,7 @@ body.dark-mode :is(.form-control, .nuxr-input, input[type=text], input[type=pass
 body.dark-mode :is(input, textarea, select):focus:not(#filterNavigateMenu) { color: var(--nx-text) !important; }
 body.dark-mode :is(input, textarea)::placeholder { color: var(--nx-muted) !important; opacity: 1; }
 html:has(> body.dark-mode) { background-color: #0c1525; color-scheme: dark; }
-body.dark-mode .btn-link, body.dark-mode .btn-link:is(:hover, :focus) { color: var(--nx-link) !important; }
+body.dark-mode .btn-link, body.dark-mode .btn-link:is(:hover, :focus) { color: var(--nx-link) !important; text-decoration: underline; text-underline-offset: 2px; }
 body.dark-mode .btn-default { background-color: var(--nx-surface-2) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
 body.nuxr-shell .content .box.box-primary { border-top-color: var(--nx-primary); }
 body.nuxr-shell .content .box.box-success { border-top-color: var(--nx-success); }

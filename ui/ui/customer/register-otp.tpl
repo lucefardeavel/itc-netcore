@@ -71,11 +71,11 @@
                         </div>
                         <!-- Password Fields -->
                         <div class="form-group">
-                            <label>{Lang::T('Password')}</label>
+                            <label for="password">{Lang::T('Password')}</label>
                             <input type="password" required class="form-control" id="password" name="password">
                         </div>
                         <div class="form-group">
-                            <label>{Lang::T('Confirm Password')}</label>
+                            <label for="cpassword">{Lang::T('Confirm Password')}</label>
                             <input type="password" required class="form-control" id="cpassword" name="cpassword">
                         </div>
                         <div class="btn-group btn-group-justified mb15">
