@@ -56,7 +56,8 @@
     <section class="nuxr-card">
         <div class="nuxr-card-body" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
             {call name=nuxr_initial who=$nuxr_customer.fullname}
-            <div style="flex:1 1 180px;min-width:0"><strong>{$nuxr_customer.fullname|escape}</strong><br><bdi dir="ltr" class="nuxr-muted">{$nuxr_customer.username|escape}</bdi></div>
+            <div style="flex:1 1 180px;min-width:0"><strong>{$nuxr_customer.fullname|escape}</strong><br><bdi dir="ltr" class="nuxr-muted">{$nuxr_customer.username|escape}</bdi>
+                {if $nuxr_customer.service_type}<span class="nuxr-muted" id="nuxr-service-type"> · {Lang::T('Service Type')}: {Lang::T($nuxr_customer.service_type)|escape}</span>{/if}</div>
             <a class="nuxr-btn" href="{Text::url('customers/view/', $nuxr_customer.id)}">{Lang::T('Subscriber')}</a>
             <a class="nuxr-btn" href="{Text::url('activation/create')}">{Lang::T('Change')}</a>
         </div>
@@ -102,9 +103,16 @@
                 <div class="nuxr-alert is-warning" role="alert" id="nuxr-change-loss" style="margin:0 0 12px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
                     <div><strong>{Lang::T('Remaining paid time will be lost')}</strong> {NuxrUi::lostDaysNotice($nuxr_lost, $q.current_expiry)|escape}</div></div>
             {/if}
+            {if $nuxr_service_mismatch}
+                {* UX-3: a warning only; the activation is not blocked (an owner decision) *}
+                <div class="nuxr-alert is-warning" role="alert" id="nuxr-service-mismatch" style="margin:0 0 12px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                    <div><strong>{Lang::T('Service type mismatch')}</strong>
+                        {Lang::T('The plan type does not match the service type of this subscriber. Check before confirming.')}
+                        <bdi dir="ltr">({Lang::T('Plan')}: {$q.plan_type|escape} · {Lang::T('Service Type')}: {$nuxr_customer.service_type|escape})</bdi></div></div>
+            {/if}
             <dl class="nuxr-kv">
                 <div><dt>{Lang::T('Plan')}</dt><dd>{$q.plan_name|escape}</dd></div>
-                <div><dt>{Lang::T('Current expiry')}</dt><dd>{if $q.current_expiry}<bdi dir="ltr">{$q.current_expiry|escape}</bdi>{else}-{/if}</dd></div>
+                <div><dt>{Lang::T('Current expiry')}</dt><dd>{if $q.current_expiry}<bdi dir="ltr">{$q.current_expiry|escape}</bdi>{else}{Lang::T('No active service of this type')}{/if}</dd></div>
                 <div><dt>{Lang::T('New period')}</dt><dd><bdi dir="ltr">{$q.start|escape} → {$q.expiry|escape}</bdi></dd></div>
                 {if $q.full && $q.payer}<div><dt>{Lang::T('Paid from the wallet of')}</dt><dd><bdi dir="ltr">{$q.payer|escape}</bdi></dd></div>{/if}
             </dl>

@@ -48,7 +48,7 @@
                     {if $d['pppoe_ip']}<div><dt>{Lang::T('Static IP')}</dt><dd><bdi dir="ltr" class="nuxr-mono">{$d['pppoe_ip']|escape}</bdi></dd></div>{/if}
                     {if $d['address']}<div><dt>{Lang::T('Address')}</dt><dd>{$d['address']|escape}</dd></div>{/if}
                     <div><dt>{Lang::T('Account type')}</dt><dd>{Lang::T($d['account_type'])}</dd></div>
-                    <div><dt>{Lang::T('Created')}</dt><dd><bdi dir="ltr">{$d['created_at']|escape}</bdi></dd></div>
+                    <div><dt>{Lang::T('Created (UTC)')}</dt><dd><bdi dir="ltr">{$d['created_at']|escape}</bdi></dd></div>
                     {if $nuxr_creator|default:''}<div><dt>{Lang::T('Created by')}</dt><dd><bdi dir="ltr">{$nuxr_creator|escape}</bdi></dd></div>{/if}
                     {if $d['last_login']}<div><dt>{Lang::T('Last Login')}</dt><dd><bdi dir="ltr">{$d['last_login']|escape}</bdi></dd></div>{/if}
                     <div><dt>{Lang::T('Auto Renewal')}</dt><dd>{if $d['auto_renewal']}{Lang::T('Yes')}{else}{Lang::T('No')}{/if}</dd></div>

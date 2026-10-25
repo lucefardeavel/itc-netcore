@@ -175,6 +175,16 @@ switch ($action) {
             $nuxrParent = ORM::for_table('tbl_users')->select_many('id', 'username')->find_one((int) $nuxrActor->managerId);
             $ui->assign('nuxr_parent_owner', $nuxrParent ? $nuxrParent['username'] : null);
         }
+        // UX-12: non-secret fields of a refused add-post, shown once (never a password)
+        $nuxrRefill = $_SESSION['nuxr_customer_add_refill'] ?? null;
+        unset($_SESSION['nuxr_customer_add_refill']);
+        $nuxrForm = array_fill_keys(['fullname', 'phonenumber', 'email', 'address', 'service_type', 'account_type', 'username', 'pppoe_username', 'pppoe_ip'], '');
+        foreach ($nuxrForm as $k => $unused) {
+            if (is_array($nuxrRefill) && isset($nuxrRefill[$k]) && is_string($nuxrRefill[$k])) {
+                $nuxrForm[$k] = $nuxrRefill[$k];
+            }
+        }
+        $ui->assign('nuxr_refill', $nuxrForm);
         run_hook('view_add_customer'); #HOOK
         $ui->assign('csrf_token',  Csrf::generateAndStoreToken());
         $ui->display('admin/customers/add.tpl');
@@ -573,6 +583,14 @@ switch ($action) {
         $zip = _post('zip');
 
         run_hook('add_customer'); #HOOK
+        // UX-12: after a refused add the form is offered again with the NON-SECRET fields (one request, then cleared
+        // by customers/add); passwords (login and PPPoE) are never kept
+        $nuxrRefill = [];
+        foreach (['fullname' => $fullname, 'phonenumber' => $phonenumber, 'email' => $email, 'address' => $address,
+                     'service_type' => $service_type, 'account_type' => $account_type, 'username' => $username,
+                     'pppoe_username' => $pppoe_username, 'pppoe_ip' => $pppoe_ip] as $k => $v) {
+            $nuxrRefill[$k] = is_scalar($v) ? (string) $v : '';
+        }
         $msg = '';
         if (Validator::Length($username, 55, 2) == false) {
             $msg .= 'Username should be between 3 to 54 characters' . '<br>';
@@ -587,7 +605,7 @@ switch ($action) {
 
         $d = ORM::for_table('tbl_customers')->where('username', $username)->find_one();
         if ($d) {
-            $msg .= Lang::T('Account already axist') . '<br>';
+            $msg .= Lang::T('Account already exists') . '<br>';
         }
         if ($msg == '') {
             // WP2 / SEC-06: ownership resolved server-side by role (CustomerService); posted
@@ -611,6 +629,7 @@ switch ($action) {
                     'manager_id' => _post('manager_id'), 'assigned_sales_id' => _post('assigned_sales_id'),
                 ], $nuxrFields);
             } catch (\Reseller\Domain\DomainError $e) {
+                $_SESSION['nuxr_customer_add_refill'] = $nuxrRefill;
                 r2(getUrl('customers/add'), 'e', Lang::T($e->getMessage()));
             }
             $d = ORM::for_table('tbl_customers')->find_one($customerId);
@@ -658,6 +677,7 @@ switch ($action) {
             // WP6A: continue on the new subscriber's 360 (Activate now / Later)
             r2(getUrl('customers/view/') . (int) $customerId . '&created=1', 's', Lang::T('Account Created Successfully'));
         } else {
+            $_SESSION['nuxr_customer_add_refill'] = $nuxrRefill;
             r2(getUrl('customers/add'), 'e', $msg);
         }
         break;

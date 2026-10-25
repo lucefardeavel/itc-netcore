@@ -13,6 +13,12 @@ final class Format
     /** Languages written right-to-left (system/lan/<name>.json). */
     public const RTL = ['arabic'];
 
+    /**
+     * UX-14: languages offered in the customer portal menu, each by its own (native) name. Presentation only: the other
+     * shipped files stay on disk and the language switch keeps validating against them (PathGuard::language).
+     */
+    public const PORTAL_LANGUAGES = ['arabic' => 'العربية', 'english' => 'English'];
+
     /** Activation states by presentation tone (StatusBadge); every ActivationState has exactly one. */
     public const STATE_TONE = [
         'CREATED' => 'processing', 'VALIDATED' => 'processing', 'FUNDS_RESERVED' => 'processing', 'PROVISIONING' => 'processing',
@@ -42,6 +48,12 @@ final class Format
     {
         $iso = \Lang::getIsoLang()[(string) $language] ?? null;
         return is_string($iso) && preg_match('/^[a-z]{2,3}$/', $iso) ? $iso : 'en';
+    }
+
+    /** Native name of a language file (العربية / English); other names as before (ucwords). */
+    public static function languageName(?string $language): string
+    {
+        return self::PORTAL_LANGUAGES[(string) $language] ?? ucwords((string) $language);
     }
 
     /** "IQD 12,500" / "IQD 12,500.50" from a server amount string; '' for null. Latin digits (OD-F). */

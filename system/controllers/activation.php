@@ -86,7 +86,13 @@ switch ($action) {
             $ui->assign('nuxr_error', Lang::T($e->getMessage()));
         }
         $ui->assign('_title', Lang::T('Activate / Renew'));
-        $ui->assign('nuxr_customer', $customer ? ['id' => (int) $customer['id'], 'username' => (string) $customer['username'], 'fullname' => (string) $customer['fullname']] : null);
+        $ui->assign('nuxr_customer', $customer ? ['id' => (int) $customer['id'], 'username' => (string) $customer['username'], 'fullname' => (string) $customer['fullname'],
+            'service_type' => (string) $customer['service_type']] : null);
+        // UX-3 (display only, never a refusal): the plan's type differs from the subscriber's recorded service type
+        // (e.g. a PPPoE plan for a Hotspot subscriber). Compared only when the service type is a known one.
+        $nuxrServiceType = $customer ? strtoupper(trim((string) $customer['service_type'])) : '';
+        $ui->assign('nuxr_service_mismatch', $preview !== null && in_array($nuxrServiceType, ['HOTSPOT', 'PPPOE', 'VPN'], true)
+            && strtoupper(trim((string) ($preview['plan_type'] ?? ''))) !== $nuxrServiceType);
         $ui->assign('nuxr_plan_cards', \Reseller\Ui\Subscriber::planCards($plans));
         $ui->assign('nuxr_plans', $plans);
         $ui->assign('nuxr_customer_id', \Reseller\Security\DataScope::validId($customerId) ? (int) $customerId : '');
