@@ -466,5 +466,6 @@
     "Radius_Plan": "Radius Plan",
     "Prepaid": "Prepaid",
     "Postpaid": "Postpaid",
-    "Forgot_Username": "Forgot Username"
+    "Forgot_Username": "Forgot Username",
+    "Account_already_exists": "Account already exists"
 }

@@ -16,23 +16,23 @@
             <div class="nuxr-card-head"><h2 id="nuxr-step-1"><span class="nuxr-stepno" aria-hidden="true">1</span>{Lang::T('Identity and service')}</h2></div>
             <div class="nuxr-card-body nuxr-fields">
                 <label for="fullname">{Lang::T('Full Name')} <span aria-hidden="true">*</span></label>
-                <input id="fullname" name="fullname" class="form-control nuxr-input" required maxlength="45" autocomplete="off">
+                <input id="fullname" name="fullname" class="form-control nuxr-input" required maxlength="45" autocomplete="off" value="{$nuxr_refill.fullname|escape}">
                 <label for="phonenumber">{Lang::T('Phone Number')}</label>
-                <input id="phonenumber" name="phonenumber" class="form-control nuxr-input ltr" dir="ltr" inputmode="tel" maxlength="20"
+                <input id="phonenumber" name="phonenumber" class="form-control nuxr-input ltr" dir="ltr" inputmode="tel" maxlength="20" value="{$nuxr_refill.phonenumber|escape}"
                     placeholder="{if $_c['country_code_phone'] neq ''}{$_c['country_code_phone']|escape}…{/if}">
                 <label for="email">{Lang::T('Email')}</label>
-                <input id="email" type="email" name="email" class="form-control nuxr-input ltr" dir="ltr" maxlength="128">
+                <input id="email" type="email" name="email" class="form-control nuxr-input ltr" dir="ltr" maxlength="128" value="{$nuxr_refill.email|escape}">
                 <label for="service_type">{Lang::T('Service Type')}</label>
                 <select id="service_type" name="service_type" class="form-control nuxr-input">
                     <option value="Hotspot">Hotspot</option>
-                    <option value="PPPoE">PPPoE</option>
-                    <option value="VPN">VPN</option>
-                    <option value="Others">{Lang::T('Other')}</option>
+                    <option value="PPPoE" {if $nuxr_refill.service_type eq 'PPPoE'}selected{/if}>PPPoE</option>
+                    <option value="VPN" {if $nuxr_refill.service_type eq 'VPN'}selected{/if}>VPN</option>
+                    <option value="Others" {if $nuxr_refill.service_type eq 'Others'}selected{/if}>{Lang::T('Other')}</option>
                 </select>
                 <label for="account_type">{Lang::T('Account Type')}</label>
                 <select id="account_type" name="account_type" class="form-control nuxr-input">
                     <option value="Personal">{Lang::T('Personal')}</option>
-                    <option value="Business">{Lang::T('Business')}</option>
+                    <option value="Business" {if $nuxr_refill.account_type eq 'Business'}selected{/if}>{Lang::T('Business')}</option>
                 </select>
             </div>
             <div class="nuxr-step-nav"><button type="button" class="nuxr-btn nuxr-btn-primary" data-nuxr-step-next>{Lang::T('Next')}<i class="fa fa-angle-right nuxr-dir-icon" aria-hidden="true"></i></button></div>
@@ -43,7 +43,7 @@
             <div class="nuxr-card-body nuxr-fields">
                 <label for="username">{Lang::T('Username')} <span aria-hidden="true">*</span></label>
                 <input id="username" name="username" class="form-control nuxr-input ltr" dir="ltr" required minlength="3" maxlength="45" pattern="[A-Za-z0-9:+_.@\-]+"
-                    aria-describedby="nuxr-username-help" autocapitalize="off" spellcheck="false">
+                    aria-describedby="nuxr-username-help" autocapitalize="off" spellcheck="false" value="{$nuxr_refill.username|escape}">
                 <small id="nuxr-username-help" class="nuxr-muted">{Lang::T('Letters, digits and : + _ . @ - only.')}</small>
                 <label for="password">{Lang::T('Password')} <span aria-hidden="true">*</span></label>
                 <div class="nuxr-filters" style="margin:0">
@@ -54,15 +54,15 @@
                     <legend style="font-size:15px;font-weight:700;border:0;margin:0 0 4px">PPPoE <span class="nuxr-muted" style="font-weight:400">({Lang::T('optional')})</span></legend>
                     <label for="pppoe_username">{Lang::T('PPPoE username')}</label>
                     <input id="pppoe_username" name="pppoe_username" class="form-control nuxr-input ltr" dir="ltr" maxlength="45" autocapitalize="off" spellcheck="false"
-                        aria-describedby="nuxr-pppoe-help">
+                        aria-describedby="nuxr-pppoe-help" value="{$nuxr_refill.pppoe_username|escape}">
                     <label for="pppoe_password">{Lang::T('PPPoE password')}</label>
                     <input id="pppoe_password" name="pppoe_password" class="form-control nuxr-input ltr" dir="ltr" maxlength="45" spellcheck="false">
                     <label for="pppoe_ip">{Lang::T('Static IP')}</label>
-                    <input id="pppoe_ip" name="pppoe_ip" class="form-control nuxr-input ltr" dir="ltr" maxlength="32" inputmode="decimal" placeholder="10.0.0.10">
+                    <input id="pppoe_ip" name="pppoe_ip" class="form-control nuxr-input ltr" dir="ltr" maxlength="32" inputmode="decimal" placeholder="10.0.0.10" value="{$nuxr_refill.pppoe_ip|escape}">
                     <small id="nuxr-pppoe-help" class="nuxr-muted">{Lang::T('When empty, the PPPoE login uses the subscriber\'s username and password.')}</small>
                 </fieldset>
                 <label for="address" style="margin-top:12px">{Lang::T('Home Address')}</label>
-                <textarea id="address" name="address" class="form-control" rows="2" maxlength="255"></textarea>
+                <textarea id="address" name="address" class="form-control" rows="2" maxlength="255">{$nuxr_refill.address|escape}</textarea>
                 <label for="coordinates">{Lang::T('Coordinates')}</label>
                 <input id="coordinates" name="coordinates" class="form-control nuxr-input ltr" dir="ltr" maxlength="64" placeholder="lat,lng">
                 <button type="button" class="nuxr-btn" style="margin-top:8px" data-nuxr-map="nuxr-map" ><i class="fa fa-map-marker" aria-hidden="true"></i>{Lang::T('Pick on map')}</button>
