@@ -143,6 +143,40 @@ final class W10FreshSessionHoldGateTest extends TestCase
         }
     }
 
+    /**
+     * The SEC-E2 window itself: the second client is launched 60-250 ms after the first (A's Accounting-Start follows A's
+     * Access-Request by ~80 ms on this lab), so B's request lands in the first few hundred ms after A's Start, before the
+     * session is visible over SNMP (measured above: <= ~0.4-0.7 s). Same independent proof as the A2 gate: a double is
+     * counted only with two distinct live NAS sessions, both clients up together and traffic on both links.
+     */
+    public function testSecondLoginScanAroundTheFirstAccountingStart(): void
+    {
+        $out = [];
+        foreach ([60, 80, 100, 120, 140, 160, 180, 200, 250] as $off) {
+            for ($i = 0; $i < 3; $i++) {
+                $u = $this->user('W10-hold-4');
+                $r = Wp8Lab::agent('pppoe_race', ['clients' => ['c1', 'c3'], 'user' => $u, 'password' => 'W10-hold-4', 'offset_ms' => $off, 'observe' => 15], 120);
+                $doubleNas = false;
+                foreach ($r['samples'] as $s) {
+                    $ids = array_unique(array_filter(array_column($s['rows'], 'session-id')));
+                    $macs = array_unique(array_filter(array_column($s['rows'], 'caller-id')));
+                    $doubleNas = $doubleNas || ($s['n'] >= 2 && count($ids) >= 2 && count($macs) >= 2);
+                }
+                $decisions = self::accessDecisions($u);
+                $accepts = count(array_filter($decisions, static fn($d) => $d['reply'] === 'Access-Accept'));
+                $double = $accepts >= 2 && $doubleNas && $r['client_overlap_ns'] !== null && $r['ping_pairs_within_500ms'] > 0;
+                $out[] = ['offset_ms' => $off, 'launch_skew_ms' => round($r['launch_skew_ns'] / 1e6, 1), 'accepts' => $accepts, 'nas_max' => $r['nas_max'],
+                    'double' => $double, 'guard' => array_map(static fn($d) => [$d['reply'], $d['guard_verdict']], $decisions)];
+                $this->releaseClients();
+                Wp8Lab::until(fn() => Wp8Lab::pppActive($u) === [], 20, 0.5);
+            }
+        }
+        Wp8Lab::evidence('W10.hold.scan', ['trials' => $out, 'doubles' => count(array_filter($out, static fn($t) => $t['double']))]);
+        foreach ($out as $t) {
+            $this->assertFalse($t['double'], "offset {$t['offset_ms']} ms: two live PPPoE sessions of one username - SECURITY GATE FAILED");
+        }
+    }
+
     public function testLostStopRecoveryAfterTheHold(): void
     {
         $u = $this->user('W10-hold-3');
