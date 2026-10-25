@@ -459,5 +459,7 @@
     "Toggle_navigation": "Toggle navigation",
     "Dark_mode": "Dark mode",
     "Language": "Language",
-    "Scan_QR_code": "Scan QR code"
+    "Scan_QR_code": "Scan QR code",
+    "Remaining_paid_time_will_be_lost": "Remaining paid time will be lost",
+    "_days__of_paid_service__until__date___will_be_lost__the_current_period_is_replaced_now_and_the_remaining_time_is_not_refunded_or_carried_over_": "[days] of paid service (until [date]) will be lost: the current period is replaced now and the remaining time is not refunded or carried over."
 }

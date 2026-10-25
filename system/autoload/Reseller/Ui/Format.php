@@ -176,6 +176,59 @@ final class Format
     }
 
     /**
+     * UX-15: a day count in words for the interface language. Arabic: 1 "يوم واحد", 2 "يومان", 3-10 "N أيام", 11-99 "N يوماً"
+     * (by the last two digits above 100: "100 يوم", "103 أيام", "365 يوماً"); otherwise "1 day" / "N days". Display only.
+     */
+    public static function days(int|string $n, ?string $language = null): string
+    {
+        $n = (int) $n;
+        $language ??= (string) ($GLOBALS['config']['language'] ?? '');
+        if ($language === 'arabic') {
+            $r = abs($n) % 100;
+            return match (true) {
+                $n === 1 => 'يوم واحد',
+                $n === 2 => 'يومان',
+                $r >= 3 && $r <= 10 => $n . ' أيام',
+                $r >= 11 => $n . ' يوماً',
+                default => $n . ' يوم',
+            };
+        }
+        $word = $n === 1 ? 'day' : 'days';
+        return $n . ' ' . ($language !== 'english' && class_exists('Lang', false) ? \Lang::T($word) : $word);
+    }
+
+    /**
+     * UX-15 (display only): whole days of paid service lost when a CHANGE_PLAN starts at $start while the current period
+     * runs until $currentExpiry (a started day counts), or null when nothing is lost. Both values come from the server quote;
+     * the result is never sent back and the server never reads it (the policy "CHANGE_PLAN starts now, no proration" is
+     * unchanged: docs/WP5A_ACTIVATION_MODEL.md).
+     */
+    public static function lostDays(?string $currentExpiry, ?string $start): ?int
+    {
+        $f = static fn(?string $v): ?\DateTimeImmutable => is_string($v) && preg_match('/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}(:\d{2})?)?$/D', $v)
+            ? (\DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', strlen($v) === 10 ? $v . ' 23:59:59' : (strlen($v) === 16 ? $v . ':00' : $v)) ?: null) : null;
+        $until = $f($currentExpiry);
+        $from = $f($start);
+        if ($until === null || $from === null || $until <= $from) {
+            return null;
+        }
+        return (int) ceil(($until->getTimestamp() - $from->getTimestamp()) / 86400);
+    }
+
+    /**
+     * UX-15: the plan-change warning ("N days of paid service (until Y-m-d) will be lost ..."), plain text: the caller escapes
+     * it. Only the date part of $until is shown (the full instant is on the "Current expiry" line; a lone date stays in order
+     * inside right-to-left text).
+     */
+    public static function lostDaysNotice(int $days, string $until, ?string $language = null): string
+    {
+        $text = class_exists('Lang', false)
+            ? \Lang::T('[days] of paid service (until [date]) will be lost: the current period is replaced now and the remaining time is not refunded or carried over.')
+            : '[days] of paid service (until [date]) will be lost: the current period is replaced now and the remaining time is not refunded or carried over.';
+        return strtr($text, ['[days]' => self::days($days, $language), '[date]' => substr($until, 0, 10)]);
+    }
+
+    /**
      * D8 (owner V1_OWNER_DECISIONS_APPROVED): a voucher code is a credential. Display surfaces that do not need the full code
      * (reports, receipts, print views, the customer's activation list) show "Voucher - AB****YZ" for the payment method
      * "Voucher - <code>"; the stored value is never changed (audit and financial records keep the original) and exports keep it.

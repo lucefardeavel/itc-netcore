@@ -72,7 +72,7 @@
                 <label for="nuxr-plan-select">{Lang::T('Plan')}</label>
                 <select id="nuxr-plan-select" name="plan" class="form-control nuxr-input" required>
                     <option value="">{Lang::T('Choose a plan')}</option>
-                    {foreach $nuxr_plan_cards as $p}<option value="{$p.id}" {if $p.id eq $nuxr_plan_id}selected{/if}>{$p.name_plan|escape} ({$p.type|escape}){if $p.speed} · {$p.speed|escape}{/if}{if $p.validity} · {$p.validity|escape} {Lang::T($p.validity_unit)}{/if}</option>{/foreach}
+                    {foreach $nuxr_plan_cards as $p}<option value="{$p.id}" {if $p.id eq $nuxr_plan_id}selected{/if}>{$p.name_plan|escape} ({$p.type|escape}){if $p.speed} · {$p.speed|escape}{/if}{if $p.validity} · {if $p.validity_unit eq 'Days'}{NuxrUi::days($p.validity)|escape}{else}{$p.validity|escape} {Lang::T($p.validity_unit)}{/if}{/if}</option>{/foreach}
                 </select>
                 <button class="nuxr-btn nuxr-btn-primary" type="submit" style="margin-top:12px">{Lang::T('Review')}</button>
             </form>
@@ -96,6 +96,12 @@
                 {elseif $q.action eq 'CHANGE_PLAN'}{Lang::T('Plan change: takes effect immediately, the full new period is charged, no proration.')}
                 {else}{Lang::T('The expired service is reactivated; a new period starts now.')}{/if}
             </p>
+            {* UX-15: the paid time a plan change replaces, from the quote's own dates (display only: never posted, never read by the server) *}
+            {if $q.action eq 'CHANGE_PLAN'}{assign var=nuxr_lost value=NuxrUi::lostDays($q.current_expiry, $q.start)}{else}{assign var=nuxr_lost value=null}{/if}
+            {if $nuxr_lost}
+                <div class="nuxr-alert is-warning" role="alert" id="nuxr-change-loss" style="margin:0 0 12px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+                    <div><strong>{Lang::T('Remaining paid time will be lost')}</strong> {NuxrUi::lostDaysNotice($nuxr_lost, $q.current_expiry)|escape}</div></div>
+            {/if}
             <dl class="nuxr-kv">
                 <div><dt>{Lang::T('Plan')}</dt><dd>{$q.plan_name|escape}</dd></div>
                 <div><dt>{Lang::T('Current expiry')}</dt><dd>{if $q.current_expiry}<bdi dir="ltr">{$q.current_expiry|escape}</bdi>{else}-{/if}</dd></div>
