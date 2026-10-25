@@ -2061,5 +2061,6 @@
   "SNMP_community": "مجتمع SNMP",
   "Privacy": "الخصوصية",
   "Terms": "الشروط",
-  "Remember_me": "تذكرني"
+  "Remember_me": "تذكرني",
+  "This_service_is_managed_by_your_reseller_and_cannot_be_changed_here__Please_contact_your_authorized_reseller_": "هذه الخدمة يديرها وكيلك ولا يمكن تغييرها من هنا. يرجى التواصل مع وكيلك المعتمد."
 }
