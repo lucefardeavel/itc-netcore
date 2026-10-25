@@ -2073,5 +2073,6 @@
   "VPN_Plan": "خطة VPN",
   "Service_type_mismatch": "نوع الخدمة غير مطابق",
   "The_plan_type_does_not_match_the_service_type_of_this_subscriber__Check_before_confirming_": "نوع الباقة لا يطابق نوع خدمة هذا المشترك. تحقّق قبل التأكيد.",
-  "No_active_service_of_this_type": "لا توجد خدمة فعّالة من هذا النوع"
+  "No_active_service_of_this_type": "لا توجد خدمة فعّالة من هذا النوع",
+  "To_renew__contact_your_authorised_agent": "للتجديد تواصل مع وكيلك المعتمد"
 }

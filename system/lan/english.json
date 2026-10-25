@@ -473,5 +473,6 @@
     "Created__UTC_": "Created (UTC)",
     "Service_type_mismatch": "Service type mismatch",
     "The_plan_type_does_not_match_the_service_type_of_this_subscriber__Check_before_confirming_": "The plan type does not match the service type of this subscriber. Check before confirming.",
-    "No_active_service_of_this_type": "No active service of this type"
+    "No_active_service_of_this_type": "No active service of this type",
+    "To_renew__contact_your_authorised_agent": "To renew, contact your authorised agent"
 }
