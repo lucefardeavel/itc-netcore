@@ -2073,5 +2073,6 @@
   "Service_type_mismatch": "نوع الخدمة غير مطابق",
   "The_plan_type_does_not_match_the_service_type_of_this_subscriber__Check_before_confirming_": "نوع الباقة لا يطابق نوع خدمة هذا المشترك. تحقّق قبل التأكيد.",
   "No_active_service_of_this_type": "لا توجد خدمة فعّالة من هذا النوع",
-  "To_renew__contact_your_authorised_agent": "للتجديد تواصل مع وكيلك المعتمد"
+  "To_renew__contact_your_authorised_agent": "للتجديد تواصل مع وكيلك المعتمد",
+  "This_service_is_managed_by_your_reseller_and_cannot_be_changed_here__Please_contact_your_authorized_reseller_": "هذه الخدمة يديرها وكيلك ولا يمكن تغييرها من هنا. يرجى التواصل مع وكيلك المعتمد."
 }

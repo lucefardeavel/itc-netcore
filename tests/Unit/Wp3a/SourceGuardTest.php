@@ -23,7 +23,7 @@ final class SourceGuardTest extends TestCase
      * pinned: the WP3A fix round adds the finance runtime tables to its required-table check.
      */
     private const PINNED = [
-        'system/autoload/Reseller/Domain/ServiceGate.php' => 'f0d6f3d96283725b134433122aaf8442eb8db983148b0a45379d8a6cb4f0ed82',
+        'system/autoload/Reseller/Domain/ServiceGate.php' => '78daac058d8cd05fb85a7b850f9bbf42ada10134c56b63eb063a8207606fbfe8',
         // WP5A (owner decision A7): the activation routes; WP6A (owner decision OD-C): + read-only activation/list;
         // WP6B (owner decision OD-1): the WP6B web surface and the explicit reseller API allow-list;
         // WP7 (owner decision OD-W7-2): + the public, GET-only pwa/manifest and pwa/ping (never API-allowed)
