@@ -245,6 +245,13 @@ post-auth {
 	#      creates or releases one.
 	#    - An ACTIVE reservation (its session was proven by accounting) is taken over only after the A1 SNMP verification
 	#      of its NAS proves that session gone - the A1 lost-Stop semantics, never applied to PENDING.
+	#    - FRESH-SESSION HOLD (lab SEC-E2): an ACTIVE reservation whose session was confirmed by accounting less than
+	#      10 s ago is never taken over, whatever the SNMP verification says. RouterOS can send the Accounting-Start of a
+	#      new session before that session is visible over SNMP, so a second login arriving just after the first
+	#      login's Start was verified SAFE and admitted (two live sessions of one subscriber on the real CHR). The age
+	#      is a condition of the claim statement itself (database clock, confirmed_at = UTC_TIMESTAMP(6) of the first
+	#      Start), so it holds at the serialization point; a reconnect inside the hold is refused (reject:active-fresh)
+	#      and its retry after the hold follows the A1 rule above.
 	#    - LATE-CLAIM GUARD: no claim and no Access-Accept when this request has been in FreeRADIUS longer than 5000 ms
 	#      (RouterOS 7.24.5 abandons an Access-Request about 9 s after its first transmission: 3 sends, 3 s apart, with
 	#      the A1 contract /radius timeout=3000ms). 5000 ms covers the A1 verification path (stock Simultaneous-Use
@@ -517,9 +524,10 @@ post-auth {
 			}
 		}
 		elsif ((&control:Tmp-String-0 == "ENDED") || (&control:Tmp-String-0 == "ACTIVE")) {
-			# ENDED: re-use the row; ACTIVE: reached only after the A1 verification proved its session gone (SAFE)
+			# ENDED: re-use the row; ACTIVE: reached only after the A1 verification proved its session gone (SAFE), and
+			# only once its session was confirmed at least 10 s ago (fresh-session hold, lab SEC-E2; a NULL never matches)
 			update request {
-				&Tmp-String-0 := "nuxr-admission-claim=%{sql:UPDATE nuxr_admission SET prev_token = token, prev_state = state, state = 'PENDING', token = '%{control:Tmp-String-5}', nas = '%{NAS-IP-Address}', acct_session_id = '%{Acct-Session-Id}', calling_station_id = '%{Calling-Station-Id}', nas_port_id = '%{NAS-Port-Id}', request_authenticator = '%{Tmp-String-7}', session_user = '%{SQL-User-Name}', attach_count = 0, created_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), confirmed_at = NULL, last_acct_at = NULL, ended_at = NULL, end_reason = NULL WHERE username = UNHEX('%{Tmp-String-2}') AND state = '%{control:Tmp-String-0}' AND token = '%{control:Tmp-String-1}'}"
+				&Tmp-String-0 := "nuxr-admission-claim=%{sql:UPDATE nuxr_admission SET prev_token = token, prev_state = state, state = 'PENDING', token = '%{control:Tmp-String-5}', nas = '%{NAS-IP-Address}', acct_session_id = '%{Acct-Session-Id}', calling_station_id = '%{Calling-Station-Id}', nas_port_id = '%{NAS-Port-Id}', request_authenticator = '%{Tmp-String-7}', session_user = '%{SQL-User-Name}', attach_count = 0, created_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), confirmed_at = NULL, last_acct_at = NULL, ended_at = NULL, end_reason = NULL WHERE username = UNHEX('%{Tmp-String-2}') AND state = '%{control:Tmp-String-0}' AND token = '%{control:Tmp-String-1}' AND (state <> 'ACTIVE' OR confirmed_at <= UTC_TIMESTAMP(6) - INTERVAL 10 SECOND)}"
 			}
 			update control {
 				&Tmp-String-9 := "created"
@@ -555,6 +563,12 @@ post-auth {
 			if (&Tmp-String-0 != "nuxr-admission-claim=1") {
 				update request {
 					&Tmp-String-0 := "nuxr-admission=reject:claim-lost"
+				}
+				# the same ACTIVE reservation is still there: the fresh-session hold refused the take-over
+				if ((&control:Tmp-String-0 == "ACTIVE") && (&Tmp-String-3 =~ /^r=ACTIVE\|%{control:Tmp-String-1}\|/)) {
+					update request {
+						&Tmp-String-0 := "nuxr-admission=reject:active-fresh"
+					}
 				}
 				attr_filter.access_reject
 				update reply {
