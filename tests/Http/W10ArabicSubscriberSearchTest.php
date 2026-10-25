@@ -25,6 +25,8 @@ final class W10ArabicSubscriberSearchTest extends Wp2HttpTestCase
         $set('cA1', ['fullname' => 'أحمد كريم', 'phonenumber' => '07701234567']);
         $set('cC1', ['fullname' => 'أحمد كريم', 'phonenumber' => '07701234567']);
         $set('cA2', ['fullname' => 'سارة علي', 'address' => 'إربيل، شارع الجامعة']);
+        // UX review follow-up: teh marbuta / heh and alef maksura / yeh, stored either way (cA0: A's own, no Sales)
+        $set('cA0', ['fullname' => 'فاطمة مصطفى']);
     }
 
     /** @return list<int> customer ids in the quick-search fragment */
@@ -64,6 +66,30 @@ final class W10ArabicSubscriberSearchTest extends Wp2HttpTestCase
             $this->assertSame($both, $this->quick('ad', $q), "quick search Admin '{$q}'");
         }
         $this->assertSame([], $this->quick('A', 'احمد سالم'), 'folding never matches a different name');
+    }
+
+    /**
+     * Teh marbuta (ة) and heh (ه), alef maksura (ى) and yeh (ي) fold to one form on both sides, so either spelling finds
+     * the other: stored ة / ى (cA0 "فاطمة مصطفى") and stored ة / ي (cA2 "سارة علي"); always within the caller's scope.
+     */
+    public function testTehMarbutaAndAlefMaksuraVariantsFindTheSubscriberWithinScope(): void
+    {
+        $c = static::$seed->customers;
+        $cases = [
+            'فاطمه' => $c['cA0'], 'فاطمة' => $c['cA0'],                 // stored ة, typed ه (and the stored form)
+            'مصطفي' => $c['cA0'], 'مصطفى' => $c['cA0'],                 // stored ى, typed ي (and the stored form)
+            'فاطمه مصطفي' => $c['cA0'],                                  // both variants at once
+            'ساره' => $c['cA2'], 'سارة على' => $c['cA2'], 'ساره على' => $c['cA2'], // stored ة / ي, typed ه / ى
+        ];
+        foreach ($cases as $q => $id) {
+            $this->assertSame([$id], $this->quick('A', $q), "quick search A '{$q}': own subscriber");
+            $this->assertSame([$id], $this->listed('A', $q), "list search A '{$q}': own subscriber");
+            $this->assertSame([$id], $this->quick('ad', $q), "quick search Admin '{$q}'");
+            $this->assertSame([], $this->quick('C', $q), "quick search C '{$q}': never A's subscriber");
+            $this->assertSame([], $this->quick('B', $q), "quick search B '{$q}': not B's subscriber");
+            $this->assertSame([], $this->quick('A1', $q), "quick search Sales A1 '{$q}': not assigned");
+        }
+        $this->assertSame([], $this->quick('A', 'فاطمه علي'), 'folding never matches a different name');
     }
 
     public function testTheFoldedAddressMatchesInTheCustomerList(): void
