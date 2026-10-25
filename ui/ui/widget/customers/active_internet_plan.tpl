@@ -149,6 +149,11 @@
                                     class="glyphicon glyphicon-refresh" aria-hidden="true"></span> {Lang::T('Sync')}</a>
                         </td>
                     </tr>
+                    {if $nuxr_owned}
+                        <tr>
+                            <td colspan="2" class="small text-muted">{Lang::T('To renew, contact your authorised agent')}</td>
+                        </tr>
+                    {/if}
                 </table>
             </div>
             &nbsp;&nbsp;
