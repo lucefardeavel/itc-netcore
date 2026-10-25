@@ -6,17 +6,17 @@
                     <h3 class="box-title">{$_bill['routers']|escape}</h3>
                     <div class="btn-group pull-right">
                         {if $_bill['type'] == 'Hotspot'}
-                            {if $_c['hotspot_plan']==''}Hotspot Plan{else}{$_c['hotspot_plan']}{/if}
+                            {if $_c['hotspot_plan']==''}{Lang::T('Hotspot Plan')}{else}{$_c['hotspot_plan']}{/if}
                         {else if $_bill['type'] == 'PPPOE'}
-                            {if $_c['pppoe_plan']==''}PPPOE Plan{else}{$_c['pppoe_plan']}{/if}
+                            {if $_c['pppoe_plan']==''}{Lang::T('PPPOE Plan')}{else}{$_c['pppoe_plan']}{/if}
                         {else if $_bill['type'] == 'VPN'}
-                            {if $_c['pppoe_plan']==''}VPN Plan{else}{$_c['vpn_plan']}{/if}
+                            {if $_c['vpn_plan']==''}{Lang::T('VPN Plan')}{else}{$_c['vpn_plan']}{/if}
                         {/if}
                     </div>
                 </div>
             {else}
                 <div class="box-header">
-                    <h3 class="box-title">{if $_c['radius_plan']==''}Radius Plan{else}{$_c['radius_plan']}{/if}</h3>
+                    <h3 class="box-title">{if $_c['radius_plan']==''}{Lang::T('Radius Plan')}{else}{$_c['radius_plan']}{/if}</h3>
                 </div>
             {/if}
             <div style="margin-left: 5px; margin-right: 5px;">
@@ -58,8 +58,8 @@
                     <tr>
                         <td class="small text-success text-uppercase text-normal">{Lang::T('Type')}</td>
                         <td class="small mb15 text-success">
-                            <b>{if $_bill['prepaid'] eq yes}Prepaid{else}Postpaid{/if}</b>
-                            {$_bill['plan_type']}
+                            <b>{if $_bill['prepaid'] eq yes}{Lang::T('Prepaid')}{else}{Lang::T('Postpaid')}{/if}</b>
+                            {if $_bill['plan_type']}{Lang::T($_bill['plan_type'])|escape}{/if}
                         </td>
                     </tr>
                     {if $_bill['type'] == 'VPN' && $_bill['routers'] == $vpn['routers']}

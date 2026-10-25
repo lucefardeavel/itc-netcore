@@ -2066,5 +2066,7 @@
   "Dark_mode": "الوضع الداكن",
   "Language": "اللغة",
   "Scan_QR_code": "مسح رمز QR",
-  "Translations_cannot_contain_HTML_markup": "لا يمكن أن تحتوي الترجمات على وسوم HTML"
+  "Translations_cannot_contain_HTML_markup": "لا يمكن أن تحتوي الترجمات على وسوم HTML",
+  "Radius_Plan": "خطة Radius",
+  "VPN_Plan": "خطة VPN"
 }

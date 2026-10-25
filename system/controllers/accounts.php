@@ -430,7 +430,7 @@ switch ($action) {
         }
         $_SESSION['user_language'] = $selected_language;
         User::setAttribute("Language", $selected_language);
-        r2(getUrl('home'), 's', ucwords($selected_language));
+        r2(getUrl('home'), 's', \Reseller\Ui\Format::languageName($selected_language));
 
 
         break;

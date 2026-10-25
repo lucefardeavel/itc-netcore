@@ -459,5 +459,11 @@
     "Toggle_navigation": "Toggle navigation",
     "Dark_mode": "Dark mode",
     "Language": "Language",
-    "Scan_QR_code": "Scan QR code"
+    "Scan_QR_code": "Scan QR code",
+    "Hotspot_Plan": "Hotspot Plan",
+    "PPPOE_Plan": "PPPOE Plan",
+    "VPN_Plan": "VPN Plan",
+    "Radius_Plan": "Radius Plan",
+    "Prepaid": "Prepaid",
+    "Postpaid": "Postpaid"
 }
