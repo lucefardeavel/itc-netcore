@@ -36,7 +36,7 @@
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.1" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?brand.1" />
     {if $nuxr_dir eq 'rtl'}
-        <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?lab.3" />
+        <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?lab.4" />
     {/if}
 
     <script src="{$app_url}/ui/ui/scripts/sweetalert2.all.min.js"></script>

@@ -35,7 +35,7 @@
 </div>
 
 {* brand / privacy: the original project's banner as a link (no third-party image is fetched when the page opens) *}
-<p class="text-center"><a class="btn btn-default" href="https://s.id/standwithpalestine" target="_blank" rel="noopener noreferrer">Support Palestine</a></p>
+<p class="text-center"><a class="btn btn-default" href="https://s.id/standwithpalestine" target="_blank" rel="noopener noreferrer">{Lang::T('Support Palestine')}</a></p>
 <br><br>
 
 <div class="row">
@@ -47,7 +47,7 @@
             </div>
             <div class="box-body">
                 {* brand / privacy: a link instead of the remote contributors image *}
-                <a href="https://github.com/hotspotbilling/phpnuxbill/graphs/contributors" target="_blank" rel="noopener noreferrer">PHPNuxBill contributors (GitHub)</a>
+                <a href="https://github.com/hotspotbilling/phpnuxbill/graphs/contributors" target="_blank" rel="noopener noreferrer">{Lang::T('PHPNuxBill contributors (GitHub)')}</a>
             </div>
         </div>
     </div>
@@ -180,7 +180,7 @@
                 {Lang::T('is a Hotspot and PPPoE billing platform for Mikrotik developed using PHP. The application uses Mikrotik API to communicate with the router, ensuring efficient and easy integration. If you feel you get more benefits from this application, we would greatly appreciate your contribution through donation.')}<br>{Lang::T('Watch project –')} <a
                     href="https://github.com/hotspotbilling/phpnuxbill" target="_blank">{Lang::T('IN HERE')}</a>
             </div>
-            <div class="box-footer">{Lang::T('Latest upstream version')}: <a id="latestVersion" href="https://github.com/hotspotbilling/phpnuxbill/blob/master/CHANGELOG.md" target="_blank" rel="noopener noreferrer">CHANGELOG.md</a></div>
+            <div class="box-footer">{Lang::T('Upstream changelog')}: <a id="latestVersion" href="https://github.com/hotspotbilling/phpnuxbill/blob/master/CHANGELOG.md" target="_blank" rel="noopener noreferrer">CHANGELOG.md</a></div>
             <div class="box-footer">
                 {* WP2 / OD-2: the in-app web updater and rollback are disabled; updates are installed through
                    the reviewed release process and schema changes through the project migration runner. *}

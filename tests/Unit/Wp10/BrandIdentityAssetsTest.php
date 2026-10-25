@@ -168,11 +168,13 @@ final class BrandIdentityAssetsTest extends TestCase
 
     public function testTheProductMarkReplacesTheTextTileOnlyForTheProductIdentity(): void
     {
-        foreach (['ui/ui/admin/header.tpl', 'ui/ui/admin/admin/login.tpl'] as $p) {
-            $tpl = self::read($p);
-            $this->assertMatchesRegularExpression('/\{if \$_brand\.company_is_product\}<span class="nuxr-brand-mark is-logo".*?netcore-mark\.svg.*?netcore-mark-white\.svg.*?\{else\}<span class="nuxr-brand-mark" aria-hidden="true">\{\$_brand\.mark\|escape\}<\/span>\{\/if\}/', $tpl, $p);
-            $this->assertStringContainsString('<bdi>{$_brand.company|escape}</bdi>', $tpl, "{$p}: the operator name stays");
-        }
+        $tpl = self::read('ui/ui/admin/header.tpl');
+        $this->assertMatchesRegularExpression('/\{if \$_brand\.company_is_product\}<span class="nuxr-brand-mark is-logo".*?netcore-mark\.svg.*?netcore-mark-white\.svg.*?\{else\}<span class="nuxr-brand-mark" aria-hidden="true">\{\$_brand\.mark\|escape\}<\/span>\{\/if\}/', $tpl);
+        $this->assertStringContainsString('<bdi>{$_brand.company|escape}</bdi>', $tpl, 'the operator name stays');
+        // sign-in: the operator name + initial above the card; the product wordmark below it (product mode: shown once)
+        $login = self::read('ui/ui/admin/admin/login.tpl');
+        $this->assertStringContainsString('{if $_brand.company_is_product}<h1 class="sr-only">{$_brand.name|escape}</h1>{else}<div class="nuxr-login-brand"><span class="nuxr-brand-mark" aria-hidden="true">{$_brand.mark|escape}</span><bdi>{$_brand.company|escape}</bdi></div>{/if}', $login);
+        $this->assertStringContainsString('netcore-wordmark.svg', $login);
         $this->assertMatchesRegularExpression('/\{if \$_brand\.company_is_product\}<img class="nc-mark"[^>]*netcore-mark-white\.svg[^>]*>\{else\}<b>\{\$_brand\.mark\|escape\}<\/b>\{\/if\}/', self::read('ui/ui/customer/header.tpl'));
         // the reversed artwork is the only one shown on dark surfaces (F-03)
         $this->assertStringContainsString('body.dark-mode .nc-on-light { display: none !important; }', self::read('ui/ui/styles/nuxr-brand.css'));

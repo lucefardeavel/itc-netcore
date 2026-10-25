@@ -29,7 +29,9 @@
     <script>try { if (localStorage.getItem('mode') === 'dark') { document.body.classList.add('dark-mode'); } } catch (e) { }</script>
     <main class="nuxr-login">
         <div class="nuxr-login-card">
-            <div class="nuxr-login-brand">{if $_brand.company_is_product}<span class="nuxr-brand-mark is-logo" aria-hidden="true"><img class="nc-on-light" src="{$app_url}/ui/ui/images/brand/netcore-mark.svg" alt="" width="36" height="36"><img class="nc-on-dark" src="{$app_url}/ui/ui/images/brand/netcore-mark-white.svg" alt="" width="36" height="36"></span>{else}<span class="nuxr-brand-mark" aria-hidden="true">{$_brand.mark|escape}</span>{/if}<bdi>{$_brand.company|escape}</bdi></div>
+            {* the operator's name and initial above the card; in product mode the product wordmark below the card is the only
+               identity (shown once) *}
+            {if $_brand.company_is_product}<h1 class="sr-only">{$_brand.name|escape}</h1>{else}<div class="nuxr-login-brand"><span class="nuxr-brand-mark" aria-hidden="true">{$_brand.mark|escape}</span><bdi>{$_brand.company|escape}</bdi></div>{/if}
             <section class="nuxr-card">
                 <div class="nuxr-card-head"><h1 style="margin:0;font-size:18px;font-weight:700">{Lang::T('Enter Admin Area')}</h1></div>
                 <div class="nuxr-card-body">

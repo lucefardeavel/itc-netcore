@@ -11,10 +11,10 @@
  */
 
 /* ---------- brand fonts (self-hosted, OFL-1.1, ui/ui/fonts/brand/FONTS.txt) ---------- */
-@font-face { font-family: "Inter"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/brand/inter-latin-regular.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Inter"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/brand/inter-latin-medium.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/brand/inter-latin-semibold.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Inter"; font-style: normal; font-weight: 700 900; font-display: swap; src: url("../fonts/brand/inter-latin-bold.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 400; font-display: swap; src: url("../fonts/brand/inter-latin-regular.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-200B, U+2010-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 500; font-display: swap; src: url("../fonts/brand/inter-latin-medium.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-200B, U+2010-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap; src: url("../fonts/brand/inter-latin-semibold.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-200B, U+2010-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 700 900; font-display: swap; src: url("../fonts/brand/inter-latin-bold.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-200B, U+2010-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: "Noto Sans Arabic"; font-style: normal; font-weight: 100 549; font-display: swap; src: url("../fonts/brand/noto-sans-arabic-regular.woff2") format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+0870-089F, U+08A0-08FF, U+200C-200F, U+2010-2011, U+204F, U+25CC, U+FB50-FDFF, U+FE70-FEFF; }
 @font-face { font-family: "Noto Sans Arabic"; font-style: normal; font-weight: 550 900; font-display: swap; src: url("../fonts/brand/noto-sans-arabic-bold.woff2") format("woff2"); unicode-range: U+0600-06FF, U+0750-077F, U+0870-089F, U+08A0-08FF, U+200C-200F, U+2010-2011, U+204F, U+25CC, U+FB50-FDFF, U+FE70-FEFF; }
 
@@ -79,6 +79,7 @@
     --nx-portal-side-text: #18283e;
     --nx-link: #245d99;
     --nx-link-hover: #193768;
+    --nx-shadow-portal: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
     --nx-font: "Inter", "Noto Sans Arabic", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Naskh Arabic", Tahoma, "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -173,10 +174,21 @@ body.dark-mode .select2-selection--single { background-color: var(--nx-surface) 
 body.dark-mode .select2-selection__rendered { color: var(--nx-text) !important; }
 body.dark-mode pre { background-color: var(--nx-surface-2) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
 body.dark-mode .container { background-color: transparent !important; }
-body.dark-mode .content .row [class*=col-] .box { box-shadow: var(--nx-shadow) !important; }
+body.dark-mode .content .row [class*=col-] .box { box-shadow: var(--nx-shadow, var(--nx-shadow-portal)) !important; }
 body.dark-mode .box.box-solid.box-primary > .box-header { color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
 body.dark-mode .notification-top-bar { background-color: var(--nx-danger-soft) !important; color: var(--nx-danger) !important; }
-body.dark-mode :is(input, textarea, select):focus:not(#filterNavigateMenu) { color: var(--nx-text); }
+body.dark-mode :is(.form-control, .nuxr-input, input[type=text], input[type=password], input[type=email], input[type=number], input[type=search], select, textarea):not([type=checkbox]):not([type=radio]) { background-color: var(--nx-surface) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.dark-mode :is(input, textarea, select):focus:not(#filterNavigateMenu) { color: var(--nx-text) !important; }
+body.dark-mode :is(input, textarea)::placeholder { color: var(--nx-muted) !important; opacity: 1; }
+html:has(> body.dark-mode) { background-color: #0c1525; color-scheme: dark; }
+body.dark-mode .btn-default { background-color: var(--nx-surface-2) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.nuxr-shell .content .box.box-primary { border-top-color: var(--nx-primary); }
+body.nuxr-shell .content .box.box-success { border-top-color: var(--nx-success); }
+body.nuxr-shell .content .box.box-warning { border-top-color: var(--nx-warning); }
+body.nuxr-shell .content .box.box-danger { border-top-color: var(--nx-danger); }
+body.nuxr-shell .content .box.box-info, body.nuxr-shell .content .box.box-default { border-top-color: var(--nx-border); }
+.nuxr-check { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 0 0 8px; font-weight: 600; cursor: pointer; }
+.nuxr-check input[type=checkbox] { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--nx-primary); }
 body.dark-mode .navbar-nav > :is(.notifications-menu, .messages-menu, .tasks-menu) > .dropdown-menu > li.footer > a,
 body.dark-mode .navbar-nav > .user-menu > .dropdown-menu > .user-footer { background: var(--nx-surface) !important; color: var(--nx-text) !important; }
 
@@ -188,13 +200,26 @@ body.nuxr-portal, body.nuxr-portal :is(h1, h2, h3, h4, h5, h6, p, a, span, li, t
 body.nuxr-portal a:not(.btn) { color: var(--nx-link); }
 body.nuxr-portal a:not(.btn):hover, body.nuxr-portal a:not(.btn):focus { color: var(--nx-link-hover); }
 body.nuxr-portal .main-header .navbar, body.nuxr-portal .main-header .logo { background: var(--nx-portal-head-bg) !important; color: var(--nx-portal-head-text) !important; border-color: transparent !important; }
-body.nuxr-portal .main-header .logo :is(b, span, .logo-lg, .logo-mini), body.nuxr-portal .main-header .navbar :is(a, .sidebar-toggle, .fa, i) { color: var(--nx-portal-head-text) !important; }
+body.nuxr-portal .main-header .logo :is(b, span, .logo-lg, .logo-mini), body.nuxr-portal .main-header .navbar :is(.sidebar-toggle, .navbar-nav > li > a, .navbar-nav > li > a > :is(span, i, .fa)) { color: var(--nx-portal-head-text) !important; }
+body.nuxr-portal .main-header .navbar .dropdown-menu { background: var(--nx-surface) !important; border-color: var(--nx-border) !important; }
+body.nuxr-portal .main-header .navbar .dropdown-menu :is(a, li, p, small, span, h4, .text-sm) { color: var(--nx-text) !important; }
+body.nuxr-portal .main-header .navbar .dropdown-menu .menu > li > a:hover, body.nuxr-portal .main-header .navbar .dropdown-menu li.footer > a:hover { background: var(--nx-surface-2) !important; }
+body.nuxr-portal .main-header .navbar .user-menu .user-header { background: var(--nx-portal-head-bg) !important; }
+body.nuxr-portal .main-header .navbar .user-menu .user-header :is(p, small) { color: var(--nx-portal-head-text) !important; }
+body.nuxr-portal .main-header .navbar .user-footer .btn-default { background: var(--nx-surface-2) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }
+body.nuxr-portal .main-header :is(a, button):focus-visible { outline-color: var(--nx-portal-head-text) !important; }
+body.nuxr-portal .main-header .dropdown-menu :is(a, button):focus-visible { outline-color: var(--nx-focus) !important; }
 body.nuxr-portal .main-sidebar, body.nuxr-portal .left-side { background: var(--nx-portal-side-bg) !important; border-inline-end: 1px solid var(--nx-border); }
 /* the dark skin paints the inner menu too: every layer of the sidebar takes the token surface */
 body.nuxr-portal :is(.main-sidebar .sidebar, .sidebar-menu, .sidebar-menu > li, .sidebar-menu .treeview-menu) { background: transparent !important; }
 body.nuxr-portal.modern-skin-dark .main-sidebar .sidebar .sidebar-menu li > a:not(:hover) { background: transparent !important; }
 body.nuxr-portal .main-sidebar .sidebar .sidebar-menu li.active > a { background: var(--nx-primary-soft) !important; }
 body.nuxr-portal .btn-link, body.nuxr-portal .btn-link:is(:hover, :focus) { color: var(--nx-link) !important; }
+/* phones: a long customer name is truncated so the header controls keep one row (both directions) */
+@media (max-width: 767px) {
+    body.nuxr-portal .navbar-custom-menu .user-menu > a > span { display: inline-block; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+    body.nuxr-portal .navbar-custom-menu .navbar-nav > li > a { padding-left: 12px; padding-right: 12px; }
+}
 body.nuxr-portal :is(.main-footer, .login-box-footer, .form-head, .panel-footer, .box-footer) a:not(.btn), body.nuxr-portal a[href^="javascript:show"] { color: var(--nx-link) !important; }
 body.nuxr-portal .text-muted, body.nuxr-shell .content .text-muted { color: var(--nx-muted) !important; }
 /* links inside running text are underlined (WCAG 1.4.1), as the shell footer links */
@@ -223,4 +248,8 @@ body.nuxr-portal :is(.btn-primary, .btn-success, .btn-danger, .btn-warning, .btn
 body.nuxr-portal :is(.btn, a, input, select, textarea, button):focus-visible { outline: 3px solid var(--nx-focus); outline-offset: 2px; }
 body.nuxr-portal .form-control { background: var(--nx-surface); color: var(--nx-text); border-color: var(--nx-border); }
 body.nuxr-portal .main-footer { background: var(--nx-surface); color: var(--nx-muted); border-top-color: var(--nx-border); }
+body.nuxr-portal :is(.main-footer, .itc-powered) a { text-decoration: underline; }
+body.nuxr-portal .site-logo { text-transform: none !important; text-shadow: none !important; color: var(--nx-text); }
+body.nuxr-portal .site-logo .nc-mark { width: 40px; height: 40px; vertical-align: middle; margin-inline-end: 8px; }
+body.nuxr-portal .main-header .logo .logo-lg .nc-mark { width: 28px; height: 28px; vertical-align: middle; margin-inline-end: 8px; }
 body.nuxr-portal .itc-powered, body.nuxr-portal .itc-powered :is(a, bdi) { color: var(--nx-muted) !important; }

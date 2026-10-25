@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v3" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.1" />
     {if $nuxr_dir eq 'rtl'}
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?lab.3" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?lab.4" />
     {/if}
 
     <style>
@@ -42,7 +42,7 @@
         <header class="main-header" style="position:fixed; width: 100%">
             <a href="{Text::url('home')}" class="logo">
                 <span class="logo-mini">{if $_brand.company_is_product}<img class="nc-mark" src="{$app_url}/ui/ui/images/brand/netcore-mark-white.svg" alt="" width="32" height="32">{else}<b>{$_brand.mark|escape}</b>{/if}</span>
-                <span class="logo-lg"><bdi>{$_brand.company|escape}</bdi></span>
+                <span class="logo-lg">{if $_brand.company_is_product}<img class="nc-mark" src="{$app_url}/ui/ui/images/brand/netcore-mark-white.svg" alt="" width="28" height="28">{/if}<bdi>{$_brand.company|escape}</bdi></span>
             </a>
             <nav class="navbar navbar-static-top">
                 <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
@@ -57,7 +57,7 @@
                         </li>
                         <li class="dropdown tasks-menu">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true" aria-label="{Lang::T('Language')}">
-                                <i class="fa fa-flag-o" aria-hidden="true"></i>
+                                <i class="fa fa-globe" aria-hidden="true"></i>
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
