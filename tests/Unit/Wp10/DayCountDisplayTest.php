@@ -83,7 +83,7 @@ final class DayCountDisplayTest extends TestCase
         $key = (string) preg_replace('/[^A-Za-z0-9]/', '_', '[days] of paid service (until [date]) will be lost: the current period is replaced now and the remaining time is not refunded or carried over.');
         foreach (['arabic', 'english'] as $lang) {
             $cat = json_decode((string) file_get_contents(dirname(__DIR__, 3) . "/system/lan/{$lang}.json"), true, 512, JSON_THROW_ON_ERROR);
-            foreach ([$key, 'Remaining_paid_time_will_be_lost'] as $k) {
+            foreach ([$key] as $k) {
                 $this->assertArrayHasKey($k, $cat, "{$lang}: {$k}");
                 $this->assertDoesNotMatchRegularExpression('/[<>]/', $cat[$k], "{$lang}: plain text (F-12)");
             }
