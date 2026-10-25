@@ -2065,5 +2065,6 @@
   "Toggle_navigation": "إظهار القائمة أو إخفاؤها",
   "Dark_mode": "الوضع الداكن",
   "Language": "اللغة",
-  "Scan_QR_code": "مسح رمز QR"
+  "Scan_QR_code": "مسح رمز QR",
+  "Translations_cannot_contain_HTML_markup": "لا يمكن أن تحتوي الترجمات على وسوم HTML"
 }
