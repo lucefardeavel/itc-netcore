@@ -1060,6 +1060,12 @@ switch ($action) {
         $nuxrLang = [];
         foreach ($_POST as $k => $v) {
             if (is_string($k) && is_string($v) && $k !== 'csrf_token') {
+                // Lab finding F-12: translations are printed unescaped by the templates ({Lang::T(...)}), so markup in a
+                // translation written by an Admin rendered in SuperAdmin's and customers' pages. Translations are plain
+                // text: a value with markup characters is refused and nothing is written
+                if (strpbrk($v, '<>') !== false) {
+                    r2(getUrl('settings/language'), 'e', Lang::T('Translations cannot contain HTML markup'));
+                }
                 $nuxrLang[$k] = $v;
             }
         }

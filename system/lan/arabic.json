@@ -2061,5 +2061,6 @@
   "SNMP_community": "مجتمع SNMP",
   "Privacy": "الخصوصية",
   "Terms": "الشروط",
-  "Remember_me": "تذكرني"
+  "Remember_me": "تذكرني",
+  "Translations_cannot_contain_HTML_markup": "لا يمكن أن تحتوي الترجمات على وسوم HTML"
 }
