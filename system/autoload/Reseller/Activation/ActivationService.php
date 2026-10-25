@@ -775,11 +775,15 @@ final class ActivationService
      * Ends the sessions that may still run the previous policy so the new one applies (UNKNOWN never undoes provisioning
      * or finance). Called after the provisioning is verified: every session that started before NOW (not only before the
      * period start) authenticated under the previous policy - a re-login between the activation's start and the RADIUS
-     * commit is ended too.
+     * commit is ended too. "Before NOW" is judged on the NAS's own Accounting start stamp, so the cut-off carries the NAS
+     * clock allowance of the period attribution (QuotaPolicy::PERIOD_SKEW_SECONDS, NTP contract H8): lab finding on a
+     * RouterOS CHR whose clock ran ~1 s ahead, where a session that had just reconnected escaped the Disconnect while the
+     * end was recorded as confirmed. Cost: a session that started within the allowance after the commit (already under the
+     * new policy) is ended too and redials.
      */
     private static function endSessions(int $id, string $username, ActivationActor $actor): void
     {
-        $outcome = self::endPeriodSessions($username, max(self::periodStartEpoch(FinanceTx::pdo(), $id), time()));
+        $outcome = self::endPeriodSessions($username, max(self::periodStartEpoch(FinanceTx::pdo(), $id), time()) + \Reseller\Radius\QuotaPolicy::PERIOD_SKEW_SECONDS);
         self::tx(static function (\PDO $pdo) use ($id, $actor, $outcome): void {
             ActivationStore::lock($pdo, $id);
             ActivationStore::event($pdo, $id, ActivationState::VERIFIED, ActivationState::VERIFIED, $actor, ['event_type' => 'ANNOTATION', 'metadata' => $outcome]);
