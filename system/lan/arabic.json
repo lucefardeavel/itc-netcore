@@ -2066,5 +2066,6 @@
   "Dark_mode": "الوضع الداكن",
   "Language": "اللغة",
   "Scan_QR_code": "مسح رمز QR",
-  "Translations_cannot_contain_HTML_markup": "لا يمكن أن تحتوي الترجمات على وسوم HTML"
+  "Translations_cannot_contain_HTML_markup": "لا يمكن أن تحتوي الترجمات على وسوم HTML",
+  "This_service_is_managed_by_your_reseller__Please_contact_your_agent_to_renew_or_change_it_": "تُدار هذه الخدمة من قِبل الموزّع الخاص بك. يرجى التواصل مع وكيلك لتجديدها أو تغييرها."
 }

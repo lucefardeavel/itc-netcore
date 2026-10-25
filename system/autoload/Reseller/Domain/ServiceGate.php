@@ -20,7 +20,8 @@ use Reseller\Security\ErrorReporter;
  */
 final class ServiceGate
 {
-    public const MESSAGE = 'This service operation is temporarily unavailable for reseller-managed customers (pending WP5B).';
+    // lab UX-2: customer-facing wording (no internal work-package code); the refusal itself is unchanged
+    public const MESSAGE = 'This service is managed by your reseller. Please contact your agent to renew or change it.';
     public const NOT_READY_MESSAGE = 'Service operations are unavailable: the reseller schema is not ready.';
 
     /** True when a legacy service operation for this customer id must be refused. */
@@ -70,7 +71,7 @@ final class ServiceGate
 
     public static function message(): string
     {
-        return SchemaReadiness::isReady() ? self::MESSAGE : self::NOT_READY_MESSAGE;
+        return SchemaReadiness::isReady() ? \Lang::T(self::MESSAGE) : self::NOT_READY_MESSAGE;
     }
 
     /**

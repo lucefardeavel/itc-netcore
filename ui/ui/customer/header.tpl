@@ -151,8 +151,10 @@
                             </a>
                         </li>
                     {/if}
+                    {* lab UX-2: a reseller-managed customer (manager_id set) cannot buy here (OD-11 refusal); no dead entry points *}
+                    {assign var=nuxr_owned value=isset($_user['manager_id']) && $_user['manager_id'] neq ''}
                     {if $_c['payment_gateway'] != 'none' or $_c['payment_gateway'] == '' }
-                        {if $_c['enable_balance'] == 'yes'}
+                        {if $_c['enable_balance'] == 'yes' && !$nuxr_owned}
                             <li {if $_system_menu eq 'balance'}class="active" {/if}>
                                 <a href="{Text::url('order/balance')}">
                                     <i class="ion ion-ios-cart"></i>
@@ -160,12 +162,14 @@
                                 </a>
                             </li>
                         {/if}
+                        {if !$nuxr_owned}
                         <li {if $_system_menu eq 'package'}class="active" {/if}>
                             <a href="{Text::url('order/package')}">
                                 <i class="ion ion-ios-cart"></i>
                                 <span>{Lang::T('Buy Package')}</span>
                             </a>
                         </li>
+                        {/if}
                         <li {if $_system_menu eq 'history'}class="active" {/if}>
                             <a href="{Text::url('order/history')}">
                                 <i class="fa fa-file-text"></i>
