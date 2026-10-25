@@ -294,6 +294,7 @@ class User
                 displayMaintenanceMessage();
             }
         }
+        $nuxrSessionCustomer = !$id;
         if (!$id) {
             $id = User::getID();
         }
@@ -301,7 +302,22 @@ class User
         if ($d['status'] == 'Banned') {
             _alert(Lang::T('This account status') . ' : ' . Lang::T($d['status']), 'danger', "logout");
         }
+        if ($nuxrSessionCustomer) {
+            // lab UX-2: every customer controller gets its user here, so the portal templates (header menu and the
+            // dashboard widgets) share ONE flag for a reseller-managed customer (manager_id set). Display only: the
+            // OD-11 refusals stay in ServiceGate on the server.
+            global $ui;
+            if (is_object($ui)) {
+                $ui->assign('nuxr_owned', self::isResellerManaged($d));
+            }
+        }
         return $d;
+    }
+
+    /** lab UX-2: true when the customer row is reseller-managed (manager_id set); display decisions only. */
+    public static function isResellerManaged($customer): bool
+    {
+        return $customer && isset($customer['manager_id']) && (string) $customer['manager_id'] !== '';
     }
 
     public static function _infoByName($username)

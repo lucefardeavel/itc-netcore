@@ -1,6 +1,5 @@
 {* lab UX-2: a reseller-managed customer (manager_id set) is refused deactivate / extend / recharge / order (OD-11);
-   those entry points are not offered (the server-side refusal is unchanged) *}
-{assign var=nuxr_owned value=isset($_user['manager_id']) && $_user['manager_id'] neq ''}
+   those entry points are not offered (the server-side refusal is unchanged); $nuxr_owned is assigned by User::_info *}
 {if $_bills}
     <div class="box box-primary box-solid">
         {foreach $_bills as $_bill}

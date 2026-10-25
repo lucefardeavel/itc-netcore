@@ -143,7 +143,9 @@
                         </a>
                     </li>
                     {$_MENU_AFTER_INBOX}
-                    {if $_c['disable_voucher'] != 'yes'}
+                    {* lab UX-2: a reseller-managed customer ($nuxr_owned, assigned by User::_info) cannot redeem a voucher or
+                       buy here (OD-11 refusal); no dead entry points *}
+                    {if $_c['disable_voucher'] != 'yes' && !$nuxr_owned}
                         <li {if $_system_menu eq 'voucher'}class="active" {/if}>
                             <a href="{Text::url('voucher/activation')}">
                                 <i class="fa fa-ticket"></i>
@@ -151,8 +153,6 @@
                             </a>
                         </li>
                     {/if}
-                    {* lab UX-2: a reseller-managed customer (manager_id set) cannot buy here (OD-11 refusal); no dead entry points *}
-                    {assign var=nuxr_owned value=isset($_user['manager_id']) && $_user['manager_id'] neq ''}
                     {if $_c['payment_gateway'] != 'none' or $_c['payment_gateway'] == '' }
                         {if $_c['enable_balance'] == 'yes' && !$nuxr_owned}
                             <li {if $_system_menu eq 'balance'}class="active" {/if}>
