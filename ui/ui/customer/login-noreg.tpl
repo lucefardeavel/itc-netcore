@@ -47,7 +47,7 @@
                     <div class="form-group">
                         <label>{Lang::T('Enter voucher code here')}</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" id="voucher" name="voucher" required value="{$code}"
+                            <input type="text" class="form-control" id="voucher" name="voucher" required value="{$code|escape}"
                                 placeholder="{Lang::T('Enter voucher code here')}">
                             <span class="input-group-btn">
                                 <a class="btn btn-default" aria-label="{Lang::T('Scan QR code')}" title="{Lang::T('Scan QR code')}"
@@ -73,7 +73,7 @@
                         <label>{Lang::T('Enter voucher code here')}</label>
                         <div class="input-group">
                             <input type="text" class="form-control" id="voucher_only" name="voucher_only" required
-                                value="{$code}" placeholder="{Lang::T('Enter voucher code here')}">
+                                value="{$code|escape}" placeholder="{Lang::T('Enter voucher code here')}">
                             <span class="input-group-btn">
                                 <a class="btn btn-default" aria-label="{Lang::T('Scan QR code')}" title="{Lang::T('Scan QR code')}"
                                     href="{APP_URL}/scan/?back={urlencode(Text::url('login&code='))}"><i

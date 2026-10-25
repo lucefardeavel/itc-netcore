@@ -48,19 +48,19 @@
                             </div>
                         {/if}
                         <div class="form-group">
-                            <label>{Lang::T('Full Name')}</label>
+                            <label for="fullname">{Lang::T('Full Name')}</label>
                             <input type="text" {if $_c['man_fields_fname'] neq 'no'}required{/if} class="form-control"
-                                id="fullname" value="{$fullname}" name="fullname">
+                                id="fullname" value="{$fullname|escape}" name="fullname">
                         </div>
                         <div class="form-group">
-                            <label>{Lang::T('Email')}</label>
+                            <label for="email">{Lang::T('Email')}</label>
                             <input type="text" {if $_c['man_fields_email'] neq 'no'}required{/if} class="form-control"
-                                id="email" placeholder="xxxxxxx@xxxx.xx" value="{$email}" name="email">
+                                id="email" placeholder="xxxxxxx@xxxx.xx" value="{$email|escape}" name="email">
                         </div>
                         <div class="form-group">
-                            <label>{Lang::T('Home Address')}</label>
+                            <label for="address">{Lang::T('Home Address')}</label>
                             <input type="text" {if $_c['man_fields_address'] neq 'no'}required{/if} name="address"
-                                id="address" value="{$address}" class="form-control">
+                                id="address" value="{$address|escape}" class="form-control">
                         </div>
                         {$customFields}
                     </div>

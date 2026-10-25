@@ -1,0 +1,4 @@
+# Vendored third-party scripts (gate G7: no automatic third-party request). Accepted only when the SHA-384 equals the
+# SRI integrity that the templates pinned for the CDN copy (scripts/brand/b24_vendor_chartjs.sh).
+chart-3.5.1.min.js  Chart.js 3.5.1 (MIT)  https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js  sha384-zVyRZ9eQ45iRS7ZRZQSFKGJpypyxssU6clBCysSqzjmdGWNn8//uC8dh9DabpAbK
+chartjs-plugin-autocolors-0.5.1.min.js  chartjs-plugin-autocolors 0.5.1 (MIT)  https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors@0.5.1/dist/chartjs-plugin-autocolors.min.js  sha384-vnGRB4CdtZ0nxGdDU8ZknCYFULPqwUgZDuBR0bVo3l1hpTKuOCWykajKvrGGFnyz
