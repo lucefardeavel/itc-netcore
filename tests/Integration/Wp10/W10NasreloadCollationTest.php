@@ -44,16 +44,23 @@ final class W10NasreloadCollationTest extends TestCase
         try {
             $pdo = FixtureBuilder::connect($host, $password, $name);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            // what this case really exercises: MySQL 8's charset default is utf8mb4_0900_ai_ci, MariaDB's utf8mb4_general_ci
+            $dbCollation = (string) $pdo->query('SELECT @@collation_database')->fetchColumn();
+            if ($collation !== null) {
+                $this->assertSame($collation, $dbCollation, 'fixture: database default collation');
+            }
             (new FixtureBuilder(dirname(__DIR__, 3)))->loadSqlFile($pdo, dirname(__DIR__, 3) . '/install/radius.sql');
             $pdo->exec("INSERT INTO radacct (radacctid, acctsessionid, acctuniqueid, username, nasipaddress, acctstarttime)"
                 . " VALUES (1, 'w10-s1', 'w10-u1', 'w10-collation', '192.0.2.10', NOW())");
             $pdo->exec("INSERT INTO nasreload (nasipaddress, reloadtime) VALUES ('192.0.2.10', NOW() - INTERVAL 1 HOUR)");
 
-            $this->assertSame(1, (int) $pdo->query(self::SIMUL_COUNT)->fetchColumn(), 'stock simul_count_query runs and counts the open session');
+            $this->assertSame(1, (int) $pdo->query(self::SIMUL_COUNT)->fetchColumn(), "stock simul_count_query runs and counts the open session (database default {$dbCollation})");
             $this->assertCount(1, $pdo->query(self::SIMUL_VERIFY)->fetchAll(), 'stock simul_verify_query runs');
             $this->assertSame('utf8mb4_general_ci', (string) $pdo->query("SELECT collation_name FROM information_schema.COLUMNS"
                 . " WHERE table_schema = DATABASE() AND table_name = 'nasreload' AND column_name = 'nasipaddress'")->fetchColumn(),
                 'nasreload.nasipaddress has the collation of radacct.nasipaddress');
+            $this->assertSame('utf8mb4_general_ci', (string) $pdo->query("SELECT table_collation FROM information_schema.TABLES"
+                . " WHERE table_schema = DATABASE() AND table_name = 'nasreload'")->fetchColumn(), 'nasreload table default collation');
         } finally {
             $admin->exec("DROP DATABASE IF EXISTS `{$name}`");
         }
