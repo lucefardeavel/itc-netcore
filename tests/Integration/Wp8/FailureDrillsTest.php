@@ -137,7 +137,11 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
         $plan = $this->chainPlan($h);
         $cust = $this->labCustomer($h['C'], $h['sales'], 'D1-pass');
         $user = $this->username($cust);
-        $timeouts0 = (int) Wp8Lab::ros('/radius/monitor', '=numbers=*1', '=once=')[0]['timeouts'];
+        // the RouterOS /radius entry that points at the lab FreeRADIUS (not assumed to be *1: a NAS can carry other,
+        // disabled RADIUS entries created before it, whose counters never move)
+        $entry = array_values(array_filter(Wp8Lab::ros('/radius/print'), static fn($r) => ($r['address'] ?? '') === Wp8Lab::APP && ($r['disabled'] ?? 'false') === 'false'));
+        $this->assertCount(1, $entry, 'exactly one enabled RADIUS entry for the lab FreeRADIUS');
+        $timeouts0 = (int) Wp8Lab::ros('/radius/monitor', '=numbers=' . $entry[0]['.id'], '=once=')[0]['timeouts'];
         $this->assertTrue(Wp8Lab::agent('fr', ['action' => 'pause'])['ok']);
         // provisioning targets the RADIUS database, not the FreeRADIUS process: the activation is unaffected
         $out = $this->activate($h['sales'], $cust, $plan, 'NEW');
@@ -147,7 +151,7 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
         // drill 6: the subscriber cannot authenticate while FreeRADIUS does not answer
         $auth = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'D1-pass', 'wait' => 30]);
         $this->assertFalse($auth['ok'], 'no session without an answer from FreeRADIUS');
-        $timeouts1 = (int) Wp8Lab::ros('/radius/monitor', '=numbers=*1', '=once=')[0]['timeouts'];
+        $timeouts1 = (int) Wp8Lab::ros('/radius/monitor', '=numbers=' . $entry[0]['.id'], '=once=')[0]['timeouts'];
         $this->assertGreaterThan($timeouts0, $timeouts1, 'RouterOS counted RADIUS timeouts');
         $this->assertSame($s, $this->inspect($out['reference'], $user, $h), 'no application state change during the timeout');
 
