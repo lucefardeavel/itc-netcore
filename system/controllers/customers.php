@@ -383,14 +383,17 @@ switch ($action) {
         $customer = ORM::for_table('tbl_customers')->find_one($id);
         if ($customer) {
             // lab D-4 (owner delegation 2026-10-25): who opened the portal as which customer is logged and audited
-            _log('Staff opened the customer portal as customer #' . (int) $customer['id'], $admin['user_type'], $admin['id']);
             try {
                 \Reseller\Audit\AuditLog::record('customer.impersonate', \Reseller\Security\ActorContext::current(), [
                     'target_type' => 'customer', 'target_customer_id' => (int) $customer['id'], 'reason' => 'staff portal login',
                 ]);
             } catch (\Throwable $e) {
+                // lab closure FIN-6: the audit is mandatory - without its record the portal is not opened (fail closed)
                 \Reseller\Security\ErrorReporter::report($e, 'customer-impersonate-audit');
+                r2(getUrl('customers/view/') . (int) $customer['id'], 'e', Lang::T('The portal login could not be recorded, so it was not opened.'));
             }
+            // (logged only once the audit record exists: a refused attempt never reads as "opened")
+            _log('Staff opened the customer portal as customer #' . (int) $customer['id'], $admin['user_type'], $admin['id']);
             $_SESSION['uid'] = $id;
             User::setCookie($id);
             // expert review 2026-10-26: the customer-chosen name is escaped (the alert body is rendered as HTML)
