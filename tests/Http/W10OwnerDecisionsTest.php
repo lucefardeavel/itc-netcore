@@ -108,4 +108,37 @@ final class W10OwnerDecisionsTest extends Wp2HttpTestCase
         $this->assertSame($logs + 1, (int) static::$db->value("SELECT COUNT(*) FROM tbl_logs WHERE description = ?", ['Staff opened the customer portal as customer #' . $cid]), 'logged');
         $this->assertSame($audit + 1, (int) static::$db->value("SELECT COUNT(*) FROM tbl_reseller_audit_events WHERE event_type = 'customer.impersonate' AND target_customer_id = ?", [$cid]), 'audited');
     }
+
+    private function openedLogs(int|string $cid): int
+    {
+        return (int) static::$db->value('SELECT COUNT(*) FROM tbl_logs WHERE description = ?', ['Staff opened the customer portal as customer #' . $cid]);
+    }
+
+    /**
+     * Lab closure FIN-6 (independent review 2026-10-26): the impersonation audit failed OPEN - when the audit insert threw,
+     * the error was only reported and the staff member still got the customer's portal session. Now: no audit, no portal.
+     * The audit insert is made to fail by taking its table away for the one request (database fault, both engines).
+     */
+    public function testImpersonationIsRefusedWhenItCannotBeAudited(): void
+    {
+        $cid = $this->cid('cNULL');
+        $opened = $this->openedLogs($cid);
+        $s = $this->staff('sa');
+        $token = $s->token();                     // both tokens taken before the fault, so only the request under test meets it
+        static::$db->exec('RENAME TABLE tbl_reseller_audit_events TO tbl_reseller_audit_events_w10off');
+        try {
+            $r = $s->post('customers/login/' . $cid, ['token' => $token, 'csrf_token' => $token]);
+        } finally {
+            static::$db->exec('RENAME TABLE tbl_reseller_audit_events_w10off TO tbl_reseller_audit_events');
+        }
+        // the refusal itself: back to the customer's staff page with the error notice, no portal notice
+        $this->assertSame(302, $r->status, $r->excerpt());
+        $this->assertStringContainsString('customers/view/' . $cid, (string) $r->location());
+        $this->assertStringNotContainsString('You are logging in as', $r->body, 'no portal session without the audit record');
+        $notice = $s->get('customers/view/' . $cid);
+        $this->assertStringContainsString('could not be recorded', $notice->body, 'the refusal is shown to the staff member');
+        // and no customer portal session was opened (the portal home sends a non-customer to its login)
+        $this->assertNotSame(200, $s->get('home')->status, 'the staff session did not become a customer session');
+        $this->assertSame($opened, $this->openedLogs($cid), 'a refused attempt is not logged as opened');
+    }
 }

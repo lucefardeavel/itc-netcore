@@ -2081,5 +2081,6 @@
   "A_prepaid_plan_cannot_be_deactivated_from_the_portal_": "لا يمكن إيقاف باقة مدفوعة مسبقاً من البوابة.",
   "Support_Palestine": "ادعم فلسطين",
   "PHPNuxBill_contributors__GitHub_": "المساهمون في PHPNuxBill (GitHub)",
-  "Upstream_changelog": "سجل تغييرات المشروع الأصلي"
+  "Upstream_changelog": "سجل تغييرات المشروع الأصلي",
+  "The_portal_login_could_not_be_recorded__so_it_was_not_opened_": "تعذّر تسجيل الدخول إلى بوابة المشترك في سجل التدقيق، لذلك لم تُفتح."
 }
