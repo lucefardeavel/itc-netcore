@@ -85,6 +85,27 @@ final class CoAClientTest extends RadiusTestCase
         $this->assertSame([ProvisionResult::SUCCESS, 'SESSION_NOT_FOUND'], [$r->status, $r->code], 'Error-Cause 503: the session is already gone');
     }
 
+    /** lab NET-3: the first Disconnect's ACK is lost and the NAS answers the retransmission with NAK 406 */
+    public function testNakToARetransmissionIsUnknownNotFailed(): void
+    {
+        $u = 'rnk-' . bin2hex(random_bytes(3));
+        static::acct($u, 'open-r', null);
+        $stub = new StubNas(self::SECRET, 'retry406');
+        $this->nas($stub);
+        $r = $this->client()->disconnect($u)[0];
+        $got = $stub->received();
+        $this->assertSame([ProvisionResult::UNKNOWN, 'COA_RETRY_NAK', false, 406], [$r->status, $r->code, $r->retryable, $r->metadata['error_cause']], 'the first request may have ended the session');
+        $this->assertCount(2, $got, 'request + one identical retransmission');
+        $this->assertCount(1, array_unique(array_map(static fn(array $g): string => $g['id'] . '/' . $g['auth'], $got)));
+        // a CoA-Request NAK stays a plain failure, also for a retransmission (no session end is at stake)
+        static::$radius->exec('DELETE FROM nas');
+        $stub = new StubNas(self::SECRET, 'retry406');
+        $this->nas($stub);
+        $c = $this->client()->changeAuthorization($u, [['Mikrotik-Rate-Limit', '1M/1M']])[0];
+        $stub->received();
+        $this->assertSame([ProvisionResult::FAILED, 'COA_NAK', 406], [$c->status, $c->code, $c->metadata['error_cause']]);
+    }
+
     public function testSilenceIsUnknownWithIdenticalRetransmissionsOnly(): void
     {
         $u = 'sil-' . bin2hex(random_bytes(3));

@@ -10,7 +10,8 @@
                 <h3 class="box-title">{Lang::T('About')} <bdi>{$_brand.name|escape}</bdi></h3>
             </div>
             <div class="box-body">
-                <p class="itc-about-head"><bdi class="itc-wordmark itc-wordmark-lg" dir="ltr"><span class="itc-wm-brand">{$_brand.brand|escape}</span> <span class="itc-wm-product">{$_brand.product|escape}</span></bdi>
+                {* brand: the outlined ITC NetCore wordmark (light / reversed artwork); the tagline in the interface language *}
+                <p class="itc-about-head"><span class="nc-about-wordmark"><img class="nc-wordmark nc-on-light" src="{$app_url}/ui/ui/images/brand/netcore-wordmark.svg" alt="{$_brand.name|escape}" width="230" height="80"><img class="nc-wordmark nc-on-dark" src="{$app_url}/ui/ui/images/brand/netcore-wordmark-white.svg" alt="{$_brand.name|escape}" width="230" height="80"></span>
                     <span class="itc-tagline">{Lang::T('ISP Management & Billing Platform')}</span></p>
                 <div>
                     <table class="table table-bordered itc-facts">
@@ -33,9 +34,8 @@
     </div>
 </div>
 
-<center><a href="https://s.id/standwithpalestine" target="_blank"><img
-            src="https://raw.githubusercontent.com/Safouene1/support-palestine-banner/master/banner-support.svg" alt="Support Palestine"
-            class="img-responsive"></a></center>
+{* brand / privacy: the original project's banner as a link (no third-party image is fetched when the page opens) *}
+<p class="text-center"><a class="btn btn-default" href="https://s.id/standwithpalestine" target="_blank" rel="noopener noreferrer">{Lang::T('Support Palestine')}</a></p>
 <br><br>
 
 <div class="row">
@@ -46,9 +46,8 @@
                 <h3 class="box-title">{Lang::T('Contribution')} PHPNuxBill</h3>
             </div>
             <div class="box-body">
-                <a href="https://github.com/hotspotbilling/phpnuxbill/graphs/contributors" target="_blank">
-                    <img src="https://contrib.rocks/image?repo=hotspotbilling/phpnuxbill&columns=10" width="100%" alt="PHPNuxBill contributors" />
-                </a>
+                {* brand / privacy: a link instead of the remote contributors image *}
+                <a href="https://github.com/hotspotbilling/phpnuxbill/graphs/contributors" target="_blank" rel="noopener noreferrer">{Lang::T('PHPNuxBill contributors (GitHub)')}</a>
             </div>
         </div>
     </div>
@@ -181,7 +180,7 @@
                 {Lang::T('is a Hotspot and PPPoE billing platform for Mikrotik developed using PHP. The application uses Mikrotik API to communicate with the router, ensuring efficient and easy integration. If you feel you get more benefits from this application, we would greatly appreciate your contribution through donation.')}<br>{Lang::T('Watch project –')} <a
                     href="https://github.com/hotspotbilling/phpnuxbill" target="_blank">{Lang::T('IN HERE')}</a>
             </div>
-            <div class="box-footer">{Lang::T('Latest upstream version')}: <bdi id="latestVersion">-</bdi></div>
+            <div class="box-footer">{Lang::T('Upstream changelog')}: <a id="latestVersion" href="https://github.com/hotspotbilling/phpnuxbill/blob/master/CHANGELOG.md" target="_blank" rel="noopener noreferrer">CHANGELOG.md</a></div>
             <div class="box-footer">
                 {* WP2 / OD-2: the in-app web updater and rollback are disabled; updates are installed through
                    the reviewed release process and schema changes through the project migration runner. *}
@@ -296,11 +295,7 @@
         $.getJSON("./version.json?" + Math.random(), function(data) {
             $('#currentVersion').text(nuxrSafeVersion(data.version));
         });
-        $.getJSON("https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/version.json?" + Math
-            .random(),
-            function(data) {
-                $('#latestVersion').text(nuxrSafeVersion(data.version));
-            });
+        // brand / privacy: the latest upstream version is a link (no automatic request to raw.githubusercontent.com)
     });
 </script>
 </div>

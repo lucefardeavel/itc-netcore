@@ -135,11 +135,15 @@ final class HotspotAdmissionSourceTest extends TestCase
         $this->assertSame(1, substr_count($s, "end_reason = 'late_claim' WHERE username = " . self::KEY . " AND token = '%{control:Tmp-String-5}' AND state = 'PENDING' AND attach_count = 0}"),
             'late claim: its creator, its own token, still PENDING, not re-used by a retransmission');
         $this->assertStringContainsString('if (&control:Tmp-String-9 == "created") {', $s);
-        $this->assertSame(1, substr_count($s, "end_reason = 'verified_gone' WHERE username = " . self::KEY . " AND token = '%{control:Tmp-String-8}' AND state = 'ACTIVE'}"),
+        $this->assertSame(1, substr_count($s, "end_reason = 'verified_gone' WHERE username = " . self::KEY . " AND token = '%{control:Tmp-String-8}' AND state = 'ACTIVE' AND confirmed_at <= UTC_TIMESTAMP(6) - INTERVAL 10 SECOND}"),
             'verified release: ACTIVE only, exactly the proven token');
-        $this->assertDoesNotMatchRegularExpression('/INTERVAL|TIMESTAMPDIFF|created_at\s*<|updated_at\s*<|last_acct_at\s*</i', $s, 'no time-based condition anywhere in the slot policy');
+        // time never RELEASES a slot. The only time condition allowed is the fresh-session hold (lab SEC-E2, expert review
+        // 2026-10-26), which can only PREVENT a release: exactly twice (candidate list + release), nothing else
+        $hold = 'confirmed_at <= UTC_TIMESTAMP(6) - INTERVAL 10 SECOND';
+        $this->assertSame(2, substr_count($s, $hold), 'the fresh-session hold on the verifier candidates and the verified release');
+        $this->assertDoesNotMatchRegularExpression('/INTERVAL|TIMESTAMPDIFF|created_at\s*<|updated_at\s*<|last_acct_at\s*</i', str_replace($hold, '', $s), 'no other time-based condition anywhere in the slot policy');
         // the verifier only ever sees ACTIVE slots
-        $this->assertStringContainsString("FROM nuxr_hs_admission WHERE username = " . self::KEY . " AND state = 'ACTIVE' ORDER BY o, slot LIMIT 12) AS x}", $s);
+        $this->assertStringContainsString("FROM nuxr_hs_admission WHERE username = " . self::KEY . " AND state = 'ACTIVE' AND confirmed_at <= UTC_TIMESTAMP(6) - INTERVAL 10 SECOND ORDER BY o, slot LIMIT 12) AS x}", $s);
         $this->assertSame(1, substr_count($s, 'nuxr_hotspot_slot_verifier {'), 'the verifier runs at most once');
         foreach (['reject', 'fail', 'ok', 'handled', 'invalid', 'userlock', 'notfound', 'noop', 'updated'] as $rc) {
             $this->assertMatchesRegularExpression('/nuxr_hotspot_slot_verifier \{[^}]*\b' . $rc . ' = 1\n/s', $s, "module result {$rc} mapped explicitly");

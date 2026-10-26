@@ -4,28 +4,8 @@
  * Breakpoints follow the existing Bootstrap 3 / AdminLTE grid: phone < 768, tablet 768-1199, desktop >= 1200.
  */
 :root {
-    --nx-bg: #f3f5fa;
-    --nx-surface: #ffffff;
-    --nx-surface-2: #f7f8fc;
-    --nx-border: #dfe3ec;
-    --nx-text: #1b2230;
-    --nx-muted: #566072;
-    --nx-primary: #3442c9;
-    --nx-primary-soft: #e8eafc;
-    --nx-on-primary: #ffffff;
-    --nx-focus: #1d4ed8;
-    --nx-success: #146c43;
-    --nx-success-soft: #e3f4ea;
-    --nx-warning: #8a4b00;
-    --nx-warning-soft: #fff1d6;
-    --nx-danger: #b3261e;
-    --nx-danger-soft: #fde7e5;
-    --nx-info: #1c5a9e;
-    --nx-info-soft: #e3eefb;
-    --nx-neutral: #4a5263;
-    --nx-neutral-soft: #eceef3;
-    --nx-processing: #3442c9;
-    --nx-processing-soft: #e8eafc;
+    /* colour tokens (--nx-bg ... --nx-processing-soft, light and dark) and --nx-font: ui/ui/styles/nuxr-brand.css (brand layer,
+       loaded before this file on every staff page and the staff sign-in) */
     --nx-radius: 12px;
     --nx-radius-sm: 8px;
     --nx-touch: 44px;
@@ -35,7 +15,6 @@
     --nx-bottom-h: 64px;
     --nx-shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .08);
     --nx-shadow-lg: 0 12px 32px rgba(16, 24, 40, .18);
-    --nx-font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", "Noto Naskh Arabic", Tahoma, "Helvetica Neue", Arial, sans-serif;
     --nx-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     /* WP6C tokens: spacing, phone surfaces, type scale and safe areas (active with viewport-fit=cover) */
     --nx-page-pad: 12px;
@@ -54,30 +33,7 @@
     --nx-safe-end: var(--nx-safe-right);
 }
 
-body.nuxr-shell.dark-mode {
-    --nx-bg: #11151d;
-    --nx-surface: #1a202b;
-    --nx-surface-2: #212836;
-    --nx-border: #2f3746;
-    --nx-text: #e8ebf1;
-    --nx-muted: #a6aebd;
-    --nx-primary: #8f9bff;
-    --nx-primary-soft: #262d52;
-    --nx-on-primary: #10132a;
-    --nx-focus: #9fb4ff;
-    --nx-success: #6fd59e;
-    --nx-success-soft: #173326;
-    --nx-warning: #f3b75a;
-    --nx-warning-soft: #3a2c12;
-    --nx-danger: #ff8f86;
-    --nx-danger-soft: #3d1b1a;
-    --nx-info: #8cbcf5;
-    --nx-info-soft: #172a40;
-    --nx-neutral: #c3c9d4;
-    --nx-neutral-soft: #2a303c;
-    --nx-processing: #8f9bff;
-    --nx-processing-soft: #262d52;
-}
+/* dark colour tokens: body.dark-mode in nuxr-brand.css */
 
 /* ---------- vendored AdminLTE resets ----------
  * modern-AdminLTE gives many elements min-height:100% (cards stretched to their column) and a !important Nunito
@@ -1172,12 +1128,12 @@ a.nuxr-stat:hover, a.nuxr-stat:focus {
 .nuxr-btn-danger-solid {
     border-color: var(--nx-danger);
     background: var(--nx-danger);
-    color: #fff;
+    color: var(--nx-on-status);
 }
 
 .nuxr-btn-danger-solid:hover, .nuxr-btn-danger-solid:focus {
     background: var(--nx-danger);
-    color: #fff;
+    color: var(--nx-on-status);
     filter: brightness(1.08);
 }
 
@@ -1299,9 +1255,9 @@ a.nuxr-stat:hover, a.nuxr-stat:focus {
     font-size: 13px;
 }
 
-.nuxr-money.is-wholesale { border-color: #b9c0f5; background: var(--nx-primary-soft); }
+.nuxr-money.is-wholesale { border-color: var(--nx-border-primary); background: var(--nx-primary-soft); }
 .nuxr-money.is-wholesale .nuxr-money-label { color: var(--nx-primary); }
-.nuxr-money.is-retail { border-color: #a7d8bd; background: var(--nx-success-soft); }
+.nuxr-money.is-retail { border-color: var(--nx-border-success); background: var(--nx-success-soft); }
 .nuxr-money.is-retail .nuxr-money-label { color: var(--nx-success); }
 .nuxr-money.is-credit { background: var(--nx-surface-2); }
 .nuxr-money.is-credit .nuxr-money-label { color: var(--nx-muted); }
@@ -1551,10 +1507,10 @@ a.nuxr-stat:hover, a.nuxr-stat:focus {
     display: block;
 }
 
-.nuxr-alert.is-warning { background: var(--nx-warning-soft); color: var(--nx-warning); border-color: rgba(138, 75, 0, .25); }
-.nuxr-alert.is-danger { background: var(--nx-danger-soft); color: var(--nx-danger); border-color: rgba(179, 38, 30, .25); }
-.nuxr-alert.is-info { background: var(--nx-info-soft); color: var(--nx-info); border-color: rgba(28, 90, 158, .25); }
-.nuxr-alert.is-success { background: var(--nx-success-soft); color: var(--nx-success); border-color: rgba(20, 108, 67, .25); }
+.nuxr-alert.is-warning { background: var(--nx-warning-soft); color: var(--nx-warning); border-color: var(--nx-border-warning); }
+.nuxr-alert.is-danger { background: var(--nx-danger-soft); color: var(--nx-danger); border-color: var(--nx-border-danger); }
+.nuxr-alert.is-info { background: var(--nx-info-soft); color: var(--nx-info); border-color: var(--nx-border-info); }
+.nuxr-alert.is-success { background: var(--nx-success-soft); color: var(--nx-success); border-color: var(--nx-border-success); }
 
 /* segmented tabs */
 .nuxr-tabs {
@@ -2557,11 +2513,11 @@ dialog.nuxr-sheet:target:not([open]) {
 
 /* WP6C: legacy AdminLTE button / label colours inside the shell meet WCAG AA with white text (the theme's #007bff,
    #00d1b2, #ff6b81 and #3c8dbc did not). Fixed values, so they hold in the dark theme too; !important because the theme pins its own with !important. */
-body.nuxr-shell .content .btn-primary, body.nuxr-shell .content .label-primary { background-color: #3442c9 !important; border-color: #2c38a8 !important; color: #fff !important; }
-body.nuxr-shell .content .btn-success, body.nuxr-shell .content .label-success { background-color: #146c43 !important; border-color: #105a37 !important; color: #fff !important; }
-body.nuxr-shell .content .btn-danger, body.nuxr-shell .content .label-danger { background-color: #b3261e !important; border-color: #941f19 !important; color: #fff !important; }
-body.nuxr-shell .content .btn-warning, body.nuxr-shell .content .label-warning { background-color: #8a4b00 !important; border-color: #703d00 !important; color: #fff !important; }
-body.nuxr-shell .content .btn-info, body.nuxr-shell .content .label-info { background-color: #1c5a9e !important; border-color: #164a82 !important; color: #fff !important; }
+body.nuxr-shell .content .btn-primary, body.nuxr-shell .content .label-primary { background-color: var(--nc-solid-primary) !important; border-color: var(--nc-solid-primary-edge) !important; color: #fff !important; }
+body.nuxr-shell .content .btn-success, body.nuxr-shell .content .label-success { background-color: var(--nc-solid-success) !important; border-color: var(--nc-solid-success-edge) !important; color: #fff !important; }
+body.nuxr-shell .content .btn-danger, body.nuxr-shell .content .label-danger { background-color: var(--nc-solid-danger) !important; border-color: var(--nc-solid-danger-edge) !important; color: #fff !important; }
+body.nuxr-shell .content .btn-warning, body.nuxr-shell .content .label-warning { background-color: var(--nc-solid-warning) !important; border-color: var(--nc-solid-warning-edge) !important; color: #fff !important; }
+body.nuxr-shell .content .btn-info, body.nuxr-shell .content .label-info { background-color: var(--nc-solid-info) !important; border-color: var(--nc-solid-info-edge) !important; color: #fff !important; }
 body.nuxr-shell .content :is(.btn-primary, .btn-success, .btn-danger, .btn-warning, .btn-info):is(:hover, :focus-visible) { filter: brightness(.9); color: #fff !important; }
 body.nuxr-shell .content .text-success { color: var(--nx-success); }
 body.nuxr-shell .content .text-warning { color: var(--nx-warning); }
@@ -2661,7 +2617,7 @@ body.nuxr-shell .select2-container .select2-selection__placeholder { color: var(
 .nuxr-net-banner {
     margin: 12px 16px 0;
     padding: 12px 14px;
-    border: 1px solid rgba(179, 38, 30, .25);
+    border: 1px solid var(--nx-border-danger);
     border-radius: 12px;
     background: var(--nx-danger-soft);
     color: var(--nx-danger);
@@ -2677,8 +2633,8 @@ body.nuxr-shell .select2-container .select2-selection__placeholder { color: var(
     margin: 0 auto;
     padding: 14px 16px;
     border-radius: 12px;
-    background: #1d2433;
-    color: #ffffff;
+    background: var(--nx-toast-bg);
+    color: var(--nx-toast-text);
     box-shadow: var(--nx-shadow-lg);
     font-weight: 600;
 }

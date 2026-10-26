@@ -87,10 +87,10 @@ This checklist is for an operator deploying one isolated instance. Tick every li
 | # | Item | How to verify |
 |---|---|---|
 | H1 | One `nas` row per NAS. `nasname` = `/radius src-address` = `NAS-IP-Address` of its accounting; no NAT between NAS and FreeRADIUS. | test login + radacct |
-| H2 | `/radius incoming accept=yes port=3799` (or `nas.ports` set to the NAS's port); CoA allowed only from the application host | one Disconnect from the application |
+| H2 | `/radius incoming accept=yes port=3799` (or `nas.ports` set to the NAS's port); CoA allowed only from the application host: an `accept` rule for that source, then a `drop` for every other source on UDP 3799. RouterOS accepts a CoA / Disconnect only from the `address` of one of its `/radius` entries (that entry's secret is used) and silently ignores any other source: either the application host IS the FreeRADIUS address of the `/radius` entry, or add a second `/radius` entry for the application host's address with the same secret | one Disconnect from the application; a CoA from another host is dropped |
 | H3 | `require-message-auth=yes-for-request-resp`; RADIUS timeout per WP8 (3 s) | `/radius print detail` |
 | H4 | PPP AAA accounting with interim updates; no local `/ppp secret` or hotspot users that shadow RADIUS identities | `/ppp secret print` |
-| H8 | NAS clock: NTP enabled on every NAS (operations tolerate 60 s of drift; quota attribution no longer depends on it: a period owns the accounting rows that arrived after it started, `Nuxr-Period-Acct-Id`; the 10 s time rule is only the fallback for periods provisioned before V1.1). RouterOS: `/system ntp client` | `/system clock print` against `date -u`; Accounting-Start `Event-Timestamp` vs arrival |
+| H8 | NAS clock: NTP enabled on every NAS, two internal NTP servers by IP, monitored; within 2 s typical, **10 s hard limit** (the session-end cut-off allowance, B-L08; health `nas_clock` warns from 5 s ahead; many RouterBOARDs have no RTC and RouterOS without NTP drifts 2-9 s/day) (quota attribution no longer depends on it: a period owns the accounting rows that arrived after it started, `Nuxr-Period-Acct-Id`; the 10 s time rule is only the fallback for periods provisioned before V1.1). RouterOS: `/system ntp client` | `/system clock print` against `date -u`; Accounting-Start `Event-Timestamp` vs arrival |
 | H7 | V1 quota: the NAS accepts the RADIUS `Acct-Interim-Interval` (PPP AAA / Hotspot profile: no fixed interim that overrides it) and the `Mikrotik-*-Limit` replies; RouterOS 7.24.5 validated | a GB plan login: `/ppp active print detail` `limit-bytes-in/out`, `/ip hotspot active print detail` `limit-bytes-total` |
 | H5 | The RouterOS API is not used in the release profile. If it is ever enabled, it runs only over a private management path (OBS-W8-4). | — |
 | H6 | Per-NAS secret: unique, 32+ characters, rotated as documented | rotation log |
@@ -115,7 +115,7 @@ Page the operator on CRITICAL, and on any WARNING that lasts more than 30 minute
 - `vouchers_review`, `balance_held`: operator review queue.
 - `accounting`: accounting stopped while sessions are open (FreeRADIUS / NAS problem).
 - `coa_failures`: Disconnect / CoA not confirmed (session policy may be stale; drift `SESSION_POLICY_STALE`).
-- `nas_clock`: a NAS whose accounting stamps lie > 120 s in the future (clock ahead): check NTP on the NAS (attribution does not depend on it; display, freshness and the fallback rule do).
+- `nas_clock`: a NAS whose accounting stamps lie > 5 s in the future (clock ahead; early warning below the 10 s hard limit of the session-end cut-off): check NTP on the NAS. It sees a clock ahead only; a clock behind needs NTP monitoring on the NAS.
 - `quota_enforcer`: CRITICAL = the quota enforcer (I6) is not running while quota subscribers are online (only the
   router's per-session / per-direction limits apply); WARNING = an over-quota session is still open (`quota.php report`).
 

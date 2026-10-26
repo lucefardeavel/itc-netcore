@@ -1,0 +1,11 @@
+# ITC NetCore product brand assets (lab/brand-netcore-v1)
+# Source: Drive ITC_NetCore_Visual_Fixes_v0.7_DELIVERY.zip (sha256 4e69e99216b7255b2d0d64f677330e4f40d916be6e414d425b52c80b4402679d), 01_OUTLINED_LOGOS/, copied byte-identical.
+# Approval: APPROVED_BY_DELEGATION 2026-10-26 (owner delegation 2026-10-25, Brand Approval Board BR-D-02..); not a trademark clearance (LIC-1 open).
+# sha256  product-file  <-  drive-source-file
+4c7723355f48189b900303c4ecc495e557cfa1d36d5d86d5b3c988a8311bdfca  netcore-mark-micro.svg  <-  netcore-l1-micro-OPTICAL-DRAFT.svg
+7e569ad6a435ea8df13e7e7d15f6b32ce087fefdcdf0acfbb79a67f2b95eaa91  netcore-mark-navy.svg  <-  netcore-l1-mono-navy.svg
+6b798de13613dd7e7dd36b890c526c3164d268abd3ad78f5ab9b28ce4f0552b7  netcore-mark-white.svg  <-  netcore-l1-mono-white.svg
+592996c1c9d79d83e7c952e82eae80bf82b43a979be1e79f26296a3196bdfb10  netcore-mark.svg  <-  netcore-l1-primary.svg
+04d73fd450746dd860668acef009fff4c0302c912df3d6b503737f752e4d8285  netcore-wordmark-navy.svg  <-  netcore-l1-wordmark-NAVY-OUTLINED-CANDIDATE.svg
+11e7c40e907b7f1088415f50d0db052ba98614ff60505c5ee4e3253a994242b0  netcore-wordmark-white.svg  <-  netcore-l1-wordmark-WHITE-OUTLINED-CANDIDATE.svg
+c5e4baf85ff8b2ea33f8987b7802bde66a0ca45863d05e7ef4682cfe9dfe0000  netcore-wordmark.svg  <-  netcore-l1-wordmark-OUTLINED-CANDIDATE.svg

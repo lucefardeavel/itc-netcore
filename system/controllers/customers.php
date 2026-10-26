@@ -175,6 +175,22 @@ switch ($action) {
             $nuxrParent = ORM::for_table('tbl_users')->select_many('id', 'username')->find_one((int) $nuxrActor->managerId);
             $ui->assign('nuxr_parent_owner', $nuxrParent ? $nuxrParent['username'] : null);
         }
+        // UX-12: non-secret fields of a refused add-post, shown once (never a password) and only while fresh: a refill
+        // older than 5 minutes (a later, unrelated add) is dropped, never offered for another subscriber
+        $nuxrStored = $_SESSION['nuxr_customer_add_refill'] ?? null;
+        unset($_SESSION['nuxr_customer_add_refill']);
+        $nuxrRefill = null;
+        if (is_array($nuxrStored) && isset($nuxrStored['at'], $nuxrStored['fields']) && is_int($nuxrStored['at'])
+            && is_array($nuxrStored['fields']) && time() - $nuxrStored['at'] >= 0 && time() - $nuxrStored['at'] <= 300) {
+            $nuxrRefill = $nuxrStored['fields'];
+        }
+        $nuxrForm = array_fill_keys(['fullname', 'phonenumber', 'email', 'address', 'service_type', 'account_type', 'username', 'pppoe_username', 'pppoe_ip'], '');
+        foreach ($nuxrForm as $k => $unused) {
+            if (is_array($nuxrRefill) && isset($nuxrRefill[$k]) && is_string($nuxrRefill[$k])) {
+                $nuxrForm[$k] = $nuxrRefill[$k];
+            }
+        }
+        $ui->assign('nuxr_refill', $nuxrForm);
         run_hook('view_add_customer'); #HOOK
         $ui->assign('csrf_token',  Csrf::generateAndStoreToken());
         $ui->display('admin/customers/add.tpl');
@@ -323,6 +339,11 @@ switch ($action) {
             \Reseller\Domain\LegacyReprovisionService::web(\Reseller\Domain\LegacyReprovisionService::ADMIN_SYNC, $id_customer, [], 'customers/view/' . (int) $id_customer);
         }
         \Reseller\Domain\ServiceGate::guardCustomer($id_customer, 'customerSync', 'customers/view/' . (int) $id_customer);
+        // lab F-6 Q3 (owner delegation 2026-10-25): a customer that is not Active is never re-provisioned by the sync
+        $nuxrSyncCustomer = ORM::for_table('tbl_customers')->find_one($id_customer);
+        if ($nuxrSyncCustomer && $nuxrSyncCustomer['status'] !== 'Active') {
+            r2(getUrl('customers/view/') . (int) $id_customer, 'e', Lang::T('The customer is not Active; the service is not re-provisioned.'));
+        }
         $bs = ORM::for_table('tbl_user_recharges')->where('customer_id', $id_customer)->where('status', 'on')->findMany();
         if ($bs) {
             $routers = [];
@@ -361,9 +382,19 @@ switch ($action) {
         }
         $customer = ORM::for_table('tbl_customers')->find_one($id);
         if ($customer) {
+            // lab D-4 (owner delegation 2026-10-25): who opened the portal as which customer is logged and audited
+            _log('Staff opened the customer portal as customer #' . (int) $customer['id'], $admin['user_type'], $admin['id']);
+            try {
+                \Reseller\Audit\AuditLog::record('customer.impersonate', \Reseller\Security\ActorContext::current(), [
+                    'target_type' => 'customer', 'target_customer_id' => (int) $customer['id'], 'reason' => 'staff portal login',
+                ]);
+            } catch (\Throwable $e) {
+                \Reseller\Security\ErrorReporter::report($e, 'customer-impersonate-audit');
+            }
             $_SESSION['uid'] = $id;
             User::setCookie($id);
-            _alert("You are logging in as $customer[fullname],<br>don't logout just close tab.", 'info', "home", 10);
+            // expert review 2026-10-26: the customer-chosen name is escaped (the alert body is rendered as HTML)
+            _alert('You are logging in as ' . htmlspecialchars((string) $customer['fullname'], ENT_QUOTES, 'UTF-8') . ",<br>don't logout just close tab.", 'info', "home", 10);
         }
         _alert(Lang::T('Customer not found'), 'danger', "customers");
         break;
@@ -546,6 +577,8 @@ switch ($action) {
         break;
 
     case 'add-post':
+        // UX-12: a refill left by an earlier refused add never outlives the next add attempt
+        unset($_SESSION['nuxr_customer_add_refill']);
 
         $csrf_token = _post('csrf_token');
         if (!Csrf::check($csrf_token)) {
@@ -573,6 +606,14 @@ switch ($action) {
         $zip = _post('zip');
 
         run_hook('add_customer'); #HOOK
+        // UX-12: after a refused add the form is offered again with the NON-SECRET fields (one request, then cleared
+        // by customers/add); passwords (login and PPPoE) are never kept
+        $nuxrRefill = [];
+        foreach (['fullname' => $fullname, 'phonenumber' => $phonenumber, 'email' => $email, 'address' => $address,
+                     'service_type' => $service_type, 'account_type' => $account_type, 'username' => $username,
+                     'pppoe_username' => $pppoe_username, 'pppoe_ip' => $pppoe_ip] as $k => $v) {
+            $nuxrRefill[$k] = is_scalar($v) ? (string) $v : '';
+        }
         $msg = '';
         if (Validator::Length($username, 55, 2) == false) {
             $msg .= 'Username should be between 3 to 54 characters' . '<br>';
@@ -587,7 +628,7 @@ switch ($action) {
 
         $d = ORM::for_table('tbl_customers')->where('username', $username)->find_one();
         if ($d) {
-            $msg .= Lang::T('Account already axist') . '<br>';
+            $msg .= Lang::T('Account already exists') . '<br>';
         }
         if ($msg == '') {
             // WP2 / SEC-06: ownership resolved server-side by role (CustomerService); posted
@@ -611,6 +652,7 @@ switch ($action) {
                     'manager_id' => _post('manager_id'), 'assigned_sales_id' => _post('assigned_sales_id'),
                 ], $nuxrFields);
             } catch (\Reseller\Domain\DomainError $e) {
+                $_SESSION['nuxr_customer_add_refill'] = ['at' => time(), 'fields' => $nuxrRefill];
                 r2(getUrl('customers/add'), 'e', Lang::T($e->getMessage()));
             }
             $d = ORM::for_table('tbl_customers')->find_one($customerId);
@@ -658,6 +700,7 @@ switch ($action) {
             // WP6A: continue on the new subscriber's 360 (Activate now / Later)
             r2(getUrl('customers/view/') . (int) $customerId . '&created=1', 's', Lang::T('Account Created Successfully'));
         } else {
+            $_SESSION['nuxr_customer_add_refill'] = ['at' => time(), 'fields' => $nuxrRefill];
             r2(getUrl('customers/add'), 'e', $msg);
         }
         break;

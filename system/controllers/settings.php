@@ -1060,6 +1060,12 @@ switch ($action) {
         $nuxrLang = [];
         foreach ($_POST as $k => $v) {
             if (is_string($k) && is_string($v) && $k !== 'csrf_token') {
+                // Lab finding F-12: translations are printed unescaped by the templates ({Lang::T(...)}), so markup in a
+                // translation written by an Admin rendered in SuperAdmin's and customers' pages. Translations are plain
+                // text: a value with markup characters is refused and nothing is written
+                if (strpbrk($v, '<>') !== false) {
+                    r2(getUrl('settings/language'), 'e', Lang::T('Translations cannot contain HTML markup'));
+                }
                 $nuxrLang[$k] = $v;
             }
         }
@@ -1129,7 +1135,14 @@ switch ($action) {
             if (!Csrf::check($csrf_token)) {
                 r2(getUrl('settings/miscellaneous'), 'e', Lang::T('Invalid or Expired CSRF Token') . ".");
             }
+            // Lab finding F-1: only the keys of this form are stored (as settings/app-post does since WP2 SEC-07); the
+            // security keys stay SuperAdmin-only on settings/app, and the form controls (save, csrf_token) are not settings
+            $nuxrMiscAllowed = ['new_version_notify', 'router_check', 'allow_phone_otp', 'phone_otp_type', 'allow_email_otp',
+                'show_bandwidth_plan', 'hs_auth_method', 'frrest_interim_update', 'check_customer_online', 'extend_expiry'];
             foreach ($_POST as $key => $value) {
+                if (!is_string($key) || !in_array($key, $nuxrMiscAllowed, true) || !is_scalar($value)) {
+                    continue;
+                }
                 $d = ORM::for_table('tbl_appconfig')->where('setting', $key)->find_one();
                 if ($d) {
                     $d->value = $value;

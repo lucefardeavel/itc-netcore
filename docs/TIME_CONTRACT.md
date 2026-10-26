@@ -9,7 +9,7 @@ analysis and the measurements). It is **not** production-ready until TA-02 and T
 | Host | Requirement | Check |
 |---|---|---|
 | Application (PHP), database, FreeRADIUS | UTC zone, NTP-synchronised; the database session zone is UTC; maximum drift between them **5 s** | `php system/reseller/preflight.php` (`time.sql_session_zone`, `time.clock_skew`); TA-01 / TA-02 |
-| Every NAS (RouterOS) | NTP client enabled, clock zone UTC or a fixed offset known to the operator; maximum drift **60 s** for operations | health `nas_clock` (WARNING when open sessions carry stamps more than 120 s in the future); TA-02 |
+| Every NAS (RouterOS) | NTP client enabled, clock zone UTC or a fixed offset known to the operator; maximum drift **10 s** (hard limit: the session-end cut-off allows the NAS 10 s, B-L08; keep it within 2 s with NTP from two internal servers by IP) | health `nas_clock` (WARNING when open sessions carry stamps more than 10 s in the future); TA-02 |
 | Browser / operator | not part of the contract (display only: times are shown in the application zone with the UTC offset) | - |
 
 The application never parses accounting times as PHP-local strings: it reads epoch seconds through the RADIUS database session
@@ -56,6 +56,7 @@ The application never parses accounting times as PHP-local strings: it reads epo
 ## 5. Target acceptance (not run here)
 
 - **TA-02** clock discipline on the real hosts and the real NAS (`chronyc tracking` / `timedatectl`, `/system ntp client print`, comparison with
-  the Accounting-Start arrival; more than 60 s is a FAIL).
+  the Accounting-Start arrival; more than 10 s is a FAIL). The database clock must slew, never step backwards: the
+  fresh-session hold (10 s) is measured on it.
 - **TA-06** renewal on the target NAS, including a re-dial inside 10 s of the renewal and an accounting delay.
 - Until both pass the time contract is **documented and lab-verified**, not production-ready.

@@ -63,19 +63,17 @@ switch ($action) {
         die();
     case 'language':
         $select = _get('select');
-        $folders = [];
-        $files = scandir('system/lan/');
-        foreach ($files as $file) {
-            if (is_file('system/lan/' . $file) && !in_array($file, ['index.html', 'country.json', '.DS_Store'])) {
-                $file = str_replace(".json", "", $file);
-                if(!empty($file)){
-                    // WP2 / OD-8: language change is a mutation → POST link (CSRF shim)
-                    echo '<li><a data-method="post" href="' . htmlspecialchars(getUrl('accounts/language-update-post&lang=' . $file), ENT_QUOTES) . '">';
-                    if($select == $file){
-                        echo '<span class="glyphicon glyphicon-ok"></span> ';
-                    }
-                    echo ucwords($file) . '</a></li>';
+        // UX-14: the portal offers the supported languages only (Arabic, English), each by its native name; the other
+        // shipped files are kept and still validated by accounts/language-update-post
+        foreach (\Reseller\Ui\Format::PORTAL_LANGUAGES as $file => $name) {
+            if (is_file('system/lan/' . $file . '.json')) {
+                // WP2 / OD-8: language change is a mutation → POST link (CSRF shim)
+                echo '<li><a data-method="post" href="' . htmlspecialchars(getUrl('accounts/language-update-post&lang=' . $file), ENT_QUOTES) . '"'
+                    . ' lang="' . htmlspecialchars(\Reseller\Ui\Format::iso($file), ENT_QUOTES) . '">';
+                if ($select == $file) {
+                    echo '<span class="glyphicon glyphicon-ok"></span> ';
                 }
+                echo htmlspecialchars($name, ENT_QUOTES) . '</a></li>';
             }
         }
         die();

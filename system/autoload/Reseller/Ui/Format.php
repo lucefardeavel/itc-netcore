@@ -13,6 +13,12 @@ final class Format
     /** Languages written right-to-left (system/lan/<name>.json). */
     public const RTL = ['arabic'];
 
+    /**
+     * UX-14: languages offered in the customer portal menu, each by its own (native) name. Presentation only: the other
+     * shipped files stay on disk and the language switch keeps validating against them (PathGuard::language).
+     */
+    public const PORTAL_LANGUAGES = ['arabic' => 'العربية', 'english' => 'English'];
+
     /** Activation states by presentation tone (StatusBadge); every ActivationState has exactly one. */
     public const STATE_TONE = [
         'CREATED' => 'processing', 'VALIDATED' => 'processing', 'FUNDS_RESERVED' => 'processing', 'PROVISIONING' => 'processing',
@@ -42,6 +48,12 @@ final class Format
     {
         $iso = \Lang::getIsoLang()[(string) $language] ?? null;
         return is_string($iso) && preg_match('/^[a-z]{2,3}$/', $iso) ? $iso : 'en';
+    }
+
+    /** Native name of a language file (العربية / English); other names as before (ucwords). */
+    public static function languageName(?string $language): string
+    {
+        return self::PORTAL_LANGUAGES[(string) $language] ?? ucwords((string) $language);
     }
 
     /** "IQD 12,500" / "IQD 12,500.50" from a server amount string; '' for null. Latin digits (OD-F). */
@@ -173,6 +185,59 @@ final class Format
         }
         $d = \DateTimeImmutable::createFromFormat('!Y-m-d', substr($date, 0, 10));
         return $d === false ? null : (int) (new \DateTimeImmutable('today'))->diff($d)->format('%r%a');
+    }
+
+    /**
+     * UX-15: a day count in words for the interface language. Arabic: 1 "يوم واحد", 2 "يومان", 3-10 "N أيام", 11-99 "N يوماً"
+     * (by the last two digits above 100: "100 يوم", "103 أيام", "365 يوماً"); otherwise "1 day" / "N days". Display only.
+     */
+    public static function days(int|string $n, ?string $language = null): string
+    {
+        $n = (int) $n;
+        $language ??= (string) ($GLOBALS['config']['language'] ?? '');
+        if ($language === 'arabic') {
+            $r = abs($n) % 100;
+            return match (true) {
+                $n === 1 => 'يوم واحد',
+                $n === 2 => 'يومان',
+                $r >= 3 && $r <= 10 => $n . ' أيام',
+                $r >= 11 => $n . ' يوماً',
+                default => $n . ' يوم',
+            };
+        }
+        $word = $n === 1 ? 'day' : 'days';
+        return $n . ' ' . ($language !== 'english' && class_exists('Lang', false) ? \Lang::T($word) : $word);
+    }
+
+    /**
+     * UX-15 (display only): whole days of paid service lost when a CHANGE_PLAN starts at $start while the current period
+     * runs until $currentExpiry (a started day counts), or null when nothing is lost. Both values come from the server quote;
+     * the result is never sent back and the server never reads it (the policy "CHANGE_PLAN starts now, no proration" is
+     * unchanged: docs/WP5A_ACTIVATION_MODEL.md).
+     */
+    public static function lostDays(?string $currentExpiry, ?string $start): ?int
+    {
+        $f = static fn(?string $v): ?\DateTimeImmutable => is_string($v) && preg_match('/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}(:\d{2})?)?$/D', $v)
+            ? (\DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', strlen($v) === 10 ? $v . ' 23:59:59' : (strlen($v) === 16 ? $v . ':00' : $v)) ?: null) : null;
+        $until = $f($currentExpiry);
+        $from = $f($start);
+        if ($until === null || $from === null || $until <= $from) {
+            return null;
+        }
+        return (int) ceil(($until->getTimestamp() - $from->getTimestamp()) / 86400);
+    }
+
+    /**
+     * UX-15: the plan-change warning ("N days of paid service (until Y-m-d) will be lost ..."), plain text: the caller escapes
+     * it. Only the date part of $until is shown (the full instant is on the "Current expiry" line; a lone date stays in order
+     * inside right-to-left text).
+     */
+    public static function lostDaysNotice(int $days, string $until, ?string $language = null): string
+    {
+        $text = class_exists('Lang', false)
+            ? \Lang::T('[days] of paid service (until [date]) will be lost: the current period is replaced now and the remaining time is not refunded or carried over.')
+            : '[days] of paid service (until [date]) will be lost: the current period is replaced now and the remaining time is not refunded or carried over.';
+        return strtr($text, ['[days]' => self::days($days, $language), '[date]' => substr($until, 0, 10)]);
     }
 
     /**

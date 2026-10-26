@@ -3,7 +3,8 @@
 // RADIUS Disconnect / CoA request and answers per mode, then logs what it received (JSON) and exits.
 // The log is PUBLISHED ATOMICALLY (temporary file + rename() in the same directory, WP8 TI-02): a reader sees either
 // no log or the complete JSON document, never a partial one. The protocol order is unchanged: answer, then record.
-//   php stub_nas.php <port> <secret> <mode: ack|nak|nak503|silent|badauth> <logfile>
+//   php stub_nas.php <port> <secret> <mode: ack|nak|nak503|silent|badauth|retry406> <logfile>
+// retry406 (lab NET-3): the first request gets no answer (its ACK "lost"), the retransmission gets NAK 406.
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 define('NUXR_RUNTIME', true);
 require dirname(__DIR__, 2) . '/system/autoload/Reseller/Radius/RadiusPacket.php';
@@ -69,13 +70,13 @@ while (microtime(true) < $deadline) {
     // request authenticator check (RFC 5176): MD5(code+id+len+16 zero+attrs+secret)
     $valid = hash_equals(md5(substr($raw, 0, 4) . str_repeat("\0", 16) . substr($raw, 20) . $secret, true), $req->authenticator);
     $received[] = ['code' => $req->code, 'id' => $req->identifier, 'auth' => bin2hex($req->authenticator), 'valid' => $valid, 'attributes' => array_map(static fn($a) => [$a[0], is_string($a[1]) && !mb_check_encoding($a[1], 'UTF-8') ? bin2hex($a[1]) : $a[1]], $req->attributes)];
-    if ($mode === 'silent') {
+    if ($mode === 'silent' || ($mode === 'retry406' && count($received) === 1)) {
         continue;
     }
     $ack = $req->code === RadiusPacket::DISCONNECT_REQUEST ? RadiusPacket::DISCONNECT_ACK : RadiusPacket::COA_ACK;
     $nak = $req->code === RadiusPacket::DISCONNECT_REQUEST ? RadiusPacket::DISCONNECT_NAK : RadiusPacket::COA_NAK;
-    $code = in_array($mode, ['nak', 'nak503'], true) ? $nak : $ack;
-    $attrs = $mode === 'nak503' ? chr(101) . chr(6) . pack('N', 503) : ($mode === 'nak' ? chr(101) . chr(6) . pack('N', 502) : '');
+    $code = in_array($mode, ['nak', 'nak503', 'retry406'], true) ? $nak : $ack;
+    $attrs = $mode === 'nak503' ? chr(101) . chr(6) . pack('N', 503) : ($mode === 'nak' ? chr(101) . chr(6) . pack('N', 502) : ($mode === 'retry406' ? chr(101) . chr(6) . pack('N', 406) : ''));
     $head = chr($code) . chr($req->identifier) . pack('n', 20 + strlen($attrs));
     $auth = md5($head . $req->authenticator . $attrs . ($mode === 'badauth' ? 'wrong-secret' : $secret), true);
     stream_socket_sendto($server, $head . $auth . $attrs, 0, $peer);
