@@ -95,8 +95,8 @@
                                 <th>
                                     <a href="{Text::url('export/print-by-date&')}{$filter}" class="btn btn-default"
                                         target="_blank" aria-label="{Lang::T('Print')}"><i class="ion ion-printer" aria-hidden="true"></i></a>
-                                    <a href="{Text::url('export/pdf-by-date&')}{$filter}" class="btn btn-default"><i
-                                            class="fa fa-file-pdf-o"></i></a>
+                                    <a href="{Text::url('export/pdf-by-date&')}{$filter}" class="btn btn-default" aria-label="PDF"><i
+                                            class="fa fa-file-pdf-o" aria-hidden="true"></i></a>
                                 </th>
                                 <th colspan="7"></th>
                             </tr>
@@ -163,8 +163,8 @@
     <p>{Lang::T('Export and Print will show all data without pagination')}.</p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js" integrity="sha384-zVyRZ9eQ45iRS7ZRZQSFKGJpypyxssU6clBCysSqzjmdGWNn8//uC8dh9DabpAbK" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors@0.5.1/dist/chartjs-plugin-autocolors.min.js" integrity="sha384-vnGRB4CdtZ0nxGdDU8ZknCYFULPqwUgZDuBR0bVo3l1hpTKuOCWykajKvrGGFnyz" crossorigin="anonymous"></script>
+<script src="{$app_url}/ui/ui/scripts/vendor/chart-3.5.1.min.js" integrity="sha384-zVyRZ9eQ45iRS7ZRZQSFKGJpypyxssU6clBCysSqzjmdGWNn8//uC8dh9DabpAbK"></script>
+<script src="{$app_url}/ui/ui/scripts/vendor/chartjs-plugin-autocolors-0.5.1.min.js" integrity="sha384-vnGRB4CdtZ0nxGdDU8ZknCYFULPqwUgZDuBR0bVo3l1hpTKuOCWykajKvrGGFnyz"></script>
 
 {literal}
     <script>

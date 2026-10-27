@@ -1,8 +1,11 @@
             </section>
         </div>
         <footer class="main-footer nuxr-footer">
-            {* Product identity (Reseller\Ui\Brand) and the credits of the original project and the theme (kept) *}
-            <div class="pull-right itc-footer-version"><a id="version" href="{Text::url('community')}"><bdi>{$_brand.name|escape} {$_brand.version|escape}</bdi></a></div>
+            {* Product identity (Reseller\Ui\Brand) and the credits of the original project and the theme (kept).
+               UX-8: the version links to the About page only for the roles that may open it (RouteMap community:
+               system.admin); for the others it is plain text (presentation only, the route is checked server-side) *}
+            {assign var=nuxr_about_link value=NuxrUi::allowed('community')}
+            <div class="pull-right itc-footer-version">{if $nuxr_about_link}<a id="version" href="{Text::url('community')}"><bdi>{$_brand.name|escape} {$_brand.version|escape}</bdi></a>{else}<span id="version"><bdi>{$_brand.name|escape} {$_brand.version|escape}</bdi></span>{/if}</div>
             <span class="itc-footer-product"><bdi class="itc-name">{$_brand.name|escape}</bdi> &middot; {Lang::T('ISP Management & Billing Platform')}
                 &middot; {Lang::T('Developed and maintained by')} <bdi>{$_brand.vendor|escape}</bdi></span>
             <span class="itc-footer-credits">{Lang::T('Based on the open-source project')} <a href="{$_brand.upstream_url|escape}" rel="nofollow noreferrer noopener"
@@ -23,7 +26,7 @@
                 {* WP7: user-initiated install *}
                 <ul class="nuxr-sheet-list"><li><button type="button" data-nuxr-install hidden><i class="fa fa-download fa-fw" aria-hidden="true"></i><span>{Lang::T('Install app')}</span></button></li></ul>
                 {* product identity on phone / tablet, where the footer is not shown (WP6A) *}
-                <p class="itc-sheet-product"><a href="{Text::url('community')}"><bdi>{$_brand.name|escape} {$_brand.version|escape}</bdi></a></p>
+                <p class="itc-sheet-product">{if $nuxr_about_link}<a href="{Text::url('community')}"><bdi>{$_brand.name|escape} {$_brand.version|escape}</bdi></a>{else}<bdi>{$_brand.name|escape} {$_brand.version|escape}</bdi>{/if}</p>
             </div>
         </dialog>
 
@@ -81,7 +84,7 @@
     <script src="{$app_url}/ui/ui/scripts/nuxr-shell.js?wp6c.3"></script>
     {* WP7: staff PWA client (before the CSRF shim, whose mutation paths consult its gate) *}
     {include file="admin/nuxr/pwa-config.tpl"}
-    <script src="{$app_url}/ui/ui/scripts/nuxr-pwa.js?wp7.2" data-nuxr-sw="{$app_url}/nuxr-sw.js"></script>
+    <script src="{$app_url}/ui/ui/scripts/nuxr-pwa.js?wp7.3" data-nuxr-sw="{$app_url}/nuxr-sw.js"></script>
 
     {if isset($xfooter)}
         {$xfooter}

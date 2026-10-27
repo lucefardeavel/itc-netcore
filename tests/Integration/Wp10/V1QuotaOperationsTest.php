@@ -170,7 +170,8 @@ final class V1QuotaOperationsTest extends ActivationTestCase
 
     /**
      * N2: quota attribution no longer uses the NAS clock, but accounting times (display, freshness, the time-rule fallback) do.
-     * A NAS whose interim stamps lie more than 120 s in the future (clock ahead) is reported; counts only, never a name.
+     * A NAS whose interim stamps lie more than 10 s in the future (clock ahead; the B-L08 allowance, lab NET-4) is reported;
+     * counts only, never a name.
      */
     public function testHealthReportsANasWhoseClockIsAhead(): void
     {
@@ -184,6 +185,13 @@ final class V1QuotaOperationsTest extends ActivationTestCase
             $this->assertSame('WARNING', $c['status'] ?? null, json_encode($c));
             $this->assertStringContainsString('1 open session', (string) $c['detail']);
             $this->assertStringNotContainsString($user, json_encode($c), 'counts only');
+            // lab NET-4: 30 s ahead is beyond the 10 s session-end allowance (it was silent below 120 s)
+            static::$db->exec("UPDATE radacct SET acctupdatetime = UTC_TIMESTAMP() + INTERVAL 30 SECOND WHERE radacctid = {$id}");
+            $this->assertSame('WARNING', $this->healthCheck('nas_clock')['status'] ?? null, 'a NAS 30 s ahead is reported');
+            static::$db->exec("UPDATE radacct SET acctupdatetime = UTC_TIMESTAMP() + INTERVAL 8 SECOND WHERE radacctid = {$id}");
+            $this->assertSame('WARNING', $this->healthCheck('nas_clock')['status'] ?? null, 'early warning beyond 5 s, before the 10 s hard limit');
+            static::$db->exec("UPDATE radacct SET acctupdatetime = UTC_TIMESTAMP() + INTERVAL 2 SECOND WHERE radacctid = {$id}");
+            $this->assertSame('OK', $this->healthCheck('nas_clock')['status'] ?? null, 'a 2 s stamp is normal');
             static::$db->exec("UPDATE radacct SET acctupdatetime = UTC_TIMESTAMP() WHERE radacctid = {$id}");
             $this->assertSame('OK', $this->healthCheck('nas_clock')['status'] ?? null, 'a normal stamp is fine');
         } finally {

@@ -22,6 +22,9 @@ class Admin
     /** @var array<int,array<string,mixed>> per-request cache of verified, Active user rows */
     private static $verified = [];
 
+    /** tbl_meta name of a staff remember-cookie device record (D-9) */
+    private const DEVICE_META = 'nuxr_staff_device';
+
     public static function getID()
     {
         global $config, $isApi;
@@ -64,7 +67,8 @@ class Admin
                 if ($row !== null && \Reseller\Security\AppKey::available()
                     && hash_equals(self::cookieMac((int) $tmp[0], (int) $tmp[1], (string) $row['password']), $tmp[2])
                     && time() - (int) $tmp[1] < 86400 * 7 && (int) $tmp[1] <= time() + 60
-                    && self::validateToken($row['id'], $_COOKIE['aid'])) {
+                    && self::validateToken($row['id'], $_COOKIE['aid'])
+                    && self::deviceRecord((int) $row['id'], $_COOKIE['aid']) !== null) {
                     if (session_status() === PHP_SESSION_ACTIVE) {
                         session_regenerate_id(true);
                     }
@@ -99,6 +103,12 @@ class Admin
         }
         $time = time();
         $token = $row['id'] . '.' . $time . '.' . self::cookieMac((int) $row['id'], $time, (string) $row['password']);
+        // D-9: one device record per cookie; a second login of the same user in the same second would mint the same
+        // cookie, so the issue time steps back until the token is unique (still valid, a few seconds shorter)
+        for ($i = 0; $i < 60 && self::deviceRecord((int) $row['id'], $token) !== null; $i++) {
+            $time--;
+            $token = $row['id'] . '.' . $time . '.' . self::cookieMac((int) $row['id'], $time, (string) $row['password']);
+        }
 
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_regenerate_id(true);
@@ -122,8 +132,45 @@ class Admin
         }
         \Reseller\Security\CsrfPolicy::rotate();
         self::upsertToken($row['id'], $token);
+        self::registerDevice((int) $row['id'], $token, $time);
 
         return $token;
+    }
+
+    /**
+     * D-9 (owner direction D-17): per-device server-side record of a staff remember cookie, so that logout revokes THIS
+     * device only and a captured cookie cannot be replayed after it. Stored in the generic tbl_meta table (no schema
+     * change): tbl = tbl_users, tbl_id = staff id, value = sha256(cookie) ':' issue time. Records older than the cookie
+     * lifetime are pruned at each login.
+     */
+    public static function registerDevice(int $aid, string $token, int $time): void
+    {
+        ORM::for_table('tbl_meta')->where('tbl', 'tbl_users')->where('tbl_id', $aid)->where('name', self::DEVICE_META)
+            ->where_raw('CAST(SUBSTRING_INDEX(`value`, \':\', -1) AS UNSIGNED) < ?', [time() - 86400 * 7])->delete_many();
+        $m = ORM::for_table('tbl_meta')->create();
+        $m->tbl = 'tbl_users';
+        $m->tbl_id = $aid;
+        $m->name = self::DEVICE_META;
+        $m->value = hash('sha256', $token) . ':' . $time;
+        $m->save();
+    }
+
+    /** Revokes the device record of this cookie (logout). Deleting by the cookie's own hash touches no other device. */
+    public static function revokeDevice(string $token): void
+    {
+        $tmp = explode('.', $token);
+        if (count($tmp) === 3 && preg_match('/^[1-9][0-9]{0,9}$/', $tmp[0])) {
+            ORM::for_table('tbl_meta')->where('tbl', 'tbl_users')->where('tbl_id', (int) $tmp[0])->where('name', self::DEVICE_META)
+                ->where_like('value', hash('sha256', $token) . ':%')->delete_many();
+        }
+    }
+
+    /** @return mixed the device record of this cookie, or null when it was never issued, expired or revoked */
+    private static function deviceRecord(int $aid, string $token)
+    {
+        $m = ORM::for_table('tbl_meta')->where('tbl', 'tbl_users')->where('tbl_id', $aid)->where('name', self::DEVICE_META)
+            ->where_like('value', hash('sha256', $token) . ':%')->find_one();
+        return $m ?: null;
     }
 
     /** Removes the staff cookie AND the staff session state, whether or not a cookie was sent. */

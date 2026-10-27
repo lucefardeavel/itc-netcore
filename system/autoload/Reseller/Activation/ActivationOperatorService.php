@@ -116,7 +116,8 @@ final class ActivationOperatorService
     {
         $actor = ReconciliationService::staffActor($a);
         $act = self::stale($reference, array_keys(array_filter(self::STALE_OPERATIONS, static fn(array $ops): bool => in_array(self::CANCEL, $ops, true))));
-        return ReconciliationService::cancel($actor, (string) $act['reference']);
+        // lab closure FIN-3: the stale rule is checked again under the row lock (stale() above reads without a lock)
+        return ReconciliationService::cancel($actor, (string) $act['reference'], ReconciliationService::STALE_SECONDS);
     }
 
     /**

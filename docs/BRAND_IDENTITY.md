@@ -1,4 +1,4 @@
-# ITC NetCore: product identity (interim text identity)
+# ITC NetCore: product identity
 
 Owner decision 2026-10-18:
 
@@ -9,8 +9,11 @@ Owner decision 2026-10-18:
 | `TAGLINE` | **ISP Management & Billing Platform** |
 | `VERSION` | **V1.0** |
 
-This file covers how the name is written, shown and isolated from internal names. It is a **text identity**. No final logo
-has been designed or decided, and the icons below are explicitly interim.
+This file covers how the name is written, shown and isolated from internal names, and the visual identity (section 3).
+Visual identity: Brand Direction B "Core Infrastructure" and Color Direction B "Network Operations" (owner, 2026-10-24);
+the L1 mark, outlined wordmark, palette and typefaces of the v0.7 / BR-RC1 candidate, **approved by delegation on
+2026-10-26** (owner instruction of 2026-10-25; Brand Approval Board on the project Drive). This is not a trademark or
+name clearance: LIC-1 stays open.
 
 ## 1. Writing the name
 
@@ -34,24 +37,26 @@ sentence it is wrapped in `<bdi>` (or the `.itc-wordmark` class) so the bidirect
 | **Operator**: the ISP's `CompanyName` setting | `Brand::company($config)` | page titles, staff shell brand, customer portal header, error pages, PWA manifest name, invoices and messages (raw setting) |
 
 When the operator has not configured a name (an empty value, or the stock `PHPNuxBill` placeholder seeded by
-`install/phpnuxbill.sql`), the product name is shown in its place, and the mark becomes the text mark `ITC`. The setting
+`install/phpnuxbill.sql`), the product name is shown in its place, and the mark becomes the product's L1 mark. The setting
 itself is never rewritten. Invoices, invoice e-mails and notification messages print the **stored** setting, so a printed
 financial document always matches what was configured. The production checklist should therefore set `CompanyName`
 before go-live.
 
-## 3. Interim visual identity (existing design tokens only)
+## 3. Visual identity
 
 | Element | Rule | Implementation |
 |---|---|---|
-| Colours | the existing WP6C tokens: primary `--nx-primary` (#3442c9 light / #8f9bff dark), text `--nx-text`, muted `--nx-muted` | `ui/ui/styles/nuxr-shell.css` |
-| Wordmark | `ITC` bold (800, primary colour, +0.04em tracking) followed by `NetCore` regular in the text colour, always LTR | `.itc-wordmark`, `.itc-wm-brand`, `.itc-wm-product` |
-| Mark | the shell's rounded primary square with the text `ITC` (12px, 800) when the product name is shown; the operator's initial otherwise | `.nuxr-brand-mark.is-word` |
-| App icons / favicon | the same rounded primary square with `ITC` in white (DejaVu Sans Bold), generated deterministically; maskable artwork inside the 80 % safe zone | `dev/pwa-lab/make_icons.py --text ITC`, `ui/ui/images/pwa/icon-*.png` |
-| Typeface | the shell font stack (`--nx-font`); no new font is shipped | |
+| Colour tokens | one source for every surface: brand primitives `--nc-*` (navy #193768, core blue #245D99, interactive #3275B5, signal teal #117C88) -> the existing semantic contract `--nx-*` (light and dark); every text / surface pair >= 4.5:1, focus >= 3:1 (guard-tested from the CSS) | `ui/ui/styles/nuxr-brand.css` (loaded first on the staff shell, sign-in, customer portal, public and error pages); `nuxr-shell.css` holds no colour value |
+| Status semantics | SAS4-inspired meaning only (green active, blue online / info, orange expired, red disabled); the existing tones `success / info / warning / danger / neutral / processing` | `.nuxr-badge.is-*`, `Format::STATE_TONE` |
+| Mark (L1 "Structural N") | full-colour on light surfaces, reversed white on dark surfaces (never the navy / full-colour artwork on dark); the micro variant at 16-32 px | `ui/ui/images/brand/netcore-mark*.svg` (byte-identical v0.7 sources, `ASSETS.txt`) |
+| Where the mark shows | product places only: staff sign-in, About, favicon, PWA icons, installer; in the shell / portal header ONLY when the company is the product (an operator keeps its name and initial) | `$_brand.company_is_product` |
+| Wordmark | the outlined vector wordmark (no live text), light and reversed artwork; never re-typed | `ui/ui/images/brand/netcore-wordmark*.svg` |
+| Typefaces | Inter (Latin) and Noto Sans Arabic, self-hosted WOFF2 subsets (OFL-1.1, licences next to the files); no external font request | `ui/ui/fonts/brand/`, `--nx-font` |
+| App icons / favicon | white tile + the full-colour mark (maskable / apple-touch full bleed, mark inside the 80 % safe zone); favicon SVG + ICO from the micro mark | `dev/brand/make_brand_assets.py` -> `ui/ui/images/pwa/icon-*.png`, `ui/ui/images/brand/favicon.svg`, `favicon.ico` |
 
-To replace the interim identity when a final logo exists, replace the four PNGs under `ui/ui/images/pwa/` (same names and
-sizes) and bump `Pwa::VERSION` together with the service worker `VERSION` (guard-tested), then adjust the
-`.itc-wordmark` rules. Nothing else depends on them.
+An operator that wants its own app icon regenerates the four PWA PNGs (same names and sizes, e.g. `dev/pwa-lab/make_icons.py
+--text "ش"`) and bumps `Pwa::VERSION` together with the service worker `VERSION` and the `nuxr-pwa.js` asset query
+(guard-tested). The ITC parent logo is not used in the product UI; its source file stays byte-identical on the project Drive.
 
 ## 4. What is not renamed (and why)
 
@@ -82,7 +87,7 @@ The repository is **not** renamed or moved. The text below is a suggestion for t
 - **Description:** `ITC NetCore — ISP Management & Billing Platform: reseller wallets and ledger, FreeRADIUS + MikroTik (PPPoE / Hotspot), data quotas, vouchers, Arabic-first RTL staff PWA. Based on PHPNuxBill (GPL-2.0).`
 - **Topics:** `isp-billing`, `radius`, `freeradius`, `mikrotik`, `pppoe`, `hotspot`, `reseller`, `wallet`, `php`, `pwa`, `rtl`, `arabic`
 - **Website:** none until a public product page exists.
-- **Social preview:** none until a final logo exists (the interim mark is not a logo).
+- **Social preview:** the L1 mark on white (from `ui/ui/images/pwa/icon-512.png`) once the owner applies the profile.
 
 ## 7. Guard
 
@@ -96,3 +101,7 @@ The repository is **not** renamed or moved. The text below is a suggestion for t
 - no business, security, RADIUS or finance code reading `Brand`;
 - `PHPNuxBill` in templates only in the credits and the upstream-release notice;
 - an Arabic entry for every new string, and `<bdi>` isolation in the footers.
+
+`tests/Unit/Wp10/BrandIdentityAssetsTest.php` covers the visual identity: the asset hashes and their vector-only content,
+the self-hosted fonts and licences, the single token source loaded before the shell, the WCAG AA matrix computed from the
+CSS, and the rule that the product mark never replaces an operator's identity.

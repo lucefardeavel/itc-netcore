@@ -58,6 +58,8 @@ class Package
             $c = ORM::for_table('tbl_customers')->where('id', $id_customer)->find_one();
             if ($c['status'] != 'Active') {
                 _alert(Lang::T('This account status') . ' : ' . Lang::T($c['status']), 'danger', "");
+                // lab F6-H (owner delegation 2026-10-25): _alert() returns without a UI (cron, CLI): never recharge then
+                return false;
             }
         } else {
             $c = [

@@ -9,7 +9,8 @@ use Reseller\Security\ErrorReporter;
 /**
  * Ends running sessions and CONFIRMS that they ended (V1: Option B renewal, the data-quota enforcer). A Disconnect-ACK
  * alone is not proof: a session is CONFIRMED only when its Accounting-Stop is recorded after the ACK (bounded wait), or
- * when the NAS answers NAK 503 "session not found" (the WP8 A3 classification). Anything else - ACK without Stop,
+ * when the NAS answers NAK 503 "session not found" (the WP8 A3 classification). A NAK to a retransmission (COA_RETRY_NAK,
+ * lab NET-3: the first request may have ended the session, its ACK lost) waits for the Stop like an ACK. Anything else - ACK without Stop,
  * other NAK, no answer, unknown NAS, no NAS address - is reported as the code that was observed, i.e. not confirmed.
  * One Disconnect-Request per accounting row, to that row's NAS (CoAClient: 1 + 2 identical sends); a NAS that stays silent
  * is not asked again for the other rows of the same call (COA_NAS_SKIPPED). Never throws.
@@ -60,7 +61,7 @@ final class SessionTermination
         // the Accounting-Stop of the ACKed sessions, polled by radacctid, bounded in total
         $pending = [];
         foreach ($sent as [$row, $r]) {
-            if ($r->isSuccess() && $r->code === 'COA_ACK') {
+            if (($r->isSuccess() && $r->code === 'COA_ACK') || ($r->status === ProvisionResult::UNKNOWN && $r->code === 'COA_RETRY_NAK')) {
                 $pending[(int) $row['radacctid']] = (string) $row['username'];
             }
         }
@@ -103,6 +104,9 @@ final class SessionTermination
         }
         if ($status === ProvisionResult::SUCCESS && $code === 'COA_ACK') {
             return $stopSeen ? 'CONFIRMED' : 'ACK_WITHOUT_STOP';
+        }
+        if ($status === ProvisionResult::UNKNOWN && $code === 'COA_RETRY_NAK' && $stopSeen) {
+            return 'CONFIRMED';
         }
         return $code !== '' ? $code : 'UNKNOWN';
     }

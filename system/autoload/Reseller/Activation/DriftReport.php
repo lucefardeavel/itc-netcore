@@ -135,16 +135,7 @@ final class DriftReport
                 $meta = json_decode((string) ($e['metadata'] ?? ''), true);
                 if ($e['event_type'] === 'ANNOTATION' && is_array($meta) && isset($meta['disconnect']) && is_array($meta['disconnect'])) {
                     // the latest Disconnect summary decides (an operator session-end appends a newer one)
-                    $failed = false;
-                    foreach ($meta['disconnect'] as $r) {
-                        if (!str_starts_with((string) $r, ProvisionResult::SUCCESS)) {
-                            $failed = true;
-                        }
-                    }
-                    // V1 Option B: an ACK without the session's Accounting-Stop is not an ended session
-                    if (($meta['confirmed'] ?? true) === false) {
-                        $failed = true;
-                    }
+                    $failed = !self::sessionEndConfirmed($meta);
                     $since = $since ?? (string) $e['created_at'];
                 }
             }
@@ -159,6 +150,25 @@ final class DriftReport
             }
         }
         return $out;
+    }
+
+    /**
+     * Lab closure (RAD-2b, independent reviews 2026-10-26): ONE rule for "the session end recorded in this annotation is
+     * confirmed", shared by SESSION_POLICY_STALE above and health.php coa_failures. An annotation that carries "confirmed"
+     * (V1 Option B, SessionTermination: Stop seen after the ACK or after a retransmission NAK, or NAK 503) is decided by
+     * it; an older one without it by its results (all SUCCESS).
+     */
+    public static function sessionEndConfirmed(array $meta): bool
+    {
+        if (array_key_exists('confirmed', $meta)) {
+            return $meta['confirmed'] === true;
+        }
+        foreach ((array) ($meta['disconnect'] ?? []) as $r) {
+            if (!str_starts_with((string) $r, ProvisionResult::SUCCESS)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

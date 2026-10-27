@@ -6,12 +6,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>{ucwords(Lang::T("Error"))} - {$_brand.company|escape}</title>
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" />
+    <link rel="icon" href="{$app_url}/ui/ui/images/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" sizes="192x192" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/bootstrap.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/modern-AdminLTE.min.css">
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.1" />
 </head>
 
-<body class="hold-transition lockscreen">
+<body class="hold-transition lockscreen nuxr-portal">
     <div class="lockscreen-wrapper">
         <div class="panel panel-danger">
             <div class="panel-heading">{ucwords(Lang::T("Internal Error"))}</div>

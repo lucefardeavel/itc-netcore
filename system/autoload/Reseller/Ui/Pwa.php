@@ -14,12 +14,12 @@ if (!defined('NUXR_RUNTIME')) { http_response_code(404); exit; }
 final class Pwa
 {
     /** Single PWA asset version: equals the service worker VERSION and the nuxr-pwa.js asset query (guard-tested). */
-    public const VERSION = 'wp7.2';
+    public const VERSION = 'wp7.3';
 
     public const THEME_COLOR = '#ffffff';       // the WP6C top bar
-    public const BACKGROUND_COLOR = '#f3f5fa';  // --nx-bg
+    public const BACKGROUND_COLOR = '#f5f8fc';  // --nx-bg (ITC NetCore brand layer, nuxr-brand.css)
 
-    /** Interim identity icons (OD-W7-1), relative to the application root. */
+    /** Product identity icons (ITC NetCore L1 mark, dev/brand/make_brand_assets.py; an operator may replace them, OD-W7-1). */
     public const ICONS = [
         ['src' => 'ui/ui/images/pwa/icon-192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
         ['src' => 'ui/ui/images/pwa/icon-512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],

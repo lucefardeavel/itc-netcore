@@ -102,12 +102,22 @@ final class PageTemplate
         return self::renderString((string) file_get_contents($path));
     }
 
-    /** Smarty function plugin {nuxr_page name="Announcement"} / {nuxr_page voucher=$file} for the application templates. */
-    public static function plugin(array $params): string
+    /**
+     * Smarty function plugin {nuxr_page name="Announcement"} / {nuxr_page voucher=$file} for the application templates.
+     * With assign="var" the rendered page is stored in that template variable instead of printed (lab UX-1: the caller
+     * draws its panel only when the page is not empty); a page that renders to whitespace only is stored as ''.
+     */
+    public static function plugin(array $params, $template = null): string
     {
         if (isset($params['voucher'])) {
-            return self::renderVoucherDesign((string) $params['voucher']);
+            $html = self::renderVoucherDesign((string) $params['voucher']);
+        } else {
+            $html = self::render((string) ($params['name'] ?? ''));
         }
-        return self::render((string) ($params['name'] ?? ''));
+        if (isset($params['assign']) && $template !== null) {
+            $template->assign((string) $params['assign'], trim($html) === '' ? '' : $html);
+            return '';
+        }
+        return $html;
     }
 }
