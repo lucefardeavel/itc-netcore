@@ -188,7 +188,7 @@ final class W10PortalContentTest extends Wp2HttpTestCase
 
     /**
      * UX-2: hiding the entry points changes nothing on the server: a direct deactivate is still refused, with no state
-     * change and no device call. (Rewording the refusal text lives in the hash-pinned ServiceGate.php: owner decision.)
+     * change and no device call. (The refusal text was reworded in f00e7317; the shipped ServiceGate::MESSAGE is asserted.)
      */
     public function testDirectDeactivateIsStillRefused(): void
     {

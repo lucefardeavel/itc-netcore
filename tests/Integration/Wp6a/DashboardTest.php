@@ -53,7 +53,7 @@ final class DashboardTest extends Wp2HttpTestCase
             $rest = (string) preg_replace('#<h2 class="nuxr-section-title">Wallet</h2>.*?(?=<div class="nuxr-grid)#s', '', $html);
             $this->assertSame($actor !== 'A1', $rest !== $html, "{$actor}: finance tiles only with wallet.read");
             $this->assertDoesNotMatchRegularExpression('/wallet|ledger|commission|balance/i', strip_tags((string) preg_replace('#<(script|nav|aside|dialog)\b.*?</\1>#s', '', $rest)), "{$actor}: no finance words outside the finance tiles");
-            $this->assertStringNotContainsStringIgnoringCase('chart.min.js', $html, "{$actor}: no chart bundle on the landing page");
+            $this->assertStringNotContainsStringIgnoringCase('scripts/vendor/chart-', $html, "{$actor}: no chart bundle on the landing page");
         }
         $this->assertSame(1, self::stats($this->staff('A')->get('dashboard')->body)['Expiring within 7 days'], 'A: cB (subtree) expires in 3 days');
         $this->assertSame(0, self::stats($this->staff('A1')->get('dashboard')->body)['Expiring within 7 days'], 'A1: cB is not assigned to it');
@@ -72,7 +72,7 @@ final class DashboardTest extends Wp2HttpTestCase
         $this->assertStringContainsString('scripts/vendor/chart-', $w->body, 'charts only on the widgets tab');
         foreach (['A', 'A1'] as $actor) {
             $html = $this->staff($actor)->get('dashboard', ['widgets' => 1])->body;
-            $this->assertStringNotContainsString('chart.min.js', $html, "{$actor}: no global widgets (WP2 OD-4)");
+            $this->assertStringNotContainsString('scripts/vendor/chart-', $html, "{$actor}: no global widgets (WP2 OD-4)");
             $this->assertStringNotContainsString('Charts and widgets', $html);
         }
         $rp = $this->staff('rp')->get('dashboard')->body;
