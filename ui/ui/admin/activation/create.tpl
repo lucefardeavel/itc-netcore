@@ -147,7 +147,8 @@
             {/if}
             <a class="nuxr-btn" href="{Text::url('activation/create')}&customer={$nuxr_customer_id}&plan={$nuxr_plan_id}"><i class="fa fa-refresh" aria-hidden="true"></i>{Lang::T('Refresh quote')}</a>
             {* a11y: the Confirm button is described by whichever warning boxes are rendered above (ids only when present) *}
-            <button class="nuxr-btn nuxr-btn-primary" type="submit" {if !$q.credit_sufficient || $nuxr_lost}disabled{/if}{if $nuxr_lost} data-nuxr-needs-ack{/if}{if $nuxr_lost || $nuxr_service_mismatch} aria-describedby="{if $nuxr_lost}nuxr-change-loss{/if}{if $nuxr_lost && $nuxr_service_mismatch} {/if}{if $nuxr_service_mismatch}nuxr-service-mismatch{/if}"{/if}><i class="fa fa-bolt" aria-hidden="true"></i>{Lang::T('Confirm activation')}</button>
+            {* UX-16: only a button that credit allows is re-enabled by the acknowledgement; without credit it stays disabled *}
+            <button class="nuxr-btn nuxr-btn-primary" type="submit" {if !$q.credit_sufficient || $nuxr_lost}disabled{/if}{if $nuxr_lost && $q.credit_sufficient} data-nuxr-needs-ack{/if}{if $nuxr_lost || $nuxr_service_mismatch} aria-describedby="{if $nuxr_lost}nuxr-change-loss{/if}{if $nuxr_lost && $nuxr_service_mismatch} {/if}{if $nuxr_service_mismatch}nuxr-service-mismatch{/if}"{/if}><i class="fa fa-bolt" aria-hidden="true"></i>{Lang::T('Confirm activation')}</button>
         </form>
         <p class="nuxr-muted nuxr-card-body" id="nuxr-confirm-note" style="margin:0;padding-top:0" hidden role="status">{Lang::T('Submitting - do not close this page. The result opens when the network has answered.')}</p>
     </section>

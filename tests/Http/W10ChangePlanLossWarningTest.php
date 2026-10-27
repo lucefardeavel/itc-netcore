@@ -18,13 +18,14 @@ final class W10ChangePlanLossWarningTest extends RadiusHttpTestCase
 {
     private static int $long;
     private static int $short;
+    private static int $dear;
     private static string $expiry;
 
-    private static function plan(string $name, int $validity): int
+    private static function plan(string $name, int $validity, string $price = '20'): int
     {
         $bw = static::$db->insertRow('tbl_bandwidth', ['name_bw' => $name . '_bw', 'rate_down' => 4, 'rate_down_unit' => 'Mbps', 'rate_up' => 1, 'rate_up_unit' => 'Mbps']);
         return static::$db->insertRow('tbl_plans', [
-            'name_plan' => $name, 'id_bw' => $bw, 'price' => '20', 'type' => 'Hotspot', 'typebp' => 'Unlimited', 'limit_type' => 'Time_Limit',
+            'name_plan' => $name, 'id_bw' => $bw, 'price' => $price, 'type' => 'Hotspot', 'typebp' => 'Unlimited', 'limit_type' => 'Time_Limit',
             'time_limit' => 0, 'time_unit' => 'Hrs', 'data_limit' => 0, 'data_unit' => 'MB', 'validity' => $validity, 'validity_unit' => 'Days', 'shared_users' => 1,
             'routers' => 'radius', 'is_radius' => 1, 'pool' => '', 'enabled' => 1, 'prepaid' => 'yes', 'plan_type' => 'Personal', 'device' => 'Radius',
         ]);
@@ -44,9 +45,12 @@ final class W10ChangePlanLossWarningTest extends RadiusHttpTestCase
         parent::setUpBeforeClass();
         self::$long = self::plan('w10_long', 30);
         self::$short = self::plan('w10_short', 1);
+        // UX-16: a plan whose wholesale cost is above every wallet in the fixture (credit insufficient)
+        self::$dear = self::plan('w10_dear', 1, '5000');
         self::$expiry = date('Y-m-d', strtotime('+20 days'));
         $long = self::$long;
         $short = self::$short;
+        $dear = self::$dear;
         $a = static::$seed->staff['A'];
         $out = static::$app->exec(<<<PHP
 \$ad = \\Reseller\\Security\\ActorContext::forStaff(ORM::for_table('tbl_users')->where('username', 'ad')->find_one()->as_array(), 'CLI');
@@ -54,6 +58,8 @@ foreach ([{$long}, {$short}] as \$p) {
     \\Reseller\\Finance\\PricingService::setBaseCost(\$ad, \$p, '10');
     \\Reseller\\Finance\\PricingService::setResaleEnabled(\$ad, \$p, true);
 }
+\\Reseller\\Finance\\PricingService::setBaseCost(\$ad, {$dear}, '1000');
+\\Reseller\\Finance\\PricingService::setResaleEnabled(\$ad, {$dear}, true);
 \\Reseller\\Finance\\TransferService::fund(\$ad, {$a}, '100', 'initial provider funding', 'F-w10-change-loss');
 \$result = 'ok';
 PHP);
@@ -91,6 +97,34 @@ PHP);
         // the plan validity reads in words
         $this->assertMatchesRegularExpression('#w10_short \(Hotspot\)[^<]*· 1 day</option>#', $html);
         $this->assertMatchesRegularExpression('#w10_long \(Hotspot\)[^<]*· 30 days</option>#', $html);
+    }
+
+    /**
+     * UX-16 (independent review 2026-10-27): with insufficient credit the acknowledgement must not re-enable Confirm. The
+     * button is rendered disabled and is not the target of the acknowledgement script (the server refuses either way).
+     * Runs before the plan change below, while cA0 still has 20 paid days on the 30-day plan; it only reads pages.
+     */
+    public function testTheAcknowledgementDoesNotEnableConfirmWithoutCredit(): void
+    {
+        $html = $this->confirmation(static::$seed->customers['cA0'], self::$dear);
+        $this->assertStringContainsString('name="expected_action" value="CHANGE_PLAN"', $html);
+        $this->assertStringContainsString('<strong>Credit sufficient: no</strong>', $html, 'discriminating: credit is short');
+        $this->assertMatchesRegularExpression('#<input type="checkbox" name="ack_loss" value="1" required#', $html, 'the loss is still acknowledged');
+        $b = $this->confirmButton($html);
+        $this->assertStringContainsString('disabled', $b);
+        $this->assertStringNotContainsString('data-nuxr-needs-ack', $b, 'the acknowledgement cannot enable a button that credit disables');
+        // with credit the acknowledgement still drives the button (UX-15 unchanged)
+        $ok = $this->confirmation(static::$seed->customers['cA0'], self::$short);
+        $this->assertStringContainsString('Credit sufficient: yes', $ok);
+        $this->assertStringContainsString('data-nuxr-needs-ack', $this->confirmButton($ok));
+    }
+
+    /** the attributes of the Confirm button of the confirm form (the page has other submit buttons) */
+    private function confirmButton(string $html): string
+    {
+        $this->assertSame(1, preg_match('#<form method="post"[^>]*id="nuxr-confirm-form".*?</form>#s', $html, $form), 'the confirm form');
+        $this->assertSame(1, preg_match('#<button class="nuxr-btn nuxr-btn-primary" type="submit"([^>]*)>#', $form[0], $b), 'the Confirm button');
+        return $b[1];
     }
 
     /** UX-15: the server refuses the plan change without the acknowledgement (nothing reserved), and runs it with it */
