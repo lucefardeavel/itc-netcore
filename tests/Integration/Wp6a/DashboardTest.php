@@ -69,7 +69,7 @@ final class DashboardTest extends Wp2HttpTestCase
         $this->assertStringContainsString('widgets=1', $admin->get('dashboard')->body);
         $w = $admin->get('dashboard', ['widgets' => 1]);
         $this->assertSame(200, $w->status);
-        $this->assertStringContainsString('chart.min.js', $w->body, 'charts only on the widgets tab');
+        $this->assertStringContainsString('scripts/vendor/chart-', $w->body, 'charts only on the widgets tab');
         foreach (['A', 'A1'] as $actor) {
             $html = $this->staff($actor)->get('dashboard', ['widgets' => 1])->body;
             $this->assertStringNotContainsString('chart.min.js', $html, "{$actor}: no global widgets (WP2 OD-4)");

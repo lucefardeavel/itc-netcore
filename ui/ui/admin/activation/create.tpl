@@ -156,9 +156,11 @@
     (function () {
         var f = document.querySelector('[data-nuxr-autosubmit]');
         if (f) { f.addEventListener('change', function (e) { if (e.target.name === 'plan' && e.target.value) { f.submit(); } }); }
+{if $nuxr_lost}
         // UX-15: Confirm is enabled once the loss of paid time is acknowledged (the server checks it again)
         var ack = document.querySelector('input[name=ack_loss]'), btn = document.querySelector('[data-nuxr-needs-ack]');
         if (ack && btn) { ack.addEventListener('change', function () { btn.disabled = !ack.checked; }); }
+{/if}
         var c = document.getElementById('nuxr-confirm-form'), note = document.getElementById('nuxr-confirm-note');
         if (c && note) { c.addEventListener('submit', function () { note.hidden = false; }); }
     })();

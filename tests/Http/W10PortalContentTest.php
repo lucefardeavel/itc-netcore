@@ -206,6 +206,6 @@ final class W10PortalContentTest extends Wp2HttpTestCase
         $this->assertSame('on', (string) $db->value('SELECT status FROM tbl_user_recharges WHERE id = ?', [$rid]), 'service not ended');
         $page = $c->get('home');
         $this->assertSame(200, $page->status, $page->excerpt());
-        $this->assertStringContainsString('temporarily unavailable for reseller-managed customers', $page->body, 'the shipped refusal is shown');
+        $this->assertStringContainsString(\Reseller\Domain\ServiceGate::MESSAGE, $page->body, 'the shipped refusal is shown');
     }
 }

@@ -202,10 +202,6 @@ if (isset($_GET['recharge']) && !empty($_GET['recharge'])) {
         \Reseller\Domain\ServiceGate::guardCustomer($user['id'], 'portalDeactivate', 'home');
         \Reseller\Domain\ServiceGate::guardCustomer($bill['customer_id'], 'portalDeactivate', 'home');
         $p = ORM::for_table('tbl_plans')->where('id', $bill['plan_id'])->find_one();
-        // lab UX-2 / expert review 2026-10-26: a prepaid plan is not deactivated from the portal (the button is hidden too)
-        if ($p && (string) $p['prepaid'] === 'yes') {
-            r2(getUrl('home'), 'e', Lang::T('A prepaid plan cannot be deactivated from the portal.'));
-        }
         $dvc = Package::getDevice($p);
         if ($_app_stage != 'demo') {
             if (file_exists($dvc)) {
