@@ -55,6 +55,25 @@ final class ActivationStore
     }
 
     /**
+     * R-4 (cron expiry): the status of the customer's activation that has provisioned (or may have provisioned) a new
+     * period of this plan type and is not settled yet, if any. That activation writes the customer's 'radius' recharge
+     * row of its new or previous plan type (LegacyBridge::currentRecharge), so cron must not expire that row meanwhile.
+     * Before provisioning (CREATED / VALIDATED / FUNDS_RESERVED / RETRY_PENDING) RADIUS still holds the old period.
+     */
+    public static function provisionedUnsettled(\PDO $pdo, int $customerId, string $planType): ?string
+    {
+        $held = array_values(array_diff(ActivationState::ALL, ActivationState::TERMINAL,
+            [ActivationState::CREATED, ActivationState::VALIDATED, ActivationState::FUNDS_RESERVED, ActivationState::RETRY_PENDING]));
+        $row = Tx::row(
+            $pdo,
+            'SELECT a.status FROM tbl_reseller_activations a LEFT JOIN tbl_plans p ON p.id = a.plan_id LEFT JOIN tbl_plans q ON q.id = a.previous_plan_id '
+            . 'WHERE a.customer_id = ? AND (p.type = ? OR q.type = ?) AND a.status IN (' . implode(', ', array_fill(0, count($held), '?')) . ') ORDER BY a.id LIMIT 1',
+            [$customerId, $planType, $planType, ...$held]
+        );
+        return $row === null ? null : (string) $row['status'];
+    }
+
+    /**
      * The single activation INSERT (status CREATED), with the five sealed snapshot columns.
      *
      * @param array<string,mixed>       $f    identity, action, actor, customer, plan, manager

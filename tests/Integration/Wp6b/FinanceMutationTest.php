@@ -115,6 +115,10 @@ PHP);
         $r = $ad->postWithToken('finance/funding-post', $f);
         $this->assertStringNotContainsString('PROVIDER_WITHDRAWAL', $r->body);
         $this->assertUnchanged($before, 'nothing written for an adjustment token on the funding route');
+        // and the other direction: a reviewed funding posted to the adjustment route
+        $g = self::hidden($this->review($ad, 'finance/funding-review', ['manager_id' => (string) $this->sid('A'), 'op' => 'fund', 'amount' => '7', 'reason' => 'cross-route probe']));
+        $ad->postWithToken('finance/adjust-post', $g);
+        $this->assertUnchanged($before, 'nothing written for a funding token on the adjustment route');
     }
 
     public function testWithdrawalNeedsTheTypedUsername(): void

@@ -126,6 +126,8 @@ final class W9CronRenewalRaceTest extends ActivationTestCase
         }
         $this->assertSame(['RECONCILIATION_REQUIRED', 'SETTLEMENT_UNKNOWN'], [$act['status'], $act['error_code']]);
         $out = $this->finishCron($this->startCron());
+        $this->assertStringContainsString('SKIPPED (activation RECONCILIATION_REQUIRED in progress', $out, 'cron ran and held the parked period');
+        $this->assertSame('on', static::$db->value('SELECT status FROM tbl_user_recharges WHERE customer_id = ? ORDER BY id DESC LIMIT 1', [$c]), 'not expired while parked');
         $row = ReconciliationService::reconcile(ActivationActor::system('w9-r4-c'), $act['reference']);
         $this->assertSame('COMPLETED', $row['status'], $out);
         $this->assertSecure($c, $row, 'order C');

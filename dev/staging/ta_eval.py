@@ -69,6 +69,9 @@ def ta02(offsets):
         host, off, kind = line.split()[:3]
         n += 1
         # core 5 s; NAS 10 s: the hard limit of the session-end cut-off (B-L08, docs/TIME_CONTRACT.md, V1_TARGET_ACCEPTANCE TA-02)
+        if kind not in ('core', 'nas'):
+            fails.append(f'{host}: unknown kind {kind!r} (core | nas)')
+            continue
         limit = 5.0 if kind == 'core' else 10.0
         if abs(float(off)) > limit:
             fails.append(f'{host} ({kind}) offset {off} s exceeds {limit:g} s')
@@ -155,6 +158,7 @@ def selftest():
     assert ta02(w('o2', 'app 0.2 core\ndb 7 core\nfr 0.3 core\nnas1 3 nas\n')) == 1
     assert ta02(w('o3', 'app 0.2 core\ndb 0.1 core\nfr 0.3 core\nnas1 70 nas\n')) == 1
     assert ta02(w('o4', 'app 0.2 core\ndb 0.1 core\nfr 0.3 core\nnas1 11 nas\n')) == 1  # above the 10 s NAS limit
+    assert ta02(w('o5', 'app 0.2 core\ndb 6 cor\nfr 0.3 core\nnas1 3 nas\n')) == 1  # an unknown kind never gets the NAS limit
     row = {'case': 'acct-load', 'subscribers': 2000, 'interim_s': 30, 'lost': 0, 'latency_ms': {'p99': 40}, 'enforcer_pass_s': {'max': 0.3}, 'db': {'aborted_connects': 0}, 'achieved_rate_per_s': 66, 'target_rate_per_s': 66.7}
     assert ta09(w('l1', json.dumps(row) + '\n')) == 0
     assert ta09(w('l2', json.dumps({**row, 'lost': 2}) + '\n')) == 1
