@@ -74,6 +74,50 @@ trait Wp8LabHelpers
     }
 
     /**
+     * Owner decision HOLD-C (2026-10-28): the A2-R reservation of $user - state, token, confirmed_at and its age in ms on
+     * the DATABASE clock, the clock and the event (first Accounting-Start / Interim of the session) the fresh-session hold
+     * itself uses - or null when the subscriber has none.
+     *
+     * @return array{state:string,token:string,confirmed_at:?string,age_ms:?int}|null
+     */
+    protected static function admissionReservation(string $user): ?array
+    {
+        $st = static::labRadius()->prepare("SELECT state, token, confirmed_at, TIMESTAMPDIFF(MICROSECOND, confirmed_at, UTC_TIMESTAMP(6)) DIV 1000 AS age_ms FROM nuxr_admission WHERE username = (SELECT username FROM radcheck WHERE username = ? ORDER BY CAST(username AS BINARY) LIMIT 1)");
+        $st->execute([$user]);
+        $r = $st->fetch(\PDO::FETCH_ASSOC);
+        if ($r === false) {
+            return null;
+        }
+        $r['age_ms'] = $r['age_ms'] === null ? null : (int) $r['age_ms'];
+        return $r;
+    }
+
+    /** HOLD-C: waits (database clock) until $user's reservation is at least $ms old; returns the age reached */
+    protected static function waitReservationAge(string $user, int $ms): int
+    {
+        $age = (int) (static::admissionReservation($user)['age_ms'] ?? $ms);
+        if ($age < $ms) {
+            usleep(($ms - $age) * 1000);
+            $age = (int) (static::admissionReservation($user)['age_ms'] ?? $ms);
+        }
+        return $age;
+    }
+
+    /** TD-1b: the guard readiness check as the FreeRADIUS user; per-NAS status lines and the summary */
+    protected static function guardSelfcheck(array $nas = []): array
+    {
+        $r = Wp8Lab::agent('guard_selfcheck', ['nas' => $nas], 120);
+        $lines = array_values(array_filter(array_map('trim', explode("\n", (string) $r['out']))));
+        $per = [];
+        foreach ($lines as $l) {
+            if (preg_match('/^nas=(\S+) status=(\S+)/', $l, $m)) {
+                $per[$m[1]] = $m[2];
+            }
+        }
+        return ['rc' => $r['rc'], 'per_nas' => $per, 'summary' => end($lines) ?: '', 'lines' => $lines];
+    }
+
+    /**
      * WP8 A2: every Access-Request of $user in log order, request-local and restart-safe (the packet type is tracked in
      * log order; a request number reused by a later request ends the previous one). Per request: RADIUS Id and source
      * port (to join the pcap), the post-auth open-row lookup (Tmp-String-8 "n=..;NAS"), whether the PPPoE session guard

@@ -483,6 +483,78 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
             'rows_after' => count($after), 'stale_row_unchanged' => $stale[0] === $after[0]]);
     }
 
+    /**
+     * Owner decision TD-2 (2026-10-28), condition 3: the SUPPORTED Option G-on path through the scenario that locks the
+     * Option G-off variant out - a lost Accounting-Stop, then a NAS restart and its Accounting-On. The stock accounting-on
+     * query closes the open rows (NAS-Reboot); the subscriber's reservation stays ACTIVE (nothing releases it
+     * automatically, no HELD funds move); the next real login is verified on the NAS by the guard (SAFE) and admitted -
+     * no repair, no manual database edit. Evidence records the reservation before and after.
+     */
+    public function testDrill7GuardNasRebootAccountingOnReloginWithoutRepair(): void
+    {
+        if (self::chrNasType() !== 'mikrotik_snmp') {
+            $this->markTestSkipped('needs the production-contract lab: dev/wp8/option_g_gate.sh on (CHR NAS row type mikrotik_snmp + guard credentials)');
+        }
+        $h = $this->hierarchy();
+        $plan = $this->chainPlan($h);
+        [$cust, $user, $ref] = $this->onSession($h, $plan, 'D7R-pass');
+        $this->assertCount(1, $this->acct($user));
+        $this->block('=chain=output', '=protocol=udp', '=dst-port=1813', '=dst-address=10.88.0.10');
+        Wp8Lab::agent('pppoe_down', ['client' => 'c1']);
+        $this->assertTrue((bool) Wp8Lab::until(fn() => Wp8Lab::pppActive($user) === [], 20, 1), 'the NAS session is gone');
+        sleep(8);
+        $this->unblockAll();
+        $this->assertNull($this->acct($user)[0]['acctstoptime'], 'the Stop was lost: radacct stays OPEN');
+        $resLost = self::admissionReservation($user);
+        $heldBefore = (int) static::labRadius()->query("SELECT COUNT(*) FROM nuxr_admission WHERE state = 'PENDING'")->fetchColumn();
+        try {
+            Wp8Lab::ros('/system/reboot');
+        } catch (\RuntimeException) {
+            // the API connection drops while the router restarts
+        }
+        sleep(20);
+        $this->assertTrue((bool) Wp8Lab::until(static function () {
+            try {
+                return Wp8Lab::ros('/system/identity/print') !== [];
+            } catch (\RuntimeException) {
+                return false;
+            }
+        }, 240, 5), 'the CHR came back');
+        $closed = Wp8Lab::until(fn() => $this->acct($user)[0]['acctstoptime'] !== null ? $this->acct($user)[0] : null, 60, 3);
+        $trigger = null;
+        if ($closed === null) {
+            // Accounting-On only precedes the NAS's first accounting record: start one other session to trigger it
+            $other = $this->labCustomer($h['C'], $h['sales'], 'D7R-other');
+            $this->assertSame('COMPLETED', $this->activate($h['sales'], $other, $plan, 'NEW')['status']);
+            $trigger = Wp8Lab::agent('pppoe_up', ['client' => 'c3', 'user' => $this->username($other), 'password' => 'D7R-other'])['ok'];
+            $closed = Wp8Lab::until(fn() => $this->acct($user)[0]['acctstoptime'] !== null ? $this->acct($user)[0] : null, 30, 2);
+            Wp8Lab::agent('pppoe_down', ['client' => 'c3']);
+        }
+        $resAfterBoot = self::admissionReservation($user);
+        $relogin = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'D7R-pass', 'wait' => 25]);
+        $reply = self::lastReply($user);
+        $decisions = self::accessDecisions($user);
+        $last = end($decisions) ?: [];
+        $resFinal = self::admissionReservation($user);
+        $rows = $this->acct($user);
+        Wp8Lab::evidence('TD2.D7R.reboot-accounting-on', ['reservation_after_lost_stop' => $resLost, 'reservation_after_boot' => $resAfterBoot, 'reservation_final' => $resFinal,
+            'closed_row' => $closed, 'needed_other_session_to_trigger' => $trigger, 'relogin' => ['ok' => $relogin['ok'], 'reply' => $reply],
+            'guard' => ['ran' => $last['guard_ran'] ?? null, 'verdict' => $last['guard_verdict'] ?? null, 'detail' => $last['guard_detail'] ?? null], 'rows' => count($rows),
+            'pending_reservations_before_after' => [$heldBefore, (int) static::labRadius()->query("SELECT COUNT(*) FROM nuxr_admission WHERE state = 'PENDING'")->fetchColumn()]]);
+        $this->assertNotNull($closed, 'Accounting-On closed the stale row');
+        $this->assertSame('NAS-Reboot', $closed['acctterminatecause']);
+        $this->assertSame('ACTIVE', $resLost['state'] ?? null, 'the lost session left its reservation ACTIVE');
+        $this->assertSame([$resLost['state'], $resLost['token']], [$resAfterBoot['state'] ?? null, $resAfterBoot['token'] ?? null],
+            'Accounting-On changes no reservation: nothing is released automatically');
+        $this->assertTrue($relogin['ok'], 'the real re-login after the NAS restart succeeds without any repair');
+        $this->assertSame('Access-Accept', $reply['code']);
+        $this->assertSame('SAFE', $last['guard_verdict'] ?? null, 'the guard verified the ACTIVE reservation on its NAS: session gone');
+        $this->assertNotSame($resLost['token'], $resFinal['token'] ?? null, 'the new session took the reservation over (A1 rule)');
+        $this->assertCount(2, $rows, 'history kept: the closed stale row + the new session');
+        Wp8Lab::agent('pppoe_down', ['client' => 'c1']);
+        $this->invariants($this->inspect($ref, $user, $h));
+    }
+
     /** drill 8: RouterOS API unavailable - not on the FreeRADIUS-first activation path */
     public function testDrill8RouterOsApiUnavailable(): void
     {
