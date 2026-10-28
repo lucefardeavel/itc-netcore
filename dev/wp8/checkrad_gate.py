@@ -136,6 +136,8 @@ def state():
 
 def off():
     sql("UPDATE nas SET type = 'other', community = NULL WHERE id = 1")
+    import option_g_gate      # the guard credential file that on() installed goes too (review 2026-10-28)
+    option_g_gate.drop_creds()
     sh(['docker', 'exec', FR, 'sh', '-c', f'rm -f {R}/naspasswd {R}/wp8-checkrad-gate; chmod 755 /usr/bin/snmpwalk 2>/dev/null; true'])
     start = restart()
     r = ros()

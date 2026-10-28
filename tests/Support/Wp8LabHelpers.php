@@ -93,12 +93,16 @@ trait Wp8LabHelpers
     }
 
     /** HOLD-C: waits (database clock) until $user's reservation is at least $ms old; returns the age reached */
-    protected static function waitReservationAge(string $user, int $ms): int
+    protected static function waitReservationAge(string $user, int $ms): ?int
     {
-        $age = (int) (static::admissionReservation($user)['age_ms'] ?? $ms);
+        $res = static::admissionReservation($user);
+        if ($res === null) {
+            return null;            // no reservation: nothing to wait for - callers assert it exists
+        }
+        $age = (int) $res['age_ms'];
         if ($age < $ms) {
             usleep(($ms - $age) * 1000);
-            $age = (int) (static::admissionReservation($user)['age_ms'] ?? $ms);
+            $age = (int) (static::admissionReservation($user)['age_ms'] ?? $age);
         }
         return $age;
     }

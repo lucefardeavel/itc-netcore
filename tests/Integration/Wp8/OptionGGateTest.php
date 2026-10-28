@@ -405,6 +405,7 @@ final class OptionGGateTest extends TestCase
         $this->assertNull($before[0]['acctstoptime'], 'Stop lost: row OPEN');
         // HOLD-C 3-4: past the hold the lost session is verified on the NAS and the login is admitted
         $ageAtRetry = self::waitReservationAge($user, self::HOLD_MS + 500);
+        $this->assertNotNull($ageAtRetry, 'the first login holds an admission reservation');
         Wp8Lab::agent('capture_start', ['name' => 'od16g-c']);
         $again = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Og-c-1']);
         $packets = array_values(array_filter(Wp8Lab::agent('capture_stop', ['name' => 'od16g-c'])['packets'], static fn($p) => str_starts_with($p['code'], 'Access')));
@@ -556,6 +557,8 @@ final class OptionGGateTest extends TestCase
         // hidden - the summary line and the exit code agree with the per-NAS lines
         $all = $out['all_nas_of_the_file'];
         $this->assertSame('OK', $all['per_nas']['10.88.0.2'] ?? null, json_encode($all['lines']));
+        $this->assertSame([], array_diff(array_keys($all['per_nas']), ['10.88.0.2', '10.88.0.30']), 'only the lab NAS entries');
+        $this->assertContains($all['per_nas']['10.88.0.30'] ?? 'OK', ['OK', 'ERROR:health'], 'the fake second NAS: OK or unreachable');
         $bad = count(array_filter($all['per_nas'], fn($s) => $s !== 'OK'));
         $this->assertSame(sprintf('guard_selfcheck=%s nas=%d errors=%d', $bad ? 'ERROR' : 'OK', count($all['per_nas']), $bad), $all['summary']);
         $this->assertSame($bad ? 2 : 0, $all['rc']);
@@ -593,7 +596,7 @@ final class OptionGGateTest extends TestCase
         $this->fault('no-creds');
         try {
             $detect = self::guardSelfcheck(['10.88.0.2']);
-            self::waitReservationAge($user, self::HOLD_MS + 500);
+            $this->assertNotNull(self::waitReservationAge($user, self::HOLD_MS + 500), 'the first login holds an admission reservation');
             $refused = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Og-t1b-1', 'wait' => 12]);
             $refusedDecision = $this->decision($user);
             $whileBroken = $this->fullRows($user);

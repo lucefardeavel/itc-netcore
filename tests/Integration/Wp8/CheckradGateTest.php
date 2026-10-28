@@ -225,6 +225,7 @@ final class CheckradGateTest extends TestCase
         // owner decision HOLD-C: a session lost within 10 s of its Start blocks a new login for the bounded hold only;
         // TD-1b: past it, with valid credentials and a reachable router, the legitimate re-login must work
         $ageAtRetry = self::waitReservationAge($user, 10500);
+        $this->assertNotNull($ageAtRetry, 'the first login holds an admission reservation');
         $again = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Cr-b-1']);
         $r = ['reservation_age_ms_at_retry' => $ageAtRetry, 'relogin' => ['ok' => $again['ok'], 'ip' => $again['ip'] ?? null], 'reply' => self::lastReply($user),
             'decision' => $this->decision($user), 'guard' => $this->guardOf($user),
