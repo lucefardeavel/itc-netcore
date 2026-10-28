@@ -205,10 +205,12 @@ final class WalletDesk
     {
         $fields = self::posted($in, ['op', 'target', 'amount', 'reason', 'external', 'reference']);
         ConfirmToken::verify($key, $fields, $in['token'] ?? null);
-        if ($fields['op'] === 'withdraw') {
+        // a token reviewed for another operation (e.g. an adjustment's op=credit) is never executed as a funding
+        $op = self::fundingOp($fields['op']);
+        if ($op === 'withdraw') {
             self::typed($in['confirm'] ?? null, LedgerReadModel::wallet($a, $fields['target'])['username']);
         }
-        $r = $fields['op'] === 'fund'
+        $r = $op === 'fund'
             ? TransferService::fund($a, $fields['target'], $fields['amount'], $fields['reason'], $fields['reference'], self::blankToNull($fields['external']))
             : TransferService::withdraw($a, $fields['target'], $fields['amount'], $fields['reason'], $fields['reference'], self::blankToNull($fields['external']));
         return $r->toArray();

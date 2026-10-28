@@ -4,6 +4,9 @@ namespace Reseller\Tests\Integration\Wp9;
 // CLI-only test: must never run through the web server.
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
+use Reseller\Activation\ActivationActor;
+use Reseller\Activation\ActivationFaults;
+use Reseller\Activation\ReconciliationService;
 use Reseller\Tests\Support\ActivationTestCase;
 use Reseller\Tests\Support\AppServer;
 use Reseller\Tests\Support\FinanceWorkers;
@@ -100,6 +103,32 @@ final class W9CronRenewalRaceTest extends ActivationTestCase
         @unlink($pause . '.entered');
         $this->assertTrue($res['ok'], json_encode($res) . "\n" . $out);
         $this->assertSecure($c, $res['result'], 'order A');
+    }
+
+    /**
+     * order C (release audit 2026-10-28): the reactivation is provisioned and verified but its settlement failed, so it
+     * waits for the operator (RECONCILIATION_REQUIRED, reservation ACTIVE, service lock released) while the legacy
+     * recharge row still shows the old, expired period. Cron runs, then the operator reconciles: the paid COMPLETED
+     * period must not be suspended in RADIUS.
+     */
+    public function testOrderCParkedReactivationIsNotSuspendedByCronBeforeReconciliation(): void
+    {
+        [$c, $plan, $leaf] = $this->expiredCustomer();
+        ActivationFaults::$hook = static function (string $p): void {
+            if ($p === 'activation.after_settlement') {
+                throw new \RuntimeException('injected at ' . $p);
+            }
+        };
+        try {
+            $act = $this->activate($leaf, $c, $plan, 'REACTIVATE');
+        } finally {
+            ActivationFaults::$hook = null;
+        }
+        $this->assertSame(['RECONCILIATION_REQUIRED', 'SETTLEMENT_UNKNOWN'], [$act['status'], $act['error_code']]);
+        $out = $this->finishCron($this->startCron());
+        $row = ReconciliationService::reconcile(ActivationActor::system('w9-r4-c'), $act['reference']);
+        $this->assertSame('COMPLETED', $row['status'], $out);
+        $this->assertSecure($c, $row, 'order C');
     }
 
     public function testOrderBCronFirstThenReactivation(): void

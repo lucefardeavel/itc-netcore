@@ -184,7 +184,7 @@ old session running with the previous plan's policy until it reconnects.
 
 ## 4b. Data / time quota (V1, `quota.php`)
 
-- `health.php` `quota_enforcer` CRITICAL: the enforcer cron (`php system/reseller/quota.php enforce --loop=55`, every
+- `health.php` `quota_enforcer` CRITICAL: the enforcer cron (`php system/reseller/quota.php enforce --loop=55 --every=5`, every
   minute) is not running. Restart it; until then only the router's own limits apply (Hotspot: per-session cap; PPPoE:
   per direction).
 - `quota_enforcer` WARNING: `php system/reseller/quota.php report` lists the over-quota subscribers and their open

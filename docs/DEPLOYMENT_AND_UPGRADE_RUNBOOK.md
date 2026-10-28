@@ -60,6 +60,9 @@ The reseller migrations are additive. Legacy tables keep their data, except for 
    - Exit codes:
      - **2** NOT_READY: nothing was changed. Fix the cause and retry.
      - **3** FAILED: only `rollback` may run. See §4.
+   - In the RADIUS database, apply the additive FreeRADIUS objects of §2 step 7 that the old installation lacks (`nuxr_admission.sql`, `nuxr_hs_admission.sql`) and `install/freeradius/nuxr_nasreload_collation.sql`.
+     - All three are idempotent. The collation script fixes `nasreload` tables created before B-L09; without it, a MySQL 8 default-collation database fails every login with ERROR 1267.
+     - `nuxr_admission_check.sql`, `nuxr_hs_admission_check.sql` and `nuxr_nasreload_collation_check.sql` must all print READY.
 6. Run `preflight.php`. Resolve every FAIL before reopening, in particular:
    - `identity` (OBS-1 duplicates; owner-decided resolution);
    - `grants`;

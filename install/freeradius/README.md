@@ -23,6 +23,8 @@ It is tested with FreeRADIUS **3.2.8** (`freeradius/freeradius-server:3.2.8`) on
 | `nuxr_hs_admission.sql` | run once in the RADIUS database (additive, idempotent) **before** enabling the site | Hotspot admission slot tables (see "Hotspot admission slots") |
 | `nuxr_hs_admission_check.sql` | run in the RADIUS database | read-only readiness check: prints `nuxr_hs_admission=READY` |
 | `nuxr_hs_admission_report.sql` | run by monitoring (every minute) | read-only report: `ALERT` lines for stuck PENDING slots (> 1 minute) and orphan accounting |
+| `nuxr_nasreload_collation.sql` | **upgrade of an existing RADIUS database only** (idempotent; new installs are already correct): run once before enabling the site | converts `nasreload` to the collation of `radacct` (B-L09). Without it, a database whose default is not `utf8mb4_general_ci` (MySQL 8 default `utf8mb4_0900_ai_ci`) fails the stock simultaneous-use query on every login (ERROR 1267) |
+| `nuxr_nasreload_collation_check.sql` | run in the RADIUS database | read-only readiness check: prints `nasreload_collation=READY` |
 | `bin/nuxr_hotspot_slot_verifier` | `${confdir}/nuxr/nuxr_hotspot_slot_verifier`, mode 0755, owner root | fail-closed Hotspot session verifier (read-only SNMP), ACTIVE slots only |
 | `mods-available/nuxr_hotspot_slot_verifier` | `mods-enabled/nuxr_hotspot_slot_verifier` | the named exec module that runs the verifier from the Hotspot post-auth |
 
@@ -444,7 +446,7 @@ With `shared_users = 1` the subscriber is refused on every NAS. There is **no ex
 **Install / upgrade** (per ISP instance, in this order; never on production without the owner's release decision):
 1. Back up the RADIUS database.
 2. Apply `nuxr_hs_admission.sql` (additive, idempotent: `CREATE TABLE IF NOT EXISTS` only). The FreeRADIUS SQL account
-   needs `SELECT, INSERT, UPDATE` on `nuxr_hs_admission` and `SELECT, INSERT` on `nuxr_hs_admission_audit` (no `DELETE`).
+   needs `SELECT, INSERT, UPDATE` on `nuxr_hs_admission` and only `INSERT` on `nuxr_hs_admission_audit` (no `DELETE`; as `system/reseller/grants.php` generates it; `nuxr_hs_admission_report.sql` reads the audit with the monitoring account).
 3. Run `nuxr_hs_admission_check.sql`: it must print `nuxr_hs_admission=READY`. Anything else: stop.
 4. Install `bin/nuxr_hotspot_slot_verifier` (0755, root) and `mods-available/nuxr_hotspot_slot_verifier` (into
    `mods-enabled/`), then the site file, then restart FreeRADIUS (`freeradius -C` first). Without the module the site

@@ -78,6 +78,17 @@ foreach ($d as $ds) {
                 echo " : RENEWED meanwhile, not expired\r\n";
                 continue;
             }
+            // R-4 (release audit 2026-10-28): an activation that has provisioned a new period and waits for its settlement
+            // or the operator (VERIFIED, RECONCILIATION_REQUIRED, ...) still shows the old period in this row until it
+            // completes; expiring now would suspend a service about to be settled as paid. Retried at the next run.
+            if ($nuxrCid > 0) {
+                $nuxrOpen = \Reseller\Activation\ActivationStore::inFlight(ORM::get_db(), $nuxrCid);
+                if ($nuxrOpen !== null && !in_array($nuxrOpen['status'], [\Reseller\Activation\ActivationState::CREATED, \Reseller\Activation\ActivationState::VALIDATED,
+                        \Reseller\Activation\ActivationState::FUNDS_RESERVED, \Reseller\Activation\ActivationState::RETRY_PENDING], true)) {
+                    echo " : SKIPPED (activation " . $nuxrOpen['status'] . " in progress, retried at the next run)\r\n";
+                    continue;
+                }
+            }
             echo " : EXPIRED \r\n";
 
             // Fetch customer details

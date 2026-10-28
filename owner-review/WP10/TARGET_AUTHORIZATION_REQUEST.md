@@ -58,7 +58,7 @@ database `Threads_connected` above 70 % of `max_connections`; any FAIL that make
 | ID | Test | Prepared | Needs from the target |
 |---|---|---|---|
 | TA-01 | preflight + health | commands, required checks, evaluator `ta_eval.py TA-01` | R3, R4, R5, R8 |
-| TA-02 | clock discipline | commands, limits (core <= 5 s, NAS <= 60 s), evaluator `ta_eval.py TA-02` | R7, R1 |
+| TA-02 | clock discipline | commands, limits (core <= 5 s, NAS <= 10 s: the session-end cut-off, `docs/TIME_CONTRACT.md`; the earlier 60 s of the N2 proposal is superseded), evaluator `ta_eval.py TA-02` | R7, R1 |
 | TA-03 | NAS contract | RouterOS template (`staging_nas.rsc.tpl`), criteria | R1, R2 |
 | TA-04 | quota capability probe | steps, numeric criteria, lab reference results (CHR 7.24.5) | R1, R2 |
 | TA-05 | GB overshoot (N1 = A + G) | steps, bound formula, Option G checks, failure-operation step | R1, R2, the line rate |
