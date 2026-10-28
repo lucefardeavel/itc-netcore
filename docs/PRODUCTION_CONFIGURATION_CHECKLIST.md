@@ -79,7 +79,7 @@ This checklist is for an operator deploying one isolated instance. Tick every li
 | G1 | Site `install/freeradius/sites-available/phpnuxbill` and `mods-available/*` as shipped; `delete_stale_sessions = no`; `radpostauth` disabled; EAP disabled or isolated | config diff |
 | G2 | `read_clients = yes`, `client_table = "nas"`; FreeRADIUS restarted after every NAS change | — |
 | G3 | FreeRADIUS process `TZ` = the application time zone (`Expiration` parsing, WP4 decision 4). Its SQL sessions are UTC (A4). | `/proc/<pid>/environ`, preflight |
-| G4 | PPPoE session guard and Hotspot slot verifier installed. Credential files mode 0600, owner `freerad`. Communities never in argv. | `ls -l`, `ps` |
+| G4 | PPPoE session guard and Hotspot slot verifier installed. Credential files mode 0600, owner `freerad`. Communities never in argv. The readiness check `nuxr_guard_selfcheck` reports `guard_selfcheck=OK` for every NAS and runs from cron / monitoring with an alert on a non-zero exit (TD-1b). | `ls -l`, `ps`, `sudo -u freerad ${confdir}/nuxr/nuxr_guard_selfcheck` |
 | G5 | SQL pool sized per `install/freeradius/README.md`. The admission hardening (A2-R) refuses a claim written with an emptied key; pool sizing is not relied on for safety. | — |
 
 ## H. NAS (RouterOS) contract

@@ -1,0 +1,156 @@
+#!/bin/sh
+# nuxr_guard_selfcheck - READINESS check of the PPPoE session guard (bin/nuxr_pppoe_session_guard) and the Hotspot slot
+# verifier, which share the credential file nas_snmp (owner decision TD-1b, 2026-10-28).
+#
+# The guard fails closed: a NAS it cannot verify rejects every PPPoE login that meets an open radacct row or an ACTIVE
+# reservation on that NAS. That is the safe outcome for one request, but a missing or wrong credential is an operator
+# configuration fault that locks legitimate subscribers out until it is fixed. This program finds such a fault BEFORE
+# subscribers do: run it after installing or rotating the credential file, at FreeRADIUS start, and from cron or the
+# monitoring agent. It changes nothing (no radacct, no reservation, no NAS write) and never prints a community.
+#
+#   nuxr_guard_selfcheck [NAS_IP ...]       (default: every NAS listed in the credential file)
+#
+# Run it as the FreeRADIUS user (sudo -u freerad ${confdir}/nuxr/nuxr_guard_selfcheck) on the FreeRADIUS host, with the
+# same net-snmp tools the guard uses. Output, one line per NAS, then a summary line:
+#   nas=NAS_IP status=OK rows=N ms=M        the guard can verify this NAS (health probe + interface table answered)
+#   nas=NAS_IP status=ERROR:<reason> ms=M   the guard would answer ERROR for this NAS (logins are refused there)
+#   guard_selfcheck=OK|ERROR nas=N errors=E
+# Exit 0 when every NAS is OK, 2 otherwise (also for a file-level problem, reported as nas=- status=ERROR:<reason>).
+#
+# Reasons (the same words the guard writes into Tmp-String-6, plus file-level checks):
+#   no-credential-file     the file is missing or not readable by this user
+#   credential-file-mode   the file is readable by group or others, or not owned by this user (must be 0600, freerad)
+#   no-nas                 the file lists no NAS and none was named
+#   malformed-nas          a NAS argument or file entry is not a dotted IPv4 address
+#   credentials            no entry for the NAS, or the community has characters outside A-Z a-z 0-9 . _ -
+#   snmpget-missing / snmpbulkwalk-missing   the net-snmp tool cannot run
+#   health                 no SNMP answer to sysUpTime.0: wrong community, SNMP disabled or filtered on the NAS, or
+#                          the NAS is unreachable. SNMP v2c gives no answer at all to a wrong community, so these
+#                          causes cannot be told apart from here; check the RouterOS community / firewall first.
+#   health-format          the answer is not a sysUpTime value
+#   walk / walk-format / walk-empty   the MIKROTIK-MIB interface-name table cannot be read or is empty
+set -uf
+umask 077
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+LC_ALL=C
+export LC_ALL
+
+CREDS="${0%/*}/nas_snmp"
+OID_UPTIME=.1.3.6.1.2.1.1.3.0
+OID_IFNAME=.1.3.6.1.4.1.14988.1.1.14.1.1.2
+WORK=''
+errors=0
+count=0
+
+cleanup() {
+	if [ -n "$WORK" ] && [ -d "$WORK" ]; then
+		rm -rf -- "$WORK"
+	fi
+}
+trap cleanup EXIT
+trap 'exit 2' HUP INT TERM
+
+ms() { echo $(( ($(date +%s%N) - $1) / 1000000 )); }
+
+finish() {
+	if [ "$errors" -eq 0 ]; then
+		echo "guard_selfcheck=OK nas=$count errors=0"
+		exit 0
+	fi
+	echo "guard_selfcheck=ERROR nas=$count errors=$errors"
+	exit 2
+}
+
+fatal() {
+	echo "nas=- status=ERROR:$1"
+	errors=$((errors + 1))
+	finish
+}
+
+valid_ip() {
+	case $1 in
+	*[!0-9.]* | .* | *. | *..* | '') return 1 ;;
+	esac
+	old_ifs=$IFS; IFS=.
+	# shellcheck disable=SC2086
+	set -- $1
+	IFS=$old_ifs
+	[ $# -eq 4 ] || return 1
+	for o in "$@"; do
+		case $o in
+		'' | ????*) return 1 ;;
+		0?*) return 1 ;;
+		esac
+		[ "$o" -le 255 ] || return 1
+	done
+	return 0
+}
+
+# ---------------------------------------------------------------- file-level checks
+[ -r "$CREDS" ] || fatal "no-credential-file"
+mode=$(stat -c '%a' "$CREDS" 2>/dev/null) || fatal "credential-file-mode"
+owner=$(stat -c '%u' "$CREDS" 2>/dev/null) || fatal "credential-file-mode"
+case $mode in
+600 | 400) ;;
+*) fatal "credential-file-mode" ;;
+esac
+[ "$owner" = "$(id -u)" ] || fatal "credential-file-mode"
+command -v snmpget >/dev/null 2>&1 && [ -x "$(command -v snmpget)" ] || fatal "snmpget-missing"
+command -v snmpbulkwalk >/dev/null 2>&1 && [ -x "$(command -v snmpbulkwalk)" ] || fatal "snmpbulkwalk-missing"
+
+if [ $# -eq 0 ]; then
+	# every NAS of the file (the first field of each non-empty line)
+	set -- $(awk 'NF { print $1 }' "$CREDS")
+fi
+[ $# -ge 1 ] || fatal "no-nas"
+
+WORK=$(mktemp -d /tmp/nuxr-selfcheck.XXXXXXXX) || fatal "tmp"
+
+# ---------------------------------------------------------------- per NAS: exactly the guard's probe sequence
+for ip in "$@"; do
+	count=$((count + 1))
+	t0=$(date +%s%N)
+	if ! valid_ip "$ip"; then
+		echo "nas=- status=ERROR:malformed-nas ms=$(ms "$t0")"
+		errors=$((errors + 1))
+		continue
+	fi
+	comm=$(awk -v ip="$ip" '$1 == ip { print $2; exit }' "$CREDS")
+	case $comm in
+	'' | *[!A-Za-z0-9._-]*)
+		echo "nas=$ip status=ERROR:credentials ms=$(ms "$t0")"
+		errors=$((errors + 1))
+		continue
+		;;
+	esac
+	d="$WORK/c$count"
+	mkdir "$d" && printf 'defCommunity %s\ndefVersion 2c\nhexOutputLength 0\nmibs :\n' "$comm" > "$d/snmp.conf" || {
+		echo "nas=$ip status=ERROR:tmp ms=$(ms "$t0")"; errors=$((errors + 1)); continue; }
+	h=$(SNMPCONFPATH=$d SNMP_PERSISTENT_DIR=$d MIBS= snmpget -r0 -t1 -On "$ip" "$OID_UPTIME" 2>/dev/null) || {
+		echo "nas=$ip status=ERROR:health ms=$(ms "$t0")"; errors=$((errors + 1)); continue; }
+	case $h in
+	"$OID_UPTIME = Timeticks: ("[0-9]*")"*) ;;
+	*) echo "nas=$ip status=ERROR:health-format ms=$(ms "$t0")"; errors=$((errors + 1)); continue ;;
+	esac
+	w=$(SNMPCONFPATH=$d SNMP_PERSISTENT_DIR=$d MIBS= snmpbulkwalk -r0 -t1 -On -Ox -Cr50 "$ip" "$OID_IFNAME" 2>/dev/null) || {
+		echo "nas=$ip status=ERROR:walk ms=$(ms "$t0")"; errors=$((errors + 1)); continue; }
+	r=$(printf '%s\n' "$w" | awk -v oid="$OID_IFNAME" '
+		BEGIN { rows = 0; bad = 0; base = oid "." }
+		$0 == "" { next }
+		{
+			if (index($0, base) != 1) { bad = 1; next }
+			rest = substr($0, length(base) + 1)
+			if (match(rest, /^[0-9]+ = /) == 0) { bad = 1; next }
+			val = substr(rest, RLENGTH + 1)
+			if (val == "\"\"") { rows++; next }
+			if (substr(val, 1, 12) != "Hex-STRING: ") { bad = 1; next }
+			rows++
+		}
+		END { if (bad) print "walk-format"; else if (rows == 0) print "walk-empty"; else print "rows=" rows }')
+	case $r in
+	rows=*) echo "nas=$ip status=OK $r ms=$(ms "$t0")" ;;
+	*) echo "nas=$ip status=ERROR:$r ms=$(ms "$t0")"; errors=$((errors + 1)) ;;
+	esac
+done
+finish

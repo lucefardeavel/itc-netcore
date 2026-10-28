@@ -351,6 +351,16 @@ def guard_invoke(argv):
     return {'rc': p.returncode, 'out': _redact(p.stdout), 'err': _redact(p.stderr)[-300:], 'ms': int((time.time() - t0) * 1000)}
 
 
+def guard_selfcheck(nas=None):
+    """TD-1b: the guard readiness check (install/freeradius/bin/nuxr_guard_selfcheck) as the FreeRADIUS user; it never
+    prints a community, and the output is redacted anyway"""
+    nas = nas or []
+    assert isinstance(nas, list) and all(isinstance(a, str) for a in nas)
+    t0 = time.time()
+    p = sh(['docker', 'exec', '-u', 'freerad', FR, '/etc/freeradius/nuxr/nuxr_guard_selfcheck', *nas], timeout=60)
+    return {'rc': p.returncode, 'out': _redact(p.stdout), 'err': _redact(p.stderr)[-300:], 'ms': int((time.time() - t0) * 1000)}
+
+
 def fr_canaries():
     """files a successful shell injection would have created inside the FreeRADIUS container"""
     p = sh(['docker', 'exec', FR, 'find', '/tmp', '/etc/freeradius', '-name', 'nuxr_pwn*'])
@@ -499,7 +509,7 @@ def pppoe_race(clients, user, password, offset_ms=0, observe=20, interval=0.15, 
             'nas_session_ids': sess_ids, 'client_overlap_ns': client_overlap, 'ping_ok': {c: len(out[c]['ping_ok_ns']) for c in clients},
             'ping_pairs_within_500ms': ping_pairs, 'logs': {c: _pppd_log(open(prep[c][3]).read()) for c in clients}}
 
-OPS = {'option_g': option_g, 'guard_invoke': guard_invoke, 'fr_canaries': fr_canaries, 'checkrad_state': checkrad_state, 'checkrad_trace': checkrad_trace, 'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_start': pppoe_start, 'pppoe_race': pppoe_race, 'watch_active': watch_active, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
+OPS = {'option_g': option_g, 'guard_invoke': guard_invoke, 'guard_selfcheck': guard_selfcheck,'fr_canaries': fr_canaries, 'checkrad_state': checkrad_state, 'checkrad_trace': checkrad_trace, 'ping': lambda: {'ok': True, 'time': time.time()}, 'pppoe_up': pppoe_up, 'pppoe_start': pppoe_start, 'pppoe_race': pppoe_race, 'watch_active': watch_active, 'pppoe_down': pppoe_down, 'pppoe_state': pppoe_state,
        'pppoe_wait_down': pppoe_wait_down, 'hs_dhcp': hs_dhcp, 'hs_login': hs_login, 'hs_logout': hs_logout, 'http_probe': http_probe,
        'traffic': traffic, 'traffic_mixed': traffic_mixed, 'ros': ros_cmd, 'fr': fr, 'nas_link': nas_link, 'fr_log': fr_log, 'capture_start': capture_start, 'capture_stop': capture_stop}
 
