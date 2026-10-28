@@ -129,7 +129,7 @@
                                refunded (no refund / billing change) *}
                             {if $_bill['status'] == 'on' && $_bill['prepaid'] != 'YES' && !$nuxr_owned}
                                 <a data-method="post" href="{Text::url('home&deactivate=', $_bill['id'])}"
-                                    onclick="return ask(this, '{if $_bill['prepaid'] == 'yes'}{Lang::T('Deactivate this prepaid plan? The remaining paid time will be lost and is not refunded under the current policy.')}{else}{Lang::T('Deactivate')}?{/if}')" class="btn btn-danger btn-xs"
+                                    onclick="return ask(this, '{if $_bill['prepaid'] == 'yes'}{Lang::T('Deactivate this prepaid plan? The remaining paid time will be lost and is not refunded under the current policy.')|escape:'javascript'|escape:'html'}{else}{Lang::T('Deactivate')|escape:'javascript'|escape:'html'}?{/if}')" class="btn btn-danger btn-xs"
                                     aria-label="{Lang::T('Deactivate')}" title="{Lang::T('Deactivate')}"><i
                                         class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                             {/if}

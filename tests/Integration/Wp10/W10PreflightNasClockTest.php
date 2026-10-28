@@ -59,15 +59,17 @@ final class W10PreflightNasClockTest extends ActivationTestCase
             $this->assertSame('PASS', $none['status'] ?? null, 'no open session ahead ' . json_encode($none));
             $this->openSession('10.99.1.1', 2);
             $this->assertSame('PASS', $this->clockCheck()['status'] ?? null, 'a 2 s stamp is normal (NTP)');
-            $this->openSession('10.99.1.2', 8);
+            $this->openSession('10.99.1.2', 9);
             $warn = $this->clockCheck();
             $this->assertSame('WARN', $warn['status'] ?? null, json_encode($warn));
             $this->assertStringContainsString('10.99.1.2 +', (string) $warn['detail'], 'the NAS is named');
+            // FAIL case set right before its run, with margins (a preflight run takes seconds): +30 s and +120 s
+            static::$db->exec("UPDATE radacct SET acctupdatetime = UTC_TIMESTAMP() + INTERVAL 30 SECOND WHERE username = 'rad3a-clock-user' AND nasipaddress = '10.99.1.2'");
             $this->openSession('10.99.1.3', 120);
             $before = static::$db->rows("SELECT * FROM radacct WHERE username = 'rad3a-clock-user' ORDER BY radacctid");
             $fail = $this->clockCheck();
             $this->assertSame('FAIL', $fail['status'] ?? null, 'beyond the 10 s cut-off allowance the release is not ready');
-            $this->assertMatchesRegularExpression('/^NAS clock ahead: 10\.99\.1\.3 \+1[12]\ds, 10\.99\.1\.2 \+[78]s/', (string) $fail['detail']);
+            $this->assertMatchesRegularExpression('/^NAS clock ahead: 10\.99\.1\.3 \+\d+s, 10\.99\.1\.2 \+\d+s /', (string) $fail['detail'], 'both NAS named, the furthest ahead first');
             $this->assertStringNotContainsString('rad3a-clock-user', json_encode($fail), 'counts NAS, never subscribers');
             $this->assertSame($before, static::$db->rows("SELECT * FROM radacct WHERE username = 'rad3a-clock-user' ORDER BY radacctid"), 'read-only');
         } finally {

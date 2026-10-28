@@ -40,7 +40,7 @@ def ta01(preflight, health=None):
     if 'preflight=FAIL' in text or not re.search(r'^preflight=(PASS|OK)', text, re.M) and not fails:
         if 'preflight=FAIL' in text and not fails:
             fails.append('preflight reports FAIL')
-    must = ['keys.app_secret', 'isolation', 'time.sql_session_zone', 'time.clock_skew', 'schema', 'radius_checks', 'identity.collisions', 'grants']
+    must = ['keys.app_secret', 'isolation', 'time.sql_session_zone', 'time.clock_skew', 'time.nas_clock', 'schema', 'radius_checks', 'identity.collisions', 'grants', 'nas.verification']
     seen = {n for _, n, _ in checks}
     for m in must:
         if m not in seen:
@@ -145,7 +145,7 @@ def selftest():
         p = os.path.join(d, name)
         open(p, 'w').write(body)
         return p
-    good_pre = 'PASS  keys.app_secret x\nPASS  isolation x\nPASS  time.sql_session_zone x\nPASS  time.clock_skew x\nPASS  schema x\nPASS  radius_checks x\nPASS  identity.collisions x\nPASS  grants x\npreflight=PASS\n'
+    good_pre = 'PASS  keys.app_secret x\nPASS  isolation x\nPASS  time.sql_session_zone x\nPASS  time.clock_skew x\nPASS  time.nas_clock x\nPASS  schema x\nPASS  radius_checks x\nPASS  identity.collisions x\nPASS  grants x\nPASS  nas.verification x\npreflight=PASS\n'
     bad_pre = good_pre.replace('PASS  grants', 'FAIL  grants').replace('preflight=PASS', 'preflight=FAIL (1 failing check(s))')
     assert ta01(w('p1', good_pre)) == 0
     assert ta01(w('p2', bad_pre)) == 1

@@ -565,7 +565,8 @@ renewal in the new period. Ownership by arrival order has neither error (`owner-
   attribute in `radcheck` makes FreeRADIUS reject the subscriber).
 - Clocks: attribution no longer needs the NAS clock, but accounting times (display, freshness) and the time-rule fallback do.
   Every host must be UTC and NTP-synchronised (preflight `time`: SQL session zone UTC, database-vs-PHP skew < 5 s); every NAS
-  should run NTP (health `nas_clock` reports interim stamps in the future by more than 120 s; operations tolerate 60 s of drift).
+  must run NTP: the session-end cut-off allows a NAS clock 10 s (health `nas_clock` warns when stamps are more than 5 s in the future;
+  the release preflight `time.nas_clock` WARNs above 5 s and FAILs above 10 s; `docs/TIME_CONTRACT.md` section 5, RAD-3a).
 - The database session zone is not involved: every connection is UTC (WP8 A4); a zone mismatch was investigated and refuted.
 
 **Accounting integrity.** An Interim-Update that is stale (after its session's Stop, or with smaller counters than

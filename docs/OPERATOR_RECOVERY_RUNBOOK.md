@@ -174,9 +174,12 @@ old session running with the previous plan's policy until it reconnects.
 2. On the NAS: `/system clock print` against `date -u` on the FreeRADIUS host; `/system ntp client print` (enabled, servers
    reachable, synchronised). Repair NTP (two internal servers by IP); never set the clock by hand without NTP.
 3. Re-check after the next Interim: `preflight.php` `time.nas_clock` PASS and health `nas_clock` OK.
-4. Sessions that changed plan while the clock was ahead are **not** reported automatically (that is the RAD-3a residual): for each
-   subscriber on that NAS whose plan changed or renewed during the period, end the old session through the supported Disconnect of
-   section 4a; the next login gets the new policy. Never edit `radacct` or the reservation tables by hand.
+4. Sessions that changed plan while the clock was ahead are **not** reported automatically (that is the RAD-3a residual), and
+   `reconcile.php session-end` does **not** select them (it ends sessions stamped before the period start; for these it would
+   find nothing and record the end as confirmed). List them read-only: the open sessions on that NAS (`/ppp active print`,
+   `/ip hotspot active print`) against the activations of the period (Activations list, plan changes / renewals since the clock
+   went ahead). End each such old session **on the NAS** (`/ppp active remove [find name=<user>]`, or `/ip hotspot active remove`);
+   the next login gets the new policy. Record what was ended. Never edit `radacct` or the reservation tables by hand.
 5. Record the NAS, the measured offset and the repair in the operations log.
 
 ## 4b. Data / time quota (V1, `quota.php`)

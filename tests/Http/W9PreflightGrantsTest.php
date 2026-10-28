@@ -114,12 +114,15 @@ final class W9PreflightGrantsTest extends RadiusHttpTestCase
         $this->radiusConfig(self::$appUser, self::$appPass, true);
         static::$db->insertRow('nas', ['nasname' => '10.99.9.1', 'shortname' => 'w9rel', 'type' => 'mikrotik_snmp', 'ports' => 3799,
             'secret' => 'w9-release-nas', 'description' => 'W9 release NAS']);
-        $r = $this->staff('A')->get('dashboard');
-        $this->assertSame(200, $r->status, $r->excerpt());
-        $this->assertSame(200, $this->staff('ad')->get('customers/list')->status);
-        $p = $this->preflight();
-        $this->assertSame('PASS', $p['by']['grants']['status'], json_encode($p['by']['grants']));
-        $this->assertSame(0, $p['exit'], $p['raw']);
-        static::$db->exec("DELETE FROM nas WHERE description = 'W9 release NAS'");
+        try {
+            $r = $this->staff('A')->get('dashboard');
+            $this->assertSame(200, $r->status, $r->excerpt());
+            $this->assertSame(200, $this->staff('ad')->get('customers/list')->status);
+            $p = $this->preflight();
+            $this->assertSame('PASS', $p['by']['grants']['status'], json_encode($p['by']['grants']));
+            $this->assertSame(0, $p['exit'], $p['raw']);
+        } finally {
+            static::$db->exec("DELETE FROM nas WHERE description = 'W9 release NAS'");
+        }
     }
 }

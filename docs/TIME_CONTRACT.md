@@ -65,7 +65,7 @@ is not restored and accounting ownership is unchanged. The decision is condition
 | Time synchronisation | NTP on every NAS (two internal servers by IP) and on the application, database and FreeRADIUS hosts; UTC | checklist A5, H8 |
 | Readiness check | the release preflight must exit 0: `time.clock_skew` (application / database <= 5 s) and `time.nas_clock` (no open session stamped more than 10 s ahead; WARN above 5 s) | `preflight.php` |
 | Alerting | `health.php` runs from monitoring every 5 minutes; `nas_clock` WARNING (stamps more than 5 s ahead) alerts the operator, before the 10 s hard limit | checklist §I, health exit code |
-| Diagnosis and recovery | runbook section 4c: identify the NAS, repair NTP, then re-check; sessions already affected are ended by their next reconnect or by an operator Disconnect | `docs/OPERATOR_RECOVERY_RUNBOOK.md` |
+| Diagnosis and recovery | runbook section 4c: identify the NAS, repair NTP, then re-check; sessions already affected end at their next reconnect or are removed on the NAS by the operator (`reconcile.php session-end` does not select them) | `docs/OPERATOR_RECOVERY_RUNBOOK.md` |
 | Staging | TA-02 (clock discipline, including the NAS) and TA-06 (renewal on the target NAS) remain mandatory | `docs/V1_TARGET_ACCEPTANCE.md` |
 
 Limits: both automated checks see a NAS clock that is AHEAD only, and only while a stamp is still in the future (shortly after each

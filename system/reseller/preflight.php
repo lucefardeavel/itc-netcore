@@ -20,7 +20,8 @@ if (PHP_SAPI !== 'cli') {
  *  isolation       REPEATABLE-READ globally and for this session (W8-18 deployment contract)
  *  time            SQL session time zone UTC (+00:00) (P-A4-1) and database / PHP clock skew < 5 s (NTP, P-A4-2);
  *                  time.nas_clock: open sessions whose NAS accounting stamp lies in the future - WARN above 5 s, FAIL above
- *                  the 10 s session-end cut-off allowance (RAD-3a operational control; it sees a NAS clock AHEAD only)
+ *                  the 10 s session-end cut-off allowance (RAD-3a operational control; it sees a NAS clock AHEAD only;
+ *                  FAIL "could not run" when the RADIUS accounting table is unavailable - V1 requires RADIUS)
  *  schema          SchemaReadiness (migrations, tables, CHECK expressions and enforcement - WP1-CHECK)
  *  radius_checks   nuxr_admission / nuxr_hs_admission CHECK constraints: exact expressions and enforcement, also the
  *                  GLOBAL MariaDB check_constraint_checks used by the FreeRADIUS sessions (A2-R hardening L4)
