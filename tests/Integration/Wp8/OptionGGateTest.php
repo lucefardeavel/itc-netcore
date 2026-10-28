@@ -551,7 +551,14 @@ final class OptionGGateTest extends TestCase
             $this->assertSame($expect, $got, "{$name}: the reason is named " . json_encode($f['lines']));
             $this->assertSame(0, $out[$name]['after_restore']['rc'], "{$name}: OK again after the restore");
         }
-        $this->assertStringStartsWith('guard_selfcheck=OK', $out['all_nas_of_the_file']['summary']);
+        // the unfiltered run checks every NAS of the credential file: the lab CHR must be OK, and any other entry (the
+        // Option G fixture's fake second NAS 10.88.0.30 while its snmpd is not running) is reported and counted, never
+        // hidden - the summary line and the exit code agree with the per-NAS lines
+        $all = $out['all_nas_of_the_file'];
+        $this->assertSame('OK', $all['per_nas']['10.88.0.2'] ?? null, json_encode($all['lines']));
+        $bad = count(array_filter($all['per_nas'], fn($s) => $s !== 'OK'));
+        $this->assertSame(sprintf('guard_selfcheck=%s nas=%d errors=%d', $bad ? 'ERROR' : 'OK', count($all['per_nas']), $bad), $all['summary']);
+        $this->assertSame($bad ? 2 : 0, $all['rc']);
         // the program prints only the documented status lines - never a community (the agent redacts as well)
         $results = [$out['healthy'], $out['all_nas_of_the_file']];
         foreach (array_keys($cases) as $name) {

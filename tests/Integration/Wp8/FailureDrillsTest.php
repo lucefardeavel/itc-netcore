@@ -378,6 +378,12 @@ final class FailureDrillsTest extends Wp8ActivationLabCase
             $this->markTestSkipped('S6 drill 7 baseline needs the CHR NAS row of type "other" (lab without dev/wp8/option_g_gate.sh on); '
                 . 'the production-contract variant is testDrill7GuardLostStopReloginIsAcceptedWithoutAnyRepair');
         }
+        if (getenv('NUXR_WP8_HISTORICAL_OPTION_G_OFF') !== '1') {
+            // TD-2 (owner decision 2026-10-28): historical, not deleted and not relabelled - its result stays the lockout
+            $this->markTestSkipped('TD-2: the Option G-off configuration (NAS type "other") is historical and unsupported for the V1 target '
+                . '(preflight nas.verification FAILs it). Archived lockout result: evidence/chr_suites/*_c2_drills_off_*_20261028T071426Z; '
+                . 'NUXR_WP8_HISTORICAL_OPTION_G_OFF=1 re-runs it. Supported path: testDrill7GuardNasRebootAccountingOnReloginWithoutRepair');
+        }
         $h = $this->hierarchy();
         $plan = $this->chainPlan($h);
         [$cust, $user, $ref] = $this->onSession($h, $plan, 'D7-pass');
