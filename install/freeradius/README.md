@@ -80,6 +80,8 @@ The stale row stays as it is (operators see it as "stale" until the NAS sends so
 
 **Install** (`${confdir}` is `/etc/freeradius/3.0` on Ubuntu packages, `/etc/freeradius` in the official image):
 - `bin/nuxr_pppoe_session_guard` as `${confdir}/nuxr/nuxr_pppoe_session_guard` (0755, root); the directory 0755.
+- `bin/nuxr_guard_selfcheck` as `${confdir}/nuxr/nuxr_guard_selfcheck` (0755, root): the readiness check below. It must
+  sit next to the guard, because it reads the same credential file.
 - `mods-available/nuxr_pppoe_session_guard` into `mods-enabled/`. The site file already calls it from `post-auth`.
 - The net-snmp command-line tools (`snmpget`, `snmpbulkwalk`): Ubuntu/Debian package `snmp`. The project test and lab
   image pins `snmp 5.9.1+dfsg-1ubuntu2.9` on Ubuntu 22.04 (`dev/test/freeradius/Dockerfile`). Without the tools every
@@ -102,10 +104,32 @@ The stale row stays as it is (operators see it as "stale" until the NAS sends so
 **Rotation** (no FreeRADIUS restart; the guard reads the file on every run):
 1. RouterOS: add the new community (read-only, restricted to the FreeRADIUS address), keep the old one.
 2. Write the new file next to the old one (`umask 077`, same directory, owner `freerad`), then `mv` it over `nas_snmp`.
-3. Check: `sudo -u freerad ${confdir}/nuxr/nuxr_pppoe_session_guard 70726f6265 1 NAS_IP` must print
+3. Check: `sudo -u freerad ${confdir}/nuxr/nuxr_guard_selfcheck` must end with `guard_selfcheck=OK`. The older manual
+   check still works: `sudo -u freerad ${confdir}/nuxr/nuxr_pppoe_session_guard 70726f6265 1 NAS_IP` must print
    `Tmp-String-7 = "SAFE"` (`70726f6265` is the hex of a username that is not online). `ERROR` means stop and fix.
 4. RouterOS: remove the old community.
 A mistake during rotation produces ERROR, i.e. rejected PPPoE logins for subscribers with an open row - never an Accept.
+
+**Readiness check** (owner decision TD-1b): `sudo -u freerad ${confdir}/nuxr/nuxr_guard_selfcheck [NAS_IP ...]`.
+- Fail closed protects against duplicate sessions, but a missing or wrong credential locks legitimate subscribers out
+  (every PPPoE login that meets an open row or an ACTIVE reservation on that NAS is refused) until an operator fixes it.
+  This check finds that before subscribers do. It is read-only: it never touches `radacct`, a reservation or the NAS.
+- It runs, per NAS (default: every NAS in `nas_snmp`), exactly the guard's own probe: the credential entry, `sysUpTime.0`,
+  then the interface-name table. One line per NAS (`nas=IP status=OK rows=N` or `status=ERROR:<reason>`), then
+  `guard_selfcheck=OK|ERROR`; exit 0 only when every NAS is OK. It also checks the file itself (present, mode 0600 or
+  0400, owned by the user running it) and that `snmpget` / `snmpbulkwalk` can run. It never prints a community.
+- Reasons: `no-credential-file`, `credential-file-mode`, `credentials` (no entry for that NAS, or invalid characters),
+  `snmpget-missing`, `snmpbulkwalk-missing`, `health` (no SNMP answer), `health-format`, `walk`, `walk-format`,
+  `walk-empty`. **`health` covers a wrong community AND a disabled, filtered or unreachable SNMP**: SNMP v2c gives no
+  answer to a wrong community, so the two cannot be told apart from FreeRADIUS. Check the RouterOS community, its
+  `addresses` and the UDP 161 firewall rule.
+- Run it after every install or credential rotation, after every new NAS, at FreeRADIUS start (a failure does not stop
+  FreeRADIUS: the guard stays fail closed), and every few minutes from cron or the monitoring agent. **Alert on a non-zero
+  exit**: every ERROR line names a NAS whose PPPoE subscribers cannot re-login after a lost Stop. Example cron line
+  (root crontab): `*/5 * * * * sudo -u freerad /etc/freeradius/3.0/nuxr/nuxr_guard_selfcheck >/var/log/nuxr-guard-selfcheck.log 2>&1 || logger -p auth.crit -t nuxr-guard "PPPoE session guard cannot verify a NAS (see /var/log/nuxr-guard-selfcheck.log)"`.
+- Recovery is the credential file and the NAS configuration only. Once the check is OK the guard verifies again and the
+  next login of an affected subscriber is admitted (after the 10 s fresh-session hold of a just-started session). No
+  database change is needed or allowed: never delete or close `radacct` rows or reservations by hand.
 
 **NAS contract** (MikroTik RouterOS; checked by the WP8 lab):
 - PHPNuxBill NAS type (RADIUS > NAS > Type) **`mikrotik_snmp`**. With another type (default `other`) the stock checkrad

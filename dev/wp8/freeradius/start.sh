@@ -58,6 +58,8 @@ fi
 # only and is not used here.
 mkdir -p "$R/nuxr"; chmod 0755 "$R/nuxr"
 install -m 0755 /nuxr/install/bin/nuxr_pppoe_session_guard "$R/nuxr/nuxr_pppoe_session_guard"
+# TD-1b: the readiness check of the guard and its credential file (read-only, run by the operator / monitoring)
+install -m 0755 /nuxr/install/bin/nuxr_guard_selfcheck "$R/nuxr/nuxr_guard_selfcheck"
 cp /nuxr/install/mods-available/nuxr_pppoe_session_guard "$R/mods-enabled/nuxr_pppoe_session_guard"
 # WP8 H-2B - Hotspot slot verifier (same credential file $R/nuxr/nas_snmp), installed as install/freeradius/README.md says
 install -m 0755 /nuxr/install/bin/nuxr_hotspot_slot_verifier "$R/nuxr/nuxr_hotspot_slot_verifier"
