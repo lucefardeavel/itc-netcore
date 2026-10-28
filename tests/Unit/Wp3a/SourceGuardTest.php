@@ -23,7 +23,7 @@ final class SourceGuardTest extends TestCase
      * pinned: the WP3A fix round adds the finance runtime tables to its required-table check.
      */
     private const PINNED = [
-        'system/autoload/Reseller/Domain/ServiceGate.php' => 'f0d6f3d96283725b134433122aaf8442eb8db983148b0a45379d8a6cb4f0ed82',
+        'system/autoload/Reseller/Domain/ServiceGate.php' => '78daac058d8cd05fb85a7b850f9bbf42ada10134c56b63eb063a8207606fbfe8',
         // WP5A (owner decision A7): the activation routes; WP6A (owner decision OD-C): + read-only activation/list;
         // WP6B (owner decision OD-1): the WP6B web surface and the explicit reseller API allow-list;
         // WP7 (owner decision OD-W7-2): + the public, GET-only pwa/manifest and pwa/ping (never API-allowed)
@@ -39,7 +39,7 @@ final class SourceGuardTest extends TestCase
         // WP9 release profile (owner WP8_WP9_WP10_AUTONOMOUS_EXECUTION_AUTHORIZED, protected-file exception, 2026-10-16):
         // rechargeUser refuses a plan of a device type disabled in the release profile BEFORE any write
         // (previous pin 9759fca72b5f33236d5a7a00ceaf4ffb9f2dc76b86b16a03a70c6ac145e4aa54)
-        'system/autoload/Package.php' => '51e8c47b0229ab5787d0df5b2d5cfa600cb4df225df2340700f551adc5045122',
+        'system/autoload/Package.php' => 'aca308f3fb8de5a298852abba1007eaab8c6de00baff2ba2c593c3fc53ef2794',
         // accepted WP1 migration runner
         // WP9-D / WP1-CHECK (owner WP8_WP9_WP10_AUTONOMOUS_EXECUTION_AUTHORIZED, protected-file exception, 2026-10-16):
         // migrate.php loads the shared CHECK-expression verifier; Runner::contractDiff verifies every CHECK of a

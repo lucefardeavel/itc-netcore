@@ -74,3 +74,54 @@ a.btn-primary:active {
 .itc-powered bdi {
     color: #4a5263 !important;
 }
+
+/*
+ * D-19 (lab, customer portal accessibility, axe-core 4.10 WCAG 2 A/AA). Light theme only (the portal's dark mode keeps its own
+ * palette); each rule darkens/lightens only the failing foreground (or the badge background) within the same hue.
+ */
+/* footer text on the footer background #1c2434: #64748b 3.27:1 -> #8a97ab 5.25:1 */
+body:not(.dark-mode) .main-footer {
+    color: #8a97ab;
+}
+
+/* footer links on #1c2434: #3c8dbc 4.24:1 -> #4596c6 4.76:1 */
+body:not(.dark-mode) .main-footer a {
+    color: #4596c6;
+}
+
+body:not(.dark-mode) .main-footer a:hover,
+body:not(.dark-mode) .main-footer a:focus {
+    color: #6aaed8;
+}
+
+/* plain text links inside the page content on white: #3c8dbc 3.67:1 -> #2f7399 5.21:1 (the portal link shade above) */
+body:not(.dark-mode) .content-wrapper .content a:not(.btn):not(.label):not(.dropdown-toggle):not([class*="nav"]):not([class*="menu"]):not(.list-group-item) {
+    color: #2f7399;
+}
+
+/* .text-primary labels on the striped row #f9f9f9: #337ab7 4.33:1 -> #3175b0 4.64:1 */
+body:not(.dark-mode) .content-wrapper .text-primary {
+    color: #3175b0;
+}
+
+/* small bold badge text: white on #00a65a 3.18:1 -> white on #007f45 5.10:1 */
+body:not(.dark-mode) .content-wrapper .label-success {
+    background-color: #007f45 !important;
+}
+
+/*
+ * Keyboard focus (WCAG 2.4.7): the theme removes the focus outline. A two-tone ring, keyboard only (:focus-visible), visible on
+ * the white content (#2f7399 5.21:1) and on the dark header / sidebar (white inner ring 15.5:1).
+ */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible,
+[role="button"]:focus-visible {
+    outline: 3px solid #2f7399 !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 2px #ffffff !important;
+}

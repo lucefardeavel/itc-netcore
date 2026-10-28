@@ -17,7 +17,10 @@ use Reseller\Security\ErrorReporter;
  *    authenticator), then the outcome is UNKNOWN: no new request is ever generated for an unanswered one;
  *  - ACK -> SUCCESS; NAK -> FAILED with the Error-Cause, except Disconnect NAK 503 "Session Context Not
  *    Found" (the session is already gone) -> SUCCESS; responses with a wrong identifier or authenticator are
- *    ignored.
+ *    ignored;
+ *  - lab NET-3: a Disconnect NAK that answers a RETRANSMISSION -> UNKNOWN 'COA_RETRY_NAK': the first request may
+ *    have ended the session and only its ACK was lost (RouterOS 7.24.5 answers the retry with NAK 406); the end
+ *    is then confirmed only by the session's Accounting-Stop (SessionTermination), never by the NAK.
  * The secret is never logged or returned.
  */
 final class CoAClient
@@ -136,7 +139,7 @@ final class CoAClient
                     if (!RadiusPacket::verifyResponse($response, $request, (string) $nas['secret'])) {
                         continue;
                     }
-                    return self::outcome($code, $response, $nasId);
+                    return self::outcome($code, $response, $nasId, $attempt > 0);
                 }
             }
         } finally {
@@ -145,7 +148,7 @@ final class CoAClient
         return ProvisionResult::unknown('COA_NO_RESPONSE', 'The NAS did not answer; the session state is unknown.', $nasId);
     }
 
-    private static function outcome(int $code, RadiusPacket $response, string $nasId): ProvisionResult
+    private static function outcome(int $code, RadiusPacket $response, string $nasId, bool $retransmitted = false): ProvisionResult
     {
         $ack = $code === RadiusPacket::DISCONNECT_REQUEST ? RadiusPacket::DISCONNECT_ACK : RadiusPacket::COA_ACK;
         $nak = $code === RadiusPacket::DISCONNECT_REQUEST ? RadiusPacket::DISCONNECT_NAK : RadiusPacket::COA_NAK;
@@ -156,6 +159,9 @@ final class CoAClient
         if ($response->code === $nak) {
             if ($code === RadiusPacket::DISCONNECT_REQUEST && (int) $cause === 503) {
                 return ProvisionResult::success('SESSION_NOT_FOUND', 'The session had already ended.', $nasId, ['error_cause' => 503]);
+            }
+            if ($code === RadiusPacket::DISCONNECT_REQUEST && $retransmitted) {
+                return ProvisionResult::unknown('COA_RETRY_NAK', 'The NAS refused a retransmitted Disconnect; the first one may have ended the session.', $nasId, ['error_cause' => is_int($cause) ? $cause : null]);
             }
             return ProvisionResult::failed('COA_NAK', 'The NAS refused the request.', false, $nasId, ['error_cause' => is_int($cause) ? $cause : null]);
         }

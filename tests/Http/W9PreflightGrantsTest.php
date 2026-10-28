@@ -109,13 +109,20 @@ final class W9PreflightGrantsTest extends RadiusHttpTestCase
         }
         $this->assertSame(0, (int) $lpdo->query('SELECT COUNT(*) FROM tbl_manager_ledger WHERE id = 0')->fetchColumn(), 'positive: it can read');
 
-        // 5. the application runs with it and the preflight passes
+        // 5. the application runs with it and the preflight passes. PF-0 (owner decision 2026-10-28): the release
+        // preflight requires a verified NAS, so this production-settings step has one (no NAS is NOT_CONFIGURED: FAIL)
         $this->radiusConfig(self::$appUser, self::$appPass, true);
-        $r = $this->staff('A')->get('dashboard');
-        $this->assertSame(200, $r->status, $r->excerpt());
-        $this->assertSame(200, $this->staff('ad')->get('customers/list')->status);
-        $p = $this->preflight();
-        $this->assertSame('PASS', $p['by']['grants']['status'], json_encode($p['by']['grants']));
-        $this->assertSame(0, $p['exit'], $p['raw']);
+        static::$db->insertRow('nas', ['nasname' => '10.99.9.1', 'shortname' => 'w9rel', 'type' => 'mikrotik_snmp', 'ports' => 3799,
+            'secret' => 'w9-release-nas', 'description' => 'W9 release NAS']);
+        try {
+            $r = $this->staff('A')->get('dashboard');
+            $this->assertSame(200, $r->status, $r->excerpt());
+            $this->assertSame(200, $this->staff('ad')->get('customers/list')->status);
+            $p = $this->preflight();
+            $this->assertSame('PASS', $p['by']['grants']['status'], json_encode($p['by']['grants']));
+            $this->assertSame(0, $p['exit'], $p['raw']);
+        } finally {
+            static::$db->exec("DELETE FROM nas WHERE description = 'W9 release NAS'");
+        }
     }
 }

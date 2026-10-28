@@ -70,6 +70,8 @@ switch ($action) {
             r2(getUrl('voucher/list-activated'), 's', Lang::T('Activation Vouchers Successfully'));
         } elseif ($out['status'] === \Reseller\Domain\VoucherRedemptionService::NOT_VALID) {
             r2(getUrl('voucher/activation'), 'e', Lang::T('Voucher Not Valid'));
+        } elseif (($out['reason'] ?? '') === 'CUSTOMER_NOT_ACTIVE') {
+            r2(getUrl('voucher/activation'), 'e', Lang::T('This account status') . ' : ' . Lang::T((string) $out['customer_status']));
         } else {
             r2(getUrl('voucher/activation'), 'e', "Failed to refill account");
         }
@@ -77,13 +79,11 @@ switch ($action) {
 
     case 'list-activated':
         $ui->assign('_system_menu', 'list-activated');
+        // Lab finding D-2 (F-5), owner direction D-20: only rows recorded with this customer's id. A legacy row without
+        // an id (user_id = 0) may belong to an earlier holder of a reused username and its ownership cannot be proven,
+        // so the portal fails closed for it; the row itself is kept for staff and authorized recovery (never rewritten)
         $query = ORM::for_table('tbl_transactions')->where('user_id', $user['id'])->order_by_desc('id');
         $d = Paginator::findMany($query);
-
-        if (empty($d) || $d < 5) {
-            $query = ORM::for_table('tbl_transactions')->where('username', $user['username'])->order_by_desc('id');
-            $d = Paginator::findMany($query);
-        }
 
         $ui->assign('d', $d);
         $ui->assign('_title', Lang::T('Activation History'));

@@ -52,6 +52,14 @@ $ui->assign('_domain', str_replace('www.', '', parse_url(APP_URL, PHP_URL_HOST))
 $ui->assign('_url', APP_URL . '/?_route=');
 $ui->assign('_path', __DIR__);
 $ui->assign('_c', $config);
+// lab UX-14 (owner delegation 2026-10-25): the customer portal and the public pages ship Arabic and English only; a stored
+// language (session, cookie, customer attribute, site default) outside them falls back to English for a visitor without a
+// staff session. Staff keep every shipped language.
+if (!in_array($config['language'] ?? '', ['arabic', 'english'], true) && !(class_exists('Admin') && Admin::getID() > 0)) {
+    $config['language'] = 'english';
+    $_L = json_decode((string) file_get_contents($root_path . File::pathFixer('system/lan/english.json')), true) ?: [];
+    $ui->assign('_c', $config);
+}
 $ui->assign('user_language', $config['language']);
 // WP6A (OD-F): document direction / language of the adaptive shell; presentation helpers for templates
 $ui->assign('nuxr_dir', \Reseller\Ui\Format::dir($config['language'] ?? null));

@@ -21,8 +21,8 @@ if (PHP_SAPI !== 'cli') {
  *  vouchers_review    vouchers left CLAIMED (operator review)                                           WARN
  *  balance_held       legacy balance operations HELD                                                    WARN
  *  accounting         newest radacct update (accounting freshness; WARN when > 15 minutes while sessions are open)
- *  nas_clock          open sessions whose accounting stamp is > 120 s in the future (a NAS clock that is ahead)       WARN
- *  coa_failures       Disconnect / CoA results that were not SUCCESS in the last hour (activation annotations)  WARN
+ *  nas_clock          open sessions whose accounting stamp is > 5 s in the future (a NAS clock ahead; early warning) WARN
+ *  coa_failures       activations whose latest session-end in the last hour is not confirmed (annotation "confirmed")  WARN
  *  quota_enforcer     quota subscribers online and the quota enforcer silent > 3 min (CRIT); over-quota open session (WARN)
  *  finance (--finance) whole-database finance integrity (DriftReport::financeIntegrity; expensive, run hourly)         CRITICAL
  */
@@ -110,13 +110,29 @@ $run('accounting', static function () use ($set, $radius): void {
 });
 $run('nas_clock', static function () use ($set, $radius): void {
     // N2: quota attribution no longer uses the NAS clock (a period owns the rows that arrived after it started), but accounting
-    // times (display, freshness, the time-rule fallback) do. A NAS whose stamps lie more than 120 s in the future is ahead.
-    $n = (int) $radius()->query('SELECT COUNT(*) FROM radacct WHERE acctstoptime IS NULL AND COALESCE(acctupdatetime, acctstarttime) > UTC_TIMESTAMP() + INTERVAL 120 SECOND')->fetchColumn();
-    $set('nas_clock', $n > 0 ? 1 : 0, "{$n} open session(s) with an accounting stamp more than 120 s in the future (a NAS clock that is ahead: check NTP on the NAS)", (float) $n);
+    // times (display, freshness, the time-rule fallback) do, and the session-end cut-off allows the NAS only 10 s (B-L08,
+    // QuotaPolicy::PERIOD_SKEW_SECONDS; lab NET-4: a NAS 10-120 s ahead went unreported). Stamps more than 5 s ahead warn
+    // before the hard limit is reached. Limits (expert review 2026-10-26): it sees a clock AHEAD only, and only while a
+    // stamp is still in the future (shortly after each Start / Interim); a clock that is behind needs NTP monitoring.
+    $n = (int) $radius()->query('SELECT COUNT(*) FROM radacct WHERE acctstoptime IS NULL AND COALESCE(acctupdatetime, acctstarttime) > UTC_TIMESTAMP() + INTERVAL 5 SECOND')->fetchColumn();
+    $set('nas_clock', $n > 0 ? 1 : 0, "{$n} open session(s) with an accounting stamp more than 5 s in the future (a NAS clock that is ahead: check NTP on the NAS)", (float) $n);
 });
-$run('coa_failures', static function () use ($set, $q): void {
-    $n = (int) $q("SELECT COUNT(*) FROM tbl_reseller_activation_events WHERE event_type = 'ANNOTATION' AND created_at > UTC_TIMESTAMP(6) - INTERVAL 1 HOUR
-        AND metadata LIKE '%\"disconnect\"%' AND (metadata LIKE '%UNKNOWN%' OR metadata LIKE '%FAILED%' OR metadata LIKE '%ERROR%')");
+$run('coa_failures', static function () use ($set, $pdo): void {
+    // lab closure RAD-2b: the outcome is the annotation's own "confirmed" flag (SessionTermination), not words in its text: a
+    // retransmission NAK confirmed by the Stop reads UNKNOWN yet is confirmed, an ACK with no Stop reads SUCCESS yet is not.
+    // Only the latest session-end annotation of each activation counts (an operator retry that confirmed it clears it);
+    // the rule is DriftReport::sessionEndConfirmed, so this check and SESSION_POLICY_STALE agree.
+    $st = $pdo->prepare("SELECT activation_id, metadata FROM tbl_reseller_activation_events WHERE event_type = 'ANNOTATION'
+        AND created_at > UTC_TIMESTAMP(6) - INTERVAL 1 HOUR AND metadata LIKE '%\"disconnect\"%' ORDER BY activation_id, sequence_no");
+    $st->execute();
+    $latest = [];
+    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $m = json_decode((string) $r['metadata'], true);
+        if (is_array($m) && array_key_exists('disconnect', $m)) {
+            $latest[(int) $r['activation_id']] = \Reseller\Activation\DriftReport::sessionEndConfirmed($m);   // the rule DriftReport uses
+        }
+    }
+    $n = count(array_filter($latest, static fn(bool $confirmed): bool => !$confirmed));
     $set('coa_failures', $n > 0 ? 1 : 0, "{$n} Disconnect / CoA outcome(s) not confirmed in the last hour (drift SESSION_POLICY_STALE)", (float) $n);
 });
 $run('quota_enforcer', static function () use ($set, $radius, $q): void {

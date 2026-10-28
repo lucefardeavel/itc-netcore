@@ -73,7 +73,7 @@
                         <div class="col-md-9">
                             <input type="password" autocomplete="off" class="form-control" id="password" name="password"
                                 onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek
-                                value="{$d['password']}">
+                                value="{$d['password']|escape}">
                             <span class="help-block">{Lang::T('Keep Blank to do not change Password')}</span>
                         </div>
                     </div>
@@ -140,7 +140,7 @@
                                 id="warning_username"></span></label>
                         <div class="col-md-9">
                             <input type="username" class="form-control" id="pppoe_username" name="pppoe_username"
-                                onkeyup="checkUsername(this, {$d['id']})" value="{$d['pppoe_username']}">
+                                onkeyup="checkUsername(this, {$d['id']})" value="{$d['pppoe_username']|escape}">
                             <span class="help-block">{Lang::T('Not Working with Freeradius Mysql')}</span>
                         </div>
                     </div>
@@ -148,7 +148,7 @@
                         <label for="pppoe_password" class="col-md-3 control-label">{Lang::T('Password')}</label>
                         <div class="col-md-9">
                             <input type="password" class="form-control" id="pppoe_password" name="pppoe_password"
-                                value="{$d['pppoe_password']}" onmouseleave="this.type = 'password'"
+                                value="{$d['pppoe_password']|escape}" onmouseleave="this.type = 'password'"
                                 onmouseenter="this.type = 'text'" data-nuxr-peek>
                         </div>
                     </div>
@@ -157,7 +157,7 @@
                                 id="warning_ip"></span></label>
                         <div class="col-md-9">
                             <input type="text" class="form-control" id="pppoe_ip" name="pppoe_ip"
-                                onkeyup="checkIP(this, {$d['id']})" value="{$d['pppoe_ip']}">
+                                onkeyup="checkIP(this, {$d['id']})" value="{$d['pppoe_ip']|escape}">
                             <span class="help-block">{Lang::T('Not Working with Freeradius Mysql')}</span>
                         </div>
                     </div>
@@ -228,14 +228,14 @@
                     <div class="form-group">
                         <label for="state" class="col-md-3 control-label">{Lang::T('State')}</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" id="state" name="state" value="{$d['state']}">
+                            <input type="text" class="form-control" id="state" name="state" value="{$d['state']|escape}">
                             <small class="form-text text-muted">{Lang::T('State of Resident')}</small>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="zip" class="col-md-3 control-label">{Lang::T('Zip Code')}</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" id="zip" name="zip" value="{$d['zip']}">
+                            <input type="text" class="form-control" id="zip" name="zip" value="{$d['zip']|escape}">
                             <small class="form-text text-muted">{Lang::T('Zip Code')}</small>
                         </div>
                     </div>

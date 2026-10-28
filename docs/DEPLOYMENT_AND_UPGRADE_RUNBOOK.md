@@ -44,7 +44,7 @@ Scope: one isolated instance per ISP (Option A). Every step names its verificati
 9. FreeRADIUS: checklist §G.
 10. NAS: `docs/NAS_ONBOARDING_AND_SECRET_ROTATION.md` §2.
 11. Log in as `admin`. The application forces the default password change.
-12. Run `php system/reseller/preflight.php`. It must exit 0. Then run `php system/reseller/health.php --finance`. It must exit 0.
+12. Run `php system/reseller/preflight.php` (the release preflight). It must exit 0; with no NAS it FAILs `nas.verification` NOT_CONFIGURED (PF-0). Before step 10, `preflight.php --setup` may be used to check the rest of the installation: it reports a missing NAS as WARN NOT_CONFIGURED and is never the release gate. Then run `php system/reseller/health.php --finance`. It must exit 0.
 13. Install the scheduled jobs: checklist §I.
 
 ## 3. Upgrade of an existing PHPNuxBill installation

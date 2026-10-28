@@ -122,6 +122,10 @@ final class LegacyReprovisionService
             $result = TreeSerialization::hold(static function (\PDO $pdo) use ($a, $customerId, $op, $requested, &$handover): array {
             $customer = Tx::row($pdo, 'SELECT * FROM tbl_customers WHERE id = ?', [$customerId]) ?? throw new DomainError('NOT_FOUND');
             self::authorize($a, $customer, $op);
+            // lab F-6 Q3 (expert review 2026-10-26): a customer that is not Active is never re-provisioned by a sync
+            if (($op === self::ADMIN_SYNC || $op === self::ADMIN_BULK_SYNC_ROW) && (string) $customer['status'] !== 'Active') {
+                throw new DomainError('CUSTOMER_INACTIVE');
+            }
             if (self::inFlight($pdo, $customerId)) {
                 throw new DomainError('ACTIVATION_IN_PROGRESS');
             }

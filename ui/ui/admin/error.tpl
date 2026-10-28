@@ -7,9 +7,11 @@
        zoom allowed, safe areas, the shell tokens; WP2 / OD-14: generic message + reference only *}
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{$error_title|escape}</title>
-    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" />
+    <link rel="icon" href="{$app_url}/ui/ui/images/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" sizes="192x192" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/fonts/font-awesome/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?wp7.2">
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.1" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?brand.1">
 </head>
 
 <body class="nuxr-shell nuxr-standalone">

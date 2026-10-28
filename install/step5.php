@@ -12,7 +12,7 @@ if (file_exists(__DIR__ . '/../config.php') && is_dir(__DIR__ . '/../pages')) {
 
 <head>
     <title>ITC NetCore Installer</title>
-    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
+    <link rel="icon" type="image/png" href="img/netcore-favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!--[if lt IE 9]>
@@ -83,7 +83,7 @@ try {
 ?>
 <body style='background-color: #FBFBFB;'>
     <div id='main-container'>
-        <img src="img/logo.png" class="img-responsive" alt="Logo" />
+        <img src="img/netcore-logo.png" class="img-responsive" alt="ITC NetCore" />
         <hr>
         <div class="span12">
             <h4> ITC NetCore Installer </h4>

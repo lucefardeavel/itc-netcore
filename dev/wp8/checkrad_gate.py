@@ -89,8 +89,13 @@ def on():
         sh(['docker', 'exec', FR, 'sh', '-c', 'apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends snmp >/dev/null'])
     sql(f"UPDATE nas SET type = 'mikrotik_snmp', community = '{c}' WHERE id = 1")
     n = naspasswd()
+    # owner decisions TD-1 / TD-1b (2026-10-28): the permanent PPPoE session guard runs after this stock layer in every
+    # configuration, so the gate runs it as production does - WITH its credential file. Without it every verification
+    # case was refused for "no credentials" and never for the fault under test.
+    import option_g_gate
+    g = option_g_gate.creds()
     sh(['docker', 'exec', FR, 'touch', f'{R}/wp8-checkrad-gate'])
-    return {'naspasswd_entries': n, 'start': restart(), **state()}
+    return {'naspasswd_entries': n, 'guard_credential_entries': g, 'start': restart(), **state()}
 
 
 def nas_type(t):
@@ -121,6 +126,7 @@ def state():
     fr = sh(['docker', 'exec', FR, 'sh', '-c',
              f'test -f {R}/wp8-checkrad-gate && echo marker=1 || echo marker=0; test -x /usr/bin/snmpwalk && echo snmpwalk_exec=1 || echo snmpwalk_exec=0; '
              f'grep -E "^checkrad = " {R}/radiusd.conf; awk \'{{print "naspasswd_entry=" $1 " " $2 " [community]"}}\' {R}/naspasswd 2>/dev/null; grep -E "delete_stale_sessions" {R}/mods-enabled/sql; stat -c "naspasswd=%a %U" {R}/naspasswd 2>/dev/null || echo naspasswd=missing; '
+             f'stat -c "guard_creds=%a %U" {R}/nuxr/nas_snmp 2>/dev/null || echo guard_creds=missing; '
              'dpkg-query -W -f="snmp_pkg=\\${Version}\\n" snmp 2>/dev/null || echo snmp_pkg=none'], check=False).stdout
     return {'nas': sql("SELECT id, nasname, type, IF(COALESCE(community, '') = '', 'unset', 'set') FROM nas ORDER BY id").split('\n')[:2],
             'routeros_snmp': {'enabled': snmp.get('enabled')}, 'routeros_communities': comms,
@@ -130,6 +136,8 @@ def state():
 
 def off():
     sql("UPDATE nas SET type = 'other', community = NULL WHERE id = 1")
+    import option_g_gate      # the guard credential file that on() installed goes too (review 2026-10-28)
+    option_g_gate.drop_creds()
     sh(['docker', 'exec', FR, 'sh', '-c', f'rm -f {R}/naspasswd {R}/wp8-checkrad-gate; chmod 755 /usr/bin/snmpwalk 2>/dev/null; true'])
     start = restart()
     r = ros()

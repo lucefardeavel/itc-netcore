@@ -5,12 +5,12 @@
     <div style="margin-left: 5px; margin-right: 5px;">
         <table class="table table-bordered table-striped table-bordered table-hover mb-0" style="margin-bottom: 0px;">
             <tr>
-                <td class="small text-success text-uppercase text-normal">{Lang::T('Usernames')}</td>
+                <td class="small text-success text-uppercase text-normal">{Lang::T('Username')}</td>
                 <td class="small mb15">{$_user['username']|escape}</td>
             </tr>
             <tr>
                 <td class="small text-success text-uppercase text-normal">{Lang::T('Password')}</td>
-                <td class="small mb15"><input type="password" value="{$_user['password']}"
+                <td class="small mb15"><input type="password" value="{$_user['password']}" aria-label="{Lang::T('Password')}"
                         style="width:100%; border: 0px;" onmouseleave="this.type = 'password'"
                         onmouseenter="this.type = 'text'" onclick="this.select()"></td>
             </tr>
