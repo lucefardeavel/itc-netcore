@@ -322,6 +322,23 @@ Release: set `@nuxr_username`, `@nuxr_token`, `@nuxr_operator`, `@nuxr_reason`, 
 `nuxr_admission_release.sql` (see its header). It releases only that `PENDING` claim with that token and records every
 decision in `nuxr_admission_audit`. There is no automatic release by time, SNMP, `sysUpTime` or Acct-Session-Id.
 
+**A subscriber locked out by an `ACTIVE` reservation** (owner decision TD-2, 2026-10-28). An `ACTIVE` row whose session
+ended without a Stop - a lost Stop, a NAS restart, a NAS whose Accounting-On closed the `radacct` rows - is **not** an
+operator release case. The next login of that subscriber is verified by the PPPoE session guard on the reservation's NAS
+and, once the session is proven gone, takes the reservation over (rule 4 above; WP8 FailureDrills
+`testDrill7GuardNasRebootAccountingOnReloginWithoutRepair`). If such a subscriber still cannot log in:
+1. Run `sudo -u freerad ${confdir}/nuxr/nuxr_guard_selfcheck NAS_IP` on the FreeRADIUS host for the reservation's NAS
+   (the status query above shows `nas`). Fix what it reports: the credential entry, the RouterOS community / its
+   `addresses` / the UDP 161 rule, or the net-snmp tools. Repeat until it prints `guard_selfcheck=OK`.
+2. Check the release preflight (`php system/reseller/preflight.php`): `nas.verification` must PASS. A NAS of a type other
+   than `mikrotik_snmp` is not verified at all, and its subscribers stay locked out after a lost Stop (the unsupported
+   Option G-off configuration; set RADIUS > NAS > Type to `mikrotik_snmp`).
+3. Within 10 s of the session's Start the fresh-session hold refuses every take-over (`reject:active-fresh` in the
+   FreeRADIUS log). This ends by itself; ask the subscriber to reconnect after a few seconds.
+4. Ask the subscriber to reconnect. Never `UPDATE` or `DELETE` an `ACTIVE` reservation, never close a `radacct` row by
+   hand and never release funds to "unblock" a login: an `ACTIVE` reservation is ended only by its accounting or taken
+   over by a verified login.
+
 ## Hotspot admission slots (WP8 H-2B)
 
 **Problem (WP8 H-2, `H2_GAP_CONFIRMED`).** `shared_users` is the limit of the subscriber across **every** NAS of the ISP.
