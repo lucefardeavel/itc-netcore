@@ -164,6 +164,21 @@ session runs with the previous plan's rate until it ends (bounded by the previou
   closed or deleted by PHPNuxBill) and the finding stays until FreeRADIUS receives a Stop; record the NAS evidence on
   the activation. The renewal / settlement is never undone or repeated.
 
+## 4c. NAS clock ahead (health `nas_clock`, preflight `time.nas_clock`; RAD-3a)
+
+**Signal:** health `nas_clock` WARNING, or the preflight `time.nas_clock` WARN / FAIL naming the NAS (`<nas-ip> +<seconds>s`).
+**Why it matters:** the session-end cut-off of a plan change / renewal allows the NAS clock 10 s; a NAS further ahead can leave an
+old session running with the previous plan's policy until it reconnects.
+
+1. Identify the NAS from the preflight line (read-only): `php system/reseller/preflight.php | grep time.nas_clock`.
+2. On the NAS: `/system clock print` against `date -u` on the FreeRADIUS host; `/system ntp client print` (enabled, servers
+   reachable, synchronised). Repair NTP (two internal servers by IP); never set the clock by hand without NTP.
+3. Re-check after the next Interim: `preflight.php` `time.nas_clock` PASS and health `nas_clock` OK.
+4. Sessions that changed plan while the clock was ahead are **not** reported automatically (that is the RAD-3a residual): for each
+   subscriber on that NAS whose plan changed or renewed during the period, end the old session through the supported Disconnect of
+   section 4a; the next login gets the new policy. Never edit `radacct` or the reservation tables by hand.
+5. Record the NAS, the measured offset and the repair in the operations log.
+
 ## 4b. Data / time quota (V1, `quota.php`)
 
 - `health.php` `quota_enforcer` CRITICAL: the enforcer cron (`php system/reseller/quota.php enforce --loop=55`, every

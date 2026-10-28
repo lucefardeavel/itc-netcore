@@ -103,6 +103,42 @@ final class W10PortalContentTest extends Wp2HttpTestCase
         }
     }
 
+    /**
+     * UX-2P (owner decision L2, 2026-10-28): an unassigned (legacy) customer keeps Deactivate on a prepaid plan; its
+     * confirmation states that the remaining paid time is lost and not refunded. A plan that is not prepaid keeps the
+     * plain question; a reseller-managed customer is offered neither (its server refusal is unchanged).
+     */
+    public function testLegacyPrepaidDeactivateConfirmationStatesTheLossOfPaidTime(): void
+    {
+        $warn = 'Deactivate this prepaid plan? The remaining paid time will be lost and is not refunded under the current policy.';
+        // the bill's prepaid flag is its plan's (User::_billing joins tbl_plans)
+        $rows = static::$db->rows("SELECT p.id, p.prepaid FROM tbl_plans p JOIN tbl_user_recharges r ON r.plan_id = p.id WHERE r.username = 'cNULL' AND r.status = 'on'");
+        $this->assertNotSame([], $rows, 'fixture: the legacy customer has an active plan');
+        $set = function (string $v) use ($rows): void {
+            foreach ($rows as $r) {
+                static::$db->pdo->prepare('UPDATE tbl_plans SET prepaid = ? WHERE id = ?')->execute([$v, $r['id']]);
+            }
+        };
+        try {
+            $set('yes');
+            $home = $this->customerHome('cNULL');
+            $this->assertStringContainsString('deactivate=', $home, 'legacy prepaid: Deactivate is still offered');
+            $this->assertStringContainsString("return ask(this, '{$warn}')", $home, 'legacy prepaid: the confirmation states the loss');
+            $set('no');
+            $home = $this->customerHome('cNULL');
+            $this->assertStringContainsString('deactivate=', $home, 'not prepaid: Deactivate offered');
+            $this->assertStringContainsString("return ask(this, 'Deactivate?')", $home, 'not prepaid: the plain question');
+            $this->assertStringNotContainsString($warn, $home);
+        } finally {
+            foreach ($rows as $r) {
+                static::$db->pdo->prepare('UPDATE tbl_plans SET prepaid = ? WHERE id = ?')->execute([$r['prepaid'], $r['id']]);
+            }
+        }
+        $owned = $this->customerHome('cA1');
+        $this->assertStringNotContainsString('deactivate=', $owned, 'reseller-managed: not offered');
+        $this->assertStringNotContainsString($warn, $owned);
+    }
+
     /** Sets an app setting for this test; returns the previous value (null when the row did not exist). */
     private function setConfig(string $key, string $value): ?string
     {

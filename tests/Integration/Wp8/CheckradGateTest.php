@@ -309,6 +309,8 @@ final class CheckradGateTest extends TestCase
         $verify = preg_match('/Tmp-String-7 = "(\w+)"/', (string) $g['out'], $m) ? $m[1] : null;
         Wp8Lab::agent('pppoe_down', ['client' => 'c1']);
         Wp8Lab::until(fn() => Wp8Lab::pppActive($user) === [] && ($this->acct($user)[0]['acctstoptime'] ?? null) !== null, 30, 1);
+        // RV-5: the admission below must follow a normal end of C1, not a lost Stop answered by the guard's SAFE path
+        $this->assertNotNull($this->acct($user)[0]['acctstoptime'] ?? null, 'C1 ended normally: its Stop is recorded');
         Wp8Lab::agent('pppoe_down', ['client' => 'c3']);
         $again = Wp8Lab::agent('pppoe_up', ['client' => 'c3', 'user' => $user, 'password' => $password]);
         return ['selfcheck' => $ready, 'verify_live_c1' => $verify, 'c1_stop_recorded' => ($this->acct($user)[0]['acctstoptime'] ?? null) !== null,

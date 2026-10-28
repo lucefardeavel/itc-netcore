@@ -7,7 +7,10 @@ if (PHP_SAPI !== 'cli') {
 /**
  * WP9 / WP10 release preflight of ONE ISP instance. CLI ONLY, READ-ONLY (it never writes).
  *
- *   php system/reseller/preflight.php [--plugins-approved=<inventory file>] [--json]
+ *   php system/reseller/preflight.php [--setup] [--plugins-approved=<inventory file>] [--json]
+ *
+ * Without --setup this is the release / production-readiness preflight. --setup is for the initial installation,
+ * before the NAS are onboarded: the only difference is that no NAS at all reports WARN (NOT_CONFIGURED) instead of FAIL.
  *
  * Every check prints PASS / WARN / FAIL with its evidence. Exit 0 when no check FAILs, 4 otherwise. Plugins are NOT
  * loaded (a preflight must not run unreviewed code). Checks:
@@ -15,7 +18,9 @@ if (PHP_SAPI !== 'cli') {
  *  stage           live stage, no display_errors, HTTPS application URL (WARN)
  *  engine          MariaDB 10.11 / MySQL 8.0 (the tested policy; WARN otherwise)
  *  isolation       REPEATABLE-READ globally and for this session (W8-18 deployment contract)
- *  time            SQL session time zone UTC (+00:00) (P-A4-1) and database / PHP clock skew < 5 s (NTP, P-A4-2)
+ *  time            SQL session time zone UTC (+00:00) (P-A4-1) and database / PHP clock skew < 5 s (NTP, P-A4-2);
+ *                  time.nas_clock: open sessions whose NAS accounting stamp lies in the future - WARN above 5 s, FAIL above
+ *                  the 10 s session-end cut-off allowance (RAD-3a operational control; it sees a NAS clock AHEAD only)
  *  schema          SchemaReadiness (migrations, tables, CHECK expressions and enforcement - WP1-CHECK)
  *  radius_checks   nuxr_admission / nuxr_hs_admission CHECK constraints: exact expressions and enforcement, also the
  *                  GLOBAL MariaDB check_constraint_checks used by the FreeRADIUS sessions (A2-R hardening L4)
@@ -27,13 +32,15 @@ if (PHP_SAPI !== 'cli') {
  *  grants          the runtime account is least-privilege: no global privileges, no UPDATE / DELETE on the ledger and
  *                  audit tables (WP10 LPDB; FAIL for an administrative account such as root)
  *  mac             MAC-auth impact (MAC-H1A): RADIUS usernames that look like lower-case MAC addresses (WARN)
- *  nas             every NAS of type mikrotik_snmp, the live-session verification contract of V1 (FAIL otherwise, TD-2)
+ *  nas             every NAS of type mikrotik_snmp, the live-session verification contract of V1 (FAIL otherwise, TD-2);
+ *                  no NAS at all is NOT_CONFIGURED: FAIL in the release preflight, WARN with --setup (PF-0)
  */
 
 define('NUXR_DEFER_PLUGINS', true);
 require dirname(__DIR__, 2) . '/init.php';
 
 $args = array_slice($argv, 1);
+$setup = in_array('--setup', $args, true);
 $opt = static function (string $name) use ($args): ?string {
     foreach ($args as $a) {
         if (str_starts_with($a, "--{$name}=")) {
@@ -90,6 +97,26 @@ $try('time', static function () use ($add, $one): void {
     $add('time.sql_session_zone', $off === 0 ? 'PASS' : 'FAIL', "session time_zone={$tz} offset={$off}s (contract P-A4-1: UTC for every writer and reader)");
     $skew = abs((int) $one('SELECT UNIX_TIMESTAMP(UTC_TIMESTAMP())') - time());
     $add('time.clock_skew', $skew <= 5 ? 'PASS' : ($skew <= 30 ? 'WARN' : 'FAIL'), "database vs application clock skew {$skew}s (NTP on every host, P-A4-2)");
+});
+$try('time.nas_clock', static function () use ($add): void {
+    // RAD-3a (owner decision 2026-10-28): V1 keeps the session-end cut-off, which compares the NAS's own Accounting stamp
+    // and allows the NAS 10 s (B-L08). The readiness gate therefore checks the NAS clocks it can see: an open session whose
+    // latest stamp is in the future was stamped by a NAS clock that is ahead. Same population and expression as the
+    // health check nas_clock. A clock that is BEHIND cannot be seen here: NTP on the NAS and TA-02 cover it.
+    try {
+        $rp = ORM::get_db('radius');
+    } catch (Throwable) {
+        $rp = ORM::get_db();
+    }
+    $rp->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $rows = $rp->query('SELECT nasipaddress, MAX(TIMESTAMPDIFF(SECOND, UTC_TIMESTAMP(), COALESCE(acctupdatetime, acctstarttime))) FROM radacct
+        WHERE acctstoptime IS NULL AND COALESCE(acctupdatetime, acctstarttime) > UTC_TIMESTAMP() + INTERVAL 5 SECOND
+        GROUP BY nasipaddress ORDER BY 2 DESC')->fetchAll(PDO::FETCH_NUM);
+    $max = $rows === [] ? 0 : (int) $rows[0][1];
+    $list = implode(', ', array_map(static fn(array $r): string => $r[0] . ' +' . (int) $r[1] . 's', array_slice($rows, 0, 5)));
+    $add('time.nas_clock', $max > 10 ? 'FAIL' : ($max > 5 ? 'WARN' : 'PASS'), $rows === []
+        ? 'no open session stamped more than 5 s in the future (a NAS clock that is behind is not visible here: NTP on every NAS, TA-02)'
+        : "NAS clock ahead: {$list} (limit 10 s, the session-end cut-off allowance; enable / repair NTP on the NAS - docs/OPERATOR_RECOVERY_RUNBOOK.md 4c)");
 });
 $try('schema', static function () use ($add): void {
     \Reseller\Domain\SchemaReadiness::reset();
@@ -191,7 +218,7 @@ $try('mac', static function () use ($add): void {
     $n = (int) $rp->query("SELECT COUNT(DISTINCT username) FROM radcheck WHERE (username COLLATE utf8mb4_bin) REGEXP '^[0-9a-f]{2}([:-][0-9a-f]{2}){5}$' AND (username COLLATE utf8mb4_bin) REGEXP '[a-f]'")->fetchColumn();
     $add('mac', $n === 0 ? 'PASS' : 'WARN', "{$n} RADIUS username(s) that look like lower-case MAC addresses (MAC-H1A: MAC auth is refused for them)");
 });
-$try('nas', static function () use ($add): void {
+$try('nas', static function () use ($add, $setup): void {
     // TD-2 (owner decision 2026-10-28): V1 runs the WP8 Option G contract on every NAS - PHPNuxBill NAS type mikrotik_snmp,
     // read-only SNMP and a guard credential entry (install/freeradius/README.md "NAS contract"). With another type (the
     // default "other") the stock layer trusts every open radacct row: a subscriber whose Stop was lost is locked out, and
@@ -205,18 +232,25 @@ $try('nas', static function () use ($add): void {
     $rows = $rp->query('SELECT nasname, type FROM nas ORDER BY id')->fetchAll(PDO::FETCH_NUM);
     $bad = array_values(array_filter($rows, static fn(array $r): bool => (string) $r[1] !== 'mikrotik_snmp'));
     $list = implode(', ', array_map(static fn(array $r): string => $r[0] . ' (' . ($r[1] === '' || $r[1] === null ? 'no type' : $r[1]) . ')', array_slice($bad, 0, 5)));
-    $add('nas.verification', $bad === [] ? 'PASS' : 'FAIL', $rows === [] ? 'no NAS configured yet (every NAS must be of type mikrotik_snmp)'
-        : ($bad === [] ? count($rows) . ' NAS, all of type mikrotik_snmp (live-session verification on; confirm the guard with nuxr_guard_selfcheck on the FreeRADIUS host)'
+    if ($rows === []) {
+        // PF-0 (owner decision 2026-10-28): a deployment that requires NAS verification never passes without a NAS
+        $add('nas.verification', $setup ? 'WARN' : 'FAIL', 'NOT_CONFIGURED: no NAS configured' . ($setup
+            ? ' (initial setup; onboard every NAS as type mikrotik_snmp before the release preflight)'
+            : ' - the release preflight requires every NAS of type mikrotik_snmp with live-session verification; use --setup only during the initial installation'));
+        return;
+    }
+    $add('nas.verification', $bad === [] ? 'PASS' : 'FAIL',
+        ($bad === [] ? count($rows) . ' NAS, all of type mikrotik_snmp (live-session verification on; confirm the guard with nuxr_guard_selfcheck on the FreeRADIUS host)'
             : count($bad) . ' of ' . count($rows) . " NAS not of type mikrotik_snmp: {$list} - unsupported for V1 (a lost Accounting-Stop locks the subscriber out; set RADIUS > NAS > Type to mikrotik_snmp and add its guard credential entry)"));
 });
 
 $fail = count(array_filter($results, static fn(array $r): bool => $r['status'] === 'FAIL'));
 if (in_array('--json', $args, true)) {
-    echo json_encode(['preflight' => $fail === 0 ? 'PASS' : 'FAIL', 'results' => $results], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
+    echo json_encode(['preflight' => $fail === 0 ? 'PASS' : 'FAIL', 'mode' => $setup ? 'setup' : 'release', 'results' => $results], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
 } else {
     foreach ($results as $r) {
         printf("%-5s %-26s %s\n", $r['status'], $r['check'], $r['detail']);
     }
-    echo 'preflight=' . ($fail === 0 ? 'PASS' : 'FAIL') . " ({$fail} failing check(s))\n";
+    echo 'preflight=' . ($fail === 0 ? 'PASS' : 'FAIL') . " ({$fail} failing check(s), " . ($setup ? 'setup' : 'release') . " mode)\n";
 }
 exit($fail === 0 ? 0 : 4);

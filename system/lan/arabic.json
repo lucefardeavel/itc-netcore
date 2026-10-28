@@ -2081,5 +2081,6 @@
   "Support_Palestine": "ادعم فلسطين",
   "PHPNuxBill_contributors__GitHub_": "المساهمون في PHPNuxBill (GitHub)",
   "Upstream_changelog": "سجل تغييرات المشروع الأصلي",
-  "The_portal_login_could_not_be_recorded__so_it_was_not_opened_": "تعذّر تسجيل الدخول إلى بوابة المشترك في سجل التدقيق، لذلك لم تُفتح."
+  "The_portal_login_could_not_be_recorded__so_it_was_not_opened_": "تعذّر تسجيل الدخول إلى بوابة المشترك في سجل التدقيق، لذلك لم تُفتح.",
+  "Deactivate_this_prepaid_plan__The_remaining_paid_time_will_be_lost_and_is_not_refunded_under_the_current_policy_": "هل تريد تعطيل هذه الباقة المدفوعة مسبقاً؟ سيُفقد الوقت المدفوع المتبقي ولا يُسترد وفق السياسة الحالية."
 }

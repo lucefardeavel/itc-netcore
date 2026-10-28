@@ -29,6 +29,6 @@ jobs:
           coverage: none
       - name: Test tooling (tests/composer.lock, dev only, never deployed)
         working-directory: tests
-        run: composer install --no-interaction --no-progress --prefer-dist
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
       - name: Unit suite
         run: php tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result tests/Unit

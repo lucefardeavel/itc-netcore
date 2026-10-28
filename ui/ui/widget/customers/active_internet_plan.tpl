@@ -124,11 +124,12 @@
                     <tr>
                         <td class="small text-primary text-uppercase text-normal">
                             {* shipped comparison kept on purpose: upstream compares with 'YES' while the stored value is 'yes', so Deactivate
-                               shows for every plan - today's behaviour (LegacyRemovalGate). Hiding it for prepaid plans
-                               is the open owner decision UX-2P, not a lab change *}
+                               shows for every plan - today's behaviour (LegacyRemovalGate). UX-2P (owner decision L2, 2026-10-28): the
+                               action is kept; for a prepaid plan the confirmation states that the remaining paid time is lost and not
+                               refunded (no refund / billing change) *}
                             {if $_bill['status'] == 'on' && $_bill['prepaid'] != 'YES' && !$nuxr_owned}
                                 <a data-method="post" href="{Text::url('home&deactivate=', $_bill['id'])}"
-                                    onclick="return ask(this, '{Lang::T('Deactivate')}?')" class="btn btn-danger btn-xs"
+                                    onclick="return ask(this, '{if $_bill['prepaid'] == 'yes'}{Lang::T('Deactivate this prepaid plan? The remaining paid time will be lost and is not refunded under the current policy.')}{else}{Lang::T('Deactivate')}?{/if}')" class="btn btn-danger btn-xs"
                                     aria-label="{Lang::T('Deactivate')}" title="{Lang::T('Deactivate')}"><i
                                         class="glyphicon glyphicon-trash" aria-hidden="true"></i></a>
                             {/if}
