@@ -15,8 +15,8 @@
                                 {else}
                                     <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
                                 {/if}
-                                <input type="text" readonly class="form-control" name="username" value="{$username}"
-                                    placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']} {Lang::T('Phone Number')}{else}{Lang::T('Usernames')}{/if}">
+                                <input type="text" readonly class="form-control" name="username" value="{$username|escape}"
+                                    placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']} {Lang::T('Phone Number')}{else}{Lang::T('Username')}{/if}">
                             </div>
                         </div>
                         <div class="form-group">
@@ -37,19 +37,19 @@
                     <div class="panel-heading">{Lang::T('Success')}</div>
                     <div class="panel-body">
                         <div class="form-group">
-                            <label>{if $_c['country_code_phone']!= ''}{Lang::T('Phone Number')}{else}{Lang::T('Usernames')}{/if}</label>
+                            <label>{if $_c['country_code_phone']!= ''}{Lang::T('Phone Number')}{else}{Lang::T('Username')}{/if}</label>
                             <div class="input-group">
                                 {if $_c['country_code_phone']!= ''}
                                     <span class="input-group-addon"><i class="glyphicon glyphicon-phone-alt"></i></span>
                                 {else}
                                     <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
                                 {/if}
-                                <input type="text" readonly class="form-control" name="username" value="{$username}"
-                                    placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']} {Lang::T('Phone Number')}{else}{Lang::T('Usernames')}{/if}">
+                                <input type="text" readonly class="form-control" name="username" value="{$username|escape}"
+                                    placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']} {Lang::T('Phone Number')}{else}{Lang::T('Username')}{/if}">
                             </div>
                         </div>
                         <label>{Lang::T('Your Password has been change to')}</label>
-                        <input type="text" readonly class="form-control" value="{$passsword}" onclick="this.select()">
+                        <input type="text" readonly class="form-control" value="{$passsword|escape}" onclick="this.select()">
                         <p class="help-block">
                             {Lang::T('Use the password to login, and change the password from password change page')}</p>
                     </div>
@@ -74,7 +74,7 @@
                     <div class="panel-heading">{Lang::T('Forgot Password')}</div>
                     <div class="panel-body">
                         <div class="form-group">
-                            <label>{if $_c['country_code_phone']!= ''}{Lang::T('Phone Number')}{else}{Lang::T('Usernames')}{/if}</label>
+                            <label>{if $_c['country_code_phone']!= ''}{Lang::T('Phone Number')}{else}{Lang::T('Username')}{/if}</label>
                             <div class="input-group">
                                 {if $_c['country_code_phone']!= ''}
                                     <span class="input-group-addon"><i class="glyphicon glyphicon-phone-alt"></i></span>
@@ -82,14 +82,14 @@
                                     <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
                                 {/if}
                                 <input type="text" class="form-control" name="username" required
-                                    placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']} {Lang::T('Phone Number')}{else}{Lang::T('Usernames')}{/if}">
+                                    placeholder="{if $_c['country_code_phone']!= ''}{$_c['country_code_phone']} {Lang::T('Phone Number')}{else}{Lang::T('Username')}{/if}">
                             </div>
                         </div>
                     </div>
                     <div class="panel-footer">
                         <button type="submit" class="btn btn-block btn-primary">{Lang::T('Validate')}</button>
                         <a href="{Text::url('forgot&step=6')}"
-                            class="btn btn-block btn-link">{Lang::T('Forgot Usernames')}</a>
+                            class="btn btn-block btn-link">{Lang::T('Forgot Username')}</a>
                         <a href="{Text::url('login')}" class="btn btn-block btn-link">{Lang::T('Back')}</a>
                     </div>
                 </div>

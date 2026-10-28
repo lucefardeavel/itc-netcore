@@ -10,7 +10,8 @@
         var appUrl = '{$app_url}';
     </script>
 
-    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" />
+    <link rel="icon" href="{$app_url}/ui/ui/images/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="{$app_url}/ui/ui/images/pwa/icon-192.png" type="image/png" sizes="192x192" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/bootstrap.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/fonts/ionicons/css/ionicons.min.css">
     <link rel="stylesheet" href="{$app_url}/ui/ui/fonts/font-awesome/css/font-awesome.min.css">
@@ -18,9 +19,10 @@
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/sweetalert2.min.css" />
     <script src="{$app_url}/ui/ui/scripts/sweetalert2.all.min.js"></script>
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/phpnuxbill.customer.css?2025.2.4" />
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v2" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v3" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.1" />
     {if $nuxr_dir eq 'rtl'}
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?wp6c.2" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?lab.4" />
     {/if}
 
     <style>
@@ -33,27 +35,29 @@
 
 </head>
 
-<body class="hold-transition modern-skin-dark sidebar-mini">
+<body class="hold-transition modern-skin-dark sidebar-mini nuxr-portal">
+    {* brand: the saved theme applies before the first paint (same localStorage key as the portal toggle) *}
+    <script>try { if (localStorage.getItem('mode') === 'dark') { document.body.classList.add('dark-mode'); } } catch (e) { }</script>
     <div class="wrapper">
         <header class="main-header" style="position:fixed; width: 100%">
             <a href="{Text::url('home')}" class="logo">
-                <span class="logo-mini"><b>{$_brand.mark|escape}</b></span>
-                <span class="logo-lg"><bdi>{$_brand.company|escape}</bdi></span>
+                <span class="logo-mini">{if $_brand.company_is_product}<img class="nc-mark" src="{$app_url}/ui/ui/images/brand/netcore-mark-white.svg" alt="" width="32" height="32">{else}<b>{$_brand.mark|escape}</b>{/if}</span>
+                <span class="logo-lg">{if $_brand.company_is_product}<img class="nc-mark" src="{$app_url}/ui/ui/images/brand/netcore-mark-white.svg" alt="" width="28" height="28">{/if}<bdi>{$_brand.company|escape}</bdi></span>
             </a>
             <nav class="navbar navbar-static-top">
                 <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
-                    <span class="sr-only">Toggle navigation</span>
+                    <span class="sr-only">{Lang::T('Toggle navigation')}</span>
                 </a>
                 <div class="navbar-custom-menu">
                     <ul class="nav navbar-nav">
                         <li>
-                            <a class="toggle-container" href="#">
-                                <i class="toggle-icon" id="toggleIcon">🌜</i>
+                            <a class="toggle-container" href="#" role="button" aria-label="{Lang::T('Dark mode')}" aria-pressed="false">
+                                <i class="toggle-icon" id="toggleIcon" aria-hidden="true">🌜</i>
                             </a>
                         </li>
                         <li class="dropdown tasks-menu">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
-                                <i class="fa fa-flag-o"></i>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true" aria-label="{Lang::T('Language')}">
+                                <i class="fa fa-globe" aria-hidden="true"></i>
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
@@ -64,7 +68,8 @@
                         </li>
                         <li class="dropdown notifications-menu">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                                <i class="fa fa-envelope-o"></i>
+                                <i class="fa fa-envelope-o" aria-hidden="true"></i>
+                                <span class="sr-only">{Lang::T('Inbox')}</span>
                                 <span class="label label-warning"
                                     api-get-text="{Text::url('autoload_user/inbox_unread')}"></span>
                             </a>
@@ -142,7 +147,9 @@
                         </a>
                     </li>
                     {$_MENU_AFTER_INBOX}
-                    {if $_c['disable_voucher'] != 'yes'}
+                    {* lab UX-2: a reseller-managed customer ($nuxr_owned, assigned by User::_info) cannot redeem a voucher or
+                       buy here (OD-11 refusal); no dead entry points *}
+                    {if $_c['disable_voucher'] != 'yes' && !$nuxr_owned}
                         <li {if $_system_menu eq 'voucher'}class="active" {/if}>
                             <a href="{Text::url('voucher/activation')}">
                                 <i class="fa fa-ticket"></i>
@@ -151,7 +158,7 @@
                         </li>
                     {/if}
                     {if $_c['payment_gateway'] != 'none' or $_c['payment_gateway'] == '' }
-                        {if $_c['enable_balance'] == 'yes'}
+                        {if $_c['enable_balance'] == 'yes' && !$nuxr_owned}
                             <li {if $_system_menu eq 'balance'}class="active" {/if}>
                                 <a href="{Text::url('order/balance')}">
                                     <i class="ion ion-ios-cart"></i>
@@ -159,12 +166,14 @@
                                 </a>
                             </li>
                         {/if}
+                        {if !$nuxr_owned}
                         <li {if $_system_menu eq 'package'}class="active" {/if}>
                             <a href="{Text::url('order/package')}">
                                 <i class="ion ion-ios-cart"></i>
                                 <span>{Lang::T('Buy Package')}</span>
                             </a>
                         </li>
+                        {/if}
                         <li {if $_system_menu eq 'history'}class="active" {/if}>
                             <a href="{Text::url('order/history')}">
                                 <i class="fa fa-file-text"></i>

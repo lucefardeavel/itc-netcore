@@ -40,13 +40,20 @@ final class VoucherRedemptionService
      * Redeems $code for an existing customer (customerId > 0) or a voucher-only subscriber (customerId 0,
      * username = the code).
      *
-     * @return array{status:string,voucher:?array<string,mixed>,result:mixed}
+     * @return array{status:string,voucher:?array<string,mixed>,result:mixed,reason?:string,customer_status?:string}
      */
     public static function redeem(string $code, RedemptionTarget $target, RedemptionSource $source): array
     {
         if ($code === '' || self::reseller($target)) {
             self::record($source, $code, $target, self::REFUSED);
             return ['status' => self::REFUSED, 'voucher' => null, 'result' => null];
+        }
+        if ($target->customerId > 0 && ($status = self::customerStatus($target->customerId)) !== 'Active') {
+            // Lab finding D-3: Package::rechargeUser (pinned) refuses a customer that is not Active with an alert that ends
+            // the request, AFTER the claim, which left the voucher CLAIMED with nothing granted (and without $ui the alert
+            // returns and the grant went on). The same refusal is judged before the claim: the voucher stays redeemable.
+            self::record($source, $code, $target, self::REFUSED . ':CUSTOMER_NOT_ACTIVE');
+            return ['status' => self::REFUSED, 'voucher' => null, 'result' => null, 'reason' => 'CUSTOMER_NOT_ACTIVE', 'customer_status' => $status];
         }
         if ($target->customerId === 0) {
             // WP9-A1 / U0 (OBS-W9-V1, P6): a voucher-only subscriber's RADIUS identity is the code. Under the shared
@@ -205,6 +212,18 @@ final class VoucherRedemptionService
     }
 
     // ------------------------------------------------------------------ steps
+
+    /** The customer's status ('' when the row is missing or unreadable: not Active, fail closed). */
+    private static function customerStatus(int $customerId): string
+    {
+        try {
+            $row = Tx::row(self::pdo(), 'SELECT status FROM tbl_customers WHERE id = ?', [$customerId]);
+            return $row === null ? '' : (string) $row['status'];
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'voucher-customer-status');
+            return '';
+        }
+    }
 
     /** True when the target is reseller-owned or its ownership cannot be evaluated (fail closed). */
     private static function reseller(RedemptionTarget $target): bool

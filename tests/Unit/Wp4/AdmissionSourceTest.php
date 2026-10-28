@@ -79,7 +79,9 @@ final class AdmissionSourceTest extends TestCase
         $post = self::pppoe();
         // creation: plain INSERT on the primary key; take-over: conditioned on state AND the previous token
         $this->assertStringContainsString("INSERT INTO nuxr_admission (username, state, token, nas, acct_session_id, calling_station_id, nas_port_id, request_authenticator, session_user, attach_count, created_at, updated_at) VALUES (UNHEX('%{Tmp-String-2}'), 'PENDING', '%{control:Tmp-String-5}'", $post);
-        $this->assertStringContainsString("WHERE username = UNHEX('%{Tmp-String-2}') AND state = '%{control:Tmp-String-0}' AND token = '%{control:Tmp-String-1}'}", $post);
+        // lab SEC-E2 fresh-session hold: an ACTIVE row is taken over only when its session was confirmed >= 10 s ago
+        $this->assertStringContainsString("WHERE username = UNHEX('%{Tmp-String-2}') AND state = '%{control:Tmp-String-0}' AND token = '%{control:Tmp-String-1}' AND (state <> 'ACTIVE' OR confirmed_at <= UTC_TIMESTAMP(6) - INTERVAL 10 SECOND)}", $post);
+        $this->assertSame(0, substr_count($post, 'AND token = \'%{control:Tmp-String-1}\'}'), 'no take-over statement without the hold');
         $this->assertStringContainsString("elsif ((&control:Tmp-String-0 == \"ENDED\") || (&control:Tmp-String-0 == \"ACTIVE\")) {", $post, 'only ENDED or (verified) ACTIVE can be taken over');
         // attach: the SAME attempt only, never creates or releases
         $this->assertSame(2, substr_count($post, "SET attach_count = attach_count + 1, updated_at = UTC_TIMESTAMP(6) WHERE username = UNHEX('%{Tmp-String-2}') AND state = 'PENDING' AND token = '%{control:Tmp-String-1}' AND nas = '%{NAS-IP-Address}' AND acct_session_id = '%{Acct-Session-Id}' AND calling_station_id = '%{Calling-Station-Id}' AND nas_port_id = '%{NAS-Port-Id}' AND request_authenticator = '%{Tmp-String-7}' AND session_user = '%{SQL-User-Name}'}"));

@@ -27,6 +27,7 @@ if (PHP_SAPI !== 'cli') {
  *  grants          the runtime account is least-privilege: no global privileges, no UPDATE / DELETE on the ledger and
  *                  audit tables (WP10 LPDB; FAIL for an administrative account such as root)
  *  mac             MAC-auth impact (MAC-H1A): RADIUS usernames that look like lower-case MAC addresses (WARN)
+ *  nas             every NAS of type mikrotik_snmp, the live-session verification contract of V1 (FAIL otherwise, TD-2)
  */
 
 define('NUXR_DEFER_PLUGINS', true);
@@ -189,6 +190,24 @@ $try('mac', static function () use ($add): void {
     }
     $n = (int) $rp->query("SELECT COUNT(DISTINCT username) FROM radcheck WHERE (username COLLATE utf8mb4_bin) REGEXP '^[0-9a-f]{2}([:-][0-9a-f]{2}){5}$' AND (username COLLATE utf8mb4_bin) REGEXP '[a-f]'")->fetchColumn();
     $add('mac', $n === 0 ? 'PASS' : 'WARN', "{$n} RADIUS username(s) that look like lower-case MAC addresses (MAC-H1A: MAC auth is refused for them)");
+});
+$try('nas', static function () use ($add): void {
+    // TD-2 (owner decision 2026-10-28): V1 runs the WP8 Option G contract on every NAS - PHPNuxBill NAS type mikrotik_snmp,
+    // read-only SNMP and a guard credential entry (install/freeradius/README.md "NAS contract"). With another type (the
+    // default "other") the stock layer trusts every open radacct row: a subscriber whose Stop was lost is locked out, and
+    // stays locked out after the NAS's own Accounting-On, because the reservation of the lost session can then never be
+    // verified. The credential file itself lives on the FreeRADIUS host: check it there with nuxr_guard_selfcheck.
+    try {
+        $rp = ORM::get_db('radius');
+    } catch (Throwable) {
+        $rp = ORM::get_db();
+    }
+    $rows = $rp->query('SELECT nasname, type FROM nas ORDER BY id')->fetchAll(PDO::FETCH_NUM);
+    $bad = array_values(array_filter($rows, static fn(array $r): bool => (string) $r[1] !== 'mikrotik_snmp'));
+    $list = implode(', ', array_map(static fn(array $r): string => $r[0] . ' (' . ($r[1] === '' || $r[1] === null ? 'no type' : $r[1]) . ')', array_slice($bad, 0, 5)));
+    $add('nas.verification', $bad === [] ? 'PASS' : 'FAIL', $rows === [] ? 'no NAS configured yet (every NAS must be of type mikrotik_snmp)'
+        : ($bad === [] ? count($rows) . ' NAS, all of type mikrotik_snmp (live-session verification on; confirm the guard with nuxr_guard_selfcheck on the FreeRADIUS host)'
+            : count($bad) . ' of ' . count($rows) . " NAS not of type mikrotik_snmp: {$list} - unsupported for V1 (a lost Accounting-Stop locks the subscriber out; set RADIUS > NAS > Type to mikrotik_snmp and add its guard credential entry)"));
 });
 
 $fail = count(array_filter($results, static fn(array $r): bool => $r['status'] === 'FAIL'));

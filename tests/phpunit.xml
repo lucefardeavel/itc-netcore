@@ -113,6 +113,7 @@
             <exclude>Integration/Wp8/ConcurrentFirstLoginGateTest.php</exclude>
             <exclude>Integration/Wp8/UsernameEquivalenceGateTest.php</exclude>
             <exclude>Integration/Wp8/HotspotEquivalenceGateTest.php</exclude>
+            <exclude>Integration/Wp8/W10FreshSessionHoldGateTest.php</exclude>
         </testsuite>
         <!-- WP8 A2 concurrent first-login race gate (real NAS lab, production contract). History: owner 2026-10-09,
              evidence ACCEPTED, SECURITY GATE FAILED - RACE_PROVEN; the suite failed by design until A2-R. A2-R was
@@ -124,6 +125,8 @@
             <file>Integration/Wp8/ConcurrentFirstLoginGateTest.php</file>
             <file>Integration/Wp8/UsernameEquivalenceGateTest.php</file>
             <file>Integration/Wp8/HotspotEquivalenceGateTest.php</file>
+            <!-- lab SEC-E2 (2026-10-25): second login right after the first Accounting-Start; fresh-session hold -->
+            <file>Integration/Wp8/W10FreshSessionHoldGateTest.php</file>
         </testsuite>
         <testsuite name="hotfix-pace-unit">
             <directory>Unit/HotfixPaceXhrCsrf</directory>

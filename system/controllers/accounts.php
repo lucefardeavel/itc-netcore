@@ -55,7 +55,9 @@ switch ($action) {
             $npass = _post('npass');
             $cnpass = _post('cnpass');
             if ($password == $d_pass) {
-                if (!Validator::Length($password, 36, 2)) {
+                // Lab finding D-6: validate the NEW password (it validated the current one; an overlong new password
+                // ended in an HTTP 500 on the 45-character column). Same 2 to 35 rule as the reseller-owned path.
+                if (!Validator::Length($npass, 36, 2)) {
                     r2(getUrl('accounts/change-password'), 'e', 'New Password must be 2 to 35 character');
                 }
                 if ($npass != $cnpass) {
@@ -423,12 +425,13 @@ switch ($action) {
         global $root_path;
         // WP2 / NEW-1: only shipped languages (system/lan/<name>.json); no file is ever created
         $selected_language = \Reseller\Security\PathGuard::language(_req('lang', 'english'), $root_path);
-        if ($selected_language === null) {
+        // lab UX-14 (owner delegation 2026-10-25): the portal ships Arabic and English only
+        if ($selected_language === null || !in_array($selected_language, ['arabic', 'english'], true)) {
             r2(getUrl('home'), 'e', Lang::T('Invalid language'));
         }
         $_SESSION['user_language'] = $selected_language;
         User::setAttribute("Language", $selected_language);
-        r2(getUrl('home'), 's', ucwords($selected_language));
+        r2(getUrl('home'), 's', \Reseller\Ui\Format::languageName($selected_language));
 
 
         break;

@@ -245,6 +245,13 @@ post-auth {
 	#      creates or releases one.
 	#    - An ACTIVE reservation (its session was proven by accounting) is taken over only after the A1 SNMP verification
 	#      of its NAS proves that session gone - the A1 lost-Stop semantics, never applied to PENDING.
+	#    - FRESH-SESSION HOLD (lab SEC-E2): an ACTIVE reservation whose session was confirmed by accounting less than
+	#      10 s ago is never taken over, whatever the SNMP verification says. RouterOS can send the Accounting-Start of a
+	#      new session before that session is visible over SNMP, so a second login arriving just after the first
+	#      login's Start was verified SAFE and admitted (two live sessions of one subscriber on the real CHR). The age
+	#      is a condition of the claim statement itself (database clock, confirmed_at = UTC_TIMESTAMP(6) of the first
+	#      Start or Interim-Update), so it holds at the serialization point; a reconnect inside the hold is refused (reject:active-fresh)
+	#      and its retry after the hold follows the A1 rule above.
 	#    - LATE-CLAIM GUARD: no claim and no Access-Accept when this request has been in FreeRADIUS longer than 5000 ms
 	#      (RouterOS 7.24.5 abandons an Access-Request about 9 s after its first transmission: 3 sends, 3 s apart, with
 	#      the A1 contract /radius timeout=3000ms). 5000 ms covers the A1 verification path (stock Simultaneous-Use
@@ -517,9 +524,10 @@ post-auth {
 			}
 		}
 		elsif ((&control:Tmp-String-0 == "ENDED") || (&control:Tmp-String-0 == "ACTIVE")) {
-			# ENDED: re-use the row; ACTIVE: reached only after the A1 verification proved its session gone (SAFE)
+			# ENDED: re-use the row; ACTIVE: reached only after the A1 verification proved its session gone (SAFE), and
+			# only once its session was confirmed at least 10 s ago (fresh-session hold, lab SEC-E2; a NULL never matches)
 			update request {
-				&Tmp-String-0 := "nuxr-admission-claim=%{sql:UPDATE nuxr_admission SET prev_token = token, prev_state = state, state = 'PENDING', token = '%{control:Tmp-String-5}', nas = '%{NAS-IP-Address}', acct_session_id = '%{Acct-Session-Id}', calling_station_id = '%{Calling-Station-Id}', nas_port_id = '%{NAS-Port-Id}', request_authenticator = '%{Tmp-String-7}', session_user = '%{SQL-User-Name}', attach_count = 0, created_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), confirmed_at = NULL, last_acct_at = NULL, ended_at = NULL, end_reason = NULL WHERE username = UNHEX('%{Tmp-String-2}') AND state = '%{control:Tmp-String-0}' AND token = '%{control:Tmp-String-1}'}"
+				&Tmp-String-0 := "nuxr-admission-claim=%{sql:UPDATE nuxr_admission SET prev_token = token, prev_state = state, state = 'PENDING', token = '%{control:Tmp-String-5}', nas = '%{NAS-IP-Address}', acct_session_id = '%{Acct-Session-Id}', calling_station_id = '%{Calling-Station-Id}', nas_port_id = '%{NAS-Port-Id}', request_authenticator = '%{Tmp-String-7}', session_user = '%{SQL-User-Name}', attach_count = 0, created_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), confirmed_at = NULL, last_acct_at = NULL, ended_at = NULL, end_reason = NULL WHERE username = UNHEX('%{Tmp-String-2}') AND state = '%{control:Tmp-String-0}' AND token = '%{control:Tmp-String-1}' AND (state <> 'ACTIVE' OR confirmed_at <= UTC_TIMESTAMP(6) - INTERVAL 10 SECOND)}"
 			}
 			update control {
 				&Tmp-String-9 := "created"
@@ -555,6 +563,12 @@ post-auth {
 			if (&Tmp-String-0 != "nuxr-admission-claim=1") {
 				update request {
 					&Tmp-String-0 := "nuxr-admission=reject:claim-lost"
+				}
+				# the same ACTIVE reservation is still there: the fresh-session hold refused the take-over
+				if ((&control:Tmp-String-0 == "ACTIVE") && (&Tmp-String-3 =~ /^r=ACTIVE\|%{control:Tmp-String-1}\|/)) {
+					update request {
+						&Tmp-String-0 := "nuxr-admission=reject:active-fresh"
+					}
 				}
 				attr_filter.access_reject
 				update reply {
@@ -666,6 +680,8 @@ post-auth {
 		#      locks alone bound the total - WP8 H-2B review M1), then ONE conditional UPDATE of the lowest ENDED slot
 		#      <= limit (ORDER BY slot LIMIT 1). The InnoDB row lock serialises concurrent claims from any NAS. No COUNT
 		#      subquery inside the UPDATE (it took shared locks on MySQL 8 and deadlocked 347 of 500 claims).
+		#    - Fresh-session hold (lab SEC-E2) on the Hotspot slots too: an ACTIVE slot confirmed less than 10 s ago is never
+		#      offered to the verifier nor released (RouterOS can report a new session over SNMP only after its Start).
 		#    - No free slot: the Hotspot slot verifier (mods-available/nuxr_hotspot_slot_verifier) checks the ACTIVE slots
 		#      of the subscriber - and ONLY ACTIVE ones - on their NAS over read-only SNMP (Hotspot active table, user AND
 		#      MAC). The first slot whose session is proven gone is ENDED (conditional on its token and state ACTIVE, audit
@@ -804,7 +820,7 @@ post-auth {
 			# claim once more. Candidates (at most 12, least recent accounting first): token/nas/calling_station_id.
 			if (&Tmp-String-9 != "hs-claim=1") {
 				update request {
-					&Tmp-String-1 := "%{sql:SELECT CONCAT('v=', COUNT(*), ';', COALESCE(GROUP_CONCAT(CONCAT(x.token, '/', x.nas, '/', x.calling_station_id) ORDER BY x.o, x.slot SEPARATOR ','), '')) FROM (SELECT token, nas, calling_station_id, slot, COALESCE(last_acct_at, created_at) AS o FROM nuxr_hs_admission WHERE username = UNHEX('%{Tmp-String-3}') AND state = 'ACTIVE' ORDER BY o, slot LIMIT 12) AS x}"
+					&Tmp-String-1 := "%{sql:SELECT CONCAT('v=', COUNT(*), ';', COALESCE(GROUP_CONCAT(CONCAT(x.token, '/', x.nas, '/', x.calling_station_id) ORDER BY x.o, x.slot SEPARATOR ','), '')) FROM (SELECT token, nas, calling_station_id, slot, COALESCE(last_acct_at, created_at) AS o FROM nuxr_hs_admission WHERE username = UNHEX('%{Tmp-String-3}') AND state = 'ACTIVE' AND confirmed_at <= UTC_TIMESTAMP(6) - INTERVAL 10 SECOND ORDER BY o, slot LIMIT 12) AS x}"
 				}
 				if (&Tmp-String-1 =~ /^v=([1-9][0-9]?);([0-9a-f]{32}\/[0-9]{1,3}(\.[0-9]{1,3}){3}\/[0-9A-Fa-f:.-]{1,32}(,[0-9a-f]{32}\/[0-9]{1,3}(\.[0-9]{1,3}){3}\/[0-9A-Fa-f:.-]{1,32}){0,11})$/) {
 					update request {
@@ -850,7 +866,7 @@ post-auth {
 							reject
 						}
 						update request {
-							&Tmp-String-8 := "hs-release=%{sql:UPDATE nuxr_hs_admission SET state = 'ENDED', ended_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), end_reason = 'verified_gone' WHERE username = UNHEX('%{Tmp-String-3}') AND token = '%{control:Tmp-String-8}' AND state = 'ACTIVE'}"
+							&Tmp-String-8 := "hs-release=%{sql:UPDATE nuxr_hs_admission SET state = 'ENDED', ended_at = UTC_TIMESTAMP(6), updated_at = UTC_TIMESTAMP(6), end_reason = 'verified_gone' WHERE username = UNHEX('%{Tmp-String-3}') AND token = '%{control:Tmp-String-8}' AND state = 'ACTIVE' AND confirmed_at <= UTC_TIMESTAMP(6) - INTERVAL 10 SECOND}"
 						}
 						if (&Tmp-String-8 != "hs-release=1") {
 							update request {

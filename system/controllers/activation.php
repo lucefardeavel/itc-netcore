@@ -44,6 +44,22 @@ switch ($action) {
         }
         $customerId = _post('customer_id');
         $planId = _post('plan_id');
+        $nuxrBack = 'activation/create&customer=' . (\Reseller\Security\DataScope::validId($customerId) ? (int) $customerId : 0)
+            . (\Reseller\Security\DataScope::validId($planId) ? '&plan=' . (int) $planId : '');
+        // lab UX-15 (owner delegation 2026-10-25): a plan change that replaces paid time is confirmed explicitly; the
+        // server computes the loss from its own quote (the form value is only the acknowledgement)
+        // expert review 2026-10-26: a replay of an existing request (same nonce) is answered by the idempotency path
+        $nuxrReplay = \Reseller\Activation\ActivationService::isReplay($nuxrActor, _post('nonce'));
+        if (!$nuxrReplay && _post('expected_action') === 'CHANGE_PLAN' && _post('ack_loss') !== '1') {
+            try {
+                $nuxrQ = \Reseller\Activation\ActivationPreviewService::quote($nuxrActor, $customerId, $planId, $nuxrPreviewKey);
+            } catch (\Reseller\Domain\DomainError $e) {
+                $nuxrFail($e, $nuxrBack);
+            }
+            if (($nuxrQ['action'] ?? '') === 'CHANGE_PLAN' && \Reseller\Ui\Format::lostDays($nuxrQ['current_expiry'] ?? null, (string) ($nuxrQ['start'] ?? '')) !== null) {
+                r2(getUrl($nuxrBack), 'e', Lang::T('Please confirm that the remaining paid time will be lost.'));
+            }
+        }
         try {
             $out = \Reseller\Activation\ActivationService::create($nuxrActor, $customerId, $planId, _post('expected_action'), _post('nonce'),
                 \Reseller\Activation\PreviewBinding::of(_post('preview'), $nuxrPreviewKey));
@@ -86,7 +102,13 @@ switch ($action) {
             $ui->assign('nuxr_error', Lang::T($e->getMessage()));
         }
         $ui->assign('_title', Lang::T('Activate / Renew'));
-        $ui->assign('nuxr_customer', $customer ? ['id' => (int) $customer['id'], 'username' => (string) $customer['username'], 'fullname' => (string) $customer['fullname']] : null);
+        $ui->assign('nuxr_customer', $customer ? ['id' => (int) $customer['id'], 'username' => (string) $customer['username'], 'fullname' => (string) $customer['fullname'],
+            'service_type' => (string) $customer['service_type']] : null);
+        // UX-3 (display only, never a refusal): the plan's type differs from the subscriber's recorded service type
+        // (e.g. a PPPoE plan for a Hotspot subscriber). Compared only when the service type is a known one.
+        $nuxrServiceType = $customer ? strtoupper(trim((string) $customer['service_type'])) : '';
+        $ui->assign('nuxr_service_mismatch', $preview !== null && in_array($nuxrServiceType, ['HOTSPOT', 'PPPOE', 'VPN'], true)
+            && strtoupper(trim((string) ($preview['plan_type'] ?? ''))) !== $nuxrServiceType);
         $ui->assign('nuxr_plan_cards', \Reseller\Ui\Subscriber::planCards($plans));
         $ui->assign('nuxr_plans', $plans);
         $ui->assign('nuxr_customer_id', \Reseller\Security\DataScope::validId($customerId) ? (int) $customerId : '');

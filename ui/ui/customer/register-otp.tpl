@@ -22,7 +22,7 @@
                             <div class="input-group">
                                 <span class="input-group-addon" id="basic-addon1"><i
                                         class="glyphicon glyphicon-phone-alt"></i></span>
-                                <input type="text" class="form-control" name="phone_number" value="{$phone_number}"
+                                <input type="text" class="form-control" name="phone_number" value="{$phone_number|escape}"
                                     readonly
                                     placeholder="{if $_c['country_code_phone']!= '' || $_c['registration_username'] == 'phone'}{$_c['country_code_phone']} {Lang::T('Phone Number')}{else}{Lang::T('Phone Number')}{/if}">
                             </div>
@@ -39,19 +39,19 @@
                             </div>
                         {/if}
                         <div class="form-group">
-                            <label>{Lang::T('Full Name')}</label>
+                            <label for="fullname">{Lang::T('Full Name')}</label>
                             <input type="text" {if $_c['man_fields_fname'] neq 'no'}required{/if} class="form-control"
-                                id="fullname" value="{$fullname}" name="fullname">
+                                id="fullname" value="{$fullname|escape}" name="fullname">
                         </div>
                         <div class="form-group">
-                            <label>{Lang::T('Email')}</label>
+                            <label for="email">{Lang::T('Email')}</label>
                             <input type="text" class="form-control" {if $_c['man_fields_email'] neq 'no'}required{/if}
-                                placeholder="xxxxxx@xxx.xx" id="email" value="{$email}" name="email">
+                                placeholder="xxxxxx@xxx.xx" id="email" value="{$email|escape}" name="email">
                         </div>
                         <div class="form-group">
-                            <label>{Lang::T('Home Address')}</label>
+                            <label for="address">{Lang::T('Home Address')}</label>
                             <input type="text" name="address" {if $_c['man_fields_address'] neq 'no'}required{/if}
-                                id="address" value="{$address}" class="form-control">
+                                id="address" value="{$address|escape}" class="form-control">
                         </div>
                         {$customFields}
                     </div>
@@ -71,11 +71,11 @@
                         </div>
                         <!-- Password Fields -->
                         <div class="form-group">
-                            <label>{Lang::T('Password')}</label>
+                            <label for="password">{Lang::T('Password')}</label>
                             <input type="password" required class="form-control" id="password" name="password">
                         </div>
                         <div class="form-group">
-                            <label>{Lang::T('Confirm Password')}</label>
+                            <label for="cpassword">{Lang::T('Confirm Password')}</label>
                             <input type="password" required class="form-control" id="cpassword" name="cpassword">
                         </div>
                         <div class="btn-group btn-group-justified mb15">

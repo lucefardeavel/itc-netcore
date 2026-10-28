@@ -415,7 +415,8 @@ function displayMaintenanceMessage(): void
         $ui->assign('date', $date);
     }
     http_response_code(503);
-    $ui->assign('companyName', $config['CompanyName']);
+    // brand: the operator name with the product fallback (Reseller\Ui\Brand), escaped by the template
+    $ui->assign('companyName', \Reseller\Ui\Brand::company($config));
     $ui->display('admin/maintenance.tpl');
     die();
 }

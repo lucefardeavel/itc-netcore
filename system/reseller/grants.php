@@ -23,7 +23,7 @@ if (PHP_SAPI !== 'cli') {
  *  - FreeRADIUS admission tables: SELECT; nuxr_admission UPDATE and nuxr_admission_audit INSERT for the audited
  *    operator recovery CLI;
  *  - every other (legacy PHPNuxBill / RADIUS policy) table: SELECT, INSERT, UPDATE, DELETE.
- * FreeRADIUS account (--radius): SELECT on the policy tables it reads, INSERT/UPDATE on radacct, the admission tables
+ * FreeRADIUS account (--radius): SELECT on the policy tables it reads, INSERT/UPDATE on radacct and nasreload, the admission tables
  * it maintains (no DELETE anywhere, no access to tbl_* billing tables).
  *
  * Exit: 0 printed; 5 usage.
@@ -82,7 +82,11 @@ function nuxr_grants(PDO $pdo, string $db, string $app, ?string $radius): string
     if ($radius !== null) {
         $out .= "-- FreeRADIUS runtime account {$radius} (policy read, accounting and admission writes; no billing tables)\n";
         $rad = ['radcheck' => 'SELECT', 'radreply' => 'SELECT', 'radusergroup' => 'SELECT', 'radgroupcheck' => 'SELECT', 'radgroupreply' => 'SELECT', 'nas' => 'SELECT',
-            'radacct' => 'SELECT, INSERT, UPDATE', 'nuxr_admission' => 'SELECT, INSERT, UPDATE',
+            'radacct' => 'SELECT, INSERT, UPDATE',
+            // lab finding B-L04: the stock simultaneous-use query joins nasreload and Accounting-On upserts it (FreeRADIUS's
+            // own setup.sql grants SELECT, INSERT, UPDATE); without it the stock Simultaneous-Use layer failed on every request
+            'nasreload' => 'SELECT, INSERT, UPDATE',
+            'nuxr_admission' => 'SELECT, INSERT, UPDATE',
             'nuxr_hs_admission' => 'SELECT, INSERT, UPDATE', 'nuxr_hs_admission_audit' => 'INSERT'];
         foreach ($rad as $t => $priv) {
             if (in_array($t, $tables, true)) {

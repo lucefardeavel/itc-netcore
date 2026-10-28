@@ -359,30 +359,75 @@ final class OptionGGateTest extends TestCase
 
     // ================================================================== Gate C: lost Stop, session gone
 
+    /** owner decision HOLD-C: the SEC-E2 fresh-session hold, measured from the reservation's confirmed_at (DB clock) */
+    private const HOLD_MS = 10000;
+
+    /**
+     * Gate C, revised by owner decision HOLD-C (2026-10-28). The approved Option G contract said "login allowed with no
+     * freshness wait"; the owner approved keeping the SEC-E2 bounded 10 s fresh-session hold (baseline 13/13 duplicate
+     * logins admitted inside the measured race window, the hold 0/14). The original assertion and its failures on the
+     * hold are kept as historical evidence (reports/CHR_FAILURE_RECONCILIATION.md, closure windows 2026-10-26/27).
+     * Verified here, in order: inside the hold every attempt - several, back to back - is refused with the observable
+     * reason reject:active-fresh; the attempts never move confirmed_at (the hold cannot be extended); the hold counts
+     * from the session's own Accounting-Start; after it the guard proves the lost session gone and the login is
+     * admitted, a bounded time after the Start (no indefinite lockout); the historical row stays byte-for-byte unchanged.
+     */
     public function testShippedGateCLostStopGoneSessionAllowedHistoryUnchanged(): void
     {
         $this->requireMode('shipped');
         $user = $this->pppoeUser('Og-c-1');
         $this->liveC1($user, 'Og-c-1');
+        $first = Wp8Lab::until(fn() => ($r = self::admissionReservation($user)) && $r['state'] === 'ACTIVE' && $r['confirmed_at'] !== null ? $r : null, 20, 0.05);
+        $this->assertNotNull($first, 'the first session confirmed its reservation (Accounting-Start)');
         $rule = $this->blockAccounting();
         Wp8Lab::agent('pppoe_down', ['client' => 'c1']);
-        $this->assertTrue((bool) Wp8Lab::until(fn() => Wp8Lab::pppActive($user) === [], 30, 1), 'RouterOS session gone');
-        sleep(5);
+        $this->assertTrue((bool) Wp8Lab::until(fn() => Wp8Lab::pppActive($user) === [], 30, 0.5), 'RouterOS session gone');
+        $gone = microtime(true);
+        // HOLD-C 1-2: back-to-back attempts while the reservation is younger than the hold (accounting still blocked, so
+        // the Stop RouterOS sends now is lost as before)
+        $fresh0 = count(Wp8Lab::frLog('nuxr-admission=reject:active-fresh', 5000));
+        $inside = [];
+        while (count($inside) < 3 && (int) self::admissionReservation($user)['age_ms'] < self::HOLD_MS - 3000) {
+            $age = (int) self::admissionReservation($user)['age_ms'];
+            $a = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Og-c-1', 'wait' => 2]);
+            $inside[] = ['age_ms_at_attempt' => $age, 'ok' => $a['ok']];
+        }
+        $freshRejects = count(Wp8Lab::frLog('nuxr-admission=reject:active-fresh', 5000)) - $fresh0;
+        $mid = self::admissionReservation($user);
+        // the Stop must stay lost: RouterOS gives up its accounting retries a few seconds after the disconnect
+        $rest = 5 - (microtime(true) - $gone);
+        if ($rest > 0) {
+            usleep((int) ($rest * 1e6));
+        }
         $this->unblock($rule);
         $before = $this->fullRows($user);
         $this->assertCount(1, $before);
         $this->assertNull($before[0]['acctstoptime'], 'Stop lost: row OPEN');
+        // HOLD-C 3-4: past the hold the lost session is verified on the NAS and the login is admitted
+        $ageAtRetry = self::waitReservationAge($user, self::HOLD_MS + 500);
+        $this->assertNotNull($ageAtRetry, 'the first login holds an admission reservation');
         Wp8Lab::agent('capture_start', ['name' => 'od16g-c']);
         $again = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Og-c-1']);
         $packets = array_values(array_filter(Wp8Lab::agent('capture_stop', ['name' => 'od16g-c'])['packets'], static fn($p) => str_starts_with($p['code'], 'Access')));
         $two = Wp8Lab::until(fn() => count($this->fullRows($user)) === 2, 20, 1);
         $after = $this->fullRows($user);
-        $r = ['relogin' => ['ok' => $again['ok'], 'ip' => $again['ip'] ?? null], 'latency_ms' => self::latency($packets), 'decision' => $this->decision($user),
-            'radacct' => $this->radacctView($user), 'old_row_unchanged' => $before[0] === ($after[0] ?? null)];
-        Wp8Lab::evidence('OD16G.gateC.lost-stop-gone', $r);
-        $this->assertTrue($again['ok'], 'login allowed: no reboot, no freshness wait, no delete, no fake Stop');
+        $final = self::admissionReservation($user);
+        $r = ['hold_ms' => self::HOLD_MS, 'first' => $first, 'inside_hold' => $inside, 'active_fresh_rejects' => $freshRejects, 'mid' => $mid,
+            'age_ms_at_retry' => $ageAtRetry, 'relogin' => ['ok' => $again['ok'], 'ip' => $again['ip'] ?? null], 'latency_ms' => self::latency($packets),
+            'decision' => $this->decision($user), 'final' => $final, 'radacct' => $this->radacctView($user), 'old_row_unchanged' => $before[0] === ($after[0] ?? null)];
+        Wp8Lab::evidence('OD16G.gateC.lost-stop-gone.hold-c', $r);
+        $this->assertNotEmpty($inside, 'discriminating: at least one attempt was made inside the hold');
+        foreach ($inside as $i => $a) {
+            $this->assertFalse($a['ok'], "inside the hold attempt {$i} (age {$a['age_ms_at_attempt']} ms) is refused");
+        }
+        $this->assertGreaterThanOrEqual(1, $freshRejects, 'the refusal reason is observable: nuxr-admission=reject:active-fresh');
+        $this->assertSame([$first['state'], $first['token'], $first['confirmed_at']], [$mid['state'], $mid['token'], $mid['confirmed_at']],
+            'repeated attempts neither take over nor extend the hold (confirmed_at unchanged)');
+        $this->assertTrue($again['ok'], 'after the hold: login allowed, no reboot, no delete, no fake Stop');
         $this->assertSame('Access-Accept', $r['decision']['reply']);
         $this->assertSame('SAFE', $r['decision']['guard_verdict'], 'the guard verified the NAS: user not live');
+        $this->assertLessThan(self::HOLD_MS + 20000, $ageAtRetry, 'bounded: the lost session blocks for the hold only, not indefinitely');
+        $this->assertNotSame($first['token'], $final['token'], 'the new session holds the reservation');
         $this->assertTrue($two, 'the stale historical row AND the new genuine row');
         $this->assertSame($before[0], $after[0], 'old row byte-for-byte unchanged');
         $this->assertNull($after[0]['acctstoptime']);
@@ -458,6 +503,125 @@ final class OptionGGateTest extends TestCase
     {
         $this->requireMode('shipped');
         $this->failureCase('gateH.missing-credentials', 'Og-h-1', fn() => $this->fault('no-creds') ?? 'credential entry of 10.88.0.2 removed', fn() => $this->fault('restore'), '10.88.0.2=ERROR:credentials');
+    }
+
+    // ================================================================== TD-1b: guard readiness (owner decision 2026-10-28)
+
+    /**
+     * TD-1b (conditional owner approval): fail closed stays, but a credential / SNMP fault that makes the guard refuse
+     * legitimate subscribers must be DETECTED and REPORTED by bin/nuxr_guard_selfcheck before subscribers find it, and
+     * recover without database edits. Each fault of the guard's own gate cases is applied and the readiness check must
+     * name it; after each restore it must be OK again. SNMP v2c gives no answer to a wrong community, so a wrong
+     * community and a filtered / unreachable SNMP both report ERROR:health (documented in the program).
+     */
+    public function testShippedGuardSelfcheckReportsEachVerificationFault(): void
+    {
+        $this->requireMode('shipped');
+        $out = ['healthy' => self::guardSelfcheck(['10.88.0.2'])];
+        $cases = [
+            'missing-credentials' => [fn() => $this->fault('no-creds'), fn() => $this->fault('restore'), 'ERROR:credentials'],
+            'invalid-credentials' => [fn() => $this->fault('bad-community'), fn() => $this->fault('restore'), 'ERROR:health'],
+            'snmp-unreachable' => [function () {
+                $this->rules[] = Wp8Lab::rosAdd('/ip/firewall/filter/add', '=chain=input', '=protocol=udp', '=dst-port=161', '=action=drop', '=comment=nuxr_wp8_drill');
+            }, function () {
+                foreach ($this->rules as $id) {
+                    Wp8Lab::ros('/ip/firewall/filter/remove', '=.id=' . $id);
+                }
+                $this->rules = [];
+            }, 'ERROR:health'],
+            'snmpbulkwalk-unavailable' => [fn() => $this->fault('walk-missing'), fn() => $this->fault('restore'), 'ERROR:snmpbulkwalk-missing'],
+            'snmpget-unavailable' => [fn() => $this->fault('get-missing'), fn() => $this->fault('restore'), 'ERROR:snmpget-missing'],
+        ];
+        foreach ($cases as $name => [$fault, $restore, $expect]) {
+            $fault();
+            try {
+                $bad = self::guardSelfcheck(['10.88.0.2']);
+            } finally {
+                $restore();
+            }
+            $out[$name] = ['expect' => $expect, 'fault' => $bad, 'after_restore' => self::guardSelfcheck(['10.88.0.2'])];
+        }
+        $out['all_nas_of_the_file'] = self::guardSelfcheck();
+        Wp8Lab::evidence('TD1b.selfcheck.faults', $out);
+        $this->assertSame(0, $out['healthy']['rc'], json_encode($out['healthy']));
+        $this->assertSame('OK', $out['healthy']['per_nas']['10.88.0.2'] ?? null);
+        foreach ($cases as $name => [, , $expect]) {
+            $f = $out[$name]['fault'];
+            $this->assertSame(2, $f['rc'], "{$name}: the readiness check fails");
+            $got = $f['per_nas']['10.88.0.2'] ?? $f['per_nas']['-'] ?? null;
+            $this->assertSame($expect, $got, "{$name}: the reason is named " . json_encode($f['lines']));
+            $this->assertSame(0, $out[$name]['after_restore']['rc'], "{$name}: OK again after the restore");
+        }
+        // the unfiltered run checks every NAS of the credential file: the lab CHR must be OK, and any other entry (the
+        // Option G fixture's fake second NAS 10.88.0.30 while its snmpd is not running) is reported and counted, never
+        // hidden - the summary line and the exit code agree with the per-NAS lines
+        $all = $out['all_nas_of_the_file'];
+        $this->assertSame('OK', $all['per_nas']['10.88.0.2'] ?? null, json_encode($all['lines']));
+        $this->assertSame([], array_diff(array_keys($all['per_nas']), ['10.88.0.2', '10.88.0.30']), 'only the lab NAS entries');
+        $this->assertContains($all['per_nas']['10.88.0.30'] ?? 'OK', ['OK', 'ERROR:health'], 'the fake second NAS: OK or unreachable');
+        $bad = count(array_filter($all['per_nas'], fn($s) => $s !== 'OK'));
+        $this->assertSame(sprintf('guard_selfcheck=%s nas=%d errors=%d', $bad ? 'ERROR' : 'OK', count($all['per_nas']), $bad), $all['summary']);
+        $this->assertSame($bad ? 2 : 0, $all['rc']);
+        // the program prints only the documented status lines - never a community (the agent redacts as well)
+        $results = [$out['healthy'], $out['all_nas_of_the_file']];
+        foreach (array_keys($cases) as $name) {
+            $results[] = $out[$name]['fault'];
+            $results[] = $out[$name]['after_restore'];
+        }
+        foreach ($results as $res) {
+            foreach ($res['lines'] as $l) {
+                $this->assertMatchesRegularExpression('/^(nas=[0-9.]+ status=(OK rows=\d+|ERROR:[a-z-]+) ms=\d+|nas=- status=ERROR:[a-z-]+( ms=\d+)?|guard_selfcheck=(OK|ERROR) nas=\d+ errors=\d+)$/', $l);
+            }
+        }
+    }
+
+    /**
+     * TD-1b end to end: a lost Stop while the guard's credential entry is missing. The legitimate re-login after the
+     * HOLD-C window is refused (fail closed, reason ERROR:credentials, nothing marked offline), the readiness check names
+     * the fault; restoring the credential file - and nothing else, no database edit - makes the same re-login succeed.
+     */
+    public function testShippedTd1bMissingCredentialsAreDetectedAndRecoverWithoutDatabaseEdits(): void
+    {
+        $this->requireMode('shipped');
+        $user = $this->pppoeUser('Og-t1b-1');
+        $this->liveC1($user, 'Og-t1b-1');
+        $rule = $this->blockAccounting();
+        Wp8Lab::agent('pppoe_down', ['client' => 'c1']);
+        $this->assertTrue((bool) Wp8Lab::until(fn() => Wp8Lab::pppActive($user) === [], 30, 0.5), 'RouterOS session gone');
+        sleep(5);
+        $this->unblock($rule);
+        $stale = $this->fullRows($user);
+        $this->assertCount(1, $stale);
+        $this->assertNull($stale[0]['acctstoptime'], 'Stop lost: row OPEN');
+        $this->fault('no-creds');
+        try {
+            $detect = self::guardSelfcheck(['10.88.0.2']);
+            $this->assertNotNull(self::waitReservationAge($user, self::HOLD_MS + 500), 'the first login holds an admission reservation');
+            $refused = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Og-t1b-1', 'wait' => 12]);
+            $refusedDecision = $this->decision($user);
+            $whileBroken = $this->fullRows($user);
+        } finally {
+            $this->fault('restore');
+        }
+        $recovered = self::guardSelfcheck(['10.88.0.2']);
+        $again = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Og-t1b-1']);
+        $okDecision = $this->decision($user);
+        $after = $this->fullRows($user);
+        $r = ['detect' => $detect, 'refused' => ['ok' => $refused['ok'], 'decision' => $refusedDecision], 'recovered' => $recovered,
+            'relogin' => ['ok' => $again['ok'], 'decision' => $okDecision], 'reservation' => self::admissionReservation($user), 'radacct' => $this->radacctView($user)];
+        Wp8Lab::evidence('TD1b.missing-credentials.recovery', $r);
+        $this->assertSame('ERROR:credentials', $detect['per_nas']['10.88.0.2'] ?? null, 'detected and reported');
+        $this->assertFalse($refused['ok'], 'fail closed while the guard cannot verify');
+        $this->assertSame('Access-Reject', $refusedDecision['reply']);
+        $this->assertSame('ERROR', $refusedDecision['guard_verdict']);
+        $this->assertStringContainsString('10.88.0.2=ERROR:credentials', (string) $refusedDecision['guard_detail']);
+        $this->assertSame($stale, $whileBroken, 'the unverified session is never reported offline: radacct untouched');
+        $this->assertSame('OK', $recovered['per_nas']['10.88.0.2'] ?? null, 'healthy again after restoring the credential file');
+        $this->assertTrue($again['ok'], 'the legitimate re-login succeeds once verification works');
+        $this->assertSame('Access-Accept', $okDecision['reply']);
+        $this->assertSame('SAFE', $okDecision['guard_verdict']);
+        $this->assertSame($stale[0], $after[0], 'recovery needed no database edit: the stale row is byte-for-byte unchanged');
+        $this->assertCount(2, $after, 'history kept: the stale row + the new session');
     }
 
     public function testShippedGateHUnknownNasAndMalformedInput(): void

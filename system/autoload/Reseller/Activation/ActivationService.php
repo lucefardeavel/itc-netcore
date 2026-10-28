@@ -89,6 +89,18 @@ final class ActivationService
      *
      * @return array{action:string,start:string,expiry:string,plan:string,customer:string}
      */
+    /**
+     * True when this staff actor already submitted this nonce (expert review 2026-10-26): the controller then leaves the
+     * answer to the idempotency path of create() instead of re-checking form fields. Read only.
+     */
+    public static function isReplay(ActorContext $a, mixed $nonce): bool
+    {
+        if (!is_string($nonce) || !preg_match(self::NONCE, $nonce)) {
+            return false;
+        }
+        return ActivationStore::byKey(FinanceTx::pdo(), 'staff:' . (int) $a->userId . ':' . $nonce) !== null;
+    }
+
     public static function preview(ActorContext $a, mixed $customerId, mixed $planId): array
     {
         self::assertEligible($a);
@@ -346,7 +358,7 @@ final class ActivationService
         }
     }
 
-    /** @return bool false when provisioning could not start (the prior RADIUS state could not be captured) */
+    /** @return bool false when provisioning could not start (the customer is not Active, or the prior RADIUS state could not be captured) */
     private static function provisionStep(array $row, ActivationActor $actor): bool
     {
         $id = (int) $row['id'];
@@ -354,6 +366,22 @@ final class ActivationService
         if ($row['status'] === ActivationState::RETRY_PENDING && $attempts > self::PROVISION_RETRIES) {
             self::fail($id, [ActivationState::RETRY_PENDING], $actor, 'PROVISION_RETRIES_EXHAUSTED', 'The RADIUS change could not be applied.', 'STATE_TRANSITION', null);
             return true;
+        }
+        // lab F6-3: an activation accepted while the customer was Active is not provisioned once the customer is no longer
+        // Active (operator resume, or the replay of the same request, after a suspension). Nothing changes: the funds stay
+        // reserved for the operator to cancel (reconcile.php cancel) or to resume after the customer is reactivated.
+        $customerStatus = Tx::row(FinanceTx::pdo(), 'SELECT status FROM tbl_customers WHERE id = ?', [(int) $row['customer_id']])['status'] ?? null;
+        if ($customerStatus !== 'Active') {
+            $status = (string) $row['status'];
+            // expert review 2026-10-26: noted once; a repeated resume / replay changes nothing (no updated_at bump, so the
+            // stale-only web Cancel stays available for the reserved funds)
+            if ((string) ($row['error_code'] ?? '') === 'CUSTOMER_INACTIVE') {
+                return false;
+            }
+            self::tx(static fn(\PDO $pdo) => ActivationStore::note($pdo, $id, $status, $actor,
+                ['event_type' => 'ANNOTATION', 'error_code' => 'CUSTOMER_INACTIVE', 'error_message' => 'The customer is not Active; provisioning did not start.'],
+                ['error_code' => 'CUSTOMER_INACTIVE', 'error_message' => 'The customer is not Active; provisioning did not start. Cancel, or resume after reactivation.']));
+            return false;
         }
         // the prior and target RADIUS states are captured BEFORE any write, durably (owner fix round 1)
         $capture = self::capture($row);
@@ -775,11 +803,15 @@ final class ActivationService
      * Ends the sessions that may still run the previous policy so the new one applies (UNKNOWN never undoes provisioning
      * or finance). Called after the provisioning is verified: every session that started before NOW (not only before the
      * period start) authenticated under the previous policy - a re-login between the activation's start and the RADIUS
-     * commit is ended too.
+     * commit is ended too. "Before NOW" is judged on the NAS's own Accounting start stamp, so the cut-off carries the NAS
+     * clock allowance of the period attribution (QuotaPolicy::PERIOD_SKEW_SECONDS, NTP contract H8): lab finding on a
+     * RouterOS CHR whose clock ran ~1 s ahead, where a session that had just reconnected escaped the Disconnect while the
+     * end was recorded as confirmed. Cost: a session that started within the allowance after the commit (already under the
+     * new policy) is ended too and redials.
      */
     private static function endSessions(int $id, string $username, ActivationActor $actor): void
     {
-        $outcome = self::endPeriodSessions($username, max(self::periodStartEpoch(FinanceTx::pdo(), $id), time()));
+        $outcome = self::endPeriodSessions($username, max(self::periodStartEpoch(FinanceTx::pdo(), $id), time()) + \Reseller\Radius\QuotaPolicy::PERIOD_SKEW_SECONDS);
         self::tx(static function (\PDO $pdo) use ($id, $actor, $outcome): void {
             ActivationStore::lock($pdo, $id);
             ActivationStore::event($pdo, $id, ActivationState::VERIFIED, ActivationState::VERIFIED, $actor, ['event_type' => 'ANNOTATION', 'metadata' => $outcome]);

@@ -34,10 +34,12 @@ switch ($do) {
             $d = ORM::for_table('tbl_customers')->where('username', $username)->find_one();
             if ($d) {
                 $d_pass = $d['password'];
-                if ($d['status'] == 'Banned') {
-                    _alert(Lang::T('This account status') . ' : ' . Lang::T($d['status']), 'danger', "");
-                }
                 if (Password::_uverify($password, $d_pass) == true) {
+                    // Lab finding D-5: the Banned status is told only after the password is verified (a wrong password
+                    // answers like for any other account, so the status of a known username is not disclosed)
+                    if ($d['status'] == 'Banned') {
+                        _alert(Lang::T('This account status') . ' : ' . Lang::T($d['status']), 'danger', "");
+                    }
                     // WP2: fresh session id and CSRF token on login (session fixation)
                     if (!$isApi && session_status() === PHP_SESSION_ACTIVE) {
                         session_regenerate_id(true);
