@@ -252,5 +252,7 @@ body.nuxr-portal .main-footer { background: var(--nx-surface); color: var(--nx-m
 body.nuxr-portal :is(.main-footer, .itc-powered) a { text-decoration: underline; }
 body.nuxr-portal .site-logo { text-transform: none !important; text-shadow: none !important; color: var(--nx-text); }
 body.nuxr-portal .site-logo .nc-mark { width: 40px; height: 40px; vertical-align: middle; margin-inline-end: 8px; }
-body.nuxr-portal .main-header .logo .logo-lg .nc-mark { width: 28px; height: 28px; vertical-align: middle; margin-inline-end: 8px; }
+/* product mode: the mark sits inline before the name inside the 50px logo bar (img.nc-mark is display:block above, which
+   stacked the name under the navbar), as the staff shell shows mark + name on one line */
+body.nuxr-portal .main-header .logo .logo-lg .nc-mark { display: inline-block; width: 28px; height: 28px; vertical-align: middle; margin-inline-end: 8px; }
 body.nuxr-portal .itc-powered, body.nuxr-portal .itc-powered :is(a, bdi) { color: var(--nx-muted) !important; }

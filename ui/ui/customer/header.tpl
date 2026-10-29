@@ -20,7 +20,7 @@
     <script src="{$app_url}/ui/ui/scripts/sweetalert2.all.min.js"></script>
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/phpnuxbill.customer.css?2025.2.4" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-customer-a11y.css?v3" />
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.1" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.2" />
     {if $nuxr_dir eq 'rtl'}
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?lab.4" />
     {/if}
@@ -153,7 +153,7 @@
                         <li {if $_system_menu eq 'voucher'}class="active" {/if}>
                             <a href="{Text::url('voucher/activation')}">
                                 <i class="fa fa-ticket"></i>
-                                <span>Voucher</span>
+                                <span>{Lang::T('Voucher')}</span>
                             </a>
                         </li>
                     {/if}

@@ -78,6 +78,56 @@ final class ArabicCatalogueTest extends TestCase
         }
     }
 
+    /** @return array<string,mixed> */
+    private static function catalog(): array
+    {
+        return json_decode((string) file_get_contents(self::root() . '/system/lan/arabic.json'), true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    private static function arabic(array $catalog, string $s): ?string
+    {
+        $s = (string) preg_replace('/\s+/', ' ', $s);
+        return $catalog[$s] ?? $catalog[(string) preg_replace('/[^A-Za-z0-9]/', '_', $s)] ?? null;
+    }
+
+    public function testEveryDomainRefusalHasAnArabicEntry(): void
+    {
+        // UI polish 2026-10-29: DomainError messages reach the screen through Lang::T($e->getMessage()), which the literal scan
+        // above cannot see (e.g. CUSTOMER_IDENTITY_TAKEN and the static IP refusals of R-HF-CARRY-01 were shown in English)
+        $src = (string) file_get_contents(self::root() . '/system/autoload/Reseller/Domain/DomainError.php');
+        $this->assertSame(1, preg_match('/MESSAGES = \[(.*?)\n    \];/s', $src, $block));
+        preg_match_all("/^\s*'([A-Z_]+)' => '((?:[^'\\\\]|\\\\.)*)',/m", $block[1], $m, PREG_SET_ORDER);
+        $this->assertGreaterThan(80, count($m), 'the scan finds the refusal messages');
+        $catalog = self::catalog();
+        $missing = [];
+        foreach ($m as [, $code, $msg]) {
+            if (self::arabic($catalog, stripslashes($msg)) === null) {
+                $missing[] = "{$code}: {$msg}";
+            }
+        }
+        $this->assertSame([], $missing, 'DomainError messages without an Arabic entry');
+    }
+
+    public function testTheEntriesOfOneStaffMenuHaveDistinctArabicLabels(): void
+    {
+        // UI polish 2026-10-29: "Refill Customer" (voucher redemption) and "Recharge Customer" (package activation) shared one
+        // Arabic label, as did "Vouchers" and "Coupons"
+        $src = (string) file_get_contents(self::root() . '/system/autoload/Reseller/Ui/Navigation.php');
+        preg_match_all("/self::group\\('(\\w+)',(.*?), (?:'[A-Z_]+'|null), (?:'[A-Z_]+'|null)\\);/s", $src, $groups, PREG_SET_ORDER);
+        $this->assertGreaterThanOrEqual(10, count($groups), 'the scan finds the menu groups');
+        $catalog = self::catalog();
+        foreach ($groups as [, $id, $body]) {
+            preg_match_all("/\\[\\s*'[^']+'\\s*,\\s*'([^']+)'\\s*,\\s*'fa-/", $body, $items);
+            $labels = [];
+            foreach ($items[1] as $en) {
+                $labels[$en] = self::arabic($catalog, $en) ?? $en;
+            }
+            $this->assertSame(array_values($labels), array_values(array_unique($labels)), "menu group {$id}: one Arabic label per entry");
+        }
+        $this->assertNotSame(self::arabic($catalog, 'Refill Customer'), self::arabic($catalog, 'Recharge Customer'));
+        $this->assertNotSame(self::arabic($catalog, 'Vouchers'), self::arabic($catalog, 'Coupons'));
+    }
+
     public function testActivationNoticesShowTheTranslatedState(): void
     {
         $src = (string) file_get_contents(self::root() . '/system/controllers/activation.php');

@@ -9,7 +9,7 @@
         <div class="btn-group btn-group-justified" role="group">
             <div class="btn-group" role="group">
                 {if $nuxr_can.add}<a href="{Text::url('')}plan/add-voucher" class="btn btn-primary"><i class="ion ion-android-add"></i>
-                    {Lang::T('Vouchers')}</a>{/if}
+                    {Lang::T('Add Vouchers')}</a>{/if}
             </div>
             <div class="btn-group" role="group">
                 {if $nuxr_can.print}<a href="{Text::url('')}plan/print-voucher" target="print_voucher" class="btn btn-info"><i

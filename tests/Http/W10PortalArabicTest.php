@@ -39,6 +39,35 @@ final class W10PortalArabicTest extends Wp2HttpTestCase
         $this->assertDoesNotMatchRegularExpression('#<b>\s*دفع مسبق\s*</b>\s*Personal\b#u', $body, 'the plan type is translated, not printed raw');
     }
 
+    public function testAStoredDefaultPlanTitleIsTranslatedAndACustomTitleIsKept(): void
+    {
+        // UI polish 2026-10-29: the localisation form pre-fills "Radius Plan" (and the other defaults) into its inputs, so any
+        // save of that form stores the English default and the Arabic portal printed it raw. A stored value equal to the
+        // default is the untranslated default; an operator's own title is shown as configured.
+        static::$db->insertRow('tbl_user_recharges', [
+            'customer_id' => $this->cid('cNULL2'), 'username' => 'cNULL2', 'plan_id' => static::$seed->planId, 'namebp' => 'wp2_plan',
+            'recharged_on' => gmdate('Y-m-d'), 'recharged_time' => '00:00:00', 'expiration' => gmdate('Y-m-d', time() + 86400 * 10),
+            'time' => '23:59:59', 'status' => 'on', 'method' => 'Admin - lab', 'routers' => 'radius', 'type' => 'Hotspot', 'admin_id' => $this->sid('ad'),
+        ]);
+        $c = $this->customer('cNULL2');
+        $this->assertSame(302, $c->postWithToken('accounts/language-update-post', [], ['lang' => 'arabic'], 'home')->status);
+        try {
+            static::$db->exec("DELETE FROM tbl_appconfig WHERE setting = 'radius_plan'");
+            static::$db->insertRow('tbl_appconfig', ['setting' => 'radius_plan', 'value' => 'Radius Plan']);
+            $home = $c->get('home');
+            $this->assertSame(200, $home->status, $home->excerpt());
+            $this->assertStringContainsString('خطة Radius', $home->body, 'the stored English default is translated');
+            $this->assertStringNotContainsString('Radius Plan', $home->body);
+
+            static::$db->exec("UPDATE tbl_appconfig SET value = 'Fibre W10' WHERE setting = 'radius_plan'");
+            $home = $c->get('home');
+            $this->assertSame(200, $home->status, $home->excerpt());
+            $this->assertStringContainsString('Fibre W10', $home->body, "the operator's own title is kept");
+        } finally {
+            static::$db->exec("DELETE FROM tbl_appconfig WHERE setting = 'radius_plan'");
+        }
+    }
+
     public function testCustomerLanguageMenuOffersArabicAndEnglishByNativeName(): void
     {
         $menu = $this->customer('cNULL2')->get('autoload_user/language', ['select' => 'arabic']);
