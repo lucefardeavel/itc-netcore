@@ -827,7 +827,7 @@ switch ($action) {
                     'username' => $username, 'password' => $password, 'pppoe_username' => $pppoe_username, 'pppoe_password' => $pppoe_password, 'pppoe_ip' => $pppoe_ip,
                 ]);
             } catch (\Reseller\Domain\DomainError $e) {
-                r2(getUrl('customers/edit/') . (int) $id, 'e', $e->getMessage());
+                r2(getUrl('customers/edit/') . (int) $id, 'e', Lang::T($e->getMessage()));
             }
             $c = ORM::for_table('tbl_customers')->find_one($id);
         }

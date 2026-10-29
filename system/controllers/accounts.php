@@ -41,7 +41,7 @@ switch ($action) {
             try {
                 \Reseller\Domain\LegacyReprovisionService::run(\Reseller\Security\ActorContext::current(), (int) $user['id'], \Reseller\Domain\LegacyReprovisionService::PASSWORD_CHANGE, ['password' => (string) _post('npass')]);
             } catch (\Reseller\Domain\DomainError $e) {
-                r2(getUrl('accounts/change-password'), 'e', $e->getMessage());
+                r2(getUrl('accounts/change-password'), 'e', Lang::T($e->getMessage()));
             }
             User::removeCookie();
             session_destroy();

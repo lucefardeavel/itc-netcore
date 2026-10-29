@@ -108,6 +108,34 @@ final class ArabicCatalogueTest extends TestCase
         $this->assertSame([], $missing, 'DomainError messages without an Arabic entry');
     }
 
+    public function testEveryLiteralRefusalDetailHasAnArabicEntry(): void
+    {
+        // Round 3 (2026-10-29): a literal detail passed as new DomainError('CODE', '...') replaces the standard message and
+        // reaches the screen the same way (Lang::T($e->getMessage())); the scan above sees only DomainError::MESSAGES
+        $root = self::root();
+        $details = [];
+        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root . '/system', \FilesystemIterator::SKIP_DOTS));
+        foreach ($it as $f) {
+            $p = $f->getPathname();
+            if (!str_ends_with($p, '.php') || preg_match('#/system/(vendor|plugin|paymentgateway)/#', $p)) {
+                continue;
+            }
+            preg_match_all("/new\\s+(?:\\\\?Reseller\\\\Domain\\\\)?DomainError\\(\\s*'[A-Z_0-9]+'\\s*,\\s*'((?:[^'\\\\]|\\\\.)*)'\\s*\\)/", (string) file_get_contents($p), $m);
+            foreach ($m[1] as $s) {
+                $details[stripslashes($s)] ??= substr($p, strlen($root) + 1);
+            }
+        }
+        $this->assertGreaterThan(30, count($details), 'the scan finds the literal refusal details');
+        $catalog = self::catalog();
+        $missing = [];
+        foreach ($details as $s => $file) {
+            if (self::arabic($catalog, $s) === null) {
+                $missing[] = "{$file}: {$s}";
+            }
+        }
+        $this->assertSame([], $missing, 'literal DomainError details without an Arabic entry');
+    }
+
     public function testTheEntriesOfOneStaffMenuHaveDistinctArabicLabels(): void
     {
         // UI polish 2026-10-29: "Refill Customer" (voucher redemption) and "Recharge Customer" (package activation) shared one

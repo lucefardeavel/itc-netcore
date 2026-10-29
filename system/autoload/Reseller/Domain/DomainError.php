@@ -41,7 +41,7 @@ final class DomainError extends \RuntimeException
         // R-HF-CARRY-01 F-1 / F-2: the one refusal a tree-scoped actor gets for any identity collision of a customer create
         'CUSTOMER_IDENTITY_TAKEN' => 'This username, PPPoE username or static IP address is already in use.',
         // R-HF-CARRY-01 F-2: the static (PPPoE) IP of a customer (never names the customer that holds it)
-        'STATIC_IP_INVALID' => 'The static IP must be a valid IPv4 address (leave it empty for none).',
+        'STATIC_IP_INVALID' => 'The static IP must be a usable IPv4 host address (not 0.x, loopback, link-local, multicast, reserved or broadcast); leave it empty for none.',
         'STATIC_IP_TAKEN' => 'This static IP address is already assigned to another customer.',
         'IDENTITY_CHECK_UNAVAILABLE' => 'The username could not be checked right now; nothing was changed. Please try again.',
         'IDENTITY_AMBIGUOUS' => 'This RADIUS identity belongs to more than one subscriber; nothing was changed. An operator must resolve the duplicate first.',
