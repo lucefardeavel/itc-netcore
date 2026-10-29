@@ -8,6 +8,7 @@ use Reseller\Audit\AuditLog;
 use Reseller\Security\ActorContext;
 use Reseller\Security\Capability;
 use Reseller\Security\DataScope;
+use Reseller\Security\ErrorReporter;
 use Reseller\Security\PermissionService;
 
 /**
@@ -56,7 +57,7 @@ final class CustomerService
         // WP9 U0 (P1, AM-W9-1): tree lock (L-1) -> identity lock (L-3) -> BEGIN; the same tree-lock semantics as
         // Tx::withTreeLock (same lock, taken before the transaction); the identity check runs inside the transaction
         // that inserts, which commits before the identity lock is released
-        return TreeSerialization::hold(static fn(): int => CustomerIdentity::hold(static fn(): int => Tx::run(function (\PDO $pdo) use ($a, $in, $customFields, $manager, $sales): int {
+        return TreeSerialization::hold(static fn(): int => CustomerIdentity::hold(static fn(): int => Tx::run(function (\PDO $pdo) use ($a, $in, $customFields, $manager, $sales, $scope): int {
             ResellerTreeService::revalidateActor($pdo, $a);
             if ($manager !== null) {
                 self::assertOwner($pdo, $manager);
@@ -64,11 +65,6 @@ final class CustomerService
             if ($sales !== null) {
                 self::assertSalesOf($pdo, $sales, (int) $manager);
             }
-            if (Tx::row($pdo, 'SELECT id FROM tbl_customers WHERE username = ? FOR UPDATE', [$in['username']]) !== null) {
-                throw new DomainError('USERNAME_TAKEN', 'Account already exists');
-            }
-            // I-1 (cross-field, canonical, customers + live voucher identities + RADIUS keys)
-            CustomerIdentity::assertAvailable($pdo, array_values(array_filter([(string) $in['username'], (string) ($in['pppoe_username'] ?? '')], static fn(string $n): bool => trim($n) !== '')));
             Tx::exec(
                 $pdo,
                 'INSERT INTO tbl_customers (username, password, pppoe_username, pppoe_password, pppoe_ip, email, account_type, fullname, address, created_by, phonenumber, service_type, coordinates, city, district, state, zip, manager_id, assigned_sales_id) '
@@ -92,6 +88,23 @@ final class CustomerService
                 'target_snapshot' => ['id' => $id, 'username' => $in['username']],
                 'after' => ['manager_id' => $manager, 'assigned_sales_id' => $sales],
             ], $pdo);
+            // R-HF-CARRY-01 F-1: the uniqueness checks run LAST, after every other step of this create (validation, owner
+            // and Sales checks, the row, its custom fields, its audit event; a refusal rolls all of it back), so a refusal
+            // can only answer a request that would otherwise have created a real customer. Tree-scoped actors get ONE
+            // generic refusal whichever identity collides (no known-taken name can be combined with a probe name).
+            try {
+                if (Tx::row($pdo, 'SELECT id FROM tbl_customers WHERE username = ? AND id <> ? FOR UPDATE', [$in['username'], $id]) !== null) {
+                    throw new DomainError('USERNAME_TAKEN', 'Account already exists');
+                }
+                // I-1 (cross-field, canonical, customers + live voucher identities + RADIUS keys; the new row excluded)
+                CustomerIdentity::assertAvailable($pdo, array_values(array_filter([(string) $in['username'], (string) ($in['pppoe_username'] ?? '')], static fn(string $n): bool => trim($n) !== '')), $id);
+            } catch (DomainError $e) {
+                if ($scope === 'G' || !in_array($e->reason, ['USERNAME_TAKEN', 'IDENTITY_TAKEN'], true)) {
+                    throw $e;
+                }
+                ErrorReporter::log('customer.create_identity_refused', 'actor=' . (int) $a->userId . ' scope=' . $scope);
+                throw new DomainError('CUSTOMER_IDENTITY_TAKEN');
+            }
             return $id;
         })));
     }

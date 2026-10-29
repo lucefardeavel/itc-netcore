@@ -629,9 +629,14 @@ switch ($action) {
             $msg .= 'Password should be between 3 to 35 characters' . '<br>';
         }
 
-        $d = ORM::for_table('tbl_customers')->where('username', $username)->find_one();
-        if ($d) {
-            $msg .= Lang::T('Account already exists') . '<br>';
+        // R-HF-CARRY-01 F-1: this early, unscoped existence check answers global staff only. For tree-scoped staff (Agent,
+        // Sales; web and API) uniqueness is decided by CustomerService::create after every other check of the request, with
+        // one generic refusal, so a refused add never tells them whether a username exists outside their scope
+        if (\Reseller\Security\PermissionService::scopeOf($nuxrActor, \Reseller\Security\Capability::CUSTOMER_CREATE) === 'G') {
+            $d = ORM::for_table('tbl_customers')->where('username', $username)->find_one();
+            if ($d) {
+                $msg .= Lang::T('Account already exists') . '<br>';
+            }
         }
         if ($msg == '') {
             // WP2 / SEC-06: ownership resolved server-side by role (CustomerService); posted

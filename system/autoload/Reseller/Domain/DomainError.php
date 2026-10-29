@@ -38,6 +38,8 @@ final class DomainError extends \RuntimeException
         'USERNAME_TAKEN' => 'The username is already used.',
         // WP9 U0: the shared identity check (generic: never says which identity holds the name)
         'IDENTITY_TAKEN' => 'This username or PPPoE username is already in use.',
+        // R-HF-CARRY-01 F-1: the one refusal a tree-scoped actor gets for any identity collision of a customer create
+        'CUSTOMER_IDENTITY_TAKEN' => 'This username or PPPoE username is already in use.',
         'IDENTITY_CHECK_UNAVAILABLE' => 'The username could not be checked right now; nothing was changed. Please try again.',
         'IDENTITY_AMBIGUOUS' => 'This RADIUS identity belongs to more than one subscriber; nothing was changed. An operator must resolve the duplicate first.',
         'INVALID_INPUT' => 'Invalid input.',
