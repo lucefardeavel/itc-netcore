@@ -158,6 +158,14 @@ def state():
     return st
 
 
+def drop_creds():
+    """The guard credential file goes (container copy and the persistent lab copy start.sh reinstalls from)."""
+    cg.sh(['docker', 'exec', FR, 'rm', '-f', f'{R}/nuxr/nas_snmp'], check=False)
+    f = os.path.join(SECRETS, 'nas_snmp')
+    if os.path.exists(f):
+        os.remove(f)
+
+
 def off():
     nasb('down')
     cg.sh(['docker', 'exec', FR, 'sh', '-c', f'rm -f {R}/wp8-option-g {R}/nuxr/nas_snmp; chmod 755 /usr/bin/snmpget /usr/bin/snmpbulkwalk 2>/dev/null; true'])

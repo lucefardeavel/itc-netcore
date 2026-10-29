@@ -105,6 +105,22 @@ PHP);
         $this->assertUnchanged($before, 'nothing written');
     }
 
+    /** release audit 2026-10-28: a reviewed adjustment (op=credit) replayed to the funding route is never a withdrawal */
+    public function testAnAdjustmentReviewIsNotExecutableAsAProviderFunding(): void
+    {
+        $ad = $this->staff('ad');
+        $f = self::hidden($this->review($ad, 'finance/adjust-review', ['manager_id' => (string) $this->sid('A'), 'op' => 'credit', 'amount' => '7', 'reason' => 'cross-route probe']));
+        $this->assertSame('credit', $f['op'] ?? null, 'an adjustment review was produced');
+        $before = $this->snapshot();
+        $r = $ad->postWithToken('finance/funding-post', $f);
+        $this->assertStringNotContainsString('PROVIDER_WITHDRAWAL', $r->body);
+        $this->assertUnchanged($before, 'nothing written for an adjustment token on the funding route');
+        // and the other direction: a reviewed funding posted to the adjustment route
+        $g = self::hidden($this->review($ad, 'finance/funding-review', ['manager_id' => (string) $this->sid('A'), 'op' => 'fund', 'amount' => '7', 'reason' => 'cross-route probe']));
+        $ad->postWithToken('finance/adjust-post', $g);
+        $this->assertUnchanged($before, 'nothing written for a funding token on the adjustment route');
+    }
+
     public function testWithdrawalNeedsTheTypedUsername(): void
     {
         $a = $this->sid('A');

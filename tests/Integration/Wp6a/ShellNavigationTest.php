@@ -96,15 +96,15 @@ final class ShellNavigationTest extends Wp2HttpTestCase
         $this->assertStringContainsString('class="nuxr-skip" href="#nuxr-main"', $en);
         $this->assertStringContainsString('id="nuxr-main"', $en);
         $this->assertStringNotContainsString('maximum-scale', $en, 'zoom is never disabled');
-        foreach (['fonts.googleapis.com', 'code.jquery.com', '7.css', 'chart.js', 'summernote.min.js', 'unpkg.com', 'google.com/vt'] as $asset) {
+        foreach (['fonts.googleapis.com', 'code.jquery.com', '7.css', 'chart.js', 'scripts/vendor/chart-', 'summernote.min.js', 'unpkg.com', 'google.com/vt'] as $asset) {
             $this->assertStringNotContainsStringIgnoringCase($asset, $en, "no global {$asset}");
         }
         $c->cookies['user_language'] = 'arabic';
         $ar = $c->get('customers/list')->body;
         $this->assertMatchesRegularExpression('/<html lang="ar" dir="rtl">/', $ar);
         $this->assertStringContainsString('nuxr-rtl-legacy.css', $ar);
-        $this->assertStringNotContainsString('chart.min.js', $this->staff('ad')->get('dashboard')->body, 'no chart bundle on the landing page');
-        $this->assertStringContainsString('chart.min.js', $this->staff('ad')->get('dashboard', ['widgets' => 1])->body, 'Chart.js only where charts are drawn');
+        $this->assertStringNotContainsString('scripts/vendor/chart-', $this->staff('ad')->get('dashboard')->body, 'no chart bundle on the landing page');
+        $this->assertStringContainsString('scripts/vendor/chart-', $this->staff('ad')->get('dashboard', ['widgets' => 1])->body, 'Chart.js only where charts are drawn');
     }
 
     public function testMissingTranslationsNeverLeaveTheServer(): void

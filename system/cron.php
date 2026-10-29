@@ -78,6 +78,18 @@ foreach ($d as $ds) {
                 echo " : RENEWED meanwhile, not expired\r\n";
                 continue;
             }
+            // R-4 (release audit 2026-10-28): an activation that has provisioned a new period and waits for its settlement
+            // or the operator (VERIFIED, RECONCILIATION_REQUIRED, ...) still shows the old period in this row until it
+            // completes; expiring now would suspend a service about to be settled as paid. Only the row that activation
+            // writes is held (LegacyBridge::currentRecharge: routers 'radius', the type of its new or previous plan); other
+            // services of the customer expire as usual. Retried at the next run.
+            if ($nuxrCid > 0 && $u['routers'] === \Reseller\Activation\LegacyBridge::ROUTERS) {
+                $nuxrOpen = \Reseller\Activation\ActivationStore::provisionedUnsettled(ORM::get_db(), $nuxrCid, (string) $u['type']);
+                if ($nuxrOpen !== null) {
+                    echo " : SKIPPED (activation " . $nuxrOpen . " in progress, retried at the next run)\r\n";
+                    continue;
+                }
+            }
             echo " : EXPIRED \r\n";
 
             // Fetch customer details

@@ -22,9 +22,9 @@
                             <input type="text" class="form-control" id="code" name="code" value="{$code|escape:'html'}"
                                 placeholder="{Lang::T('Enter voucher code here')}">
                             <span class="input-group-btn">
-                                <a class="btn btn-default"
+                                <a class="btn btn-default" aria-label="{Lang::T('Scan QR code')}" title="{Lang::T('Scan QR code')}"
                                     href="{$app_url|escape:'html'}/scan/?back={urlencode(Text::url('voucher/activation&code='))}"><i
-                                        class="glyphicon glyphicon-qrcode"></i></a>
+                                        class="glyphicon glyphicon-qrcode" aria-hidden="true"></i></a>
                             </span>
                         </div>
                     </div>

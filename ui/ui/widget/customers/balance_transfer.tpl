@@ -1,5 +1,7 @@
 
-{if $_c['enable_balance'] == 'yes' && $_c['allow_balance_transfer'] == 'yes'}
+{* lab UX-2: a reseller-managed customer ($nuxr_owned from User::_info) is refused a balance transfer (OD-11, home.php);
+   the form is not offered, the server refusal is unchanged *}
+{if $_c['enable_balance'] == 'yes' && $_c['allow_balance_transfer'] == 'yes' && !$nuxr_owned}
     <div class="box box-primary box-solid mb30">
         <div class="box-header">
             <h4 class="box-title">{Lang::T("Transfer Balance")}</h4>
@@ -18,8 +20,9 @@
                     </div>
                     <div class="form-group col-sm-2" align="center">
                         <button class="btn btn-success btn-block" id="sendBtn" type="submit" name="send"
+                            aria-label="{Lang::T('Send')}"
                             onclick="return ask(this, '{Lang::T(" Are You Sure?")}')" value="balance"><i
-                                class="glyphicon glyphicon-send"></i></button>
+                                class="glyphicon glyphicon-send" aria-hidden="true"></i></button>
                     </div>
                 </div>
             </form>

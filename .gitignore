@@ -72,3 +72,5 @@ dev/wp8/.state/
 dev/wp8/**/secrets.env
 dev/wp8/**/serial*.log
 dev/wp8/**/*.chrpw
+__pycache__/
+*.pyc

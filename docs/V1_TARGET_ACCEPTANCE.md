@@ -36,13 +36,13 @@ that are explained in the evidence.
 
 ### TA-02 Clock discipline (N2 requirement)
 Requirements: the application, database, FreeRADIUS and NAS hosts run NTP in **UTC**; maximum permitted drift **5 s** between
-application / database / FreeRADIUS (preflight `time.clock_skew`) and **60 s** for a NAS (operations); the health check `nas_clock`
-warns above 120 s ahead. Quota *attribution* does not depend on the NAS clock (the period owns the accounting rows that arrived after it
+application / database / FreeRADIUS (preflight `time.clock_skew`) and **10 s** for a NAS (hard limit of the session-end cut-off, B-L08; 2 s typical with NTP); the health check `nas_clock`
+warns above 5 s ahead. Quota *attribution* does not depend on the NAS clock (the period owns the accounting rows that arrived after it
 started), but accounting display, freshness and the pre-V1.1 fallback rule do.
 1. On every host: `chronyc tracking` (or `timedatectl`) - offset and `System clock synchronized: yes`.
 2. On the NAS: `/system ntp client print`, `/system clock print`; compare with `date -u` on the application host.
 3. Log in one synthetic PPPoE user and compare `radacct.acctstarttime` with the arrival time of the Accounting-Start in the
-   FreeRADIUS log (the NAS stamp may be 1-2 s early; more than 60 s is a FAIL).
+   FreeRADIUS log (the NAS stamp may be 1-2 s early; more than 10 s is a FAIL).
 Pass: all offsets within limits; evidence attached.
 
 ### TA-03 NAS contract (RouterOS version / model of the target)
@@ -108,7 +108,7 @@ Environment: `docs/STAGING_DEPLOYMENT_PACKAGE.md` steps S1 - S12 done.
 
 ### TA-02 Clock discipline
 - Run on the application, database, FreeRADIUS hosts and every staging NAS: `chronyc tracking` (or `timedatectl`), and on the NAS `/system ntp client print`, `/system clock print`; compare with `date -u` taken at the same moment; write `<host> <offset seconds> <core|nas>` lines to `TA-02-offsets.txt`. Then log in one synthetic PPPoE user and compare `radacct.acctstarttime` with the arrival time of the Accounting-Start in the FreeRADIUS log.
-- PASS: `System clock synchronized: yes` and NTP client enabled on every host and NAS; core offsets (application / database / FreeRADIUS) <= 5 s; NAS offset <= 60 s; the Accounting-Start stamp within 60 s of its arrival.
+- PASS: `System clock synchronized: yes` and NTP client enabled on every host and NAS; core offsets (application / database / FreeRADIUS) <= 5 s; NAS offset <= 10 s; the Accounting-Start stamp within 10 s of its arrival.
 - FAIL: any offset above its limit, NTP disabled / unsynchronised, fewer than the 3 core hosts + 1 NAS measured. Eval: `ta_eval.py TA-02 --offsets TA-02-offsets.txt`.
 
 ### TA-03 NAS contract

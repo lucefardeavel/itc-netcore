@@ -11,7 +11,7 @@ if (file_exists(__DIR__ . '/../config.php')) {
 
 <head>
     <title>ITC NetCore Installer</title>
-    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.png">
+    <link rel="icon" type="image/png" href="img/netcore-favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!--[if lt IE 9]>
@@ -24,7 +24,7 @@ if (file_exists(__DIR__ . '/../config.php')) {
 
 <body style='background-color: #FBFBFB;'>
     <div id='main-container'>
-        <img src="img/logo.png" class="img-responsive" alt="Logo" />
+        <img src="img/netcore-logo.png" class="img-responsive" alt="ITC NetCore" />
         <hr>
         <!--  contents area start  -->
         <div class="row">

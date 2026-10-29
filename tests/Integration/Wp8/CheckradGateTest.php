@@ -64,7 +64,19 @@ final class CheckradGateTest extends TestCase
             $this->markTestSkipped("checkrad gate mode {$type}/{$fault} required, lab is {$nas[2]}/{$now} (dev/wp8/checkrad_gate.sh)");
         }
         $this->assertStringContainsString('delete_stale_sessions = no', $fr);
+        // owner decisions TD-1 / TD-1b (2026-10-28): the permanent PPPoE session guard runs after the stock layer in every
+        // configuration, so the gate runs it with its production credential file; without it every verification case
+        // would be refused for "no credentials" instead of for the fault under test
+        $this->assertStringContainsString('guard_creds=600 freerad', $fr, 'the guard has its production credential file (dev/wp8/checkrad_gate.py on)');
         return $st;
+    }
+
+    /** the guard's verdict for the last Access-Request of $user (accessDecisions: Tmp-String-7 / -6) */
+    private function guardOf(string $user): array
+    {
+        $d = self::accessDecisions($user);
+        $last = end($d) ?: [];
+        return ['reply' => $last['reply'] ?? null, 'guard_ran' => $last['guard_ran'] ?? false, 'verdict' => $last['guard_verdict'] ?? null, 'detail' => $last['guard_detail'] ?? null];
     }
 
     private function pppoeUser(string $password): string
@@ -210,8 +222,13 @@ final class CheckradGateTest extends TestCase
         $this->unblock($rule);
         $before = $this->fullRow($old);
         $this->assertNull($before['acctstoptime'], 'Stop lost: the radacct row stays OPEN');
+        // owner decision HOLD-C: a session lost within 10 s of its Start blocks a new login for the bounded hold only;
+        // TD-1b: past it, with valid credentials and a reachable router, the legitimate re-login must work
+        $ageAtRetry = self::waitReservationAge($user, 10500);
+        $this->assertNotNull($ageAtRetry, 'the first login holds an admission reservation');
         $again = Wp8Lab::agent('pppoe_up', ['client' => 'c1', 'user' => $user, 'password' => 'Cr-b-1']);
-        $r = ['relogin' => ['ok' => $again['ok'], 'ip' => $again['ip'] ?? null], 'reply' => self::lastReply($user), 'decision' => $this->decision($user),
+        $r = ['reservation_age_ms_at_retry' => $ageAtRetry, 'relogin' => ['ok' => $again['ok'], 'ip' => $again['ip'] ?? null], 'reply' => self::lastReply($user),
+            'decision' => $this->decision($user), 'guard' => $this->guardOf($user),
             'nas_after' => array_map(static fn($a) => [$a['caller-id'], $a['address']], Wp8Lab::pppActive($user))];
         $two = Wp8Lab::until(fn() => count($this->acct($user)) === 2, 20, 1);
         $afterLogin = $this->fullRow($old);
@@ -232,9 +249,10 @@ final class CheckradGateTest extends TestCase
             'old_row_unchanged_after_login' => $before === $afterLogin, 'old_row_unchanged_after_stale_check' => $before === $afterStale,
             'old_row_truth' => array_intersect_key($before, array_flip(['radacctid', 'acctsessionid', 'acctuniqueid', 'acctstarttime', 'acctupdatetime', 'acctstoptime', 'acctsessiontime', 'acctinputoctets', 'acctoutputoctets', 'acctterminatecause']))];
         Wp8Lab::evidence('OD16F.gateB.lost-stop-session-gone', $r);
-        $this->assertTrue($again['ok'], 'new login ALLOWED without reboot, freshness timeout, delete or fabricated Stop');
+        $this->assertTrue($again['ok'], 'new login ALLOWED after the bounded hold, without reboot, delete or fabricated Stop');
         $this->assertSame('Access-Accept', $r['reply']['code']);
         $this->assertContains(0, $r['decision']['checkrad_exits'], 'checkrad asked the NAS: old session not live (exit 0)');
+        $this->assertSame('SAFE', $r['guard']['verdict'], 'TD-1b: the guard, with its credentials, proved the old session gone');
         $this->assertTrue($two, 'radacct: the stale historical row AND the new genuine session row');
         $this->assertSame($before, $afterLogin, 'old row byte-for-byte unchanged by the admission');
         $this->assertSame($before, $afterStale);
@@ -271,19 +289,57 @@ final class CheckradGateTest extends TestCase
         $user = $this->pppoeUser($password);
         $c1 = $this->liveC1($user, $password);
         $f = $fault ? $fault() : null;
-        $r = ['fault' => $f] + $this->contest($user, $password, 40);
+        $r = ['user' => $user, 'fault' => $f] + $this->contest($user, $password, 40);
         $r['radacct'] = $this->radacctView($user);
         Wp8Lab::evidence('OD16F.gateD.' . $case, $r);
         return $r;
     }
 
+    /**
+     * TD-1 recovery half: the fault is undone (when the test controls it), the guard verifies again (the still-live C1
+     * reads LIVE, not ERROR), C1 ends normally (its Stop arrives) and a valid new login is admitted.
+     */
+    private function recoverAndAdmit(string $user, string $password, ?callable $restore): array
+    {
+        if ($restore) {
+            $restore();
+        }
+        $ready = self::guardSelfcheck(['10.88.0.2']);
+        $g = Wp8Lab::agent('guard_invoke', ['argv' => [bin2hex($user), '1', '10.88.0.2']]);
+        $verify = preg_match('/Tmp-String-7 = "(\w+)"/', (string) $g['out'], $m) ? $m[1] : null;
+        Wp8Lab::agent('pppoe_down', ['client' => 'c1']);
+        Wp8Lab::until(fn() => Wp8Lab::pppActive($user) === [] && ($this->acct($user)[0]['acctstoptime'] ?? null) !== null, 30, 1);
+        // RV-5: the admission below must follow a normal end of C1, not a lost Stop answered by the guard's SAFE path
+        $this->assertNotNull($this->acct($user)[0]['acctstoptime'] ?? null, 'C1 ended normally: its Stop is recorded');
+        Wp8Lab::agent('pppoe_down', ['client' => 'c3']);
+        $again = Wp8Lab::agent('pppoe_up', ['client' => 'c3', 'user' => $user, 'password' => $password]);
+        return ['selfcheck' => $ready, 'verify_live_c1' => $verify, 'c1_stop_recorded' => ($this->acct($user)[0]['acctstoptime'] ?? null) !== null,
+            'admitted' => $again['ok'], 'reply' => self::lastReply($user)['code'] ?? null];
+    }
+
+    /** TD-1 contract half: the duplicate is refused, only one session ever lives, the live session is never marked offline */
+    private function assertFailedClosed(array $r, string $why): void
+    {
+        $this->assertSame('Access-Reject', $r['reply_to_c2']['code'], "{$why}: the duplicate is refused (fail closed)");
+        $this->assertSame(1, $r['watch']['max'], "{$why}: never two PPPoE sessions for Simultaneous-Use 1");
+        $this->assertNull($r['c2_state']['ip'], "{$why}: the second client got no address");
+        $this->assertTrue($r['c1_state']['running'], "{$why}: the genuine session keeps running");
+        $this->assertNull($r['radacct'][0][4] ?? null, "{$why}: the unverified session is not reported disconnected (acctstoptime stays NULL)");
+    }
+
     /*
-     * GATE D RESULT (2026-10-07): FAILED - verification failure FAILS OPEN on FreeRADIUS 3.2.8. The three tests below
-     * assert the OBSERVED behaviour so the suite documents the fact; Option F was not implemented (owner stop).
+     * GATE D RESULT (2026-10-07, historical, kept): the STOCK layer FAILS OPEN on FreeRADIUS 3.2.8; Option F was not
+     * implemented (owner stop).
      *   stock checkrad mikrotik_snmp: an SNMP walk that returns nothing (timeout, no SNMP client, wrong community)
      *     counts as "user not logged in" (exit 0) - the open row is treated as stale;
      *   rlm_sql / process_checksimul: checkrad exit 2 -> "Failed to check the terminal server" -> session = fail ->
-     *     the Simultaneous-Use check is skipped and the request is ACCEPTED.
+     *     the Simultaneous-Use check is skipped.
+     * Until 2026-10-27 these tests asserted that the duplicate was then ADMITTED (Access-Accept, two sessions). The product
+     * has since shipped the permanent fail-closed PPPoE session guard (Option G) after this stock layer, so that
+     * expectation no longer described the product (TD-1: frozen characterization). Owner decision TD-1 (2026-10-28)
+     * approved the fail-closed contract: each test still asserts the stock layer's fail-open (the characterization), and
+     * now asserts that the product refuses the duplicate, for the actual fault (the guard runs with its production
+     * credential file), never reports the live session as gone, and admits a valid login again once verification works.
      */
     public function testSnmpGateDRouterSnmpUnreachableDecisionFailsOpen(): void
     {
@@ -292,35 +348,59 @@ final class CheckradGateTest extends TestCase
             $this->rules[] = Wp8Lab::rosAdd('/ip/firewall/filter/add', '=chain=input', '=protocol=udp', '=dst-port=161', '=action=drop', '=comment=nuxr_wp8_drill');
             return 'RouterOS input drop udp/161 (SNMP unreachable from FreeRADIUS)';
         });
+        $user = (string) $r['user'];
+        $r['guard'] = $this->guardOf($user);
+        $r['selfcheck_during_fault'] = self::guardSelfcheck(['10.88.0.2']);
+        $r['recovery'] = $this->recoverAndAdmit($user, 'Cr-d-1', function () {
+            foreach ($this->rules as $id) {
+                Wp8Lab::ros('/ip/firewall/filter/remove', '=.id=' . $id);
+            }
+            $this->rules = [];
+        });
+        Wp8Lab::evidence('TD1.gateD.router-snmp-dropped', $r);
         $run = end($r['decision']['checkrad_runs']);
-        $this->assertSame([0], array_slice($r['decision']['checkrad_exits'], -1), 'observed: the SNMP timeout is reported as "not logged in"');
+        $this->assertSame([0], array_slice($r['decision']['checkrad_exits'], -1), 'stock layer (characterization): the SNMP timeout is reported as "not logged in"');
         $this->assertGreaterThanOrEqual(9000, (int) preg_replace('/.* ms=(\d+)$/', '$1', $run), 'after the ~10 s snmpwalk timeout');
-        $this->assertSame('Access-Accept', $r['reply_to_c2']['code'], 'observed: FreeRADIUS ADMITS the duplicate');
-        // no second session here ONLY because RouterOS (timeout 3 s, 3 tries) had already given up ("radius timeout")
-        $this->assertSame(1, $r['watch']['max'], 'observed: the late Accept was discarded by RouterOS');
-        $this->assertNotEmpty(array_filter($r['router_log'], static fn($l) => str_contains($l, 'radius timeout')));
+        $this->assertFailedClosed($r, 'SNMP unreachable');
+        $this->assertSame('ERROR', $r['guard']['verdict'], 'the guard could not verify: ERROR');
+        $this->assertStringContainsString('10.88.0.2=ERROR:health', (string) $r['guard']['detail'], 'refused for the actual fault (no SNMP answer), not for credentials');
+        $this->assertSame('ERROR:health', $r['selfcheck_during_fault']['per_nas']['10.88.0.2'] ?? null, 'actionable alert: the readiness check names the NAS and the fault');
+        $this->assertSame('OK', $r['recovery']['selfcheck']['per_nas']['10.88.0.2'] ?? null, 'healthy again after the fault is undone');
+        $this->assertSame('LIVE', $r['recovery']['verify_live_c1'], 'verification works again: the live session reads LIVE');
+        $this->assertTrue($r['recovery']['admitted'], 'a valid login is admitted again once verification recovered');
     }
 
     public function testFaultWalkGateDSnmpClientUnavailableFailsOpen(): void
     {
         $this->requireMode('mikrotik_snmp', 'walk');
         $r = $this->gateD('snmpwalk-unavailable', 'Cr-d-2');
-        $this->assertSame([0], array_slice($r['decision']['checkrad_exits'], -1), 'observed: no SNMP client -> "not logged in"');
-        $this->assertSame('Access-Accept', $r['reply_to_c2']['code'], 'observed: FreeRADIUS ADMITS the duplicate');
-        $this->assertSame(2, $r['watch']['max'], 'observed: TWO genuine PPPoE sessions for Simultaneous-Use 1');
-        $this->assertNotNull($r['c2_state']['ip']);
+        $r['guard'] = $this->guardOf($r['user']);
+        $r['selfcheck_during_fault'] = self::guardSelfcheck(['10.88.0.2']);
+        $r['recovery'] = $this->recoverAndAdmit($r['user'], 'Cr-d-2', null);
+        Wp8Lab::evidence('TD1.gateD.snmpwalk-unavailable', $r);
+        $this->assertSame([0], array_slice($r['decision']['checkrad_exits'], -1), 'stock layer (characterization): no SNMP client -> "not logged in"');
+        $this->assertFailedClosed($r, 'stock SNMP client unavailable');
+        // the stock checkrad's snmpwalk is not the guard's tool (snmpget + snmpbulkwalk): the guard still proves C1 live
+        $this->assertSame('LIVE', $r['guard']['verdict'], 'the guard verified the NAS independently of the broken stock tool');
+        $this->assertSame('OK', $r['selfcheck_during_fault']['per_nas']['10.88.0.2'] ?? null, 'the guard itself stays ready');
+        $this->assertTrue($r['recovery']['admitted'], 'a valid login after the genuine session ended is admitted');
     }
 
     public function testFaultErrorGateDCheckradErrorFailsOpen(): void
     {
         $this->requireMode('mikrotik_snmp', 'error');
         $r = $this->gateD('checkrad-exit-2', 'Cr-d-3');
+        $r['guard'] = $this->guardOf($r['user']);
+        $r['selfcheck_during_fault'] = self::guardSelfcheck(['10.88.0.2']);
+        $r['recovery'] = $this->recoverAndAdmit($r['user'], 'Cr-d-3', null);
+        Wp8Lab::evidence('TD1.gateD.checkrad-exit-2', $r);
         $this->assertSame([2], array_slice($r['decision']['checkrad_exits'], -1), 'checkrad reported an error (exit 2)');
         $this->assertNotEmpty(array_filter($r['decision']['session_section'], static fn($l) => str_contains($l, 'Failed to check the terminal server')));
-        $this->assertNotEmpty(array_filter($r['decision']['session_section'], static fn($l) => str_contains($l, '} # session = fail')));
-        $this->assertSame('Access-Accept', $r['reply_to_c2']['code'], 'observed: session = fail is IGNORED, the duplicate is ADMITTED');
-        $this->assertSame(2, $r['watch']['max'], 'observed: TWO genuine PPPoE sessions for Simultaneous-Use 1');
-        $this->assertNotNull($r['c2_state']['ip']);
+        $this->assertNotEmpty(array_filter($r['decision']['session_section'], static fn($l) => str_contains($l, '} # session = fail')), 'stock layer (characterization): session = fail is ignored');
+        $this->assertFailedClosed($r, 'stock checkrad error');
+        $this->assertSame('LIVE', $r['guard']['verdict'], 'the guard verified the NAS itself and found C1 live');
+        $this->assertSame('OK', $r['selfcheck_during_fault']['per_nas']['10.88.0.2'] ?? null);
+        $this->assertTrue($r['recovery']['admitted'], 'a valid login after the genuine session ended is admitted');
     }
 
     // ------------------------------------------------------------------ Gate E: nas.type other control

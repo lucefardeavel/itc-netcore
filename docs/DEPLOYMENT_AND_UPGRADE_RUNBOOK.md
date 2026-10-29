@@ -44,7 +44,7 @@ Scope: one isolated instance per ISP (Option A). Every step names its verificati
 9. FreeRADIUS: checklist §G.
 10. NAS: `docs/NAS_ONBOARDING_AND_SECRET_ROTATION.md` §2.
 11. Log in as `admin`. The application forces the default password change.
-12. Run `php system/reseller/preflight.php`. It must exit 0. Then run `php system/reseller/health.php --finance`. It must exit 0.
+12. Run `php system/reseller/preflight.php` (the release preflight). It must exit 0; with no NAS it FAILs `nas.verification` NOT_CONFIGURED (PF-0). Before step 10, `preflight.php --setup` may be used to check the rest of the installation: it reports a missing NAS as WARN NOT_CONFIGURED and is never the release gate. Then run `php system/reseller/health.php --finance`. It must exit 0.
 13. Install the scheduled jobs: checklist §I.
 
 ## 3. Upgrade of an existing PHPNuxBill installation
@@ -60,6 +60,9 @@ The reseller migrations are additive. Legacy tables keep their data, except for 
    - Exit codes:
      - **2** NOT_READY: nothing was changed. Fix the cause and retry.
      - **3** FAILED: only `rollback` may run. See §4.
+   - In the RADIUS database, apply the additive FreeRADIUS objects of §2 step 7 that the old installation lacks (`nuxr_admission.sql`, `nuxr_hs_admission.sql`) and `install/freeradius/nuxr_nasreload_collation.sql`.
+     - All three are idempotent. The collation script fixes `nasreload` tables created before B-L09; without it, a MySQL 8 default-collation database fails every login with ERROR 1267.
+     - `nuxr_admission_check.sql`, `nuxr_hs_admission_check.sql` and `nuxr_nasreload_collation_check.sql` must all print READY.
 6. Run `preflight.php`. Resolve every FAIL before reopening, in particular:
    - `identity` (OBS-1 duplicates; owner-decided resolution);
    - `grants`;

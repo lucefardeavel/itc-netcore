@@ -201,23 +201,37 @@ final class ReconciliationService
         }
     }
 
-    /** @return array<string,mixed> */
-    public static function cancel(ActivationActor $actor, string $reference): array
+    /**
+     * $minStaleSeconds (operator web cancel, OD-7 "stale only"): checked again on the locked row inside the transaction, so
+     * an activation touched after the caller's unlocked staleness check is refused (lab closure FIN-3). The audit record
+     * is written in the same transaction: a cancel is never committed without it (lab closure, audit after commit).
+     *
+     * @return array<string,mixed>
+     */
+    public static function cancel(ActivationActor $actor, string $reference, ?int $minStaleSeconds = null): array
     {
         $act = self::find($reference);
         if (!in_array($act['status'], [ActivationState::FUNDS_RESERVED, ActivationState::RETRY_PENDING], true)) {
             throw new DomainError('ACTIVATION_STATE_CONFLICT');
         }
         $id = (int) $act['id'];
-        self::tx(static function (\PDO $pdo) use ($id, $actor): void {
+        self::tx(static function (\PDO $pdo) use ($id, $actor, $act, $minStaleSeconds): void {
             $reservation = ActivationStore::reservation($pdo, $id);
             if ($reservation !== null && $reservation['status'] === 'ACTIVE') {
                 ReservationService::releaseInTx($pdo, (int) $reservation['id'], FinanceActor::system('wp5a-activation'), 'activation cancelled');
             }
+            // (ReservationService::lockReservation already holds this row when there was a reservation to release - it locks
+            // activation -> wallet -> reservation - so no new lock order is introduced; a refusal rolls the release back)
+            if ($minStaleSeconds !== null) {
+                $now = Tx::row($pdo, 'SELECT updated_at FROM tbl_reseller_activations WHERE id = ? FOR UPDATE', [$id]) ?? throw new DomainError('NOT_FOUND');
+                if (self::age($now) < $minStaleSeconds) {
+                    throw new DomainError('ACTIVATION_IN_PROGRESS');
+                }
+            }
             ActivationStore::transition($pdo, $id, [ActivationState::FUNDS_RESERVED, ActivationState::RETRY_PENDING], ActivationState::CANCELLED, $actor,
                 ['event_type' => 'RECONCILIATION', 'metadata' => ['cancel' => true]], ['error_code' => 'CANCELLED', 'error_message' => 'The activation was cancelled before provisioning.']);
+            self::audit($actor, 'activation.cancel', $act, [], $pdo);
         });
-        self::audit($actor, 'activation.cancel', $act, []);
         return self::find($reference);
     }
 
@@ -251,7 +265,7 @@ final class ReconciliationService
         return (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->getTimestamp() - $updated->getTimestamp();
     }
 
-    private static function audit(ActivationActor $actor, string $event, array $act, array $after): void
+    private static function audit(ActivationActor $actor, string $event, array $act, array $after, ?\PDO $pdo = null): void
     {
         if ($actor->context === null) {
             return;
@@ -260,7 +274,7 @@ final class ReconciliationService
             'target_type' => 'activation', 'target_user_id' => (int) $act['manager_id'],
             'target_snapshot' => ['reference' => $act['reference'], 'customer_id' => (int) $act['customer_id']],
             'before' => ['status' => $act['status']], 'after' => $after,
-        ]);
+        ], $pdo);
     }
 
     private static function tx(callable $fn): mixed

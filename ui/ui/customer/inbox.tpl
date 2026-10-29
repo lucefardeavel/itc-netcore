@@ -44,10 +44,10 @@
             <form method="post">
                 <div class="box-tools pull-right">
                     <div class="input-group">
-                        <input type="text" name="q" class="form-control" placeholder="{Lang::T('Search')}..." value="{$q|escape:'html':'UTF-8'}">
+                        <input type="text" name="q" class="form-control" aria-label="{Lang::T('Search')}" placeholder="{Lang::T('Search')}..." value="{$q|escape:'html':'UTF-8'}">
                         <div class="input-group-btn">
-                            <button type="submit" class="btn btn-success"><span
-                                    class="glyphicon glyphicon-search"></span></button>
+                            <button type="submit" class="btn btn-success" aria-label="{Lang::T('Search')}"><span
+                                    class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
                         </div>
                     </div>
                 </div>
@@ -55,15 +55,15 @@
         </div>
         <div class="box-body no-padding">
             <div class="mailbox-controls">
-                <a href="{Text::url('mail')}" class="btn btn-default btn-sm"><i class="fa fa-refresh"></i></a>
+                <a href="{Text::url('mail')}" class="btn btn-default btn-sm" aria-label="{Lang::T('Refresh')}"><i class="fa fa-refresh" aria-hidden="true"></i></a>
                 <div class="pull-right">
                     <div class="btn-group">
                         {if $p>0}
-                            <a href="{Text::url('mail&p=')}{$p-1}&q={urlencode($q)}" class="btn btn-default btn-sm"><i
-                                    class="fa fa-chevron-left"></i></a>
+                            <a href="{Text::url('mail&p=')}{$p-1}&q={urlencode($q)}" class="btn btn-default btn-sm" aria-label="{Lang::T('Previous')}"><i
+                                    class="fa fa-chevron-left" aria-hidden="true"></i></a>
                         {/if}
-                        <a href="{Text::url('mail&p=')}{$p+1}&q={urlencode($q)}" class="btn btn-default btn-sm"><i
-                                class="fa fa-chevron-right"></i></a>
+                        <a href="{Text::url('mail&p=')}{$p+1}&q={urlencode($q)}" class="btn btn-default btn-sm" aria-label="{Lang::T('Next')}"><i
+                                class="fa fa-chevron-right" aria-hidden="true"></i></a>
                     </div>
                 </div>
             </div>
@@ -100,15 +100,15 @@
         </div>
         <div class="box-footer no-padding">
             <div class="mailbox-controls">
-                <a href="{Text::url('mail')}" class="btn btn-default btn-sm"><i class="fa fa-refresh"></i></a>
+                <a href="{Text::url('mail')}" class="btn btn-default btn-sm" aria-label="{Lang::T('Refresh')}"><i class="fa fa-refresh" aria-hidden="true"></i></a>
                 <div class="pull-right">
                     <div class="btn-group">
                         {if $p>0}
-                            <a href="{Text::url('mail&p=')}{$p-1}&q={urlencode($q)}" class="btn btn-default btn-sm"><i
-                                    class="fa fa-chevron-left"></i></a>
+                            <a href="{Text::url('mail&p=')}{$p-1}&q={urlencode($q)}" class="btn btn-default btn-sm" aria-label="{Lang::T('Previous')}"><i
+                                    class="fa fa-chevron-left" aria-hidden="true"></i></a>
                         {/if}
-                        <a href="{Text::url('mail&p=')}{$p+1}&q={urlencode($q)}" class="btn btn-default btn-sm"><i
-                                class="fa fa-chevron-right"></i></a>
+                        <a href="{Text::url('mail&p=')}{$p+1}&q={urlencode($q)}" class="btn btn-default btn-sm" aria-label="{Lang::T('Next')}"><i
+                                class="fa fa-chevron-right" aria-hidden="true"></i></a>
                     </div>
                 </div>
             </div>

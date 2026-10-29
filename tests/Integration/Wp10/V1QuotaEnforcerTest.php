@@ -103,6 +103,23 @@ final class V1QuotaEnforcerTest extends ActivationTestCase
         $r = SessionTermination::end(static::$db->rows('SELECT * FROM radacct WHERE radacctid = ?', [$id2]));
         $this->assertFalse($r[0]['confirmed']);
         $this->assertCount(3, $silent->received(), 'one request, two identical retransmissions, never a new request');
+        // lab NET-3: the first ACK lost, NAK 406 to the retransmission -> confirmed ONLY by the Accounting-Stop
+        static::$db->exec('DELETE FROM nas');
+        $retry = $this->stub('retry406');
+        $r = SessionTermination::end(static::$db->rows('SELECT * FROM radacct WHERE radacctid = ?', [$id2]), null, null, 1.0);
+        $this->assertSame([['COA_RETRY_NAK', false]], array_map(static fn($e) => [$e['state'], $e['confirmed']], $r), 'a NAK to a retry alone is not proof');
+        $this->assertCount(2, $retry->received());
+        static::$db->exec('DELETE FROM nas');
+        $retry = $this->stub('retry406');
+        RadiusFaults::$hook = static function (string $p) use ($id2): void {
+            if ($p === 'session.after_disconnect') {
+                static::$db->exec("UPDATE radacct SET acctstoptime = UTC_TIMESTAMP(), acctterminatecause = 'Admin-Reset' WHERE radacctid = {$id2}");
+            }
+        };
+        $r = SessionTermination::end(static::$db->rows('SELECT * FROM radacct WHERE radacctid = ?', [$id2]));
+        RadiusFaults::$hook = null;
+        $this->assertSame([['CONFIRMED', true]], array_map(static fn($e) => [$e['state'], $e['confirmed']], $r), 'NAK to the retry + the Stop -> confirmed');
+        $retry->received();
         // unknown NAS -> not confirmed, nothing sent
         $id3 = $this->session($this->user(), 600, 1, 1, 60, false, '192.0.2.77');
         $this->assertFalse(SessionTermination::end(static::$db->rows('SELECT * FROM radacct WHERE radacctid = ?', [$id3]))[0]['confirmed']);

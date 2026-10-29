@@ -1,0 +1,34 @@
+# Branch-local regression for the lab candidate branches (PR #2 review item 6: the combined commit status listed no
+# external checks). Unit suite only - no database, no secrets, read-only token; it never runs for the frozen branches
+# (main, feat/reseller-system-v1, wp9/red-team-rc) and deploys nothing. The integration / HTTP / CHR suites need the
+# disposable databases and the RouterOS lab and stay in the lab (evidence in the PR description).
+name: lab-unit
+on:
+  push:
+    branches: ['lab/**']
+  pull_request:
+    branches: ['wp9/red-team-rc']
+permissions:
+  contents: read
+concurrency:
+  group: lab-unit-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (node24; CI-2)
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0 (node24; CI-2)
+        with:
+          php-version: '8.2'
+          extensions: mbstring, dom, xml, xmlwriter, tokenizer, json, pdo, pdo_mysql
+          tools: composer:v2
+          coverage: none
+      - name: Test tooling (tests/composer.lock, dev only, never deployed)
+        working-directory: tests
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+      - name: Unit suite
+        run: php tests/vendor/bin/phpunit -c tests/phpunit.xml --do-not-cache-result tests/Unit

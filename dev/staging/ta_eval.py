@@ -40,7 +40,7 @@ def ta01(preflight, health=None):
     if 'preflight=FAIL' in text or not re.search(r'^preflight=(PASS|OK)', text, re.M) and not fails:
         if 'preflight=FAIL' in text and not fails:
             fails.append('preflight reports FAIL')
-    must = ['keys.app_secret', 'isolation', 'time.sql_session_zone', 'time.clock_skew', 'schema', 'radius_checks', 'identity.collisions', 'grants']
+    must = ['keys.app_secret', 'isolation', 'time.sql_session_zone', 'time.clock_skew', 'time.nas_clock', 'schema', 'radius_checks', 'identity.collisions', 'grants', 'nas.verification']
     seen = {n for _, n, _ in checks}
     for m in must:
         if m not in seen:
@@ -68,7 +68,11 @@ def ta02(offsets):
             continue
         host, off, kind = line.split()[:3]
         n += 1
-        limit = 5.0 if kind == 'core' else 60.0
+        # core 5 s; NAS 10 s: the hard limit of the session-end cut-off (B-L08, docs/TIME_CONTRACT.md, V1_TARGET_ACCEPTANCE TA-02)
+        if kind not in ('core', 'nas'):
+            fails.append(f'{host}: unknown kind {kind!r} (core | nas)')
+            continue
+        limit = 5.0 if kind == 'core' else 10.0
         if abs(float(off)) > limit:
             fails.append(f'{host} ({kind}) offset {off} s exceeds {limit:g} s')
         elif abs(float(off)) > limit / 2:
@@ -145,7 +149,7 @@ def selftest():
         p = os.path.join(d, name)
         open(p, 'w').write(body)
         return p
-    good_pre = 'PASS  keys.app_secret x\nPASS  isolation x\nPASS  time.sql_session_zone x\nPASS  time.clock_skew x\nPASS  schema x\nPASS  radius_checks x\nPASS  identity.collisions x\nPASS  grants x\npreflight=PASS\n'
+    good_pre = 'PASS  keys.app_secret x\nPASS  isolation x\nPASS  time.sql_session_zone x\nPASS  time.clock_skew x\nPASS  time.nas_clock x\nPASS  schema x\nPASS  radius_checks x\nPASS  identity.collisions x\nPASS  grants x\nPASS  nas.verification x\npreflight=PASS\n'
     bad_pre = good_pre.replace('PASS  grants', 'FAIL  grants').replace('preflight=PASS', 'preflight=FAIL (1 failing check(s))')
     assert ta01(w('p1', good_pre)) == 0
     assert ta01(w('p2', bad_pre)) == 1
@@ -153,6 +157,8 @@ def selftest():
     assert ta02(w('o1', 'app 0.2 core\ndb 0.1 core\nfr 0.3 core\nnas1 3 nas\n')) == 0
     assert ta02(w('o2', 'app 0.2 core\ndb 7 core\nfr 0.3 core\nnas1 3 nas\n')) == 1
     assert ta02(w('o3', 'app 0.2 core\ndb 0.1 core\nfr 0.3 core\nnas1 70 nas\n')) == 1
+    assert ta02(w('o4', 'app 0.2 core\ndb 0.1 core\nfr 0.3 core\nnas1 11 nas\n')) == 1  # above the 10 s NAS limit
+    assert ta02(w('o5', 'app 0.2 core\ndb 6 cor\nfr 0.3 core\nnas1 3 nas\n')) == 1  # an unknown kind never gets the NAS limit
     row = {'case': 'acct-load', 'subscribers': 2000, 'interim_s': 30, 'lost': 0, 'latency_ms': {'p99': 40}, 'enforcer_pass_s': {'max': 0.3}, 'db': {'aborted_connects': 0}, 'achieved_rate_per_s': 66, 'target_rate_per_s': 66.7}
     assert ta09(w('l1', json.dumps(row) + '\n')) == 0
     assert ta09(w('l2', json.dumps({**row, 'lost': 2}) + '\n')) == 1
