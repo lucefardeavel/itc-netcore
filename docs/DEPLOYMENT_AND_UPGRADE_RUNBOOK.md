@@ -11,7 +11,7 @@ Scope: one isolated instance per ISP (Option A). Every step names its verificati
 
 1. Build from the owner-accepted commit only, and record the commit SHA in the release notes.
 2. Exclude from the artifact:
-   - `.git/`, `dev/`, `tests/`, `owner-review/`, `docs/claude-development-pack/`;
+   - `.git/`, `dev/`, `tests/`, `owner-review/`, `docs/claude-development-pack/`, `CLAUDE.md` (development rules);
    - `system/vendor/yosiazwan/php-facedetection/lena512color.jpg`.
 3. Include `LICENSE` and `docs/THIRD_PARTY_LICENSES.md`.
 4. Publish the artifact's SHA-256 next to it, and verify it on the target before unpacking.

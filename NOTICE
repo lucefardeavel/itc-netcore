@@ -11,8 +11,11 @@ installer are kept. The licence text in LICENSE is unchanged. Third-party
 components and their licences are listed in docs/THIRD_PARTY_LICENSES.md.
 
 The modifications made for ITC NetCore (the reseller, wallet, ledger,
-activation, RADIUS, quota, adaptive UI and PWA work) are recorded in the Git
-history of this repository and in docs/ and owner-review/.
+activation, RADIUS, quota, adaptive UI and PWA work) are summarised in
+docs/release/RELEASE_NOTES_V1.0.md and docs/release/CHANGELOG_V1.0_entry.md
+(both in this distribution); the full change history is kept in the ITC
+source repository. How the modification notices satisfy the licence is one
+of the open points below.
 
 Open legal points (not decided by this file): the licence version statement
 (GPL-2.0-only or -or-later), the combination with LGPL-3.0 Smarty, the

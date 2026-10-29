@@ -59,7 +59,7 @@ This checklist is for an operator deploying one isolated instance. Tick every li
 | E1 | `migrate.php preflight`, then `migrate`, then `verify`; all exit 0 (taken right after a verified backup, §F) | exit codes |
 | E2 | Reseller schema ready, including every CHECK expression and its enforcement (WP1-CHECK) **[P schema][H schema]** | preflight `schema` |
 | E3 | FreeRADIUS admission tables installed and their CHECK constraints exact (`nuxr_admission.sql`, `nuxr_hs_admission.sql`) **[P radius_checks]** | preflight `radius_checks`, `nuxr_admission_check.sql` |
-| E4 | OBS-1 identity survey: no canonical identity with more than one holder (`dev/wp9/identity_survey.sql`, also preflight `identity`). Resolve every FAIL before go-live; the procedure is an owner decision. **[P identity]** | preflight `identity` |
+| E4 | OBS-1 identity survey: no canonical identity with more than one holder (`dev/wp9/identity_survey.sql`, source repository only: migration path, not applicable to a fresh install; also preflight `identity`). Resolve every FAIL before go-live; the procedure is an owner decision. **[P identity]** | preflight `identity` |
 | E5 | MAC-auth impact: review the RADIUS usernames that look like lower-case MAC addresses (MAC-H1A) **[P mac]** | preflight `mac` |
 | E6 | Existing installations: survey historic `radacct` times for non-UTC writers (P-A4-3) before relying on period counters | `docs/OPERATOR_RECOVERY_RUNBOOK.md` |
 | E8 | V1 quota plans: no enabled Limited Radius plan with a zero / unusable quota (plans saved before V1 may hold one; selling it fails closed and the voucher / activation is held for the operator). Edit the plan in Services or disable it **[P quota_plans]** | preflight `quota.plans` |

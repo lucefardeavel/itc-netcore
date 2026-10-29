@@ -1,5 +1,8 @@
 # V1 target-environment acceptance procedure and evidence template
 
+> [!NOTE]
+> **Source repository only.** This procedure uses tools under `dev/staging/` and writes evidence under `owner-review/`, which are not in the release artifact: run it from a checkout of the source repository at the release SHA. Install the target itself with the fresh-install package (`install/fresh/`, `docs/guides/install/`); where this document describes manual account or migration steps, the fresh-install package takes precedence.
+
 Scope: everything the isolated lab (`dev/wp8`, RouterOS CHR 7.24.5 + FreeRADIUS 3.2.8 + MariaDB / MySQL) **cannot** prove for a real
 installation. Each test below is a procedure for the operator on the **approved staging copy of the target** (same RouterOS version /
 model, same FreeRADIUS and database hosts, synthetic subscribers only). Nothing here may be run against a router that carries
