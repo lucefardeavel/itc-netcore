@@ -36,6 +36,8 @@ final class DomainError extends \RuntimeException
         'RADIUS_KEY_SHARED' => 'This customer already has an active service of the other type on the same login; set a distinct PPPoE username first.',
         'SERVICE_BUSY' => 'This customer\'s service is being updated by another operation; please try again shortly.',
         'USERNAME_TAKEN' => 'The username is already used.',
+        // final QA S-2: only an administrator changes the login name of its own account
+        'USERNAME_SELF_CHANGE_ADMIN_ONLY' => 'Your username can only be changed by an administrator; nothing was changed.',
         // WP9 U0: the shared identity check (generic: never says which identity holds the name)
         'IDENTITY_TAKEN' => 'This username or PPPoE username is already in use.',
         // R-HF-CARRY-01 F-1 / F-2: the one refusal a tree-scoped actor gets for any identity collision of a customer create

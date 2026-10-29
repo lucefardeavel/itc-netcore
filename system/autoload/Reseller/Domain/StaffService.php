@@ -152,6 +152,11 @@ final class StaffService
             if (!self::canTarget($a, $t, Capability::STAFF_UPDATE_PROFILE)) {
                 throw new DomainError('NOT_FOUND');
             }
+            // final QA S-2: a non-administrator cannot rename itself. A free self-rename would otherwise answer "is this
+            // username taken anywhere?" for any name (e.g. the administrator's login) at no cost; refused before the lookup
+            if ($in['username'] !== $t['username'] && $id === (int) $a->userId && !$a->isGlobalAdmin()) {
+                throw new DomainError('USERNAME_SELF_CHANGE_ADMIN_ONLY');
+            }
             if ($in['username'] !== $t['username'] && Tx::row($pdo, 'SELECT id FROM tbl_users WHERE username = ? AND id <> ?', [$in['username'], $id]) !== null) {
                 throw new DomainError('USERNAME_TAKEN');
             }
