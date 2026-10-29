@@ -178,6 +178,72 @@ final class W9StaticIpSaveTest extends Wp2HttpTestCase
         }
     }
 
+    /**
+     * Round 3, review N-1: special / reserved IPv4 addresses (255.255.255.255 = "the user selects" per RFC 2865, 0/8,
+     * loopback, link-local, multicast, 240/4) are refused on every save path; RFC 1918 and CGNAT 100.64/10 are saved.
+     */
+    public function testSpecialAddressesAreRefusedOnEverySavePathAndSubscriberRangesAreSaved(): void
+    {
+        $special = ['255.255.255.255', '255.255.255.254', '0.1.2.3', '127.0.0.1', '169.254.10.20', '224.0.0.5', '240.0.0.1'];
+        // add-post (CustomerService::create): Agent and Admin
+        foreach (['A', 'ad'] as $who) {
+            $c = $this->staff($who);
+            foreach ($special as $ip) {
+                $tag = bin2hex(random_bytes(3));
+                $before = $this->customerCount();
+                $out = $this->add($c, self::form('w9sp_' . $tag, $ip, $tag));
+                $this->assertSame($before, $this->customerCount(), "{$who}: special address {$ip} must be refused: " . $out);
+                $this->assertStringContainsString('error: ', $out, "{$who}: a refusal for {$ip}");
+                $this->assertStringContainsString('IPv4', $out, "{$who}: the refusal names the rule");
+            }
+            foreach (['100.64.', '100.127.', '192.168.', '172.16.', '10.67.'] as $prefix) {
+                $tag = bin2hex(random_bytes(3));
+                $ip = $prefix . random_int(0, 255) . '.' . random_int(1, 254);
+                $this->assertStringContainsString('customers/view/', $this->add($c, self::form('w9sp_ok' . $tag, $ip, $tag)), "{$who}: subscriber address {$ip} is saved");
+                $this->assertSame($ip, $this->ipOf('w9sp_ok' . $tag));
+            }
+        }
+        // Admin edit-post: cNULL2 (legacy save in the controller), cA0 (LegacyReprovisionService IDENTITY_EDIT)
+        $c = $this->staff('ad');
+        foreach (['cNULL2', 'cA0'] as $u) {
+            $start = $this->ipOf($u);
+            foreach ($special as $ip) {
+                $this->edit($c, $u, ['pppoe_ip' => $ip]);
+                $this->assertSame($start, $this->ipOf($u), "{$u}: special address {$ip} is refused on edit");
+            }
+            $cgnat = '100.' . random_int(64, 127) . '.' . random_int(0, 255) . '.' . random_int(1, 254);
+            $this->edit($c, $u, ['pppoe_ip' => $cgnat]);
+            $this->assertSame($cgnat, $this->ipOf($u), "{$u}: a CGNAT address is saved on edit");
+            $this->edit($c, $u, ['pppoe_ip' => '']);
+            $this->assertSame('', $this->ipOf($u));
+        }
+    }
+
+    /**
+     * Round 3, review N-3: a reseller-owned customer whose stored static IP has edge whitespace (legacy / imported data)
+     * changes the portal password (accounts/change-password-post -> LegacyReprovisionService PASSWORD_CHANGE). The IP is not
+     * changed, so it is not re-judged: the password is saved and the stored IP stays as it is.
+     */
+    public function testPortalPasswordChangeOfAReprovisionedCustomerKeepsAPaddedLegacyIp(): void
+    {
+        $u = 'cA0';
+        $oldPassword = (string) static::$db->value('SELECT password FROM tbl_customers WHERE username = ?', [$u]);
+        $this->assertSame(\Reseller\Tests\Support\Wp2Seed::customerPassword($u), $oldPassword, 'seeded portal password');
+        try {
+            foreach (['10.66.9.9 ', " 10.66.9.10\t"] as $i => $padded) {
+                static::$db->pdo->prepare('UPDATE tbl_customers SET pppoe_ip = ?, password = ? WHERE username = ?')->execute([$padded, $oldPassword, $u]);
+                $new = 'Np' . $i . bin2hex(random_bytes(4));
+                $c = $this->customer($u);
+                $r = $c->postWithToken('accounts/change-password-post', ['password' => $oldPassword, 'npass' => $new, 'cnpass' => $new], [], 'accounts/change-password');
+                $this->assertNotSame(500, $r->status, $r->excerpt());
+                $this->assertSame([$new, $padded], [(string) static::$db->value('SELECT password FROM tbl_customers WHERE username = ?', [$u]), $this->ipOf($u)],
+                    'padded legacy IP ' . json_encode($padded) . ': the password change is saved and the IP is kept (' . $r->status . ' ' . (string) $r->location() . ')');
+            }
+        } finally {
+            static::$db->pdo->prepare("UPDATE tbl_customers SET pppoe_ip = '', password = ? WHERE username = ?")->execute([$oldPassword, $u]);
+        }
+    }
+
     /** Existing data: a legacy duplicate or legacy free text stays editable while the IP itself is not changed. */
     public function testLegacyValuesStayEditableWhileTheIpIsKept(): void
     {

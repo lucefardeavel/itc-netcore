@@ -149,8 +149,10 @@ final class LegacyReprovisionService
                     // WP9 U0 (P5, AM-W9-1): an acquired name is checked and written under the identity lock (L-1 -> L-3 ->
                     // BEGIN); the RADIUS reads above and the device steps below stay outside it
                     $acquired = CustomerIdentity::acquired($old, $new);
-                    // R-HF-CARRY-01 F-2: a changed static IP is checked (no other customer holds it) under the identity lock too
-                    $ip = (string) $new['pppoe_ip'] !== trim((string) $old['pppoe_ip']) ? (string) $new['pppoe_ip'] : '';
+                    // R-HF-CARRY-01 F-2: a changed static IP is checked (no other customer holds it) under the identity lock too.
+                    // Round 3 (review N-3): compared trimmed on both sides, so a kept stored value with edge whitespace (legacy
+                    // data; e.g. on a portal PASSWORD_CHANGE) is not re-judged
+                    $ip = trim((string) $new['pppoe_ip']) !== trim((string) $old['pppoe_ip']) ? trim((string) $new['pppoe_ip']) : '';
                     if ($acquired === [] && $ip === '') {
                         $write();
                     } else {
@@ -801,8 +803,9 @@ final class LegacyReprovisionService
                 $new[$k] = trim($requested[$k]);
             }
         }
-        // R-HF-CARRY-01 F-2: a changed static IP is '' or a valid IPv4 address (a kept stored value is not re-judged)
-        if ((string) $new['pppoe_ip'] !== trim((string) $customer['pppoe_ip']) && !CustomerIdentity::validStaticIp((string) $new['pppoe_ip'])) {
+        // R-HF-CARRY-01 F-2: a changed static IP is '' or a valid IPv4 address (a kept stored value is not re-judged; round 3,
+        // review N-3: compared trimmed on both sides)
+        if (trim((string) $new['pppoe_ip']) !== trim((string) $customer['pppoe_ip']) && !CustomerIdentity::validStaticIp(trim((string) $new['pppoe_ip']))) {
             throw new DomainError('STATIC_IP_INVALID');
         }
         if ((string) $new['pppoe_username'] !== (string) $customer['pppoe_username']
