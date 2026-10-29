@@ -103,7 +103,7 @@ Environment: `docs/STAGING_DEPLOYMENT_PACKAGE.md` steps S1 - S12 done.
 
 ### TA-01 Preflight and health
 - Run: `php system/reseller/preflight.php > TA-01-preflight.txt; echo "preflight=$?" >> TA-01-preflight.txt`; `php system/reseller/health.php --json --finance > TA-01-health.json`.
-- PASS: preflight exit 0 (every check PASS; WARN only with a written explanation: `stage.https` WARN is not acceptable on the target); health status OK or WARNING with each WARNING explained; the eight required checks present (`keys.app_secret`, `isolation`, `time.sql_session_zone`, `time.clock_skew`, `schema`, `radius_checks`, `identity.collisions`, `grants`).
+- PASS: preflight exit 0 (every check PASS; WARN only with a written explanation: `stage.https` WARN is not acceptable on the target); health status OK or WARNING with each WARNING explained; the ten required checks present (`keys.app_secret`, `isolation`, `time.sql_session_zone`, `time.clock_skew`, `time.nas_clock`, `schema`, `radius_checks`, `identity.collisions`, `grants`, `nas.verification`), as `ta_eval.py` requires.
 - FAIL: any FAIL line; health CRITICAL / UNKNOWN. Eval: `ta_eval.py TA-01 --preflight TA-01-preflight.txt --health TA-01-health.json`.
 
 ### TA-02 Clock discipline
