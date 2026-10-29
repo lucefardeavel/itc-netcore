@@ -54,9 +54,13 @@ switch ($action) {
 
         $ui->display('admin/autoload/server.tpl');
         break;
+    // R-HF-CARRY-01 residual (F-2): the uniqueness hints only look at customers inside the actor's customer.read
+    // scope (G: all; Agent T: own subtree; Sales A: own assignments), so a tree-scoped user cannot learn whether an
+    // IP / PPPoE username exists outside it (an out-of-scope match answers like an unused value). PPPoE username
+    // uniqueness itself stays global and is enforced on save (CustomerService / LegacyReprovisionService / edit-post).
     case 'pppoe_ip_used':
         if (!empty(_get('ip'))) {
-            $cs = ORM::for_table('tbl_customers')
+            $cs = \Reseller\Security\DataScope::scopeCustomers(ORM::for_table('tbl_customers'), $nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ)
                 ->select("username")
                 ->where_not_equal('id', _get('id'))
                 ->where("pppoe_ip", _get('ip'))
@@ -72,7 +76,7 @@ switch ($action) {
         die();
     case 'pppoe_username_used':
         if (!empty(_get('u'))) {
-            $cs = ORM::for_table('tbl_customers')
+            $cs = \Reseller\Security\DataScope::scopeCustomers(ORM::for_table('tbl_customers'), $nuxrActor, \Reseller\Security\Capability::CUSTOMER_READ)
                 ->select("username")
                 ->where_not_equal('id', _get('id'))
                 ->where("pppoe_username", _get('u'))
