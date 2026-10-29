@@ -21,11 +21,12 @@ Related: `docs/STAGING_DEPLOYMENT_PACKAGE.md` (how the staging is built), `docs/
 
 | # | Resource | Requirement | Owner's answer |
 |---|---|---|---|
-| R1 | **Staging NAS** | the **same RouterOS version and board / model as production** (capability findings - PPPoE total limit ignored, per-direction limits, CoA not changing byte limits or interim - are version / model specific); write access for the operator for `/radius`, `/radius incoming`, `/ppp aaa`, a PPPoE server and a Hotspot server on the test interface, `/system ntp client` | model / version / address: ______ |
+| R1 | **Staging NAS** | the **same RouterOS version and board / model as production** (capability findings - PPPoE total limit ignored, per-direction limits, CoA not changing byte limits or interim - are version / model specific); write access for the operator for `/radius`, `/radius incoming`, `/ppp aaa`, a PPPoE server and a Hotspot server on the test interface, `/system ntp client`, `/snmp` (read-only community for the session guard of NAS type `mikrotik_snmp`) | model / version / address: ______ |
+| R1b | **Second staging NAS** (case X-1 only) | same requirements as R1, its own isolated segment and secret; needed for the two-NAS old-session case X-1, which a local two-CHR run never replaces | model / version / address: ______ |
 | R2 | **Isolated test segment** | an interface or VLAN with no subscribers on that NAS; a synthetic client that can dial PPPoE and Hotspot on it (a second router / CHR, or a Linux PPPoE client) and generate mixed upload + download traffic at a known rate | ______ |
 | R3 | **Application host** | 2 vCPU, 4 GB, SSD; PHP 8.2 with `pdo_mysql`, `curl`, `gd`, `mbstring`, `zip`; HTTPS front with a valid certificate (the same reverse proxy as production for TA-10); cron | ______ |
 | R4 | **Database host** | 4 vCPU, 8 GB, disk-backed SSD; MariaDB 10.11 **or** MySQL 8.0 (the production engine) as a **separate instance from production**; `REPEATABLE-READ`, `time_zone = '+00:00'`, `max_connections` >= 151 | engine / host: ______ |
-| R5 | **FreeRADIUS host** | 4 vCPU, 4 GB (may share the application host on a small staging); FreeRADIUS 3.2.x threaded under the service manager; reaches the database over 3306 and the NAS over UDP 1812 / 1813 with no NAT | ______ |
+| R5 | **FreeRADIUS host** | 4 vCPU, 4 GB (may share the application host on a small staging); FreeRADIUS 3.2.x threaded under the service manager; reaches the database over 3306 and the NAS over UDP 1812 / 1813 with no NAT, and queries the NAS over SNMP UDP 161 (session guard) | ______ |
 | R6 | **Load generator** | any host with PHP 8.2 that can send UDP 1813 to FreeRADIUS (may be the application host) | ______ |
 | R7 | **Time source** | NTP reachable by the application, database, FreeRADIUS hosts and the NAS (TA-02) | ______ |
 | R8 | **Least-privilege database accounts** | created from `php system/reseller/grants.php` (application, FreeRADIUS) plus a separate DDL account for migrations | ______ |
@@ -33,7 +34,7 @@ Related: `docs/STAGING_DEPLOYMENT_PACKAGE.md` (how the staging is built), `docs/
 | R10 | **Window** | start / end (UTC) and a rollback contact; about one working day for TA-01 .. TA-08, a second day for TA-09 / TA-10 | ______ |
 
 Network flows to open (and nothing else): operator -> application TCP 443; application and FreeRADIUS -> database TCP 3306; NAS -> FreeRADIUS UDP 1812 / 1813;
-application -> NAS UDP 3799 (or the `nas.ports` value); load generator -> FreeRADIUS UDP 1813; every host -> NTP UDP 123; operator SSH. The RouterOS API (8728 / 8729) is **not** used and must stay closed.
+FreeRADIUS -> NAS UDP 161 (read-only SNMP, session guard); application -> NAS UDP 3799 (or the `nas.ports` value); load generator -> FreeRADIUS UDP 1813; every host -> NTP UDP 123; operator SSH. The RouterOS API (8728 / 8729) is **not** used and must stay closed.
 
 ## 3. Authorization boundaries requested (tick what is granted)
 
