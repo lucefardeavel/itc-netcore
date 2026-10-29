@@ -72,7 +72,7 @@ The three options come from the owner-decision consolidation §5. Option 1 is co
 2. Deploy the **same release artifact**, verified with `install/fresh/nuxr-artifact-verify.sh` (SHA-256, `RELEASE_SHA`, content rules).
 3. Restore `config.php` from the encrypted `secrets.tar` of the latest backup set. Keeping the same `$app_secret` keeps sessions and links valid; a new value invalidates them (users log in again). A restore onto a freshly built server was **not** drilled in the lab; rehearse it on staging.
 4. Re-install the scheduled jobs (checklist §I; `install/fresh/cron/itc-netcore.cron.example`, with `cron.php` run from `system/`) and the backup timers (`install/backup/systemd/`).
-5. **CoA source address:** RouterOS accepts a Disconnect / CoA only from the address of one of its `/radius` entries. If the new host has a different address, update every NAS (second `/radius` entry for the new address with the same secret, and the UDP 3799 accept rule) — checklist H2.
+5. **CoA source address:** RouterOS accepts a Disconnect / CoA only from the address of one of its `/radius` entries. Prefer to keep the old application address, or to run the new host on the FreeRADIUS address (co-location, the production rule of the integration model). If neither is possible, update every NAS (a second `/radius` entry for the new address with the same secret, and the UDP 3799 accept rule) — checklist H2. This second-entry variant is **not lab-verified**: test one Disconnect before reopening service.
 6. Run `preflight.php` (exit 0) and `health.php --finance` (exit 0); test one staff login, one Disconnect, one activation on a test customer.
 
 # 5. Scenario: FreeRADIUS loss
@@ -83,7 +83,7 @@ The three options come from the owner-decision consolidation §5. Option 1 is co
 | Rebuild | FreeRADIUS 3.2.8 from `install/freeradius/` (site, modules, dictionary, guard, Hotspot slot verifier) plus the backed-up instance configuration, including `${confdir}/nuxr/nas_snmp` (mode 0600, owner `freerad`) and the net-snmp tools |
 | Rules | `read_clients = yes`, `client_table = "nas"`; `delete_stale_sessions = no`; `radpostauth` off; process `TZ` = the application time zone; threaded under the service manager, **never `-X`**; SQL pool sized per the README |
 | Address | Keep the same IP. If it changes, every NAS `/radius` entry must change, and the guard's SNMP community `addresses` and the UDP 161 rule on each NAS |
-| Verify | `sudo -u freerad ${confdir}/nuxr/nuxr_guard_selfcheck` → `guard_selfcheck=OK`; one test login, accounting Start, one Disconnect; `preflight.php` |
+| Verify | `sudo -u freerad ${confdir}/nuxr/nuxr_guard_selfcheck` prints `guard_selfcheck=OK`; one test login, accounting Start, one Disconnect; `preflight.php` |
 | After a stall | A FreeRADIUS stall longer than the NAS retry window (about 9 s) can leave PPPoE admission claims PENDING (AV-1). List them with `reconcile.php admission-pending`; release only with NAS-side proof (recovery runbook §3) |
 
 # 6. Scenario: NAS loss or replacement

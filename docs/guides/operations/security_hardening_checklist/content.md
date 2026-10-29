@@ -10,9 +10,9 @@ Tick every line **on the target** before go-live and after every significant cha
 | # | Item | How to verify | ☐ |
 |---|---|---|---|
 | N1 | The database is reachable only from the application and FreeRADIUS hosts, never from the internet (checklist A7) | Firewall rules; a connection attempt from another host fails | ☐ |
-| N2 | NAS → FreeRADIUS UDP 1812/1813 only; no NAT between NAS and FreeRADIUS | Firewall rules; `radacct.nasipaddress = nas.nasname` | ☐ |
-| N3 | Application → NAS UDP 3799 (or `nas.ports`): on the NAS, accept only from the application host, then drop every other source | `/ip firewall filter print`; a CoA from another host is dropped | ☐ |
-| N4 | FreeRADIUS → NAS UDP 161 (SNMP read-only, for the session guard): accept only from the FreeRADIUS address | `/ip firewall filter print`; `/snmp community print` | ☐ |
+| N2 | NAS to FreeRADIUS: UDP 1812/1813 only; no NAT between NAS and FreeRADIUS | Firewall rules; `radacct.nasipaddress = nas.nasname` | ☐ |
+| N3 | Application to NAS: UDP 3799 (or `nas.ports`); on the NAS, accept only from the application host, then drop every other source | `/ip firewall filter print`; a CoA from another host is dropped | ☐ |
+| N4 | FreeRADIUS to NAS: UDP 161 (SNMP read-only, for the session guard); accept only from the FreeRADIUS address | `/ip firewall filter print`; `/snmp community print` | ☐ |
 | N5 | RouterOS API ports 8728 / 8729 **not opened** (not used by the release profile) | Port scan from the application network | ☐ |
 | N6 | Operator SSH only from the administration network | Firewall rules | ☐ |
 | N7 | NTP UDP 123 from every host to the internal NTP servers | `chronyc sources` | ☐ |
@@ -23,8 +23,8 @@ Tick every line **on the target** before go-live and after every significant cha
 |---|---|---|---|
 | W1 | HTTPS only with a valid certificate; HTTP redirects to HTTPS; HSTS set by the web server | `curl -I http://…`, `curl -I https://…` | ☐ |
 | W2 | `APP_URL` is the HTTPS address **[P stage]** | preflight `stage` | ☐ |
-| W3 | Not reachable from the web: `config.php`, `system/` (except the routed entry), `install/`, `dev/`, `tests/`, `docs/`, `owner-review/`, `.git/`, `*.sql`, `*.sh` | `curl -I https://…/config.php` → 403 / 404. The `install/fresh/` nginx example implements these deny rules and a PHP entry-point allowlist; `nuxr-post-install-verify.sh` checks 28 sensitive paths (404 in the lab) | ☐ |
-| W4 | Web installer removed after installation (`nuxr-fresh-install.sh`, default `--installer=strip`: `install/*.php`, `*.sql`, `css`, `img` deleted). **`install/freeradius/` stays, read-only and blocked by the web server**: preflight `radius_checks` reads its expected CHECK expressions from it, and without it a tampered CHECK constraint passes (G-1; product fix pending) | `curl -I https://…/install/` and `…/install/freeradius/nuxr_admission.sql` answer 404; `ls -l <app-root>/install/freeradius` shows no write access for the PHP user | ☐ |
+| W3 | Not reachable from the web: `config.php`, `system/` (except the routed entry), `install/`, `dev/`, `tests/`, `docs/`, `owner-review/`, `.git/`, `*.sql`, `*.sh` | `curl -I https://…/config.php` answers 403 / 404. The `install/fresh/` nginx example implements these deny rules and a PHP entry-point allowlist; `nuxr-post-install-verify.sh` checks 27 sensitive paths (each must answer 403 or 404) | ☐ |
+| W4 | Web installer removed after installation (`nuxr-fresh-install.sh`, default `--installer=strip`: `install/*.php`, `*.sql`, `css`, `img` deleted). **`install/freeradius/` stays, read-only and blocked by the web server**: preflight `radius_checks` reads its expected CHECK expressions from it and FAILs when they are missing (G-1, fixed in `33624129`). `--installer=remove` is therefore not usable | `curl -I https://…/install/` and `…/install/freeradius/nuxr_admission.sql` answer 404; `ls -l <app-root>/install/freeradius` shows no write access for the PHP user | ☐ |
 | W5 | Web updater disabled (`update.php` answers 403) | `curl -I https://…/update.php` | ☐ |
 | W6 | Headers `X-Frame-Options: SAMEORIGIN`, `Content-Security-Policy: frame-ancestors 'self'`, `X-Content-Type-Options: nosniff`; session cookie `HttpOnly; SameSite=Lax; Secure` | `curl -I https://…/?_route=login` | ☐ |
 | W7 | `display_errors = Off`; errors logged to a file outside the document root **[P stage]** | preflight `stage` | ☐ |
@@ -93,7 +93,7 @@ Tick every line **on the target** before go-live and after every significant cha
 | C3 | Staff accounts: no shared logins; leavers disabled; at least two named SuperAdmins (the last active SuperAdmin is protected) — **Recommended practice** for the count | Settings > Administrator Users | ☐ |
 | C4 | Customer impersonation by Admins is audited (`customer.impersonate`); review the audit periodically | Audit sample | ☐ |
 | C5 | Web database restore refused on this installation (expected) | Settings database page | ☐ |
-| C6 | R-HF-CARRY-01 (**OPEN, owner decision**): the scoped existence oracles (`autoload` PPPoE hints, `customers/add-post`) are closed on the final-prep branch and the static IP is validated and unique on save; **low** unauthenticated enumeration remains through the forgot-password / forgot-username and self-registration pages. **Recommended practice:** leave customer self-registration disabled unless the ISP needs it | Settings; owner decision record | ☐ |
+| C6 | R-HF-CARRY-01 (**OPEN, owner decision**): the scoped existence oracles (`autoload` PPPoE hints, `customers/add-post`) are closed on the final-prep branch, the static IP is validated and unique on save, and special IPv4 classes are refused (round 3, `b2f7837b`); **low** unauthenticated enumeration remains through the forgot-password / forgot-username and self-registration pages. **Recommended practice:** leave customer self-registration disabled unless the ISP needs it | Settings; owner decision record | ☐ |
 | C7 | Refused customer creates are logged with the actor id in the PHP error log (`customer.create_identity_refused`, `identity.static_ip_taken`); there is no in-app audit trace and no rate limit for them. Review the error log for repeated refusals by one Agent or Sales user, including over API tokens | Error-log review | ☐ |
 
 # 8. Backups and secret rotation

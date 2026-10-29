@@ -23,7 +23,7 @@ The ISP names the persons for each role in the support agreement. One person may
 | Level | Means | Used for |
 |---|---|---|
 | Application — SuperAdmin | Web UI | Security settings (`radius_enable`, single session, session timeout, proxy), static pages, plugins, payment gateways |
-| Application — Admin | Web UI | Customers, services, vouchers, pricing, reseller tree, finance corrections (review → confirm), Operations Center actions |
+| Application — Admin | Web UI | Customers, services, vouchers, pricing, reseller tree, finance corrections (review, then confirm), Operations Center actions |
 | Application — Agent / Sales | Web UI | Own subtree / assigned customers only |
 | Privileged — instance shell | SSH to the application host as the PHP user | `health.php`, `preflight.php`, `reconcile.php`, `quota.php`, `plugins.php`, `hierarchy.php`, cron |
 | Privileged — FreeRADIUS host | SSH; `sudo -u freerad` | Site and module files, guard credential file, `nuxr_guard_selfcheck`, restarts |
@@ -112,7 +112,7 @@ Severity follows the product's own signals. Response and resolution times are **
 | S3 — minor | Single subscriber or reseller affected; a WARNING lasting > 30 minutes; review-queue items | Support / ISP operator | ISP operator / Admin |
 | S4 — request | Questions, configuration help, documentation | Support | ISP operator |
 
-**Escalation path:** Support (L1) → ISP operator / Admin (L2) → ITC engineering (L3). Network, database and financial decisions escalate in parallel to the respective accountable party (§3).
+**Escalation path:** Support (L1), then ISP operator / Admin (L2), then ITC engineering (L3). Network, database and financial decisions escalate in parallel to the respective accountable party (§3).
 
 **Information to include when escalating to ITC:** instance name; release SHA; the exact health / preflight / reconcile output (secrets removed); error reference ids (`[nuxr] ref=…`); activation references; times in UTC; what was already done. **Never include** passwords, NAS secrets, SNMP communities, `config.php`, backups, voucher codes or customer personal data beyond what the agreement allows.
 

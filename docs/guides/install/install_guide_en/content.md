@@ -25,7 +25,7 @@ Each procedure carries one of these labels. They describe what has really been e
 
 | Label | Meaning |
 |---|---|
-| **Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0)** | Executed end to end with the `install/fresh/` package on 2026-10-29 on an isolated, disposable Docker instance, once against MariaDB 10.11.19 and once against MySQL 8.0.46, then torn down. App container: Ubuntu 24.04 with PHP 8.2.35 (CLI and FPM) from `ppa:ondrej/php`, nginx 1.24.0 and the MariaDB 10.11 client, using exactly this manual's package set; a self-signed certificate; no published port; **no FreeRADIUS and no NAS**. Source: commit `228f01c9`, artifact SHA-256 `4c233573…` (reproducible build). This is lab evidence, **not** a target acceptance |
+| **Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0)** | Executed end to end with the `install/fresh/` package on 2026-10-29 on an isolated, disposable Docker instance, once against MariaDB 10.11.19 and once against MySQL 8.0.46, then torn down. App container: Ubuntu 24.04 with PHP 8.2.35 (CLI and FPM) from `ppa:ondrej/php`, nginx 1.24.0 and the MariaDB 10.11 client, using exactly this manual's package set; a self-signed certificate; no published port; **no FreeRADIUS and no NAS**. Source: commit `228f01c9`, artifact SHA-256 `4c233573…` (reproducible build). The proof was run on `228f01c9` and will be re-run on the final release commit. This is lab evidence, **not** a target acceptance |
 | **Lab-verified** | Executed by the project's lab scripts on the isolated WSL lab and recorded as evidence. That lab is: Ubuntu 24.04 (WSL2), PHP 8.2 from the `ppa:ondrej/php` repository, nginx with PHP-FPM on a loopback address over **plain HTTP**, MariaDB 10.11.14, FreeRADIUS 3.2.5 (Ubuntu package) with the project configuration, the official FreeRADIUS 3.2.8 image used by the test harness, and MikroTik CHR RouterOS 7.24.5 virtual routers. MySQL 8.0 was exercised there by the automated test harness |
 | **Documented (not yet executed on target)** | Specified by the authoritative product documents but not executed in the lab in this form, and not executed on any target system |
 
@@ -46,7 +46,7 @@ Each procedure carries one of these labels. They describe what has really been e
 The package scripts run as root on the application host. Product tools are run from `<app-root>` unless stated otherwise.
 
 > [!NOTE]
-> **Internal names are unchanged.** The product is called ITC NetCore, but database and table names (`tbl_*`, `radcheck` …), the FreeRADIUS site and dictionary (`phpnuxbill`), file paths and the Composer package keep their original PHPNuxBill names. Do not rename them: the migration runner identifies the installed schema by the SHA-256 of `install/phpnuxbill.sql`, and renaming breaks the installation.
+> **Internal names are unchanged.** The product is called ITC NetCore, but database and table names (`tbl_*`, `radcheck` …), the FreeRADIUS site and dictionary (`phpnuxbill`), file paths and the Composer package keep their original PHPNuxBill names. Do not rename them: the migration runner recognises the installed core schema by comparing its structure with registered variants (a fresh installation must be recognised as `V1_FRESH_INSTALL`), and renaming breaks the installation.
 
 <!-- pagebreak -->
 
@@ -278,10 +278,10 @@ The package README (`install/fresh/README.md`) is the reference for every option
 | `logrotate/itc-netcore.example`, `cron/itc-netcore.cron.example` | Log rotation and scheduled jobs |
 
 > [!NOTE]
-> **Lab proof (2026-10-29).** The whole sequence of this chapter ran on a disposable instance against MariaDB 10.11 and against MySQL 8.0: install exit 0; a second run exit 0 with an identical database; post-install verification **67 PASS / 0 WARN / 0 FAIL** on each engine; 8 of 8 refusal cases refused on each engine with nothing changed. It is not a target acceptance and not a release authorization.
+> **Lab proof (2026-10-29).** The whole sequence of this chapter ran on a disposable instance against MariaDB 10.11 and against MySQL 8.0: install exit 0; a second run exit 0 with an identical database; post-install verification **67 PASS / 0 WARN / 0 FAIL** on each engine; 8 of 8 refusal cases refused on each engine with nothing changed. The proof was run on commit `228f01c9` (with the package as staged at that time) and will be re-run on the final release commit. It is not a target acceptance and not a release authorization.
 
 > [!NOTE]
-> **Package location.** `install/fresh/` is staged for the release and not yet committed, so an artifact built before that commit does not contain it. In that case copy the reviewed package next to the verified artifact copy, at `<artifact-dir>/install/fresh/` (the proof did exactly this). Once it is committed it is inside the artifact. The installer always refuses to run from the copy inside the document root.
+> **Package location.** `install/fresh/` is part of the release commit and of every artifact built from it. Run it from the verified artifact copy, `<artifact-dir>/install/fresh/`. (The lab proof on `228f01c9` predates that commit and used a copy of the package placed at the same location.) The installer always refuses to run from the copy inside the document root.
 
 ## Obtain and verify the release artifact
 
@@ -410,21 +410,21 @@ Run the same command without `--dry-run`:
 > [!WARNING]
 > **Never install over an existing or unknown database.** The base schema files `install/phpnuxbill.sql` and `install/radius.sql` begin each table with `DROP TABLE IF EXISTS`. The installer's **database gate** proves, through the DBA account with global `SELECT` (so that every object is visible), that the target database either does not exist (and `--create-db` is given) or holds zero tables, views, routines, events and triggers with the collation `utf8mb4_general_ci`. It checks the emptiness **again** immediately before the base schema is loaded. Anything else is refused with exit 3 before any change. Never drop, reuse or "clean" a database to get past the gate.
 
-The installer runs these phases, in this order:
+Before phase 1 the installer checks `<env-file>`: a mode other than 0600 / 0400, an owner other than the invoking user, or a location inside the document root is refused (exit 3) before anything else. It then runs these phases, in this order:
 
 | # | Phase | What it does and checks |
 |---|---|---|
 | 1 | Prerequisites | PHP 8.2 with the five extensions, PHP-FPM, a database client, the web user and the tools; the engine and its global settings (A3 isolation, A4 time zone, A5 skew, A6 `check_constraint_checks`); the DBA account's privileges |
-| 2 | Database gate | The emptiness proof above; refuses pre-existing accounts (they may hold privileges elsewhere, ISO-01), an `<env-file>` with the wrong mode or owner, and a `config.php` without installer state |
+| 2 | Database gate | The emptiness proof above; refuses pre-existing accounts (they may hold privileges elsewhere, ISO-01) and a `config.php` without installer state |
 | 3 | Database and accounts | Creates the database (only with `--create-db`) as `utf8mb4` / `utf8mb4_general_ci`, then the migration, application and FreeRADIUS accounts |
-| 4 | Base schema | After the second emptiness check, the migration (DDL) account loads `install/phpnuxbill.sql` and `install/radius.sql`; `pages_template/` is copied to `pages/` |
+| 4 | Base schema | After the second emptiness check, the migration (DDL) account loads `install/phpnuxbill.sql` and `install/radius.sql` |
 | 5 | `config.php` | Rendered from `templates/config.php.tmpl`: the application runtime account from the start, new 64-hex `$app_secret` and `$api_secret` from `random_bytes`, stage `Live`, and a pinned `define('APP_URL', '<https URL>')` |
-| 6 | Ownership and modes | The table in *Deploy the code* |
+| 6 | Ownership and modes | Creates `pages/` from `pages_template/` and then removes `pages_template/`; applies the table in *Deploy the code* |
 | 7 | Migrations | `migrate.php` `status`, `preflight` (variant `V1_FRESH_INSTALL` required), `migrate`, `verify`, and a second `migrate` that must do nothing |
 | 8 | RADIUS admission tables | Loads `nuxr_admission.sql` and `nuxr_hs_admission.sql` and requires the three READY checks |
 | 9 | RADIUS setting | Stores `radius_enable = 1` (the value of the SuperAdmin setting "Enable Radius: Yes"); `--no-enable-radius` skips it |
 | 10 | Grants | `grants.php` with an automated review, then applies the statements |
-| 11 | Installer removal and cron | Removes the web installer (default `--installer=strip`) and, with `--install-cron`, installs `/etc/cron.d/itc-netcore` |
+| 11 | Installer removal and cron | Removes the web installer (default `--installer=strip`, keeping `install/freeradius/` read-only) and, with `--install-cron`, installs `/etc/cron.d/itc-netcore` |
 | 12 | Checks | `preflight.php --setup` and `health.php --finance`, both as the web user |
 | 13 | Next steps | Printed: first login, settings, log rotation, FreeRADIUS and NAS, release preflight, backups, secret clean-up |
 
@@ -494,7 +494,7 @@ The installer does the work; the operator reviews the result with these rules.
 **Installer removal.** With the default `--installer=strip` the installer deletes the web installer (`install/*.php`, `install/*.sql`, `css`, `img` and the package copy) and keeps `install/freeradius/` read-only.
 
 > [!WARNING]
-> **Keep `install/freeradius/` in the document root, read-only and blocked from the web** (the package nginx example answers 404 for every path under `/install/`). The preflight check `radius_checks` reads its expected CHECK expressions from `install/freeradius/*.sql` in the document root. When those files are missing, the expected set is empty and a **tampered** admission CHECK constraint passes the preflight (lab-proven, finding G-1). `--installer=remove` follows the runbook text literally and deletes all of `install/`: use it only after the product fix for G-1 is released.
+> **Keep `install/freeradius/` in the document root, read-only and blocked from the web** (the package nginx example answers 404 for every path under `/install/`). The preflight check `radius_checks` reads its expected CHECK expressions from `install/freeradius/*.sql` in the document root. Since commit `33624129` (the fix of finding G-1) the check **FAILs** when either file is missing or unreadable ("reference definitions … missing or unreadable"). `--installer=remove` deletes all of `install/`, so the setup preflight of phase 12 FAILs and the installer stops with exit 4. **Do not use `--installer=remove`**; keep the default `--installer=strip`.
 
 **Verification level:** Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0): 30 base tables after the emptiness re-check; `migrate` 7 APPLIED and `verify` exit 0 on both servers; three READY lines on both engines; grants 68 statements reviewed and applied with 2 FreeRADIUS hosts (MariaDB) and 57 with 1 host (MySQL), application account with no global privilege and ledger / audit / activation-events `SELECT, INSERT` only; installer files removed with `install/freeradius` kept read-only.
 
@@ -508,14 +508,14 @@ The script is non-destructive: it reads files, sends GET / HEAD requests and run
 
 | Area | Checks |
 |---|---|
-| Web | Login page 200 with a form; `/admin/` reaches the admin route (200); B6 headers each exactly once; cookie `HttpOnly; Secure; SameSite=Lax`; HSTS; HTTP answers 301 to HTTPS; `system/uploads/paid.png` 200; `update.php` 403; sensitive paths answer 404 (among them `/install/`, `/install/freeradius/*.sql`, `/config.php`, `/.git/config`, `/system/`, `/system/reseller/migrate.php`, `/system/api.php`, `/init.php`, `/radius.php`, `/ui/compiled/`, `*.tpl`, `/pages/`, `/RELEASE_SHA`) |
+| Web | Login page 200 with a form; `/admin/` redirects (30x) to the admin route `?_route=admin/`, which answers 200; the B6 headers present (a header sent more than once is a WARN); cookie `HttpOnly; Secure; SameSite=Lax`; HSTS; HTTP answers 301 to HTTPS; `system/uploads/paid.png` 200; `update.php` 403; 27 sensitive paths answer 403 or 404 (among them `/install/`, `/install/freeradius/*.sql`, `/config.php`, `/.git/config`, `/system/`, `/system/reseller/migrate.php`, `/system/api.php`, `/init.php`, `/radius.php`, `/ui/compiled/`, `*.tpl`, `/pages/`, `/RELEASE_SHA`) |
 | Files | No installer file on disk; `config.php` 0640 `root:<php-user>`; the five writable paths writable by `<php-user>`, the rest of the code tree not; nothing world-writable |
 | Tools | `preflight.php --setup` and `health.php --finance` exit 0 |
 | Cron (dry) | The cron file has the documented lines; `cron.php` runs from `system/`; PHP lint passes; `../init.php` resolves; `quota.php report` exits 0 |
 
 Exit codes: 0 every check PASS (WARN lines allowed) · 1 at least one FAIL · 5 usage. After the NAS are onboarded, run it again with `--release` (see *Release preflight*).
 
-**Verification level:** Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0): **67 PASS / 0 WARN / 0 FAIL** on each engine, with a self-signed certificate; 28 sensitive paths answered 404. On target: documented (not yet executed on target), TA-10.
+**Verification level:** Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0): **67 PASS / 0 WARN / 0 FAIL** on each engine, with a self-signed certificate; 27 sensitive paths answered 403 / 404. On target: documented (not yet executed on target), TA-10.
 
 ## Deviations from the product runbook
 
@@ -527,9 +527,9 @@ The package deliberately differs from the literal runbook text in these points (
 | Installer account writes the schema and is replaced later | The migration (DDL) account loads the base schema; no separate installer account; `config.php` holds the runtime account from the start | One administrative account fewer; the migration password is never in `config.php` (D3) |
 | `migrate.php` without `--db-host` | `--db-host` equal to `NUXR_DB_HOST` | The account host part must match the connection |
 | RADIUS enabled later in the user interface | `radius_enable = 1` stored by default (`--no-enable-radius` to skip) | Known issue ACC-1; see *Basic settings* |
-| Remove `install/` (runbook §2 step 4) | Default `--installer=strip`: `install/freeradius/` kept read-only and denied by nginx | Finding G-1 (above) |
 | `APP_URL` derived from the request | `define('APP_URL', '<https URL>')` pinned | Checklist B9; also removes the CLI warnings |
-| `php system/cron.php` (checklist I1) | `cd <app-root>/system && php cron.php` | Finding G-2 (see *Scheduled jobs*) |
+
+The runbook and the checklist were corrected in commit `c550d6b8`: runbook §2 step 4 now keeps `install/freeradius/` read-only (the package default `--installer=strip`), and checklist I1 / I2 and the `cron.php` header now give `cd <app>/system && php cron.php`. On these two points the package and the product documents agree; they are no longer deviations.
 
 ## First login and administrator password
 
@@ -586,14 +586,16 @@ sudo -u <php-user> php system/reseller/health.php --finance
 
 | Preflight check | What it proves |
 |---|---|
+| `db.connect` | Printed only when the runtime account in `config.php` cannot connect: FAIL with the cause (access denied, unknown database, server not reachable) and the MySQL error number; no other check runs; exit 4 (G-4, fixed in `bd1e03cc`) |
 | `keys` | `$app_secret` and `$api_secret` are valid and distinct |
 | `stage` | stage `Live`, `display_errors` off, `https://` URL (WARN otherwise) |
 | `engine`, `isolation` | tested engine, REPEATABLE-READ globally and for the session |
-| `time` | SQL session zone UTC, database / PHP skew under 5 s, NAS clocks (`time.nas_clock`) |
+| `time` | SQL session zone UTC; database / PHP clock skew (`time.clock_skew`: PASS up to 5 s, WARN 6–30 s, FAIL above 30 s); NAS clocks (`time.nas_clock`: WARN above 5 s, FAIL above 10 s) |
 | `schema` | reseller schema ready, including every CHECK expression and its enforcement |
-| `radius_checks` | admission-table CHECK constraints exact and enforced (MariaDB: global `check_constraint_checks`); the expected expressions are read from `install/freeradius/` (G-1) |
+| `radius_checks` | admission-table CHECK constraints exact and enforced (MariaDB: global `check_constraint_checks`); the expected expressions are read from `install/freeradius/`; FAIL when those reference files are missing or unreadable (G-1, fixed in `33624129`) |
 | `quota.plans` | no enabled Limited plan with an unusable quota |
-| `identity` | no RADIUS identity with more than one holder (always passes on an empty database) |
+| `identity.collisions`, `identity.non_canonical` | no RADIUS identity with more than one holder (FAIL otherwise; always passes on an empty database); stored names with edge whitespace or control characters (WARN) |
+| `shared_key` | customers with an active Hotspot and an active PPPoE service on one RADIUS key (WARN; set a distinct PPPoE username) |
 | `profile` | FreeRADIUS-only release profile |
 | `plugins` | installed plugin files (none on a fresh install) |
 | `grants` | the account in `config.php` is least-privilege (FAILs for root or an administrative account) |
@@ -639,7 +641,7 @@ The example also contains, as commented lines, the daily read-only reconcile che
 | `health.php --json --finance` | hourly | Adds the whole-database finance integrity check (I4, expensive) |
 
 > [!WARNING]
-> **Run `cron.php` from the `system/` directory:** `cd <app-root>/system && php cron.php`. It includes `../init.php` relative to the working directory. The form `php system/cron.php` from the root, which the production checklist (I1) and the file's own header give, **exits 0 with only a PHP warning and does nothing** (finding G-2). The package cron file uses the correct form; do not "correct" it.
+> **Run `cron.php` from the `system/` directory:** `cd <app-root>/system && php cron.php`. It includes `../init.php` relative to the working directory. The form `php system/cron.php` from the root **exits 0 with only a PHP warning and does nothing** (finding G-2). The production checklist (I1, I2), the file's own header and the package cron file all use the correct form; do not "correct" it.
 
 **Verification:** one manual run of each as `<php-user>` exits 0:
 
@@ -808,18 +810,18 @@ Collect these items before the owner's release decision:
 | `nuxr-fresh-install.sh` exit 3, "REFUSED … NOT EMPTY" or another refusal; "nothing was changed by this run" | The database is not empty or not known (without `--create-db`), has another collation than `utf8mb4_general_ci`, an account already exists, `<env-file>` is not 0600 / 0400 or not yours, or a `config.php` without installer state exists | Choose a new, empty database or new account names, or correct the file mode. **Never** drop or clean a database to pass the gate |
 | `nuxr-fresh-install.sh` exit 3, the base-schema load was interrupted ("never resumed") | A previous run failed during the base-schema load | Start again on a new, empty database |
 | `nuxr-fresh-install.sh` exit 4 | A step failed (schema, migration, grants, preflight, health); the log names it | Fix the cause and run the same command again: it resumes after the base schema |
-| Setup preflight ends with a PHP fatal error and a stack trace (exit 255) instead of a FAIL line; the installer reports exit 4 | The runtime account cannot connect to the database (finding G-4; a product fix is in progress) | Check the application account, its host part (`NUXR_DB_CLIENT_HOST`) and its password; re-run |
+| Setup preflight prints `FAIL db.connect` (access denied, unknown database or server not reachable, with the MySQL error number) and exits 4; the installer reports exit 4 | The runtime account in `config.php` cannot connect to the database (finding G-4, fixed in `bd1e03cc`: no PHP fatal error and no stack trace) | Check the application account, its host part (`NUXR_DB_CLIENT_HOST`) and its password; re-run |
 | `migrate.php` exits 2 with an access error | The account's host part does not match the connection (`'<user>'@'localhost'` used with a TCP host) | Set `NUXR_DB_CLIENT_HOST` to the address the database sees, or `localhost` for a socket connection |
 | `migrate.php preflight` exits 2: unknown or incompatible core schema | The database is not the fresh base schema (edited `phpnuxbill.sql`, a leftover database, or the wrong database) | Stop. There is no override. Start again on a new, empty database |
 | `migrate.php` exits 3 | A step or postflight failed; the partial state is recorded | Only `rollback` may run. On a fresh install with no data: `php system/reseller/migrate.php rollback --all` with the migration account's connection options, fix the cause, rerun. If anything fails again, discard the database and start over on a new one |
 | `health.php` UNKNOWN with "SELECT command denied … tbl_reseller_…" | Grants were generated before the migrations, so the reseller tables were missing | Regenerate the grants after the migrations and apply them |
-| Preflight `radius_checks` or `mac` FAIL "check could not run" | RADIUS is not enabled (`--no-enable-radius` was used), or the RADIUS connection settings in `config.php` are wrong | Enable RADIUS (SuperAdmin) and check `$radius_*`; rerun |
-| Preflight `radius_checks` PASS although `install/freeradius/` is missing from the document root | The expected CHECK set is empty, so the check proves nothing (finding G-1) | Restore `install/freeradius/` read-only from `<artifact-dir>` and rerun the preflight |
+| Preflight `radius_checks` or `mac` FAIL "check could not run" | The RADIUS connection settings in `config.php` (`$radius_*`) are wrong, or the RADIUS tables are missing or not readable by the runtime account. `radius_enable` is not the cause: the preflight falls back to the main connection (G-3) | Check `$radius_*`, the RADIUS tables and their grants; rerun |
+| Preflight `radius_checks` FAIL "reference definitions install/freeradius/… missing or unreadable" | `install/freeradius/` is missing from the document root or not readable by the web user (for example after `--installer=remove`) | Restore `install/freeradius/` read-only from `<artifact-dir>` and rerun the preflight (G-1) |
 | Preflight `nas.verification` FAIL `NOT_CONFIGURED` | No NAS yet (release mode) | Expected before onboarding; use `--setup` until the NAS are registered |
 | Preflight `nas.verification` FAIL for a NAS | NAS type is not `mikrotik_snmp` | Set RADIUS › NAS › Type to `mikrotik_snmp` |
 | Preflight `stage.https` WARN | `APP_URL` is `http://` | Serve over HTTPS; behind a proxy set `HTTPS on` on the backend; `APP_URL` must be the pinned `https://` value (B9) |
 | Preflight `grants` FAIL | `config.php` was edited to use root or another administrative account | Restore the runtime account the installer wrote |
-| Preflight `time.clock_skew` FAIL | Application and database clocks differ by 5 s or more | Repair NTP on both hosts |
+| Preflight `time.clock_skew` WARN / FAIL | Application and database clocks differ (WARN 6–30 s, FAIL above 30 s) | Repair NTP on both hosts |
 | Preflight `time.nas_clock` WARN / FAIL | A NAS clock is ahead (WARN above 5 s, FAIL above 10 s) | Operator recovery runbook §4c: repair NTP on the NAS, recheck after the next Interim |
 | CLI tools print "Undefined array key SERVER_PORT / HTTP_HOST" | A `config.php` not written by the package derives `APP_URL` from web-server variables | Pin `APP_URL` to a fixed `https://` value (B9) |
 | Every RADIUS login fails with error 1267 (illegal mix of collations) | A RADIUS table, normally `nasreload`, has another collation than `radacct` (MySQL 8 default) | Run `nuxr_nasreload_collation_check.sql`; on a fresh install start again on a new database created with `utf8mb4_general_ci` |
@@ -842,7 +844,7 @@ Collect these items before the owner's release decision:
 | `install/fresh/nuxr-post-install-verify.sh` | 0 every check PASS · 1 at least one FAIL · 5 usage |
 | `install/backup/*` | see `install/backup/README.md` §8 (for example 6 refused by a safety rule, 7 checksum mismatch, 75 lock held, 78 configuration error) |
 | `system/reseller/migrate.php` | 0 OK · 2 NOT_READY · 3 FAILED · 4 DRIFT · 5 USAGE |
-| `system/reseller/preflight.php` | 0 no check FAILs · 4 at least one FAIL (a PHP fatal error gives 255, see G-4) |
+| `system/reseller/preflight.php` | 0 no check FAILs · 4 at least one FAIL (including `db.connect`) |
 | `system/reseller/health.php` | 0 OK · 1 WARNING · 2 CRITICAL · 3 UNKNOWN |
 | `system/reseller/reconcile.php` | 0 OK · 2 refused (nothing changed) · 3 failed · 4 issues found / external state ambiguous · 5 usage |
 | `system/reseller/quota.php` | 0 done (or another enforcer is running) · 3 RADIUS database unavailable · 5 usage (including `--every` below 5) |

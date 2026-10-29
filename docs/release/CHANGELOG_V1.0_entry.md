@@ -37,10 +37,12 @@ and the PHPNuxBill contributors. Developed and maintained by ITC.
 
 - Legacy RouterOS API drivers and the `rlm_rest` device are disabled in the release profile
 - CI actions pinned to commit SHAs
-- The static IP of a customer must be a valid IPv4 address and unique across all customers, for every role (R-HF-CARRY-01)
+- The static IP of a customer must be a usable IPv4 host address (special classes 0/8, 127/8, 169.254/16, 224/4, 240/4 refused) and unique across all customers, for every role (R-HF-CARRY-01)
 - Agents and Sales get one generic refusal when a username, PPPoE username or static IP is already taken (R-HF-CARRY-01)
 - Distinct Arabic labels: Refill Customer «شحن العميل بقسيمة», Recharge Customer «إعادة شحن اشتراك العميل», Refill Account «شحن الحساب بقسيمة», Coupons «الكوبونات»; the voucher list button reads "Add Vouchers" («إضافة قسائم»)
 - The first installation uses the `install/fresh/` package instead of the web installer
+- Deployment runbook and configuration checklist: keep `install/freeradius/`, run `cron.php` / `cron_reminder.php` from `system/`, `quota.php --every` at least 5 (`c550d6b8`)
+- Documentation: installation, MikroTik / FreeRADIUS, operations, training and product-profile guides (`e23e7540`)
 
 ### Fixed
 
@@ -49,10 +51,14 @@ and the PHPNuxBill contributors. Developed and maintained by ITC.
 - Legacy PPPoE IP / username availability hints answered for customers outside an Agent's or Sales account's scope (R-HF-CARRY-01, `0be31b63`)
 - `customers/add-post` disclosed username existence to tree-scoped staff (R-HF-CARRY-01, `228f01c9`)
 - The static IP was neither validated nor unique on save (R-HF-CARRY-01, `e8260df7`)
+- Special IPv4 addresses (including `255.255.255.255`) were accepted as a static IP; a kept legacy IP with edge whitespace was re-judged (R-HF-CARRY-01 round 3, `b2f7837b`)
+- Literal refusal details without an Arabic text; the static-IP refusal now names the rule (`9b21ebfe`)
+- `preflight.php` died with a PHP fatal error (exit 255) when the runtime account could not connect; now `FAIL db.connect`, exit 4 (G-4, `bd1e03cc`)
+- `preflight.php` `radius_checks` passed when `install/freeradius/*.sql` was missing; now FAIL (G-1, `33624129`)
 - Customer-portal header in product identity mode: the mark pushed the product name under the navigation bar (`012a9e91`)
 - Untranslated Arabic strings: Voucher and FreeRADIUS settings titles, the portal Voucher item, "Or", default plan titles, 13 refusal messages (`012a9e91`)
 
 ### Known limitations
 
-- R-HF-CARRY-01 stays open for the owner: low unauthenticated enumeration (forgot-password / forgot-username, self-registration) and accepted-level residuals; a third round (reserved IPv4 ranges) is in progress
+- R-HF-CARRY-01 stays open for the owner: low unauthenticated enumeration (forgot-password / forgot-username, self-registration) and accepted-level residuals; round-3 residuals R3-1 (legacy special values still sent to the NAS) and R3-2 (VPN auto-assignment and reprovision revert without the identity lock)
 - See `docs/guides/operations/` (supported capabilities and known limitations) and `docs/release/RELEASE_NOTES_V1.0.md`

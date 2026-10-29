@@ -418,7 +418,7 @@ If the application host is **not** the FreeRADIUS address, RouterOS ignores its 
 ```
 
 - The PPPoE profile carries **no local pool or address override**: the address comes from RADIUS (`Framed-Pool` or a static `Framed-IP-Address`, never both).
-- A customer's **static IP** (`pppoe_ip`, sent as `Framed-IP-Address`) must be a valid IPv4 address and is **unique across all customers**: the application refuses an invalid or already-assigned address on save, for every role (final-prep branch, `e8260df7`). The rejection of reserved and special ranges (`0.0.0.0/8`, `127.0.0.0/8`, `169.254.0.0/16`, `224.0.0.0/4` and `240.0.0.0/4`, which includes `255.255.255.255`) is part of a third R-HF-CARRY-01 round in progress; until the release confirms it, never assign such an address (RFC 2865 defines `255.255.255.255` as "let the user select an address"). The check does not cover NAS, gateway or pool addresses: keep static addresses outside every `Framed-Pool` range and away from the NAS and gateway addresses. How RouterOS handles a duplicate `remote-address` was not tested.
+- A customer's **static IP** (`pppoe_ip`, sent as `Framed-IP-Address`) must be a valid IPv4 address and is **unique across all customers**: the application refuses an invalid or already-assigned address on save, for every role (final-prep branch, `e8260df7`). Since round 3 of R-HF-CARRY-01 (`b2f7837b`; Arabic refusal details `9b21ebfe`) the special classes `0.0.0.0/8`, `127.0.0.0/8`, `169.254.0.0/16`, `224.0.0.0/4` and `240.0.0.0/4` (which includes `255.255.255.255`; RFC 2865 defines that value as "let the user select an address") are refused on every save path. R-HF-CARRY-01 itself stays **OPEN** for the owner decision. A legacy row that already holds such a value is not re-checked until it is changed and is still sent as `Framed-IP-Address` (residual R3-1): never keep one. The VPN auto-assignment and the reprovision `revert()` write a static IP without the identity lock or the uniqueness check (residual R3-2). The check does not cover NAS, gateway or pool addresses: keep static addresses outside every `Framed-Pool` range and away from the NAS and gateway addresses. How RouterOS handles a duplicate `remote-address` was not tested.
 - Every pool a plan names (`Framed-Pool`) **must exist on the NAS**, otherwise the subscriber gets an Access-Accept but no IPv4 address (RADIUS cannot detect it).
 - No local `/ppp secret` may carry a subscriber's name: RouterOS consults RADIUS only when no local user matches, so a local user masks the RADIUS identity.
 
@@ -546,9 +546,9 @@ The application sends RFC 5176 Disconnect-Request and CoA-Request packets itself
 |---|---|
 | Destination | `nas.nasname` (an IP address), port `nas.ports` or 3799 |
 | Source | Must be an address configured as a `/radius` server on that NAS. From a non-`/radius` address, requests were silently ignored on RouterOS 7.12.1; this case was not re-tested on 7.24.5, and the rule stays binding |
-| Live session | ACK → `SUCCESS` |
-| Session not found | **NAK Error-Cause 406** (never 503) → `FAILED COA_NAK`; for a session-end this stays **unconfirmed** |
-| No answer | After 3 identical packets about 2 s apart → `UNKNOWN COA_NO_RESPONSE`. Never retried as a new request, never rolls back provisioning |
+| Live session | ACK, result `SUCCESS` |
+| Session not found | **NAK Error-Cause 406** (never 503), result `FAILED COA_NAK`; for a session-end this stays **unconfirmed** |
+| No answer | After 3 identical packets about 2 s apart, result `UNKNOWN COA_NO_RESPONSE`. Never retried as a new request, never rolls back provisioning |
 | Rate change | A `Mikrotik-Rate-Limit` CoA is applied live |
 | Pool / address change | A CoA changing `Framed-Pool` / `Framed-IP-Address` is ACKed but **ignored**: change the policy, then Disconnect |
 | Byte limits mid-session | PPPoE: ACKed, not applied; Hotspot: NAKed |
@@ -585,8 +585,8 @@ The first statement of `authorize` drops, without any response, every Access-Req
 | Layer | Behaviour |
 |---|---|
 | `Simultaneous-Use = 1` | Written for every PPPoE subscriber; the stock `session { sql }` check counts open `radacct` rows |
-| PPPoE session guard | For PPPoE requests only (`Service-Type = Framed-User`, `Framed-Protocol = PPP`, `NAS-Port-Type = Ethernet`). No open row: no NAS is asked. Open rows: every NAS named by them is asked over read-only SNMP whether `<pppoe-USERNAME>` is live. `SAFE` → Accept; `LIVE` or `ERROR` (anything unproven: missing credential, SNMP silent, timeout, missing tool) → Reject. The guard never deletes or updates `radacct` |
-| Admission reservation | The last step before the Access-Accept is an atomic claim in `nuxr_admission`, one row per canonical subscriber (all case / accent spellings share it), with a per-attempt token returned in `Class` (`nuxr1…`). Accounting with that token moves it `PENDING` → `ACTIVE` → `ENDED` |
+| PPPoE session guard | For PPPoE requests only (`Service-Type = Framed-User`, `Framed-Protocol = PPP`, `NAS-Port-Type = Ethernet`). No open row: no NAS is asked. Open rows: every NAS named by them is asked over read-only SNMP whether `<pppoe-USERNAME>` is live. `SAFE` gives Accept; `LIVE` or `ERROR` (anything unproven: missing credential, SNMP silent, timeout, missing tool) gives Reject. The guard never deletes or updates `radacct` |
+| Admission reservation | The last step before the Access-Accept is an atomic claim in `nuxr_admission`, one row per canonical subscriber (all case / accent spellings share it), with a per-attempt token returned in `Class` (`nuxr1…`). Accounting with that token moves it from `PENDING` to `ACTIVE`, then to `ENDED` |
 | Strict Mode | A `PENDING` claim of another attempt refuses the login and is **never** released by time or SNMP |
 | Late-claim guard | A request older than **5000 ms** inside FreeRADIUS gets no claim and no Accept. It assumes `/radius timeout=3s` (3 transmissions, abandoned after about 9.3 s) |
 | Fresh-session hold | Within **10 s** of a session's Start, a take-over of its `ACTIVE` reservation is refused (`reject:active-fresh`); it ends by itself |
@@ -649,7 +649,7 @@ Read the numbers with `php system/reseller/quota.php usage <user>` (actual, bill
 | Setting | Default | Notes |
 |---|---|---|
 | Interim for quota sessions (`nuxr_quota_interim_seconds`) | **30 s** | Owner's provisional N1 setting; allowed 10–300. A shorter interval lowers the overshoot bound and raises the accounting write rate (one Interim per online quota subscriber per interval). Applies to sessions that authenticate after the change. The final value is fixed by TA-05 and TA-09; keep the default for the first installation |
-| Enforcer pass (`--every`) | 5 s | Allowed 5–15 |
+| Enforcer pass (`--every`) | 5 s | At least 5 (design range 5–15; a value below 5 exits 5) |
 
 **Fail closed.** A share of 0 is never sent (RouterOS reads 0 as "no limit"). An exhausted quota, a malformed quota row or a failed SQL expansion rejects the login with "Data quota exhausted or unavailable"; a `Max-Data` / `Max-All-Session` row that is not exactly what FreeRADIUS loaded rejects with "Quota unavailable". A Limited plan with a zero, negative, non-numeric or unknown-unit limit cannot be saved.
 
@@ -669,7 +669,8 @@ Read the numbers with `php system/reseller/quota.php usage <user>` (actual, bill
 | `radacct` | FreeRADIUS | application, guard | Accounting history; never deleted |
 | `nas` | application | FreeRADIUS (clients), application (CoA) | NAS list and secrets |
 | `nasreload` | FreeRADIUS | FreeRADIUS | Accounting-On bookkeeping of the stock queries |
-| `nuxr_admission`, `nuxr_admission_audit` | FreeRADIUS; operator release | FreeRADIUS, `reconcile.php` | PPPoE admission reservation and its audit |
+| `nuxr_admission` | FreeRADIUS; operator release | FreeRADIUS, `reconcile.php` | PPPoE admission reservation |
+| `nuxr_admission_audit` | operator release only (`reconcile.php`; FreeRADIUS has no privilege on it) | operator, `reconcile.php` | Audit of each operator release |
 | `nuxr_hs_admission`, `nuxr_hs_admission_audit` | FreeRADIUS | FreeRADIUS, monitoring | Hotspot admission slots and their audit |
 | `radpostauth` | — | — | Not used (would store cleartext passwords) |
 

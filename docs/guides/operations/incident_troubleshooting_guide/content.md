@@ -2,7 +2,7 @@
 
 This guide helps support staff and operators handle the most common incidents on an ITC NetCore V1.0 instance. Each incident follows the same structure:
 
-**Symptom → Likely causes → Safe verification → Authorized resolution → Escalation**
+**Symptom › Likely causes › Safe verification › Authorized resolution › Escalation**
 
 "Safe verification" steps are read-only. "Authorized resolution" names who may act and through which supported path. Sources: `docs/OPERATOR_RECOVERY_RUNBOOK.md`, `install/freeradius/README.md`, `docs/NAS_ONBOARDING_AND_SECRET_ROTATION.md`, `docs/BACKUP_RESTORE_RUNBOOK.md`, `install/backup/README.md`, `install/fresh/README.md`, `system/reseller/health.php`, the FreeRADIUS site `install/freeradius/sites-available/phpnuxbill`, and the WP models.
 
@@ -54,8 +54,8 @@ This guide helps support staff and operators handle the most common incidents on
 - Operations Center: stale or needs-attention activations of that reseller; health `reservations`.
 
 **Authorized resolution.**
-- Parent Agent: Finance > *Send to child reseller* (review → confirm).
-- Admin: provider funding or a debt limit (review → confirm, reason required).
+- Parent Agent: Finance > *Send to child reseller* (review, then confirm).
+- Admin: provider funding or a debt limit (review, then confirm; reason required).
 - Held reservations: resolve the holding activation per §4 (resume or cancel); never release by SQL.
 
 **Escalation.** Financial operator for funding policy or a disputed balance; ITC if `finance-check` is not CONSISTENT.
@@ -146,7 +146,7 @@ This guide helps support staff and operators handle the most common incidents on
 | MAC-auth refused | The RADIUS username is stored as a lower-case MAC address; MAC authentication is refused for such names by design (MAC-H1A) | preflight `mac` lists the count | Review the listed identities with the Admin (checklist E5); any change is made through the application |
 | Rejected after a dictionary / site change | An unknown attribute in `radcheck` (dictionary, counters and site not installed together) | FreeRADIUS start log | Install `dictionary.phpnuxbill`, `nuxr_counters` and the site together; restart |
 
-**Escalation.** Operator → ITC with the FreeRADIUS log excerpt (never the secrets).
+**Escalation.** The operator escalates to ITC with the FreeRADIUS log excerpt (never the secrets).
 
 # 7. SNMP verification failed
 
@@ -182,7 +182,7 @@ This guide helps support staff and operators handle the most common incidents on
 | Plan's IP pool missing on the NAS (Accept without IPv4) | Plan settings vs `/ip pool print` | Network admin creates the pool |
 | Hotspot slot PENDING | `nuxr_hs_admission_report.sql`; health `admission_pending` | FreeRADIUS README "Hotspot admission slots" |
 
-**Escalation.** Operator → ITC with the activation reference or admission key (never the token in a public channel).
+**Escalation.** The operator escalates to ITC with the activation reference or admission key (never the token in a public channel).
 
 # 9. Quota or usage disagreement
 
@@ -236,12 +236,12 @@ Also: the decryption key is not available on the restore host; wrong character s
 
 # 11. Customer creation or edit refused (identity or static IP)
 
-**Symptom.** Adding a customer is refused. An Agent or Sales user sees **one generic refusal** that some identity is already taken. An Admin sees a specific reason, for example "This static IP address is already assigned to another customer." or "The static IP must be a valid IPv4 address (leave it empty for none)."
+**Symptom.** Adding a customer is refused. An Agent or Sales user sees **one generic refusal** that some identity is already taken. An Admin sees a specific reason, for example "This static IP address is already assigned to another customer." or "The static IP must be a usable IPv4 host address (not 0.x, loopback, link-local, multicast, reserved or broadcast); leave it empty for none."
 
 **Likely causes.**
 - The username or the PPPoE username already belongs to another customer **anywhere in the instance**: the RADIUS identity namespace is global, including other resellers' trees.
 - The static IP is already assigned to another customer (it must be unique across all customers, for every role).
-- The static IP is not a valid IPv4 address, or is a reserved / special address (the rejection of reserved ranges is part of the third R-HF-CARRY-01 round, in progress on the final-prep branch).
+- The static IP is not a usable IPv4 host address: not IPv4, or in a special class (0/8, 127/8, 169.254/16, 224/4, 240/4, including `255.255.255.255`). These classes are refused on every save path since round 3 of R-HF-CARRY-01 (`b2f7837b`).
 - The identity check could not run (for example the RADIUS database is unreachable): the refusal says to try again; nothing was changed.
 
 **Safe verification.**
@@ -260,7 +260,7 @@ Also: the decryption key is not available on the restore host; wrong character s
 |---|---|---|
 | 2 | Prerequisites missing (nothing changed) | Install what the message names (PHP 8.2 and extensions, PHP-FPM, database client, engine settings A3–A6, administrator privileges) |
 | 3 | Refused (nothing changed): database not empty or unknown, wrong collation, an account already exists, env file not 0600, a `config.php` already present, or an interrupted base-schema load | **Never** clean, drop or reuse the database to get past the refusal. Choose a new database name (or fix the env file) and run again. After an interrupted base-schema load, start again on a new, empty database |
-| 4 | A step failed (schema, migration, grants, preflight, health) | Fix the cause and re-run: the installer resumes after the base schema. If the runtime account cannot connect, `preflight.php` currently dies with a PHP fatal error (exit 255) instead of a FAIL line (fix in progress); check the account, its host part and its password |
+| 4 | A step failed (schema, migration, grants, preflight, health) | Fix the cause and re-run: the installer resumes after the base schema. If the runtime account cannot connect, `preflight.php` prints `FAIL db.connect` with the cause and the MySQL error number and exits 4 (G-4, fixed in `bd1e03cc`); check the account, its host part and its password. A `radius_checks` FAIL "reference definitions … missing or unreadable" means `install/freeradius/` is missing (for example after `--installer=remove`): restore it read-only from the artifact copy (G-1) |
 | 5 | Usage | Correct the command |
 
 The post-install verify exits 1 when a check fails: read its FAIL lines (web boundary, files, tools or cron). **Escalation:** ITC with the installer log from the state directory (`/var/lib/itc-netcore/fresh-install/`), never the env file.

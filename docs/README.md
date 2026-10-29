@@ -26,7 +26,7 @@ This is the index of the documentation in this repository. Paths are relative to
 | [guides/operations/](guides/operations/) | Operating the instance: administrator quick start, reseller and subscriber onboarding, daily checks, backup and restore, disaster recovery, monitoring, incidents, upgrade and rollback, financial reconciliation, security hardening, change management, agreement templates, supported capabilities and known limitations | added in V1.0 |
 | [guides/training/](guides/training/) | Illustrated training manual for every role (Arabic primary, English), with exercises, competency checklist and assessment | added in V1.0 |
 | [guides/SOURCES/](guides/SOURCES/) | Source registers: which runbook / source file each guide section is based on, and contradictions resolved | added in V1.0 |
-| [../dev/docpipe/](../dev/docpipe/) | Document build pipeline (Markdown → branded PDF / DOCX, Arabic RTL and English); not part of the release artifact | added in V1.0 |
+| [../dev/docpipe/](../dev/docpipe/) | Document build pipeline (Markdown to branded PDF / DOCX, Arabic RTL and English); source repository only (not in the release artifact) | added in V1.0 |
 | [guides/product-profile/](guides/product-profile/) | Customer-facing product profile and one-page summary, Arabic and English | added in V1.0 |
 | [../install/fresh/](../install/fresh/) | Fresh-install package: artifact verification, gated command-line installer, post-install verification, nginx / PHP-FPM / logrotate / cron examples | added in V1.0 |
 | [../install/backup/](../install/backup/) | Backup, binlog archive (point-in-time recovery chain), restore, restore verification and database fingerprint tools | added in V1.0 |
@@ -76,7 +76,7 @@ This is the index of the documentation in this repository. Paths are relative to
 | [WP6C_ADAPTIVE_UX_MODEL.md](WP6C_ADAPTIVE_UX_MODEL.md) | One system, two UX modes (desktop and phone) |
 | [WP7_PWA_MODEL.md](WP7_PWA_MODEL.md) | Staff PWA and safe offline behaviour |
 | [WP8_INTEGRATION_MODEL.md](WP8_INTEGRATION_MODEL.md) | Application ⇄ FreeRADIUS ⇄ MikroTik RouterOS integration |
-| [../owner-review/WP10/N1_G_COMMERCIAL_QUOTA_CONTRACT.md](../owner-review/WP10/N1_G_COMMERCIAL_QUOTA_CONTRACT.md) | Actual vs billable usage, quota accuracy |
+| [../owner-review/WP10/N1_G_COMMERCIAL_QUOTA_CONTRACT.md](../owner-review/WP10/N1_G_COMMERCIAL_QUOTA_CONTRACT.md) | Actual vs billable usage, quota accuracy; source repository only (not in the release artifact) |
 
 ## 6. Architecture and decisions
 
@@ -96,9 +96,9 @@ This is the index of the documentation in this repository. Paths are relative to
 | [release/RELEASE_NOTES_V1.0.md](release/RELEASE_NOTES_V1.0.md) | V1.0 release notes (Release Candidate) |
 | [release/CHANGELOG_V1.0_entry.md](release/CHANGELOG_V1.0_entry.md) | V1.0 changelog entry |
 | [../CHANGELOG.md](../CHANGELOG.md) | Original PHPNuxBill history |
-| [../owner-review/CURRENT_STATE_AND_OPEN_NOTES.md](../owner-review/CURRENT_STATE_AND_OPEN_NOTES.md) | Current state, open items, where each record is |
-| [claude-development-pack/review/ACCEPTANCE_LEDGER.md](claude-development-pack/review/ACCEPTANCE_LEDGER.md) | Owner-controlled acceptance ledger |
-| [../owner-review/WP10/LEGAL_REVIEW_PACKAGE.md](../owner-review/WP10/LEGAL_REVIEW_PACKAGE.md) | Legal review package (LIC-1, open) |
+| [../owner-review/CURRENT_STATE_AND_OPEN_NOTES.md](../owner-review/CURRENT_STATE_AND_OPEN_NOTES.md) | Current state, open items, where each record is; source repository only (not in the release artifact) |
+| [claude-development-pack/review/ACCEPTANCE_LEDGER.md](claude-development-pack/review/ACCEPTANCE_LEDGER.md) | Owner-controlled acceptance ledger; source repository only (not in the release artifact) |
+| [../owner-review/WP10/LEGAL_REVIEW_PACKAGE.md](../owner-review/WP10/LEGAL_REVIEW_PACKAGE.md) | Legal review package (LIC-1, open); source repository only (not in the release artifact) |
 | [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) | Third-party components and licences |
 | [../NOTICE](../NOTICE), [../LICENSE](../LICENSE) | Notice and licence text |
 
@@ -114,8 +114,8 @@ This is the index of the documentation in this repository. Paths are relative to
 
 | Document | Purpose |
 |---|---|
-| [../tests/README.md](../tests/README.md) | Test suite (development only) |
+| [../tests/README.md](../tests/README.md) | Test suite (development only); source repository only (not in the release artifact) |
 | [../.github/workflows/lab-unit.yml](../.github/workflows/lab-unit.yml) | Unit-suite workflow for lab branches |
-| [claude-development-pack/START_HERE.md](claude-development-pack/START_HERE.md) | Development rules and specification (manifest-pinned) |
+| [claude-development-pack/START_HERE.md](claude-development-pack/START_HERE.md) | Development rules and specification (manifest-pinned); source repository only (not in the release artifact) |
 
 Support terms are defined per customer agreement.

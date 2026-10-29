@@ -27,18 +27,18 @@ This guide is for the **authorized financial operator** and the Admins of one IT
 | `FUNDING` | Provider funding of a wallet (Admin) |
 | `WITHDRAWAL` | Provider withdrawal from a wallet (Admin) |
 | `ADJUSTMENT` (credit / debit) | Accounting correction (Admin) |
-| `TRANSFER_OUT` / `TRANSFER_IN` | Parent → direct-child transfer (Agent or Admin) |
+| `TRANSFER_OUT` / `TRANSFER_IN` | Transfer from a parent to its direct child (Agent or Admin) |
 | `ACTIVATION_DEBIT` | Settlement of a completed activation (the selling reseller's wholesale) |
 | `COMMISSION_CREDIT` | Positive margin of each intermediary reseller in the chain |
 | `REVERSAL` | Compensation of a transfer, or of a completed activation (leaf credit and commission clawbacks) |
 
 # 2. Funding, withdrawals and adjustments
 
-All are **review → confirm** in Finance (Admin / SuperAdmin):
+All are **review, then confirm** in Finance (Admin / SuperAdmin):
 
 1. Fill the form: amount, reason (3–255 characters), external reference where applicable.
 2. **Review** (no write): the server normalises the amount, shows informational before / after figures, generates the operation reference `WEB-<OP>-<date>-<hex>` and signs the reviewed fields.
-3. **Confirm**: the server recomputes the signature (any change → `REVIEW_EXPIRED`, nothing written). Withdrawal, debit adjustment and transfer reversal also require a **typed confirmation**. A double submit replays the same operation ("Already recorded").
+3. **Confirm**: the server recomputes the signature (any change gives `REVIEW_EXPIRED`, and nothing is written). Withdrawal, debit adjustment and transfer reversal also require a **typed confirmation**. A double submit replays the same operation ("Already recorded").
 
 | Operation | Rule |
 |---|---|
@@ -85,11 +85,11 @@ Failure outcomes:
 |---|---|---|
 | `FUNDS_RESERVED` / `RETRY_PENDING`, stale ≥ 300 s | Stopped before or between RADIUS attempts; also left by a `CONCURRENCY_RETRY` refusal under heavy simultaneous activity on one wallet (MariaDB, rare) | **Resume** (continues) or **Cancel** (releases the reservation, `CANCELLED`). A live activation is refused |
 | `VERIFIED` (stale) | Delivered, settlement not yet run | **Resume** (runs the settlement once) |
-| `RECONCILIATION_REQUIRED` | Provisioning or settlement outcome unknown | **Reconcile**: delivery verified → settle once; RADIUS = target → settle; RADIUS = prior → `FAILED` and released; anything else → `EXTERNAL_STATE_AMBIGUOUS` (exit 4): inspect RADIUS, then rollback or leave held |
+| `RECONCILIATION_REQUIRED` | Provisioning or settlement outcome unknown | **Reconcile**: delivery verified: settle once; RADIUS = target: settle; RADIUS = prior: `FAILED` and released; anything else: `EXTERNAL_STATE_AMBIGUOUS` (exit 4), inspect RADIUS, then roll back or leave held |
 | `ROLLBACK_PENDING` | Restore of the prior RADIUS state not confirmed | **Rollback** again; funds stay held until the restore is verified |
 | `REVERSAL_PENDING` | Reversal of a completed activation started, not finished | **Reverse** again (idempotent continuation) |
 
-Where: Operations > Operations Center (Admin) → the activation page shows the allowed actions with their own confirmation. CLI equivalents (operator shell):
+Where: Operations > Operations Center (Admin), then the activation page, which shows the allowed actions with their own confirmation. CLI equivalents (operator shell):
 
 ```bash
 php system/reseller/reconcile.php show <ACT-...>        # state and event timeline (read-only)

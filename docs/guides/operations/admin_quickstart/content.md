@@ -34,7 +34,7 @@ This quick-start takes an ISP administrator from an empty server to a first work
 The installation uses the **`install/fresh/` package**: verify the artifact, run `nuxr-fresh-install.sh`, then run `nuxr-post-install-verify.sh`. The package replaces the web installer and performs the post-installer steps of `docs/DEPLOYMENT_AND_UPGRADE_RUNBOOK.md` §2. Every step has a verification; a failed verification stops the run. The full procedure is in `install_guide_en`.
 
 > [!NOTE]
-> **Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0):** steps 1–6 below ran end to end on a disposable Docker instance on both engines: install exit 0, an identical database after a second run, post-install verify 67 PASS / 0 WARN / 0 FAIL, and 8 / 8 refusal cases per engine. Steps 7–12 are **documented (not yet executed on target)**; the target acceptance tests TA-01 … TA-10 have not been run.
+> **Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0):** steps 1–6 below ran end to end on a disposable Docker instance on both engines: install exit 0, an identical database after a second run, post-install verify 67 PASS / 0 WARN / 0 FAIL, and 8 / 8 refusal cases per engine. The proof was run on commit `228f01c9` and will be re-run on the final release commit. Steps 7–12 are **documented (not yet executed on target)**; the target acceptance tests TA-01 … TA-10 have not been run.
 
 1. **Verify the artifact.** `nuxr-artifact-verify.sh --artifact=<tarball> --expected-sha=<release SHA> --extract-to=<dir>` checks the SHA-256 against `SHA256SUMS`, the archive safety rules, `RELEASE_SHA` and the content rules, then unpacks into a new, empty directory. Unpack it twice: once as the kept copy `<artifact-dir>` (outside the document root; run the package from `<artifact-dir>/install/fresh/`) and once as the release that becomes the document root (`current` symbolic link).
 2. **Platform.** Checklist §A and §B: PHP 8.2 with the extensions, PHP-FPM, nginx, the database client, and the engine settings of section 1. Install `php-fpm/pool.conf.example` and `nginx/itc-netcore.conf.example` from the package (HTTPS only, HSTS, the security headers, blocked paths, a login rate limit), then `nginx -t`.
@@ -50,7 +50,7 @@ The installation uses the **`install/fresh/` package**: verify the artifact, run
 12. **Clean up.** Move the env-file secrets into the secret store and delete the file.
 
 > [!WARNING]
-> **Keep `install/freeradius/` in the document root, read-only and blocked by the web server** (the package default `--installer=strip` does this, and the nginx example denies `install/`). Preflight `radius_checks` reads its expected CHECK expressions from it; if it is removed, a tampered admission CHECK constraint passes the preflight (finding G-1, product fix pending). Do not use `--installer=remove` until that fix is released.
+> **Keep `install/freeradius/` in the document root, read-only and blocked by the web server** (the package default `--installer=strip` does this, and the nginx example denies `install/`). Preflight `radius_checks` reads its expected CHECK expressions from it and FAILs when they are missing (finding G-1, fixed in `33624129`). **Do not use `--installer=remove`**: it deletes `install/freeradius/`, so the setup preflight FAILs and the installer stops with exit 4.
 
 > [!WARNING]
 > **Never use the web installer** (`install/index.php` … `step5.php`) for V1: it does not check that the database is empty, and its SQL files begin each table with `DROP TABLE IF EXISTS`. Pointed at a database that holds data, it destroys it.
@@ -100,14 +100,17 @@ Detailed procedures: `reseller_onboarding` and `subscriber_onboarding` in this d
 | Job | Schedule |
 |---|---|
 | `cd system && php cron.php` (expiry, renewals). Run it **from `system/`**: from the root it does nothing and still exits 0 | every 5 minutes |
-| `php system/cron_reminder.php` | daily |
-| `php system/reseller/health.php --json` → monitoring | every 5 minutes |
-| `php system/reseller/health.php --json --finance` → monitoring | hourly |
+| `cd system && php cron_reminder.php` (expiry reminders). Run it **from `system/`**, like `cron.php` | daily |
+| `php system/reseller/health.php --json` (output to monitoring) | every 5 minutes |
+| `php system/reseller/health.php --json --finance` (output to monitoring) | hourly |
 | `install/backup/nuxr-backup.sh` (encrypted database backup, backup runbook §2) | nightly, and before every upgrade |
 | `install/backup/nuxr-binlog-archive.sh` (binlog archive for point-in-time recovery) | every 5 minutes |
 | `install/backup/nuxr-backup-verify.sh` (restore test into a scratch database) | weekly |
 | `php system/reseller/quota.php enforce --loop=55 --every=5` (`--every` below 5 is refused) | every minute, required as soon as one Limited (quota) plan is sold |
 | `sudo -u freerad ${confdir}/nuxr/nuxr_guard_selfcheck` (root crontab, alert on non-zero exit) | every few minutes |
+
+> [!NOTE]
+> With `--install-cron` the installer writes the application jobs of this table (`cron.php`, `cron_reminder.php`, `quota.php`, both `health.php` lines) to `/etc/cron.d/itc-netcore`, already in the correct form. Prefer that file to hand-written entries. The backup jobs and the guard self-check are installed separately.
 
 # 7. Go-live gate
 

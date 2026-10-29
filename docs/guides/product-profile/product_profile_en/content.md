@@ -29,7 +29,7 @@ Each ISP receives **its own isolated copy** of the platform, with its own databa
 
 | User | What they do in ITC NetCore |
 |---|---|
-| **SuperAdmin** (ISP owner or chief administrator) | Everything an Admin does, plus system-level settings, backup and restore |
+| **SuperAdmin** (ISP owner or chief administrator) | Everything an Admin does, plus system-level settings and the web backup download. Restore is done at database level by the operator (`install/backup/nuxr-restore.sh`); the web restore is refused on reseller installations |
 | **Admin** (ISP staff) | Manages subscribers, plans, prices, vouchers, the reseller network and reseller wallets (funding, withdrawals, debt limits, corrections); reverses activations when needed; reads all reports |
 | **Agent** (reseller) | Sells to its own subscribers from its own prepaid wallet; transfers credit to the sub-agents directly below it; sets their wholesale prices and its own retail price; sees only its own branch |
 | **Sub-agent** | An agent placed under another agent. Works the same way inside its own, smaller branch and is funded by its parent |

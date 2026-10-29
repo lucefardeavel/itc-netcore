@@ -93,7 +93,7 @@ FreeRADIUS 3.2.8, RouterOS CHR 7.24.5). None of it has been verified on a target
 - Real-router window on RouterOS CHR: **145 passed, 1 blocked** per engine. The blocked two-NAS test later passed on both engines in the lab on a second CHR (lab only; staging case X-1 is still required).
 - Browser matrix: **208 pages, 0 failures, 0 console errors** across 7 roles × Arabic / English × desktop / mobile × light / dark.
 - Backup / restore drill, bounded load, deadlock study and accounting load through FreeRADIUS: passed on both engines.
-- Final-prep work of 2026-10-29 (after the candidate), each on both engines: the [`install/fresh/`](install/fresh/) package on a disposable instance (install exit 0, post-install verify 67 / 0 / 0, 8 / 8 refusal cases); the [`install/backup/`](install/backup/) point-in-time recovery drill on a small synthetic database (identical copy at the chosen time, 0 rows lost after a dropped database); R-HF-CARRY-01 rounds 1–2 and the UI / Arabic-label fixes through targeted harness runs (the browser matrix and CHR suites were not re-run on them).
+- Final-prep work of 2026-10-29 (after the candidate), each on both engines: the [`install/fresh/`](install/fresh/) package on a disposable instance (install exit 0, post-install verify 67 / 0 / 0, 8 / 8 refusal cases; the proof was run on commit `228f01c9` and will be re-run on the final release commit); the [`install/backup/`](install/backup/) point-in-time recovery drill on a small synthetic database (identical copy at the chosen time, 0 rows lost after a dropped database); R-HF-CARRY-01 rounds 1–3, the UI / Arabic-label fixes and the preflight fixes G-4 and G-1 through targeted harness runs (the browser matrix and CHR suites were not re-run on them).
 
 The lab workstation does not prove production capacity. Production sizing is an output of the target acceptance test TA-09.
 
@@ -103,7 +103,7 @@ Permissions and data scope are checked on the server for every request. Anything
 
 | Role | Data scope | What it can do in V1.0 |
 |---|---|---|
-| **SuperAdmin** | Whole instance | Everything an Admin can do, plus backup / restore and the system settings reserved to SuperAdmin |
+| **SuperAdmin** | Whole instance | Everything an Admin can do, plus the web backup download and the system settings reserved to SuperAdmin. Restore is done at database level (`install/backup/nuxr-restore.sh`); the web restore is refused on reseller installations |
 | **Admin** | Whole instance | Subscribers, plans, pricing, vouchers, reseller tree, wallet funding and withdrawal, debt limits, adjustments, activation reversal, reports. No backup / restore and no code-execution surfaces |
 | **Agent** (reseller) | Own subtree | Creates subscribers; activates and renews its own subscribers from its own wallet; transfers credit to its direct children; sets its children's wholesale prices and its own retail price; reads its subtree's wallets, ledger and activations |
 | **Sub-agent** | Own subtree | An Agent placed under another Agent: the same capabilities inside its own branch, funded by its parent |
@@ -193,7 +193,7 @@ How enforcement works, and how precise it is:
 > [!WARNING]
 > Quota enforcement is **bounded, not byte-exact**. It must never be sold or advertised as a byte-exact cap.
 
-Details: [commercial quota contract](owner-review/WP10/N1_G_COMMERCIAL_QUOTA_CONTRACT.md).
+Details: [commercial quota contract](owner-review/WP10/N1_G_COMMERCIAL_QUOTA_CONTRACT.md) (source repository only (not in the release artifact)).
 
 ## Vouchers and reports
 
@@ -281,8 +281,9 @@ The full index is in [docs/README.md](docs/README.md).
 
 ## Training
 
-Role-based training material is in [docs/guides/training/](docs/guides/training/): administrator quick start,
-reseller onboarding and subscriber onboarding, in Arabic and English.
+The illustrated training manual for every role is in [docs/guides/training/](docs/guides/training/) (Arabic primary,
+English), with exercises, a competency checklist and an assessment. The administrator quick start and the reseller and
+subscriber onboarding guides are in [docs/guides/operations/](docs/guides/operations/), in Arabic and English.
 
 ## Security and operations
 
@@ -321,7 +322,7 @@ includes a login rate limit). There is no high-availability claim for V1.0. R-HF
 | Production | **Not production-accepted; not deployed to production** |
 
 Supported capabilities and known limitations are listed in the operations guides ([docs/guides/operations/](docs/guides/operations/)).
-Current state and open items: [owner-review/CURRENT_STATE_AND_OPEN_NOTES.md](owner-review/CURRENT_STATE_AND_OPEN_NOTES.md).
+Current state and open items: [owner-review/CURRENT_STATE_AND_OPEN_NOTES.md](owner-review/CURRENT_STATE_AND_OPEN_NOTES.md) (source repository only (not in the release artifact)).
 
 ## Support
 
@@ -351,7 +352,7 @@ The interface uses AdminLTE and Bootstrap. Every third-party component and its l
 **Licence:** [LICENSE](LICENSE) contains the GNU General Public License version 2. The original project's README says
 "version 2 or later", but no source file states a version. The licence version, its combination with LGPL-3.0
 components, and the use of the product and third-party names are open legal questions with counsel (LIC-1,
-[owner-review/WP10/LEGAL_REVIEW_PACKAGE.md](owner-review/WP10/LEGAL_REVIEW_PACKAGE.md)). This README does not decide them.
+[owner-review/WP10/LEGAL_REVIEW_PACKAGE.md](owner-review/WP10/LEGAL_REVIEW_PACKAGE.md), source repository only (not in the release artifact)). This README does not decide them.
 "ITC NetCore" and "ITC" are the product and brand names chosen by the owner; no trademark registration or clearance is
 stated here.
 

@@ -19,10 +19,10 @@
 #   --installer=strip     (default) delete the web installer (install/*.php, install/*.sql, css, img, fresh) and keep
 #                         install/freeradius/ read-only: preflight radius_checks reads the expected CHECK expressions
 #                         from it. The web server must deny /install/ (nginx/itc-netcore.conf.example).
-#   --installer=remove    delete install/ completely (runbook section 2 step 4 literally). Preflight radius_checks
-#                         then can no longer compare the CHECK expressions (it only sees that the tables exist).
-#   --no-enable-radius    do not store the setting radius_enable=1 (by default it is stored: without it the preflight
-#                         RADIUS checks cannot run, defect ACC-1; it is the SuperAdmin "Enable Radius = Yes" setting)
+#   --installer=remove    delete install/ completely. NOT usable: preflight radius_checks then FAILs (its reference
+#                         files install/freeradius/*.sql are gone), so the run stops in phase 12 with exit 4.
+#   --no-enable-radius    do not store the setting radius_enable=1 (by default it is stored: the application's RADIUS
+#                         features need it, defect ACC-1; it is the SuperAdmin "Enable Radius = Yes" setting)
 #   --install-cron        install cron/itc-netcore.cron.example as /etc/cron.d/itc-netcore (paths and user substituted)
 #   --dry-run             read-only: prerequisites, database gate, account check and the plan; writes nothing
 #   --generate-secrets=F  write a NEW env file F (mode 0600) with generated passwords for the migration, application
@@ -497,7 +497,7 @@ phase "11 remove the web installer (runbook 2 step 4, checklist B4) - mode $INST
 # ------------------------------------------------------------------------------------------------------------------
 if [[ -d $APP_ROOT/install ]]; then
   if [[ $INSTALLER_MODE == remove ]]; then
-    rm -rf "$APP_ROOT/install"; say "install/ removed completely (preflight radius_checks can no longer compare the CHECK expressions)"
+    rm -rf "$APP_ROOT/install"; say "install/ removed completely: preflight radius_checks will FAIL (reference definitions missing); use --installer=strip for a release"
   else
     find "$APP_ROOT/install" -mindepth 1 -maxdepth 1 ! -name freeradius -exec rm -rf {} +
     chown -R root:root "$APP_ROOT_REAL/install"; chmod -R go-w "$APP_ROOT_REAL/install"

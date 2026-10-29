@@ -180,3 +180,17 @@ The installation manual (`install_guide_en`, `install_guide_ar`) was rewritten a
 | Static IP rule, two-NAS lab result (integration manual) | `LAB:reports/R-HF-CARRY-01_FIX.md` (Round 2); `LAB:reports/review/R-HF-CARRY-01_ROUND2_REVIEW.md` (N-1); `LAB:reports/CHR2_BUILD_AND_TWO_NAS_RESULT.md` |
 
 Gaps of §3 now covered by the package: a production nginx server block, a log-rotation file and a cron file are provided as examples in `install/fresh/` (lab-verified on a disposable instance). The change log of this reconciliation is `RECONCILIATION_20261029.md`.
+
+## Addendum 2026-10-29 (2): independent documentation review
+
+Corrections from `reports/review/DOCS_INDEPENDENT_REVIEW_20261029.md` (list: `REVIEW_CORRECTIONS_20261029.md`). Additional sources:
+
+| Topic | Source |
+|---|---|
+| Preflight `db.connect` (G-4), `radius_checks` reference files (G-1), `time.clock_skew` thresholds, `identity.non_canonical`, `shared_key` | `SRC:system/reseller/preflight.php` (`bd1e03cc`, `33624129`) |
+| Static-IP special classes and refusal text | `SRC:system/autoload/Reseller/Domain/CustomerIdentity.php`, `SRC:system/autoload/Reseller/Domain/DomainError.php` (`b2f7837b`); `SRC:system/lan/arabic.json` (`9b21ebfe`); `LAB:reports/ROUND3_FIXES_20261029.md` |
+| Post-install verify: 27 sensitive paths (403 / 404), `/admin/` redirect, repeated header WARN | `SRC:install/fresh/nuxr-post-install-verify.sh` |
+| Installer phases (env-file check before phase 1, `pages/` in phase 6), `--installer=remove` | `SRC:install/fresh/nuxr-fresh-install.sh` |
+| `quota.php --every` lower bound only | `SRC:system/reseller/quota.php` |
+| `nuxr_admission_audit` writer | `SRC:system/reseller/grants.php`; `SRC:system/autoload/Reseller/Radius/AdmissionRecovery.php` |
+| Runbook and checklist corrections (cron form, keep `install/freeradius/`) | `SRC:docs/DEPLOYMENT_AND_UPGRADE_RUNBOOK.md`, `SRC:docs/PRODUCTION_CONFIGURATION_CHECKLIST.md` (`c550d6b8`) |

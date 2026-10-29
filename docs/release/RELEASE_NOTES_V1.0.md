@@ -7,7 +7,7 @@
 | Version | **V1.0 Release Candidate** (draft release notes) |
 | Date | 2026-10-29 |
 | Lab-accepted candidate | `a6b02eba` (branch `lab/release-v1`, Draft PR #6) |
-| Release-preparation tree | `release/itc-netcore-v1-final-prep` (final-prep commits after the candidate include `0be31b63`, `228f01c9`, `e8260df7` and `012a9e91`); the release SHA is recorded at build |
+| Release-preparation tree | `release/itc-netcore-v1-final-prep` (final-prep commits after the candidate: `0be31b63`, `228f01c9`, `e8260df7`, `012a9e91`, `b2f7837b`, `9b21ebfe`, `bd1e03cc`, `c550d6b8`, `33624129` and the documentation commit `e23e7540`); the release SHA is recorded at build |
 | Release tag | **None.** No tag is created until every release gate passes |
 | Lab verdict | `LAB_ACCEPTED_WITH_LIMITATIONS` |
 | Release state | `RELEASE_BLOCKED_WITH_EVIDENCE` |
@@ -84,15 +84,20 @@ staff interface with an installable staff PWA. Each ISP runs one isolated instan
   - the legacy PPPoE IP / username availability hints (`autoload/pppoe_ip_used`, `pppoe_username_used`) answer only for the caller's own customers for Agents and Sales accounts (`0be31b63`);
   - `customers/add-post` no longer discloses whether a username exists to tree-scoped staff; the uniqueness checks run last in the same transaction and a refusal rolls everything back (`228f01c9`);
   - the static IP is validated (IPv4) and kept unique across all customers on save, for every role (`e8260df7`);
-  - a third round (rejection of reserved and special IPv4 ranges, with related review notes) is in progress.
+  - round 3: special IPv4 classes (0/8, 127/8, 169.254/16, 224/4 and 240/4, including `255.255.255.255`) are refused as a static IP on every save path, and a kept legacy IP with edge whitespace is no longer re-judged (`b2f7837b`); the refusal names the rule, and every literal refusal detail has an Arabic text (`9b21ebfe`).
+
+  Round-3 residuals: a legacy row that already holds such a value is still sent as `Framed-IP-Address` (R3-1); the VPN auto-assignment and the reprovision `revert()` write a static IP without the identity lock or the uniqueness check (R3-2).
 
   Still open for the owner: low-severity unauthenticated enumeration through the forgot-password / forgot-username and self-registration pages, and accepted-level residuals (a fully valid add by scoped staff still shows that some identity collides; no rate limit on refused creates; the static-IP check does not cover NAS, gateway or pool addresses; existing duplicate or invalid static IPs are not migrated).
+- **Preflight G-4 (`bd1e03cc`):** a runtime database account that cannot connect is reported as `FAIL db.connect` (cause and MySQL error number only) with exit 4, instead of a PHP fatal error with exit 255.
+- **Preflight G-1 (`33624129`):** `radius_checks` FAILs when its reference definitions `install/freeradius/*.sql` are missing or unreadable, instead of passing with an empty expected set.
+- **Deployment documents (`c550d6b8`):** the runbook keeps `install/freeradius/`, checklist I1 / I2 run `cron.php` and `cron_reminder.php` from `system/`, and `quota.php --every` is at least 5.
 - **UI and Arabic labels (`012a9e91`):** the customer-portal header in product identity mode shows the mark and the product name on one line; distinct Arabic labels for menu entries that shared one (see *Behaviour changes*); Arabic titles for the Voucher and FreeRADIUS settings sections; Arabic texts for 13 refusal messages, including the new identity and static-IP refusals; default plan titles stored in English are shown translated; the voucher list button reads "Add Vouchers". No brand asset, font or colour changed.
 - Documentation and tooling corrections: target evaluator NAS clock limit, Hotspot admission audit table insert-only, NAS reload collation step, reverse-proxy checklist row, NAS type `mikrotik_snmp` in the onboarding guide, CI actions pinned to SHAs, staging-package gaps (SNMP flow, CoA teardown, second NAS, TA-01 checks).
 
 ## Behaviour changes operators should know
 
-- A customer's **static IP** must be a valid, non-reserved IPv4 address (or empty) and **unique across all customers**, for every role including Admin. A stored legacy value is not re-checked until it is changed. (Rejection of reserved ranges: third R-HF-CARRY-01 round, in progress.)
+- A customer's **static IP** must be a valid, non-reserved IPv4 address (or empty) and **unique across all customers**, for every role including Admin. Special IPv4 classes (0/8, 127/8, 169.254/16, 224/4, 240/4) are refused (`b2f7837b`). A stored legacy value is not re-checked until it is changed.
 - When a username, PPPoE username or static IP is already taken, **Agents and Sales see one generic refusal**; they are not told which value or by whom. Admins keep the specific reason.
 - New distinct Arabic labels: Refill Customer «شحن العميل بقسيمة», Recharge Customer «إعادة شحن اشتراك العميل», Refill Account «شحن الحساب بقسيمة», Coupons «الكوبونات», Vouchers «القسائم», the "Add Vouchers" button «إضافة قسائم».
 - The first installation uses the `install/fresh/` command-line package instead of the web installer.
@@ -113,8 +118,8 @@ result was obtained on a target or production system, and the lab does not prove
 | Backup / restore drill, bounded load, accounting load | Passed on both engines |
 | Lab deployment and rollback rehearsal | Health passed; switch in about 0.05 s each way |
 | Two-NAS test on a second local CHR (CHR2) | Passed on both engines (lab only; staging case X-1 is still required) |
-| R-HF-CARRY-01 rounds 1–2, UI / i18n fixes | Targeted dual-engine harness runs (related classes plus every unit and guard test) passed; the browser matrix and CHR suites were not re-run on them |
-| Fresh-install package (disposable instance) | Install exit 0, idempotent second run, post-install verify 67 PASS / 0 WARN / 0 FAIL, 8 / 8 refusal cases per engine |
+| R-HF-CARRY-01 rounds 1–3, UI / i18n fixes, preflight fixes G-4 and G-1 | Targeted dual-engine harness runs (related classes plus every unit and guard test) passed; the browser matrix and CHR suites were not re-run on them |
+| Fresh-install package (disposable instance) | Install exit 0, idempotent second run, post-install verify 67 PASS / 0 WARN / 0 FAIL, 8 / 8 refusal cases per engine. The proof was run on commit `228f01c9` and will be re-run on the final release commit |
 | Backup and PITR drill (71 MiB synthetic database) | Dropped database restored to the chosen time with an identical copy and 0 rows lost; host-loss window about the archive interval; tool run 13–31 s; target backup chain not tested (TA-08) |
 
 ## Installation and upgrade notes
@@ -122,8 +127,8 @@ result was obtained on a target or production system, and the lab does not prove
 - The first installation of V1.0 is a **fresh install on a new, empty database**. Migration from an existing PHPNuxBill database is a separate future path and is not part of the first installation.
 - Requirements: PHP 8.2, MariaDB 10.11 or MySQL 8.0 (`REPEATABLE-READ`, UTC), FreeRADIUS 3.2.x, MikroTik RouterOS 7.15 or later with NAS type `mikrotik_snmp`, NTP on every host and NAS.
 - Follow the installation guide in `docs/guides/install/` (artifact verify, `install/fresh/nuxr-fresh-install.sh`, post-install verify) and the MikroTik / FreeRADIUS guide in `docs/guides/radius-mikrotik/`.
-- Keep `install/freeradius/` in the document root, read-only and blocked by the web server: the preflight reads its expected CHECK expressions from it (product fix pending).
-- Run `cron.php` from `system/` (`cd system && php cron.php`); started from the root it does nothing.
+- Keep `install/freeradius/` in the document root, read-only and blocked by the web server: the preflight reads its expected CHECK expressions from it and FAILs without them (`33624129`). Use the default `--installer=strip`; `--installer=remove` makes the installer fail at the setup preflight (phase 12, exit 4).
+- Run `cron.php` and `cron_reminder.php` from `system/` (`cd system && php cron.php`); started from the root they do nothing. The `--install-cron` file `/etc/cron.d/itc-netcore` already does this.
 - Set up `install/backup/` before go-live and agree a real off-host target with the ISP; no destination is built in.
 - A production deployment needs the owner's explicit release authorization.
 

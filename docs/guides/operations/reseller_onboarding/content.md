@@ -31,7 +31,7 @@ This guide describes how an ISP onboards a reseller (an **Agent**) and a sub-res
 | Provider funding / withdrawal of a wallet | Yes | — | — |
 | Set a debt limit | Yes | — | — |
 | Accounting adjustment (credit / debit), transfer reversal | Yes | — | — |
-| Send credit to a direct child | Yes | Yes, own wallet → direct child only | — |
+| Send credit to a direct child | Yes | Yes, from its own wallet to a direct child only | — |
 | Provider base cost and resale switch | Yes | — | — |
 | Wholesale and availability of a plan for a reseller | Any reseller | **Direct children only**, never its own wholesale | — |
 | Own retail price | Any reseller | Its own | — |
@@ -60,7 +60,7 @@ Complete these once (SuperAdmin / Admin):
 | 6 | The reseller logs in | Changes the temporary password from the personal menu (only the installer's default `admin` password is forced to change by the application). On a phone the bottom bar is Home / Customers / + / Wallet / More | Dashboard shows the wallet |
 
 > [!FINANCE-WARNING]
-> No wallet exists until the first wallet-creating operation: provider funding, a positive debt limit, or receipt of a transfer from the parent. Adjustments never create a wallet. Funding and every correction are review → confirm; the server re-checks the rules at confirm time, and a double submit replays the same operation ("Already recorded").
+> No wallet exists until the first wallet-creating operation: provider funding, a positive debt limit, or receipt of a transfer from the parent. Adjustments never create a wallet. Funding and every correction are review, then confirm; the server re-checks the rules at confirm time, and a double submit replays the same operation ("Already recorded").
 
 # 5. Onboarding a sub-reseller
 
@@ -97,7 +97,7 @@ The Agent (or Admin) creates a **Sales** account as the Agent's direct child. A 
 | Settlement | The selling reseller's wallet is debited its wholesale; each intermediary with a positive margin receives a commission credit; the provider settlement is the top-level reseller's wholesale. The chain is sealed at confirmation |
 | Proration | None. A plan change starts a new period |
 
-Example (from `docs/WP3B_PRICING_MODEL.md` §7): base 10 → top reseller 12 → sub-reseller 15. The sub-reseller's wallet is debited 15, the top reseller earns 3, the provider settlement is 12.
+Example (from `docs/WP3B_PRICING_MODEL.md` §7): base 10, top reseller 12, sub-reseller 15. The sub-reseller's wallet is debited 15, the top reseller earns 3, the provider settlement is 12.
 
 # 7. Limits that apply to resellers in V1.0
 

@@ -9,7 +9,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 MAILTO=""
 
 # I1 expiry and renewals, every 5 minutes. cron.php MUST run from system/: it includes ../init.php relative to the
-#    working directory (register X-01; the checklist's "php system/cron.php" form does not work from the root).
+#    working directory (register X-01; running "php system/cron.php" from the application root does nothing).
 */5 * * * * www-data cd /srv/itcnc/app/current/system && php cron.php >> /var/log/itcnc/cron.log 2>&1
 
 # I2 expiry reminders, daily (same working-directory rule as cron.php)

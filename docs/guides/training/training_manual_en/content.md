@@ -518,7 +518,7 @@ A reseller is an account of type "Agent". A **sub-reseller** is an Agent placed 
 
 - A subscriber with both Hotspot and PPPoE under one name: a distinct "PPPoE username" is needed, otherwise the second service is refused.
 - A username, PPPoE username or static IP that another subscriber already uses (anywhere in the system, also in other resellers' trees): creation is refused. Agents and Sales see **one general refusal** that does not say which value is taken or by whom; this protects other resellers' data. Choose another value and try again. An administrator sees the specific reason.
-- An invalid static IP (not an IPv4 address, or a reserved address) refuses the whole form: "The static IP must be a valid IPv4 address (leave it empty for none)."
+- An invalid static IP (not an IPv4 address, or a special address such as 0.x, loopback or broadcast) refuses the whole form: "The static IP must be a usable IPv4 host address (not 0.x, loopback, link-local, multicast, reserved or broadcast); leave it empty for none."
 - Wrong data: you cannot edit it after creation, so check it before "Create subscriber".
 
 ## 3.4 Activation, renewal and plan change
@@ -648,7 +648,7 @@ A reseller is an account of type "Agent". A **sub-reseller** is an Agent placed 
 3. Complete the form and press "Save Changes".
 4. Set the new child's wholesale prices and availability (3.5), then fund it by transfer (3.6).
 
-**What you can do to your children:** edit the profile, reset the password, disable and reactivate, for everyone under you.
+**What you can do to your children:** edit the profile, disable and reactivate, for everyone under you (reactivation excludes an account an administrator disabled). Reset the password of your **direct** children only; for an account further down, the refusal reads "You can reset the password of your direct sub-accounts only."
 
 **What you cannot do:** delete, change roles, move accounts in the tree, or reactivate an account an administrator disabled.
 
@@ -1147,7 +1147,7 @@ The application writes each subscriber's policy (password, validity, speed, simu
 3. Operator: `php system/reseller/health.php`. The `accounting` check warns when no accounting has arrived for more than 15 minutes while sessions are open.
 
 > [!NOTE]
-> FreeRADIUS reads the device list when it starts. After adding a device or changing its secret, FreeRADIUS must be restarted or reloaded.
+> FreeRADIUS reads the device list when it starts. After adding a device or changing its secret, FreeRADIUS must be restarted; do not rely on a reload.
 
 ## 8.3 Session guard (session verification over SNMP)
 
@@ -1261,7 +1261,7 @@ The operator runs `health.php` from the monitoring system every 5 minutes. Exit 
 
 # 9. Troubleshooting
 
-Each case follows the same order: **Symptom → Likely causes → Safe verification → Authorized resolution → Escalation.** Safe verification steps are read-only. The authorized resolution names who holds the permission and the supported path.
+Each case follows the same order: **Symptom › Likely causes › Safe verification › Authorized resolution › Escalation.** Safe verification steps are read-only. The authorized resolution names who holds the permission and the supported path.
 
 > [!FINANCE-WARNING]
 > In every case: never edit the ledger, wallets, reservations, activations, `radacct`, quota rows or audit tables in the database; never release a held reservation or an active admission claim to "unblock" a subscriber; never retry a network operation whose outcome is unknown.
