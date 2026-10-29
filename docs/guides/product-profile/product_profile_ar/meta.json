@@ -1,0 +1,12 @@
+{
+  "title": "الملف التعريفي لمنتج ITC NetCore",
+  "subtitle": "منصة إدارة وفوترة مزوّدي خدمة الإنترنت: ما هي، ومن يستخدمها، وكيف تربط أعمالك بشبكتك",
+  "language": "ar",
+  "version": "V1.0 RC",
+  "date": "2026-10-29",
+  "owner": "ITC",
+  "status": "Release Candidate",
+  "sha": "final-prep (release SHA recorded at build)",
+  "source_sha": "final-prep (release SHA recorded at build)",
+  "audience": "ISP owners and managers"
+}

@@ -1,0 +1,9 @@
+[Unit]
+Description=ITC NetCore weekly restore test
+
+[Timer]
+OnCalendar=Sun *-*-* 04:30:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target

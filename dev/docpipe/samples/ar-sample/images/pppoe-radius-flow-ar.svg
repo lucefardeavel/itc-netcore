@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 300" font-family="'Noto Sans Arabic', Inter, sans-serif" direction="rtl">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#245D99"/></marker>
+  </defs>
+  <rect x="0" y="0" width="860" height="300" fill="#F5F8FC" rx="10"/>
+  <g font-size="15" font-weight="700" fill="#193768" text-anchor="middle">
+    <rect x="676" y="96" width="160" height="78" rx="9" fill="#fff" stroke="#B3CBE3" stroke-width="2"/>
+    <text x="756" y="128">جهاز المشترك</text><text x="756" y="152" font-size="12" font-weight="400" fill="#5A6E86">عميل PPPoE</text>
+    <rect x="446" y="96" width="170" height="78" rx="9" fill="#fff" stroke="#B3CBE3" stroke-width="2"/>
+    <text x="531" y="128">خادم NAS</text><text x="531" y="152" font-size="12" font-weight="400" fill="#5A6E86">MikroTik RouterOS 7</text>
+    <rect x="226" y="96" width="160" height="78" rx="9" fill="#fff" stroke="#B3CBE3" stroke-width="2"/>
+    <text x="306" y="128">FreeRADIUS</text><text x="306" y="152" font-size="12" font-weight="400" fill="#5A6E86">مصادقة ومحاسبة</text>
+    <rect x="24" y="96" width="142" height="78" rx="9" fill="#193768"/>
+    <text x="95" y="128" fill="#fff" direction="ltr">ITC NetCore</text><text x="95" y="152" font-size="12" font-weight="400" fill="#DCE5EF">الباقات والمحافظ</text>
+    <rect x="24" y="214" width="142" height="54" rx="9" fill="#fff" stroke="#B3CBE3" stroke-width="2"/>
+    <text x="95" y="246" font-size="13">قاعدة البيانات</text>
+  </g>
+  <g stroke="#245D99" stroke-width="2.4" fill="none" marker-end="url(#a)">
+    <path d="M674 135 H620"/><path d="M444 135 H390"/><path d="M224 135 H170"/><path d="M95 176 V210"/>
+  </g>
+  <g font-size="12" fill="#0E7480" font-weight="700" text-anchor="middle">
+    <text x="647" y="124">PPPoE</text><text x="417" y="118">RADIUS</text><text x="417" y="198" font-weight="400" direction="ltr">UDP 1812/1813</text>
+    <text x="197" y="124">SQL</text>
+  </g>
+  <text x="836" y="44" font-size="17" font-weight="700" fill="#193768" text-anchor="start">مسار المصادقة والمحاسبة</text>
+  <text x="836" y="70" font-size="12.5" fill="#5A6E86" text-anchor="start">بدء الجلسة: طلب وصول، ثم قبول مع حد السرعة والحصة، ثم بدء المحاسبة والتحديثات الدورية</text>
+</svg>

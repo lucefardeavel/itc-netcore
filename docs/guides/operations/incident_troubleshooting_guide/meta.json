@@ -1,0 +1,12 @@
+{
+  "title": "Incident Troubleshooting Guide",
+  "subtitle": "ITC NetCore V1.0 — symptom, causes, safe verification, authorized resolution, escalation",
+  "language": "en",
+  "version": "V1.0 RC",
+  "date": "2026-10-29",
+  "owner": "ITC",
+  "status": "Release Candidate — not yet production-accepted",
+  "sha": "final-prep (release SHA recorded at build)",
+  "source_sha": "final-prep (release SHA recorded at build)",
+  "audience": "Support staff and operators"
+}

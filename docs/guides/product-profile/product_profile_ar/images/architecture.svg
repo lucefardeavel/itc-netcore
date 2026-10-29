@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700" font-family="Inter, 'Noto Sans Arabic', 'Segoe UI', Arial, sans-serif" role="img" aria-labelledby="t d" direction="rtl">
+<title id="t">ITC NetCore V1.0: البنية العامة</title><desc id="d">نسخة معزولة واحدة لكل مزوّد خدمة (قاعدة بيانات وإعداد FreeRADIUS وأسرار NAS خاصة بها). رؤوس الأسهم تشير إلى الطرف المستقبِل.</desc>
+<defs><marker id="aNavy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#193768"/></marker><marker id="aBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#245D99"/></marker><marker id="aTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#117C88"/></marker><marker id="aInt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#3275B5"/></marker><marker id="aGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#5B6B80"/></marker></defs>
+<rect width="1200" height="700" fill="#F5F8FC"/>
+<text x="1160" y="40" text-anchor="start" font-size="21" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">ITC NetCore V1.0: البنية العامة</text>
+<text x="1160" y="62" text-anchor="start" font-size="11.5" font-weight="400" fill="#5B6B80" direction="rtl" unicode-bidi="embed">نسخة معزولة واحدة لكل مزوّد خدمة (قاعدة بيانات وإعداد FreeRADIUS وأسرار NAS خاصة بها). رؤوس الأسهم تشير إلى الطرف المستقبِل.</text>
+<rect x="880" y="96" width="280" height="118" rx="10" fill="#EAF2F9" stroke="#245D99" stroke-width="2"/>
+<text x="1020" y="124" text-anchor="middle" font-size="15" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">المتصفحات وتطبيق PWA للموظفين</text>
+<text x="1020" y="150" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">الموظفون: مدير النظام، المدير، الموزّع،</text>
+<text x="1020" y="170" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">الموزّع الفرعي، المبيعات، التقارير</text>
+<text x="1020" y="190" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">بوابة الخدمة الذاتية للمشترك</text>
+<rect x="460" y="96" width="280" height="118" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="460" y="96" width="280" height="28" rx="10" fill="#193768"/><rect x="460" y="114" width="280" height="10" fill="#193768"/>
+<text x="600" y="116" text-anchor="middle" font-size="15" font-weight="700" fill="#FFFFFF" direction="rtl" unicode-bidi="embed">وكيل HTTPS العكسي</text>
+<text x="600" y="148" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">إنهاء TLS (مثل nginx)</text>
+<text x="600" y="168" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">HTTPS فقط؛ يُعاد توجيه المنفذ 80</text>
+<text x="600" y="188" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">ترويسات الأمان والمسارات المحجوبة</text>
+<rect x="40" y="96" width="280" height="118" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="40" y="96" width="280" height="28" rx="10" fill="#193768"/><rect x="40" y="114" width="280" height="10" fill="#193768"/>
+<text x="180" y="116" text-anchor="middle" font-size="15" font-weight="700" fill="#FFFFFF" direction="rtl" unicode-bidi="embed">تطبيق ITC NetCore</text>
+<text x="180" y="148" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">PHP 8.2 (PHP-FPM)</text>
+<text x="180" y="168" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">الموزّعون · المحافظ · التفعيل</text>
+<text x="180" y="188" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">المهام المجدولة · عميل Disconnect / CoA</text>
+<rect x="40" y="300" width="280" height="110" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="40" y="300" width="280" height="28" rx="10" fill="#193768"/><rect x="40" y="318" width="280" height="10" fill="#193768"/>
+<text x="180" y="320" text-anchor="middle" font-size="15" font-weight="700" fill="#FFFFFF" direction="rtl" unicode-bidi="embed">قاعدة البيانات</text>
+<text x="180" y="352" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">MariaDB 10.11 أو MySQL 8.0</text>
+<text x="180" y="372" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">جداول التطبيق وجداول RADIUS</text>
+<text x="180" y="392" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">REPEATABLE-READ · UTC</text>
+<rect x="880" y="500" width="280" height="110" rx="10" fill="#EAF2F9" stroke="#245D99" stroke-width="2"/>
+<text x="1020" y="528" text-anchor="middle" font-size="15" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">المشتركون</text>
+<text x="1020" y="554" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">PPPoE (PAP / CHAP)</text>
+<text x="1020" y="574" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">Hotspot (صفحة الدخول)</text>
+<text x="1020" y="594" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">شبكة الوصول لدى المزوّد</text>
+<rect x="460" y="500" width="280" height="110" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="460" y="500" width="280" height="28" rx="10" fill="#117C88"/><rect x="460" y="518" width="280" height="10" fill="#117C88"/>
+<text x="600" y="520" text-anchor="middle" font-size="15" font-weight="700" fill="#FFFFFF" direction="rtl" unicode-bidi="embed">جهاز MikroTik RouterOS NAS</text>
+<text x="600" y="552" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">خادم PPPoE · Hotspot</text>
+<text x="600" y="572" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">جهاز NAS واحد أو أكثر لكل نسخة</text>
+<text x="600" y="590" text-anchor="middle" font-size="11.5" font-weight="400" fill="#5B6B80" direction="rtl" unicode-bidi="embed">تم التحقق في المختبر على RouterOS CHR 7.24.5</text>
+<rect x="40" y="500" width="280" height="110" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="40" y="500" width="280" height="28" rx="10" fill="#193768"/><rect x="40" y="518" width="280" height="10" fill="#193768"/>
+<text x="180" y="520" text-anchor="middle" font-size="15" font-weight="700" fill="#FFFFFF" direction="rtl" unicode-bidi="embed">FreeRADIUS 3.2.x</text>
+<text x="180" y="552" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">المصادقة · المحاسبة</text>
+<text x="180" y="572" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">حارس جلسات PPPoE (SNMP)</text>
+<text x="180" y="590" text-anchor="middle" font-size="11.5" font-weight="400" fill="#5B6B80" direction="rtl" unicode-bidi="embed">حارس الجلسات مُتحقَّق منه مع 3.2.8</text>
+<rect x="600" y="276" width="560" height="160" rx="10" fill="#FFFFFF" stroke="#C9D6E6" stroke-width="1.4"/>
+<text x="1142" y="302" text-anchor="start" font-size="14" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">مسارات الشبكة</text>
+<line x1="1142" y1="324" x2="1098" y2="324" stroke="#193768" stroke-width="2.4"/>
+<text x="1088" y="328" text-anchor="start" font-size="12" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">TCP 443 HTTPS (واجهة الويب والبوابة وPWA)</text>
+<line x1="1142" y1="348" x2="1098" y2="348" stroke="#245D99" stroke-width="2.4"/>
+<text x="1088" y="352" text-anchor="start" font-size="12" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">TCP 3306 SQL (التطبيق وFreeRADIUS فقط)</text>
+<line x1="1142" y1="372" x2="1098" y2="372" stroke="#193768" stroke-width="2.4" stroke-dasharray="10 4"/>
+<text x="1088" y="376" text-anchor="start" font-size="12" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">UDP 1812 / 1813 مصادقة ومحاسبة RADIUS</text>
+<line x1="1142" y1="396" x2="1098" y2="396" stroke="#117C88" stroke-width="2.4"/>
+<text x="1088" y="400" text-anchor="start" font-size="12" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">UDP 3799 Disconnect / CoA (من التطبيق إلى NAS)</text>
+<line x1="1142" y1="420" x2="1098" y2="420" stroke="#3275B5" stroke-width="2.2" stroke-dasharray="7 5"/>
+<text x="1088" y="424" text-anchor="start" font-size="12" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">UDP 161 SNMP للقراءة فقط (من FreeRADIUS إلى NAS)</text>
+<line x1="880" y1="155" x2="742" y2="155" stroke="#193768" stroke-width="2.4" marker-end="url(#aNavy)"/>
+<rect x="768" y="128" width="86" height="20" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="1.4"/>
+<text x="811" y="142" text-anchor="middle" font-size="12" font-weight="700" fill="#193768" direction="ltr">TCP 443</text>
+<line x1="460" y1="155" x2="322" y2="155" stroke="#193768" stroke-width="2.4" marker-end="url(#aNavy)"/>
+<rect x="346" y="128" width="90" height="20" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="1.4"/>
+<text x="391" y="142" text-anchor="middle" font-size="12" font-weight="700" fill="#193768" direction="ltr">PHP-FPM</text>
+<line x1="180" y1="214" x2="180" y2="298" stroke="#245D99" stroke-width="2.4" marker-end="url(#aBlue)"/>
+<rect x="84" y="246" width="86" height="20" rx="10" fill="#FFFFFF" stroke="#245D99" stroke-width="1.4"/>
+<text x="127" y="260" text-anchor="middle" font-size="12" font-weight="700" fill="#245D99" direction="ltr">TCP 3306</text>
+<line x1="180" y1="500" x2="180" y2="412" stroke="#245D99" stroke-width="2.4" marker-end="url(#aBlue)"/>
+<rect x="84" y="446" width="86" height="20" rx="10" fill="#FFFFFF" stroke="#245D99" stroke-width="1.4"/>
+<text x="127" y="460" text-anchor="middle" font-size="12" font-weight="700" fill="#245D99" direction="ltr">TCP 3306</text>
+<line x1="460" y1="540" x2="322" y2="540" stroke="#193768" stroke-width="2.4" stroke-dasharray="10 4" marker-end="url(#aNavy)"/>
+<rect x="338" y="514" width="104" height="20" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="1.4"/>
+<text x="390" y="528" text-anchor="middle" font-size="12" font-weight="700" fill="#193768" direction="ltr">UDP 1812/1813</text>
+<line x1="320" y1="586" x2="458" y2="586" stroke="#3275B5" stroke-width="2.4" stroke-dasharray="7 5" marker-end="url(#aInt)"/>
+<rect x="346" y="592" width="90" height="20" rx="10" fill="#FFFFFF" stroke="#3275B5" stroke-width="1.4"/>
+<text x="391" y="606" text-anchor="middle" font-size="12" font-weight="700" fill="#3275B5" direction="ltr">UDP 161</text>
+<polyline points="320,200 380,200 380,470 520,470 520,498" fill="none" stroke="#117C88" stroke-width="2.4" marker-end="url(#aTeal)"/>
+<rect x="422" y="446" width="88" height="20" rx="10" fill="#FFFFFF" stroke="#117C88" stroke-width="1.4"/>
+<text x="466" y="460" text-anchor="middle" font-size="12" font-weight="700" fill="#117C88" direction="ltr">UDP 3799</text>
+<line x1="878" y1="555" x2="742" y2="555" stroke="#245D99" stroke-width="2.4" marker-end="url(#aBlue)" marker-start="url(#aBlue)"/>
+<text x="810" y="546" text-anchor="middle" font-size="11.5" fill="#5B6B80" direction="ltr">PPPoE / Hotspot</text>
+<text x="1160" y="668" text-anchor="start" font-size="11" font-weight="400" fill="#5B6B80" direction="rtl" unicode-bidi="embed">مخطط مرجعي فقط. تم التحقق من السلوك في مختبر معزول فقط (RouterOS CHR 7.24.5 وFreeRADIUS 3.2.8 وMariaDB 10.11 وMySQL 8.0)؛ لا يمثّل شبكة مستهدفة أو إنتاجية.</text>
+<text x="1160" y="686" text-anchor="start" font-size="11" font-weight="400" fill="#5B6B80" direction="rtl" unicode-bidi="embed">لا توفّر V1.0 إتاحة عالية ولا وسيط رسائل ولا قاعدة بيانات مشتركة متعددة المستأجرين. منافذ RouterOS API 8728 / 8729 غير مستخدمة.</text>
+</svg>

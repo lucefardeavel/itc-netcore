@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" width="1200" height="640" font-family="Inter, 'Noto Sans Arabic', 'Segoe UI', Arial, sans-serif" role="img" aria-labelledby="t d" direction="rtl">
+<title id="t">ITC NetCore: من مدير مزوّد الخدمة إلى التقارير</title><desc id="d">مدير مزوّد الخدمة → الموزّع / المبيعات → المشترك → الباقة والتفعيل → FreeRADIUS → جهاز MikroTik NAS → المحاسبة → التقارير المالية والتشغيلية</desc>
+<defs><marker id="aNavy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#193768"/></marker><marker id="aBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#245D99"/></marker><marker id="aTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#117C88"/></marker><marker id="aInt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#3275B5"/></marker><marker id="aGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#5B6B80"/></marker></defs>
+<rect width="1200" height="640" fill="#F5F8FC"/>
+<text x="1160" y="42" text-anchor="start" font-size="21" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">ITC NetCore: من مدير مزوّد الخدمة إلى التقارير</text>
+<text x="1160" y="66" text-anchor="start" font-size="12.5" font-weight="400" fill="#5B6B80" direction="rtl" unicode-bidi="embed">دورة العمل المبسّطة لنسخة واحدة لمزوّد خدمة: الجانب التجاري (أعلى) يقود الجانب الشبكي (أسفل).</text>
+<text x="1160" y="116" text-anchor="start" font-size="13" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">العمليات التجارية</text>
+<text x="1020.5" y="378" text-anchor="start" font-size="13" font-weight="700" fill="#117C88" direction="rtl" unicode-bidi="embed">العمليات الشبكية والنتائج</text>
+<rect x="925" y="132" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="926" y="133" width="253" height="6" rx="3" fill="#193768"/>
+<circle cx="1154" cy="164" r="15" fill="#193768"/>
+<text x="1154" y="169" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">1</text>
+<text x="1040.5" y="169" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">مدير مزوّد الخدمة</text>
+<text x="1052.5" y="212" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">يحدّد الباقات والأسعار وأجهزة NAS</text>
+<text x="1052.5" y="234" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">يموّل محافظ الموزّعين</text>
+<text x="1052.5" y="256" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">يضبط حدود الدين ويُنشئ القسائم</text>
+<rect x="630" y="132" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="631" y="133" width="253" height="6" rx="3" fill="#193768"/>
+<circle cx="859" cy="164" r="15" fill="#193768"/>
+<text x="859" y="169" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">2</text>
+<text x="745.5" y="169" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">الموزّع / المبيعات</text>
+<text x="757.5" y="212" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">يبيع الموزّعون والموزّعون الفرعيون</text>
+<text x="757.5" y="234" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">ضمن فرعهم فقط، ويخدم حساب</text>
+<text x="757.5" y="256" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">المبيعات المشتركين المُسندين إليه</text>
+<rect x="335" y="132" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="336" y="133" width="253" height="6" rx="3" fill="#193768"/>
+<circle cx="564" cy="164" r="15" fill="#193768"/>
+<text x="564" y="169" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">3</text>
+<text x="450.5" y="169" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">المشترك</text>
+<text x="462.5" y="212" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">يُنشأ بهوية PPPoE</text>
+<text x="462.5" y="234" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">أو Hotspot</text>
+<text x="462.5" y="256" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">بوابة خدمة ذاتية واسترداد القسائم</text>
+<rect x="40" y="132" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#245D99" stroke-width="2"/>
+<rect x="41" y="133" width="253" height="6" rx="3" fill="#245D99"/>
+<circle cx="269" cy="164" r="15" fill="#245D99"/>
+<text x="269" y="169" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">4</text>
+<text x="155.5" y="169" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">الباقة والتفعيل</text>
+<text x="167.5" y="212" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">مراجعة عرض السعر ثم التأكيد</text>
+<text x="167.5" y="234" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">يُحجز الرصيد أولاً</text>
+<text x="167.5" y="256" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">ويُخصم مرة واحدة عند التسوية</text>
+<rect x="40" y="392" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#117C88" stroke-width="2"/>
+<rect x="41" y="393" width="253" height="6" rx="3" fill="#117C88"/>
+<circle cx="269" cy="424" r="15" fill="#117C88"/>
+<text x="269" y="429" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">5</text>
+<text x="155.5" y="429" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">FreeRADIUS</text>
+<text x="167.5" y="472" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">يتحقّق من الدخول ويطبّق الصلاحية</text>
+<text x="167.5" y="494" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">والسرعة والجلسات المتزامنة</text>
+<text x="167.5" y="516" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">وحصة الجلسة من الحصة المتبقية</text>
+<rect x="335" y="392" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#117C88" stroke-width="2"/>
+<rect x="336" y="393" width="253" height="6" rx="3" fill="#117C88"/>
+<circle cx="564" cy="424" r="15" fill="#117C88"/>
+<text x="564" y="429" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">6</text>
+<text x="450.5" y="429" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">جهاز MikroTik NAS</text>
+<text x="462.5" y="472" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">يقدّم خدمة PPPoE / Hotspot</text>
+<text x="462.5" y="494" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">ينهي الجلسات أو يعدّلها</text>
+<text x="462.5" y="516" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">عبر Disconnect / CoA</text>
+<rect x="630" y="392" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#245D99" stroke-width="2"/>
+<rect x="631" y="393" width="253" height="6" rx="3" fill="#245D99"/>
+<circle cx="859" cy="424" r="15" fill="#245D99"/>
+<text x="859" y="429" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">7</text>
+<text x="745.5" y="429" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">المحاسبة</text>
+<text x="757.5" y="472" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">تسجيل الاستخدام لكل فترة</text>
+<text x="757.5" y="494" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">الاستخدام الفعلي مقابل المحتسب</text>
+<text x="757.5" y="516" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">التجاوز لا يُحتسب</text>
+<rect x="925" y="392" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="926" y="393" width="253" height="6" rx="3" fill="#193768"/>
+<circle cx="1154" cy="424" r="15" fill="#193768"/>
+<text x="1154" y="429" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">8</text>
+<text x="1040.5" y="422" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">التقارير</text>
+<text x="1040.5" y="441" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768" direction="rtl" unicode-bidi="embed">المالية والتشغيلية</text>
+<text x="1052.5" y="484" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">كشوف المحافظ والسجل المالي</text>
+<text x="1052.5" y="504" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">التفعيلات والمعاملات</text>
+<text x="1052.5" y="524" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E" direction="rtl" unicode-bidi="embed">لوحات التحكم وفحوص السلامة</text>
+<line x1="923" y1="216" x2="888" y2="216" stroke="#193768" stroke-width="2.6" marker-end="url(#aNavy)"/>
+<line x1="628" y1="216" x2="593" y2="216" stroke="#193768" stroke-width="2.6" marker-end="url(#aNavy)"/>
+<line x1="333" y1="216" x2="298" y2="216" stroke="#193768" stroke-width="2.6" marker-end="url(#aNavy)"/>
+<line x1="297" y1="476" x2="332" y2="476" stroke="#117C88" stroke-width="2.6" marker-end="url(#aTeal)"/>
+<line x1="592" y1="476" x2="627" y2="476" stroke="#117C88" stroke-width="2.6" marker-end="url(#aTeal)"/>
+<line x1="887" y1="476" x2="922" y2="476" stroke="#117C88" stroke-width="2.6" marker-end="url(#aTeal)"/>
+<line x1="167.5" y1="302" x2="167.5" y2="389" stroke="#245D99" stroke-width="2.6" marker-end="url(#aBlue)"/>
+<line x1="1052.5" y1="390" x2="1052.5" y2="303" stroke="#5B6B80" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#aGrey)"/>
+<text x="1042.5" y="350" text-anchor="start" font-size="12" font-weight="600" fill="#5B6B80" direction="rtl" unicode-bidi="embed">قرارات: الباقات والأسعار والتمويل</text>
+<text x="1160" y="614" text-anchor="start" font-size="12" font-weight="400" fill="#5B6B80" direction="rtl" unicode-bidi="embed">يعمل الموزّعون الفرعيون وحسابات المبيعات داخل فرع الحساب الأب. إنفاذ الحصص محدود الدقة وليس دقيقاً بالبايت.</text>
+</svg>

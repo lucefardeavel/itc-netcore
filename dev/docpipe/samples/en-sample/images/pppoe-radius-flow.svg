@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 300" font-family="Inter, 'Noto Sans Arabic', sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#245D99"/></marker>
+  </defs>
+  <rect x="0" y="0" width="860" height="300" fill="#F5F8FC" rx="10"/>
+  <g font-size="15" font-weight="600" fill="#193768" text-anchor="middle">
+    <rect x="24" y="96" width="160" height="78" rx="9" fill="#fff" stroke="#B3CBE3" stroke-width="2"/>
+    <text x="104" y="130">Subscriber CPE</text><text x="104" y="152" font-size="12" font-weight="400" fill="#5A6E86">PPPoE client</text>
+    <rect x="244" y="96" width="170" height="78" rx="9" fill="#fff" stroke="#B3CBE3" stroke-width="2"/>
+    <text x="329" y="130">MikroTik NAS</text><text x="329" y="152" font-size="12" font-weight="400" fill="#5A6E86">RouterOS 7 · PPPoE server</text>
+    <rect x="474" y="96" width="160" height="78" rx="9" fill="#fff" stroke="#B3CBE3" stroke-width="2"/>
+    <text x="554" y="130">FreeRADIUS 3.2</text><text x="554" y="152" font-size="12" font-weight="400" fill="#5A6E86">auth · accounting</text>
+    <rect x="694" y="96" width="142" height="78" rx="9" fill="#193768"/>
+    <text x="765" y="130" fill="#fff">ITC NetCore</text><text x="765" y="152" font-size="12" font-weight="400" fill="#DCE5EF">plans · wallets</text>
+    <rect x="694" y="214" width="142" height="54" rx="9" fill="#fff" stroke="#B3CBE3" stroke-width="2"/>
+    <text x="765" y="246" font-size="13">MariaDB</text>
+  </g>
+  <g stroke="#245D99" stroke-width="2.4" fill="none" marker-end="url(#a)">
+    <path d="M186 135 H240"/><path d="M416 135 H470"/><path d="M636 135 H690"/><path d="M765 176 V210"/>
+  </g>
+  <g font-size="12" fill="#0E7480" font-weight="600" text-anchor="middle">
+    <text x="213" y="124">PPPoE</text><text x="443" y="118">RADIUS</text><text x="443" y="198" font-weight="400">UDP 1812/1813</text>
+    <text x="663" y="124">SQL</text>
+  </g>
+  <text x="24" y="44" font-size="17" font-weight="700" fill="#193768">Authentication and accounting path</text>
+  <text x="24" y="68" font-size="12.5" fill="#5A6E86">Session start: Access-Request › Access-Accept (rate limit, quota) › Accounting-Start / Interim-Update</text>
+</svg>

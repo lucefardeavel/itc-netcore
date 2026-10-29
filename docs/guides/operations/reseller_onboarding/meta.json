@@ -1,0 +1,12 @@
+{
+  "title": "Reseller and Sub-Reseller Onboarding",
+  "subtitle": "ITC NetCore V1.0 — creating resellers, funding, pricing and limits",
+  "language": "en",
+  "version": "V1.0 RC",
+  "date": "2026-10-29",
+  "owner": "ITC",
+  "status": "Release Candidate — not yet production-accepted",
+  "sha": "final-prep (release SHA recorded at build)",
+  "source_sha": "final-prep (release SHA recorded at build)",
+  "audience": "ISP administrators and resellers (Agents)"
+}

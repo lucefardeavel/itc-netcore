@@ -1,0 +1,36 @@
+<?php
+// ITC NetCore V1.0 - config.php written by install/fresh/nuxr-fresh-install.sh at @@GENERATED_AT@@ UTC
+// (template install/fresh/templates/config.php.tmpl). Mode 0640, owner root:<php-user>.
+// This file holds secrets: never copy it into a ticket, a chat, an evidence file or an unencrypted backup.
+// Checklist references: docs/PRODUCTION_CONFIGURATION_CHECKLIST.md B9, C1-C5, D1.
+
+// B9: the application URL is pinned to the configured address (never derived from the Host header).
+define('APP_URL', @@APP_URL@@);
+
+// C5: production stage.
+$_app_stage = 'Live';
+
+// C3 / D1: the least-privilege application runtime account generated with system/reseller/grants.php.
+// The migration (DDL) account is never stored here (D3).
+$db_host = @@DB_HOST@@;
+$db_user = @@DB_USER@@;
+$db_pass = @@DB_PASS@@;
+$db_name = @@DB_NAME@@;
+
+// C1: dedicated application key (WP9-D / NEW-7), 64 random hex characters, unique to this instance.
+$app_secret = @@APP_SECRET@@;
+// C2: dedicated API signing secret (WP2 / OD-3), different from every other secret.
+$api_secret = @@API_SECRET@@;
+
+// RADIUS tables: single-database layout (the installer's RADIUS option), same runtime account.
+$radius_host = @@DB_HOST@@;
+$radius_user = @@DB_USER@@;
+$radius_pass = @@DB_PASS@@;
+$radius_name = @@DB_NAME@@;
+
+// C4: $legacy_devices_enabled and $radius_rest_secret are deliberately absent (release profile: FreeRADIUS SQL only).
+
+// B8: errors are never displayed; PHP-FPM logs them outside the document root (php-fpm/pool.conf.example).
+error_reporting(E_ERROR);
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');

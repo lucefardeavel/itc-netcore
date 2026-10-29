@@ -1,0 +1,20 @@
+# ITC NetCore V1.0 - nightly encrypted logical backup (install/backup/README.md). Install the tools under
+# /opt/itcnc/install/backup (or adjust ExecStart), the configuration at /etc/itcnc/backup.conf (0600).
+[Unit]
+Description=ITC NetCore encrypted logical backup
+Wants=network-online.target
+After=network-online.target mariadb.service mysql.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/itcnc/install/backup/nuxr-backup.sh --config /etc/itcnc/backup.conf
+User=root
+UMask=0077
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/backups/itcnc /var/log/itcnc /run/lock
+NoNewPrivileges=yes

@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" width="1200" height="640" font-family="Inter, 'Noto Sans Arabic', 'Segoe UI', Arial, sans-serif" role="img" aria-labelledby="t d">
+<title id="t">ITC NetCore: from the ISP administrator to the reports</title><desc id="d">ISP administrator → Reseller / Sales → Subscriber → Plan and activation → FreeRADIUS → MikroTik NAS → Accounting → Financial and operational reports</desc>
+<defs><marker id="aNavy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#193768"/></marker><marker id="aBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#245D99"/></marker><marker id="aTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#117C88"/></marker><marker id="aInt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#3275B5"/></marker><marker id="aGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#5B6B80"/></marker></defs>
+<rect width="1200" height="640" fill="#F5F8FC"/>
+<text x="40" y="42" text-anchor="start" font-size="21" font-weight="700" fill="#193768">ITC NetCore: from the ISP administrator to the reports</text>
+<text x="40" y="66" text-anchor="start" font-size="12.5" font-weight="400" fill="#5B6B80">Simplified business lifecycle of one ISP instance: the commercial side (top) drives the network side (bottom).</text>
+<text x="40" y="116" text-anchor="start" font-size="13" font-weight="700" fill="#193768">Commercial operations</text>
+<text x="179.5" y="378" text-anchor="start" font-size="13" font-weight="700" fill="#117C88">Network operations and results</text>
+<rect x="40" y="132" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="41" y="133" width="253" height="6" rx="3" fill="#193768"/>
+<circle cx="66" cy="164" r="15" fill="#193768"/>
+<text x="66" y="169" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">1</text>
+<text x="179.5" y="169" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768">ISP administrator</text>
+<text x="167.5" y="212" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Defines plans, prices and NAS</text>
+<text x="167.5" y="234" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Funds reseller wallets</text>
+<text x="167.5" y="256" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Sets debt limits, creates vouchers</text>
+<rect x="335" y="132" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="336" y="133" width="253" height="6" rx="3" fill="#193768"/>
+<circle cx="361" cy="164" r="15" fill="#193768"/>
+<text x="361" y="169" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">2</text>
+<text x="474.5" y="169" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768">Reseller / Sales</text>
+<text x="462.5" y="212" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Agents and sub-agents sell</text>
+<text x="462.5" y="234" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">within their own branch;</text>
+<text x="462.5" y="256" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Sales serves assigned subscribers</text>
+<rect x="630" y="132" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="631" y="133" width="253" height="6" rx="3" fill="#193768"/>
+<circle cx="656" cy="164" r="15" fill="#193768"/>
+<text x="656" y="169" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">3</text>
+<text x="769.5" y="169" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768">Subscriber</text>
+<text x="757.5" y="212" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Created with a PPPoE</text>
+<text x="757.5" y="234" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">or Hotspot identity</text>
+<text x="757.5" y="256" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Self-service portal, vouchers</text>
+<rect x="925" y="132" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#245D99" stroke-width="2"/>
+<rect x="926" y="133" width="253" height="6" rx="3" fill="#245D99"/>
+<circle cx="951" cy="164" r="15" fill="#245D99"/>
+<text x="951" y="169" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">4</text>
+<text x="1064.5" y="169" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768">Plan and activation</text>
+<text x="1052.5" y="212" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Quote reviewed, then confirmed</text>
+<text x="1052.5" y="234" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Wallet credit reserved first,</text>
+<text x="1052.5" y="256" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">charged once when settled</text>
+<rect x="925" y="392" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#117C88" stroke-width="2"/>
+<rect x="926" y="393" width="253" height="6" rx="3" fill="#117C88"/>
+<circle cx="951" cy="424" r="15" fill="#117C88"/>
+<text x="951" y="429" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">5</text>
+<text x="1064.5" y="429" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768">FreeRADIUS</text>
+<text x="1052.5" y="472" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Checks the login; applies expiry,</text>
+<text x="1052.5" y="494" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">speed, simultaneous use and</text>
+<text x="1052.5" y="516" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">the session's quota share</text>
+<rect x="630" y="392" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#117C88" stroke-width="2"/>
+<rect x="631" y="393" width="253" height="6" rx="3" fill="#117C88"/>
+<circle cx="656" cy="424" r="15" fill="#117C88"/>
+<text x="656" y="429" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">6</text>
+<text x="769.5" y="429" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768">MikroTik NAS</text>
+<text x="757.5" y="472" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Delivers PPPoE / Hotspot service</text>
+<text x="757.5" y="494" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Ends or updates sessions</text>
+<text x="757.5" y="516" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">by Disconnect / CoA</text>
+<rect x="335" y="392" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#245D99" stroke-width="2"/>
+<rect x="336" y="393" width="253" height="6" rx="3" fill="#245D99"/>
+<circle cx="361" cy="424" r="15" fill="#245D99"/>
+<text x="361" y="429" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">7</text>
+<text x="474.5" y="429" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768">Accounting</text>
+<text x="462.5" y="472" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Usage recorded per period</text>
+<text x="462.5" y="494" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Actual vs billable usage</text>
+<text x="462.5" y="516" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Overshoot is not charged</text>
+<rect x="40" y="392" width="255" height="168" rx="10" fill="#FFFFFF" stroke="#193768" stroke-width="2"/>
+<rect x="41" y="393" width="253" height="6" rx="3" fill="#193768"/>
+<circle cx="66" cy="424" r="15" fill="#193768"/>
+<text x="66" y="429" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">8</text>
+<text x="179.5" y="422" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768">Financial and</text>
+<text x="179.5" y="441" text-anchor="middle" font-size="15.5" font-weight="700" fill="#193768">operational reports</text>
+<text x="167.5" y="484" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Wallet statements and ledger</text>
+<text x="167.5" y="504" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Activations and transactions</text>
+<text x="167.5" y="524" text-anchor="middle" font-size="12.8" font-weight="400" fill="#18283E">Dashboards and health checks</text>
+<line x1="297" y1="216" x2="332" y2="216" stroke="#193768" stroke-width="2.6" marker-end="url(#aNavy)"/>
+<line x1="592" y1="216" x2="627" y2="216" stroke="#193768" stroke-width="2.6" marker-end="url(#aNavy)"/>
+<line x1="887" y1="216" x2="922" y2="216" stroke="#193768" stroke-width="2.6" marker-end="url(#aNavy)"/>
+<line x1="923" y1="476" x2="888" y2="476" stroke="#117C88" stroke-width="2.6" marker-end="url(#aTeal)"/>
+<line x1="628" y1="476" x2="593" y2="476" stroke="#117C88" stroke-width="2.6" marker-end="url(#aTeal)"/>
+<line x1="333" y1="476" x2="298" y2="476" stroke="#117C88" stroke-width="2.6" marker-end="url(#aTeal)"/>
+<line x1="1052.5" y1="302" x2="1052.5" y2="389" stroke="#245D99" stroke-width="2.6" marker-end="url(#aBlue)"/>
+<line x1="167.5" y1="390" x2="167.5" y2="303" stroke="#5B6B80" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#aGrey)"/>
+<text x="177.5" y="350" text-anchor="start" font-size="12" font-weight="600" fill="#5B6B80">decisions: plans, prices, funding</text>
+<text x="40" y="614" text-anchor="start" font-size="12" font-weight="400" fill="#5B6B80">Sub-agents and Sales accounts work inside their parent's branch. Quota enforcement is bounded, not byte-exact.</text>
+</svg>

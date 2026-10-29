@@ -1,0 +1,11 @@
+# /etc/cron.d/itcnc-backup - alternative to the systemd timers (use one or the other, not both). Times are UTC
+# when the host clock is UTC (TIME_CONTRACT). Each tool takes its own lock: an overlapping run exits 75 and does nothing.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=root
+# nightly full backup (and immediately before every upgrade, by hand: nuxr-backup.sh --label pre-upgrade)
+15 2 * * *  root  /opt/itcnc/install/backup/nuxr-backup.sh --config /etc/itcnc/backup.conf >/dev/null
+# binlog archive every 5 minutes (bounds the data-loss window on host loss)
+*/5 * * * * root  /opt/itcnc/install/backup/nuxr-binlog-archive.sh --config /etc/itcnc/backup.conf >/dev/null
+# weekly restore test: plain, then the PITR chain
+30 4 * * 0  root  /opt/itcnc/install/backup/nuxr-backup-verify.sh --config /etc/itcnc/backup.conf >/dev/null && /opt/itcnc/install/backup/nuxr-backup-verify.sh --config /etc/itcnc/backup.conf --with-binlogs >/dev/null

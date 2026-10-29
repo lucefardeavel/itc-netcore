@@ -1,0 +1,13 @@
+{
+  "name": "ITC-NetCore-PPPoE-Operations-Guide-AR",
+  "title": "دليل تشغيل مشتركي PPPoE",
+  "subtitle": "ربط أجهزة MikroTik بخادم FreeRADIUS وإدارة الباقات والحصص ومحافظ الوكلاء في ITC NetCore",
+  "doc_type": "وثيقة عميل — نموذج",
+  "language": "ar",
+  "version": "V1.0",
+  "date": "2026-10-29",
+  "owner": "فريق منتج ITC NetCore",
+  "status": "Release Candidate — V1.0 RC (a6b02eba / final-prep)",
+  "source_sha": "a6b02eba",
+  "audience": "مشغّلو مزوّدي خدمة الإنترنت ومديرو الشبكات لديهم"
+}

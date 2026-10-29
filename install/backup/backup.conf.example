@@ -1,0 +1,77 @@
+# ITC NetCore V1.0 - backup / PITR tooling configuration (install/backup/README.md).
+# Copy to /etc/itcnc/backup.conf, owner root, mode 0600 (it is sourced as shell code: the tools refuse a
+# group/other-writable file). This file holds NO secret: credentials live in 0600 option files, the encryption key in
+# a 0600 key file. Values below are examples; nothing here is a recommendation of retention or RPO/RTO by itself.
+
+# ---------------------------------------------------------------- databases
+ENGINE=auto                      # auto | mariadb | mysql (auto: from SELECT VERSION())
+APP_DB=itcnc                     # application database ($db_name in config.php)
+RADIUS_DB=                       # RADIUS database when SEPARATE ($radius_name); empty when it is the same database
+
+# 0600 option files ([client] host / port / user / password); see backup.my.cnf.example
+DB_DEFAULTS_FILE=/etc/itcnc/backup/backup.my.cnf        # dump account (nuxr-backup.sh)
+BINLOG_DEFAULTS_FILE=/etc/itcnc/backup/backup.my.cnf    # binlog archive account (may be the same account)
+RESTORE_DEFAULTS_FILE=/etc/itcnc/backup/restore.my.cnf  # administrative account for restores / restore tests
+
+# refuse to run against any other server (SELECT @@server_id); strongly recommended
+EXPECT_SERVER_ID=101
+RESTORE_EXPECT_SERVER_ID=101     # the server restores / restore tests go to (may be a separate scratch server)
+
+# directory of the engine's own client tools when they are not first in PATH (e.g. MySQL 8.0 tools on a host whose
+# default client is MariaDB). A MariaDB mysqldump/mysqlbinlog against MySQL 8.0 (or the reverse) is refused.
+CLIENT_BIN_DIR=
+
+# ---------------------------------------------------------------- store
+BACKUP_DIR=/var/backups/itcnc    # created 0700; sets in full/, binlogs in binlog/<ARCHIVE_TAG>/, reports in verify/
+ARCHIVE_TAG=                     # default server-<server_id>; change it when the database server is rebuilt
+RETENTION_DAYS=14                # sets older than this are removed ...
+RETENTION_MIN_KEEP=7             # ... but the newest N sets are always kept; binlogs older than the oldest kept set go too
+
+# ---------------------------------------------------------------- encryption at rest (a backup is secret material)
+ENCRYPTION=openssl               # openssl (AES-256-CBC, PBKDF2) | age (public key; the host cannot decrypt) | gpg (AES256)
+ENC_KEY_FILE=/etc/itcnc/backup/backup.key   # openssl / gpg: passphrase file, 0600 (openssl rand -base64 48 > ...)
+OPENSSL_ITER=200000              # recorded in each set; changing it later does not break older sets
+AGE_RECIPIENTS_FILE=/etc/itcnc/backup/age.recipients    # age: public key(s) used to encrypt
+AGE_IDENTITY_FILE=                                     # age: private key, needed only where restores run (0600)
+COMPRESS=gzip                    # gzip | zstd
+# Keep a copy of the key / age identity OFF the host (sealed, two people): without it no backup can be restored.
+
+# ---------------------------------------------------------------- secret files (backed up separately, encrypted)
+# config.php holds $app_secret / $api_secret / DB credentials; add FreeRADIUS files the ISP changed (clients.conf,
+# mods-available/sql). The encryption key itself must NOT be listed here.
+SECRET_FILES="/var/www/itcnc/config.php"
+SECRET_FILES_REQUIRED=1          # 1: a missing listed file makes the run exit non-zero (the set is still written)
+
+# ---------------------------------------------------------------- off-host copy
+# Run from $BACKUP_DIR with the RELATIVE paths of the new set / binlog files as "$@". No destination is built in.
+# It must keep the files private (0600) and use an encrypted transport. Examples (placeholders, not defaults):
+#   OFFHOST_CMD='rsync -aR --chmod=D700,F600 -e "ssh -i /etc/itcnc/backup/offhost_ed25519" "$@" backup@vault.example.invalid:/srv/itcnc-backup/'
+#   OFFHOST_CMD='for f in "$@"; do rclone copyto "$f" "remote-crypt:itcnc/$f" || exit 1; done'
+OFFHOST_CMD=
+OFFHOST_BINLOG_CMD=              # default: OFFHOST_CMD
+
+# ---------------------------------------------------------------- binlog archiving (nuxr-binlog-archive.sh)
+BINLOG_MODE=remote               # remote: mysqlbinlog --read-from-remote-server --raw (no datadir access needed)
+                                 # local:  copy from BINLOG_DIR on the database host (run as root / mysql)
+BINLOG_DIR=                      # local mode; default dirname(@@log_bin_basename)
+BINLOG_FLUSH=1                   # FLUSH BINARY LOGS before archiving: the archive is current to this run
+
+# ---------------------------------------------------------------- restore
+RESTORE_SKIP_BINLOG=1            # the restore session does not write the target's binlog (SET sql_log_bin=0)
+RESTORE_COLLATION=utf8mb4_general_ci
+
+# ---------------------------------------------------------------- verification of a restored copy
+APP_DIR=/var/www/itcnc           # ITC NetCore release root (migrate.php / health.php); empty = verification NOT_RUN
+APP_CONFIG=/var/www/itcnc/config.php
+APP_RUN_AS=www-data              # run PHP as this user (the tools run as root)
+PHP_BIN=php
+VERIFY_DB_HOST=                  # host PHP uses for the restored copy (default: host= of RESTORE_DEFAULTS_FILE)
+VERIFY_DB_PORT=
+VERIFY_HEALTH_REQUIRED="db schema finance"   # health checks that must be OK on the copy
+VERIFY_DB_PREFIX=nuxr_verify     # scratch database names of nuxr-backup-verify.sh
+VERIFY_TMPDIR=/var/tmp
+
+# ---------------------------------------------------------------- runtime
+LOCK_DIR=/run/lock
+LOG_FILE=/var/log/itcnc/backup.log
+DUMP_EXTRA_OPTS=                 # extra dump options (word-split), e.g. --max-allowed-packet=256M
