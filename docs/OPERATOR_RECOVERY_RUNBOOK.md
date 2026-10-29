@@ -63,15 +63,15 @@ Exit codes:
 
 ## 1. Activations (RECONCILIATION_REQUIRED, stale FUNDS_RESERVED / RETRY_PENDING / VERIFIED, ROLLBACK_PENDING, REVERSAL_PENDING)
 
-The web Operations Center (Admin) shows the allowed actions. The CLI equivalents are below.
+The web Operations Center (Admin) shows the allowed actions. The CLI equivalents are below. Every CLI command that releases held funds (`cancel`, `rollback`, `balance-resolve`) requires `--operator=<name> --reason=<text>` (reason at least 10 characters); the operator name and the reason are written to the audit log in the same transaction as the release.
 
 | State | Meaning | Action |
 |---|---|---|
-| `RECONCILIATION_REQUIRED` | provisioning or settlement outcome unknown; funds reserved, never released by time | `reconcile <ACT>`:<br>• delivery verified → settle once;<br>• RADIUS = target → settle;<br>• RADIUS = prior → FAILED and released;<br>• anything else → `EXTERNAL_STATE_AMBIGUOUS` (exit 4): inspect RADIUS, then `rollback <ACT>` or leave held |
-| `FUNDS_RESERVED` / `RETRY_PENDING` (stale ≥ 300 s) | stopped before / between RADIUS attempts | `resume <ACT>` (continues) or `cancel <ACT>` (release, CANCELLED). The CLI refuses a live (non-stale) activation<br>**Also left by a deadlock refusal:** under heavy concurrent activity on ONE wallet an activation can be refused with `CONCURRENCY_RETRY` ("please try again") after the bounded deadlock retries; if that happens after the reservation, the activation stays `FUNDS_RESERVED` with an ACTIVE reservation - funds held, nothing charged or granted (measured in the lab: about 1 run in 4 of a 96-operation, 12-wide stampede on one wallet, MariaDB; `dev/wp10/StagingLoadTest.php` proves the state and the clean `cancel`). A new activation for the same customer is refused (`ACTIVATION_IN_PROGRESS`) until the held one is resumed or cancelled |
+| `RECONCILIATION_REQUIRED` | provisioning or settlement outcome unknown; funds reserved, never released by time | `reconcile <ACT>`:<br>• delivery verified → settle once;<br>• RADIUS = target → settle;<br>• RADIUS = prior → FAILED and released;<br>• anything else → `EXTERNAL_STATE_AMBIGUOUS` (exit 4): inspect RADIUS, then `rollback <ACT> --operator=<name> --reason=<text>` or leave held |
+| `FUNDS_RESERVED` / `RETRY_PENDING` (stale ≥ 300 s) | stopped before / between RADIUS attempts | `resume <ACT>` (continues) or `cancel <ACT> --operator=<name> --reason=<text>` (release, CANCELLED). The CLI refuses a live (non-stale, updated less than 300 s ago) activation, re-checked on the locked row<br>**Also left by a deadlock refusal:** under heavy concurrent activity on ONE wallet an activation can be refused with `CONCURRENCY_RETRY` ("please try again") after the bounded deadlock retries; if that happens after the reservation, the activation stays `FUNDS_RESERVED` with an ACTIVE reservation - funds held, nothing charged or granted (measured in the lab: about 1 run in 4 of a 96-operation, 12-wide stampede on one wallet, MariaDB; `dev/wp10/StagingLoadTest.php` proves the state and the clean `cancel`). A new activation for the same customer is refused (`ACTIVATION_IN_PROGRESS`) until the held one is resumed or cancelled |
 | `VERIFIED` (stale) | delivered, settlement not yet run | `resume <ACT>` |
-| `ROLLBACK_PENDING` | restore of the prior RADIUS state not confirmed | `rollback <ACT>` again; funds stay held until the restore is verified |
-| `REVERSAL_PENDING` | reversal started, not finished | Admin "Reverse" again (idempotent continuation) |
+| `ROLLBACK_PENDING` | restore of the prior RADIUS state not confirmed | `rollback <ACT> --operator=<name> --reason=<text>` again; funds stay held until the restore is verified |
+| `REVERSAL_PENDING` | reversal started, not finished | Admin "Reverse" again (idempotent continuation)<br>**Commission window:** the reversal checks before removing the service that every parent reseller can repay its commission, but the binding check runs at commit. A parent that spent that margin in between stops the reversal here (`REVERSAL_FINANCIAL_REFUSED`): the service is already removed and the customer refund waits. Fund the parent wallet, then "Reverse" again. No value is lost and no balance goes below its floor |
 
 ## 2. Vouchers under review (CLAIMED / CLAIMED_REVIEW:NOT_CONFIRMED | DEVICE_FAILED | DEVICE_UNKNOWN | NO_SERVICE)
 
@@ -198,7 +198,7 @@ old session running with the previous plan's policy until it reconnects.
 
 1. List them with `balance-held`.
 2. Prove from the gateway and RADIUS whether the grant happened.
-3. Resolve with `balance-resolve <journal id> completed` (the service was granted) or `refund` (credit back, exactly once).
+3. Resolve with `balance-resolve <journal id> completed --operator=<name> --reason=<text>` (the service was granted) or `refund` with the same arguments (credit back, exactly once). The decision and its audit record (operator, reason) are committed together.
 
 ## 6. Orphaned billing / service records
 

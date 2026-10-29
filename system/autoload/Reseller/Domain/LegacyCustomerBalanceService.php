@@ -179,9 +179,10 @@ final class LegacyCustomerBalanceService
     }
 
     /** Exactly-once refund of a HELD journal row: status 5 -> 4 and the locked credit back, in one transaction. */
-    private static function refund(int $id, array $why): bool
+    /** @param ?\Closure(\PDO):void $inTx runs inside the refund transaction after the credit (the operator's audit record) */
+    private static function refund(int $id, array $why, ?\Closure $inTx = null): bool
     {
-        return Tx::run(static function (\PDO $pdo) use ($id, $why): bool {
+        return Tx::run(static function (\PDO $pdo) use ($id, $why, $inTx): bool {
             $j = Tx::row($pdo, 'SELECT * FROM tbl_payment_gateway WHERE id = ? AND gateway = ?', [$id, self::GATEWAY]) ?? throw new DomainError('NOT_FOUND');
             $payer = (int) $j['user_id'];
             $c = self::lockCustomers($pdo, [$payer])[$payer] ?? throw new DomainError('NOT_FOUND');
@@ -197,6 +198,9 @@ final class LegacyCustomerBalanceService
                 throw new DomainError('STORAGE_RANGE_EXCEEDED');
             }
             Tx::exec($pdo, 'UPDATE tbl_customers SET balance = ? WHERE id = ?', [self::format($after), $payer]);
+            if ($inTx !== null) {
+                $inTx($pdo);
+            }
             return true;
         });
     }
@@ -210,34 +214,43 @@ final class LegacyCustomerBalanceService
             . 'FROM tbl_payment_gateway WHERE gateway = ? AND status = ? ORDER BY id', [self::GATEWAY, self::HELD]);
     }
 
-    /** Operator decision on one HELD row (exactly once): completed -> 2; refund -> 4 + credit back. */
-    public static function resolve(int $id, string $decision): string
+    /**
+     * Operator decision on one HELD row (exactly once): completed -> 2; refund -> 4 + credit back. The operator name and
+     * the reason are required, and the audit record is written in the same transaction as the decision: a resolution
+     * is never committed without it (final QA F-1).
+     */
+    public static function resolve(int $id, string $decision, string $operator, string $reason): string
     {
-        if ($decision !== 'completed' && $decision !== 'refund') {
-            throw new DomainError('INVALID_INPUT');
+        if (($decision !== 'completed' && $decision !== 'refund') || strlen(trim($operator)) < 2 || strlen(trim($reason)) < 10) {
+            throw new DomainError('INVALID_INPUT', 'decision completed|refund, operator (>= 2) and reason (>= 10 characters) are required');
         }
         $j = Tx::row(self::pdo(), 'SELECT gateway_trx_id FROM tbl_payment_gateway WHERE id = ? AND gateway = ? AND payment_method = ?', [$id, self::GATEWAY, self::GATEWAY])
             ?? throw new DomainError('NOT_FOUND');
+        $audit = static function (\PDO $pdo) use ($id, $decision, $operator, $reason): void {
+            $row = Tx::row($pdo, 'SELECT user_id, gateway_trx_id FROM tbl_payment_gateway WHERE id = ?', [$id]);
+            \Reseller\Audit\AuditLog::record('balance.resolve', \Reseller\Security\ActorContext::system('CLI'), [
+                'target_type' => 'customer', 'target_customer_id' => (int) ($row['user_id'] ?? 0) ?: null,
+                'after' => ['journal_id' => $id, 'decision' => $decision, 'operation' => (string) ($row['gateway_trx_id'] ?? ''), 'operator' => mb_substr(trim($operator), 0, 64)],
+                'reason' => mb_substr(trim($reason), 0, 255),
+            ], $pdo);
+        };
         // the SAME operation lock as the dispatcher: waits for a live dispatch (or fails closed), then re-reads
-        $ok = self::withOperationLock((string) $j['gateway_trx_id'], static function () use ($id, $decision): bool {
+        $ok = self::withOperationLock((string) $j['gateway_trx_id'], static function () use ($id, $decision, $audit): bool {
             if ($decision === 'completed') {
-                return Tx::run(static fn(\PDO $pdo): int => Tx::exec($pdo, "UPDATE tbl_payment_gateway SET status = ?, paid_date = ?, pg_paid_response = '{\"resolved\":\"completed\"}' WHERE id = ? AND gateway = ? AND status = ?",
-                    [self::COMPLETED, date('Y-m-d H:i:s'), $id, self::GATEWAY, self::HELD])) === 1;
+                return Tx::run(static function (\PDO $pdo) use ($id, $audit): bool {
+                    if (Tx::exec($pdo, "UPDATE tbl_payment_gateway SET status = ?, paid_date = ?, pg_paid_response = '{\"resolved\":\"completed\"}' WHERE id = ? AND gateway = ? AND status = ?",
+                        [self::COMPLETED, date('Y-m-d H:i:s'), $id, self::GATEWAY, self::HELD]) !== 1) {
+                        return false;
+                    }
+                    $audit($pdo);
+                    return true;
+                });
             }
-            return self::refund($id, ['resolved' => 'refund']);
+            return self::refund($id, ['resolved' => 'refund'], $audit);
         });
         ErrorReporter::log('balance.resolve', 'journal=' . $id . ' decision=' . $decision . ' applied=' . ($ok ? 'yes' : 'no'));
         if (!$ok) {
             throw new DomainError('ACTIVATION_STATE_CONFLICT', 'The operation is not HELD (now ' . self::actual($id)['status'] . '); nothing was changed.');
-        }
-        try {
-            $row = Tx::row(self::pdo(), 'SELECT user_id, gateway_trx_id FROM tbl_payment_gateway WHERE id = ?', [$id]);
-            \Reseller\Audit\AuditLog::record('balance.resolve', \Reseller\Security\ActorContext::system('CLI'), [
-                'target_type' => 'customer', 'target_customer_id' => (int) ($row['user_id'] ?? 0) ?: null,
-                'after' => ['journal_id' => $id, 'decision' => $decision, 'operation' => (string) ($row['gateway_trx_id'] ?? '')],
-            ]);
-        } catch (\Throwable $e) {
-            ErrorReporter::report($e, 'balance-resolve-audit');
         }
         return $decision;
     }

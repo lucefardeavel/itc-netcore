@@ -108,7 +108,7 @@ and nothing is written. Slice 0 removed WP6A's dead Reconcile button for VERIFIE
 found in WP6B reconnaissance; the backend always refused it).
 
 Operations Center (system.admin, read-only): Needs attention, stale activations (bounded page), Waiting / held legacy
-balance operations (CLI decision `php system/reseller/reconcile.php balance-resolve <id> completed|refund`), auto-renew
+balance operations (CLI decision `php system/reseller/reconcile.php balance-resolve <id> completed|refund --operator=<name> --reason=<text>`), auto-renew
 not available (informational), drift on demand (RADIUS comparison opt-in), resolved history. Buttons only link to the
 activation page, where each accepted action has its own confirmation; informational items carry no buttons; ambiguous
 outcomes stay "still uncertain"; identifiers only (no metadata, secrets or voucher codes).

@@ -164,15 +164,16 @@ final class ReconciliationService
                 $result = \Reseller\Radius\ProvisionResult::unknown('ROLLBACK_VERIFY_MISMATCH', 'RADIUS does not show the captured prior state after the restore.');
             }
         }
-        self::audit($actor, 'activation.rollback', $act, ['restore' => $result->status . ':' . $result->code]);
         if (!$result->isSuccess()) {
+            self::audit($actor, 'activation.rollback', $act, ['restore' => $result->status . ':' . $result->code]);
             self::tx(static fn(\PDO $pdo) => ActivationStore::note($pdo, $id, ActivationState::ROLLBACK_PENDING, $actor,
                 ['event_type' => 'RECONCILIATION', 'provisioning_result' => $result->status, 'error_code' => $result->code, 'error_message' => $result->message],
                 ['error_code' => $result->code, 'error_message' => 'The prior RADIUS state could not be restored and verified; the reservation remains held and the rollback can be repeated.']));
             throw new DomainError('ACTIVATION_STATE_CONFLICT', 'The previous RADIUS state could not be restored and verified (' . $result->code . '); the reservation stays held and the rollback can be repeated.');
         }
         $password = $restore['password'];
-        self::tx(static function (\PDO $pdo) use ($id, $actor, $password): void {
+        $outcome = $result->status . ':' . $result->code;
+        self::tx(static function (\PDO $pdo) use ($id, $actor, $act, $password, $outcome): void {
             $reservation = ActivationStore::reservation($pdo, $id);
             if ($reservation !== null && $reservation['status'] === 'ACTIVE') {
                 ReservationService::releaseInTx($pdo, (int) $reservation['id'], FinanceActor::system('wp5a-activation'), 'activation rolled back');
@@ -180,6 +181,8 @@ final class ReconciliationService
             ActivationStore::transition($pdo, $id, [ActivationState::ROLLBACK_PENDING], ActivationState::ROLLED_BACK, $actor,
                 ['event_type' => 'RECONCILIATION', 'provisioning_result' => 'SUCCESS', 'metadata' => ['rollback' => 'restored', 'password' => $password]],
                 ['error_code' => 'ROLLED_BACK', 'error_message' => 'The activation was rolled back; nothing was charged.']);
+            // in the release transaction: a release is never committed without its audit record (final QA F-1)
+            self::audit($actor, 'activation.rollback', $act, ['restore' => $outcome, 'released' => $reservation !== null && $reservation['status'] === 'ACTIVE'], $pdo);
         });
         return self::find($reference);
     }
@@ -270,11 +273,16 @@ final class ReconciliationService
         if ($actor->context === null) {
             return;
         }
-        AuditLog::record($event, $actor->context, [
+        $record = [
             'target_type' => 'activation', 'target_user_id' => (int) $act['manager_id'],
             'target_snapshot' => ['reference' => $act['reference'], 'customer_id' => (int) $act['customer_id']],
             'before' => ['status' => $act['status']], 'after' => $after,
-        ], $pdo);
+        ];
+        if ($actor->operator !== null) {   // a named CLI operator (ActivationActor::operator): who and why
+            $record['after'] += ['operator' => $actor->operator];
+            $record['reason'] = $actor->reason;
+        }
+        AuditLog::record($event, $actor->context, $record, $pdo);
     }
 
     private static function tx(callable $fn): mixed

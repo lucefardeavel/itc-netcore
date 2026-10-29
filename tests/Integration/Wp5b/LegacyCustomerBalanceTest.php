@@ -157,10 +157,19 @@ PHP;
             $this->assertSame(0, $this->grants($id));
             $held = static::$app->exec('$result = array_column(' . self::S . '::held(), "id");');
             $this->assertContains($out['journal_id'], array_map('intval', $held));
-            $r = static::$app->exec('$result = ' . self::S . '::resolve(' . (int) $out['journal_id'] . ', ' . var_export($decision, true) . ');');
+            // final QA F-1: operator and reason are required; the audit record is written with the decision
+            $bad = static::$app->exec('try { ' . self::S . '::resolve(' . (int) $out['journal_id'] . ', ' . var_export($decision, true) . ', "", ""); $result = "applied"; } catch (\Reseller\Domain\DomainError $e) { $result = $e->reason; }');
+            $this->assertSame('INVALID_INPUT', $bad, 'no anonymous resolution');
+            $this->assertSame('4000.00', $this->balance($id), 'refused: nothing changed');
+            $r = static::$app->exec('$result = ' . self::S . '::resolve(' . (int) $out['journal_id'] . ', ' . var_export($decision, true) . ", 'qa-operator', 'held grant checked on the NAS');");
             $this->assertSame($decision, $r);
             $this->assertSame($final, $this->balance($id));
-            $second = static::$app->exec('try { ' . self::S . '::resolve(' . (int) $out['journal_id'] . ', "refund"); $result = "applied"; } catch (\Reseller\Domain\DomainError $e) { $result = $e->reason; }');
+            $audit = static::$db->rows("SELECT after_json, reason, channel FROM tbl_reseller_audit_events WHERE event_type = 'balance.resolve' ORDER BY id DESC LIMIT 1");
+            $this->assertCount(1, $audit, 'the resolution is audited');
+            $this->assertStringContainsString('"operator":"qa-operator"', (string) $audit[0]['after_json']);
+            $this->assertSame('held grant checked on the NAS', $audit[0]['reason']);
+            $this->assertStringContainsString('"journal_id":' . (int) $out['journal_id'], (string) $audit[0]['after_json']);
+            $second = static::$app->exec('try { ' . self::S . '::resolve(' . (int) $out['journal_id'] . ', "refund", "qa-operator", "held grant checked on the NAS"); $result = "applied"; } catch (\Reseller\Domain\DomainError $e) { $result = $e->reason; }');
             $this->assertNotSame('applied', $second, 'resolved exactly once');
             $this->assertSame($final, $this->balance($id));
         }
@@ -243,7 +252,7 @@ PHP;
 
     private function resolveCode(int $journal, string $decision): string
     {
-        return 'try { $result = ' . self::S . '::resolve(' . $journal . ', ' . var_export($decision, true) . '); } catch (\Reseller\Domain\DomainError $e) { $result = $e->reason; }';
+        return 'try { $result = ' . self::S . '::resolve(' . $journal . ', ' . var_export($decision, true) . ', "qa-operator", "held grant checked on the NAS"); } catch (\Reseller\Domain\DomainError $e) { $result = $e->reason; }';
     }
 
     /** @return array<string,array{0:string}> */
