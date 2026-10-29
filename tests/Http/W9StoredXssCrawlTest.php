@@ -47,11 +47,15 @@ final class W9StoredXssCrawlTest extends Wp2HttpTestCase
         $cu = 'w9xss' . bin2hex(random_bytes(3));
         $r = $a->postWithToken('customers/add-post', ['username' => $cu, 'fullname' => self::payload('fullname'), 'password' => 'Pw-' . bin2hex(random_bytes(4)),
             'pppoe_password' => '', 'service_type' => 'Hotspot', 'account_type' => 'Personal', 'email' => 'x@example.invalid', 'address' => self::payload('address'),
-            'phonenumber' => '0700123', 'city' => self::payload('city'), 'district' => self::payload('district'), 'coordinates' => '']);
+            'phonenumber' => '0700123', 'city' => self::payload('city'), 'district' => self::payload('district'), 'coordinates' => '',
+            // custom attributes: name and value are free text too (shown in for=, id=, name=, value= and label text)
+            'custom_field_name' => [self::payload('cfname')], 'custom_field_value' => [self::payload('cfval')]]);
         $this->assertContains($r->status, [200, 302], $r->excerpt());
         $cid = (int) static::$db->value('SELECT id FROM tbl_customers WHERE username = ?', [$cu]);
         $this->assertGreaterThan(0, $cid, 'the Agent created the customer');
         $this->assertStringContainsString('<' . self::TAG . '>', (string) static::$db->value('SELECT fullname FROM tbl_customers WHERE id = ?', [$cid]), 'positive control: stored raw');
+        $this->assertStringContainsString('<' . self::TAG . '>', (string) static::$db->value('SELECT CONCAT(field_name, field_value) FROM tbl_customers_fields WHERE customer_id = ? LIMIT 1', [$cid]),
+            'positive control: the custom attribute is stored raw');
         $su = 'w9' . bin2hex(random_bytes(2)) . '<' . self::TAG . '>';   // a staff username is free text (3-45 characters)
         $a->postWithToken('settings/users-post', ['username' => $su, 'fullname' => self::payload('staff'), 'password' => 'Pw-' . bin2hex(random_bytes(4)), 'user_type' => 'Sales',
             'phone' => '0700', 'email' => 'y@example.invalid', 'city' => self::payload('scity'), 'subdistrict' => self::payload('ssub'), 'ward' => self::payload('sward')]);
