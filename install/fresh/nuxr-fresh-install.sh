@@ -61,6 +61,8 @@ say() { printf '%s %s\n' "$(ts)" "$*"; }
 phase() { printf '\n%s == %s\n' "$(ts)" "$*"; }
 die() { local c=$1; shift; printf '%s ERROR: %s\n' "$(ts)" "$*" >&2; exit "$c"; }
 refuse() { printf '%s REFUSED: %s\n' "$(ts)" "$*" >&2; printf '%s nothing was changed by this run in the database or the application tree\n' "$(ts)" >&2; exit "$EXIT_REFUSED"; }
+# a refusal after phase 3 created the database / accounts: say so instead of "nothing was changed"
+refuse_late() { printf '%s REFUSED: %s\n' "$(ts)" "$*" >&2; printf '%s this run created the database and accounts in phase 3 and loaded nothing; the state file %s records them\n' "$(ts)" "$STATE_FILE" >&2; exit "$EXIT_REFUSED"; }
 usage() { sed -n '2,49p' "$0" | sed 's/^# \{0,1\}//'; exit "$EXIT_USAGE"; }
 
 for a in "$@"; do
@@ -298,6 +300,17 @@ if ! state_has accounts; then
     [[ $(acct_exists "$u" "$h") == 0 ]] || refuse "account '$u'@'$h' already exists; this installer only creates new accounts (an existing one may hold privileges elsewhere, ISO-01)"
   done
   say "ok   accounts $MIG_ACCT, $APP_ACCT, ${RADIUS_ACCTS[*]} do not exist yet"
+  # no other account may already hold privileges on the target name (database-, table-, column- or routine-level,
+  # including wildcard database patterns): it would reach billing data and NAS secrets as soon as the schema exists
+  others=$(sql_admin <<SQL
+SELECT CONCAT('''', User, '''@''', Host, ''' on ', Db) FROM mysql.db WHERE $(q "$DB") LIKE Db AND CONCAT(User, '@', Host) <> CURRENT_USER()
+UNION SELECT CONCAT('''', User, '''@''', Host, ''' on ', Db, '.', Table_name) FROM mysql.tables_priv WHERE Db = $(q "$DB")
+UNION SELECT CONCAT('''', User, '''@''', Host, ''' on ', Db, '.', Table_name, '.', Column_name) FROM mysql.columns_priv WHERE Db = $(q "$DB")
+UNION SELECT CONCAT('''', User, '''@''', Host, ''' on ', Db, '.', Routine_name) FROM mysql.procs_priv WHERE Db = $(q "$DB")
+SQL
+)
+  [[ -z $others ]] || refuse "other accounts already hold privileges on $DB: $(tr '\n' ' ' <<<"$others")- revoke them first (a DBA decision); this installer grants only to the accounts it creates"
+  say "ok   no other account holds privileges on $DB"
 fi
 
 if [[ $DRY_RUN -eq 1 ]]; then
@@ -353,7 +366,7 @@ phase "4 base schema (installer step 4: install/phpnuxbill.sql + install/radius.
 if ! state_has base_schema; then
   read -r db_exists n_tables n_routines n_events n_triggers db_coll <<<"$(inventory)"
   [[ $db_exists == 1 && $n_tables == 0 && $n_routines == 0 && $n_events == 0 && $n_triggers == 0 && $db_coll == utf8mb4_general_ci ]] \
-    || refuse "re-check before loading: $DB is no longer empty ($n_tables tables) or has collation $db_coll; nothing loaded"
+    || refuse_late "re-check before loading: $DB is no longer empty ($n_tables tables) or has collation $db_coll; nothing loaded"
   say "re-check: $DB still empty; loading"
   state_set base_schema_started
   sql_mig < "$APP_ROOT/install/phpnuxbill.sql" || die "$EXIT_STEP" "install/phpnuxbill.sql failed: this database is now partial; start again on a new empty database"
@@ -392,7 +405,8 @@ if [[ ! -d $APP_ROOT/pages ]]; then
 fi
 [[ -d $APP_ROOT/pages_template ]] && { rm -rf "$APP_ROOT/pages_template"; say "pages_template/ removed (installer step 5)"; }
 chown -R root:root "$APP_ROOT_REAL"            # real path: chown -R does not follow a symlinked root
-chmod -R u+rwX,go+rX,go-w "$APP_ROOT_REAL"
+# config.php is excluded: it holds the database password and stays root:<web group> 0640 throughout
+find "$APP_ROOT_REAL" ! -path "$APP_ROOT_REAL/config.php" -exec chmod u+rwX,go+rX,go-w {} +
 WRITABLE=(pages system/uploads system/cache ui/cache ui/compiled)
 for d in "${WRITABLE[@]}"; do
   mkdir -p "$APP_ROOT_REAL/$d"
@@ -457,6 +471,12 @@ SQL
   state_set radius_setting; say "tbl_appconfig radius_enable = 1 (the SuperAdmin setting 'Enable Radius: Yes')"
 elif [[ $ENABLE_RADIUS -eq 0 ]]; then say "skip (--no-enable-radius): enable RADIUS as SuperAdmin before the preflight"
 else say "skip: stored earlier"; fi
+# the dashboard's upstream PHPNuxBill version check fetches raw.githubusercontent.com on every load: off by default
+# (an existing value is kept; SuperAdmin can change it under Settings - Miscellaneous)
+sql_mig <<'SQL' || die "$EXIT_STEP" "storing new_version_notify failed"
+INSERT INTO tbl_appconfig (setting, value) SELECT 'new_version_notify', 'disable' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM tbl_appconfig WHERE setting = 'new_version_notify');
+SQL
+say "tbl_appconfig new_version_notify = $(sql_mig <<<"SELECT value FROM tbl_appconfig WHERE setting = 'new_version_notify'") (upstream update check)"
 
 # ------------------------------------------------------------------------------------------------------------------
 phase "10 least-privilege grants (runbook 2 step 8, checklist D1/D2)"

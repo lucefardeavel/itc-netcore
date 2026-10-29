@@ -73,7 +73,7 @@ This guide helps support staff and operators handle the most common incidents on
 - Customer view: plan, expiry date, last activation.
 - `php system/reseller/reconcile.php expired-autorenew` (reseller-owned customers that expired without renewal).
 - Cron output for the customer.
-- If **no** customer expires or renews any more: check that the scheduled job runs `cd <app-root>/system && php cron.php`. Started from the application root, `cron.php` cannot find `../init.php`, does nothing and still exits 0 (only a PHP warning in the cron log).
+- If **no** customer expires or renews any more: check that the scheduled job runs (`/etc/cron.d/itc-netcore`, documented form `cd <app-root>/system && php cron.php`) and look for PHP errors in the cron log; run it once by hand as the PHP user (exit 0).
 
 **Authorized resolution.**
 - Reseller-owned: the owner reseller (or its Sales user, or an Admin) renews through Activate / Renew (REACTIVATE or RENEW); the owner's wallet is debited.
@@ -102,7 +102,7 @@ This guide helps support staff and operators handle the most common incidents on
 
 | State | Action |
 |---|---|
-| `FUNDS_RESERVED` / `RETRY_PENDING`, stale ≥ 5 min | Resume (continue) or Cancel (release, CANCELLED) |
+| `FUNDS_RESERVED` / `RETRY_PENDING`, stale for at least 5 min | Resume (continue) or Cancel (release, CANCELLED) |
 | `VERIFIED` (stale) | Resume (settles once) |
 | `RECONCILIATION_REQUIRED` | Reconcile; on `EXTERNAL_STATE_AMBIGUOUS` (exit 4) inspect RADIUS, then Rollback or leave held |
 | `ROLLBACK_PENDING` | Rollback again; funds stay held until the restore is verified |

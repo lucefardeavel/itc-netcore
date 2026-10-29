@@ -263,6 +263,39 @@ nuxr_decrypt() { # $1 = encrypted file (method from its extension); output on st
 nuxr_sha256() { sha256sum "$1" | cut -c1-64; }
 nuxr_size() { stat -c %s "$1"; }
 
+# ---------------------------------------------------------------- off-host copy with a backlog
+# Every item (a path relative to $BACKUP_DIR) gets a marker in $BACKUP_DIR/.offhost/ once a copy that included it
+# succeeded. Each run ships its new items plus every earlier item still unmarked, so one failed copy is retried by the
+# next run instead of being forgotten, and the run keeps exiting 5 while a backlog remains.
+nuxr_offhost_marker() { local p=${1//\//__}; printf '%s/.offhost/%s' "$BACKUP_DIR" "$p"; }
+nuxr_offhost_unmarked() { # item... -> the items without a marker, one per line
+  local i; for i in "$@"; do [[ -e "$(nuxr_offhost_marker "$i")" ]] || printf '%s\n' "$i"; done
+}
+nuxr_offhost_pending_sets() { # complete sets not yet copied off-host
+  local s items=()
+  while IFS= read -r s; do items+=("full/$(basename "$s")"); done < <(find "$BACKUP_DIR/full" -mindepth 1 -maxdepth 1 -type d \
+    -regextype posix-extended -regex '.*/[0-9]{8}T[0-9]{6}Z' 2>/dev/null | sort)
+  [[ ${#items[@]} -eq 0 ]] || nuxr_offhost_unmarked "${items[@]}"
+}
+nuxr_offhost_pending_binlogs() { # $1 = archive tag -> data, .sha256 and .info of every archived binlog not yet copied
+  local d="$BACKUP_DIR/binlog/$1" f name rel out
+  [[ -d "$d" ]] || return 0
+  for f in "$d"/*.info; do
+    [[ -e "$f" ]] || continue
+    name=$(basename "$f" .info); rel="binlog/$1/$name.info"
+    [[ -e "$(nuxr_offhost_marker "$rel")" ]] && continue
+    out=$(sed -n 's/^file=//p' "$f")
+    printf '%s\n' "binlog/$1/$out" "binlog/$1/$name.sha256" "$rel"
+  done
+}
+nuxr_offhost_ship() { # cmd item... -> 0 copied (markers written), 1 failed (no marker written)
+  local cmd=$1 i; shift
+  [[ $# -gt 0 ]] || return 0
+  mkdir -p "$BACKUP_DIR/.offhost"; chmod 0700 "$BACKUP_DIR/.offhost"
+  ( cd "$BACKUP_DIR" && bash -c "$cmd" nuxr-offhost "$@" ) || return 1
+  for i in "$@"; do : > "$(nuxr_offhost_marker "$i")"; done
+}
+
 # ---------------------------------------------------------------- locking
 nuxr_lock() {
   local name=$1 f

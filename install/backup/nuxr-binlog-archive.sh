@@ -158,9 +158,12 @@ nuxr_result binlog.newest_archived "${newest:-none}"
 nuxr_result binlog.seconds "$(nuxr_elapsed "$T0")"
 
 RC=0
-if [[ $OFFHOST == 1 && -n "$OFFHOST_BINLOG_CMD" && $n -gt 0 ]]; then
-  if ( cd "$BACKUP_DIR" && bash -c "$OFFHOST_BINLOG_CMD" nuxr-offhost "${archived[@]}" ); then nuxr_result offhost OK
-  else nuxr_err "off-host copy of the new binlogs failed (kept locally)"; nuxr_result offhost FAILED; RC=$NUXR_E_OFFHOST; fi
+if [[ $OFFHOST == 1 && -n "$OFFHOST_BINLOG_CMD" ]]; then
+  mapfile -t pend < <(nuxr_offhost_pending_binlogs "$ARCHIVE_TAG")   # this run's binlogs plus any earlier failed copy
+  nuxr_result offhost.binlogs "$(( ${#pend[@]} / 3 ))"
+  if [[ ${#pend[@]} -eq 0 ]]; then nuxr_result offhost NOTHING_PENDING
+  elif nuxr_offhost_ship "$OFFHOST_BINLOG_CMD" "${pend[@]}"; then nuxr_result offhost OK
+  else nuxr_err "off-host copy of $(( ${#pend[@]} / 3 )) binlog(s) failed (kept locally, retried by the next run)"; nuxr_result offhost FAILED; RC=$NUXR_E_OFFHOST; fi
 fi
 [[ "${GAP:-0}" == 1 ]] && RC=$NUXR_E_BINLOG
 exit "$RC"

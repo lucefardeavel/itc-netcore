@@ -3,7 +3,7 @@
 This manual takes a qualified technician who did not take part in the development of ITC NetCore from bare servers to a verified, running instance of **ITC NetCore V1.0** (ISP Management & Billing Platform). Every instruction is taken from the product's own runbooks, configuration files and command-line tools, and from the fresh-install package `install/fresh/`. Where those documents and this manual differ, the product document wins; the source of every section is listed in `TECH_DOCS_SOURCES.md`.
 
 > [!WARNING]
-> ITC NetCore V1.0 is a **Release Candidate**. Its release state is `RELEASE_BLOCKED_WITH_EVIDENCE`. The target-environment acceptance tests TA-01 … TA-10 have not been run (every row is `NOT_RUN`), the legal review LIC-1 is open, and several owner decisions are pending. A production deployment, a production data migration and any production secret change need the owner's explicit release authorization. This manual does not grant it.
+> ITC NetCore V1.0 is a **Release Candidate**. Its release state is `RELEASE_BLOCKED_WITH_EVIDENCE`. The target-environment acceptance tests TA-01 … TA-10 have not been run (every row is `NOT_RUN`), the legal review LIC-1 is `BLOCKED — COUNSEL REQUIRED`, and several owner decisions are pending. A production deployment, a production data migration and any production secret change need the owner's explicit release authorization. This manual does not grant it.
 
 > [!NOTE]
 > **Owner decision (2026-10-29):** the first installation is a **fresh install on a new, empty database**. No legacy data is imported. Migration from an existing PHPNuxBill database is a separate future path, described in its own guide and **not accepted for V1's first installation**.
@@ -25,7 +25,7 @@ Each procedure carries one of these labels. They describe what has really been e
 
 | Label | Meaning |
 |---|---|
-| **Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0)** | Executed end to end with the `install/fresh/` package on 2026-10-29 on an isolated, disposable Docker instance, once against MariaDB 10.11.19 and once against MySQL 8.0.46, then torn down. App container: Ubuntu 24.04 with PHP 8.2.35 (CLI and FPM) from `ppa:ondrej/php`, nginx 1.24.0 and the MariaDB 10.11 client, using exactly this manual's package set; a self-signed certificate; no published port; **no FreeRADIUS and no NAS**. Source: commit `228f01c9`, artifact SHA-256 `4c233573…` (reproducible build). The proof was run on `228f01c9` and will be re-run on the final release commit. This is lab evidence, **not** a target acceptance |
+| **Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0)** | Executed end to end with the `install/fresh/` package on 2026-10-29 on an isolated, disposable Docker instance, once against MariaDB 10.11.19 and once against MySQL 8.0.46, then torn down. App container: Ubuntu 24.04 with PHP 8.2.35 (CLI and FPM) from `ppa:ondrej/php`, nginx 1.24.0 and the MariaDB 10.11 client, using exactly this manual's package set; a self-signed certificate; no published port; **no FreeRADIUS and no NAS**. The proof is run on every release candidate on MariaDB 10.11 and MySQL 8.0; the result for this release is in the handover package (`08_Acceptance_Handover/FRESH_INSTALL_PROOF`). This is lab evidence, **not** a target acceptance |
 | **Lab-verified** | Executed by the project's lab scripts on the isolated WSL lab and recorded as evidence. That lab is: Ubuntu 24.04 (WSL2), PHP 8.2 from the `ppa:ondrej/php` repository, nginx with PHP-FPM on a loopback address over **plain HTTP**, MariaDB 10.11.14, FreeRADIUS 3.2.5 (Ubuntu package) with the project configuration, the official FreeRADIUS 3.2.8 image used by the test harness, and MikroTik CHR RouterOS 7.24.5 virtual routers. MySQL 8.0 was exercised there by the automated test harness |
 | **Documented (not yet executed on target)** | Specified by the authoritative product documents but not executed in the lab in this form, and not executed on any target system |
 
@@ -59,7 +59,7 @@ Use this list to plan and track the work. Each line points to the section that h
 | 1 | Authorize | Written owner authorization for the hosts, the window and the operator; the release SHA named | *Security prerequisites* | Documented (not yet executed on target) |
 | 2 | Prepare | Hosts sized, OS installed, UTC and NTP on every host, firewall matrix applied, DNS name and certificate ready, backup storage ready | *Preparation* | Documented (not yet executed on target) |
 | 3 | Prepare | PHP 8.2 with the required extensions, nginx and PHP-FPM, a database client, the database engine with the required settings, FreeRADIUS 3.2.x and the net-snmp tools | *Preparation* | Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0) for the application host and the engine; FreeRADIUS: Lab-verified |
-| 4 | Install | Release artifact verified with `nuxr-artifact-verify.sh` (SHA-256, archive safety, `RELEASE_SHA`, content rules); verified copy kept in `<artifact-dir>` | *Obtain and verify the release artifact* | Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0) |
+| 4 | Install | Manual first-run check (`sha256sum -c SHA256SUMS`; `RELEASE_SHA` in the archive equals the release SHA from ITC), then release artifact verified with `nuxr-artifact-verify.sh` (SHA-256, archive safety, `RELEASE_SHA`, content rules); verified copy kept in `<artifact-dir>` | *Obtain and verify the release artifact* | Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0) |
 | 5 | Install | Release unpacked into its own release directory; `current` link is `<app-root>` | *Deploy the code* | Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0) |
 | 6 | Install | nginx and PHP-FPM configured from the package examples; `php-fpm8.2 -t` and `nginx -t` pass | *Web server: nginx and PHP-FPM* | Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0) |
 | 7 | Install | `<env-file>` generated with `--generate-secrets` and completed | *Parameters and secrets* | Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0) |
@@ -103,7 +103,7 @@ The only sizing figures in the product documents are **lab-derived minima for a 
 | Host | Representative minimum | Basis |
 |---|---|---|
 | Application | 2 vCPU, 4 GB RAM, SSD | PHP workers were light in the lab load tests |
-| Database (MariaDB 10.11 or MySQL 8.0) | 4 vCPU, 8 GB RAM, disk-backed SSD, `innodb_buffer_pool_size` ≥ 1 GB, `max_connections` ≥ 151 | Up to about 3 database cores at 250 Interim-Updates/s in the lab |
+| Database (MariaDB 10.11 or MySQL 8.0) | 4 vCPU, 8 GB RAM, disk-backed SSD, `innodb_buffer_pool_size` of at least 1 GB, `max_connections` of at least 151 | Up to about 3 database cores at 250 Interim-Updates/s in the lab |
 | FreeRADIUS | 4 vCPU, 4 GB RAM, `thread pool max_servers` 32, `sql pool max` 32 (as shipped) | Up to about 2 cores at 250 Interim-Updates/s in the lab |
 
 > [!WARNING]
@@ -149,7 +149,7 @@ Use **MariaDB 10.11** or **MySQL 8.0** (the migration runner enforces the minimu
 | Clock skew database / application | under 5 s | installer (A5), preflight `time.clock_skew` |
 | Character set | `utf8mb4`; the database itself is created with `utf8mb4_general_ci` by the installer | installer (database gate), `radius.sql` |
 | MariaDB only | `check_constraint_checks = ON` globally | installer (A6), preflight `radius_checks` |
-| `max_connections` | ≥ the sum of every FreeRADIUS `pool.max` on this server + the application + operator and backup sessions + margin | companion manual, TA-09 |
+| `max_connections` | At least the sum of every FreeRADIUS `pool.max` on this server + the application + operator and backup sessions + margin | companion manual, TA-09 |
 | Network | Reachable only from the application and FreeRADIUS hosts, never from the internet | firewall review |
 | Administrator | One existing DBA account for the installer, with global `SELECT`, `CREATE USER` and `GRANT OPTION` (and `CREATE` for `--create-db`). It is used only during the run and never stored | installer (prerequisites, database gate) |
 
@@ -278,25 +278,41 @@ The package README (`install/fresh/README.md`) is the reference for every option
 | `logrotate/itc-netcore.example`, `cron/itc-netcore.cron.example` | Log rotation and scheduled jobs |
 
 > [!NOTE]
-> **Lab proof (2026-10-29).** The whole sequence of this chapter ran on a disposable instance against MariaDB 10.11 and against MySQL 8.0: install exit 0; a second run exit 0 with an identical database; post-install verification **67 PASS / 0 WARN / 0 FAIL** on each engine; 8 of 8 refusal cases refused on each engine with nothing changed. The proof was run on commit `228f01c9` (with the package as staged at that time) and will be re-run on the final release commit. It is not a target acceptance and not a release authorization.
+> **Lab proof (2026-10-29).** The whole sequence of this chapter ran on a disposable instance against MariaDB 10.11 and against MySQL 8.0: install exit 0; a second run exit 0 with an identical database; post-install verification **67 PASS / 0 WARN / 0 FAIL** on each engine; 8 of 8 refusal cases refused on each engine with nothing changed. The proof is run on every release candidate on MariaDB 10.11 and MySQL 8.0; the result for this release is in the handover package (`08_Acceptance_Handover/FRESH_INSTALL_PROOF`). It is not a target acceptance and not a release authorization.
 
 > [!NOTE]
-> **Package location.** `install/fresh/` is part of the release commit and of every artifact built from it. Run it from the verified artifact copy, `<artifact-dir>/install/fresh/`. (The lab proof on `228f01c9` predates that commit and used a copy of the package placed at the same location.) The installer always refuses to run from the copy inside the document root.
+> **Package location.** `install/fresh/` is part of the release commit and of every artifact built from it. Run it from the verified artifact copy, `<artifact-dir>/install/fresh/`. The installer always refuses to run from the copy inside the document root.
 
 ## Obtain and verify the release artifact
 
-1. Obtain the release artifact built from the **owner-accepted commit** (`itc-netcore-v1.0-<sha12>.tar.gz`), its `SHA256SUMS` file and the commit SHA recorded in the release notes (the release SHA recorded at build). The build is `git archive` of that commit with a `RELEASE_SHA` file added, and it is reproducible: the same commit gives the same SHA-256 (`install/fresh/README.md`, "Release build").
-2. Verify the artifact **on the target, before unpacking**, and unpack it twice: once as the kept copy `<artifact-dir>` outside the document root, and once as the release that becomes the document root.
+1. Obtain the release artifact built from the **owner-accepted commit** (`itc-netcore-v1.0-<sha12>.tar.gz`), its `SHA256SUMS` file, the standalone `nuxr-artifact-verify.sh` delivered next to the tarball (handover folder `07_Release_Artifacts`), and the **40-character release SHA**, which ITC gives you out-of-band (not with the download) and which the handover index lists. The build is `git archive` of that commit with a `RELEASE_SHA` file added, and it is reproducible: the same commit gives the same SHA-256 (`install/fresh/README.md`, "Release build").
+2. Run the **manual first-run check** below, then verify the artifact with `nuxr-artifact-verify.sh` **on the target, before unpacking**, and unpack it twice: once as the kept copy `<artifact-dir>` outside the document root, and once as the release that becomes the document root.
+
+**Manual first-run check** (in the folder that holds the tarball and `SHA256SUMS`, before any script from the delivery is run):
 
 ```bash
-nuxr-artifact-verify.sh --artifact=<name>.tar.gz --expected-sha=<sha from the release notes> \
+sha256sum -c SHA256SUMS
+# expected: itc-netcore-v1.0-<sha12>.tar.gz: OK
+tar -xzOf itc-netcore-v1.0-<sha12>.tar.gz itc-netcore-v1.0-<sha12>/RELEASE_SHA
+# expected: the 40-character release SHA from ITC (handover index)
+```
+
+This check needs only `sha256sum` and `tar` from the operating system, not the verifier inside the tarball. If `sha256sum` does not print `OK`, or the printed `RELEASE_SHA` differs from the SHA that ITC gave you by even one character, stop: do not unpack the tarball and do not run anything from it.
+
+**Verify and unpack:**
+
+```bash
+./nuxr-artifact-verify.sh --artifact=<name>.tar.gz --expected-sha=<40-character release SHA> \
   --extract-to=/srv/itcnc/artifact/<name>
 cd /srv/itcnc/artifact/<name>/install/fresh
-./nuxr-artifact-verify.sh --artifact=/path/<name>.tar.gz --expected-sha=<sha> \
+./nuxr-artifact-verify.sh --artifact=/path/<name>.tar.gz --expected-sha=<40-character release SHA> \
   --extract-to=/srv/itcnc/app/releases/<sha8>-<UTC timestamp>
 ```
 
-(Use the script from a reviewed copy of the package for the first run, and from `<artifact-dir>/install/fresh/` afterwards.)
+(For the first run, use the standalone `nuxr-artifact-verify.sh` from `07_Release_Artifacts`, after the manual check above; afterwards, use the copy in `<artifact-dir>/install/fresh/`.)
+
+> [!NOTE]
+> **Where the release SHA is recorded.** A commit cannot contain its own SHA, so the release SHA is not written in the release notes or in any other file of the source tree. It is recorded in the `RELEASE_SHA` file, which the build adds to the archive, in the archive itself (the commit id that `git archive` stores in the tar header), and in the handover index.
 
 The script checks, in this order, and stops at the first failure:
 1. the artifact's SHA-256 equals its line in `SHA256SUMS`;
@@ -309,7 +325,7 @@ With `--extract-to` it unpacks only after every check passed, into a directory t
 > [!NOTE]
 > Deploying from a source checkout is not the V1 procedure. The development-pack manifest check of the staging package (`sha256sum -c docs/claude-development-pack/MANIFEST.sha256`, 42 / 42) can only run on a source checkout, because that directory is excluded from the release artifact.
 
-**Verification level:** Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0): a tampered tarball and a wrong `--expected-sha` both failed with exit 2; the kept copy and the release verified and unpacked, and the git tar-header commit id matched. The proof artifact (commit `228f01c9`, 8,260,760 bytes, 2,135 files) rebuilt to the same SHA-256.
+**Verification level:** Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0): a tampered tarball and a wrong `--expected-sha` both failed with exit 2; the kept copy and the release verified and unpacked, and the git tar-header commit id matched. The proof artifact rebuilt to the same SHA-256; the result for this release is in `08_Acceptance_Handover/FRESH_INSTALL_PROOF`. The manual `sha256sum` / `tar` check: documented (not yet executed on target).
 
 ## Deploy the code
 
@@ -415,7 +431,7 @@ Before phase 1 the installer checks `<env-file>`: a mode other than 0600 / 0400,
 | # | Phase | What it does and checks |
 |---|---|---|
 | 1 | Prerequisites | PHP 8.2 with the five extensions, PHP-FPM, a database client, the web user and the tools; the engine and its global settings (A3 isolation, A4 time zone, A5 skew, A6 `check_constraint_checks`); the DBA account's privileges |
-| 2 | Database gate | The emptiness proof above; refuses pre-existing accounts (they may hold privileges elsewhere, ISO-01) and a `config.php` without installer state |
+| 2 | Database gate | The emptiness proof above; refuses pre-existing accounts (they may hold privileges elsewhere, ISO-01), a target database on which another account already holds database, table, column or routine privileges (revoke them first), and a `config.php` without installer state |
 | 3 | Database and accounts | Creates the database (only with `--create-db`) as `utf8mb4` / `utf8mb4_general_ci`, then the migration, application and FreeRADIUS accounts |
 | 4 | Base schema | After the second emptiness check, the migration (DDL) account loads `install/phpnuxbill.sql` and `install/radius.sql` |
 | 5 | `config.php` | Rendered from `templates/config.php.tmpl`: the application runtime account from the start, new 64-hex `$app_secret` and `$api_secret` from `random_bytes`, stage `Live`, and a pinned `define('APP_URL', '<https URL>')` |
@@ -440,7 +456,7 @@ Credentials are read from 0600 option files in a private temporary directory (re
 | 0 | Installed and verified (setup preflight and `health.php --finance` passed) |
 | 1 | Internal error |
 | 2 | Prerequisites missing (nothing changed) |
-| 3 | Refused (nothing changed): database not empty or unknown, wrong collation, accounts exist, unsafe file, existing installation |
+| 3 | Refused (nothing changed): database not empty or unknown, wrong collation, accounts exist, another account holds privileges on the target database, unsafe file, existing installation |
 | 4 | A step failed (schema, migration, grants, preflight, health) |
 | 5 | Usage |
 
@@ -551,6 +567,7 @@ As SuperAdmin, set these in the application settings before anything else:
 | **Time zone** | The base schema seeds `Asia/Jakarta` (still the value after the fresh install). Set the zone you will operate in. FreeRADIUS must run with the same `TZ` (`Expiration` is written in this zone) |
 | **Currency and number format** | The base schema seeds `Rp.` with `,` / `.` separators |
 | **RADIUS** (`radius_enable`, SuperAdmin only) | Already stored by the installer (`radius_enable = 1`) unless you passed `--no-enable-radius`. The application's RADIUS features need it. Known issue ACC-1 (the preflight RADIUS checks FAIL instead of reporting "RADIUS not enabled") was **not** reproduced at commit `228f01c9` with the single-database layout, because the preflight falls back to the main connection (finding G-3) |
+| **Update check** (`new_version_notify`, SuperAdmin) | Stored as `disable` by the fresh installer: the dashboard's upstream PHPNuxBill update check, which contacts `raw.githubusercontent.com`, is off by default. SuperAdmin can enable it under Settings > Miscellaneous. It is the upstream PHPNuxBill check, not an ITC NetCore release channel; leave it off unless your outbound policy allows that host |
 
 **Verification level:** `radius_enable` stored by the installer: Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0). Company name, time zone and currency through the user interface: Lab-verified (WSL lab); on target: documented (not yet executed on target).
 
@@ -641,7 +658,7 @@ The example also contains, as commented lines, the daily read-only reconcile che
 | `health.php --json --finance` | hourly | Adds the whole-database finance integrity check (I4, expensive) |
 
 > [!WARNING]
-> **Run `cron.php` from the `system/` directory:** `cd <app-root>/system && php cron.php`. It includes `../init.php` relative to the working directory. The form `php system/cron.php` from the root **exits 0 with only a PHP warning and does nothing** (finding G-2). The production checklist (I1, I2), the file's own header and the package cron file all use the correct form; do not "correct" it.
+> **Run `cron.php` from the `system/` directory:** `cd <app-root>/system && php cron.php`. This is the documented form: the production checklist (I1, I2), the file's own header and the package cron file all use it; keep it. In this release `cron.php` resolves `init.php` from its own directory, so it also works when started from another working directory (finding G-2 is fixed).
 
 **Verification:** one manual run of each as `<php-user>` exits 0:
 
@@ -704,7 +721,8 @@ Install the tools and their configuration as the README describes (`backup.conf.
 Rules:
 - keep a sealed copy of the encryption key **off the host**; without it no backup can be restored, and it never sits in the backup store;
 - binary logging must be on (`binlog_format=ROW`, unique `server_id`, `sync_binlog=1`); MariaDB has it OFF by default;
-- point-in-time recovery against host loss is only as good as the off-host copy of every archive run;
+- point-in-time recovery against host loss is only as good as the off-host copy of every archive run. An off-host copy that failed is retried automatically by the next run (one marker per item in `$BACKUP_DIR/.offhost/`); the run keeps exiting 5 while such a backlog remains, so alert on **any** exit 5;
+- the encrypted copy of the manifest is mandatory at restore: a set without it is refused. With `age` encryption, keep the recipients file private and the backup store write-protected;
 - do not run migrations during a backup;
 - the legacy JSON "backup / restore" of the web interface stays disabled; it cannot restore the reseller domain.
 
@@ -807,7 +825,7 @@ Collect these items before the owner's release decision:
 |---|---|---|
 | `nuxr-artifact-verify.sh` exit 2 | SHA-256 mismatch, unsafe archive entry, `RELEASE_SHA` differs from `--expected-sha`, or a content rule failed; nothing was unpacked | Obtain the artifact again from the release source; never unpack an artifact that failed |
 | `nuxr-fresh-install.sh` exit 2 | A prerequisite is missing (PHP version or extension, PHP-FPM, client, engine setting, DBA privilege); nothing changed | Fix the prerequisite and re-run the dry run |
-| `nuxr-fresh-install.sh` exit 3, "REFUSED … NOT EMPTY" or another refusal; "nothing was changed by this run" | The database is not empty or not known (without `--create-db`), has another collation than `utf8mb4_general_ci`, an account already exists, `<env-file>` is not 0600 / 0400 or not yours, or a `config.php` without installer state exists | Choose a new, empty database or new account names, or correct the file mode. **Never** drop or clean a database to pass the gate |
+| `nuxr-fresh-install.sh` exit 3, "REFUSED … NOT EMPTY" or another refusal; "nothing was changed by this run" | The database is not empty or not known (without `--create-db`), has another collation than `utf8mb4_general_ci`, an account already exists, another account already holds database, table, column or routine privileges on the target database, `<env-file>` is not 0600 / 0400 or not yours, or a `config.php` without installer state exists | Choose a new, empty database or new account names, revoke the other account's privileges on the target database (`SHOW GRANTS`, then `REVOKE`), or correct the file mode. **Never** drop or clean a database to pass the gate |
 | `nuxr-fresh-install.sh` exit 3, the base-schema load was interrupted ("never resumed") | A previous run failed during the base-schema load | Start again on a new, empty database |
 | `nuxr-fresh-install.sh` exit 4 | A step failed (schema, migration, grants, preflight, health); the log names it | Fix the cause and run the same command again: it resumes after the base schema |
 | Setup preflight prints `FAIL db.connect` (access denied, unknown database or server not reachable, with the MySQL error number) and exits 4; the installer reports exit 4 | The runtime account in `config.php` cannot connect to the database (finding G-4, fixed in `bd1e03cc`: no PHP fatal error and no stack trace) | Check the application account, its host part (`NUXR_DB_CLIENT_HOST`) and its password; re-run |
@@ -832,7 +850,7 @@ Collect these items before the owner's release decision:
 | `quota.php enforce` exits 5 | `--every` is below 5 (finding G-5) or another usage error | Use `--every=5` or more |
 | `finance-check` exit 4 | A write outside the finance services | Security incident: preserve, escalate, never "fix" the numbers |
 | Session cookie without `Secure` behind a proxy | The backend does not see HTTPS | Checklist B9 |
-| `cron.php` does nothing when run from `<app-root>` (exit 0, PHP warning) | It includes `../init.php` relative to the working directory (finding G-2) | Run it as `cd <app-root>/system && php cron.php` (the package cron file does) |
+| Customers no longer expire or renew | The `cron.php` job does not run (cron file missing, wrong user, a PHP error in the cron log) | Check `/etc/cron.d/itc-netcore` and the cron log; run `cd <app-root>/system && sudo -u <php-user> php cron.php` once by hand (exit 0) |
 | `nuxr-post-install-verify.sh` exit 1 | At least one FAIL line (header, blocked path, file mode, tool or cron) | Fix the item it names; rerun |
 
 # Appendix B: Exit codes of the command-line tools

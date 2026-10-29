@@ -6,7 +6,7 @@
   "date": "2026-10-29",
   "owner": "ITC",
   "status": "Release Candidate — not yet production-accepted",
-  "sha": "final-prep (release SHA recorded at build)",
-  "source_sha": "final-prep (release SHA recorded at build)",
+  "sha": "V1.0 release (SHA in the RELEASE_SHA file and the handover index)",
+  "source_sha": "V1.0 release (SHA in the RELEASE_SHA file and the handover index)",
   "audience": "ISP staff and resellers"
 }

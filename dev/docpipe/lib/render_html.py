@@ -100,9 +100,10 @@ class Renderer:
         t = b["t"]
         if t == "heading":
             lvl = b["level"]
-            if b.get("num"):
-                return ('<h%d id="%s" class="h"><span class="secnum" dir="ltr">%s</span><span class="htext">%s</span></h%d>'
-                        % (lvl, b["id"], b["num"], self.inl(b["inl"]), lvl))
+            if b.get("id"):
+                num = '<span class="secnum" dir="ltr">%s</span>' % b["num"] if b.get("num") else ""
+                return ('<h%d id="%s" class="h">%s<span class="htext">%s</span></h%d>'
+                        % (lvl, b["id"], num, self.inl(b["inl"]), lvl))
             return "<h%d>%s</h%d>" % (lvl, self.inl(b["inl"]), lvl)
         if t == "para":
             return "<p>%s</p>" % self.inl(b["inl"])

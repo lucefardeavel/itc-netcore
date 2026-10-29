@@ -20,7 +20,7 @@ A backup contains the NAS shared secrets, customer passwords (stored recoverably
 > Encrypt every backup at rest and in transit. Restrict it to the instance operators. Never attach a backup to a ticket, an email or a chat. Never keep a dump in a source repository.
 
 > [!SECURITY-WARNING]
-> **The encryption key.** Keep a sealed copy of the key file (`ENC_KEY_FILE`, or the `age` identity) **off the host**, for example with two people and an envelope, or in a vault. Without it no backup can be restored, and it must never sit in the backup store. With `ENCRYPTION=age` the database host keeps only the public recipient, so a stolen host cannot decrypt its own backups; only the restore host needs the identity. The tools read the key from a 0600 file and never from the command line.
+> **The encryption key.** Keep a sealed copy of the key file (`ENC_KEY_FILE`, or the `age` identity) **off the host**, for example with two people and an envelope, or in a vault. Without it no backup can be restored, and it must never sit in the backup store. With `ENCRYPTION=age` the database host keeps only the public recipient, so a stolen host cannot decrypt its own backups; only the restore host needs the identity. The encrypted manifest cannot be authenticated against someone who holds the public recipient, so with `age` keep the recipients file private and the backup store write-protected, or use openssl / gpg symmetric keys. The tools read the key from a 0600 file and never from the command line.
 
 # 2. What must be backed up
 
@@ -62,7 +62,7 @@ Then install the schedules: the systemd units in `systemd/` (backup nightly, bin
 
 - Dumps the application database (and the RADIUS database when it is separate) with `--single-transaction --quick --routines --triggers --events --hex-blob --default-character-set=utf8mb4 --no-tablespaces`, plus the binlog coordinates of the snapshot (MariaDB `--master-data=2`; MySQL `--source-data=2 --set-gtid-purged=OFF`). The dump stream must end with `-- Dump completed`.
 - Compresses (gzip or zstd) and encrypts (openssl AES-256-CBC with PBKDF2, or `age` / `gpg`).
-- Writes, per set under `$BACKUP_DIR/full/<UTC yyyymmddThhmmssZ>/`: the encrypted dump, the encrypted `secrets.tar` (`SECRET_FILES`), `backup.info` (UTC times, engine and versions, `server_id`, the dump tool, encryption parameters, per database file, size, sha256 and binlog position, release directory and version), `MANIFEST.sha256` and an encrypted copy of the manifest. The set is written as `.partial` and renamed only when complete.
+- Writes, per set under `$BACKUP_DIR/full/<UTC yyyymmddThhmmssZ>/`: the encrypted dump, the encrypted `secrets.tar` (`SECRET_FILES`), `backup.info` (UTC times, engine and versions, `server_id`, the dump tool, encryption parameters, per database file, size, sha256 and binlog position, release directory and version), `MANIFEST.sha256` and an encrypted copy of the manifest (mandatory at restore). The set is written as `.partial` and renamed only when complete.
 - Runs the off-host hook and the retention pruning (§4), holds a lock (a concurrent run exits 75), logs, and returns a distinct exit code per failure (§9).
 
 Rules:
@@ -82,9 +82,9 @@ Rules:
 | Requirement | Source | Status |
 |---|---|---|
 | Keep the **agreed** retention | Backup runbook §2; checklist F3 | `RETENTION_DAYS` plus `RETENTION_MIN_KEEP` (the newest sets are always kept). Archived binlogs older than the PITR start of the oldest kept set are pruned too, so every kept set has a complete chain. `nuxr-backup.sh --prune-only` prunes without backing up. The period itself is agreed with the ISP; the product sets no value |
-| At least one off-site copy | Backup runbook §2; checklist F3 | Hook provided: `OFFHOST_CMD` runs after each set and each archived binlog. A failed copy keeps the set locally and exits 5. **No destination is built in. [Still open: the real off-host target, its transport and its own retention, agreed with the ISP]** |
+| At least one off-site copy | Backup runbook §2; checklist F3 | Hook provided: `OFFHOST_CMD` runs after each set and each archived binlog. A failed copy keeps the item locally, leaves a marker for it in `$BACKUP_DIR/.offhost/` and exits 5; the next run retries every marked item automatically and keeps exiting 5 while such a backlog remains. **No destination is built in. [Still open: the real off-host target, its transport and its own retention, agreed with the ISP]** |
 | Scheduled backup | Checklist I5 | Provided: systemd timers or `cron.example` |
-| Monitoring of the backups | Checklist I5 | Alert on every non-zero exit code (§9) and on the age of the newest set and of the newest archived binlog. **[Still open: wiring into the ISP's monitoring]** |
+| Monitoring of the backups | Checklist I5 | Alert on every non-zero exit code (§9), including **any** exit 5 (an off-host copy is still missing), and on the age of the newest set and of the newest archived binlog. **[Still open: wiring into the ISP's monitoring]** |
 
 > [!WARNING]
 > For binary logs, the off-host copy is what protects the RPO when the host is lost: a local archive dies with the host. The off-host command must keep the files private and use an encrypted transport.
@@ -100,7 +100,7 @@ Rules:
 nuxr-restore.sh --set latest --target-db itcnc_restored            [--target-radius-db radius_restored]
 ```
 
-1. **Safety checks before loading.** The tool checks the manifest and its encrypted copy, every checksum before decrypting, the `server_id` (`RESTORE_EXPECT_SERVER_ID`), the engine, and that the target is empty. A non-empty target is refused (exit 6); `--i-understand-overwrite <db>` overrides it after a 10-second grace period. A set from the other engine is refused (exit 6). The load runs without writing the target server's binary log.
+1. **Safety checks before loading.** The tool checks the manifest and its encrypted copy (mandatory: a set without the encrypted manifest is refused), every checksum before decrypting, the `server_id` (`RESTORE_EXPECT_SERVER_ID`), the engine, and that the target is empty. A non-empty target is refused (exit 6); `--i-understand-overwrite <db>` overrides it after a 10-second grace period. A set from the other engine is refused (exit 6). The load runs without writing the target server's binary log.
 2. **Verification of the copy (runbook §3).** The tool runs, on the copy:
    - the per-table fingerprint (rows, sha256 of all rows in primary-key order, sha256 of the definition);
    - the finance row counts (ledger, wallets, transfers, reservations, activations);
@@ -201,7 +201,7 @@ A regression run of the final tooling (90 s of writes, archive every 30 s) passe
 | 1 | Unexpected failure (or a required secret file missing) |
 | 3 | Dump failed |
 | 4 | Compression or encryption failed |
-| 5 | Set complete locally, off-host copy failed |
+| 5 | Set complete locally, off-host copy failed or still pending (retried by the next run; repeats while a backlog remains) |
 | 6 | Refused by a safety rule |
 | 7 | Checksum or manifest mismatch |
 | 8 | Load failed |

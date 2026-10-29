@@ -43,7 +43,7 @@ All are **review, then confirm** in Finance (Admin / SuperAdmin):
 | Operation | Rule |
 |---|---|
 | Funding | Valid, Active owner; may create the wallet |
-| Withdrawal | Existing wallet; available credit after ≥ 0 |
+| Withdrawal | Existing wallet; available credit after is at least 0 |
 | Adjustment credit / debit | Existing wallet (never creates one); a debit obeys the floor |
 | Debt limit | A decrease is refused if `balance + new limit − reserved < 0`; the review binds the current limit (a changed limit refuses the stale review) |
 | Transfer to child | Direct child only; source floor; both owners valid |
@@ -60,7 +60,7 @@ All are **review, then confirm** in Finance (Admin / SuperAdmin):
 | Provision | No money moves while RADIUS is provisioned and verified |
 | Commit | One transaction: `ACTIVATION_DEBIT` of the leaf wholesale, one `COMMISSION_CREDIT` per positive margin, provider settlement recorded on the activation, reservation `COMMITTED`, activation `COMPLETED` |
 
-Settlement math (integer minor units): leaf debit `L = c_k`; provider settlement `P = c_1` (top-level reseller's wholesale, not a wallet credit); intermediary margin `m_i = c_{i+1} − c_i ≥ 0`; conservation `P + Σ m_i = L` exactly.
+Settlement math (integer minor units): leaf debit `L = c_k`; provider settlement `P = c_1` (top-level reseller's wholesale, not a wallet credit); intermediary margin `m_i = c_{i+1} − c_i >= 0`; conservation `P + Σ m_i = L` exactly.
 
 Failure outcomes:
 
@@ -83,21 +83,23 @@ Failure outcomes:
 
 | State | How it arises | Authorized resolution |
 |---|---|---|
-| `FUNDS_RESERVED` / `RETRY_PENDING`, stale ≥ 300 s | Stopped before or between RADIUS attempts; also left by a `CONCURRENCY_RETRY` refusal under heavy simultaneous activity on one wallet (MariaDB, rare) | **Resume** (continues) or **Cancel** (releases the reservation, `CANCELLED`). A live activation is refused |
+| `FUNDS_RESERVED` / `RETRY_PENDING`, stale for at least 300 s | Stopped before or between RADIUS attempts; also left by a `CONCURRENCY_RETRY` refusal under heavy simultaneous activity on one wallet (MariaDB, rare) | **Resume** (continues) or **Cancel** (releases the reservation, `CANCELLED`). A live activation is refused |
 | `VERIFIED` (stale) | Delivered, settlement not yet run | **Resume** (runs the settlement once) |
 | `RECONCILIATION_REQUIRED` | Provisioning or settlement outcome unknown | **Reconcile**: delivery verified: settle once; RADIUS = target: settle; RADIUS = prior: `FAILED` and released; anything else: `EXTERNAL_STATE_AMBIGUOUS` (exit 4), inspect RADIUS, then roll back or leave held |
 | `ROLLBACK_PENDING` | Restore of the prior RADIUS state not confirmed | **Rollback** again; funds stay held until the restore is verified |
-| `REVERSAL_PENDING` | Reversal of a completed activation started, not finished | **Reverse** again (idempotent continuation) |
+| `REVERSAL_PENDING` | Reversal of a completed activation started, not finished. Also reached when a parent reseller spent its commission margin between the reversal's pre-check and its commit: the service is already removed and the refund is pending; no value is lost and no balance goes negative | **Reverse** again (idempotent continuation). If a parent cannot repay its commission, an operator funds that parent first, then **Reverse** again |
 
 Where: Operations > Operations Center (Admin), then the activation page, which shows the allowed actions with their own confirmation. CLI equivalents (operator shell):
 
 ```bash
 php system/reseller/reconcile.php show <ACT-...>        # state and event timeline (read-only)
 php system/reseller/reconcile.php resume <ACT-...>
-php system/reseller/reconcile.php cancel <ACT-...>
+php system/reseller/reconcile.php cancel <ACT-...> --operator=<name> --reason="<why, at least 10 characters>"
 php system/reseller/reconcile.php reconcile <ACT-...>
-php system/reseller/reconcile.php rollback <ACT-...>
+php system/reseller/reconcile.php rollback <ACT-...> --operator=<name> --reason="<why, at least 10 characters>"
 ```
+
+`cancel`, `rollback` and `balance-resolve` require `--operator=<name>` and `--reason=<text>` (the reason at least 10 characters) and are refused without them; the operator and the reason are both written to the audit record. `cancel` also refuses an activation that was updated less than 300 seconds ago.
 
 Exit codes: 0 OK · 2 refused (nothing changed) · 3 failed (reference in the server log) · 4 external state ambiguous (funds held) · 5 usage.
 
@@ -107,7 +109,7 @@ Interrupted balance operations of direct (non-reseller) customers.
 
 1. List: `php system/reseller/reconcile.php balance-held`.
 2. Prove from the gateway and RADIUS whether the service was granted.
-3. Decide once: `php system/reseller/reconcile.php balance-resolve <journal id> completed` (granted) or `refund` (credit back, exactly once).
+3. Decide once: `php system/reseller/reconcile.php balance-resolve <journal id> completed --operator=<name> --reason="<why>"` (granted) or `refund` with the same two options (credit back, exactly once). The reason is at least 10 characters; both values are audited.
 
 ## 4.3 Vouchers under review
 
@@ -115,7 +117,7 @@ A voucher left `CLAIMED` holds no wallet money but is a revenue item under revie
 
 # 5. Reversing a completed activation
 
-Admin only, reason required (`activation/reverse`). The reversal restores the prior RADIUS state, then posts in one all-or-nothing transaction: a `REVERSAL` credit of the original debit to the selling reseller and one `REVERSAL` clawback per original commission. It is refused if a clawback would leave a recipient's available credit below zero. The reservation stays `COMMITTED`; the provider settlement is reversed in the activation record. V1 makes **no automatic customer refund** (staff activations collect no retail through the system).
+Admin only, reason required (`activation/reverse`). The reversal restores the prior RADIUS state, then posts in one all-or-nothing transaction: a `REVERSAL` credit of the original debit to the selling reseller and one `REVERSAL` clawback per original commission. It is refused if a clawback would leave a recipient's available credit below zero. The commission repayment is checked before the service is removed, but the binding check runs at commit: if a parent spends that margin in between, the reversal stops at `REVERSAL_PENDING` with the service removed and the refund pending until an operator funds the parent (§4.1). No value is lost and no balance goes negative. The reservation stays `COMMITTED`; the provider settlement is reversed in the activation record. V1 makes **no automatic customer refund** (staff activations collect no retail through the system).
 
 # 6. Reconciliation routine
 
@@ -130,7 +132,7 @@ Admin only, reason required (`activation/reverse`). The reversal restores the pr
 
 **Exports.** Finance screens export CSV with the same scope as the screen (UTF-8 BOM, `;` separator, formula-safe cells), at most 20,000 rows and 366 days per time series; larger exports are refused, never truncated. Each export writes one `export.finance` audit row (metadata only).
 
-`finance-check` covers: ledger continuity, wallet = ledger, available ≥ 0, transfer legs, reversal links, reservation ↔ debit, settlement against the sealed snapshot, activation timelines and reservations.
+`finance-check` covers: ledger continuity, wallet = ledger, available credit never below 0, transfer legs, reversal links, reservation against debit, settlement against the sealed snapshot, activation timelines and reservations.
 
 # 7. Integrity incident
 

@@ -2,7 +2,7 @@
 # ITC NetCore V1.0 - verify a release artifact on the target BEFORE it is unpacked
 # (docs/DEPLOYMENT_AND_UPGRADE_RUNBOOK.md section 1, step 4).
 #
-#   nuxr-artifact-verify.sh --artifact=<itc-netcore-*.tar.gz> --expected-sha=<40-hex commit SHA from the release notes>
+#   nuxr-artifact-verify.sh --artifact=<itc-netcore-*.tar.gz> --expected-sha=<40-hex release SHA given by ITC out-of-band (handover index)>
 #                           [--sums=<SHA256SUMS>] [--extract-to=<new empty directory>]
 #
 # Checks, in this order (the first failure stops the run):
@@ -90,7 +90,7 @@ fi
 for p in .git/ dev/ tests/ owner-review/ docs/claude-development-pack/; do
   if grep -q "^$TOP/$p" "$LIST"; then fail "excluded path present in the artifact: $p"; fi
 done
-for f in system/vendor/yosiazwan/php-facedetection/lena512color.jpg config.php; do
+for f in system/vendor/yosiazwan/php-facedetection/lena512color.jpg config.php CLAUDE.md; do
   if grep -qxF "$TOP/$f" "$LIST"; then fail "excluded file present in the artifact: $f"; fi
 done
 for f in LICENSE docs/THIRD_PARTY_LICENSES.md index.php init.php install/phpnuxbill.sql install/radius.sql \

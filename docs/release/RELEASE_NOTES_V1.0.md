@@ -7,7 +7,7 @@
 | Version | **V1.0 Release Candidate** (draft release notes) |
 | Date | 2026-10-29 |
 | Lab-accepted candidate | `a6b02eba` (branch `lab/release-v1`, Draft PR #6) |
-| Release-preparation tree | `release/itc-netcore-v1-final-prep` (final-prep commits after the candidate: `0be31b63`, `228f01c9`, `e8260df7`, `012a9e91`, `b2f7837b`, `9b21ebfe`, `bd1e03cc`, `c550d6b8`, `33624129` and the documentation commit `e23e7540`); the release SHA is recorded at build |
+| Release-preparation tree | `release/itc-netcore-v1-final-prep` (final-prep commits after the candidate: `0be31b63`, `228f01c9`, `e8260df7`, `012a9e91`, `b2f7837b`, `9b21ebfe`, `bd1e03cc`, `c550d6b8`, `33624129` and the documentation commit `e23e7540`). Later documentation and QA-fix commits are listed in the handover index rather than here. The release SHA cannot be written inside the commit it identifies: it is recorded in the `RELEASE_SHA` file, in the release archive and in the handover index |
 | Release tag | **None.** No tag is created until every release gate passes |
 | Lab verdict | `LAB_ACCEPTED_WITH_LIMITATIONS` |
 | Release state | `RELEASE_BLOCKED_WITH_EVIDENCE` |
@@ -98,6 +98,11 @@ staff interface with an installable staff PWA. Each ISP runs one isolated instan
 ## Behaviour changes operators should know
 
 - A customer's **static IP** must be a valid, non-reserved IPv4 address (or empty) and **unique across all customers**, for every role including Admin. Special IPv4 classes (0/8, 127/8, 169.254/16, 224/4, 240/4) are refused (`b2f7837b`). A stored legacy value is not re-checked until it is changed.
+- **Update check off by default:** the fresh installer stores `new_version_notify = disable`, so the dashboard's upstream PHPNuxBill update check (which contacts `raw.githubusercontent.com`) does not run. SuperAdmin can enable it under Settings > Miscellaneous.
+- **Fresh-install gate:** the installer also refuses a target database on which another account already holds database, table, column or routine privileges. Revoke them first.
+- **Backups:** an off-host copy that failed is retried automatically by the next run (one marker per item in `$BACKUP_DIR/.offhost/`); the run keeps exiting 5 while such a backlog remains, so alert on any exit 5. The encrypted manifest is mandatory at restore: a set without it is refused. With `age` encryption, keep the recipients file private and the backup store write-protected.
+- **Reconcile CLI:** `reconcile.php cancel`, `rollback` and `balance-resolve` require `--operator=<name> --reason=<text>` (the reason at least 10 characters), and both are recorded in the audit trail. `cancel` also refuses an activation updated less than 300 seconds ago.
+- **Cron:** `system/cron.php` resolves `init.php` from its own directory, so it works from any working directory. The documented form stays `cd <app>/system && php cron.php`.
 - When a username, PPPoE username or static IP is already taken, **Agents and Sales see one generic refusal**; they are not told which value or by whom. Admins keep the specific reason.
 - New distinct Arabic labels: Refill Customer «شحن العميل بقسيمة», Recharge Customer «إعادة شحن اشتراك العميل», Refill Account «شحن الحساب بقسيمة», Coupons «الكوبونات», Vouchers «القسائم», the "Add Vouchers" button «إضافة قسائم».
 - The first installation uses the `install/fresh/` command-line package instead of the web installer.
@@ -119,16 +124,17 @@ result was obtained on a target or production system, and the lab does not prove
 | Lab deployment and rollback rehearsal | Health passed; switch in about 0.05 s each way |
 | Two-NAS test on a second local CHR (CHR2) | Passed on both engines (lab only; staging case X-1 is still required) |
 | R-HF-CARRY-01 rounds 1–3, UI / i18n fixes, preflight fixes G-4 and G-1 | Targeted dual-engine harness runs (related classes plus every unit and guard test) passed; the browser matrix and CHR suites were not re-run on them |
-| Fresh-install package (disposable instance) | Install exit 0, idempotent second run, post-install verify 67 PASS / 0 WARN / 0 FAIL, 8 / 8 refusal cases per engine. The proof was run on commit `228f01c9` and will be re-run on the final release commit |
+| Fresh-install package (disposable instance) | Install exit 0, idempotent second run, post-install verify 67 PASS / 0 WARN / 0 FAIL, 8 / 8 refusal cases per engine. The proof is run on every release candidate on MariaDB 10.11 and MySQL 8.0; the result for this release is in the handover package (`08_Acceptance_Handover/FRESH_INSTALL_PROOF`) |
 | Backup and PITR drill (71 MiB synthetic database) | Dropped database restored to the chosen time with an identical copy and 0 rows lost; host-loss window about the archive interval; tool run 13–31 s; target backup chain not tested (TA-08) |
 
 ## Installation and upgrade notes
 
 - The first installation of V1.0 is a **fresh install on a new, empty database**. Migration from an existing PHPNuxBill database is a separate future path and is not part of the first installation.
 - Requirements: PHP 8.2, MariaDB 10.11 or MySQL 8.0 (`REPEATABLE-READ`, UTC), FreeRADIUS 3.2.x, MikroTik RouterOS 7.15 or later with NAS type `mikrotik_snmp`, NTP on every host and NAS.
-- Follow the installation guide in `docs/guides/install/` (artifact verify, `install/fresh/nuxr-fresh-install.sh`, post-install verify) and the MikroTik / FreeRADIUS guide in `docs/guides/radius-mikrotik/`.
+- Follow the installation guide in `docs/guides/install/` (manual first-run artifact check, artifact verify, `install/fresh/nuxr-fresh-install.sh`, post-install verify) and the MikroTik / FreeRADIUS guide in `docs/guides/radius-mikrotik/`.
 - Keep `install/freeradius/` in the document root, read-only and blocked by the web server: the preflight reads its expected CHECK expressions from it and FAILs without them (`33624129`). Use the default `--installer=strip`; `--installer=remove` makes the installer fail at the setup preflight (phase 12, exit 4).
-- Run `cron.php` and `cron_reminder.php` from `system/` (`cd system && php cron.php`); started from the root they do nothing. The `--install-cron` file `/etc/cron.d/itc-netcore` already does this.
+- **First-run artifact check, independent of the verifier inside the tarball:** in the folder that holds the tarball, `sha256sum -c SHA256SUMS`, then `tar -xzOf itc-netcore-v1.0-<sha12>.tar.gz itc-netcore-v1.0-<sha12>/RELEASE_SHA` must print exactly the 40-character release SHA that ITC gives the customer out-of-band and that the handover index lists. `nuxr-artifact-verify.sh` is also delivered standalone next to the tarball (handover folder `07_Release_Artifacts`) for the first full verification.
+- Run `cron.php` and `cron_reminder.php` with the documented form from `system/` (`cd system && php cron.php`); the `--install-cron` file `/etc/cron.d/itc-netcore` already does this.
 - Set up `install/backup/` before go-live and agree a real off-host target with the ISP; no destination is built in.
 - A production deployment needs the owner's explicit release authorization.
 

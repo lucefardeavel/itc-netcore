@@ -4,10 +4,10 @@
 > **EDITABLE TEMPLATES — NO VALUES FILLED IN.** Every field below is intentionally blank. Nothing in this document is an offer, a commitment, a price, a service level, a warranty or a contract term of ITC or of any ISP. The documents become binding only when the parties complete them, review them with their own legal counsel, and sign them.
 
 > [!NOTE]
-> ITC NetCore V1.0 is a Release Candidate, not yet production-accepted; the legal review LIC-1 (licensing, naming, data protection) is pending with counsel. Any agreement must take its outcome into account. The upstream PHPNuxBill community, donation and support channels belong to the original project, not to ITC.
+> ITC NetCore V1.0 is a Release Candidate, not yet production-accepted; the legal review LIC-1 (licensing, naming, data protection) is `BLOCKED — COUNSEL REQUIRED`. Any agreement must take its outcome into account. The upstream PHPNuxBill community, donation and support channels belong to the original project, not to ITC.
 
 How to use:
-- Replace every `________` and tick every `☐` deliberately; delete rows that do not apply.
+- Replace every `________` and tick every `[ ]` deliberately (`[x]`); delete rows that do not apply.
 - Keep the template version and a change history with each completed copy.
 - Do not copy the **provisional** engineering design targets (RTO 4 h / RPO 15 min) into an SLA as if they were approved values: they are not owner-approved SLAs.
 
@@ -38,16 +38,16 @@ How to use:
 
 | Item | Included? | Notes |
 |---|---|---|
-| Product defect investigation | ☐ yes ☐ no | ________ |
-| Release upgrades | ☐ yes ☐ no | ________ |
-| Security fixes | ☐ yes ☐ no | ________ |
-| Operational assistance (runbooks) | ☐ yes ☐ no | ________ |
-| Installation services | ☐ yes ☐ no | ________ |
-| NAS / network configuration assistance | ☐ yes ☐ no | ________ |
-| Database administration | ☐ yes ☐ no | ________ |
-| Data migration from another system | ☐ yes ☐ no | ________ |
-| Custom development / plugins | ☐ yes ☐ no | ________ |
-| Training | ☐ yes ☐ no | ________ |
+| Product defect investigation | [ ] yes [ ] no | ________ |
+| Release upgrades | [ ] yes [ ] no | ________ |
+| Security fixes | [ ] yes [ ] no | ________ |
+| Operational assistance (runbooks) | [ ] yes [ ] no | ________ |
+| Installation services | [ ] yes [ ] no | ________ |
+| NAS / network configuration assistance | [ ] yes [ ] no | ________ |
+| Database administration | [ ] yes [ ] no | ________ |
+| Data migration from another system | [ ] yes [ ] no | ________ |
+| Custom development / plugins | [ ] yes [ ] no | ________ |
+| Training | [ ] yes [ ] no | ________ |
 
 **1.2 Exclusions:** ________
 
@@ -151,10 +151,10 @@ How to use:
 
 | # | Criterion | Result | Evidence reference |
 |---|---|---|---|
-| 1 | ________ | ☐ pass ☐ fail | ________ |
-| 2 | ________ | ☐ pass ☐ fail | ________ |
-| 3 | ________ | ☐ pass ☐ fail | ________ |
-| 4 | ________ | ☐ pass ☐ fail | ________ |
+| 1 | ________ | [ ] pass [ ] fail | ________ |
+| 2 | ________ | [ ] pass [ ] fail | ________ |
+| 3 | ________ | [ ] pass [ ] fail | ________ |
+| 4 | ________ | [ ] pass [ ] fail | ________ |
 
 **Open items / accepted limitations**
 
@@ -163,7 +163,7 @@ How to use:
 | 1 | ________ | ________ | ________ |
 | 2 | ________ | ________ | ________ |
 
-**Decision:** ☐ Accepted ☐ Accepted with the open items above ☐ Not accepted
+**Decision:** [ ] Accepted [ ] Accepted with the open items above [ ] Not accepted
 
 | Party | Name | Title | Date | Signature |
 |---|---|---|---|---|
@@ -177,29 +177,29 @@ How to use:
 | Field | Entry |
 |---|---|
 | Instance | ________ |
-| Release SHA / artifact SHA-256 verified | ________ / ☐ |
+| Release SHA / artifact SHA-256 verified | ________ / [ ] |
 | Installed by / date | ________ / ________ |
 | Verified by / date | ________ / ________ |
 
 | # | Check (from the production configuration checklist) | Result | Evidence reference | Initials |
 |---|---|---|---|---|
-| 1 | Platform: PHP 8.2 and extensions; supported database engine | ☐ | ________ | ____ |
-| 2 | Database isolation REPEATABLE-READ; UTC; MariaDB CHECK enforcement | ☐ | ________ | ____ |
-| 3 | NTP on all hosts and every NAS | ☐ | ________ | ____ |
-| 4 | HTTPS, redirects, headers, protected paths, `install/` removed, updater 403 | ☐ | ________ | ____ |
-| 5 | `config.php` secrets set, mode 0640, stage `Live`, legacy devices off | ☐ | ________ | ____ |
-| 6 | `migrate.php preflight` / `migrate` / `verify` exit 0 | ☐ | ________ | ____ |
-| 7 | RADIUS SQL loaded; admission checks READY | ☐ | ________ | ____ |
-| 8 | Least-privilege application and FreeRADIUS accounts; separate migration account | ☐ | ________ | ____ |
-| 9 | FreeRADIUS configuration, guard installed, `guard_selfcheck=OK` | ☐ | ________ | ____ |
-| 10 | Each NAS onboarded (type `mikrotik_snmp`): test login, accounting, Disconnect | ☐ | ________ | ____ |
-| 11 | Default `admin` password changed; `CompanyName` set | ☐ | ________ | ____ |
-| 12 | Release `preflight.php` exit 0 | ☐ | ________ | ____ |
-| 13 | `health.php --finance` exit 0 | ☐ | ________ | ____ |
-| 14 | Scheduled jobs installed | ☐ | ________ | ____ |
-| 15 | First backup taken and restore drill done | ☐ | ________ | ____ |
-| 16 | Monitoring receives health exit codes / JSON | ☐ | ________ | ____ |
-| 17 | ________ | ☐ | ________ | ____ |
+| 1 | Platform: PHP 8.2 and extensions; supported database engine | [ ] | ________ | ____ |
+| 2 | Database isolation REPEATABLE-READ; UTC; MariaDB CHECK enforcement | [ ] | ________ | ____ |
+| 3 | NTP on all hosts and every NAS | [ ] | ________ | ____ |
+| 4 | HTTPS, redirects, headers, protected paths, `install/` removed, updater 403 | [ ] | ________ | ____ |
+| 5 | `config.php` secrets set, mode 0640, stage `Live`, legacy devices off | [ ] | ________ | ____ |
+| 6 | `migrate.php preflight` / `migrate` / `verify` exit 0 | [ ] | ________ | ____ |
+| 7 | RADIUS SQL loaded; admission checks READY | [ ] | ________ | ____ |
+| 8 | Least-privilege application and FreeRADIUS accounts; separate migration account | [ ] | ________ | ____ |
+| 9 | FreeRADIUS configuration, guard installed, `guard_selfcheck=OK` | [ ] | ________ | ____ |
+| 10 | Each NAS onboarded (type `mikrotik_snmp`): test login, accounting, Disconnect | [ ] | ________ | ____ |
+| 11 | Default `admin` password changed; `CompanyName` set | [ ] | ________ | ____ |
+| 12 | Release `preflight.php` exit 0 | [ ] | ________ | ____ |
+| 13 | `health.php --finance` exit 0 | [ ] | ________ | ____ |
+| 14 | Scheduled jobs installed | [ ] | ________ | ____ |
+| 15 | First backup taken and restore drill done | [ ] | ________ | ____ |
+| 16 | Monitoring receives health exit codes / JSON | [ ] | ________ | ____ |
+| 17 | ________ | [ ] | ________ | ____ |
 
 Remarks: ________
 
@@ -216,22 +216,22 @@ Remarks: ________
 
 | # | Module | Reference document | Completed | Trainer initials | Trainee initials |
 |---|---|---|---|---|---|
-| 1 | Product overview, roles and scopes | `admin_quickstart`, `known_limitations` | ☐ | ____ | ____ |
-| 2 | Daily / weekly / monthly checks | `operator_daily_checklist` | ☐ | ____ | ____ |
-| 3 | Reseller onboarding, funding, pricing | `reseller_onboarding` | ☐ | ____ | ____ |
-| 4 | Subscriber onboarding, activation, vouchers, portal | `subscriber_onboarding` | ☐ | ____ | ____ |
-| 5 | Held activations and reservations (resume / cancel / reconcile / rollback) | `financial_reconciliation_guide`; recovery runbook §1 | ☐ | ____ | ____ |
-| 6 | PPPoE admission claims: release only with NAS-side proof; no automatic release | Recovery runbook §3 | ☐ | ____ | ____ |
-| 7 | Vouchers under review; legacy balance HELD | Recovery runbook §2, §5 | ☐ | ____ | ____ |
-| 8 | Monitoring and alerting | `monitoring_alerting_guide` | ☐ | ____ | ____ |
-| 9 | Incident handling | `incident_troubleshooting_guide` | ☐ | ____ | ____ |
-| 10 | Backup, restore, drills | `backup_restore_guide` | ☐ | ____ | ____ |
-| 11 | Disaster recovery scenarios | `disaster_recovery_guide` | ☐ | ____ | ____ |
-| 12 | Upgrade and rollback | `upgrade_rollback_guide` | ☐ | ____ | ____ |
-| 13 | Security hardening and secret rotation | `security_hardening_checklist` | ☐ | ____ | ____ |
-| 14 | Change management and escalation | `change_management_escalation` | ☐ | ____ | ____ |
-| 15 | Prohibition of direct database edits for financial repair | `financial_reconciliation_guide` §9 | ☐ | ____ | ____ |
-| 16 | ________ | ________ | ☐ | ____ | ____ |
+| 1 | Product overview, roles and scopes | `admin_quickstart`, `known_limitations` | [ ] | ____ | ____ |
+| 2 | Daily / weekly / monthly checks | `operator_daily_checklist` | [ ] | ____ | ____ |
+| 3 | Reseller onboarding, funding, pricing | `reseller_onboarding` | [ ] | ____ | ____ |
+| 4 | Subscriber onboarding, activation, vouchers, portal | `subscriber_onboarding` | [ ] | ____ | ____ |
+| 5 | Held activations and reservations (resume / cancel / reconcile / rollback) | `financial_reconciliation_guide`; recovery runbook §1 | [ ] | ____ | ____ |
+| 6 | PPPoE admission claims: release only with NAS-side proof; no automatic release | Recovery runbook §3 | [ ] | ____ | ____ |
+| 7 | Vouchers under review; legacy balance HELD | Recovery runbook §2, §5 | [ ] | ____ | ____ |
+| 8 | Monitoring and alerting | `monitoring_alerting_guide` | [ ] | ____ | ____ |
+| 9 | Incident handling | `incident_troubleshooting_guide` | [ ] | ____ | ____ |
+| 10 | Backup, restore, drills | `backup_restore_guide` | [ ] | ____ | ____ |
+| 11 | Disaster recovery scenarios | `disaster_recovery_guide` | [ ] | ____ | ____ |
+| 12 | Upgrade and rollback | `upgrade_rollback_guide` | [ ] | ____ | ____ |
+| 13 | Security hardening and secret rotation | `security_hardening_checklist` | [ ] | ____ | ____ |
+| 14 | Change management and escalation | `change_management_escalation` | [ ] | ____ | ____ |
+| 15 | Prohibition of direct database edits for financial repair | `financial_reconciliation_guide` §9 | [ ] | ____ | ____ |
+| 16 | ________ | ________ | [ ] | ____ | ____ |
 
 Assessment method / result: ________
 

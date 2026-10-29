@@ -111,11 +111,11 @@ SET_ENC=$(nuxr_info_get "$SET" encryption); ENCRYPTION=${SET_ENC:-$ENCRYPTION}
 nuxr_check_crypto_prereqs decrypt
 t0=$(nuxr_now)
 ( cd "$SET" && sha256sum -c --quiet --strict MANIFEST.sha256 ) || nuxr_die $NUXR_E_CHECKSUM "MANIFEST.sha256 check failed for $SET"
-EM=$(find "$SET" -maxdepth 1 -name 'MANIFEST.sha256.*' | head -1)
-if [[ -n "$EM" ]]; then
-  nuxr_decrypt "$EM" "$ITER" > "$WORK/manifest" 2>/dev/null || nuxr_die $NUXR_E_CRYPT "cannot decrypt $EM (wrong key?)"
-  cmp -s "$WORK/manifest" "$SET/MANIFEST.sha256" || nuxr_die $NUXR_E_CHECKSUM "the encrypted manifest differs from MANIFEST.sha256: the set was altered"
-fi
+# The encrypted manifest is mandatory: without it an edited dump plus a recomputed MANIFEST.sha256 would pass.
+EM="$SET/MANIFEST.sha256.$(ENCRYPTION=$ENCRYPTION nuxr_eext)"
+[[ -f "$EM" ]] || nuxr_die $NUXR_E_CHECKSUM "$SET has no encrypted manifest $(basename "$EM"): refused (it is the tamper evidence of the set)"
+nuxr_decrypt "$EM" "$ITER" > "$WORK/manifest" 2>/dev/null || nuxr_die $NUXR_E_CRYPT "cannot decrypt $EM (wrong key?)"
+cmp -s "$WORK/manifest" "$SET/MANIFEST.sha256" || nuxr_die $NUXR_E_CHECKSUM "the encrypted manifest differs from MANIFEST.sha256: the set was altered"
 nuxr_result checksum.seconds "$(nuxr_elapsed "$t0")"
 nuxr_info "checksums OK"
 

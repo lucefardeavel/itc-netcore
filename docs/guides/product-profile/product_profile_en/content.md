@@ -3,7 +3,7 @@
 This profile explains **ITC NetCore V1.0** for the owners and managers of internet service providers (ISPs). It describes what the platform does, who works with it, which everyday problems it addresses and how it links the commercial side of an ISP to its network. It is written for readers who are not programmers; technical terms are explained where they first appear.
 
 > [!WARNING]
-> ITC NetCore V1.0 is a **Release Candidate**. It has passed testing in an isolated laboratory only. It has **not** been tested on a customer's target environment, the legal review (LIC-1) is still open with counsel, and it is **not yet accepted for production use**. Section 10 explains what remains before a production launch.
+> ITC NetCore V1.0 is a **Release Candidate**. It has passed testing in an isolated laboratory only. It has **not** been tested on a customer's target environment, the legal review (LIC-1) is `BLOCKED — COUNSEL REQUIRED`, and it is **not yet accepted for production use**. Section 10 explains what remains before a production launch.
 
 Every statement in this profile is taken from the product's own documentation and from the V1.0 final release report of 2026-10-29. Where a capability has limits, the limits are stated.
 
@@ -160,7 +160,7 @@ What is **not** claimed:
 | Version | **V1.0 Release Candidate** |
 | Laboratory testing | Passed with limitations (`LAB_ACCEPTED_WITH_LIMITATIONS`): 1680 of 1680 automated tests on each database engine, real-router tests on a virtual MikroTik router, 208 interface pages checked in both languages |
 | Testing on a customer target environment | **Not yet run**; it needs an authorized staging environment with non-production routers |
-| Legal review (LIC-1) | **Open, counsel required** |
+| Legal review (LIC-1) | **`BLOCKED — COUNSEL REQUIRED`** |
 | Owner release decisions | Open |
 | Production use | **Not yet accepted** |
 

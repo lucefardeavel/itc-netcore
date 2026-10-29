@@ -128,7 +128,7 @@ The release profile serves subscribers through FreeRADIUS only. The legacy Mikro
 
 ## M-10 Existing NAS
 
-Each existing NAS must meet the full NAS contract of the companion RADIUS manual: RouterOS ≥ 7.15, NAS type `mikrotik_snmp`, an entry in the guard credential file, `/radius timeout=3s` with `require-message-auth`, the CoA port set explicitly, NTP within 10 s, no local users shadowing subscribers, and the RouterOS API closed.
+Each existing NAS must meet the full NAS contract of the companion RADIUS manual: RouterOS 7.15 or later, NAS type `mikrotik_snmp`, an entry in the guard credential file, `/radius timeout=3s` with `require-message-auth`, the CoA port set explicitly, NTP within 10 s, no local users shadowing subscribers, and the RouterOS API closed.
 
 ## M-11 Plugins
 

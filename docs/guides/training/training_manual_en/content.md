@@ -5,7 +5,7 @@ This is the official training manual for ITC NetCore V1.0, the ISP Management & 
 **How this manual was written:**
 
 - Every permission stated here comes from the server's actual authorization rules (the route map and the role-capability map), not from what the interface happens to show.
-- Button and menu names are quoted exactly as they appear in the English language file of the product, including the label fixes of the final-prep branch (commit `012a9e91`: for example the "Add Vouchers" button and the "FreeRADIUS" settings heading). The screenshots were captured on the final runtime candidate (`33624129`), after these fixes.
+- Button and menu names are quoted exactly as they appear in the English language file of the product, including the label corrections made for this release (for example the "Add Vouchers" button and the "FreeRADIUS" settings heading). The screenshots were captured on the final release candidate, after these corrections.
 - All images are genuine screenshots of a test environment with synthetic data. Phone numbers, addresses, voucher codes and passwords are covered by grey boxes. The manual contains no real password or secret.
 - An Arabic edition with the same structure exists; Arabic is the primary language of the product.
 
@@ -1699,3 +1699,4 @@ d) Change its role to "Report"
 | Base cost | The lowest wholesale, set by the provider |
 | Reservation | An amount held for an unfinished activation |
 | Reconciliation | Checking an unconfirmed network outcome, then settling or releasing |
+| Localisation | The settings page for time zone, date format, currency and default language (Arabic interface: «الإعدادات المحلية») |

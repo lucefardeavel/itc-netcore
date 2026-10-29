@@ -211,7 +211,7 @@ def parse_blocks(lines):
             i = j + 1; continue
         m = RE_HEADING.match(line)
         if m:
-            blocks.append({"t": "heading", "level": len(m.group(1)), "inl": parse_inline(m.group(2))})
+            blocks.append({"t": "heading", "level": len(m.group(1)), "inl": parse_inline(m.group(2)), "raw": m.group(2)})
             i += 1; continue
         if RE_HR.match(line):
             blocks.append({"t": "hr"}); i += 1; continue
@@ -273,6 +273,9 @@ def parse_blocks(lines):
     return blocks
 
 
+RE_MANUAL_NUM = re.compile(r"^\s*(?:\d+(?:\.\d+)*\.?|[A-Z](?:\.\d+)*\.)\s")
+
+
 def number_headings(blocks, max_level=3):
     """Assign section numbers (1, 1.2, 1.2.3) and ids to headings up to max_level; returns the TOC entry list."""
     counters = [0, 0, 0, 0]
@@ -288,7 +291,8 @@ def number_headings(blocks, max_level=3):
         for k in range(lvl, 4):
             counters[k] = 0
         nums = counters[:lvl]
-        b["num"] = ".".join(str(x) for x in nums)
+        # a hand-numbered heading ("2. Title", "2.1 Title", "A. Title") keeps its own number: no automatic one in front
+        b["num"] = "" if RE_MANUAL_NUM.match(b.get("raw", "")) else ".".join(str(x) for x in nums)
         b["id"] = "sec-" + "-".join(str(x) for x in nums)
         toc.append({"level": lvl, "num": b["num"], "id": b["id"], "inl": b["inl"]})
     return toc

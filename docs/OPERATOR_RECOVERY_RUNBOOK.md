@@ -63,7 +63,7 @@ Exit codes:
 
 ## 1. Activations (RECONCILIATION_REQUIRED, stale FUNDS_RESERVED / RETRY_PENDING / VERIFIED, ROLLBACK_PENDING, REVERSAL_PENDING)
 
-The web Operations Center (Admin) shows the allowed actions. The CLI equivalents are below. Every CLI command that releases held funds (`cancel`, `rollback`, `balance-resolve`) requires `--operator=<name> --reason=<text>` (reason at least 10 characters); the operator name and the reason are written to the audit log in the same transaction as the release.
+The web Operations Center (Admin) shows the allowed actions. The CLI equivalents are below. Every CLI command that releases held funds (`cancel`, `rollback`, `balance-resolve`) requires `--operator=<name> --reason=<text>` (reason at least 10 characters); the operator name and the reason are written to the audit log in the same transaction as the release. `reconcile` takes no operator argument: it releases only when RADIUS proves the prior state (nothing was applied), the same verified outcome the engine records on its own failure path, and the activation event timeline records it (`show <ACT>`); keep the operator's ticket reference with the command in your change log.
 
 | State | Meaning | Action |
 |---|---|---|

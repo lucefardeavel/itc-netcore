@@ -63,7 +63,7 @@ See `binlog.cnf.example`.
 | `<db>.sql.gz.enc` | The dump: `--single-transaction --quick --routines --triggers --events --hex-blob --default-character-set=utf8mb4 --no-tablespaces`, plus binlog coordinates: MariaDB `--master-data=2`; MySQL `--source-data=2 --set-gtid-purged=OFF` |
 | `secrets.tar.gz.enc` | The files in `SECRET_FILES` (`config.php`: `$app_secret`, `$api_secret`, DB credentials). Restore it by hand: `openssl enc -d -aes-256-cbc -pbkdf2 -iter <openssl_iter> -pass file:<key> -in secrets.tar.gz.enc \| tar -tzvf -` |
 | `backup.info` | UTC times, engine and versions, `server_id`, the dump tool, encryption parameters, and per DB: file, size, sha256, seconds, binlog file and position. Also the release directory and version, and the GTID state at the end |
-| `MANIFEST.sha256`, `MANIFEST.sha256.enc` | sha256 of every file. The encrypted copy makes a silently edited plaintext manifest detectable |
+| `MANIFEST.sha256`, `MANIFEST.sha256.enc` | sha256 of every file. The encrypted copy is **mandatory**: `nuxr-restore.sh` refuses a set without it, and refuses a set whose plaintext manifest differs from it. With `openssl` or `gpg` (symmetric key) a forged manifest cannot be produced without the key. With `age` anyone holding the public recipient can encrypt a new manifest, so keep `AGE_RECIPIENTS_FILE` private (0600) and the backup store write-protected for the database host (append-only or object lock) |
 | `VERIFIED`, `VERIFIED.<db>.rows` | Written by `nuxr-backup-verify.sh`: the result, and the per-table row counts of the restored snapshot |
 
 Binlogs: `$BACKUP_DIR/binlog/<ARCHIVE_TAG>/<name>.gz.enc`, `<name>.sha256` and `<name>.info` (size, raw sha256, first and last event UTC). The `.info` file is written last, so it marks a binlog as archived.
@@ -116,7 +116,7 @@ Then reconcile the gap (runbook §3 step 4). Never rewrite the ledger, the audit
 
 ## 6. Off-host copy
 
-`OFFHOST_CMD` runs from `$BACKUP_DIR` with the relative paths of the new files as `"$@"`; see the placeholders in `backup.conf.example`. No destination is built in. The command must keep the files private and use an encrypted transport. A failed copy keeps the set locally and exits 5. For binlogs, the off-host copy is what protects the RPO when the host is lost: the local archive dies with the host.
+`OFFHOST_CMD` runs from `$BACKUP_DIR` with the relative paths of the files to copy as `"$@"`; see the placeholders in `backup.conf.example`. No destination is built in. The command must keep the files private, use an encrypted transport, and be safe to repeat for a file it already copied (for example `rsync` or `rclone copy`). After a successful copy each item gets a marker in `$BACKUP_DIR/.offhost/`. Every run copies its new set (or new binlogs) **plus every earlier item without a marker**, so a failed copy is retried by the next run, and the run keeps exiting 5 until the backlog is copied (results `offhost.sets=` / `offhost.binlogs=` give the count). Alert on any exit 5, not only on consecutive ones. For binlogs, the off-host copy is what protects the RPO when the host is lost: the local archive dies with the host.
 
 ## 7. Retention
 
@@ -151,4 +151,4 @@ Every tool prints `key=value` result lines on stdout and logs to stderr and `LOG
 | 2: plus binlog PITR | + `nuxr-binlog-archive.sh`, `nuxr-restore.sh --stop-*` / `--pitr-to-end` | A logical error with the server alive: about 0, because the replay can stop just before the bad event. Host lost: the binlog archive and off-host interval, plus the transfer time | Load plus replay of the binlogs since the last full set (more frequent full sets shorten it), plus the same checks |
 | 3: replica plus option 2 | Not covered by this tooling (REL-06; HA is out of V1 scope unless approved) | Replication lag | Promotion and re-pointing |
 
-Lab measurements: `reports/BACKUP_PITR_DRILL_20261029.md` in the lab workspace. They come from a small synthetic database on a 16 GB workstation, so they are not a guarantee for any deployment.
+Lab measurements: the backup and point-in-time recovery drill report in the handover package (`08_Acceptance_Handover`). They come from a small synthetic database on a 16 GB workstation, so they are not a guarantee for any deployment.

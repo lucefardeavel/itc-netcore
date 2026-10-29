@@ -33,7 +33,7 @@ All commands run as root on the application host. Keep the verified artifact cop
    ```bash
    NAME=itc-netcore-v1.0-${SHA:0:12}
    git archive --format=tar --prefix="$NAME/" --add-virtual-file="$NAME/RELEASE_SHA:$SHA"$'\n' "$SHA" -- . \
-     ':(exclude)dev' ':(exclude)tests' ':(exclude)owner-review' ':(exclude)docs/claude-development-pack' \
+     ':(exclude)dev' ':(exclude)tests' ':(exclude)owner-review' ':(exclude)docs/claude-development-pack' ':(exclude)CLAUDE.md' \
      ':(exclude)system/vendor/yosiazwan/php-facedetection/lena512color.jpg' | gzip -n -9 > "$NAME.tar.gz"
    sha256sum "$NAME.tar.gz" > SHA256SUMS
    ```

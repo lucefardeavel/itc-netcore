@@ -28,17 +28,17 @@ JSON shape:
 
 | Check | What it measures | WARNING | CRITICAL | Runbook action |
 |---|---|---|---|---|
-| `db` | Database reachable, `REPEATABLE-READ`, UTC session, database ↔ PHP clock skew | Skew > 5 s | Wrong isolation, non-UTC session, or skew > 30 s | Fix the database configuration or NTP |
+| `db` | Database reachable, `REPEATABLE-READ`, UTC session, database-to-PHP clock skew | Skew > 5 s | Wrong isolation, non-UTC session, or skew > 30 s | Fix the database configuration or NTP |
 | `schema` | Reseller schema ready, including CHECK expressions and enforcement | — | Not ready | Stop selling; escalate |
 | `activations_stale` | Non-terminal activations not updated | > 5 min | > 30 min | `reconcile.php stale`; recovery runbook §1 |
-| `reconciliation` | Activations in `RECONCILIATION_REQUIRED` (funds held) | ≥ 1 | — | Recovery runbook §1 |
+| `reconciliation` | Activations in `RECONCILIATION_REQUIRED` (funds held) | 1 or more | — | Recovery runbook §1 |
 | `reservations` | Age of the oldest ACTIVE wallet reservation (never expires on its own) | > 1 h | > 24 h | Find and resolve the holding activation |
-| `admission_pending` | PPPoE claims / Hotspot slots PENDING > 10 min (locked-out subscribers) | ≥ 1 | — | `reconcile.php admission-pending`; `nuxr_hs_admission_report.sql`; recovery runbook §3 |
-| `vouchers_review` | Vouchers left `CLAIMED` | ≥ 1 | — | `reconcile.php voucher-review`; runbook §2 |
-| `balance_held` | Legacy balance operations HELD | ≥ 1 | — | `reconcile.php balance-held`; runbook §5 |
+| `admission_pending` | PPPoE claims / Hotspot slots PENDING > 10 min (locked-out subscribers) | 1 or more | — | `reconcile.php admission-pending`; `nuxr_hs_admission_report.sql`; recovery runbook §3 |
+| `vouchers_review` | Vouchers left `CLAIMED` | 1 or more | — | `reconcile.php voucher-review`; runbook §2 |
+| `balance_held` | Legacy balance operations HELD | 1 or more | — | `reconcile.php balance-held`; runbook §5 |
 | `accounting` | Newest `radacct` update while sessions are open | > 15 min | — | FreeRADIUS / NAS accounting problem |
-| `nas_clock` | Open sessions stamped > 5 s in the future (a NAS clock ahead) | ≥ 1 | — | Recovery runbook §4c |
-| `coa_failures` | Activations whose latest session-end in the last hour is not confirmed | ≥ 1 | — | Drift `SESSION_POLICY_STALE`; runbook §4a |
+| `nas_clock` | Open sessions stamped > 5 s in the future (a NAS clock ahead) | 1 or more | — | Recovery runbook §4c |
+| `coa_failures` | Activations whose latest session-end in the last hour is not confirmed | 1 or more | — | Drift `SESSION_POLICY_STALE`; runbook §4a |
 | `quota_enforcer` | Quota enforcer heartbeat while quota subscribers are online; over-quota open sessions | Over-quota session still open | Quota subscribers online and no enforcer pass for > 3 min | Restart the enforcer cron; `quota.php report`; runbook §4b |
 | `finance` (`--finance`) | Whole-database finance integrity | — | Any integrity issue | **Stop selling**; `reconcile.php finance-check`; security incident |
 
@@ -103,4 +103,5 @@ The guard self-check example from the FreeRADIUS README (root crontab):
 - A NAS clock that is **behind** (only NTP monitoring on the NAS sees it).
 - Sessions that changed plan while a NAS clock was more than 10 s ahead (RAD-3a residual): not reported automatically; found by the manual procedure of recovery runbook §4c.
 - Capacity on the target hardware (TA-09 NOT_RUN).
-- Certificate expiry, disk space, backup success: the ISP's monitoring must cover them. For backups, alert on every non-zero exit code of the `install/backup/` tools (for example 5 = off-host copy failed, 7 = checksum mismatch, 11 = binlog chain gap) and on the age of the newest backup set and of the newest archived binlog (`backup_restore_guide`).
+- Whether `cron.php` runs: `health.php` has no cron heartbeat. Monitor the cron log and the expiry results (customers expiring and renewing as scheduled) externally.
+- Certificate expiry, disk space, backup success: the ISP's monitoring must cover them. For backups, alert on every non-zero exit code of the `install/backup/` tools (for example 5 = an off-host copy failed or is still pending: the next run retries it and the tools keep exiting 5 while a backlog remains in `$BACKUP_DIR/.offhost/`, so alert on **any** exit 5; 7 = checksum mismatch, 11 = binlog chain gap) and on the age of the newest backup set and of the newest archived binlog (`backup_restore_guide`).

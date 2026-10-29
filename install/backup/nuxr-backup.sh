@@ -53,7 +53,7 @@ prune() {
     s=${sets[$i]}; ts=$(basename "$s")
     age_ok=$(date -u -d "${ts:0:4}-${ts:4:2}-${ts:6:2} ${ts:9:2}:${ts:11:2}:${ts:13:2}" +%s)
     if (( age_ok < cutoff )) && [[ -f "$s/backup.info" ]]; then
-      rm -rf -- "$s"; nf=$((nf + 1)); nuxr_info "retention: removed set $ts"
+      rm -rf -- "$s" "$(nuxr_offhost_marker "full/$ts")"; nf=$((nf + 1)); nuxr_info "retention: removed set $ts"
     fi
   done
   # stale partial sets (a crashed run) older than one day
@@ -74,7 +74,7 @@ prune() {
         [[ -e "$f" ]] || continue
         local name; name=$(basename "$f" .info)
         if (( $(nuxr_binlog_seq "$name") < seq )); then
-          rm -f -- "$BACKUP_DIR/binlog/$tag/$name".*; nb=$((nb + 1))
+          rm -f -- "$BACKUP_DIR/binlog/$tag/$name".* "$(nuxr_offhost_marker "binlog/$tag/$name")".*; nb=$((nb + 1))
         fi
       done
     fi
@@ -237,10 +237,12 @@ nuxr_result total_seconds "$(nuxr_info_get "$SET" total_seconds)"
 RC=0
 if [[ $OFFHOST == 1 && -n "$OFFHOST_CMD" ]]; then
   t0=$(nuxr_now)
-  if ( cd "$BACKUP_DIR" && bash -c "$OFFHOST_CMD" nuxr-offhost "full/$TS" ); then
+  mapfile -t pend < <(nuxr_offhost_pending_sets)    # this set plus every earlier set whose copy failed
+  nuxr_result offhost.sets "${#pend[@]}"
+  if nuxr_offhost_ship "$OFFHOST_CMD" "${pend[@]}"; then
     nuxr_result offhost OK; nuxr_result offhost.seconds "$(nuxr_elapsed "$t0")"
   else
-    nuxr_err "off-host copy failed; the set is kept locally"; nuxr_result offhost FAILED; RC=$NUXR_E_OFFHOST
+    nuxr_err "off-host copy failed; ${#pend[@]} set(s) kept locally and retried by the next run"; nuxr_result offhost FAILED; RC=$NUXR_E_OFFHOST
   fi
 elif [[ -z "$OFFHOST_CMD" ]]; then
   nuxr_warn "OFFHOST_CMD is empty: no off-host copy (the runbook requires at least one off-site copy)"

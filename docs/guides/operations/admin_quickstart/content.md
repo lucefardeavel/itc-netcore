@@ -3,7 +3,7 @@
 This quick-start takes an ISP administrator from an empty server to a first working ITC NetCore V1.0 instance. It condenses the authoritative runbooks shipped with the product and points to them for every detail. When this guide and a runbook differ, the runbook in the product tree wins.
 
 > [!WARNING]
-> ITC NetCore V1.0 is a **Release Candidate**. The release state is `RELEASE_BLOCKED_WITH_EVIDENCE` and the lab verdict is `LAB_ACCEPTED_WITH_LIMITATIONS`. The target acceptance tests TA-01 … TA-10 have not been run, the legal review LIC-1 is pending with counsel, and several owner decisions are open. Production deployment needs the owner's explicit release authorization; this guide does not grant it.
+> ITC NetCore V1.0 is a **Release Candidate**. The release state is `RELEASE_BLOCKED_WITH_EVIDENCE` and the lab verdict is `LAB_ACCEPTED_WITH_LIMITATIONS`. The target acceptance tests TA-01 … TA-10 have not been run, the legal review LIC-1 is `BLOCKED — COUNSEL REQUIRED`, and several owner decisions are open. Production deployment needs the owner's explicit release authorization; this guide does not grant it.
 
 > [!NOTE]
 > **Owner decision:** the first installation is a **fresh install with an empty database**. Migration of an existing PHPNuxBill database is a separate, future path (deployment runbook §3 and the OBS-1 survey runbook). It is not covered here.
@@ -34,7 +34,7 @@ This quick-start takes an ISP administrator from an empty server to a first work
 The installation uses the **`install/fresh/` package**: verify the artifact, run `nuxr-fresh-install.sh`, then run `nuxr-post-install-verify.sh`. The package replaces the web installer and performs the post-installer steps of `docs/DEPLOYMENT_AND_UPGRADE_RUNBOOK.md` §2. Every step has a verification; a failed verification stops the run. The full procedure is in `install_guide_en`.
 
 > [!NOTE]
-> **Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0):** steps 1–6 below ran end to end on a disposable Docker instance on both engines: install exit 0, an identical database after a second run, post-install verify 67 PASS / 0 WARN / 0 FAIL, and 8 / 8 refusal cases per engine. The proof was run on commit `228f01c9` and will be re-run on the final release commit. Steps 7–12 are **documented (not yet executed on target)**; the target acceptance tests TA-01 … TA-10 have not been run.
+> **Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0):** steps 1–6 below ran end to end on a disposable Docker instance on both engines: install exit 0, an identical database after a second run, post-install verify 67 PASS / 0 WARN / 0 FAIL, and 8 / 8 refusal cases per engine. The proof is run on every release candidate on MariaDB 10.11 and MySQL 8.0; the result for this release is in the handover package (`08_Acceptance_Handover/FRESH_INSTALL_PROOF`). Steps 7–12 are **documented (not yet executed on target)**; the target acceptance tests TA-01 … TA-10 have not been run.
 
 1. **Verify the artifact.** `nuxr-artifact-verify.sh --artifact=<tarball> --expected-sha=<release SHA> --extract-to=<dir>` checks the SHA-256 against `SHA256SUMS`, the archive safety rules, `RELEASE_SHA` and the content rules, then unpacks into a new, empty directory. Unpack it twice: once as the kept copy `<artifact-dir>` (outside the document root; run the package from `<artifact-dir>/install/fresh/`) and once as the release that becomes the document root (`current` symbolic link).
 2. **Platform.** Checklist §A and §B: PHP 8.2 with the extensions, PHP-FPM, nginx, the database client, and the engine settings of section 1. Install `php-fpm/pool.conf.example` and `nginx/itc-netcore.conf.example` from the package (HTTPS only, HSTS, the security headers, blocked paths, a login rate limit), then `nginx -t`.
@@ -99,7 +99,7 @@ Detailed procedures: `reseller_onboarding` and `subscriber_onboarding` in this d
 
 | Job | Schedule |
 |---|---|
-| `cd system && php cron.php` (expiry, renewals). Run it **from `system/`**: from the root it does nothing and still exits 0 | every 5 minutes |
+| `cd system && php cron.php` (expiry, renewals). The documented form runs it **from `system/`**; it resolves `init.php` from its own directory, so another working directory also works | every 5 minutes |
 | `cd system && php cron_reminder.php` (expiry reminders). Run it **from `system/`**, like `cron.php` | daily |
 | `php system/reseller/health.php --json` (output to monitoring) | every 5 minutes |
 | `php system/reseller/health.php --json --finance` (output to monitoring) | hourly |

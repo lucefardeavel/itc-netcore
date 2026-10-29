@@ -19,7 +19,7 @@ This is the recurring check routine for the operator of **one** ITC NetCore V1.0
 |---|---|---|---|---|
 | D1 | Overall health | `php system/reseller/health.php` (also runs every 5 min from monitoring) | Exit 0, every line `OK` | Each WARNING / CRITICAL line names the command that lists the records. See `monitoring_alerting_guide` |
 | D2 | Finance integrity | `php system/reseller/health.php --finance` (also hourly from monitoring) | `finance` OK, `consistent` | CRITICAL: **stop selling**, run `reconcile.php finance-check`, see §3 below |
-| D3 | Database contract and clock skew | health `db` line | `isolation=REPEATABLE-READ session_utc_offset=0s`, clock skew ≤ 5 s | WARNING above 5 s, CRITICAL above 30 s: check NTP on the database and application hosts |
+| D3 | Database contract and clock skew | health `db` line | `isolation=REPEATABLE-READ session_utc_offset=0s`, clock skew at most 5 s | WARNING above 5 s, CRITICAL above 30 s: check NTP on the database and application hosts |
 | D4 | Schema readiness | health `schema` | `ready` | CRITICAL: escalate to ITC; do not run migrations outside a maintenance window |
 | D5 | Accounting freshness | health `accounting` | OK | WARNING: open sessions but no accounting update for over 15 minutes: FreeRADIUS / NAS problem |
 | D6 | Quota enforcer | health `quota_enforcer` | OK | CRITICAL: the `quota.php enforce` cron is not running while quota subscribers are online; restart it. WARNING: `php system/reseller/quota.php report` |
@@ -48,7 +48,7 @@ These are the states the application deliberately leaves to an operator. **Nothi
 
 | # | Check | Where | Healthy result |
 |---|---|---|---|
-| D17 | Last night's backup set exists | `install/backup/nuxr-backup.sh` result (timer / log); newest set under the backup directory | Exit 0 (5 = set kept locally but the off-host copy failed); one complete set per night (no `.partial`), UTC timestamp, one encrypted dump per database |
+| D17 | Last night's backup set exists | `install/backup/nuxr-backup.sh` result (timer / log); newest set under the backup directory | Exit 0 (5 = set kept locally but an off-host copy failed or is still pending; the next run retries it; investigate any 5); one complete set per night (no `.partial`), UTC timestamp, one encrypted dump per database |
 | D18 | Backup record complete | the set's `backup.info` and `MANIFEST.sha256` | UTC times, sizes, SHA-256 and release recorded |
 | D19 | `config.php` backup | the set's encrypted `secrets.tar` | Present in every set |
 | D20 | Binlog archive current (point-in-time recovery) | `nuxr-binlog-archive.sh` result; age of the newest archived binlog, local and off-host | Exit 0; newest archive younger than the archive interval plus one run; no `CHAIN GAP` (exit 11: take a new full backup) |
@@ -120,6 +120,6 @@ These are the states the application deliberately leaves to an operator. **Nothi
 
 | Date | Operator | Daily D1–D28 | Weekly W1–W8 | Exceptions and runbook section used |
 |---|---|---|---|---|
-| | | ☐ | ☐ | |
-| | | ☐ | ☐ | |
-| | | ☐ | ☐ | |
+| | | [ ] | [ ] | |
+| | | [ ] | [ ] | |
+| | | [ ] | [ ] | |

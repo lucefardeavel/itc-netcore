@@ -88,7 +88,7 @@ R = responsible (does it) · A = accountable (approves) · C = consulted · I = 
 | Field | Entry |
 |---|---|
 | Change ID / date | |
-| Class | ☐ Standard ☐ Normal ☐ Major ☐ Emergency |
+| Class | [ ] Standard [ ] Normal [ ] Major [ ] Emergency |
 | Requested by / role | |
 | Description and reason | |
 | Instance and components affected | |

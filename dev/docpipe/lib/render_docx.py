@@ -76,6 +76,25 @@ ORDER = {
 }
 
 
+_AR = "؀-ۿݐ-ݿࡰ-࢟ࢠ-ࣿﭐ-﷿ﹰ-﻿"
+RE_AR_SPAN = re.compile("[%s](?:[^A-Za-zÀ-ɏ\n]*[%s])?" % (_AR, _AR))
+
+
+def arabic_spans(text):
+    """Split monospace text (code) into (segment, rtl): an RTL segment runs from an Arabic letter to the last
+    Arabic letter before the next Latin letter, so code, '#', '<' and spaces around an Arabic comment or
+    placeholder stay in LTR runs, as the Unicode bidi algorithm shows them in the LTR code line."""
+    out, pos = [], 0
+    for m in RE_AR_SPAN.finditer(text):
+        if m.start() > pos:
+            out.append((text[pos:m.start()], False))
+        out.append((m.group(0), True))
+        pos = m.end()
+    if pos < len(text):
+        out.append((text[pos:], False))
+    return out
+
+
 def put(parent, tag, attrs=None, kind=None, replace=True):
     """Insert w:<tag> into parent at its schema position (ORDER[kind]); replaces an existing one."""
     kind = kind or parent.tag.split("}")[1]
@@ -138,19 +157,29 @@ class DocxRenderer:
 
     def add_text(self, p, text, bold=False, italic=False, color=None, size=None, font=None, code=False):
         """Add text to paragraph p as one or more runs (split into RTL/LTR runs in Arabic documents)."""
-        segs = rtl_segments(text) if (self.rtl or has_arabic(text)) and not code and not font else [(text, False)]
+        mono = bool(code or font)
+        if mono:
+            # code keeps its characters; Arabic comments / placeholders inside it still get w:rtl runs
+            segs = arabic_spans(text) if has_arabic(text) else [(text, False)]
+        elif self.rtl or has_arabic(text):
+            segs = rtl_segments(text)
+        else:
+            segs = [(text, False)]
         runs = []
         for seg, is_rtl in segs:
             if not seg:
                 continue
-            if not is_rtl and re.fullmatch(r"\d[\d.,/]* [A-Za-z]{1,5}", seg):
+            if font:
+                pass  # code-block line: verbatim (an LTR paragraph, so no RTL line-break reordering)
+            elif not is_rtl and re.fullmatch(r"\d[\d.,/]* [A-Za-z]{1,5}", seg):
                 seg = seg.replace(" ", "\u00a0")  # keep "4 Mbps" / "200 GB" on one line
             elif not is_rtl and self.rtl and len(seg) <= 18 and " " not in seg:
                 seg = seg.replace("-", "\u2011")  # no line break inside "interim-update" (reorders in RTL)
             r = p.add_run(seg)
             rPr = r._r.get_or_add_rPr()
-            if code or font:
-                self.fonts_el(rPr, latin=font or self.f_mono, cs=font or self.f_mono)
+            if mono:
+                m = font or self.f_mono
+                self.fonts_el(rPr, latin=m, cs=self.f_arabic if is_rtl else m)
             if bold:
                 put(rPr, "b"); put(rPr, "bCs")
             if italic:
@@ -489,7 +518,8 @@ class DocxRenderer:
                 r = OxmlElement("w:r"); fc = OxmlElement("w:fldChar"); fc.set(qn("w:fldCharType"), "separate")
                 r.append(fc); p._p.append(r)
                 first = False
-            self.add_text(p, "%s  " % e["num"])
+            if e["num"]:
+                self.add_text(p, "%s  " % e["num"])
             self.add_inlines(p, e["inl"])
             paras.append(p)
         if paras:

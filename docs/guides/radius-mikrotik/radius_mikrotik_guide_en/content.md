@@ -224,7 +224,7 @@ No `DELETE` anywhere. Create one account entry per address FreeRADIUS connects f
 ## Session time zone, pool and capacity
 
 - Every FreeRADIUS SQL session is **UTC** (the database global `time_zone = '+00:00'`).
-- `pool.max` must cover the peak of concurrent authentications plus accounting. `pool.max` ≥ `thread pool { max_servers }` (32 by default) is **necessary, not sufficient**. The database `max_connections` must cover the `pool.max` of every FreeRADIUS instance on that server, plus the application, plus operator and backup sessions, plus a margin.
+- `pool.max` must cover the peak of concurrent authentications plus accounting. `pool.max` >= `thread pool { max_servers }` (32 by default) is **necessary, not sufficient**. The database `max_connections` must cover the `pool.max` of every FreeRADIUS instance on that server, plus the application, plus operator and backup sessions, plus a margin.
 - The admission hardening refuses a claim written with an emptied SQL expansion; pool sizing is **not** relied on for safety, but pool exhaustion can still cost availability. Measure the reconnect storm of your largest NAS and the interim load, and confirm with TA-09.
 
 > [!WARNING]
@@ -236,10 +236,10 @@ No `DELETE` anywhere. Create one account entry per address FreeRADIUS connects f
 
 | Item | Requirement | Check |
 |---|---|---|
-| Application, database, FreeRADIUS hosts | UTC, NTP, drift between them ≤ 5 s; the database clock slews, never steps back | preflight `time.clock_skew`, `chronyc tracking` |
+| Application, database, FreeRADIUS hosts | UTC, NTP, drift between them at most 5 s; the database clock slews, never steps back | preflight `time.clock_skew`, `chronyc tracking` |
 | FreeRADIUS process `TZ` | **= the application time zone** (Settings > Time zone). `Expiration` is written in that zone as `d M Y H:i:s` and FreeRADIUS interprets it in its own local time; `WISPr-Session-Terminate-Time` carries an explicit offset | `/proc/<pid>/environ` of the FreeRADIUS process |
 | FreeRADIUS SQL sessions | UTC | preflight `time.sql_session_zone` |
-| Every NAS | NTP from two internal servers by IP; clock zone UTC or a known fixed offset; **≤ 10 s** (hard limit), typically ≤ 2 s | `/system clock print` against `date -u`; preflight `time.nas_clock` (WARN > 5 s ahead, FAIL > 10 s); health `nas_clock` |
+| Every NAS | NTP from two internal servers by IP; clock zone UTC or a known fixed offset; **at most 10 s** (hard limit), typically at most 2 s | `/system clock print` against `date -u`; preflight `time.nas_clock` (WARN > 5 s ahead, FAIL > 10 s); health `nas_clock` |
 
 The host clock zone is UTC; only the FreeRADIUS **process** carries the application zone in its environment.
 

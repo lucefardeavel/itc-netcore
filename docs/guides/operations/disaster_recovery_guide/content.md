@@ -30,7 +30,7 @@ The three options come from the owner-decision consolidation §5. Option 1 is co
 | Indicative RPO | Up to the backup interval (about 24 h) | Logical error with the server alive: about 0 (the replay stops just before the bad event; lab: 0 rows lost). Host lost: about the archive and off-host interval plus the transfer time (lab: 51.4 s at a 60 s interval, about 21 s at 30 s) | About the replication lag while healthy (backups still needed against logical errors, which a replica copies) |
 | RTO driver | Restore, `verify`, health, preflight, manual reconciliation of the gap | Restore, replay of the binlogs since the last full set, then the same checks (lab tool run 13–31 s at 71 MiB; detection, decision, switch-over and reconciliation not included) | Promotion, re-pointing, the checks |
 | Covered | **Yes** (backup runbook §2–§4; checklist F1–F3, I5; automated by `nuxr-backup.sh` and `nuxr-backup-verify.sh`) | **Tooling yes** (`nuxr-binlog-archive.sh`, `nuxr-restore.sh`; lab-drilled). **Still open:** the PITR section of the product runbook, a real off-host target, monitoring of the archive age, the owner's interval | **No** — needs an owner HA requirement under REL-06 first |
-| Meets the provisional RPO 15 min | No | Only with an archive interval ≤ 15 min (the shipped timer runs every 5 min) **and** an off-host copy on every run that is monitored; to be shown on the target | Yes while the replica is healthy |
+| Meets the provisional RPO 15 min | No | Only with an archive interval of at most 15 min (the shipped timer runs every 5 min) **and** an off-host copy on every run that is monitored (a failed copy is retried by the next run and the tools exit 5 while a backlog remains: alert on any exit 5); to be shown on the target | Yes while the replica is healthy |
 | Meets the provisional RTO 4 h | Not measured on a target | Not measured on a target | Not measured on a target |
 
 **Owner fill-in (one copy per instance)**
@@ -38,13 +38,13 @@ The three options come from the owner-decision consolidation §5. Option 1 is co
 | Field | Entry |
 |---|---|
 | Instance | |
-| Option | ☐ 1 · ☐ 2 · ☐ 3 |
+| Option | [ ] 1 · [ ] 2 · [ ] 3 |
 | Binlog archive interval and off-host target (Option 2) | |
 | RTO (maximum time to restored service) | |
 | RPO (maximum data loss) | |
 | Retention / off-site location | |
 | Drill cadence | |
-| HA requirement (REL-06) | ☐ none for V1 · ☐ yes: |
+| HA requirement (REL-06) | [ ] none for V1 · [ ] yes: |
 | Owner name / date / signature | |
 
 <!-- pagebreak -->
@@ -55,7 +55,7 @@ The three options come from the owner-decision consolidation §5. Option 1 is co
 |---|---|
 | Impact | New logins fail closed (FreeRADIUS cannot read policy or write admission claims); the staff UI and portal fail; `quota.php` exits 3; health reports `db` CRITICAL or UNKNOWN. Sessions already up stay on the NAS under the router's own limits |
 | Contain | Stop the scheduled jobs (`cron.php`, `quota.php`, health) and put the web server into maintenance (503). Preserve whatever remains of the damaged database and its logs |
-| Restore | `nuxr-restore.sh`: the latest verified set into a **new, empty** database (backup runbook §3 step 1). With Option 2: also replay the archived binlogs — `--stop-datetime` / `--stop-position` just before a destructive event when the server is alive, or `--pitr-to-end --binlog-dir <off-host archive>` when the host is lost |
+| Restore | `nuxr-restore.sh`: the latest verified set into a **new, empty** database (backup runbook §3 step 1); a set without its encrypted manifest is refused, so the off-host copy must hold it. With Option 2: also replay the archived binlogs — `--stop-datetime` / `--stop-position` just before a destructive event when the server is alive, or `--pitr-to-end --binlog-dir <off-host archive>` when the host is lost |
 | Verify | The restore tool checks the copy: fingerprint, finance-table row counts, `migrate.php verify` exit 0, `health.php --finance` `db`, `schema`, `finance` OK. After the switch, `preflight.php` must pass on the live configuration |
 | Switch | Point `config.php` and FreeRADIUS at the new database; restart FreeRADIUS; reopen the web server, then the scheduled jobs; watch `health.php` for 30 minutes |
 | Reconcile | Everything after the recovery point is missing (activations, transfers, voucher redemptions); with PITR the gap is only what never reached the archive. Rebuild the list from audit records, payment-provider records and NAS-side `radacct`; re-enter the business operations through the application with a reason. Then run `reconcile.php drift`, `finance-check`, `stale`, `admission-pending`, `voucher-review`, `balance-held` |

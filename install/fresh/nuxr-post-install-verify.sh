@@ -54,7 +54,7 @@ http() { # <url> -> prints "<code>" and stores the headers in $TMPD/h, the body 
   : > "$TMPD/h"; : > "$TMPD/b"
   curl -sS -o "$TMPD/b" -D "$TMPD/h" -w '%{http_code}' --max-time 20 "${CURL_EXTRA[@]}" "$1" 2>"$TMPD/curl.err" || true
 }
-hdr() { grep -i "^$1:" "$TMPD/h" | head -1 | cut -d: -f2- | tr -d '\r' | sed 's/^ *//'; }
+hdr() { { grep -i "^$1:" "$TMPD/h" || true; } | head -1 | cut -d: -f2- | tr -d '\r' | sed 's/^ *//'; }  # a missing header is '' (never aborts set -e)
 
 echo "== web ($BASE)"
 code=$(http "$BASE/?_route=login")

@@ -53,8 +53,8 @@ Complete these once (SuperAdmin / Admin):
 | Step | Where | Action | Check |
 |---|---|---|---|
 | 1 | Settings > Administrator Users > Add | Role **Agent**, top level. Name, username, contact data, a temporary password given to the reseller out of band | The account appears in Resellers > Reseller Tree |
-| 2 | Pricing > Plans and prices | For this Agent: wholesale price (≥ base cost; leave empty to inherit the base cost) and availability per plan | Plan shows as saleable for the Agent |
-| 3 | Pricing (as the Agent, or by Admin) | The Agent's own retail price (≥ its wholesale; empty = the plan's default price) | No `RETAIL_BELOW_WHOLESALE` warning |
+| 2 | Pricing > Plans and prices | For this Agent: wholesale price (at least the base cost; leave empty to inherit the base cost) and availability per plan | Plan shows as saleable for the Agent |
+| 3 | Pricing (as the Agent, or by Admin) | The Agent's own retail price (at least its wholesale; empty = the plan's default price) | No `RETAIL_BELOW_WHOLESALE` warning |
 | 4 | Finance > Wallets > (wallet) > Fund | Provider funding: amount, reason (3–255 characters), external reference (for example the payment receipt number). **Review**, then **Confirm** | A `FUNDING` ledger entry; wallet balance updated |
 | 5 | Finance > Wallets > (wallet) > Debt limit (optional) | Only if the ISP extends credit to this reseller. Review, typed confirmation, confirm | Available credit = balance + limit − reserved |
 | 6 | The reseller logs in | Changes the temporary password from the personal menu (only the installer's default `admin` password is forced to change by the application). On a phone the bottom bar is Home / Customers / + / Wallet / More | Dashboard shows the wallet |
@@ -69,7 +69,7 @@ A sub-reseller can be created by the parent Agent itself or by an Admin.
 | Step | Who | Action |
 |---|---|---|
 | 1 | Parent Agent (or Admin) | Settings > Administrator Users > Add, role **Agent**. Created by the Agent, the new account always becomes the Agent's **direct** child and is enrolled at once |
-| 2 | Parent Agent (or Admin) | Pricing: set the child's **wholesale** price (must be ≥ the parent's own effective cost) and **availability** per plan. The difference between the child's wholesale and the parent's is the parent's commission |
+| 2 | Parent Agent (or Admin) | Pricing: set the child's **wholesale** price (must be at least the parent's own effective cost) and **availability** per plan. The difference between the child's wholesale and the parent's is the parent's commission |
 | 3 | Sub-reseller | Sets its own retail price |
 | 4 | Parent Agent | Finance > Wallet overview > *Send to child reseller*: choose the direct child, amount and reason, review, confirm. Two opposite ledger entries are written (`TRANSFER_OUT`, `TRANSFER_IN`) |
 | 5 | Admin (optional) | Provider funding or a debt limit directly on the sub-reseller's wallet |
@@ -89,7 +89,7 @@ The Agent (or Admin) creates a **Sales** account as the Agent's direct child. A 
 | Rule | Behaviour |
 |---|---|
 | Effective wholesale | The reseller's own override, else the nearest ancestor's override, else the base cost |
-| Floor | A child's effective wholesale is ≥ its parent's; a top-level reseller's is ≥ the base cost. Equal is allowed (`WHOLESALE_BELOW_PARENT` otherwise) |
+| Floor | A child's effective wholesale is at least its parent's; a top-level reseller's is at least the base cost. Equal is allowed (`WHOLESALE_BELOW_PARENT` otherwise) |
 | Upstream raise | A raise that would put an explicit descendant override below its new parent price is rejected. Descendant prices are never rewritten |
 | Retail below wholesale | Refused when set. If an upstream raise causes it, the plan becomes not saleable for that reseller until corrected (warning, audited) |
 | Availability | An explicit "off" anywhere on the path closes the plan for that subtree; "on" never overrides an ancestor's "off"; empty inherits |
