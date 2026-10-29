@@ -15,7 +15,7 @@
                         {if $add_cost!=0}
                         {foreach $bills as $k => $v}
                         <tr>
-                            <td>{$k}</td>
+                            <td>{$k|escape}</td>
                             <td>{Lang::moneyFormat($v)}</td>
                         </tr>
                         {/foreach}

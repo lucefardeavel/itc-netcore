@@ -73,7 +73,7 @@
         <table class="table table-bordered table-striped table-condensed">
             {foreach $pg['pg_request'] as $k => $v}
                 <tr>
-                    <td>{$k}</td>
+                    <td>{$k|escape}</td>
                     <td>{$v}</td>
                 </tr>
             {/foreach}
@@ -88,7 +88,7 @@
         <table class="table table-bordered table-striped table-condensed">
             {foreach $pg['pg_paid_response'] as $k => $v}
                 <tr>
-                    <td>{$k}</td>
+                    <td>{$k|escape}</td>
                     <td>{$v}</td>
                 </tr>
             {/foreach}

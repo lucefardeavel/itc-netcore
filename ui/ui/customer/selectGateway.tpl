@@ -96,7 +96,7 @@
                     {if $add_cost != 0}
                         {foreach $bills as $k => $v}
                             <li class="list-group-item">
-                                <b>{$k}</b>
+                                <b>{$k|escape}</b>
                                 <span class="pull-right">{Lang::moneyFormat($v)}</span>
                             </li>
                         {/foreach}

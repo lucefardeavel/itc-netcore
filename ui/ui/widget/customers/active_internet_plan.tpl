@@ -79,8 +79,8 @@
                             <tr>
                                 {if $tcf['field_name'] == 'Winbox' or $tcf['field_name'] == 'Api' or $tcf['field_name'] == 'Web'}
                                     <td class="small text-info text-uppercase text-normal">{$tcf['field_name']} - Port</td>
-                                    <td class="small mb15"><a href="http://{$vpn['public_ip']}:{$tcf['field_value']}"
-                                            target="_blank">{$tcf['field_value']}</a></td>
+                                    <td class="small mb15"><a href="http://{$vpn['public_ip']}:{$tcf['field_value']|escape}"
+                                            target="_blank">{$tcf['field_value']|escape}</a></td>
                                 </tr>
                             {/if}
                         {/foreach}

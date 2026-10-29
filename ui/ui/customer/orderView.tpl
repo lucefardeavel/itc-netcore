@@ -45,7 +45,7 @@
                                 <tr>
                                     <td>{Lang::T('Notes')}</td>
                                     <td>
-                                        {nl2br($invoice['note'])}
+                                        {$invoice['note']|escape|nl2br}
                                     </td>
                                 </tr>
                             {/if}
@@ -78,7 +78,7 @@
                             {if $add_cost!=0}
                                 {foreach $bills as $k => $v}
                                     <tr>
-                                        <td>{$k}</td>
+                                        <td>{$k|escape}</td>
                                         <td>{Lang::moneyFormat($v)}</td>
                                     </tr>
                                 {/foreach}

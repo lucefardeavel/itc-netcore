@@ -86,7 +86,7 @@
 
                                     {if strpos($v, ':') === false}
                                         <li class="list-group-item">
-                                            <b>{$k}</b> <span class="pull-right">
+                                            <b>{$k|escape}</b> <span class="pull-right">
                                                 {Lang::moneyFormat($v)}
                                                 <sup title="recurring">∞</sup>
                                                 {assign var="total" value=$v+$total}
@@ -96,8 +96,8 @@
                                         {assign var="exp" value=explode(':',$v)}
                                         {if $exp[1]>0}
                                             <li class="list-group-item">
-                                                <b>{$k}</b> <span class="pull-right">
-                                                    <sup title="{$exp[1]} more times">({$exp[1]}x) </sup>
+                                                <b>{$k|escape}</b> <span class="pull-right">
+                                                    <sup title="{$exp[1]|escape} more times">({$exp[1]|escape}x) </sup>
                                                     {Lang::moneyFormat($exp[0])}
                                                 </span>
                                             </li>
@@ -130,7 +130,7 @@
 
                                     {if strpos($v, ':') === false}
                                         <li class="list-group-item">
-                                            <b>{$k}</b> <span class="pull-right">
+                                            <b>{$k|escape}</b> <span class="pull-right">
                                                 {Lang::moneyFormat($v)}
                                                 <sup title="recurring">∞</sup>
                                                 {assign var="total" value=$v+$total}
@@ -140,8 +140,8 @@
                                         {assign var="exp" value=explode(':',$v)}
                                         {if $exp[1]>0}
                                             <li class="list-group-item">
-                                                <b>{$k}</b> <span class="pull-right">
-                                                    <sup title="{$exp[1]} more times">({$exp[1]}x) </sup>
+                                                <b>{$k|escape}</b> <span class="pull-right">
+                                                    <sup title="{$exp[1]|escape} more times">({$exp[1]|escape}x) </sup>
                                                     {Lang::moneyFormat($exp[0])}
                                                 </span>
                                             </li>
