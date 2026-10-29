@@ -140,7 +140,7 @@
   "Administrator_Users": "مستخدمو المدير",
   "Manage_Administrator": "إدارة المدير",
   "Add_New_Administrator": "إضافة مدير جديد",
-  "Localisation": "الموقع",
+  "Localisation": "الإعدادات المحلية",
   "Backup_Restore": "النسخ الاحتياطي / الاستعادة",
   "General_Settings": "الإعدادات العامة",
   "Date": "التاريخ",
@@ -2127,5 +2127,10 @@
   "The_coupon_is_not_valid__not_available_for_Balance__": "الكوبون غير صالح (غير متاح لشحن الرصيد).",
   "The_coupon_is_not_valid__not_active__": "الكوبون غير صالح (غير مفعّل).",
   "The_coupon_is_not_valid__not_valid_today__": "الكوبون غير صالح (غير ساري اليوم).",
-  "The_coupon_is_not_valid__minimum_order_not_met__": "الكوبون غير صالح (لم يبلغ الطلب الحد الأدنى)."
+  "The_coupon_is_not_valid__minimum_order_not_met__": "الكوبون غير صالح (لم يبلغ الطلب الحد الأدنى).",
+  "Not Use": "غير مستخدمة",
+  "Unused": "غير مستخدمة",
+  "Vouchers Stock": "مخزون القسائم",
+  "Failed_to_refill_account": "تعذّر شحن الحساب",
+  "Your_username_can_only_be_changed_by_an_administrator__nothing_was_changed_": "لا يغيّر اسم المستخدم لحسابك إلا المسؤول؛ لم يتغيّر شيء."
 }

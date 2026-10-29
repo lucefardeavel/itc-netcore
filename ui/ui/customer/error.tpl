@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="{$nuxr_lang|default:'en'}" dir="{$nuxr_dir|default:'ltr'}">
 
 <head>
     <meta charset="utf-8">

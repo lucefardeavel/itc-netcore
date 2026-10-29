@@ -635,7 +635,7 @@ switch ($action) {
                 } else if ($tipe == 'Agent') {
                     $tipe = ' [A]';
                 } else {
-                    $tipe == '';
+                    $tipe = '';
                 }
                 $admins[$adm['id']] = $adm['fullname'] . $tipe;
             }

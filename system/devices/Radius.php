@@ -373,7 +373,7 @@ class Radius
             $result = $provisioner->provision($policy);
             if ($attempt < 3 && $result->status === ProvisionResult::FAILED && (int) ($result->metadata['db_error'] ?? 0) === 1213) {
                 ErrorReporter::log('radius.deadlock_retry', 'attempt=' . $attempt);
-                usleep(random_int(5000, 50000) * $attempt);
+                usleep(20000 * $attempt);   // fixed back-off, no jitter (owner O-DL rule: bounded, deterministic retry)
                 continue;
             }
             break;

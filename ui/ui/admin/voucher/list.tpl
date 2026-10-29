@@ -98,9 +98,9 @@
                             <td>{$ds['routers']|escape}</td>
                             <td>{$ds['name_plan']|escape}</td>
                             <td>{include file="admin/nuxr/secret.tpl" nuxr_secret=$ds['code'] nuxr_secret_label=Lang::T('Code Voucher')}</td>
-                            <td>{if $ds['status'] eq '0'} <label class="btn-tag btn-tag-success"> Not Use
+                            <td>{if $ds['status'] eq '0'} <label class="btn-tag btn-tag-success"> {Lang::T('Not Use')}
                                 </label> {elseif $ds['status'] eq 'CLAIMED'} <label class="btn-tag btn-tag-warning">{Lang::T('Claimed - under review')}</label>
-                                {else} <label class="btn-tag btn-tag-danger">Used</label>
+                                {else} <label class="btn-tag btn-tag-danger">{Lang::T('Used')}</label>
                                 {/if}</td>
                             <td>{if $ds['user'] eq '0'} -
                                 {elseif $nuxr_can.customer && $nuxr_customer_view[$ds['user']]|default:false}<a href="{Text::url('customers/viewu/')}{$ds['user']|escape:'url'}">{$ds['user']|escape}</a>

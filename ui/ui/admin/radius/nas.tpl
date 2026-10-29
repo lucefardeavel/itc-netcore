@@ -4,7 +4,7 @@
     <div class="col-sm-12">
         <div class="panel panel-hovered mb20 panel-primary">
             <div class="panel-heading">
-                Radius
+                {Lang::T('Radius')}
             </div>
             <div class="panel-body">
                 <div class="md-whiteframe-z1 mb20 text-center" style="padding: 15px">
@@ -37,7 +37,7 @@
                                 <th>{Lang::T('CoA port')}</th>
                                 <th>{Lang::T('Server')}</th>
                                 <th>{Lang::T('SNMP community')}</th>
-                                <th>Routers</th>
+                                <th>{Lang::T('Routers')}</th>
                                 <th>{Lang::T('Manage')}</th>
                                 <th>ID</th>
                             </tr>
