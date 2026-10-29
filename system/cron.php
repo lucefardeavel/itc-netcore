@@ -1,6 +1,7 @@
 <?php
 // WP5B §8 (OD-8): CLI only. A web request never obtains cron authority: no body, before init.php, the lock
-// file or any work (run it as `php system/cron.php` from a crontab).
+// file or any work (run it from a crontab as `cd <app>/system && php cron.php`: it includes ../init.php relative to the
+// working directory, so `php system/cron.php` from the application root does nothing).
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
 include "../init.php";

@@ -162,8 +162,24 @@ $try('radius_checks', static function () use ($add, $isMaria): void {
     }
     $rp->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $root = dirname(__DIR__, 2) . '/install/freeradius/';
-    $expected = \Reseller\Domain\CheckConstraints::expectedFromSql((string) file_get_contents($root . 'nuxr_admission.sql'))
-        + \Reseller\Domain\CheckConstraints::expectedFromSql((string) file_get_contents($root . 'nuxr_hs_admission.sql'));
+    // the reference definitions must be present: without them there is nothing to compare and the check would pass
+    // vacuously (fresh-install proof 2026-10-29, R3-6; keep install/freeradius/ read-only, see the deployment runbook)
+    $refs = [];
+    foreach (['nuxr_admission.sql', 'nuxr_hs_admission.sql'] as $f) {
+        $sql = is_readable($root . $f) ? (string) file_get_contents($root . $f) : '';
+        $refs[$f] = \Reseller\Domain\CheckConstraints::expectedFromSql($sql);
+    }
+    $absent = [];
+    foreach ($refs as $f => $defs) {
+        if ($defs === []) {
+            $absent[] = "reference definitions install/freeradius/{$f} missing or unreadable (keep install/freeradius/ in the release)";
+        }
+    }
+    if ($absent !== []) {
+        $add('radius_checks', 'FAIL', implode('; ', $absent));
+        return;
+    }
+    $expected = $refs['nuxr_admission.sql'] + $refs['nuxr_hs_admission.sql'];
     // ALTER-guard strings repeat the CREATE TABLE expressions; the CREATE TABLE ones are authoritative
     $tables = $rp->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('nuxr_admission', 'nuxr_hs_admission')")->fetchAll(PDO::FETCH_COLUMN);
     $missing = array_diff(['nuxr_admission', 'nuxr_hs_admission'], $tables);
