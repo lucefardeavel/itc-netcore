@@ -124,6 +124,45 @@ final class CustomerIdentity
     }
 
     /**
+     * R-HF-CARRY-01 F-2: a static (PPPoE) IP is '' (none) or an IPv4 address that RadiusPolicyBuilder hands out as
+     * Framed-IP-Address (FILTER_VALIDATE_IP IPv4, not 0.0.0.0).
+     */
+    public static function validStaticIp(string $ip): bool
+    {
+        return $ip === '' || (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false && $ip !== '0.0.0.0');
+    }
+
+    /**
+     * R-HF-CARRY-01 F-2: refuses (DomainError STATIC_IP_INVALID / STATIC_IP_TAKEN / IDENTITY_CHECK_UNAVAILABLE) unless $ip
+     * is '' or a valid static IP that no other customer holds (system-wide, every role; stored values compared as
+     * RadiusPolicyBuilder trims them). Only under the identity lock, which every static IP writer takes; $selfCustomerId
+     * excludes the customer itself. The refusal never names the other customer.
+     */
+    public static function assertStaticIpAvailable(\PDO $pdo, string $ip, ?int $selfCustomerId = null): void
+    {
+        if (!self::held($pdo)) {
+            throw new \LogicException('the static IP check runs only under the identity lock');
+        }
+        if ($ip === '') {
+            return;
+        }
+        if (!self::validStaticIp($ip)) {
+            throw new DomainError('STATIC_IP_INVALID');
+        }
+        try {
+            $rows = self::bounded($pdo, "SELECT id FROM tbl_customers WHERE REGEXP_REPLACE(pppoe_ip, ?, '') = ?" . ($selfCustomerId !== null ? ' AND id <> ?' : '') . ' LIMIT 1',
+                [self::TRIM_RE, $ip, ...($selfCustomerId !== null ? [$selfCustomerId] : [])]);
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'identity-static-ip');
+            throw new DomainError('IDENTITY_CHECK_UNAVAILABLE');
+        }
+        if ($rows !== []) {
+            ErrorReporter::log('identity.static_ip_taken');
+            throw new DomainError('STATIC_IP_TAKEN');
+        }
+    }
+
+    /**
      * The names (canonical form => reasons customer | voucher | recharge | radius) that are taken; [] when none; null
      * when the check cannot run (any error, an empty canonical name, more candidate rows than the bound). Without the
      * identity lock this is a best-effort answer (voucher generation).

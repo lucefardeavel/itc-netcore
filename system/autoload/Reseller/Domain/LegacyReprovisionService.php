@@ -149,11 +149,16 @@ final class LegacyReprovisionService
                     // WP9 U0 (P5, AM-W9-1): an acquired name is checked and written under the identity lock (L-1 -> L-3 ->
                     // BEGIN); the RADIUS reads above and the device steps below stay outside it
                     $acquired = CustomerIdentity::acquired($old, $new);
-                    if ($acquired === []) {
+                    // R-HF-CARRY-01 F-2: a changed static IP is checked (no other customer holds it) under the identity lock too
+                    $ip = (string) $new['pppoe_ip'] !== trim((string) $old['pppoe_ip']) ? (string) $new['pppoe_ip'] : '';
+                    if ($acquired === [] && $ip === '') {
                         $write();
                     } else {
-                        CustomerIdentity::hold(static function (\PDO $pdo) use ($acquired, $customerId, $old, $write): void {
-                            CustomerIdentity::assertAvailable($pdo, $acquired, $customerId, CustomerIdentity::keysOf((string) $old['username'], (string) $old['pppoe_username']));
+                        CustomerIdentity::hold(static function (\PDO $pdo) use ($acquired, $customerId, $old, $write, $ip): void {
+                            if ($acquired !== []) {
+                                CustomerIdentity::assertAvailable($pdo, $acquired, $customerId, CustomerIdentity::keysOf((string) $old['username'], (string) $old['pppoe_username']));
+                            }
+                            CustomerIdentity::assertStaticIpAvailable($pdo, $ip, $customerId);
                             $write();
                         });
                     }
@@ -795,6 +800,10 @@ final class LegacyReprovisionService
             if (array_key_exists($k, $requested)) {
                 $new[$k] = trim($requested[$k]);
             }
+        }
+        // R-HF-CARRY-01 F-2: a changed static IP is '' or a valid IPv4 address (a kept stored value is not re-judged)
+        if ((string) $new['pppoe_ip'] !== trim((string) $customer['pppoe_ip']) && !CustomerIdentity::validStaticIp((string) $new['pppoe_ip'])) {
+            throw new DomainError('STATIC_IP_INVALID');
         }
         if ((string) $new['pppoe_username'] !== (string) $customer['pppoe_username']
             && (mb_strlen((string) $new['pppoe_username']) > 32 || preg_match('/[\x00-\x1F\x7F]/', (string) $new['pppoe_username']))) {

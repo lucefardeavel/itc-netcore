@@ -801,6 +801,12 @@ switch ($action) {
         if ($oldPppoeIp != $pppoe_ip) {
             $pppoeIpDiff = true;
         }
+        // R-HF-CARRY-01 F-2: a changed static IP is '' or a valid IPv4 address; an edit that keeps the stored value (also a
+        // legacy one) still saves. Its uniqueness is checked under the identity lock at the save (below / the reprovision).
+        $nuxrIpChanged = $c && trim((string) $oldPppoeIp) !== (string) $pppoe_ip;
+        if ($nuxrIpChanged && !\Reseller\Domain\CustomerIdentity::validStaticIp((string) $pppoe_ip)) {
+            $msg .= Lang::T(\Reseller\Domain\DomainError::MESSAGES['STATIC_IP_INVALID']) . '<br>';
+        }
         if ($password != '' && $oldPassPassword != $password) {
             $passDiff = true;
         }
@@ -920,13 +926,18 @@ switch ($action) {
             // voucher identities, RADIUS keys; the customer itself and its own RADIUS keys excluded); the device steps
             // below run after the lock is released
             $nuxrAcquired = $resellerOwned ? [] : \Reseller\Domain\CustomerIdentity::acquired($nuxrOld, $nuxrNew);
-            if ($nuxrAcquired === []) {
+            // R-HF-CARRY-01 F-2: a changed static IP is checked (no other customer holds it) and saved under the identity lock
+            $nuxrIp = !$resellerOwned && $nuxrIpChanged ? (string) $pppoe_ip : '';
+            if ($nuxrAcquired === [] && $nuxrIp === '') {
                 $c->save();
             } else {
                 try {
-                    \Reseller\Domain\CustomerIdentity::hold(static function (\PDO $pdo) use ($c, $nuxrAcquired, $nuxrOld): void {
-                        \Reseller\Domain\CustomerIdentity::assertAvailable($pdo, $nuxrAcquired, (int) $c['id'],
-                            \Reseller\Domain\CustomerIdentity::keysOf((string) $nuxrOld['username'], (string) $nuxrOld['pppoe_username']));
+                    \Reseller\Domain\CustomerIdentity::hold(static function (\PDO $pdo) use ($c, $nuxrAcquired, $nuxrOld, $nuxrIp): void {
+                        if ($nuxrAcquired !== []) {
+                            \Reseller\Domain\CustomerIdentity::assertAvailable($pdo, $nuxrAcquired, (int) $c['id'],
+                                \Reseller\Domain\CustomerIdentity::keysOf((string) $nuxrOld['username'], (string) $nuxrOld['pppoe_username']));
+                        }
+                        \Reseller\Domain\CustomerIdentity::assertStaticIpAvailable($pdo, $nuxrIp, (int) $c['id']);
                         $c->save();
                     });
                 } catch (\Reseller\Domain\DomainError $e) {

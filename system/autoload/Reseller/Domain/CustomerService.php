@@ -98,8 +98,10 @@ final class CustomerService
                 }
                 // I-1 (cross-field, canonical, customers + live voucher identities + RADIUS keys; the new row excluded)
                 CustomerIdentity::assertAvailable($pdo, array_values(array_filter([(string) $in['username'], (string) ($in['pppoe_username'] ?? '')], static fn(string $n): bool => trim($n) !== '')), $id);
+                // R-HF-CARRY-01 F-2: the static IP is held by no other customer (system-wide; the new row excluded)
+                CustomerIdentity::assertStaticIpAvailable($pdo, (string) ($in['pppoe_ip'] ?? ''), $id);
             } catch (DomainError $e) {
-                if ($scope === 'G' || !in_array($e->reason, ['USERNAME_TAKEN', 'IDENTITY_TAKEN'], true)) {
+                if ($scope === 'G' || !in_array($e->reason, ['USERNAME_TAKEN', 'IDENTITY_TAKEN', 'STATIC_IP_TAKEN'], true)) {
                     throw $e;
                 }
                 ErrorReporter::log('customer.create_identity_refused', 'actor=' . (int) $a->userId . ' scope=' . $scope);
@@ -344,6 +346,10 @@ final class CustomerService
         $pp = (string) ($in['pppoe_username'] ?? '');
         if (mb_strlen($pp) > 32 || preg_match('/[\x00-\x1F\x7F]/', $pp)) {
             throw new DomainError('INVALID_INPUT', 'PPPoE username should be at most 32 characters, without control characters');
+        }
+        // R-HF-CARRY-01 F-2: the static IP is '' (none) or a valid IPv4 address (RADIUS Framed-IP-Address)
+        if (!CustomerIdentity::validStaticIp((string) ($in['pppoe_ip'] ?? ''))) {
+            throw new DomainError('STATIC_IP_INVALID');
         }
     }
 

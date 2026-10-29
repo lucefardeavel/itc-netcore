@@ -34,12 +34,15 @@ final class W10CustomerCredentialFieldsXssTest extends Wp2HttpTestCase
         $fields = ['pppoe_username' => self::payload('pppoeu'), 'pppoe_password' => self::payload('pppoep'),
             'pppoe_ip' => self::payload('pppoei'), 'state' => self::payload('state')];
         // zip is varchar(10): too short for the marker (an overlong zip is a separate validation finding, B-L06)
+        // R-HF-CARRY-01 F-2: the static IP is validated on save (a non-IPv4 value refuses the whole add), so the IP payload
+        // is stored the way only legacy data can hold it (direct write below); every other field goes through add-post
         $r = $a->postWithToken('customers/add-post', ['username' => $cu, 'fullname' => 'W10 xss', 'password' => 'Pw-' . bin2hex(random_bytes(4)),
             'service_type' => 'PPPoE', 'account_type' => 'Personal', 'email' => 'x@example.invalid', 'address' => 'a',
-            'phonenumber' => '0700123', 'city' => 'c', 'district' => 'd', 'coordinates' => ''] + $fields);
+            'phonenumber' => '0700123', 'city' => 'c', 'district' => 'd', 'coordinates' => ''] + array_diff_key($fields, ['pppoe_ip' => 1]));
         $this->assertContains($r->status, [200, 302], $r->excerpt());
         $cid = (int) static::$db->value('SELECT id FROM tbl_customers WHERE username = ?', [$cu]);
         $this->assertGreaterThan(0, $cid, 'the Agent created the customer');
+        static::$db->pdo->prepare('UPDATE tbl_customers SET pppoe_ip = ? WHERE id = ?')->execute([$fields['pppoe_ip'], $cid]);
 
         // the customer cA1 sets its own password to the payload in the portal
         $self = $this->cid('cA1');
