@@ -2107,6 +2107,8 @@
   "Unassigned_customers_have_no_Sales__set_an_owner_first_": "المشترك غير المُسنَد ليس له مندوب؛ حدّد المالك أولاً.",
   "Password_should_be_between_3_to_35_characters": "يجب أن تكون كلمة المرور بين 3 و35 حرفاً",
   "decision_confirm_deny_release__operator_____2__and_reason_____10_characters__are_required": "يلزم إدخال القرار (confirm أو deny أو release) واسم المشغّل (حرفان على الأقل) والسبب (10 أحرف على الأقل)",
+  "decision_completed_refund__operator_____2__and_reason_____10_characters__are_required": "يلزم إدخال القرار (completed أو refund) واسم المشغّل (حرفان على الأقل) والسبب (10 أحرف على الأقل)",
+  "operator_____2__and_reason_____10_characters__are_required": "يلزم إدخال اسم المشغّل (حرفان على الأقل) والسبب (10 أحرف على الأقل)",
   "The_voucher_is_not_under_review_": "القسيمة ليست قيد المراجعة.",
   "The_grant_is_not_proven_complete__nothing_was_changed_": "لم يثبت اكتمال المنح؛ لم يتغيّر شيء.",
   "Deny_applies_to_a_voucher_only_grant_with_a_recharge_row__use_the_customer_service_tools_otherwise_": "ينطبق الرفض على منح بالقسيمة فقط له سجل شحن؛ وفي غير ذلك استخدم أدوات إدارة خدمة المشترك.",
