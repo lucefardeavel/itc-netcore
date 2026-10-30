@@ -1,0 +1,12 @@
+{
+  "title": "Monitoring and Alerting Guide",
+  "subtitle": "ITC NetCore V1.0 — health checks, thresholds and alerting rules",
+  "language": "en",
+  "version": "V1.0 RC",
+  "date": "2026-10-29",
+  "owner": "ITC",
+  "status": "Release Candidate — not yet production-accepted",
+  "sha": "final-prep (release SHA recorded at build)",
+  "source_sha": "final-prep (release SHA recorded at build)",
+  "audience": "Operators and monitoring teams"
+}

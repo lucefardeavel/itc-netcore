@@ -9,8 +9,8 @@
             {if $_user['service_type'] == 'PPPoE'}
                 {if Lang::arrayCount($radius_pppoe)>0}
                     <ol class="breadcrumb">
-                        <li>{if $_c['radius_plan']==''}Radius Plan{else}{$_c['radius_plan']}{/if}</li>
-                        <li>{if $_c['pppoe_plan']==''}PPPOE Plan{else}{$_c['pppoe_plan']}{/if}</li>
+                        <li>{if $_c['radius_plan']=='' || $_c['radius_plan']=='Radius Plan'}{Lang::T('Radius Plan')}{else}{$_c['radius_plan']}{/if}</li>
+                        <li>{if $_c['pppoe_plan']=='' || $_c['pppoe_plan']=='PPPOE Plan'}{Lang::T('PPPOE Plan')}{else}{$_c['pppoe_plan']}{/if}</li>
                     </ol>
                     <div class="row">
                         {foreach $radius_pppoe as $plan}
@@ -66,8 +66,8 @@
             {elseif $_user['service_type'] == 'Hotspot'}
                 {if Lang::arrayCount($radius_hotspot)>0}
                     <ol class="breadcrumb">
-                        <li>{if $_c['radius_plan']==''}Radius Plan{else}{$_c['radius_plan']}{/if}</li>
-                        <li>{if $_c['hotspot_plan']==''}Hotspot Plan{else}{$_c['hotspot_plan']}{/if}</li>
+                        <li>{if $_c['radius_plan']=='' || $_c['radius_plan']=='Radius Plan'}{Lang::T('Radius Plan')}{else}{$_c['radius_plan']}{/if}</li>
+                        <li>{if $_c['hotspot_plan']=='' || $_c['hotspot_plan']=='Hotspot Plan'}{Lang::T('Hotspot Plan')}{else}{$_c['hotspot_plan']}{/if}</li>
                     </ol>
                     <div class="row">
                         {foreach $radius_hotspot as $plan}
@@ -123,8 +123,8 @@
                 {elseif $_user['service_type'] == 'Others' || $_user['service_type'] == '' && (Lang::arrayCount($radius_pppoe)>0
                                                                                                                     || Lang::arrayCount($radius_hotspot)>0)}
                 <ol class="breadcrumb">
-                    <li>{if $_c['radius_plan']==''}Radius Plan{else}{$_c['radius_plan']}{/if}</li>
-                    <li>{if $_c['pppoe_plan']==''}PPPOE Plan{else}{$_c['pppoe_plan']}{/if}</li>
+                    <li>{if $_c['radius_plan']=='' || $_c['radius_plan']=='Radius Plan'}{Lang::T('Radius Plan')}{else}{$_c['radius_plan']}{/if}</li>
+                    <li>{if $_c['pppoe_plan']=='' || $_c['pppoe_plan']=='PPPOE Plan'}{Lang::T('PPPOE Plan')}{else}{$_c['pppoe_plan']}{/if}</li>
                 </ol>
                 {if Lang::arrayCount($radius_pppoe)>0}
                     <div class="row">
@@ -180,8 +180,8 @@
                 {/if}
                 {if Lang::arrayCount($radius_hotspot)>0}
                     <ol class="breadcrumb">
-                        <li>{if $_c['radius_plan']==''}Radius Plan{else}{$_c['radius_plan']}{/if}</li>
-                        <li>{if $_c['hotspot_plan']==''}Hotspot Plan{else}{$_c['hotspot_plan']}{/if}</li>
+                        <li>{if $_c['radius_plan']=='' || $_c['radius_plan']=='Radius Plan'}{Lang::T('Radius Plan')}{else}{$_c['radius_plan']}{/if}</li>
+                        <li>{if $_c['hotspot_plan']=='' || $_c['hotspot_plan']=='Hotspot Plan'}{Lang::T('Hotspot Plan')}{else}{$_c['hotspot_plan']}{/if}</li>
                     </ol>
                     <div class="row">
                         {foreach $radius_hotspot as $plan}
@@ -249,7 +249,7 @@
                     </div>
                 {/if}
                 {if $_user['service_type'] == 'Hotspot' && Validator::countRouterPlan($plans_hotspot, $router['name'])>0}
-                    <div class="box-header text-white">{if $_c['hotspot_plan']==''}Hotspot Plan{else}{$_c['hotspot_plan']}{/if}
+                    <div class="box-header text-white">{if $_c['hotspot_plan']=='' || $_c['hotspot_plan']=='Hotspot Plan'}{Lang::T('Hotspot Plan')}{else}{$_c['hotspot_plan']}{/if}
                     </div>
                     <div class="box-body row">
                         {foreach $plans_hotspot as $plan}
@@ -306,7 +306,7 @@
                     </div>
                 {/if}
                 {if $_user['service_type'] == 'PPPoE' && Validator::countRouterPlan($plans_pppoe,$router['name'])>0}
-                    <div class="box-header text-white">{if $_c['pppoe_plan']==''}PPPOE Plan{else}{$_c['pppoe_plan']}{/if}</div>
+                    <div class="box-header text-white">{if $_c['pppoe_plan']=='' || $_c['pppoe_plan']=='PPPOE Plan'}{Lang::T('PPPOE Plan')}{else}{$_c['pppoe_plan']}{/if}</div>
                     <div class="box-body row">
                         {foreach $plans_pppoe as $plan}
                             {if $router['name'] eq $plan['routers']}
@@ -362,7 +362,7 @@
                     </div>
                 {/if}
                 {if $_user['service_type'] == 'VPN' && Validator::countRouterPlan($plans_vpn,$router['name'])>0}
-                    <div class="box-header text-white">{if $_c['vpn_plan']==''}VPN Plan{else}{$_c['vpn_plan']}{/if}</div>
+                    <div class="box-header text-white">{if $_c['vpn_plan']=='' || $_c['vpn_plan']=='VPN Plan'}{Lang::T('VPN Plan')}{else}{$_c['vpn_plan']}{/if}</div>
                     <div class="box-body row">
                         {foreach $plans_vpn as $plan}
                             {if $router['name'] eq $plan['routers']}
@@ -421,7 +421,7 @@
                                                             (Validator::countRouterPlan($plans_hotspot, $router['name'])>0 || Validator::countRouterPlan($plans_pppoe,
                                                             $router['name'])>0 || Validator::countRouterPlan($plans_vpn,
                                                             $router['name'])>0)}
-                <div class="box-header text-white">{if $_c['hotspot_plan']==''}Hotspot Plan{else}{$_c['hotspot_plan']}{/if}
+                <div class="box-header text-white">{if $_c['hotspot_plan']=='' || $_c['hotspot_plan']=='Hotspot Plan'}{Lang::T('Hotspot Plan')}{else}{$_c['hotspot_plan']}{/if}
                 </div>
                 <div class="box-body row">
                     {foreach $plans_hotspot as $plan}
@@ -476,7 +476,7 @@
                         {/if}
                     {/foreach}
                 </div>
-                <div class="box-header text-white">{if $_c['pppoe_plan']==''}PPPOE Plan{else}{$_c['pppoe_plan']}{/if}</div>
+                <div class="box-header text-white">{if $_c['pppoe_plan']=='' || $_c['pppoe_plan']=='PPPOE Plan'}{Lang::T('PPPOE Plan')}{else}{$_c['pppoe_plan']}{/if}</div>
                 <div class="box-body row">
                     {foreach $plans_pppoe as $plan}
                         {if $router['name'] eq $plan['routers']}
@@ -530,7 +530,7 @@
                         {/if}
                     {/foreach}
                 </div>
-                <div class="box-header text-white">{if $_c['vpn_plan']==''}VPN Plan{else}{$_c['vpn_plan']}{/if}</div>
+                <div class="box-header text-white">{if $_c['vpn_plan']=='' || $_c['vpn_plan']=='VPN Plan'}{Lang::T('VPN Plan')}{else}{$_c['vpn_plan']}{/if}</div>
                 <div class="box-body row">
                     {foreach $plans_vpn as $plan}
                         {if $router['name'] eq $plan['routers']}

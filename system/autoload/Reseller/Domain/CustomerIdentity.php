@@ -124,6 +124,78 @@ final class CustomerIdentity
     }
 
     /**
+     * R-HF-CARRY-01 round 3 (review N-1): IPv4 ranges that are never a subscriber's static address, as [network, prefix].
+     * Private RFC 1918 and CGNAT 100.64/10 addresses are normal ISP subscriber addressing and stay valid.
+     */
+    private const NON_HOST_V4 = [
+        ['0.0.0.0', 8],      // "this network" (RFC 1122)
+        ['127.0.0.0', 8],    // loopback
+        ['169.254.0.0', 16], // link-local
+        ['224.0.0.0', 4],    // multicast
+        ['240.0.0.0', 4],    // reserved, incl. 255.255.255.254 / 255.255.255.255 (RFC 2865 §5.8: the NAS / the user selects the address)
+    ];
+
+    /**
+     * R-HF-CARRY-01 F-2: a static (PPPoE) IP is '' (none) or an IPv4 address that RadiusPolicyBuilder hands out as
+     * Framed-IP-Address (FILTER_VALIDATE_IP IPv4). Round 3 (review N-1): never an address of NON_HOST_V4 - with
+     * Framed-IP-Address 255.255.255.255 the subscriber chooses its address, also another customer's static IP.
+     */
+    public static function validStaticIp(string $ip): bool
+    {
+        if ($ip === '') {
+            return true;
+        }
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
+            return false;
+        }
+        $n = ip2long($ip);
+        foreach (self::NON_HOST_V4 as [$net, $bits]) {
+            if ($n >> (32 - $bits) === ip2long($net) >> (32 - $bits)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * R-HF-CARRY-01 F-2: refuses (DomainError STATIC_IP_INVALID / STATIC_IP_TAKEN / IDENTITY_CHECK_UNAVAILABLE) unless $ip
+     * is '' or a valid static IP that no other customer holds (system-wide, every role; stored values compared as
+     * RadiusPolicyBuilder trims them). Runs only under the identity lock; $selfCustomerId excludes the customer itself.
+     * The refusal never names the other customer.
+     *
+     * Guarantee (round 3, review N-4): the save paths that set a static IP from input - CustomerService::create, the Admin
+     * legacy edit of an unassigned customer and LegacyReprovisionService IDENTITY_EDIT - take the identity lock and run
+     * this check, so they never create a duplicate among themselves. Two writers do NOT take the lock or run this check:
+     * the MikroTik VPN auto-assignment (MikrotikVpn::addVpnUser with checkIpAddr: an unlocked, exact-match pool lookup)
+     * and LegacyReprovisionService::revert (the write-back of the previous IP after a confirmed device failure; its
+     * re-acquire check covers names only). A concurrent VPN activation or revert can therefore still produce a duplicate
+     * static IP (owner decision, R-HF-CARRY-01 carry-forward).
+     */
+    public static function assertStaticIpAvailable(\PDO $pdo, string $ip, ?int $selfCustomerId = null): void
+    {
+        if (!self::held($pdo)) {
+            throw new \LogicException('the static IP check runs only under the identity lock');
+        }
+        if ($ip === '') {
+            return;
+        }
+        if (!self::validStaticIp($ip)) {
+            throw new DomainError('STATIC_IP_INVALID');
+        }
+        try {
+            $rows = self::bounded($pdo, "SELECT id FROM tbl_customers WHERE REGEXP_REPLACE(pppoe_ip, ?, '') = ?" . ($selfCustomerId !== null ? ' AND id <> ?' : '') . ' LIMIT 1',
+                [self::TRIM_RE, $ip, ...($selfCustomerId !== null ? [$selfCustomerId] : [])]);
+        } catch (\Throwable $e) {
+            ErrorReporter::report($e, 'identity-static-ip');
+            throw new DomainError('IDENTITY_CHECK_UNAVAILABLE');
+        }
+        if ($rows !== []) {
+            ErrorReporter::log('identity.static_ip_taken');
+            throw new DomainError('STATIC_IP_TAKEN');
+        }
+    }
+
+    /**
      * The names (canonical form => reasons customer | voucher | recharge | radius) that are taken; [] when none; null
      * when the check cannot run (any error, an empty canonical name, more candidate rows than the bound). Without the
      * identity lock this is a best-effort answer (voucher generation).

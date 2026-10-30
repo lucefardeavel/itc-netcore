@@ -1,0 +1,52 @@
+; ITC NetCore V1.0 - PHP-FPM pool (EXAMPLE). /etc/php/8.2/fpm/pool.d/itc-netcore.conf
+;
+; One pool for the one ISP instance (Option A). Replace www-data if PHP runs as another user; the nginx worker user
+; must be able to connect to the socket (listen.owner / listen.group). Disable the distribution's default pool
+; (/etc/php/8.2/fpm/pool.d/www.conf) when nothing else uses it. Then: php-fpm8.2 -t && systemctl reload php8.2-fpm.
+; Checklist: A1 (PHP 8.2), B6 (cookie flags; index.php sets them as well), B8 (display_errors Off, errors logged
+; outside the document root), C6 (nothing secret in the environment of the workers: clear_env stays yes).
+
+[itc-netcore]
+user = www-data
+group = www-data
+
+listen = /run/php/itc-netcore.sock
+listen.owner = www-data
+listen.group = www-data
+listen.mode = 0660
+
+; Lab load tests showed light PHP workers; size max_children from memory_limit and the host RAM (TA-09).
+pm = dynamic
+pm.max_children = 16
+pm.start_servers = 2
+pm.min_spare_servers = 2
+pm.max_spare_servers = 4
+pm.max_requests = 500
+request_terminate_timeout = 120s
+
+; only .php is ever executed (nginx also allowlists the entry points)
+security.limit_extensions = .php
+clear_env = yes
+catch_workers_output = yes
+decorate_workers_output = no
+
+; B8: never display errors; log them outside the document root (the directory is created by nuxr-fresh-install.sh)
+php_admin_flag[display_errors] = off
+php_admin_flag[display_startup_errors] = off
+php_admin_flag[log_errors] = on
+php_admin_value[error_log] = /var/log/itcnc/php-fpm-error.log
+php_admin_value[error_reporting] = E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE
+
+; time contract (docs/TIME_CONTRACT.md): the PHP process runs in UTC; the business zone is the application setting
+php_admin_value[date.timezone] = UTC
+php_admin_value[memory_limit] = 256M
+php_admin_value[upload_max_filesize] = 8M
+php_admin_value[post_max_size] = 8M
+php_admin_flag[allow_url_include] = off
+
+; session cookie hardening (WP9 SESS-1); index.php sets the same at run time
+php_admin_flag[session.cookie_httponly] = on
+php_admin_flag[session.cookie_secure] = on
+php_admin_value[session.cookie_samesite] = Lax
+php_admin_flag[session.use_strict_mode] = on
+php_admin_flag[session.use_only_cookies] = on

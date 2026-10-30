@@ -35,6 +35,9 @@ def ta01(preflight, health=None):
     for status, name, detail in checks:
         if status == 'FAIL':
             fails.append(f'preflight {name}: {detail}')
+        elif status == 'WARN' and name == 'stage.https':
+            # V1_TARGET_ACCEPTANCE TA-01: a stage.https WARN is not acceptable on the target
+            fails.append(f'preflight {name} WARN is not acceptable on the target: {detail}')
         elif status == 'WARN':
             warns.append(f'preflight {name}: {detail}')
     if 'preflight=FAIL' in text or not re.search(r'^preflight=(PASS|OK)', text, re.M) and not fails:
@@ -154,6 +157,8 @@ def selftest():
     assert ta01(w('p1', good_pre)) == 0
     assert ta01(w('p2', bad_pre)) == 1
     assert ta01(w('p3', 'nothing')) == 1
+    assert ta01(w('p4', good_pre.replace('preflight=PASS', 'WARN  stage.https APP_URL is not https\npreflight=PASS'))) == 1  # never on the target
+    assert ta01(w('p5', good_pre.replace('preflight=PASS', 'WARN  other.check note\npreflight=PASS'))) == 0  # another WARN is reported, not failed
     assert ta02(w('o1', 'app 0.2 core\ndb 0.1 core\nfr 0.3 core\nnas1 3 nas\n')) == 0
     assert ta02(w('o2', 'app 0.2 core\ndb 7 core\nfr 0.3 core\nnas1 3 nas\n')) == 1
     assert ta02(w('o3', 'app 0.2 core\ndb 0.1 core\nfr 0.3 core\nnas1 70 nas\n')) == 1

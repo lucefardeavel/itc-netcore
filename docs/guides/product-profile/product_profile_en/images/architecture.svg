@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700" font-family="Inter, 'Noto Sans Arabic', 'Segoe UI', Arial, sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">ITC NetCore V1.0 high-level architecture (one isolated instance per ISP)</title>
+  <desc id="d">Browsers and the staff PWA reach an HTTPS reverse proxy (TCP 443), which serves the PHP application. The application and FreeRADIUS use the same database (TCP 3306). Each MikroTik NAS sends RADIUS authentication and accounting to FreeRADIUS (UDP 1812/1813). The application sends Disconnect / CoA to the NAS (UDP 3799). FreeRADIUS reads the NAS over read-only SNMP (UDP 161). Subscribers connect to the NAS over PPPoE or Hotspot.</desc>
+  <defs>
+    <marker id="aNavy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#193768"/></marker>
+    <marker id="aBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#245D99"/></marker>
+    <marker id="aTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#117C88"/></marker>
+    <marker id="aInt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#3275B5"/></marker>
+    <style>
+      .box{fill:#FFFFFF;stroke:#193768;stroke-width:2}
+      .boxAlt{fill:#EAF2F9;stroke:#245D99;stroke-width:2}
+      .hdr{fill:#193768}
+      .hdrT{fill:#117C88}
+      .ht{fill:#FFFFFF;font-size:15px;font-weight:700}
+      .t{fill:#18283E;font-size:13px}
+      .ts{fill:#18283E;font-size:12px}
+      .pill{fill:#FFFFFF;stroke-width:1.4}
+      .pt{font-size:12px;font-weight:700}
+      .small{fill:#5B6B80;font-size:11.5px}
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="700" fill="#F5F8FC"/>
+  <text x="40" y="40" fill="#193768" font-size="21" font-weight="700">ITC NetCore V1.0: high-level architecture</text>
+  <text x="40" y="62" class="small">One isolated instance per ISP (own database, own FreeRADIUS configuration, own NAS secrets). Arrowheads point to the receiving side.</text>
+
+  <!-- Row 1: browsers, proxy, application -->
+  <g>
+    <rect x="40" y="96" width="280" height="118" rx="10" class="boxAlt"/>
+    <text x="180" y="124" text-anchor="middle" fill="#193768" font-size="15" font-weight="700">Browsers and staff PWA</text>
+    <text x="58" y="152" class="ts">Staff: SuperAdmin, Admin, Agent,</text>
+    <text x="58" y="170" class="ts">sub-agent, Sales, Report</text>
+    <text x="58" y="190" class="ts">Subscriber self-service portal</text>
+    <text x="58" y="206" class="small">Arabic (RTL) / English · desktop / phone</text>
+  </g>
+  <g>
+    <rect x="460" y="96" width="280" height="118" rx="10" class="box"/>
+    <rect x="460" y="96" width="280" height="28" rx="10" class="hdr"/><rect x="460" y="114" width="280" height="10" class="hdr"/>
+    <text x="600" y="116" text-anchor="middle" class="ht">HTTPS reverse proxy</text>
+    <text x="478" y="150" class="t">TLS termination (e.g. nginx)</text>
+    <text x="478" y="170" class="t">HTTPS only; port 80 redirects</text>
+    <text x="478" y="190" class="t">security headers, blocked paths</text>
+  </g>
+  <g>
+    <rect x="880" y="96" width="280" height="118" rx="10" class="box"/>
+    <rect x="880" y="96" width="280" height="28" rx="10" class="hdr"/><rect x="880" y="114" width="280" height="10" class="hdr"/>
+    <text x="1020" y="116" text-anchor="middle" class="ht">ITC NetCore application</text>
+    <text x="898" y="150" class="t">PHP 8.2 (PHP-FPM)</text>
+    <text x="898" y="170" class="t">resellers · wallets · activation</text>
+    <text x="898" y="190" class="t">cron: cron.php · quota.php · health.php</text>
+    <text x="898" y="206" class="small">RFC 5176 Disconnect / CoA client</text>
+  </g>
+
+  <!-- Row 2: database -->
+  <g>
+    <rect x="880" y="300" width="280" height="110" rx="10" class="box"/>
+    <rect x="880" y="300" width="280" height="28" rx="10" class="hdr"/><rect x="880" y="318" width="280" height="10" class="hdr"/>
+    <text x="1020" y="320" text-anchor="middle" class="ht">Database</text>
+    <text x="898" y="354" class="t">MariaDB 10.11 or MySQL 8.0</text>
+    <text x="898" y="374" class="t">application + RADIUS tables</text>
+    <text x="898" y="394" class="t">REPEATABLE-READ · UTC</text>
+  </g>
+
+  <!-- Row 3: subscribers, NAS, FreeRADIUS -->
+  <g>
+    <rect x="40" y="500" width="280" height="110" rx="10" class="boxAlt"/>
+    <text x="180" y="530" text-anchor="middle" fill="#193768" font-size="15" font-weight="700">Subscribers</text>
+    <text x="58" y="558" class="ts">PPPoE (PAP / CHAP)</text>
+    <text x="58" y="578" class="ts">Hotspot (login page)</text>
+    <text x="58" y="598" class="small">the ISP's access network</text>
+  </g>
+  <g>
+    <rect x="460" y="500" width="280" height="110" rx="10" class="box"/>
+    <rect x="460" y="500" width="280" height="28" rx="10" class="hdrT"/><rect x="460" y="518" width="280" height="10" class="hdrT"/>
+    <text x="600" y="520" text-anchor="middle" class="ht">MikroTik RouterOS NAS</text>
+    <text x="478" y="554" class="t">PPPoE server · Hotspot</text>
+    <text x="478" y="574" class="t">one or more NAS per instance</text>
+    <text x="478" y="594" class="small">lab-verified on RouterOS CHR 7.24.5</text>
+  </g>
+  <g>
+    <rect x="880" y="500" width="280" height="110" rx="10" class="box"/>
+    <rect x="880" y="500" width="280" height="28" rx="10" class="hdr"/><rect x="880" y="518" width="280" height="10" class="hdr"/>
+    <text x="1020" y="520" text-anchor="middle" class="ht">FreeRADIUS 3.2.x</text>
+    <text x="898" y="554" class="t">authentication · accounting</text>
+    <text x="898" y="574" class="t">PPPoE session guard (SNMP)</text>
+    <text x="898" y="594" class="small">session guard validated with 3.2.8</text>
+  </g>
+
+  <!-- Legend (row 2, left) -->
+  <g>
+    <rect x="40" y="276" width="560" height="160" rx="10" fill="#FFFFFF" stroke="#C9D6E6" stroke-width="1.4"/>
+    <text x="58" y="302" fill="#193768" font-size="14" font-weight="700">Network flows</text>
+    <line x1="58" y1="324" x2="102" y2="324" stroke="#193768" stroke-width="2.4"/><text x="112" y="328" class="ts">TCP 443 HTTPS (web interface, portal, PWA)</text>
+    <line x1="58" y1="348" x2="102" y2="348" stroke="#245D99" stroke-width="2.4"/><text x="112" y="352" class="ts">TCP 3306 SQL (application and FreeRADIUS only)</text>
+    <line x1="58" y1="372" x2="102" y2="372" stroke="#193768" stroke-width="2.4" stroke-dasharray="10 4"/><text x="112" y="376" class="ts">UDP 1812 / 1813 RADIUS authentication / accounting</text>
+    <line x1="58" y1="396" x2="102" y2="396" stroke="#117C88" stroke-width="2.4"/><text x="112" y="400" class="ts">UDP 3799 Disconnect / CoA (application to NAS)</text>
+    <line x1="58" y1="420" x2="102" y2="420" stroke="#3275B5" stroke-width="2.2" stroke-dasharray="7 5"/><text x="112" y="424" class="ts">UDP 161 SNMP read-only (FreeRADIUS to NAS)</text>
+  </g>
+
+  <!-- Browsers -> proxy (443) -->
+  <line x1="320" y1="155" x2="458" y2="155" stroke="#193768" stroke-width="2.4" marker-end="url(#aNavy)"/>
+  <rect x="346" y="128" width="86" height="20" rx="10" class="pill" stroke="#193768"/><text x="389" y="142" text-anchor="middle" class="pt" fill="#193768">TCP 443</text>
+
+  <!-- proxy -> app -->
+  <line x1="740" y1="155" x2="878" y2="155" stroke="#193768" stroke-width="2.4" marker-end="url(#aNavy)"/>
+  <rect x="764" y="128" width="90" height="20" rx="10" class="pill" stroke="#193768"/><text x="809" y="142" text-anchor="middle" class="pt" fill="#193768">PHP-FPM</text>
+
+  <!-- app -> DB -->
+  <line x1="1020" y1="214" x2="1020" y2="298" stroke="#245D99" stroke-width="2.4" marker-end="url(#aBlue)"/>
+  <rect x="1030" y="246" width="86" height="20" rx="10" class="pill" stroke="#245D99"/><text x="1073" y="260" text-anchor="middle" class="pt" fill="#245D99">TCP 3306</text>
+
+  <!-- FreeRADIUS -> DB -->
+  <line x1="1020" y1="500" x2="1020" y2="412" stroke="#245D99" stroke-width="2.4" marker-end="url(#aBlue)"/>
+  <rect x="1030" y="446" width="86" height="20" rx="10" class="pill" stroke="#245D99"/><text x="1073" y="460" text-anchor="middle" class="pt" fill="#245D99">TCP 3306</text>
+
+  <!-- NAS -> FreeRADIUS (1812/1813) -->
+  <line x1="740" y1="540" x2="878" y2="540" stroke="#193768" stroke-width="2.4" stroke-dasharray="10 4" marker-end="url(#aNavy)"/>
+  <rect x="758" y="514" width="104" height="20" rx="10" class="pill" stroke="#193768"/><text x="810" y="528" text-anchor="middle" class="pt" fill="#193768">UDP 1812/1813</text>
+
+  <!-- FreeRADIUS -> NAS SNMP 161 -->
+  <line x1="880" y1="586" x2="742" y2="586" stroke="#3275B5" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#aInt)"/>
+  <rect x="764" y="592" width="90" height="20" rx="10" class="pill" stroke="#3275B5"/><text x="809" y="606" text-anchor="middle" class="pt" fill="#3275B5">UDP 161</text>
+
+  <!-- app -> NAS CoA 3799 -->
+  <polyline points="880,200 820,200 820,470 680,470 680,498" fill="none" stroke="#117C88" stroke-width="2.4" marker-end="url(#aTeal)"/>
+  <rect x="690" y="446" width="88" height="20" rx="10" class="pill" stroke="#117C88"/><text x="734" y="460" text-anchor="middle" class="pt" fill="#117C88">UDP 3799</text>
+
+  <!-- subscribers <-> NAS -->
+  <line x1="322" y1="555" x2="458" y2="555" stroke="#245D99" stroke-width="2.2" marker-start="url(#aBlue)" marker-end="url(#aBlue)"/>
+  <text x="390" y="546" text-anchor="middle" class="small">PPPoE / Hotspot</text>
+
+  <text x="40" y="668" class="small">Reference diagram only. Behaviour verified only in an isolated lab (RouterOS CHR 7.24.5, FreeRADIUS 3.2.8, MariaDB 10.11, MySQL 8.0); no target or production network is shown.</text>
+  <text x="40" y="686" class="small">No high availability, message broker or shared multi-tenant database in V1.0. RouterOS API ports 8728 / 8729 are not used by the release profile.</text>
+</svg>

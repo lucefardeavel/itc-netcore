@@ -1,0 +1,13 @@
+{
+  "name": "ITC-NetCore-PPPoE-Operations-Guide-EN",
+  "title": "PPPoE Subscriber Operations Guide",
+  "subtitle": "Connecting MikroTik NAS devices to FreeRADIUS and managing plans, quotas and reseller wallets in ITC NetCore",
+  "doc_type": "Customer document — sample",
+  "language": "en",
+  "version": "V1.0",
+  "date": "2026-10-29",
+  "owner": "ITC NetCore Product Team",
+  "status": "Release Candidate — V1.0 RC (a6b02eba / final-prep)",
+  "source_sha": "a6b02eba",
+  "audience": "ISP operators and their network administrators"
+}

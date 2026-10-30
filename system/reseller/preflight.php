@@ -14,6 +14,8 @@ if (PHP_SAPI !== 'cli') {
  *
  * Every check prints PASS / WARN / FAIL with its evidence. Exit 0 when no check FAILs, 4 otherwise. Plugins are NOT
  * loaded (a preflight must not run unreviewed code). Checks:
+ *  db.connect      only when the runtime account of config.php cannot connect: FAIL (MySQL error number, never the driver
+ *                  message or the account), exit 4, no other check runs (fresh-install proof G-4)
  *  keys            $app_secret (NEW-7) valid; $api_secret valid (WARN when the API is not configured)
  *  stage           live stage, no display_errors, HTTPS application URL (WARN)
  *  engine          MariaDB 10.11 / MySQL 8.0 (the tested policy; WARN otherwise)
@@ -38,7 +40,6 @@ if (PHP_SAPI !== 'cli') {
  */
 
 define('NUXR_DEFER_PLUGINS', true);
-require dirname(__DIR__, 2) . '/init.php';
 
 $args = array_slice($argv, 1);
 $setup = in_array('--setup', $args, true);
@@ -54,14 +55,43 @@ $results = [];
 $add = static function (string $check, string $status, string $detail) use (&$results): void {
     $results[] = ['check' => $check, 'status' => $status, 'detail' => $detail];
 };
-$pdo = ORM::get_db();
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$one = static fn(string $sql, array $p = []): mixed => (static function () use ($pdo, $sql, $p) {
-    $st = $pdo->prepare($sql);
-    $st->execute($p);
-    return $st->fetchColumn();
-})();
-$isMaria = stripos((string) $one('SELECT VERSION()'), 'mariadb') !== false;
+$finish = static function () use (&$results, $args, $setup): void {
+    $fail = count(array_filter($results, static fn(array $r): bool => $r['status'] === 'FAIL'));
+    if (in_array('--json', $args, true)) {
+        echo json_encode(['preflight' => $fail === 0 ? 'PASS' : 'FAIL', 'mode' => $setup ? 'setup' : 'release', 'results' => $results], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
+    } else {
+        foreach ($results as $r) {
+            printf("%-5s %-26s %s\n", $r['status'], $r['check'], $r['detail']);
+        }
+        echo 'preflight=' . ($fail === 0 ? 'PASS' : 'FAIL') . " ({$fail} failing check(s), " . ($setup ? 'setup' : 'release') . " mode)\n";
+    }
+    exit($fail === 0 ? 0 : 4);
+};
+// Fresh-install proof G-4: init.php reads the settings through the runtime account of config.php. An account that cannot
+// connect is a FAIL line with the exit code of every failing check (4), not a PHP fatal error: no driver message (it names
+// the account and the host), no trace; the MySQL error number only.
+try {
+    require dirname(__DIR__, 2) . '/init.php';
+    $pdo = ORM::get_db();
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $one = static fn(string $sql, array $p = []): mixed => (static function () use ($pdo, $sql, $p) {
+        $st = $pdo->prepare($sql);
+        $st->execute($p);
+        return $st->fetchColumn();
+    })();
+    $isMaria = stripos((string) $one('SELECT VERSION()'), 'mariadb') !== false;
+} catch (PDOException $e) {
+    $code = preg_match('/\[(\d{4})\]/', $e->getMessage(), $m) ? (int) $m[1] : (int) ($e->errorInfo[1] ?? 0);
+    $why = match (true) {
+        in_array($code, [1044, 1045, 1698], true) => 'access denied for the runtime account (check $db_user / $db_pass in config.php)',
+        $code === 1049 => 'unknown database (check $db_name in config.php)',
+        in_array($code, [2002, 2003, 2005, 2006, 2013], true) => 'database server not reachable (check $db_host in config.php and the server)',
+        default => 'connection failed',
+    };
+    @error_log('[nuxr] event=preflight.db_connect code=' . $code);
+    $add('db.connect', 'FAIL', "the application database account of config.php cannot connect: {$why}" . ($code > 0 ? " (MySQL error {$code})" : '') . '; no other check ran');
+    $finish();
+}
 $try = static function (string $check, callable $fn) use ($add): void {
     try {
         $fn();
@@ -132,8 +162,24 @@ $try('radius_checks', static function () use ($add, $isMaria): void {
     }
     $rp->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $root = dirname(__DIR__, 2) . '/install/freeradius/';
-    $expected = \Reseller\Domain\CheckConstraints::expectedFromSql((string) file_get_contents($root . 'nuxr_admission.sql'))
-        + \Reseller\Domain\CheckConstraints::expectedFromSql((string) file_get_contents($root . 'nuxr_hs_admission.sql'));
+    // the reference definitions must be present: without them there is nothing to compare and the check would pass
+    // vacuously (fresh-install proof 2026-10-29, R3-6; keep install/freeradius/ read-only, see the deployment runbook)
+    $refs = [];
+    foreach (['nuxr_admission.sql', 'nuxr_hs_admission.sql'] as $f) {
+        $sql = is_readable($root . $f) ? (string) file_get_contents($root . $f) : '';
+        $refs[$f] = \Reseller\Domain\CheckConstraints::expectedFromSql($sql);
+    }
+    $absent = [];
+    foreach ($refs as $f => $defs) {
+        if ($defs === []) {
+            $absent[] = "reference definitions install/freeradius/{$f} missing or unreadable (keep install/freeradius/ in the release)";
+        }
+    }
+    if ($absent !== []) {
+        $add('radius_checks', 'FAIL', implode('; ', $absent));
+        return;
+    }
+    $expected = $refs['nuxr_admission.sql'] + $refs['nuxr_hs_admission.sql'];
     // ALTER-guard strings repeat the CREATE TABLE expressions; the CREATE TABLE ones are authoritative
     $tables = $rp->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('nuxr_admission', 'nuxr_hs_admission')")->fetchAll(PDO::FETCH_COLUMN);
     $missing = array_diff(['nuxr_admission', 'nuxr_hs_admission'], $tables);
@@ -245,13 +291,4 @@ $try('nas', static function () use ($add, $setup): void {
             : count($bad) . ' of ' . count($rows) . " NAS not of type mikrotik_snmp: {$list} - unsupported for V1 (a lost Accounting-Stop locks the subscriber out; set RADIUS > NAS > Type to mikrotik_snmp and add its guard credential entry)"));
 });
 
-$fail = count(array_filter($results, static fn(array $r): bool => $r['status'] === 'FAIL'));
-if (in_array('--json', $args, true)) {
-    echo json_encode(['preflight' => $fail === 0 ? 'PASS' : 'FAIL', 'mode' => $setup ? 'setup' : 'release', 'results' => $results], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
-} else {
-    foreach ($results as $r) {
-        printf("%-5s %-26s %s\n", $r['status'], $r['check'], $r['detail']);
-    }
-    echo 'preflight=' . ($fail === 0 ? 'PASS' : 'FAIL') . " ({$fail} failing check(s), " . ($setup ? 'setup' : 'release') . " mode)\n";
-}
-exit($fail === 0 ? 0 : 4);
+$finish();

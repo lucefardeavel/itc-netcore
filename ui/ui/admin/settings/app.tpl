@@ -455,7 +455,7 @@
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseVoucher" aria-expanded="false" aria-controls="collapseVoucher">
-                    Voucher
+                    {Lang::T('Voucher')}
                 </a>
             </h4>
         </div>
@@ -519,7 +519,7 @@
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseFreeRadius" aria-expanded="false" aria-controls="collapseFreeRadius">
-                    FreeRadius
+                    {Lang::T('FreeRADIUS')}
                 </a>
             </h4>
         </div>

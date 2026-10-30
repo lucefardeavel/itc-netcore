@@ -1,0 +1,12 @@
+{
+  "title": "ملخص ITC NetCore في صفحة واحدة",
+  "subtitle": "منصة إدارة وفوترة مزوّدي خدمة الإنترنت في صفحة واحدة",
+  "language": "ar",
+  "version": "V1.0 RC",
+  "date": "2026-10-29",
+  "owner": "ITC",
+  "status": "Release Candidate",
+  "sha": "final-prep (release SHA recorded at build)",
+  "source_sha": "final-prep (release SHA recorded at build)",
+  "audience": "ISP owners and managers"
+}

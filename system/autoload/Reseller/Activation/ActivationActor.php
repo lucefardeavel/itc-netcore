@@ -18,6 +18,8 @@ final class ActivationActor
         public readonly ?int $userId,
         public readonly ?ActorContext $context,
         public readonly string $label,
+        public readonly ?string $operator = null,
+        public readonly ?string $reason = null,
     ) {
     }
 
@@ -32,8 +34,20 @@ final class ActivationActor
         return new self('SYSTEM', null, null, $label);
     }
 
+    /**
+     * A named operator at the reconciliation CLI (final QA F-1): still the system actor for the finance and event
+     * records (no staff session), but every decision it takes is audited with the operator name and the reason.
+     */
+    public static function operator(string $operator, string $reason, string $label = 'wp5a-reconcile'): self
+    {
+        if (strlen(trim($operator)) < 2 || strlen(trim($reason)) < 10) {
+            throw new \Reseller\Domain\DomainError('INVALID_INPUT', 'operator (>= 2) and reason (>= 10 characters) are required');
+        }
+        return new self('SYSTEM', null, ActorContext::system('CLI'), $label, mb_substr(trim($operator), 0, 64), mb_substr(trim($reason), 0, 255));
+    }
+
     public function finance(): FinanceActor
     {
-        return $this->context !== null ? FinanceActor::staff($this->context) : FinanceActor::system($this->label);
+        return $this->type === 'STAFF' ? FinanceActor::staff($this->context) : FinanceActor::system($this->label);
     }
 }

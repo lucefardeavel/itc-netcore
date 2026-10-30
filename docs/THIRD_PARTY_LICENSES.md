@@ -1,6 +1,6 @@
 # Third-party components and license metadata (WP10)
 
-Status: inventory taken from the repository on 2026-10-16 (branch `wp9/red-team-rc`). It is a **metadata report, not legal advice**. Rows marked **LEGAL REVIEW** must be confirmed by counsel before the product is distributed.
+Status: inventory taken from the repository on 2026-10-16 (branch `wp9/red-team-rc`); the self-hosted brand fonts added for V1.0 (section 4) were added on 2026-10-29 during the V1.0 final QA. It is a **metadata report, not legal advice**. Rows marked **LEGAL REVIEW** must be confirmed by counsel before the product is distributed.
 
 ## 1. The application itself
 
@@ -54,6 +54,8 @@ Status: inventory taken from the repository on 2026-10-16 (branch `wp9/red-team-
 | md5.js (Paul Johnston) | 1.1 | BSD (pajhome.org.uk/site/legal.html) |
 | Font Awesome (`fonts/font-awesome`) | 4.x | font: SIL OFL 1.1; CSS: MIT |
 | Ionicons (`fonts/ionicons`) | 2.x | MIT |
+| Inter (`fonts/brand/inter-latin-*.woff2`, self-hosted brand font, subset) | 4.0 (Debian `fonts-inter` 4.0+ds-1) | SIL OFL 1.1 (`fonts/brand/Inter-LICENSE.txt`) |
+| Noto Sans Arabic (`fonts/brand/noto-sans-arabic-*.woff2`, self-hosted brand font, subset) | Debian `fonts-noto-core` 20201225-2 | SIL OFL 1.1 (`fonts/brand/NotoSansArabic-LICENSE.txt`) |
 
 ## 5. Assets loaded from CDNs at run time
 

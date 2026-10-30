@@ -73,7 +73,7 @@ switch ($action) {
         } elseif (($out['reason'] ?? '') === 'CUSTOMER_NOT_ACTIVE') {
             r2(getUrl('voucher/activation'), 'e', Lang::T('This account status') . ' : ' . Lang::T((string) $out['customer_status']));
         } else {
-            r2(getUrl('voucher/activation'), 'e', "Failed to refill account");
+            r2(getUrl('voucher/activation'), 'e', Lang::T('Failed to refill account'));
         }
         break;
 

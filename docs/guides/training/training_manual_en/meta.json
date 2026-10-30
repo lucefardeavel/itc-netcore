@@ -1,0 +1,12 @@
+{
+  "title": "Training Manual",
+  "subtitle": "ITC NetCore V1.0 — an illustrated manual for ISP staff and resellers: roles, daily workflows, finance, network and troubleshooting",
+  "language": "en",
+  "version": "V1.0 RC",
+  "date": "2026-10-29",
+  "owner": "ITC",
+  "status": "Release Candidate — not yet production-accepted",
+  "sha": "V1.0 release (SHA in the RELEASE_SHA file and the handover index)",
+  "source_sha": "V1.0 release (SHA in the RELEASE_SHA file and the handover index)",
+  "audience": "ISP staff and resellers"
+}

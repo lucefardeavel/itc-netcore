@@ -7,7 +7,7 @@
  * 0 7 * * * /usr/bin/php /var/www/system/cron_reminder.php
  **/
 
-include "../init.php";
+require __DIR__ . '/../init.php';
 
 $isCli = true;
 if (php_sapi_name() !== 'cli') {

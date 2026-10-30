@@ -1,0 +1,14 @@
+# ITC NetCore V1.0 - weekly restore test into a scratch database (plain restore, then PITR chain with --with-binlogs).
+# Point RESTORE_DEFAULTS_FILE at a scratch server when the production server has no room for a second copy.
+[Unit]
+Description=ITC NetCore backup restore test
+After=nuxr-backup.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/itcnc/install/backup/nuxr-backup-verify.sh --config /etc/itcnc/backup.conf --set latest
+ExecStart=/opt/itcnc/install/backup/nuxr-backup-verify.sh --config /etc/itcnc/backup.conf --set latest --with-binlogs
+User=root
+UMask=0077
+PrivateTmp=yes
+ReadWritePaths=/var/backups/itcnc /var/log/itcnc /run/lock /var/tmp

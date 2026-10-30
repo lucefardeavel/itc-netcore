@@ -1,5 +1,8 @@
 # Isolated target staging - deployment package
 
+> [!NOTE]
+> **Source repository only.** This procedure uses tools under `dev/staging/` and writes evidence under `owner-review/`, which are not in the release artifact: run it from a checkout of the source repository at the release SHA. Install the target itself with the fresh-install package (`install/fresh/`, `docs/guides/install/`); where this document describes manual account or migration steps, the fresh-install package takes precedence.
+
 Purpose: everything an operator needs to stand up the **approved, isolated staging copy of the target** and run `docs/V1_TARGET_ACCEPTANCE.md` (TA-01 .. TA-10)
 on it. **Nothing in this package has been executed on a target**: no host, router, database or address has been named or assumed. It is prepared from the lab
 (RouterOS CHR 7.24.5, FreeRADIUS 3.2.8, MariaDB 10.11 / MySQL 8.0, PHP 8.2) and from the runbooks; where a number comes from the lab it says so.

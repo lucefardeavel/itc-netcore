@@ -45,13 +45,20 @@ final class W9StoredXssCrawlTest extends Wp2HttpTestCase
         $a = $this->staff('A');
         // Agent creates a customer and a Sales sub-account through the normal forms
         $cu = 'w9xss' . bin2hex(random_bytes(3));
-        $r = $a->postWithToken('customers/add-post', ['username' => $cu, 'fullname' => self::payload('fullname'), 'password' => 'Pw-' . bin2hex(random_bytes(4)),
+        $cpw = 'Pw-' . bin2hex(random_bytes(4));
+        $r = $a->postWithToken('customers/add-post', ['username' => $cu, 'fullname' => self::payload('fullname'), 'password' => $cpw,
             'pppoe_password' => '', 'service_type' => 'Hotspot', 'account_type' => 'Personal', 'email' => 'x@example.invalid', 'address' => self::payload('address'),
-            'phonenumber' => '0700123', 'city' => self::payload('city'), 'district' => self::payload('district'), 'coordinates' => '']);
+            'phonenumber' => '0700123', 'city' => self::payload('city'), 'district' => self::payload('district'), 'coordinates' => '',
+            // custom attributes: name and value are free text too (shown in for=, id=, name=, value= and label text)
+            // a name ending in " Bill" is an additional cost: shown in the portal Account Info widget, the recharge
+            // confirmation and the invoices (final QA S-1 follow-up)
+            'custom_field_name' => [self::payload('cfname'), 'cb"><' . self::TAG . '> Bill'], 'custom_field_value' => [self::payload('cfval'), '5']]);
         $this->assertContains($r->status, [200, 302], $r->excerpt());
         $cid = (int) static::$db->value('SELECT id FROM tbl_customers WHERE username = ?', [$cu]);
         $this->assertGreaterThan(0, $cid, 'the Agent created the customer');
         $this->assertStringContainsString('<' . self::TAG . '>', (string) static::$db->value('SELECT fullname FROM tbl_customers WHERE id = ?', [$cid]), 'positive control: stored raw');
+        $this->assertStringContainsString('<' . self::TAG . '>', (string) static::$db->value('SELECT CONCAT(field_name, field_value) FROM tbl_customers_fields WHERE customer_id = ? LIMIT 1', [$cid]),
+            'positive control: the custom attribute is stored raw');
         $su = 'w9' . bin2hex(random_bytes(2)) . '<' . self::TAG . '>';   // a staff username is free text (3-45 characters)
         $a->postWithToken('settings/users-post', ['username' => $su, 'fullname' => self::payload('staff'), 'password' => 'Pw-' . bin2hex(random_bytes(4)), 'user_type' => 'Sales',
             'phone' => '0700', 'email' => 'y@example.invalid', 'city' => self::payload('scity'), 'subdistrict' => self::payload('ssub'), 'ward' => self::payload('sward')]);
@@ -86,6 +93,16 @@ final class W9StoredXssCrawlTest extends Wp2HttpTestCase
                 $found[] = "{$viewer}: {$hit}";
             }
         }
+        // the customer portal of the Agent's customer (an Admin reaches it through "log in as customer", same origin)
+        $portal = $this->client();
+        $portal->loginCustomer($cu, $cpw);
+        foreach (['home', 'accounts/profile'] as $route) {
+            $res = $portal->get($route);
+            if (str_contains($res->body, '<' . self::TAG . '>')) {
+                $found[] = "customer {$cu}: {$route} (HTTP {$res->status})";
+            }
+        }
+        $this->assertStringContainsString('&lt;' . self::TAG . '&gt;', $portal->get('home')->body, 'positive control: the portal Account Info widget shows the Bill attribute as text');
         // positive control: the escaped form is shown
         $this->assertStringContainsString('&lt;' . self::TAG . '&gt;', $this->staff('sa')->get('customers/view/' . $cid)->body, 'the payload is displayed as text');
         $this->assertSame([], $found, 'lower-privilege text rendered as markup');

@@ -8,17 +8,17 @@
                     <h3 class="box-title">{$_bill['routers']|escape}</h3>
                     <div class="btn-group pull-right">
                         {if $_bill['type'] == 'Hotspot'}
-                            {if $_c['hotspot_plan']==''}{Lang::T('Hotspot Plan')}{else}{$_c['hotspot_plan']}{/if}
+                            {if $_c['hotspot_plan']=='' || $_c['hotspot_plan']=='Hotspot Plan'}{Lang::T('Hotspot Plan')}{else}{$_c['hotspot_plan']}{/if}
                         {else if $_bill['type'] == 'PPPOE'}
-                            {if $_c['pppoe_plan']==''}{Lang::T('PPPOE Plan')}{else}{$_c['pppoe_plan']}{/if}
+                            {if $_c['pppoe_plan']=='' || $_c['pppoe_plan']=='PPPOE Plan'}{Lang::T('PPPOE Plan')}{else}{$_c['pppoe_plan']}{/if}
                         {else if $_bill['type'] == 'VPN'}
-                            {if $_c['vpn_plan']==''}{Lang::T('VPN Plan')}{else}{$_c['vpn_plan']}{/if}
+                            {if $_c['vpn_plan']=='' || $_c['vpn_plan']=='VPN Plan'}{Lang::T('VPN Plan')}{else}{$_c['vpn_plan']}{/if}
                         {/if}
                     </div>
                 </div>
             {else}
                 <div class="box-header">
-                    <h3 class="box-title">{if $_c['radius_plan']==''}{Lang::T('Radius Plan')}{else}{$_c['radius_plan']}{/if}</h3>
+                    <h3 class="box-title">{if $_c['radius_plan']=='' || $_c['radius_plan']=='Radius Plan'}{Lang::T('Radius Plan')}{else}{$_c['radius_plan']}{/if}</h3>
                 </div>
             {/if}
             <div style="margin-left: 5px; margin-right: 5px;">
@@ -79,8 +79,8 @@
                             <tr>
                                 {if $tcf['field_name'] == 'Winbox' or $tcf['field_name'] == 'Api' or $tcf['field_name'] == 'Web'}
                                     <td class="small text-info text-uppercase text-normal">{$tcf['field_name']} - Port</td>
-                                    <td class="small mb15"><a href="http://{$vpn['public_ip']}:{$tcf['field_value']}"
-                                            target="_blank">{$tcf['field_value']}</a></td>
+                                    <td class="small mb15"><a href="http://{$vpn['public_ip']}:{$tcf['field_value']|escape}"
+                                            target="_blank">{$tcf['field_value']|escape}</a></td>
                                 </tr>
                             {/if}
                         {/foreach}

@@ -182,4 +182,15 @@ final class BrandIdentityAssetsTest extends TestCase
         $foot = self::read('ui/ui/customer/footer.tpl');
         $this->assertSame(2, substr_count($foot, '{$_brand.upstream_url|escape}'), 'credit in both footer variants');
     }
+
+    public function testThePortalHeaderShowsTheProductMarkInlineBeforeTheName(): void
+    {
+        // UI polish 2026-10-29 (lab screenshots 043 / 052 / 101 / 117, product mode): the generic img.nc-mark rule is
+        // display:block, so the mark stacked above the name in the 50px logo bar and "ITC NetCore" slid under the navbar;
+        // the portal logo rule keeps mark + name on one line, as the staff shell does (operator mode has no mark there)
+        $css = self::read('ui/ui/styles/nuxr-brand.css');
+        $this->assertMatchesRegularExpression('/^body\.nuxr-portal \.main-header \.logo \.logo-lg \.nc-mark \{[^}]*\bdisplay: inline-block;[^}]*\bvertical-align: middle;/m', $css);
+        $this->assertStringContainsString('img.nc-mark { display: block;', $css, 'the generic rule (sign-in, About) is unchanged');
+        $this->assertMatchesRegularExpression('/<span class="logo-lg">\{if \$_brand\.company_is_product\}<img class="nc-mark"[^>]*netcore-mark-white\.svg[^>]*>\{\/if\}<bdi>\{\$_brand\.company\|escape\}<\/bdi><\/span>/', self::read('ui/ui/customer/header.tpl'));
+    }
 }

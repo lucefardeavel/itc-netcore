@@ -11,7 +11,7 @@ Scope: one isolated instance per ISP (Option A). Every step names its verificati
 
 1. Build from the owner-accepted commit only, and record the commit SHA in the release notes.
 2. Exclude from the artifact:
-   - `.git/`, `dev/`, `tests/`, `owner-review/`, `docs/claude-development-pack/`;
+   - `.git/`, `dev/`, `tests/`, `owner-review/`, `docs/claude-development-pack/`, `CLAUDE.md` (development rules);
    - `system/vendor/yosiazwan/php-facedetection/lena512color.jpg`.
 3. Include `LICENSE` and `docs/THIRD_PARTY_LICENSES.md`.
 4. Publish the artifact's SHA-256 next to it, and verify it on the target before unpacking.
@@ -21,7 +21,7 @@ Scope: one isolated instance per ISP (Option A). Every step names its verificati
 1. Prepare the platform: checklist §A, §B.
 2. Create the database (utf8mb4) and the **migration** account (administrative, DDL).
 3. Run the web installer once over HTTPS, steps 1–5. It writes `config.php` and seeds the legacy schema.
-4. Remove `install/` from the document root. It already refuses to run once installed.
+4. Remove the web installer from the document root: `install/*.php`, `install/css/`, `install/img/`, and `install/*.sql` once step 7 has loaded `install/radius.sql`. It already refuses to run once installed. **Keep `install/freeradius/`**: read-only for the PHP user and blocked by the web server (checklist B3). Preflight `radius_checks` reads the expected admission CHECK definitions from it, so removing all of `install/` weakens that check (a tampered constraint is no longer detected).
 5. Edit `config.php`:
    - set `$app_secret` and `$api_secret` (checklist §C);
    - do **not** set `$legacy_devices_enabled`;
@@ -45,7 +45,7 @@ Scope: one isolated instance per ISP (Option A). Every step names its verificati
 10. NAS: `docs/NAS_ONBOARDING_AND_SECRET_ROTATION.md` §2.
 11. Log in as `admin`. The application forces the default password change.
 12. Run `php system/reseller/preflight.php` (the release preflight). It must exit 0; with no NAS it FAILs `nas.verification` NOT_CONFIGURED (PF-0). Before step 10, `preflight.php --setup` may be used to check the rest of the installation: it reports a missing NAS as WARN NOT_CONFIGURED and is never the release gate. Then run `php system/reseller/health.php --finance`. It must exit 0.
-13. Install the scheduled jobs: checklist §I.
+13. Install the scheduled jobs: checklist §I. `cron.php` and `cron_reminder.php` run from `system/` (`cd <app>/system && php cron.php`); `php system/cron.php` from the application root does nothing. The quota enforcer's `--every` is at least 5.
 
 ## 3. Upgrade of an existing PHPNuxBill installation
 

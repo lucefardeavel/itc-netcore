@@ -1,9 +1,10 @@
 <?php
 // WP5B §8 (OD-8): CLI only. A web request never obtains cron authority: no body, before init.php, the lock
-// file or any work (run it as `php system/cron.php` from a crontab).
+// file or any work (crontab form: `cd <app>/system && php cron.php`; init.php is resolved from this file's directory,
+// so any working directory works and a missing init.php fails with a non-zero exit, final QA S-3).
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
-include "../init.php";
+require __DIR__ . '/../init.php';
 $lockFile = "$CACHE_PATH/router_monitor.lock";
 
 if (!is_dir($CACHE_PATH)) {

@@ -1,0 +1,28 @@
+# Server settings for point-in-time recovery (install/backup/README.md "Server settings"). Restart required.
+#
+# ---------------------------------------------------------------- MariaDB 10.11: /etc/mysql/mariadb.conf.d/60-itcnc-binlog.cnf
+[mariadb]
+server_id                      = 101          # unique per server; the tools check it (EXPECT_SERVER_ID)
+log_bin                        = itcnc-bin    # OFF by default on MariaDB
+binlog_format                  = ROW          # required: row events replay reliably into a renamed database
+binlog_row_image               = FULL
+sync_binlog                    = 1            # a committed transaction is in the binlog after a crash
+innodb_flush_log_at_trx_commit = 1
+binlog_expire_logs_seconds     = 604800       # 7 days (10.6+; older: expire_logs_days = 7). Must be much longer than
+                                              # the archive interval plus the longest tolerated outage of the archive job
+max_binlog_size                = 100M
+default_time_zone              = '+00:00'     # TIME_CONTRACT: UTC
+
+# ---------------------------------------------------------------- MySQL 8.0: /etc/mysql/mysql.conf.d/60-itcnc-binlog.cnf
+# [mysqld]
+# server_id                      = 101
+# log_bin                        = itcnc-bin   # ON by default on MySQL 8.0 (binlog.NNNNNN); naming it is clearer
+# binlog_format                  = ROW         # default ROW (the variable is deprecated in 8.0.34+, still honoured)
+# binlog_row_image               = FULL
+# sync_binlog                    = 1
+# innodb_flush_log_at_trx_commit = 1
+# binlog_expire_logs_seconds     = 604800
+# max_binlog_size                = 100M
+# default_time_zone              = '+00:00'
+# GTIDs: the tooling uses file/position coordinates and replays with --skip-gtids, so it works with gtid_mode OFF or ON;
+# the dumps keep --set-gtid-purged=OFF (docs/BACKUP_RESTORE_RUNBOOK.md §2) and record gtid_executed for information.

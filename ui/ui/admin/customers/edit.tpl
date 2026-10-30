@@ -176,13 +176,13 @@
                         {foreach $customFields as $customField}
                             <div class="form-group">
                                 <label class="col-md-4 control-label"
-                                    for="{$customField.field_name}">{$customField.field_name}</label>
+                                    for="{$customField.field_name|escape}">{$customField.field_name|escape}</label>
                                 <div class="col-md-6">
-                                    <input class="form-control" type="text" name="custom_fields[{$customField.field_name}]"
-                                        id="{$customField.field_name}" value="{$customField.field_value}">
+                                    <input class="form-control" type="text" name="custom_fields[{$customField.field_name|escape}]"
+                                        id="{$customField.field_name|escape}" value="{$customField.field_value|escape}">
                                 </div>
                                 <label class="col-md-2">
-                                    <input type="checkbox" name="delete_custom_fields[]" value="{$customField.field_name}">
+                                    <input type="checkbox" name="delete_custom_fields[]" value="{$customField.field_name|escape}">
                                     {Lang::T('Delete')}
                                 </label>
                             </div>

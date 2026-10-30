@@ -1,0 +1,28 @@
+# Option files for install/backup (copy, fill in, chmod 0600, owner root). Never put a password on a command line.
+#
+# /etc/itcnc/backup/backup.my.cnf - dump + binlog archive account
+[client]
+host=127.0.0.1
+port=3306
+user=nuxr_backup
+password=CHANGE_ME_LONG_RANDOM
+
+# /etc/itcnc/backup/restore.my.cnf - administrative account used by nuxr-restore.sh / nuxr-backup-verify.sh
+# (a separate file with the same [client] layout, user=nuxr_restore). PHP (migrate verify, health) also uses it for the
+# restored copy: on MySQL 8.0 the account must use an authentication plugin PHP mysqlnd can use over the chosen
+# transport (mysql_native_password, or caching_sha2_password over TLS / a socket).
+#
+# ---------------------------------------------------------------- grants
+# MariaDB 10.11:
+#   CREATE USER 'nuxr_backup'@'localhost' IDENTIFIED BY '...';
+#   GRANT SELECT, SHOW VIEW, TRIGGER, EVENT, LOCK TABLES ON `itcnc`.* TO 'nuxr_backup'@'localhost';
+#   GRANT RELOAD, BINLOG MONITOR, REPLICATION SLAVE ON *.* TO 'nuxr_backup'@'localhost';
+#       RELOAD: FLUSH BINARY LOGS; BINLOG MONITOR: SHOW BINARY LOGS / dump coordinates; REPLICATION SLAVE: remote fetch
+# MySQL 8.0:
+#   CREATE USER 'nuxr_backup'@'localhost' IDENTIFIED BY '...';
+#   GRANT SELECT, SHOW VIEW, TRIGGER, EVENT, LOCK TABLES ON `itcnc`.* TO 'nuxr_backup'@'localhost';
+#   GRANT RELOAD, PROCESS, REPLICATION CLIENT, REPLICATION SLAVE ON *.* TO 'nuxr_backup'@'localhost';
+#       RELOAD: --source-data takes a brief FLUSH TABLES WITH READ LOCK at the start of the dump, and FLUSH BINARY LOGS
+# Repeat the database grant for a separate RADIUS database.
+# Restore account (both engines): an administrative account (CREATE / DROP of the new database, sql_log_bin, BINLOG
+# replay), e.g. GRANT ALL PRIVILEGES ON *.* - keep it off the application host's config.php.

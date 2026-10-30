@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="{$nuxr_lang|default:'en'}" dir="{$nuxr_dir|default:'ltr'}">
 
 <head>
     <title>{Lang::T('Site is down for maintenance')}</title>

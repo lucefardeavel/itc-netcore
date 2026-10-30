@@ -1,0 +1,25 @@
+# ITC NetCore V1.0 - log rotation (EXAMPLE). /etc/logrotate.d/itc-netcore
+#
+# The product ships no log rotation (register X-31). This rotates the logs that the scheduled jobs
+# (cron/itc-netcore.cron.example) and the PHP-FPM pool (php-fpm/pool.conf.example) write into /var/log/itcnc.
+# Every writer opens the file per run / per message (cron ">>", PHP error_log), so "create" is safe and no reload is
+# needed. nginx logs (/var/log/nginx/*.log) and the PHP-FPM master log are rotated by the distribution's own files.
+# Keep rotated logs as long as the incident and audit policy requires (the retention below is an example: 30 days).
+# The logs contain no secret, but they do contain subscriber names: keep the directory mode 0750.
+# Check with: logrotate -d /etc/logrotate.d/itc-netcore
+
+/var/log/itcnc/*.log /var/log/itcnc/*.jsonl /var/log/itcnc/*.err {
+    su www-data www-data
+    daily
+    rotate 30
+    maxsize 100M
+    dateext
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 www-data www-data
+}
+
+# On the FreeRADIUS host the guard readiness log (install/freeradius/README.md) is rewritten by every run (">"),
+# so it needs no rotation.

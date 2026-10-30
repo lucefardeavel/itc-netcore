@@ -1,0 +1,199 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:lang="ar" viewBox="0 0 1200 900" width="1200" height="900" font-family="Inter, 'Noto Sans Arabic', 'Segoe UI', Arial, sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">ITC NetCore V1.0: المخطط المرجعي للشبكة (نسخة واحدة لكل مزوّد، الخيار A)</title>
+  <desc id="d">مضيف التطبيق ومضيف FreeRADIUS (يُوصى بجمعهما على مضيف واحد)، ومضيف قاعدة البيانات، ومخزن النسخ الاحتياطية، وخوادم NTP، وجهازا NAS من MikroTik مع مشتركي PPPoE وHotspot، والتدفقات الوحيدة المسموح بها: TCP 443 وTCP 3306 وUDP 1812/1813 وUDP 3799 وUDP 161 وUDP 123 ومسار إدارة المشغّل. يبقى RouterOS API ‏(TCP 8728/8729) مغلقًا.</desc>
+  <defs>
+    <marker id="aNavy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#193768"/></marker>
+    <marker id="aBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#245D99"/></marker>
+    <marker id="aTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#117C88"/></marker>
+    <marker id="aInt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#3275B5"/></marker>
+    <marker id="aGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#5B6B80"/></marker>
+    <style>
+      .box{fill:#FFFFFF;stroke:#193768;stroke-width:2}
+      .boxAlt{fill:#EAF2F9;stroke:#245D99;stroke-width:2}
+      .hdr{fill:#193768}
+      .ht{fill:#FFFFFF;font-size:15px;font-weight:700}
+      .t{fill:#18283E;font-size:12.5px}
+      .ts{fill:#18283E;font-size:11.5px}
+      .pill{fill:#FFFFFF;stroke-width:1.4}
+      .pt{font-size:11.5px;font-weight:700}
+      .small{fill:#5B6B80;font-size:11px}
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="900" fill="#F5F8FC"/>
+  <text x="1160" text-anchor="start" y="38" fill="#193768" font-size="20" font-weight="700" direction="rtl">ITC NetCore V1.0: المخطط المرجعي للشبكة (نسخة معزولة واحدة لكل مزوّد خدمة، الخيار A)</text>
+  <text x="1160" text-anchor="start" y="58" class="small" direction="rtl">لا يُفتح إلا ما رُسم هنا من تدفقات. مرجع عام وليس توثيقًا لشبكة هدف أو شبكة إنتاج (لم تُنفَّذ بيئة staging هدف بعد).</text>
+
+  <!-- Row 1 -->
+  <g>
+    <rect x="40" y="80" width="250" height="66" rx="8" class="box"/>
+    <rect x="40" y="80" width="250" height="24" rx="8" class="hdr"/><rect x="40" y="96" width="250" height="8" class="hdr"/>
+    <text x="165" y="97" text-anchor="middle" class="ht" direction="rtl">الموظفون ومستخدمو البوابة</text>
+    <text x="165" y="126" text-anchor="middle" class="t" direction="rtl">المتصفح أو تطبيق PWA للموظفين (HTTPS فقط)</text>
+  </g>
+  <g>
+    <rect x="330" y="80" width="250" height="66" rx="8" class="box"/>
+    <rect x="330" y="80" width="250" height="24" rx="8" class="hdr"/><rect x="330" y="96" width="250" height="8" class="hdr"/>
+    <text x="455" y="97" text-anchor="middle" class="ht" direction="rtl">محطة عمل المشغّل</text>
+    <text x="455" y="126" text-anchor="middle" class="t" direction="rtl">الإدارة وتوليد الأسرار</text>
+  </g>
+  <g>
+    <rect x="900" y="80" width="260" height="66" rx="8" class="box"/>
+    <rect x="900" y="80" width="260" height="24" rx="8" class="hdr"/><rect x="900" y="96" width="260" height="8" class="hdr"/>
+    <text x="1030" y="97" text-anchor="middle" class="ht" direction="rtl">خوادم NTP</text>
+    <text x="1030" y="126" text-anchor="middle" class="t" direction="rtl">خادمان داخليان بعنوان IP</text>
+  </g>
+
+  <!-- co-location frame -->
+  <rect x="30" y="196" width="760" height="212" rx="10" fill="none" stroke="#117C88" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="780" y="216" text-anchor="start" fill="#117C88" font-size="11.5" font-weight="700" direction="rtl">الموصى به: مضيف واحد (قاعدة WP8، مُتحقَّق منها مخبريًا)</text>
+
+  <!-- Application host -->
+  <g>
+    <rect x="50" y="222" width="330" height="160" rx="8" class="box"/>
+    <rect x="50" y="222" width="330" height="26" rx="8" class="hdr"/><rect x="50" y="240" width="330" height="8" class="hdr"/>
+    <text x="215" y="240" text-anchor="middle" class="ht" direction="rtl">مضيف التطبيق</text>
+    <text x="215" text-anchor="middle" y="270" class="t" direction="rtl">nginx + PHP-FPM 8.2 (واجهة HTTPS)</text>
+    <text x="215" text-anchor="middle" y="290" class="t" direction="rtl">تطبيق ITC NetCore (PHP)</text>
+    <text x="215" text-anchor="middle" y="310" class="t">cron: cron.php · quota.php · health.php</text>
+    <text x="215" text-anchor="middle" y="330" class="t" direction="rtl">عميل Disconnect / CoA وفق RFC 5176</text>
+    <text x="215" text-anchor="middle" y="350" class="t" direction="rtl">config.php (0640، root:مستخدم PHP)</text>
+  </g>
+
+  <!-- FreeRADIUS host -->
+  <g>
+    <rect x="430" y="222" width="340" height="160" rx="8" class="box"/>
+    <rect x="430" y="222" width="340" height="26" rx="8" class="hdr"/><rect x="430" y="240" width="340" height="8" class="hdr"/>
+    <text x="600" y="240" text-anchor="middle" class="ht" direction="rtl">مضيف FreeRADIUS</text>
+    <text x="600" text-anchor="middle" y="270" class="t" direction="rtl">FreeRADIUS 3.2.x (الإصدار المُختبَر: 3.2.8)</text>
+    <text x="600" text-anchor="middle" y="290" class="t">site phpnuxbill · sql · nuxr_counters</text>
+    <text x="600" text-anchor="middle" y="310" class="t" direction="rtl">حارس جلسات PPPoE · مدقّق خانات Hotspot</text>
+    <text x="600" text-anchor="middle" y="330" class="t" direction="rtl">nuxr/nas_snmp (0600، المالك freerad)</text>
+    <text x="600" text-anchor="middle" y="350" class="t" direction="rtl">TZ للعملية = المنطقة الزمنية للتطبيق</text>
+  </g>
+
+  <!-- Database host -->
+  <g>
+    <rect x="880" y="222" width="280" height="160" rx="8" class="box"/>
+    <rect x="880" y="222" width="280" height="26" rx="8" class="hdr"/><rect x="880" y="240" width="280" height="8" class="hdr"/>
+    <text x="1020" y="240" text-anchor="middle" class="ht" direction="rtl">مضيف قاعدة البيانات</text>
+    <text x="1020" text-anchor="middle" y="270" class="t" direction="rtl">MariaDB 10.11 أو MySQL 8.0</text>
+    <text x="1020" text-anchor="middle" y="290" class="t">REPEATABLE-READ · time_zone +00:00</text>
+    <text x="1020" text-anchor="middle" y="310" class="t" direction="rtl">جداول التطبيق وجداول RADIUS</text>
+    <text x="1020" text-anchor="middle" y="330" class="t" direction="rtl">حسابات بأدنى صلاحية (grants.php)</text>
+    <text x="1020" text-anchor="middle" y="350" class="t" fill="#B42318" direction="rtl">لا تُكشف للإنترنت إطلاقًا</text>
+  </g>
+
+  <!-- Backup -->
+  <g>
+    <rect x="880" y="440" width="280" height="62" rx="8" class="boxAlt"/>
+    <text x="1020" y="464" text-anchor="middle" fill="#193768" font-size="14" font-weight="700" direction="rtl">مخزن النسخ الاحتياطية</text>
+    <text x="1020" y="486" text-anchor="middle" class="ts" direction="rtl">تفريغات مشفّرة (age) · نسخة خارج الموقع</text>
+  </g>
+
+  <!-- NAS1 / NAS2 -->
+  <g>
+    <rect x="110" y="560" width="280" height="104" rx="8" class="box"/>
+    <rect x="110" y="560" width="280" height="26" rx="8" class="hdr"/><rect x="110" y="578" width="280" height="8" class="hdr"/>
+    <text x="250" y="578" text-anchor="middle" class="ht">NAS1: MikroTik RouterOS</text>
+    <text x="250" text-anchor="middle" y="606" class="ts" direction="rtl">RouterOS ≥ 7.15 (المُختبَر: CHR 7.24.5)</text>
+    <text x="250" text-anchor="middle" y="624" class="ts">src-address = nasname = NAS-IP-Address</text>
+    <text x="250" text-anchor="middle" y="642" class="ts" direction="rtl">نوع NAS هو mikrotik_snmp · NTP ≤ 10 ث</text>
+    <text x="250" text-anchor="middle" y="658" class="ts" fill="#B42318" direction="rtl">منفذا RouterOS API ‏8728 / 8729 مغلقان</text>
+  </g>
+  <g>
+    <rect x="470" y="560" width="280" height="104" rx="8" class="box"/>
+    <rect x="470" y="560" width="280" height="26" rx="8" class="hdr"/><rect x="470" y="578" width="280" height="8" class="hdr"/>
+    <text x="610" y="578" text-anchor="middle" class="ht">NAS2: MikroTik RouterOS</text>
+    <text x="610" text-anchor="middle" y="606" class="ts" direction="rtl">سرّ مستقل · مجتمع SNMP مستقل</text>
+    <text x="610" text-anchor="middle" y="624" class="ts" direction="rtl">NAS-IP-Address فريد (بلا NAT)</text>
+    <text x="610" text-anchor="middle" y="642" class="ts" direction="rtl">نوع NAS هو mikrotik_snmp · NTP ≤ 10 ث</text>
+    <text x="610" text-anchor="middle" y="658" class="ts" fill="#B42318" direction="rtl">منفذا RouterOS API ‏8728 / 8729 مغلقان</text>
+  </g>
+
+  <!-- Clients -->
+  <g class="clients">
+    <rect x="80" y="770" width="160" height="56" rx="8" class="boxAlt"/>
+    <text x="160" y="795" text-anchor="middle" fill="#193768" font-size="13" font-weight="700" direction="rtl">مشترك PPPoE</text>
+    <text x="160" y="813" text-anchor="middle" class="ts">CHAP / PAP</text>
+    <rect x="260" y="770" width="160" height="56" rx="8" class="boxAlt"/>
+    <text x="340" y="795" text-anchor="middle" fill="#193768" font-size="13" font-weight="700" direction="rtl">مشترك Hotspot</text>
+    <text x="340" y="813" text-anchor="middle" class="ts" direction="rtl">صفحة دخول http-chap</text>
+    <rect x="440" y="770" width="160" height="56" rx="8" class="boxAlt"/>
+    <text x="520" y="795" text-anchor="middle" fill="#193768" font-size="13" font-weight="700" direction="rtl">مشترك PPPoE</text>
+    <text x="520" y="813" text-anchor="middle" class="ts">CHAP / PAP</text>
+    <rect x="620" y="770" width="160" height="56" rx="8" class="boxAlt"/>
+    <text x="700" y="795" text-anchor="middle" fill="#193768" font-size="13" font-weight="700" direction="rtl">مشترك Hotspot</text>
+    <text x="700" y="813" text-anchor="middle" class="ts" direction="rtl">صفحة دخول http-chap</text>
+  </g>
+
+  <!-- Flows: HTTPS -->
+  <line x1="165" y1="146" x2="165" y2="220" stroke="#193768" stroke-width="2.2" marker-end="url(#aNavy)"/>
+  <rect x="122" y="168" width="86" height="20" rx="10" class="pill" stroke="#193768"/><text x="165" y="182" text-anchor="middle" class="pt" fill="#193768">TCP 443</text>
+  <line x1="420" y1="146" x2="330" y2="220" stroke="#193768" stroke-width="2.2" marker-end="url(#aNavy)"/>
+  <rect x="300" y="160" width="118" height="20" rx="10" class="pill" stroke="#193768"/><text x="359" y="174" text-anchor="middle" class="pt" fill="#193768">TCP 443 · TCP 22</text>
+
+  <!-- Flows: SQL -->
+  <polyline points="360,222 360,186 950,186 950,220" fill="none" stroke="#245D99" stroke-width="2.2" marker-end="url(#aBlue)"/>
+  <rect x="640" y="176" width="86" height="20" rx="10" class="pill" stroke="#245D99"/><text x="683" y="190" text-anchor="middle" class="pt" fill="#245D99">TCP 3306</text>
+  <line x1="770" y1="320" x2="878" y2="320" stroke="#245D99" stroke-width="2.2" marker-end="url(#aBlue)"/>
+  <rect x="780" y="330" width="76" height="20" rx="10" class="pill" stroke="#245D99"/><text x="818" y="344" text-anchor="middle" class="pt" fill="#245D99">TCP 3306</text>
+
+  <!-- Flows: NTP -->
+  <line x1="1100" y1="146" x2="1100" y2="220" stroke="#5B6B80" stroke-width="2" stroke-dasharray="3 4" marker-start="url(#aGrey)"/>
+  <rect x="996" y="166" width="160" height="20" rx="10" class="pill" stroke="#5B6B80"/><text x="1076" y="180" text-anchor="middle" class="pt" fill="#5B6B80" direction="rtl">UDP 123 (كل المضيفات وNAS)</text>
+
+  <!-- Flows: backup -->
+  <line x1="1020" y1="382" x2="1020" y2="438" stroke="#5B6B80" stroke-width="2" marker-end="url(#aGrey)"/>
+  <text x="1030" y="416" class="small" direction="rtl">تفريغ مشفّر ليلي</text>
+
+  <!-- Flows: RADIUS NAS -> FreeRADIUS -->
+  <line x1="260" y1="560" x2="490" y2="384" stroke="#193768" stroke-width="2.4" marker-end="url(#aNavy)"/>
+  <line x1="610" y1="560" x2="640" y2="384" stroke="#193768" stroke-width="2.4" marker-end="url(#aNavy)"/>
+  <rect x="283" y="480" width="136" height="20" rx="10" class="pill" stroke="#193768"/><text x="351" y="494" text-anchor="middle" class="pt" fill="#193768">UDP 1812 / 1813</text>
+  <rect x="588" y="470" width="136" height="20" rx="10" class="pill" stroke="#193768"/><text x="656" y="484" text-anchor="middle" class="pt" fill="#193768">UDP 1812 / 1813</text>
+
+  <!-- Flows: CoA app -> NAS -->
+  <line x1="110" y1="382" x2="150" y2="558" stroke="#117C88" stroke-width="2.4" marker-end="url(#aTeal)"/>
+  <line x1="330" y1="382" x2="500" y2="558" stroke="#117C88" stroke-width="2.4" marker-end="url(#aTeal)"/>
+  <rect x="62" y="440" width="88" height="20" rx="10" class="pill" stroke="#117C88"/><text x="106" y="454" text-anchor="middle" class="pt" fill="#117C88">UDP 3799</text>
+  <rect x="313" y="400" width="88" height="20" rx="10" class="pill" stroke="#117C88"/><text x="357" y="414" text-anchor="middle" class="pt" fill="#117C88">UDP 3799</text>
+
+  <!-- Flows: SNMP FreeRADIUS -> NAS -->
+  <line x1="560" y1="382" x2="360" y2="558" stroke="#3275B5" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#aInt)"/>
+  <line x1="740" y1="382" x2="720" y2="558" stroke="#3275B5" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#aInt)"/>
+  <rect x="347" y="510" width="112" height="20" rx="10" class="pill" stroke="#3275B5"/><text x="403" y="524" text-anchor="middle" class="pt" fill="#3275B5">UDP 161 (RO)</text>
+  <rect x="690" y="430" width="112" height="20" rx="10" class="pill" stroke="#3275B5"/><text x="746" y="444" text-anchor="middle" class="pt" fill="#3275B5">UDP 161 (RO)</text>
+
+  <!-- Flows: NAS -> clients -->
+  <line x1="160" y1="664" x2="160" y2="768" stroke="#245D99" stroke-width="2" marker-start="url(#aBlue)"/>
+  <line x1="340" y1="664" x2="340" y2="768" stroke="#245D99" stroke-width="2" marker-start="url(#aBlue)"/>
+  <line x1="520" y1="664" x2="520" y2="768" stroke="#245D99" stroke-width="2" marker-start="url(#aBlue)"/>
+  <line x1="700" y1="664" x2="700" y2="768" stroke="#245D99" stroke-width="2" marker-start="url(#aBlue)"/>
+  <text x="168" y="712" class="small">PPPoE</text><text x="348" y="712" class="small">Hotspot</text>
+  <text x="528" y="712" class="small">PPPoE</text><text x="708" y="712" class="small">Hotspot</text>
+
+  <!-- Management path -->
+  <polyline points="580,113 866,113 866,740 250,740 250,666" fill="none" stroke="#5B6B80" stroke-width="1.8" stroke-dasharray="2 5" marker-end="url(#aGrey)"/>
+  <line x1="866" y1="612" x2="752" y2="612" stroke="#5B6B80" stroke-width="1.8" stroke-dasharray="2 5" marker-end="url(#aGrey)"/>
+  <text x="540" y="756" class="small" direction="rtl">مسار الإدارة</text>
+
+  <!-- Legend -->
+  <g>
+    <rect x="880" y="540" width="280" height="330" rx="8" fill="#FFFFFF" stroke="#C9D6E6" stroke-width="1.4"/>
+    <text x="1150" text-anchor="start" y="564" fill="#193768" font-size="14" font-weight="700" direction="rtl">التدفقات المسموح بها</text>
+    <line x1="896" y1="586" x2="944" y2="586" stroke="#193768" stroke-width="2.4"/><text x="1150" text-anchor="start" y="590" class="ts" direction="rtl">HTTPS على TCP 443 (واجهة الويب)</text>
+    <line x1="896" y1="610" x2="944" y2="610" stroke="#245D99" stroke-width="2.4"/><text x="1150" text-anchor="start" y="614" class="ts" direction="rtl">SQL ‏TCP 3306 (التطبيق وFreeRADIUS)</text>
+    <line x1="896" y1="634" x2="944" y2="634" stroke="#193768" stroke-width="2.4"/><text x="1150" text-anchor="start" y="638" class="ts" direction="rtl">RADIUS على UDP 1812 / 1813 بلا NAT</text>
+    <line x1="896" y1="658" x2="944" y2="658" stroke="#117C88" stroke-width="2.4"/><text x="1150" text-anchor="start" y="662" class="ts" direction="rtl">CoA / Disconnect على UDP 3799</text>
+    <text x="1150" text-anchor="start" y="678" class="small" direction="rtl">(أو nas.ports؛ من مضيف التطبيق فقط)</text>
+    <line x1="896" y1="700" x2="944" y2="700" stroke="#3275B5" stroke-width="2.2" stroke-dasharray="7 5"/><text x="1150" text-anchor="start" y="704" class="ts" direction="rtl">SNMP v2c للقراءة فقط على UDP 161</text>
+    <text x="1150" text-anchor="start" y="720" class="small" direction="rtl">(من FreeRADIUS فقط)</text>
+    <line x1="896" y1="742" x2="944" y2="742" stroke="#5B6B80" stroke-width="2" stroke-dasharray="3 4"/><text x="1150" text-anchor="start" y="746" class="ts" direction="rtl">NTP على UDP 123</text>
+    <line x1="896" y1="766" x2="944" y2="766" stroke="#5B6B80" stroke-width="1.8" stroke-dasharray="2 5"/><text x="1150" text-anchor="start" y="770" class="ts" direction="rtl">مسار الإدارة (للمشغّل فقط)</text>
+    <text x="1150" text-anchor="start" y="800" fill="#B42318" font-size="12" font-weight="700" direction="rtl">مغلق: RouterOS API ‏8728 / 8729،</text>
+    <text x="1150" text-anchor="start" y="818" fill="#B42318" font-size="12" font-weight="700" direction="rtl">وقاعدة البيانات من الإنترنت،</text>
+    <text x="1150" text-anchor="start" y="836" fill="#B42318" font-size="12" font-weight="700" direction="rtl">ومنافذ RADIUS من الإنترنت.</text>
+    <text x="1150" text-anchor="start" y="858" class="small" direction="rtl">رأس السهم يشير إلى الطرف المستقبِل.</text>
+  </g>
+</svg>

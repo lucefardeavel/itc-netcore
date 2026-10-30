@@ -18,8 +18,10 @@ if (PHP_SAPI !== 'cli') {
  *                       never verified -> RADIUS == target: settle once; == captured prior state: release,
  *                       FAILED (NOT_APPLIED); anything else: EXTERNAL_STATE_AMBIGUOUS, nothing changed (exit 4)
  *   php system/reseller/reconcile.php resume <ACT-...>           continue a STALE FUNDS_RESERVED / RETRY_PENDING / VERIFIED (WP9)
- *   php system/reseller/reconcile.php rollback <ACT-...>         restore the captured prior RADIUS state; release only once verified
- *   php system/reseller/reconcile.php cancel <ACT-...>           before provisioning: release, CANCELLED
+ *   php system/reseller/reconcile.php rollback <ACT-...> --operator=<name> --reason=<text>
+ *                       restore the captured prior RADIUS state; release only once verified (audited: operator, reason)
+ *   php system/reseller/reconcile.php cancel <ACT-...> --operator=<name> --reason=<text>
+ *                       before provisioning, STALE only (>= 300 s): release, CANCELLED (audited: operator, reason)
  *
  * WP5B operator commands (read-only unless stated):
  *   php system/reseller/reconcile.php drift [--no-radius]        detective report: periods not backed by an activation,
@@ -27,8 +29,8 @@ if (PHP_SAPI !== 'cli') {
  *                       REPROVISION_UNCONFIRMED customers, HELD balance operations (exit 4 when anything is found)
  *   php system/reseller/reconcile.php expired-autorenew         AUTO_RENEW_UNAVAILABLE records (reseller-owned, not renewed)
  *   php system/reseller/reconcile.php balance-held              HELD legacy balance operations
- *   php system/reseller/reconcile.php balance-resolve <id> <completed|refund>
- *                       operator decision on one HELD operation (exactly once, audited; refund credits back)
+ *   php system/reseller/reconcile.php balance-resolve <id> <completed|refund> --operator=<name> --reason=<text>
+ *                       operator decision on one HELD operation (exactly once, audited in the same transaction; refund credits back)
  *
  * WP9-OPS recovery commands (runbook: docs/OPERATOR_RECOVERY_RUNBOOK.md):
  *   php system/reseller/reconcile.php finance-check             read-only finance + activation integrity (exit 4 = issues)
@@ -114,10 +116,16 @@ try {
             $print(ActivationService::execute((int) $row['id'], $actor));
             exit(0);
         case 'rollback':
-            $print(ReconciliationService::rollback($actor, $reference));
-            exit(0);
         case 'cancel':
-            $print(ReconciliationService::cancel($actor, $reference));
+            // final QA F-1: a release of held funds is an operator decision, audited with who and why
+            if (strlen(trim($text('operator'))) < 2 || strlen(trim($text('reason'))) < 10) {
+                fwrite(STDERR, "usage: php system/reseller/reconcile.php {$command} <ACT-...> --operator=<name> --reason=<text, at least 10 characters>\n");
+                exit(5);
+            }
+            $operator = ActivationActor::operator($text('operator'), $text('reason'));
+            $print($command === 'rollback' ? ReconciliationService::rollback($operator, $reference)
+                // the web operator rule (OD-7): only a STALE activation is cancelled; checked again on the locked row
+                : ReconciliationService::cancel($operator, $reference, ReconciliationService::STALE_SECONDS));
             exit(0);
         case 'drift':
             $found = \Reseller\Activation\DriftReport::collect(!in_array('--no-radius', $args, true));
@@ -136,11 +144,12 @@ try {
             }
             exit(0);
         case 'balance-resolve':
-            if (!ctype_digit($reference) || !in_array($args[2] ?? '', ['completed', 'refund'], true)) {
-                fwrite(STDERR, "usage: php system/reseller/reconcile.php balance-resolve <journal id> <completed|refund>\n");
+            if (!ctype_digit($reference) || !in_array($args[2] ?? '', ['completed', 'refund'], true)
+                || strlen(trim($text('operator'))) < 2 || strlen(trim($text('reason'))) < 10) {
+                fwrite(STDERR, "usage: php system/reseller/reconcile.php balance-resolve <journal id> <completed|refund> --operator=<name> --reason=<text, at least 10 characters>\n");
                 exit(5);
             }
-            echo json_encode(['journal_id' => (int) $reference, 'resolved' => \Reseller\Domain\LegacyCustomerBalanceService::resolve((int) $reference, $args[2])]) . "\n";
+            echo json_encode(['journal_id' => (int) $reference, 'resolved' => \Reseller\Domain\LegacyCustomerBalanceService::resolve((int) $reference, $args[2], $text('operator'), $text('reason'))]) . "\n";
             exit(0);
         // ---- WP9-OPS recovery commands (each decision exactly once, audited, nothing deleted)
         case 'finance-check':

@@ -24,7 +24,7 @@ This checklist is for an operator deploying one isolated instance. Tick every li
 | B1 | HTTPS only, with a valid certificate; HTTP redirects to HTTPS; HSTS set by the web server | `curl -I http://…` / `https://…` |
 | B2 | `APP_URL` resolves to the HTTPS address **[P stage]** | preflight `stage` |
 | B3 | The document root serves the application only. These are not reachable from the web: `config.php`, `system/` (except the routed entry), `install/`, `dev/`, `tests/`, `docs/`, `owner-review/`, `.git/`, and any `*.sql` / `*.sh` (`.htaccess_firewall` is the Apache example) | `curl -I https://…/config.php` → 403 / 404 |
-| B4 | `install/` is removed after installation. It also refuses to run once `config.php` and `pages/` exist (WP2 SEC-19, WP9 INST-1) | `curl https://…/install/` → 403 |
+| B4 | The web installer is removed after installation (`install/*.php`, `install/*.sql`, `install/css/`, `install/img/`). It also refuses to run once `config.php` and `pages/` exist (WP2 SEC-19, WP9 INST-1). `install/freeradius/` **stays**, read-only and blocked by the web server (B3): preflight `radius_checks` reads the expected CHECK definitions from it | `curl https://…/install/` → 403 / 404; `ls install/` shows only `freeradius/` |
 | B5 | The web updater stays disabled (`update.php` answers 403, WP2 SEC-03) | `curl -I https://…/update.php` |
 | B6 | Responses carry `X-Frame-Options: SAMEORIGIN`, `Content-Security-Policy: frame-ancestors 'self'` and `X-Content-Type-Options: nosniff`; the session cookie is `HttpOnly; SameSite=Lax; Secure` (WP9 SESS-1 / HDR-1) | `curl -I https://…/?_route=login` |
 | B7 | `ui/compiled/`, `system/uploads/` and `pages/` are writable by the PHP user only; the code tree is read-only for it | `ls -l` |
@@ -59,7 +59,7 @@ This checklist is for an operator deploying one isolated instance. Tick every li
 | E1 | `migrate.php preflight`, then `migrate`, then `verify`; all exit 0 (taken right after a verified backup, §F) | exit codes |
 | E2 | Reseller schema ready, including every CHECK expression and its enforcement (WP1-CHECK) **[P schema][H schema]** | preflight `schema` |
 | E3 | FreeRADIUS admission tables installed and their CHECK constraints exact (`nuxr_admission.sql`, `nuxr_hs_admission.sql`) **[P radius_checks]** | preflight `radius_checks`, `nuxr_admission_check.sql` |
-| E4 | OBS-1 identity survey: no canonical identity with more than one holder (`dev/wp9/identity_survey.sql`, also preflight `identity`). Resolve every FAIL before go-live; the procedure is an owner decision. **[P identity]** | preflight `identity` |
+| E4 | OBS-1 identity survey: no canonical identity with more than one holder (`dev/wp9/identity_survey.sql`, source repository only: migration path, not applicable to a fresh install; also preflight `identity`). Resolve every FAIL before go-live; the procedure is an owner decision. **[P identity]** | preflight `identity` |
 | E5 | MAC-auth impact: review the RADIUS usernames that look like lower-case MAC addresses (MAC-H1A) **[P mac]** | preflight `mac` |
 | E6 | Existing installations: survey historic `radacct` times for non-UTC writers (P-A4-3) before relying on period counters | `docs/OPERATOR_RECOVERY_RUNBOOK.md` |
 | E8 | V1 quota plans: no enabled Limited Radius plan with a zero / unusable quota (plans saved before V1 may hold one; selling it fails closed and the voucher / activation is held for the operator). Edit the plan in Services or disable it **[P quota_plans]** | preflight `quota.plans` |
@@ -100,12 +100,12 @@ This checklist is for an operator deploying one isolated instance. Tick every li
 
 | # | Job | Schedule |
 |---|---|---|
-| I1 | `php system/cron.php` (expiry, renewals) | every 5 minutes |
-| I2 | `php system/cron_reminder.php` | daily |
+| I1 | `cd <app>/system && php cron.php` (expiry, renewals). It must run from `system/`: it includes `../init.php` relative to the working directory, so `php system/cron.php` from the application root does nothing (exit 0, only a PHP warning) | every 5 minutes |
+| I2 | `cd <app>/system && php cron_reminder.php` (same rule as I1) | daily |
 | I3 | `php system/reseller/health.php --json` → monitoring (exit 1 WARNING, 2 CRITICAL, 3 UNKNOWN) | every 5 minutes |
 | I4 | `php system/reseller/health.php --json --finance` | hourly |
 | I5 | Backup (F1) | nightly |
-| I6 | `php system/reseller/quota.php enforce --loop=55 --every=5` (V1 data / time quota enforcer: ends over-quota sessions; `install/freeradius/README.md` "V1 data and time quota"). Required as soon as one Limited plan is sold. | every minute |
+| I6 | `php system/reseller/quota.php enforce --loop=55 --every=5` (V1 data / time quota enforcer: ends over-quota sessions; `install/freeradius/README.md` "V1 data and time quota"). Required as soon as one Limited plan is sold. `--every` is at least 5 (seconds); a smaller value is refused with exit 5, also for a manual run. | every minute |
 
 ## J. Monitoring and alerting **[H]**
 

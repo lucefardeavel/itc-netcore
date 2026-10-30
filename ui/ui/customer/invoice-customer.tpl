@@ -14,7 +14,7 @@
                 {/if}
                 <form class="form-horizontal" method="post" action="{Text::url('plan/print')}" target="_blank">
                     <pre id="content"
-                        style="border: 0px; ;text-align: center; background-color: transparent; background-image: url('{$app_url}/system/uploads/paid.png');background-repeat:no-repeat;background-position: center">{$invoice}</pre>
+                        style="border: 0px; ;text-align: center; background-color: transparent; background-image: url('{$app_url}/system/uploads/paid.png');background-repeat:no-repeat;background-position: center">{$invoice|escape}</pre>
                     <input type="hidden" name="id" value="{$in['id']}">
                     {if !empty($_user)}
                         <a href="{Text::url('voucher/list-activated')}" class="btn btn-default btn-sm"><i

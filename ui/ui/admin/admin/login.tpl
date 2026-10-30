@@ -15,7 +15,7 @@
     <meta name="theme-color" content="#17263d" media="(prefers-color-scheme: dark)">
     <link rel="apple-touch-icon" href="{$app_url}/ui/ui/images/pwa/icon-180.png">
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/bootstrap.min.css">
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.1" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.2" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?brand.1">
     <style>
         .nuxr-login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }

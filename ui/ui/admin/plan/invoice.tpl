@@ -11,7 +11,7 @@
                 <form class="form-horizontal" method="post" action="{Text::url('')}plan/print" target="_blank">
                     <pre id="content"
                     style="border: 0px; ;text-align: center; background-color: transparent; background-image: url('{$app_url}/system/uploads/paid.png');background-repeat:no-repeat;background-position: center"></pre>
-                    <textarea class="hidden" id="formcontent" name="content">{$invoice}</textarea>
+                    <textarea class="hidden" id="formcontent" name="content">{$invoice|escape}</textarea>
                     <input type="hidden" name="id" value="{$in['id']}">
                     <a href="{Text::url('plan/list')}" class="btn btn-default btn-sm"><i
                             class="ion-reply-all"></i>{Lang::T('Finish')}</a>

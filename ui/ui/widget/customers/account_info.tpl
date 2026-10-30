@@ -58,7 +58,7 @@
                 {assign var="total" value=0}
                 {foreach $abills as $k => $v}
                     <tr>
-                        <td class="small text-success text-uppercase text-normal">{str_replace(' Bill', '', $k)}</td>
+                        <td class="small text-success text-uppercase text-normal">{str_replace(' Bill', '', $k)|escape}</td>
                         <td class="small mb15">
                             {if strpos($v, ':') === false}
                                 {Lang::moneyFormat($v)}
@@ -67,8 +67,8 @@
                             {else}
                                 {assign var="exp" value=explode(':',$v)}
                                 {Lang::moneyFormat($exp[0])}
-                                <sup title="{$exp[1]} more times">{if $exp[1]==0}{Lang::T('paid
-                                off')}{else}{$exp[1]}x{/if}</sup>
+                                <sup title="{$exp[1]|escape} more times">{if $exp[1]==0}{Lang::T('paid
+                                off')}{else}{$exp[1]|escape}x{/if}</sup>
                                 {if $exp[1]>0}
                                     {assign var="total" value=$exp[0]+$total}
                                 {/if}

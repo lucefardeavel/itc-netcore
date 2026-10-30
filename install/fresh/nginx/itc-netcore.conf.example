@@ -1,0 +1,137 @@
+# ITC NetCore V1.0 - production nginx site (EXAMPLE). /etc/nginx/sites-available/itc-netcore.conf
+#
+# Replace before use: billing.example.net (server name), the certificate paths, /srv/itcnc/app/current (document root
+# = the deployed release), unix:/run/php/itc-netcore.sock (php-fpm/pool.conf.example). Then: nginx -t && reload.
+# Requirements implemented (docs/PRODUCTION_CONFIGURATION_CHECKLIST.md, docs/V1_TARGET_ACCEPTANCE.md TA-10):
+#   B1  HTTPS only, HTTP redirects to HTTPS, HSTS set by the web server
+#   B3  only the application is served: config.php, install/, system/ (except system/uploads static files), dev/,
+#       tests/, docs/, owner-review/, .git and every dot-file, *.sql / *.sh and similar are never served, and PHP
+#       executes only for an allowlist of entry points (index.php, admin/, scan/, qrcode/)
+#   B4  /install/ is denied (the installer is also removed from disk by nuxr-fresh-install.sh)
+#   B5  /update.php answers 403
+#   B6  X-Frame-Options SAMEORIGIN, Content-Security-Policy frame-ancestors 'self', X-Content-Type-Options nosniff on
+#       every response (the copies index.php sets are replaced, so each header appears once); the session cookie
+#       flags come from index.php (HttpOnly, SameSite=Lax, Secure under HTTPS)
+#   B9  PHP sees HTTPS=on (fastcgi_params passes $https; behind a TLS-terminating proxy see the note below)
+#   TA-10 rate limit of the staff / customer login POST
+# Not served on purpose: radius.php (rlm_rest endpoint, not part of the release profile) and system/api.php (the REST
+# API; enable the commented location only when the API is used and $api_secret is set).
+
+# login POST rate limit: only "POST ?_route=login/post" and "POST ?_route=admin/post" are counted (empty key = no limit)
+map "$request_method:$arg__route" $nuxr_login_limit_key {
+    default                          "";
+    "~^POST:(login|admin)/post$"     $binary_remote_addr;
+}
+limit_req_zone $nuxr_login_limit_key zone=nuxr_login:10m rate=10r/m;
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name billing.example.net;
+    server_tokens off;
+    # ACME HTTP-01 challenges, if your certificate process uses them (adjust or remove)
+    location ^~ /.well-known/acme-challenge/ { root /var/www/acme; default_type text/plain; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    # nginx 1.24 (Ubuntu 24.04): "ssl http2" on the listen line. nginx >= 1.25.1: "listen 443 ssl;" plus "http2 on;"
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name billing.example.net;
+    server_tokens off;
+
+    ssl_certificate     /etc/ssl/itc-netcore/fullchain.pem;
+    ssl_certificate_key /etc/ssl/itc-netcore/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:nuxr_tls:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+    root /srv/itcnc/app/current;
+    index index.php;
+    charset utf-8;
+    client_max_body_size 8m;
+
+    access_log /var/log/nginx/itc-netcore.access.log;
+    error_log  /var/log/nginx/itc-netcore.error.log warn;
+
+    # B1 / B6 - server level only: an add_header inside a location would drop these (nginx inheritance rule)
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Content-Security-Policy "frame-ancestors 'self'" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "same-origin" always;
+
+    # B3: dot-files and directories (.git, .github, .htaccess_firewall, .env ...)
+    location ~ /\. { return 404; }
+
+    # B3 / B4: trees that are never served (prefix match with ^~ wins over every regex location below)
+    location ^~ /install/       { return 404; }
+    location ^~ /dev/           { return 404; }
+    location ^~ /tests/         { return 404; }
+    location ^~ /docs/          { return 404; }
+    location ^~ /owner-review/  { return 404; }
+    location ^~ /pages/         { return 404; }   # editable pages are rendered by the application, not served raw
+    location ^~ /pages_template/ { return 404; }
+
+    # B3: system/ - only the static upload files the user interface loads (e.g. system/uploads/paid.png); nothing
+    # in it ever executes
+    location ^~ /system/uploads/ {
+        location ~* \.(php|phtml|phar|pl|py|cgi|sh|json)$ { return 404; }
+        try_files $uri =404;
+    }
+    # REST API entry (OFF by default). Enable only when the API is used:
+    # location = /system/api.php { include /etc/nginx/snippets/itc-netcore-php.conf; }
+    location ^~ /system/ { return 404; }
+
+    # compiled templates and caches are PHP / data files written at run time: never served
+    location ^~ /ui/compiled/ { return 404; }
+    location ^~ /ui/cache/    { return 404; }
+    location ^~ /qrcode/cache/ { return 404; }
+
+    # B3: file types that are never served anywhere
+    location ~* \.(sql|sh|md|lock|bak|orig|old|swp|log|ini|tpl|dist|yml|yaml|env|tmpl|example|state)$ { return 404; }
+    location = /config.php        { return 404; }
+    location = /config.sample.php { return 404; }
+    location = /composer.json     { return 404; }
+    location = /RELEASE_SHA       { return 404; }
+    location = /radius.php        { return 404; }
+
+    # B5: the web updater is disabled in the code as well; answer 403 without starting PHP
+    location = /update.php { return 403; }
+
+    # PHP executes ONLY for these entry points (admin/, scan/ and qrcode/ are reached through their index.php)
+    location ~ ^/(index|admin/index|scan/index|qrcode/index)\.php$ {
+        try_files $fastcgi_script_name =404;
+        limit_req zone=nuxr_login burst=5 nodelay;
+        limit_req_status 429;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;   # symlinked release: real path (opcache)
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_param HTTP_PROXY "";                                       # httpoxy
+        # B9: fastcgi_params sends "HTTPS $https" (on, because this server terminates TLS). If TLS is terminated by
+        # a reverse proxy in front of this nginx and this backend is reachable from the proxy ONLY, add:
+        #   fastcgi_param HTTPS on;
+        # and pin APP_URL to the https:// address in config.php (nuxr-fresh-install.sh does that).
+        fastcgi_hide_header X-Powered-By;
+        fastcgi_hide_header X-Frame-Options;            # set once at server level (B6)
+        fastcgi_hide_header Content-Security-Policy;
+        fastcgi_hide_header X-Content-Type-Options;
+        fastcgi_read_timeout 120s;
+        fastcgi_pass unix:/run/php/itc-netcore.sock;
+    }
+    # every other PHP file (libraries, controllers, compiled templates, tools) is never executed or served
+    location ~* \.(php|phtml|phar)$ { return 404; }
+
+    # front controller: pretty paths fall back to index.php; static assets are served from disk
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    location ~* \.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|webp)$ {
+        try_files $uri =404;
+        expires 7d;
+        access_log off;
+    }
+}

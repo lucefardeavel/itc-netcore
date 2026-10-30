@@ -56,6 +56,13 @@ docs/**
 .htaccess
 .idea
 !docs/insomnia.rest.json
+# V1.0 customer / operator documentation sources (guides, release notes, media)
+!docs/guides/
+!docs/guides/**
+!docs/media/
+!docs/media/**
+!docs/release/
+!docs/release/**
 !system/uploads/paid.png
 system/uploads/invoices/**
 

@@ -1,0 +1,35 @@
+# ITC NetCore V1.0 - scheduled jobs (EXAMPLE). /etc/cron.d/itc-netcore  (mode 0644, owner root)
+#
+# docs/PRODUCTION_CONFIGURATION_CHECKLIST.md section I, as the PHP user. nuxr-fresh-install.sh --install-cron
+# installs this file with the document root, log directory and user substituted. Replace /srv/itcnc/app/current
+# (document root), www-data (PHP user) and /var/log/itcnc otherwise. Create /var/log/itcnc owned by the PHP user.
+# Remove this file to stop every job (runbook section 3 step 2: stop the jobs before an upgrade).
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=""
+
+# I1 expiry and renewals, every 5 minutes. cron.php MUST run from system/: it includes ../init.php relative to the
+#    working directory (register X-01; running "php system/cron.php" from the application root does nothing).
+*/5 * * * * www-data cd /srv/itcnc/app/current/system && php cron.php >> /var/log/itcnc/cron.log 2>&1
+
+# I2 expiry reminders, daily (same working-directory rule as cron.php)
+15 3 * * *  www-data cd /srv/itcnc/app/current/system && php cron_reminder.php >> /var/log/itcnc/cron_reminder.log 2>&1
+
+# I6 V1 data / time quota enforcer, every minute (required as soon as one Limited plan is sold)
+* * * * *   www-data cd /srv/itcnc/app/current && php system/reseller/quota.php enforce --loop=55 --every=5 >> /var/log/itcnc/quota.log 2>&1
+
+# I3 operational telemetry for monitoring, every 5 minutes (exit 1 WARNING, 2 CRITICAL, 3 UNKNOWN: alert on it)
+*/5 * * * * www-data cd /srv/itcnc/app/current && php system/reseller/health.php --json >> /var/log/itcnc/health.jsonl 2>> /var/log/itcnc/health.err
+
+# I4 the same with the whole-database finance integrity check, hourly
+7 * * * *   www-data cd /srv/itcnc/app/current && php system/reseller/health.php --json --finance >> /var/log/itcnc/health_finance.jsonl 2>> /var/log/itcnc/health.err
+
+# Daily detective checks, read-only (docs/OPERATOR_RECOVERY_RUNBOOK.md section 0). Healthy = no line / CONSISTENT and
+# exit 0. Enable when the operator reviews the output (route it to monitoring):
+# 30 4 * * * www-data cd /srv/itcnc/app/current && for c in drift finance-check "stale --seconds=300" admission-pending voucher-review balance-held; do php system/reseller/reconcile.php $c; done >> /var/log/itcnc/reconcile_daily.log 2>&1
+
+# I5 nightly backup: site specific (backup account, encryption key, target) - docs/BACKUP_RESTORE_RUNBOOK.md section 2.
+#    Not enabled by this example.
+
+# On the FreeRADIUS host (root crontab there, install/freeradius/README.md "Readiness check"), every 5 minutes:
+# */5 * * * * sudo -u freerad /etc/freeradius/3.0/nuxr/nuxr_guard_selfcheck >/var/log/nuxr-guard-selfcheck.log 2>&1 || logger -p auth.crit -t nuxr-guard "PPPoE session guard cannot verify a NAS"

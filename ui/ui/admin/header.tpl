@@ -33,7 +33,7 @@
         <link rel="stylesheet" href="{$app_url}/ui/ui/summernote/summernote.min.css" />
     {/if}
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/phpnuxbill.css?2025.2.4" />
-    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.1" />
+    <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.2" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?brand.1" />
     {if $nuxr_dir eq 'rtl'}
         <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-rtl-legacy.css?lab.4" />
