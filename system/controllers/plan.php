@@ -683,6 +683,19 @@ switch ($action) {
             r2(getUrl('plan/voucher'), 's', "$jml " . Lang::T('Data Deleted Successfully'));
         }
     case 'print-voucher':
+        $printFormat = _post('format') === 'a4' ? 'a4' : 'thermal80';
+        // UX 2026-11-09: card data for the 80 mm thermal print (plan-joined voucher rows: id / type are the voucher's)
+        $nuxrCard = static function ($vs): array {
+            $unit = (string) $vs['validity_unit'];
+            return [
+                'id' => (int) $vs['id'],
+                'code' => (string) $vs['code'],
+                'kind' => stripos((string) $vs['type'], 'hotspot') !== false ? 'hotspot' : 'activation',
+                'plan' => (string) $vs['name_plan'],
+                'price' => Lang::moneyFormat($vs['price']),
+                'validity' => ((int) $vs['validity'] > 0 && $unit !== '') ? ((int) $vs['validity'] . ' ' . Lang::T($unit)) : '',
+            ];
+        };
         $from_id = _post('from_id');
         $planid = _post('planid');
         $pagebreak = _post('pagebreak');
@@ -793,6 +806,16 @@ switch ($action) {
 
         $ui->assign('createdate', $createdate);
 
+        if ($printFormat === 'thermal80') {
+            $ui->assign('_title', Lang::T('Print vouchers'));
+            $ui->assign('cards', array_map($nuxrCard, is_array($v) ? $v : iterator_to_array($v)));
+            $ui->assign('vc', $vc);
+            $ui->assign('selected_datetime', $selected_datetime);
+            run_hook('view_print_voucher'); #HOOK
+            $ui->display('admin/print/voucher-80mm.tpl');
+            break;
+        }
+
         $voucher = [];
         $n = 1;
         foreach ($v as $vs) {
@@ -831,6 +854,7 @@ switch ($action) {
         $numbervoucher = _post('numbervoucher');
         $lengthcode = _post('lengthcode');
         $printNow = _post('print_now', 'no');
+        $printFormat = _post('print_format') === 'a4' ? 'a4' : 'thermal80';
         $voucherPerPage = _post('voucher_per_page', '36');
 
         $msg = '';
@@ -931,6 +955,36 @@ switch ($action) {
                 $newVoucherIds[] = $d->id();
             }
 
+            if ($printNow == 'yes' && count($newVoucherIds) > 0 && $printFormat === 'thermal80') {
+                // UX 2026-11-09: card data for the 80 mm thermal print (plan-joined voucher rows: id / type are the voucher's)
+                $nuxrCard = static function ($vs): array {
+                    $unit = (string) $vs['validity_unit'];
+                    return [
+                        'id' => (int) $vs['id'],
+                        'code' => (string) $vs['code'],
+                        'kind' => stripos((string) $vs['type'], 'hotspot') !== false ? 'hotspot' : 'activation',
+                        'plan' => (string) $vs['name_plan'],
+                        'price' => Lang::moneyFormat($vs['price']),
+                        'validity' => ((int) $vs['validity'] > 0 && $unit !== '') ? ((int) $vs['validity'] . ' ' . Lang::T($unit)) : '',
+                    ];
+                };
+                $rows = ORM::for_table('tbl_plans')
+                    ->left_outer_join('tbl_voucher', ['tbl_plans.id', '=', 'tbl_voucher.id_plan'])
+                    ->where_in('tbl_voucher.id', $newVoucherIds)
+                    ->order_by_asc('tbl_voucher.id')
+                    ->find_many();
+                $ui->assign('_title', Lang::T('Print vouchers'));
+                $ui->assign('cards', array_map($nuxrCard, is_array($rows) ? $rows : iterator_to_array($rows)));
+                $ui->assign('vc', count($newVoucherIds));
+                $ui->assign('plans', ORM::for_table('tbl_plans')->find_many());
+                $ui->assign('planid', $plan);
+                $ui->assign('limit', count($newVoucherIds));
+                $ui->assign('from_id', 0);
+                $ui->assign('createdate', []);
+                $ui->assign('selected_datetime', '');
+                $ui->display('admin/print/voucher-80mm.tpl');
+                die();
+            }
             if ($printNow == 'yes' && count($newVoucherIds) > 0) {
                 $template = file_get_contents("pages/Voucher.html");
                 $template = str_replace('[[company_name]]', $config['CompanyName'], $template);

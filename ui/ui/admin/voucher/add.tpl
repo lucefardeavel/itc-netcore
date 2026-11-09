@@ -11,9 +11,10 @@
                     <div class="form-group">
                         <label class="col-md-2 control-label">{Lang::T('Type')}</label>
                         <div class="col-md-6">
-                            <label class="radio-inline"><input type="radio" id="Hot" name="type" value="Hotspot"> {Lang::T('Hotspot Plans')}</label>
-                            <label class="radio-inline"><input type="radio" id="POE" name="type" value="PPPOE"> {Lang::T('PPPOE Plans')}</label>
+                            <label class="radio-inline"><input type="radio" id="Hot" name="type" value="Hotspot"> {Lang::T('Hotspot card (the code logs in)')}</label>
+                            <label class="radio-inline"><input type="radio" id="POE" name="type" value="PPPOE"> {Lang::T('Recharge card for a PPPoE subscriber')}</label>
                         </div>
+                        <p class="help-block col-md-4">{Lang::T('Recharge cards are for subscribers managed directly by the company; a reseller's subscribers are renewed by their reseller.')}</p>
                     </div>
                     <div class="form-group">
                         <label for="server" class="col-md-2 control-label">{Lang::T('Routers')}</label>
@@ -41,33 +42,29 @@
                         <label for="voucher_format" class="col-md-2 control-label">{Lang::T('Voucher Format')}</label>
                         <div class="col-md-6">
                             <select name="voucher_format" id="voucher_format" class="form-control">
-                                <option value="numbers" {if $_c['voucher_format']=='numbers' }selected="selected" {/if}>
-                                    Numbers
-                                </option>
-                                <option value="up" {if $_c['voucher_format']=='up' }selected="selected" {/if}>UPPERCASE
-                                </option>
-                                <option value="low" {if $_c['voucher_format']=='low' }selected="selected" {/if}>
-                                    lowercase
-                                </option>
-                                <option value="rand" {if $_c['voucher_format']=='rand' }selected="selected" {/if}>
-                                    RaNdoM
-                                </option>
+                                <option value="numbers" {if $_c['voucher_format']=='numbers' || empty($_c['voucher_format'])}selected="selected" {/if}>{Lang::T('Digits only (easiest to type)')}</option>
+                                <option value="up" {if $_c['voucher_format']=='up' }selected="selected" {/if}>{Lang::T('Capital letters and digits')}</option>
+                                <option value="low" {if $_c['voucher_format']=='low' }selected="selected" {/if}>{Lang::T('Small letters and digits')}</option>
+                                <option value="rand" {if $_c['voucher_format']=='rand' }selected="selected" {/if}>{Lang::T('Mixed letters and digits')}</option>
                             </select>
                         </div>
-                        <p class="help-block col-md-4">UPPERCASE lowercase RaNdoM</p>
+                        <p class="help-block col-md-4">{Lang::T('Digits are the easiest for subscribers to type on a phone.')}</p>
                     </div>
                     <div class="form-group">
                         <label for="nxf-prefix" class="col-md-2 control-label">{Lang::T('Voucher Prefix')}</label>
                         <div class="col-md-6">
-                            <input id="nxf-prefix" type="text" class="form-control" name="prefix" placeholder="NUX-"
+                            <input id="nxf-prefix" type="text" class="form-control" name="prefix" placeholder="ITC-"
                                 value="{$_c['voucher_prefix']}">
                         </div>
-                        <p class="help-block col-md-4">NUX-VoUCHeRCOdE</p>
+                        <p class="help-block col-md-4">{Lang::T('Optional text before every code, for example ITC-.')}</p>
                     </div>
                     <div class="form-group">
                         <label for="nxf-lengthcode" class="col-md-2 control-label">{Lang::T('Length Code')}</label>
                         <div class="col-md-6">
-                            <input id="nxf-lengthcode" type="text" class="form-control" name="lengthcode" value="12">
+                            <input id="nxf-lengthcode" type="text" class="form-control" name="lengthcode" value="10">
+                        </div>
+                        <p class="help-block col-md-4">{Lang::T('Number of characters after the prefix (digits: at least 6).')}</p>
+                        <div class="hidden">
                         </div>
                     </div>
 
@@ -81,6 +78,15 @@
                     </div>
 
                     <div class="form-group" id="printers" style="display:none;">
+                        <label for="print_format" class="col-md-2 control-label">{Lang::T('Printer')}</label>
+                        <div class="col-md-6">
+                            <select id="print_format" name="print_format" class="form-control">
+                                <option value="thermal80" selected>{Lang::T('Thermal 80 mm')}</option>
+                                <option value="a4">{Lang::T('A4 sheet')}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="printers-a4" style="display:none;">
                         <label for="voucher-print" class="col-md-2 control-label">{Lang::T('Vouchers Per Page')}</label>
                         <div class="col-md-6">
                             <input type="text" id="voucher-print" class="form-control" name="voucher_per_page"
@@ -106,14 +112,20 @@
         var printers = document.getElementById('printers');
         var voucherPrint = document.getElementById('voucher-print');
 
+        var format = document.getElementById('print_format');
+        var a4 = document.getElementById('printers-a4');
+
         voucherPrint.required = false;
         if (printNow.checked) {
             printers.style.display = 'block';
-            voucherPrint.required = true;
+            a4.style.display = format.value === 'a4' ? 'block' : 'none';
+            voucherPrint.required = format.value === 'a4';
         } else {
             printers.style.display = 'none';
+            a4.style.display = 'none';
         }
     }
+    document.addEventListener('change', function (e) { if (e.target && e.target.id === 'print_format') { showVouchersPerPage(); } });
 </script>
 
 {include file="sections/footer.tpl"}

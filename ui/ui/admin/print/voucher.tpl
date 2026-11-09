@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="{$nuxr_lang|default:'ar'}" dir="{$nuxr_dir|default:'rtl'}">
 
 <head>
     <title>{$_title}</title>
@@ -63,23 +63,23 @@
         <form method="post" action="{Text::url('')}plan/print-voucher/" class="no-print">
             <table width="100%" border="0" cellspacing="0" cellpadding="1" class="btn btn-default btn-sm">
                 <tr>
-                    <td>From ID &gt; <input type="text" name="from_id" style="width:40px" value="{$from_id}"> limit
+                    <td>{Lang::T('Printer')} <select name="format"><option value="a4" selected>{Lang::T('A4 sheet')}</option><option value="thermal80">{Lang::T('Thermal 80 mm')}</option></select></td>
+                    <td>{Lang::T('Start after card number')} <input type="text" name="from_id" style="width:40px" value="{$from_id}"> {Lang::T('Number of cards')}
                         <input type="text" name="limit" style="width:40px" value="{$limit}">
                     </td>
-                    <td>Voucher PerLine <input type="text" style="width:40px" name="vpl" value="{$vpl}"> vouchers
+                    <td>{Lang::T('Cards per row')} <input type="text" style="width:40px" name="vpl" value="{$vpl}">
                     </td>
-                    <td>PageBreak after <input type="text" style="width:40px" name="pagebreak" value="{$pagebreak}">
-                        vouchers
+                    <td>{Lang::T('New page after')} <input type="text" style="width:40px" name="pagebreak" value="{$pagebreak}">
                     </td>
-                    <td>Plans <select id="plan_id" name="planid" style="width:50px">
-                            <option value="0">--all--</option>
+                    <td>{Lang::T('Plan')} <select id="plan_id" name="planid" style="width:50px">
+                            <option value="0">{Lang::T('All')}</option>
                             {foreach $plans as $plan}
                                 <option value="{$plan['id']}" {if $plan['id']==$planid}selected{/if}>{$plan['name_plan']|escape}
                                 </option>
                             {/foreach}
                         </select></td>
-                    <td>Date <select id="selected_datetime" name="selected_datetime" style="width:50px">
-                            <option value="">--all--</option>
+                    <td>{Lang::T('Created on')} <select id="selected_datetime" name="selected_datetime" style="width:50px">
+                            <option value="">{Lang::T('All')}</option>
                             {foreach $createdate as $date}
                                 <option value="{$date.created_datetime}"
                                     {if $date.created_datetime eq $selected_datetime}selected{/if}>
@@ -87,14 +87,13 @@
                                 </option>
                             {/foreach}
                         </select></td>
-                    <td><button type="submit">submit</button></td>
+                    <td><button type="submit">{Lang::T('Show')}</button></td>
                 </tr>
             </table>
             <hr>
             <center><button type="button" onclick="window.print()"
                     class="btn btn-default btn-sm no-print">{Lang::T('Click Here to Print')}</button><br>
-                {Lang::T('Print side by side, it will easy to cut')}<br> show {$v|@count} vouchers from {$vc}
-                vouchers<br> from ID {$v[0]['id']} limit {$limit} vouchers
+                {Lang::T('Cards shown')}: {$voucher|@count} &middot; {Lang::T('Unused vouchers in this selection')}: {$vc}
             </center>
         </form>
         <div id="printable" align="center">
