@@ -42,6 +42,10 @@ username-and-password hotspot cards. The finance, activation, pricing and resell
 - **No request to other sites** from the bulk-message, coupons, plan-editor and invoice pages: their libraries are
   served locally (each copy checked against its pinned SRI hash). The coupons table and the plan script editors no
   longer stop with a script error.
+- **Baghdad time on the finance screens:** the ledger, transfers, finance reports, activations and operations show
+  times in the system time zone (Asia/Baghdad) instead of UTC, and the From / To filters are Baghdad days. The CSV
+  exports name the zone in the time column. The database still stores UTC, so stored records and the accounting rules
+  do not change.
 - The version shown is **V1.0.1**.
 
 ### Vouchers
