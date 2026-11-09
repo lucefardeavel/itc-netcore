@@ -1,4 +1,4 @@
-# ITC NetCore V1.0.1: release notes (release candidate)
+# ITC NetCore V1.0.1: release notes
 
 Developed and maintained by **ITC – Integrated Technology Company** · www.itc-iq.net
 
@@ -132,4 +132,7 @@ FreeRADIUS must run with the same time zone (`TZ=Asia/Baghdad`).
 
 ## Status
 
-Release candidate; not production-accepted. `v1.0.0-rc.1` and the frozen V1.0 branch are unchanged.
+Final software release `v1.0.1` (owner decision 2026-11-09), after the candidates `v1.0.1-rc.1` to `v1.0.1-rc.3`.
+It is not yet production-accepted. Before live use: a real MikroTik router for the hotspot sign-in page and the cards,
+a real 80 mm printer, the target acceptance tests (TA-01 to TA-10) and the written legal sign-off (LIC-1), which is
+still pending. `v1.0.0-rc.1` and the frozen V1.0 branch are unchanged.

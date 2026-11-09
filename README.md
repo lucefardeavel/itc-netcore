@@ -9,16 +9,17 @@
 
 **ISP Management & Billing Platform** · <span dir="rtl" lang="ar">منصة إدارة وفوترة مزوّدي خدمة الإنترنت</span>
 
-**V1.0.1 Release Candidate 3** (`v1.0.1-rc.3`) · developed and maintained by **ITC** · not yet production-accepted
+**V1.0.1 final release** (`v1.0.1`) · developed and maintained by **ITC** · not yet production-accepted
 
 ITC – Integrated Technology Company · [www.itc-iq.net](https://www.itc-iq.net)
 
-[العربية](#ar) · [English](#en) · [**Latest release: `v1.0.1-rc.3`**](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1-rc.3) · [Documentation](docs/README.md) · [Release notes](docs/release/RELEASE_NOTES_V1.0.1.md) · [Release status](#release-status)
+[العربية](#ar) · [English](#en) · [**Latest release: `v1.0.1`**](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1) · [Documentation](docs/README.md) · [Release notes](docs/release/RELEASE_NOTES_V1.0.1.md) · [Release status](#release-status)
 
 </div>
 
 > [!IMPORTANT]
-> **ITC NetCore V1.0.1 is a Release Candidate. It is not production-accepted.** The lab verdict is
+> **ITC NetCore V1.0.1 is a final software release (owner decision 2026-11-09). It is not yet production-accepted.**
+> The lab verdict is
 > `LAB_ACCEPTED_WITH_LIMITATIONS` and the release state is `RELEASE_BLOCKED_WITH_EVIDENCE`: the target-environment
 > acceptance tests have not been run, and the legal review (LIC-1) is `BLOCKED — COUNSEL REQUIRED`.
 > See [Release status](#release-status).
@@ -40,11 +41,11 @@ ITC – Integrated Technology Company · [www.itc-iq.net](https://www.itc-iq.net
 - **حصص البيانات:** يُفصل الاستخدام الفعلي عن الاستخدام المحتسب؛ والتجاوز لا يُحتسب ولا يُرحَّل. الإنفاذ **محدود الدقة وليس دقيقاً بالبايت**، ولا يجوز تسويقه على أنه حدّ دقيق بالبايت.
 - **القسائم والتقارير:** قسائم برموز مُقنّعة في الواجهة واسترداد لمرة واحدة، وتقارير المعاملات وسجل التفعيلات وكشوف المحافظ.
 
-**آخر إصدار:** <bdi>[`v1.0.1-rc.3`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1-rc.3)</bdi>، الإصدار المرشّح الثالث من <bdi>V1.0.1</bdi> · [ملاحظات الإصدار](docs/release/RELEASE_NOTES_V1.0.1.md)
+**آخر إصدار:** <bdi>[`v1.0.1`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1)</bdi>، الإصدار النهائي من <bdi>V1.0.1</bdi> · [ملاحظات الإصدار](docs/release/RELEASE_NOTES_V1.0.1.md)
 
 **الجديد في <bdi>V1.0.1</bdi>:** واجهة باسم <bdi>ITC</bdi> فقط وقائمة مبسّطة؛ صفحة دخول للهوتسبوت تُنزَّل من الإعدادات وتُرفع إلى الراوتر؛ كروت هوتسبوت باسم مستخدم وكلمة مرور؛ طباعة الكروت على طابعة حرارية 80 مم؛ أوقات الشاشات المالية بتوقيت بغداد؛ إعدادات العراق الافتراضية عند التثبيت الجديد (الدينار، وتوقيت بغداد، والعربية، ورمز 964).
 
-**حالة الإصدار:** <bdi>V1.0.1</bdi> إصدار مرشّح (<bdi>Release Candidate</bdi>) لم يُقبل بعد للإنتاج. اجتاز اختبارات المختبر المعزول فقط؛ ولم تُجرَ اختبارات البيئة المستهدفة (<bdi>staging</bdi>)؛ وحالة المراجعة القانونية <bdi>LIC-1</bdi> هي <bdi>`BLOCKED — COUNSEL REQUIRED`</bdi>.
+**حالة الإصدار:** <bdi>V1.0.1</bdi> إصدار نهائي للبرنامج بقرار المالك (2026-11-09)، ولم يُقبل بعد للإنتاج. اجتاز اختبارات المختبر المعزول فقط؛ ولم تُجرَ اختبارات البيئة المستهدفة (<bdi>staging</bdi>)؛ وحالة المراجعة القانونية <bdi>LIC-1</bdi> هي <bdi>`BLOCKED — COUNSEL REQUIRED`</bdi>.
 
 **التثبيت الأول** تثبيت جديد على قاعدة بيانات جديدة فارغة، بحزمة التثبيت الجديد [`install/fresh/`](install/fresh/). راجع [دليل التثبيت](docs/guides/install/) و[دليل <bdi>MikroTik</bdi> و<bdi>FreeRADIUS</bdi>](docs/guides/radius-mikrotik/) و[الملف التعريفي للمنتج](docs/guides/product-profile/) و[فهرس الوثائق](docs/README.md).
 
@@ -85,7 +86,7 @@ There is no shared multi-tenant database.
 
 ## New in V1.0.1
 
-Latest pre-release: [`v1.0.1-rc.3`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1-rc.3). Full list and upgrade steps: [V1.0.1 release notes](docs/release/RELEASE_NOTES_V1.0.1.md).
+Latest release: [`v1.0.1`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1). Full list and upgrade steps: [V1.0.1 release notes](docs/release/RELEASE_NOTES_V1.0.1.md).
 
 - **ITC-only interface** and a simple menu of 11 groups organised around daily work; technical pages are under *Advanced*.
 - **Hotspot sign-in page:** download the router's `login.html` from Settings > General > Voucher. It opens the ITC NetCore
@@ -112,7 +113,7 @@ FreeRADIUS 3.2.8, RouterOS CHR 7.24.5). None of it has been verified on a target
 
 V1.0.1 (2026-11-09): unit suite 207 tests, 0 failures. Docker suites on MariaDB 10.11 and MySQL 8.0: 1,729 tests per
 engine for rc.2, with 3 failures fixed and re-run (2 more tests fail only on the Windows test host, which reports file mode
-0777); the finance, activation and interface tests of rc.3, 747 per engine, 0 failures. **Not yet run:** a real MikroTik
+0777); the finance, activation and interface tests of the Baghdad-time change, 747 per engine, 0 failures. **Not yet run:** a real MikroTik
 router for the new hotspot sign-in page and cards, and a real 80 mm printer.
 
 The lab workstation does not prove production capacity. Production sizing is an output of the target acceptance test TA-09.
@@ -323,7 +324,7 @@ residual (see the release notes).
 
 ## Release notes and changelog
 
-- [V1.0.1 release notes](docs/release/RELEASE_NOTES_V1.0.1.md), **latest pre-release [`v1.0.1-rc.3`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1-rc.3)** (maintenance release candidate: ITC-only interface, simple menu, hotspot sign-in page, thermal and username-and-password cards, Baghdad time, Iraq defaults, upgrade steps)
+- [V1.0.1 release notes](docs/release/RELEASE_NOTES_V1.0.1.md), **latest release [`v1.0.1`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1)** (maintenance release: ITC-only interface, simple menu, hotspot sign-in page, thermal and username-and-password cards, Baghdad time, Iraq defaults, upgrade steps)
 - [V1.0 release notes](docs/release/RELEASE_NOTES_V1.0.md) (Release Candidate)
 - [V1.0 changelog entry](docs/release/CHANGELOG_V1.0_entry.md)
 - [CHANGELOG.md](CHANGELOG.md): the history of the code base, followed by the Git history of this repository
@@ -334,7 +335,7 @@ residual (see the release notes).
 
 | Gate | State |
 |---|---|
-| Version | **V1.0.1 Release Candidate 3**, pre-release [`v1.0.1-rc.3`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1-rc.3), on `maint/v1.0.1-itc-only` (built on the frozen V1.0 code `0a8b9d58`, pre-release `v1.0.0-rc.1`); no `v1.0.0` tag |
+| Version | **V1.0.1 final release** [`v1.0.1`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1) (owner decision 2026-11-09), on `maint/v1.0.1-itc-only` (built on the frozen V1.0 code `0a8b9d58`, pre-release `v1.0.0-rc.1`); candidates `v1.0.1-rc.1` … `rc.3` before it; no `v1.0.0` tag |
 | Lab acceptance | `LAB_ACCEPTED_WITH_LIMITATIONS` (isolated lab only) |
 | Target staging, acceptance tests TA-01 … TA-10 | **Not run**: no authorized staging target exists |
 | Legal review LIC-1 | **`BLOCKED — COUNSEL REQUIRED`** |

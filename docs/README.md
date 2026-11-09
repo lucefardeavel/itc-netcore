@@ -1,13 +1,13 @@
 # ITC NetCore documentation
 
 **ISP Management & Billing Platform** · <span dir="rtl" lang="ar">منصة إدارة وفوترة مزوّدي خدمة الإنترنت</span> ·
-V1.0.1 Release Candidate 3 ([`v1.0.1-rc.3`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1-rc.3)) · developed and maintained by ITC
+V1.0.1 final release ([`v1.0.1`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1)) · developed and maintained by ITC
 
 This is the index of the documentation in this repository. Paths are relative to `docs/`. Entries marked
 **added in V1.0** are new folders delivered with the V1.0 release; everything else already exists in the tree.
 
 > [!IMPORTANT]
-> ITC NetCore V1.0.1 is a **Release Candidate, not production-accepted**. Lab verdict `LAB_ACCEPTED_WITH_LIMITATIONS`;
+> ITC NetCore V1.0.1 is a **final software release, not yet production-accepted**. Lab verdict `LAB_ACCEPTED_WITH_LIMITATIONS`;
 > release state `RELEASE_BLOCKED_WITH_EVIDENCE`; target staging not run; LIC-1 `BLOCKED — COUNSEL REQUIRED`.
 > Back to the [project README](../README.md#release-status).
 
@@ -93,7 +93,7 @@ This is the index of the documentation in this repository. Paths are relative to
 
 | Document | Purpose |
 |---|---|
-| [release/RELEASE_NOTES_V1.0.1.md](release/RELEASE_NOTES_V1.0.1.md) | V1.0.1 release notes and upgrade steps (maintenance release candidate; latest pre-release `v1.0.1-rc.3`) |
+| [release/RELEASE_NOTES_V1.0.1.md](release/RELEASE_NOTES_V1.0.1.md) | V1.0.1 release notes and upgrade steps (maintenance release; latest release `v1.0.1`) |
 | [release/RELEASE_NOTES_V1.0.md](release/RELEASE_NOTES_V1.0.md) | V1.0 release notes (Release Candidate) |
 | [release/CHANGELOG_V1.0_entry.md](release/CHANGELOG_V1.0_entry.md) | V1.0 changelog entry |
 | [../CHANGELOG.md](../CHANGELOG.md) | History of the code base |
