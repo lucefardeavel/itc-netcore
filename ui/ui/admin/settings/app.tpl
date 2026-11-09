@@ -89,6 +89,7 @@
                     <div class="col-md-5">
                         <input type="text" class="form-control" id="phone" name="phone" value="{$_c['phone']|escape}">
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('Shown to subscribers on the portal, the receipts and the cards.')}</p>
                 </div>
                 <div class="form-group">
                     <label for="note" class="col-md-3 control-label">{Lang::T('Invoice Footer')}</label>
@@ -328,6 +329,7 @@
                             </option>
                         </select>
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('What a subscriber uses as the user name when registering.')}</p>
                 </div>
                 <div class="form-group">
                     <label for="photo_register" class="col-md-3 control-label">{Lang::T('Photo Required')}</label>
@@ -506,20 +508,15 @@
                     <label for="voucher_format" class="col-md-3 control-label">{Lang::T('Voucher Format')}</label>
                     <div class="col-md-5">
                         <select name="voucher_format" id="voucher_format" class="form-control">
-                            <option value="up" {if $_c['voucher_format']=='up' }selected="selected" {/if}>UPPERCASE
-                            </option>
-                            <option value="low" {if $_c['voucher_format']=='low' }selected="selected" {/if}>
-                                lowercase
-                            </option>
-                            <option value="rand" {if $_c['voucher_format']=='rand' }selected="selected" {/if}>
-                                RaNdoM
-                            </option>
-                            <option value="numbers" {if $_c['voucher_format']=='numbers' }selected="selected" {/if}>
-                                Numbers
-                            </option>
+                            <option value="up" {if $_c['voucher_format']=='up' }selected="selected" {/if}>{Lang::T('Capital letters (ABC)')}</option>
+                            <option value="low" {if $_c['voucher_format']=='low' }selected="selected" {/if}>{Lang::T('Small letters (abc)')}</option>
+                            <option value="rand" {if $_c['voucher_format']=='rand' }selected="selected" {/if}>{Lang::T('Mixed letters (aBc)')}</option>
+                            <option value="numbers" {if $_c['voucher_format']=='numbers' }selected="selected" {/if}>{Lang::T('Numbers only (123)')}</option>
                         </select>
                     </div>
-                    <p class="help-block col-md-4">UPPERCASE lowercase RaNdoM</p>
+                    <p class="help-block col-md-4">
+                        {Lang::T('How the letters of new card codes are written. Numbers only are the easiest to type on a phone.')}
+                    </p>
                 </div>
                 {if $_c['disable_voucher'] != 'yes'}
                     <div class="form-group">
@@ -562,7 +559,7 @@
             <h4 class="panel-title">
                 <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
                     href="#collapseFreeRadius" aria-expanded="false" aria-controls="collapseFreeRadius">
-                    {Lang::T('FreeRADIUS')}
+                    {Lang::T('RADIUS')}
                 </a>
             </h4>
         </div>
@@ -577,6 +574,7 @@
                             </option>
                         </select>
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('On when a RADIUS server gives the internet to the subscribers (the usual setup).')}</p>
                 </div>
                 <button class="btn btn-success btn-block" type="submit">
                     {Lang::T('Save Changes')}
@@ -614,6 +612,7 @@
                         <input id="nxf-extend_days" type="text" class="form-control" name="extend_days" placeholder="3"
                             value="{$_c['extend_days']}">
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('How many days an expired subscriber may extend the service before paying.')}</p>
                 </div>
                 <div class="form-group">
                     <label for="nxf-extend_confirmation" class="col-md-3 control-label">{Lang::T('Confirmation Message')}</label>
@@ -621,6 +620,7 @@
                         <textarea id="nxf-extend_confirmation" type="text" rows="4" class="form-control" name="extend_confirmation"
                             placeholder="{Lang::T('i agree to extends and will paid full after this')}">{$_c['extend_confirmation']}</textarea>
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('The text the subscriber agrees to before extending.')}</p>
                 </div>
                 <button class="btn btn-success btn-block" type="submit">
                     {Lang::T('Save Changes')}
@@ -673,6 +673,7 @@
                         <input type="number" class="form-control" id="minimum_transfer" name="minimum_transfer"
                             value="{$_c['minimum_transfer']}">
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('The smallest amount a subscriber can send to another subscriber.')}</p>
                 </div>
                 <div class="form-group">
                     <label for="allow_balance_custom" class="col-md-3 control-label">{Lang::T('Allow Balance Custom
@@ -720,6 +721,7 @@
                             onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek
                             value="" autocomplete="new-password" data-nuxr-secret="set" title="{Lang::T('Stored value is hidden. Leave empty to keep it.')}" placeholder="123456:asdasgdkuasghddlashdashldhalskdklasd">
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('The token that @BotFather gives in Telegram when you create a bot.')}</p>
                 </div>
                 <div class="form-group">
                     <label for="telegram_target_id" class="col-md-3 control-label">{Lang::T('Telegram User/Channel/Group ID')}</label>
@@ -727,6 +729,7 @@
                         <input type="text" class="form-control" id="telegram_target_id" name="telegram_target_id"
                             value="{$_c['telegram_target_id']}" placeholder="12345678">
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('Where the system sends notices for the administrators.')}</p>
                 </div>
                 <small id="emailHelp" class="form-text text-muted">
                     {Lang::T('You will get Payment and Error notification')}
@@ -855,6 +858,7 @@
                         <input type="text" class="form-control" id="smtp_user" name="smtp_user"
                             value="{$_c['smtp_user']}" placeholder="user@host.tld">
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('The email account the system sends from (from your email provider).')}</p>
                 </div>
                 <div class="form-group">
                     <label for="smtp_pass" class="col-md-3 control-label">{Lang::T('SMTP Password')}</label>
@@ -863,6 +867,7 @@
                             value="" autocomplete="new-password" data-nuxr-secret="set" title="{Lang::T('Stored value is hidden. Leave empty to keep it.')}" onmouseleave="this.type = 'password'"
                             onmouseenter="this.type = 'text'" data-nuxr-peek>
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('The password or app password of that email account. Leave empty to keep the saved one.')}</p>
                 </div>
                 <div class="form-group">
                     <label for="smtp_ssltls" class="col-md-3 control-label">{Lang::T('SMTP Security')}</label>
@@ -876,7 +881,9 @@
                             </option>
                         </select>
                     </div>
-                    <p class="help-block col-md-4">UPPERCASE lowercase RaNdoM</p>
+                    <p class="help-block col-md-4">
+                        {Lang::T('Use what your email provider gives (usually SSL on port 465 or TLS on port 587).')}
+                    </p>
                 </div>
                 <div class="form-group">
                     <label for="mail_from" class="col-md-3 control-label">Mail {Lang::T('From')}</label>
@@ -959,6 +966,7 @@
                                 {/if}>{Lang::T('By Email')}</option>
                         </select>
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('A message to subscribers before their service ends.')}</p>
                 </div>
                 <div class="form-group">
                     <label class="col-md-3 control-label">{Lang::T('Reminder Notify Intervals')}</label><br>
@@ -1060,6 +1068,7 @@
                         <input type="text" class="form-control" id="http_proxy" name="http_proxy"
                             value="{$_c['http_proxy']}" placeholder="127.0.0.1:3128">
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('Only if this server reaches the internet through a proxy. Leave empty otherwise.')}</p>
                 </div>
                 <div class="form-group">
                     <label for="http_proxyauth" class="col-md-3 control-label">{Lang::T('Proxy Server Login')}</label>
@@ -1068,6 +1077,7 @@
                             value="" autocomplete="new-password" data-nuxr-secret="set" title="{Lang::T('Stored value is hidden. Leave empty to keep it.')}" placeholder="username:password"
                             onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek>
                     </div>
+                    <p class="help-block col-md-4">{Lang::T('User name and password of that proxy, if it asks for them.')}</p>
                 </div>
                 <button class="btn btn-success btn-block" type="submit">
                     {Lang::T('Save Changes')}

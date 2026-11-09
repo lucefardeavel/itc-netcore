@@ -25,6 +25,7 @@
                                 {/foreach}
                             </select>
                         </div>
+                    <p class="help-block col-md-4">{Lang::T('Times of subscriptions and receipts use this zone (Iraq: Asia/Baghdad).')}</p>
                     </div>
                     <div class="form-group">
                         <label for="date_format" class="col-md-2 control-label">{Lang::T('Date Format')}</label>
@@ -50,6 +51,7 @@
                                     {date('jS M y')}</option>
                             </select>
                         </div>
+                    <p class="help-block col-md-4">{Lang::T('How dates are shown on the pages and the receipts.')}</p>
                     </div>
                     <div class="form-group">
                         <label for="lan" class="col-md-2 control-label">{Lang::T('Default Language')}</label>
@@ -79,6 +81,7 @@
                             <input type="text" class="form-control" id="dec_point" name="dec_point"
                                 value="{$_c['dec_point']}">
                         </div>
+                    <p class="help-block col-md-4">{Lang::T('The sign before the fils part of a price.')}</p>
                     </div>
                     <div class="form-group">
                         <label for="thousands_sep" class="col-md-2 control-label">{Lang::T('Thousands Separator')}</label>
@@ -86,6 +89,7 @@
                             <input type="text" class="form-control" id="thousands_sep" name="thousands_sep"
                                 value="{$_c['thousands_sep']}">
                         </div>
+                    <p class="help-block col-md-4">{Lang::T('The sign between thousands, as in 25,000.')}</p>
                     </div>
                     <div class="form-group">
                         <label for="currency_code" class="col-md-2 control-label">{Lang::T('Currency Code')}</label>
@@ -105,6 +109,7 @@
                                     name="country_code_phone" value="{$_c['country_code_phone']}">
                             </div>
                         </div>
+                    <p class="help-block col-md-4">{Lang::T('Added before subscriber phone numbers for messages (Iraq: 964).')}</p>
                     </div>
                     <hr>
                     <div class="form-group">
