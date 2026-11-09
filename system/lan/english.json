@@ -649,5 +649,9 @@
     "Download_the_router_login_page": "Download the router login page",
     "Put_login_html_in_the_hotspot_folder_of_the_router_and_add_the_address_of_this_system_to_the_walled_garden__so_it_opens_before_sign_in_": "Put login.html in the hotspot folder of the router and add the address of this system to the walled garden, so it opens before sign-in.",
     "Hotspot_router_names": "Hotspot router names",
-    "Only_when_the_hotspot_uses_a_name_instead_of_an_IP_address__its_DNS_name__e_g__login_itc___Internal_IP_addresses_work_without_it__Separate_names_with_commas_": "Only when the hotspot uses a name instead of an IP address (its DNS name, e.g. login.itc). Internal IP addresses work without it. Separate names with commas."
+    "Only_when_the_hotspot_uses_a_name_instead_of_an_IP_address__its_DNS_name__e_g__login_itc___Internal_IP_addresses_work_without_it__Separate_names_with_commas_": "Only when the hotspot uses a name instead of an IP address (its DNS name, e.g. login.itc). Internal IP addresses work without it. Separate names with commas.",
+    "Sales_report": "Sales report",
+    "Continue_adding_this_user_": "Continue adding this user?",
+    "The_lowest_price_the_company_takes_from_resellers_for_this_plan__Resellers_cannot_sell_the_plan_until_it_is_set_": "The lowest price the company takes from resellers for this plan. Resellers cannot sell the plan until it is set.",
+    "When_on__resellers_can_activate_this_plan_for_their_subscribers_from_their_wallets_": "When on, resellers can activate this plan for their subscribers from their wallets."
 }

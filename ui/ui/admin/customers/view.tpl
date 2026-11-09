@@ -112,11 +112,11 @@
                 <h3 id="nuxr-service">{Lang::T('Service')}</h3>
                 {if $nuxr_can_activate}
                     <a class="nuxr-btn nuxr-btn-primary nuxr-hide-phone" href="{Text::url('activation/create')}&customer={$d['id']}"{if $nuxr_flags.in_flight} aria-disabled="true" tabindex="-1" onclick="return false"{/if}>
-                        <i class="fa fa-bolt" aria-hidden="true"></i>{if $packages}{Lang::T('Renew / change plan')}{else}{Lang::T('Activate')}{/if}</a>
+                        <i class="fa fa-bolt" aria-hidden="true"></i>{if $packages|@count > 0}{Lang::T('Renew / change plan')}{else}{Lang::T('Activate')}{/if}</a>
                 {/if}
             </div>
             <div class="nuxr-card-body">
-                {if $packages}
+                {if $packages|@count > 0}
                     {foreach $packages as $package}
                         {assign var=pdays value=NuxrUi::daysUntil($package['expiration'])}
                         <div style="{if !$package@last}padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--nx-border){/if}">
@@ -306,7 +306,7 @@
 {if $nuxr_can_activate}
     <div class="nuxr-actionbar nuxr-only-phone">
         <a class="nuxr-btn nuxr-btn-primary" href="{Text::url('activation/create')}&customer={$d['id']}"{if $nuxr_flags.in_flight} aria-disabled="true" tabindex="-1" onclick="return false"{/if}>
-            <i class="fa fa-bolt" aria-hidden="true"></i>{if $packages}{Lang::T('Renew / change plan')}{else}{Lang::T('Activate')}{/if}</a>
+            <i class="fa fa-bolt" aria-hidden="true"></i>{if $packages|@count > 0}{Lang::T('Renew / change plan')}{else}{Lang::T('Activate')}{/if}</a>
     </div>
 {/if}
 </div>

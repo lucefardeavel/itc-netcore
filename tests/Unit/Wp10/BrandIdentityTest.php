@@ -39,7 +39,7 @@ final class BrandIdentityTest extends TestCase
 
     public function testTheApprovedIdentity(): void
     {
-        $this->assertSame(['ITC NetCore', 'ITC', 'NetCore', 'ISP Management & Billing Platform', 'V1.0', 'ITC'],
+        $this->assertSame(['ITC NetCore', 'ITC', 'NetCore', 'ISP Management & Billing Platform', 'V1.0.1', 'ITC'],
             [Brand::NAME, Brand::BRAND, Brand::PRODUCT, Brand::TAGLINE, Brand::VERSION, Brand::VENDOR]);
         $this->assertSame(Brand::NAME, Brand::BRAND . ' ' . Brand::PRODUCT);
         $this->assertSame(['PHPNuxBill', 'iBNuX', 'https://github.com/hotspotbilling/phpnuxbill'], [Brand::UPSTREAM, Brand::UPSTREAM_AUTHOR, Brand::UPSTREAM_URL]);

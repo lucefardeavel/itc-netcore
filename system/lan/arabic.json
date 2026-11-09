@@ -65,7 +65,7 @@
   "Current_Password": "كلمة المرور الحالية",
   "New_Password": "كلمة المرور الجديدة",
   "Administrator": "مدير النظام",
-  "Sales": "مبيعات",
+  "Sales": "مندوب المبيعات",
   "Member": "عضو",
   "Confirm_New_Password": "تأكيد كلمة المرور الجديدة",
   "Confirm_Password": "تأكيد كلمة المرور",
@@ -1868,7 +1868,7 @@
   "Edit_Service_Package": "تعديل باقة الخدمة",
   "Topup": "شحن",
   "New_Service_Package": "باقة خدمة جديدة",
-  "None__top_level_Agent_": "لا يوجد (وكيل في المستوى الأعلى)",
+  "None__top_level_Agent_": "لا يوجد (موزّع في المستوى الأعلى)",
   "Required_for_Sales__optional_for_Agents_": "إلزامي للمندوب، واختياري للوكيل.",
   "New_accounts_are_created_as_your_direct_children_": "تُنشأ الحسابات الجديدة تابعة لك مباشرة.",
   "Don_t_Send": "لا ترسل",
@@ -2261,5 +2261,9 @@
   "Download_the_router_login_page": "تنزيل صفحة دخول الراوتر",
   "Put_login_html_in_the_hotspot_folder_of_the_router_and_add_the_address_of_this_system_to_the_walled_garden__so_it_opens_before_sign_in_": "ضع الملف login.html في مجلد hotspot على الراوتر، وأضف عنوان هذا النظام إلى Walled Garden حتى يفتح قبل تسجيل الدخول.",
   "Hotspot_router_names": "أسماء الهوتسبوت",
-  "Only_when_the_hotspot_uses_a_name_instead_of_an_IP_address__its_DNS_name__e_g__login_itc___Internal_IP_addresses_work_without_it__Separate_names_with_commas_": "فقط إذا كان الهوتسبوت يستخدم اسماً بدل عنوان IP (اسم DNS مثل login.itc). العناوين الداخلية تعمل بدون هذا الحقل. افصل الأسماء بفاصلة."
+  "Only_when_the_hotspot_uses_a_name_instead_of_an_IP_address__its_DNS_name__e_g__login_itc___Internal_IP_addresses_work_without_it__Separate_names_with_commas_": "فقط إذا كان الهوتسبوت يستخدم اسماً بدل عنوان IP (اسم DNS مثل login.itc). العناوين الداخلية تعمل بدون هذا الحقل. افصل الأسماء بفاصلة.",
+  "Sales_report": "تقرير المبيعات",
+  "Continue_adding_this_user_": "متابعة إضافة المستخدم؟",
+  "The_lowest_price_the_company_takes_from_resellers_for_this_plan__Resellers_cannot_sell_the_plan_until_it_is_set_": "أقل سعر تأخذه الشركة من الموزّعين لهذه الباقة. لا يستطيع الموزّعون بيع الباقة قبل تحديده.",
+  "When_on__resellers_can_activate_this_plan_for_their_subscribers_from_their_wallets_": "عند التشغيل يستطيع الموزّعون تفعيل هذه الباقة لمشتركيهم من محافظهم."
 }

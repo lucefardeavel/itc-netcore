@@ -1,6 +1,6 @@
 {* lab UX-2: a reseller-managed customer (manager_id set) is refused deactivate / extend / recharge / order (OD-11);
    those entry points are not offered (the server-side refusal is unchanged); $nuxr_owned is assigned by User::_info *}
-{if $_bills}
+{if $_bills|@count > 0}
     <div class="box box-primary box-solid">
         {foreach $_bills as $_bill}
             {if $_bill['routers'] != 'radius'}

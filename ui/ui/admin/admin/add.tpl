@@ -98,7 +98,7 @@
             </div>
         </div>
     </div>
-    {include file="admin/nuxr/actionbar.tpl" nuxr_submit='Save Changes' nuxr_ask='Continue the process of adding Admin?' nuxr_cancel='settings/users'}
+    {include file="admin/nuxr/actionbar.tpl" nuxr_submit='Save Changes' nuxr_ask='Continue adding this user?' nuxr_cancel='settings/users'}
 </form>
 {literal}
     <script>

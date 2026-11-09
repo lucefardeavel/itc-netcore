@@ -193,6 +193,7 @@ switch ($action) {
         $ui->assign('nuxr_refill', $nuxrForm);
         run_hook('view_add_customer'); #HOOK
         $ui->assign('csrf_token',  Csrf::generateAndStoreToken());
+        $ui->assign('_title', Lang::T('Add subscriber'));
         $ui->display('admin/customers/add.tpl');
         break;
     case 'recharge':

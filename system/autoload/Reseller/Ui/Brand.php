@@ -25,7 +25,7 @@ final class Brand
     /** The product word of the name (NAME = BRAND . ' ' . PRODUCT; guard-tested). */
     public const PRODUCT = 'NetCore';
     public const TAGLINE = 'ISP Management & Billing Platform';
-    public const VERSION = 'V1.0';
+    public const VERSION = 'V1.0.1';
     /** Developed and maintained by. */
     public const VENDOR = 'ITC';
     /** Interim text mark (no final logo is decided). */

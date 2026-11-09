@@ -125,6 +125,8 @@
                                 {/if}
                             </td>
                         </tr>
+                    {foreachelse}
+                        <tr><td colspan="12" class="text-center text-muted">{Lang::T('No records.')}</td></tr>
                     {/foreach}
                 </tbody>
             </table>

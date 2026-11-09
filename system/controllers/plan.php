@@ -1347,7 +1347,7 @@ switch ($action) {
         }
         break;
     default:
-        $ui->assign('_title', Lang::T('Customer'));
+        $ui->assign('_title', Lang::T('Active subscriptions'));
         $search = _post('search');
         $status = _req('status');
         $router = _req('router');

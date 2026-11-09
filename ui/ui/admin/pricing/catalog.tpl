@@ -9,8 +9,8 @@
     <a class="nuxr-btn" href="{Text::url('pricing/catalog/', $c.target.id, '&format=csv')}"><i class="fa fa-download" aria-hidden="true"></i>{Lang::T('Export CSV')}</a>
 </div>
 <div class="nuxr-alert is-info" role="note"><i class="fa fa-info-circle" aria-hidden="true"></i>
-    <div><strong>{Lang::T('Wholesale (reseller cost)')}</strong>: {Lang::T('what this reseller pays from its wallet for one activation.')}
-        <strong>{Lang::T('Retail (customer price)')}</strong>: {Lang::T('what the subscriber pays.')}</div></div>
+    <div><span><strong>{Lang::T('Wholesale (reseller cost)')}:</strong> {Lang::T('what this reseller pays from its wallet for one activation.')}</span><br>
+        <span><strong>{Lang::T('Retail (customer price)')}:</strong> {Lang::T('what the subscriber pays.')}</span></div></div>
 <section class="nuxr-card">
     {if $c.rows}
         <div class="nuxr-adaptive is-lg">

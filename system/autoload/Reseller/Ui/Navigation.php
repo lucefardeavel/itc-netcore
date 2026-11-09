@@ -78,7 +78,7 @@ final class Navigation
             ['finance/transfers', 'Transfers', 'fa-exchange', true, ['finance/transfers', 'finance/transfer', 'finance/reverse']],
         ], null, null);
         $groups[] = self::group('reports', 'Reports', 'fa-bar-chart', $a, $current, [
-            ['finance/sales', 'Sales', 'fa-line-chart', true],
+            ['finance/sales', 'Sales report', 'fa-line-chart', true],
             ['finance/commissions', 'Commissions', 'fa-percent', true],
             ['finance/settlement', 'Provider settlement', 'fa-balance-scale', $admin],
             ['finance/performance', 'Reseller performance', 'fa-trophy', true],
