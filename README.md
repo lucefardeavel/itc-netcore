@@ -13,7 +13,7 @@
 
 ITC – Integrated Technology Company · [www.itc-iq.net](https://www.itc-iq.net)
 
-[العربية](#ar) · [English](#en) · [Documentation](docs/README.md) · [Release notes](docs/release/RELEASE_NOTES_V1.0.1.md) · [Release status](#release-status)
+[العربية](#ar) · [English](#en) · [**Latest release: `v1.0.1-rc.3`**](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1-rc.3) · [Documentation](docs/README.md) · [Release notes](docs/release/RELEASE_NOTES_V1.0.1.md) · [Release status](#release-status)
 
 </div>
 
@@ -39,6 +39,10 @@ ITC – Integrated Technology Company · [www.itc-iq.net](https://www.itc-iq.net
 - **الشبكة:** سياسات <bdi>FreeRADIUS 3.2</bdi> (انتهاء الصلاحية، والجلسات المتزامنة، وحدود السرعة، ومجمّعات العناوين)، وأوامر الفصل وتغيير التفويض (<bdi>Disconnect / CoA</bdi>) لأجهزة <bdi>MikroTik</bdi>.
 - **حصص البيانات:** يُفصل الاستخدام الفعلي عن الاستخدام المحتسب؛ والتجاوز لا يُحتسب ولا يُرحَّل. الإنفاذ **محدود الدقة وليس دقيقاً بالبايت**، ولا يجوز تسويقه على أنه حدّ دقيق بالبايت.
 - **القسائم والتقارير:** قسائم برموز مُقنّعة في الواجهة واسترداد لمرة واحدة، وتقارير المعاملات وسجل التفعيلات وكشوف المحافظ.
+
+**آخر إصدار:** <bdi>[`v1.0.1-rc.3`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1-rc.3)</bdi>، الإصدار المرشّح الثالث من <bdi>V1.0.1</bdi> · [ملاحظات الإصدار](docs/release/RELEASE_NOTES_V1.0.1.md)
+
+**الجديد في <bdi>V1.0.1</bdi>:** واجهة باسم <bdi>ITC</bdi> فقط وقائمة مبسّطة؛ صفحة دخول للهوتسبوت تُنزَّل من الإعدادات وتُرفع إلى الراوتر؛ كروت هوتسبوت باسم مستخدم وكلمة مرور؛ طباعة الكروت على طابعة حرارية 80 مم؛ أوقات الشاشات المالية بتوقيت بغداد؛ إعدادات العراق الافتراضية عند التثبيت الجديد (الدينار، وتوقيت بغداد، والعربية، ورمز 964).
 
 **حالة الإصدار:** <bdi>V1.0.1</bdi> إصدار مرشّح (<bdi>Release Candidate</bdi>) لم يُقبل بعد للإنتاج. اجتاز اختبارات المختبر المعزول فقط؛ ولم تُجرَ اختبارات البيئة المستهدفة (<bdi>staging</bdi>)؛ وحالة المراجعة القانونية <bdi>LIC-1</bdi> هي <bdi>`BLOCKED — COUNSEL REQUIRED`</bdi>.
 
@@ -68,7 +72,7 @@ There is no shared multi-tenant database.
 
 ## What it does
 
-| Area | In V1.0 |
+| Area | In V1.0.1 |
 |---|---|
 | Resellers | A hierarchy of Agents and sub-agents to any depth, with Sales accounts as leaves; each account sees and acts only on its own scope |
 | Subscribers | Created by Admins, Agents and Sales accounts; PPPoE, Hotspot and RADIUS-device plans |
@@ -78,6 +82,22 @@ There is no shared multi-tenant database.
 | Usage | Data and time quotas per billing period, with actual usage kept separate from billable usage |
 | Vouchers and reports | Admin-generated vouchers with masked codes; transaction, activation and ledger reports |
 | Operations | Migration runner, health checks, release preflight, backup / restore and recovery runbooks, least-privilege database accounts |
+
+## New in V1.0.1
+
+Latest pre-release: [`v1.0.1-rc.3`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1-rc.3). Full list and upgrade steps: [V1.0.1 release notes](docs/release/RELEASE_NOTES_V1.0.1.md).
+
+- **ITC-only interface** and a simple menu of 11 groups organised around daily work; technical pages are under *Advanced*.
+- **Hotspot sign-in page:** download the router's `login.html` from Settings > General > Voucher. It opens the ITC NetCore
+  card page, activates the card and signs the device in.
+- **Username-and-password hotspot cards** (migration R0008) and **80 mm thermal card printing** (the A4 sheet stays).
+- **Baghdad time:** finance and reseller screens and CSV exports show times in the application time zone; the from / to
+  filters are local days. Storage stays UTC.
+- **Get started card** on the administrator dashboard after a fresh install, and **Iraq defaults** (dinar,
+  Asia/Baghdad, Arabic, 964).
+- **No requests to other sites:** jQuery, DataTables, CodeMirror and jsPDF are served locally, each checked against its SRI hash.
+
+The finance, activation, pricing and reseller logic is unchanged from V1.0.
 
 ## Key verified capabilities
 
@@ -90,20 +110,25 @@ FreeRADIUS 3.2.8, RouterOS CHR 7.24.5). None of it has been verified on a target
 - Backup / restore drill, bounded load, deadlock study and accounting load through FreeRADIUS: passed on both engines.
 - Final-prep work of 2026-10-29 (after the candidate), each on both engines: the [`install/fresh/`](install/fresh/) package on a disposable instance (install exit 0, post-install verify 67 / 0 / 0, 8 / 8 refusal cases; the proof is run on every release candidate on MariaDB 10.11 and MySQL 8.0, and the result for this release is in the handover package, `08_Acceptance_Handover/FRESH_INSTALL_PROOF`); the [`install/backup/`](install/backup/) point-in-time recovery drill on a small synthetic database (identical copy at the chosen time, 0 rows lost after a dropped database); R-HF-CARRY-01 rounds 1–3, the UI / Arabic-label fixes and the preflight fixes G-4 and G-1 through targeted harness runs (the browser matrix and CHR suites were not re-run on them).
 
+V1.0.1 (2026-11-09): unit suite 207 tests, 0 failures. Docker suites on MariaDB 10.11 and MySQL 8.0: 1,729 tests per
+engine for rc.2, with 3 failures fixed and re-run (2 more tests fail only on the Windows test host, which reports file mode
+0777); the finance, activation and interface tests of rc.3, 747 per engine, 0 failures. **Not yet run:** a real MikroTik
+router for the new hotspot sign-in page and cards, and a real 80 mm printer.
+
 The lab workstation does not prove production capacity. Production sizing is an output of the target acceptance test TA-09.
 
 ## Roles and access
 
 Permissions and data scope are checked on the server for every request. Anything not granted is denied.
 
-| Role | Data scope | What it can do in V1.0 |
+| Role | Data scope | What it can do in V1.0.1 |
 |---|---|---|
 | **SuperAdmin** | Whole instance | Everything an Admin can do, plus the web backup download and the system settings reserved to SuperAdmin. Restore is done at database level (`install/backup/nuxr-restore.sh`); the web restore is refused on reseller installations |
 | **Admin** | Whole instance | Subscribers, plans, pricing, vouchers, reseller tree, wallet funding and withdrawal, debt limits, adjustments, activation reversal, reports. No backup / restore and no code-execution surfaces |
 | **Agent** (reseller) | Own subtree | Creates subscribers; activates and renews its own subscribers from its own wallet; transfers credit to its direct children; sets its children's wholesale prices and its own retail price; reads its subtree's wallets, ledger and activations |
 | **Sub-agent** | Own subtree | An Agent placed under another Agent: the same capabilities inside its own branch, funded by its parent |
 | **Sales** | Subscribers explicitly assigned to it | Creates and activates its assigned subscribers; the cost is charged to its parent Agent's wallet |
-| **Report** | Self only | Signs in, sees an empty dashboard and its own profile. **No data views in V1.0** |
+| **Report** | Self only | Signs in, sees an empty dashboard and its own profile. **No data views in V1.0.1** |
 | Subscriber (portal) | Own account | Self-service portal pages, voucher redemption |
 
 Agents and Sales accounts cannot edit, deactivate, delete or re-sync subscribers after creation, and cannot generate
@@ -298,7 +323,7 @@ residual (see the release notes).
 
 ## Release notes and changelog
 
-- [V1.0.1 release notes](docs/release/RELEASE_NOTES_V1.0.1.md) (maintenance release candidate: ITC-only interface, simple menu, thermal and username-and-password cards, Iraq defaults, upgrade steps)
+- [V1.0.1 release notes](docs/release/RELEASE_NOTES_V1.0.1.md), **latest pre-release [`v1.0.1-rc.3`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1-rc.3)** (maintenance release candidate: ITC-only interface, simple menu, hotspot sign-in page, thermal and username-and-password cards, Baghdad time, Iraq defaults, upgrade steps)
 - [V1.0 release notes](docs/release/RELEASE_NOTES_V1.0.md) (Release Candidate)
 - [V1.0 changelog entry](docs/release/CHANGELOG_V1.0_entry.md)
 - [CHANGELOG.md](CHANGELOG.md): the history of the code base, followed by the Git history of this repository
@@ -309,7 +334,7 @@ residual (see the release notes).
 
 | Gate | State |
 |---|---|
-| Version | **V1.0.1 Release Candidate** on `maint/v1.0.1-itc-only` (built on the frozen V1.0 code `0a8b9d58`, pre-release `v1.0.0-rc.1`); no `v1.0.0` tag |
+| Version | **V1.0.1 Release Candidate 3**, pre-release [`v1.0.1-rc.3`](https://github.com/lucefardeavel/itc-netcore/releases/tag/v1.0.1-rc.3), on `maint/v1.0.1-itc-only` (built on the frozen V1.0 code `0a8b9d58`, pre-release `v1.0.0-rc.1`); no `v1.0.0` tag |
 | Lab acceptance | `LAB_ACCEPTED_WITH_LIMITATIONS` (isolated lab only) |
 | Target staging, acceptance tests TA-01 … TA-10 | **Not run**: no authorized staging target exists |
 | Legal review LIC-1 | **`BLOCKED — COUNSEL REQUIRED`** |
