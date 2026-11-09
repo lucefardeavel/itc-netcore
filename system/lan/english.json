@@ -654,5 +654,19 @@
     "Continue_adding_this_user_": "Continue adding this user?",
     "The_lowest_price_the_company_takes_from_resellers_for_this_plan__Resellers_cannot_sell_the_plan_until_it_is_set_": "The lowest price the company takes from resellers for this plan. Resellers cannot sell the plan until it is set.",
     "When_on__resellers_can_activate_this_plan_for_their_subscribers_from_their_wallets_": "When on, resellers can activate this plan for their subscribers from their wallets.",
-    "Refresh_connection": "Refresh connection"
+    "Refresh_connection": "Refresh connection",
+    "Get_started": "Get started",
+    "A_few_steps_to_make_the_system_ready_for_your_subscribers_": "A few steps to make the system ready for your subscribers.",
+    "Company_name_and_phone": "Company name and phone",
+    "Shown_on_the_portal__the_receipts_and_the_cards_": "Shown on the portal, the receipts and the cards.",
+    "Company_logo": "Company logo",
+    "Printed_on_the_cards_and_shown_on_the_sign_in_pages_": "Printed on the cards and shown on the sign-in pages.",
+    "Router_or_RADIUS_device": "Router or RADIUS device",
+    "The_device_that_gives_the_internet_to_the_subscribers_": "The device that gives the internet to the subscribers.",
+    "Plans": "Plans",
+    "The_packages_you_sell__speed__period_and_price__": "The packages you sell (speed, period and price).",
+    "Only_if_resellers_sell_your_plans_": "Only if resellers sell your plans.",
+    "optional": "optional",
+    "Done": "Done",
+    "Not_done_yet": "Not done yet"
 }

@@ -61,6 +61,8 @@ if (!$nuxrWidgetsView) {
     $ui->assign('nuxr_home', \Reseller\Ui\Dashboard::foundation($nuxrActor));
     // WP6B (OD-3): finance tiles through the Backoffice gateway (null without wallet.read)
     $ui->assign('nuxr_finance', \Reseller\Backoffice\WalletDesk::dashboard($nuxrActor));
+    // V1.0.1: "Get started" after a fresh install (administrators only; empty once the required steps are done)
+    $ui->assign('nuxr_setup', \Reseller\Security\PermissionService::can($nuxrActor, \Reseller\Security\Capability::SYSTEM_ADMIN) ? \Reseller\Ui\SetupGuide::build(\Reseller\Ui\SetupGuide::facts($config, $UPLOAD_PATH)) : []);
     $ui->assign('_title', Lang::T('Dashboard'));
     run_hook('view_dashboard'); #HOOK
     $ui->display('admin/dashboard.tpl');

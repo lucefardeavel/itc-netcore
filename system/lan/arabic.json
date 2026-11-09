@@ -2266,5 +2266,17 @@
   "Continue_adding_this_user_": "متابعة إضافة المستخدم؟",
   "The_lowest_price_the_company_takes_from_resellers_for_this_plan__Resellers_cannot_sell_the_plan_until_it_is_set_": "أقل سعر تأخذه الشركة من الموزّعين لهذه الباقة. لا يستطيع الموزّعون بيع الباقة قبل تحديده.",
   "When_on__resellers_can_activate_this_plan_for_their_subscribers_from_their_wallets_": "عند التشغيل يستطيع الموزّعون تفعيل هذه الباقة لمشتركيهم من محافظهم.",
-  "Refresh_connection": "تحديث الاتصال"
+  "Refresh_connection": "تحديث الاتصال",
+  "Get_started": "خطوات البدء",
+  "A_few_steps_to_make_the_system_ready_for_your_subscribers_": "خطوات قليلة ليصبح النظام جاهزاً لمشتركيك.",
+  "Company_name_and_phone": "اسم الشركة ورقم الهاتف",
+  "Shown_on_the_portal__the_receipts_and_the_cards_": "يظهر في بوابة المشترك والإيصالات والبطاقات.",
+  "Company_logo": "شعار الشركة",
+  "Printed_on_the_cards_and_shown_on_the_sign_in_pages_": "يُطبع على البطاقات ويظهر في صفحات الدخول.",
+  "Router_or_RADIUS_device": "الراوتر أو جهاز RADIUS",
+  "The_device_that_gives_the_internet_to_the_subscribers_": "الجهاز الذي يوصل الإنترنت للمشتركين.",
+  "The_packages_you_sell__speed__period_and_price__": "الباقات التي تبيعها (السرعة والمدة والسعر).",
+  "Only_if_resellers_sell_your_plans_": "فقط إذا كان لديك موزّعون يبيعون باقاتك.",
+  "Done": "تم",
+  "Not_done_yet": "لم يتم بعد"
 }

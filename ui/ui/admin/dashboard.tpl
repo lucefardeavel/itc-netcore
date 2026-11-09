@@ -10,6 +10,7 @@
 {/if}
 {if !$nuxr_widgets_view}
     {assign var=h value=$nuxr_home}
+    {if $nuxr_setup|default:[]}{include file="admin/nuxr/setup-guide.tpl"}{/if}
     {if $_nav.quick|default:[]}
         <div class="nuxr-actions" style="margin-bottom:14px">
             {foreach $_nav.quick as $q}<a class="nuxr-btn{if $q@first} nuxr-btn-primary{/if}" href="{Text::url($q.route)}"><i class="fa {$q.icon}" aria-hidden="true"></i>{Lang::T($q.label)}</a>{/foreach}
