@@ -7,7 +7,7 @@
                 <div class="btn-group pull-right">
                     <a data-method="post" class="btn btn-primary btn-xs" title="save" href="{Text::url('services/sync/hotspot')}"
                         onclick="return ask(this, 'This will sync/send hotspot package to Mikrotik?')"><span
-                            class="glyphicon glyphicon-refresh" aria-hidden="true"></span> sync</a>
+                            class="glyphicon glyphicon-refresh" aria-hidden="true"></span> {Lang::T('Sync')}</a>
                 </div>{Lang::T('Hotspot Plans')}
             </div>
             <form id="site-search" method="post" action="{Text::url('services/hotspot/')}">

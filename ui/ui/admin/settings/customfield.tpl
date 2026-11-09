@@ -19,7 +19,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-4 control-label">Placeholder</label>
+                        <label class="col-md-4 control-label">{Lang::T('Placeholder')}</label>
                         <div class="col-md-8">
                             <input type="text" class="form-control" aria-label="Placeholder" name="placeholder[]" style="width: 100%" placeholder="this is placeholder">
                         </div>
@@ -88,7 +88,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-md-4 control-label">Placeholder</label>
+                            <label class="col-md-4 control-label">{Lang::T('Placeholder')}</label>
                             <div class="col-md-8">
                                 <input type="text" class="form-control" aria-label="Placeholder" name="placeholder[]" style="width: 100%" placeholder="this is placeholder" value="{$field['placeholder']}">
                             </div>

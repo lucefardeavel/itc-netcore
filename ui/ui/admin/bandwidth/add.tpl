@@ -38,31 +38,31 @@
 					</div>
 					<div class="panel-heading">{Lang::T('Optional')}</div>
 					<div class="form-group">
-						<label for="burst_limit" class="col-md-3 control-label">Burst Limit</label>
+						<label for="burst_limit" class="col-md-3 control-label">{Lang::T('Burst Limit')}</label>
 						<div class="col-md-9">
 							<input type="text" class="form-control" id="burst_limit" name="burst[]" placeholder="[Burst/Limit]">
 						</div>
 					</div>
 					<div class="form-group">
-						<label for="burst_threshold" class="col-md-3 control-label">Burst Threshold</label>
+						<label for="burst_threshold" class="col-md-3 control-label">{Lang::T('Burst Threshold')}</label>
 						<div class="col-md-9">
 							<input type="text" class="form-control" id="burst_threshold" name="burst[]" placeholder="[Burst/Threshold]">
 						</div>
 					</div>
 					<div class="form-group">
-						<label for="burst_time" class="col-md-3 control-label">Burst Time</label>
+						<label for="burst_time" class="col-md-3 control-label">{Lang::T('Burst Time')}</label>
 						<div class="col-md-9">
 							<input type="text" class="form-control" id="burst_time" name="burst[]" placeholder="[Burst/Time]">
 						</div>
 					</div>
 					<div class="form-group">
-						<label for="burst_priority" class="col-md-3 control-label">Priority</label>
+						<label for="burst_priority" class="col-md-3 control-label">{Lang::T('Priority')}</label>
 						<div class="col-md-9">
 							<input type="number" class="form-control" id="burst_priority" name="burst[]" placeholder="[Priority]">
 						</div>
 					</div>
 					<div class="form-group">
-						<label for="burst_limit_at" class="col-md-3 control-label">Limit At</label>
+						<label for="burst_limit_at" class="col-md-3 control-label">{Lang::T('Limit At')}</label>
 						<div class="col-md-9">
 							<input type="text" class="form-control" id="burst_limit_at" name="burst[]" placeholder="[Limit/At]">
 						</div>

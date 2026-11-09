@@ -889,7 +889,7 @@ switch ($action) {
                     $d->save();
 
                     _msglog('s', Lang::T('Password changed successfully, Please login again'));
-                    _log('[' . $admin['username'] . ']: Password changed successfully', $admin['user_type'], $admin['id']);
+                    _log('[' . $admin['username'] . ']: ' . Lang::T('Password changed successfully'), $admin['user_type'], $admin['id']);
 
                     r2(getUrl('admin'));
                 } else {

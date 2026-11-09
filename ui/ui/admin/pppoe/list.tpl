@@ -7,7 +7,7 @@
                 <div class="btn-group pull-right">
                     <a data-method="post" class="btn btn-primary btn-xs" title="save" href="{Text::url('')}services/sync/pppoe"
                         onclick="return ask(this, '{Lang::T('This will sync/send PPPOE plan to Mikrotik')}?')"><span
-                            class="glyphicon glyphicon-refresh" aria-hidden="true"></span> sync</a>
+                            class="glyphicon glyphicon-refresh" aria-hidden="true"></span> {Lang::T('Sync')}</a>
                 </div>{Lang::T('PPPOE Package')}
             </div>
             <form id="site-search" method="post" action="{Text::url('')}services/pppoe">

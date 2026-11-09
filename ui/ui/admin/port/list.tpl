@@ -7,9 +7,9 @@
                 <div class="btn-group pull-right">
                     <a data-method="post" class="btn btn-primary btn-xs" title="save" href="{Text::url('')}pool/sync"
                         onclick="return ask(this, '{Lang::T('This will sync/send IP port to Mikrotik')}?')"><span
-                            class="glyphicon glyphicon-refresh" aria-hidden="true"></span> sync</a>
+                            class="glyphicon glyphicon-refresh" aria-hidden="true"></span> {Lang::T('Sync')}</a>
                 </div>
-                {Lang::T('Port Pool')} - VPN Tunnels
+                {Lang::T('Port Pool')}
             </div>
             <div class="panel-body">
                 <div class="md-whiteframe-z1 mb20 text-center" style="padding: 15px">

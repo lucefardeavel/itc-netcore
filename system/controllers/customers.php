@@ -6,7 +6,7 @@
  **/
 
 _admin();
-$ui->assign('_title', Lang::T('Customer'));
+$ui->assign('_title', Lang::T('Customers'));
 $ui->assign('_system_menu', 'customers');
 
 $action = $routes['1'];

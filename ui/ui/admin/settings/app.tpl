@@ -1131,50 +1131,6 @@
         </div>
     </div>
 
-    <div class="panel">
-        <div class="panel-heading" id="GithubAuthentication">
-            <h4 class="panel-title">
-                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion"
-                    href="#collapseAuthentication" aria-expanded="false" aria-controls="collapseAuthentication">
-                    Github {Lang::T('Authentication')}
-                </a>
-            </h4>
-        </div>
-        <div id="collapseAuthentication" class="panel-collapse collapse">
-            <div class="panel-body">
-                <div class="form-group">
-                    <label for="github_username" class="col-md-3 control-label">{Lang::T('Github Username')}</label>
-                    <div class="col-md-5">
-                        <div class="input-group">
-                            <span class="input-group-addon">https://github.com/</span>
-                            <input type="text" class="form-control" id="github_username" name="github_username"
-                                value="{$_c['github_username']}" placeholder="username">
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="github_token" class="col-md-3 control-label">{Lang::T('Github Token')}</label>
-                    <div class="col-md-5">
-                        <input type="password" class="form-control" id="github_token" name="github_token"
-                            value="" autocomplete="new-password" data-nuxr-secret="set" title="{Lang::T('Stored value is hidden. Leave empty to keep it.')}" placeholder="ghp_........"
-                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'" data-nuxr-peek>
-                    </div>
-                    <span class="help-block col-md-4"><a href="https://github.com/settings/tokens/new"
-                            target="_blank">{Lang::T('Create GitHub personal access token')} (classic)</a>,
-                        {Lang::T('only need repo
-                        scope')}</span>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-md-offset-2 col-md-8" style="text-align: left;">{Lang::T('This
-                        will allow
-                        you to download plugin from private/paid repository')}</label>
-                </div>
-                <button class="btn btn-success btn-block" type="submit">
-                    {Lang::T('Save Changes')}
-                </button>
-            </div>
-        </div>
-    </div>
 </form>
 <div class="bs-callout bs-callout-info" id="callout-navbar-role">
     <h4><b>{Lang::T('Settings For Mikrotik')}</b></h4>

@@ -483,6 +483,19 @@ sql_mig <<'SQL' || die "$EXIT_STEP" "storing CompanyName failed"
 UPDATE tbl_appconfig SET value = 'ITC NetCore' WHERE setting = 'CompanyName' AND value = 'PHPNuxBill';
 SQL
 say "tbl_appconfig CompanyName = $(sql_mig <<<"SELECT value FROM tbl_appconfig WHERE setting = 'CompanyName'")"
+# Iraq defaults (owner 2026-11-09): Iraqi dinar, Baghdad time, Arabic, numeric dates, country code 964 for WhatsApp / SMS.
+# Only the stock seeds of the base schema are replaced; a value the operator already set is never touched. FreeRADIUS
+# must run with the same time zone (TZ=Asia/Baghdad), see the installation guide.
+sql_mig <<'SQL' || die "$EXIT_STEP" "storing the Iraq defaults failed"
+UPDATE tbl_appconfig SET value = 'د.ع' WHERE setting = 'currency_code' AND value = 'Rp.';
+UPDATE tbl_appconfig SET value = '.' WHERE setting = 'dec_point' AND value = ',';
+UPDATE tbl_appconfig SET value = ',' WHERE setting = 'thousands_sep' AND value = '.';
+UPDATE tbl_appconfig SET value = 'Asia/Baghdad' WHERE setting = 'timezone' AND value = 'Asia/Jakarta';
+UPDATE tbl_appconfig SET value = 'arabic' WHERE setting = 'language' AND value = 'english';
+UPDATE tbl_appconfig SET value = 'd/m/Y' WHERE setting = 'date_format' AND value = 'd M Y';
+INSERT INTO tbl_appconfig (setting, value) SELECT 'country_code_phone', '964' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM tbl_appconfig WHERE setting = 'country_code_phone');
+SQL
+say "tbl_appconfig locale = $(sql_mig <<<"SELECT GROUP_CONCAT(CONCAT(setting, '=', value) ORDER BY setting SEPARATOR ' ') FROM tbl_appconfig WHERE setting IN ('currency_code', 'timezone', 'language', 'date_format', 'country_code_phone')")"
 
 # ------------------------------------------------------------------------------------------------------------------
 phase "10 least-privilege grants (runbook 2 step 8, checklist D1/D2)"
@@ -555,8 +568,8 @@ phase "INSTALLED - next steps (the installer does not do these)"
 cat <<EOF
   1. Sign in at $NUXR_APP_URL/admin as admin / admin. The application forces the password change (SEC-18, C7):
      set a strong unique password from the secret store, sign out and in again.
-  2. Settings (SuperAdmin): CompanyName (stored as 'ITC NetCore': set the ISP's name), time zone (seeded Asia/Jakarta), currency and number
-     format (seeded Rp. , .). RADIUS is $( [[ $ENABLE_RADIUS -eq 1 ]] && printf 'already enabled' || printf 'NOT enabled: enable it now (ACC-1)').
+  2. Settings (SuperAdmin): CompanyName (stored as 'ITC NetCore': set the ISP's name), time zone (stored Asia/Baghdad), currency and number
+     format (stored IQD: د.ع . ,). RADIUS is $( [[ $ENABLE_RADIUS -eq 1 ]] && printf 'already enabled' || printf 'NOT enabled: enable it now (ACC-1)').
   3. HTTPS and the web boundary: install nginx/itc-netcore.conf.example and php-fpm/pool.conf.example (certificate,
      host name, socket), then run nuxr-post-install-verify.sh (TA-10 items).
   4. Scheduled jobs and logs: cron/itc-netcore.cron.example$( [[ $INSTALL_CRON -eq 1 ]] && printf ' (installed)'), logrotate/itc-netcore.example.

@@ -14,7 +14,7 @@
                                     aria-hidden="true"></span></a>
                         </div>
                     {/if}
-                    {$pageHeader|escape}
+                    {Lang::T($pageHeader)|escape}
                 </div>
                 <textarea name="html" id="summernote">{$htmls}</textarea>
                 {if !$_can['system.code']}
