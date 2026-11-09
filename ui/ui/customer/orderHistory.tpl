@@ -12,7 +12,7 @@
                             <tr>
                                 <th>{Lang::T('Package Name')}</th>
                                 <th>{Lang::T('Payment Method')}</th>
-                                <th>Routers</th>
+                                <th>{Lang::T('Routers')}</th>
                                 <th>{Lang::T('Type')}</th>
                                 <th>{Lang::T('Package Price')}</th>
                                 <th>{Lang::T('Created on')}</th>

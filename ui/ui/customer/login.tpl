@@ -63,15 +63,16 @@
                             </label>
                         </div>
                     </div>
+                    {* V1.0.1: Sign in first and main; Register secondary *}
                     <div class="btn-group btn-group-justified mb15">
-                        {if $_c['disable_registration'] != 'noreg'}
-                            <div class="btn-group">
-                                <a href="{Text::url('register')}" class="btn btn-success">{Lang::T('Register')}</a>
-                            </div>
-                        {/if}
                         <div class="btn-group">
                             <button type="submit" class="btn btn-primary">{Lang::T('Login')}</button>
                         </div>
+                        {if $_c['disable_registration'] != 'noreg'}
+                            <div class="btn-group">
+                                <a href="{Text::url('register')}" class="btn btn-default">{Lang::T('Register')}</a>
+                            </div>
+                        {/if}
                     </div>
                     <br>
                     <center>

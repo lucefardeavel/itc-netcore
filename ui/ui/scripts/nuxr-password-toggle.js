@@ -13,7 +13,8 @@
     function add(input) {
         if (input.getAttribute('data-nuxr-pw') || !input.parentNode) { return; }
         input.setAttribute('data-nuxr-pw', '1');
-        // a Bootstrap input group lays its children out as table cells: the button joins the group instead
+        // a Bootstrap input group lays its children out as table cells: the button joins the group in its own
+        // .input-group-btn cell instead
         var inGroup = input.parentNode.classList && input.parentNode.classList.contains('input-group');
         var holder = input.parentNode;
         if (!inGroup) {
@@ -39,7 +40,12 @@
         });
         // a shown password is hidden again before the form is sent (no clear text in the browser's form history)
         if (input.form) { input.form.addEventListener('submit', function () { input.type = 'password'; }); }
-        if (inGroup) { input.parentNode.insertBefore(button, input.nextSibling); } else { holder.appendChild(button); }
+        if (inGroup) {
+            var cell = document.createElement('span');
+            cell.className = 'input-group-btn';
+            cell.appendChild(button);
+            input.parentNode.insertBefore(cell, input.nextSibling);
+        } else { holder.appendChild(button); }
     }
     function scan() {
         var list = document.querySelectorAll('input[type="password"]');

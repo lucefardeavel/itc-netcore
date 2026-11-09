@@ -653,5 +653,6 @@
     "Sales_report": "Sales report",
     "Continue_adding_this_user_": "Continue adding this user?",
     "The_lowest_price_the_company_takes_from_resellers_for_this_plan__Resellers_cannot_sell_the_plan_until_it_is_set_": "The lowest price the company takes from resellers for this plan. Resellers cannot sell the plan until it is set.",
-    "When_on__resellers_can_activate_this_plan_for_their_subscribers_from_their_wallets_": "When on, resellers can activate this plan for their subscribers from their wallets."
+    "When_on__resellers_can_activate_this_plan_for_their_subscribers_from_their_wallets_": "When on, resellers can activate this plan for their subscribers from their wallets.",
+    "Refresh_connection": "Refresh connection"
 }

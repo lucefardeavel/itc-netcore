@@ -5,7 +5,7 @@
   "Registration_Info": "معلومات التسجيل",
   "Voucher_not_found__please_buy_voucher_befor_register": "القسيمة غير موجودة، يرجى شراء القسيمة قبل التسجيل",
   "Register_Success__You_can_login_now": "تم التسجيل بنجاح! يمكنك تسجيل الدخول الآن",
-  "Log_in_to_Member_Panel": "تسجيل الدخول إلى لوحة الأعضاء",
+  "Log_in_to_Member_Panel": "دخول المشترك",
   "Register_as_Member": "التسجيل كعضو",
   "Enter_Admin_Area": "دخول منطقة الإدارة",
   "Username": "اسم المستخدم",
@@ -2048,13 +2048,13 @@
   "Scan_QR_code": "مسح رمز QR",
   "Translations_cannot_contain_HTML_markup": "لا يمكن أن تحتوي الترجمات على وسوم HTML",
   "_days__of_paid_service__until__date___will_be_lost__the_current_period_is_replaced_now_and_the_remaining_time_is_not_refunded_or_carried_over_": "سيُفقد [days] من الخدمة المدفوعة (حتى [date]): تُستبدل الفترة الحالية الآن، ولا يُسترد الوقت المتبقي ولا يُرحَّل.",
-  "Radius_Plan": "خطة Radius",
+  "Radius_Plan": "باقتك",
   "VPN_Plan": "خطة VPN",
   "Service_type_mismatch": "نوع الخدمة غير مطابق",
   "The_plan_type_does_not_match_the_service_type_of_this_subscriber__Check_before_confirming_": "نوع الباقة لا يطابق نوع خدمة هذا المشترك. تحقّق قبل التأكيد.",
   "No_active_service_of_this_type": "لا توجد خدمة فعّالة من هذا النوع",
-  "To_renew__contact_your_authorised_agent": "للتجديد تواصل مع وكيلك المعتمد",
-  "This_service_is_managed_by_your_reseller_and_cannot_be_changed_here__Please_contact_your_authorized_reseller_": "هذه الخدمة يديرها وكيلك ولا يمكن تغييرها من هنا. يرجى التواصل مع وكيلك المعتمد.",
+  "To_renew__contact_your_authorised_agent": "للتجديد تواصل مع موزّعك",
+  "This_service_is_managed_by_your_reseller_and_cannot_be_changed_here__Please_contact_your_authorized_reseller_": "هذه الخدمة يديرها موزّعك ولا يمكن تغييرها من هنا. تواصل مع موزّعك.",
   "I_understand_that_the_remaining_paid_time_will_be_lost": "أفهم أن المدة المدفوعة المتبقية ستُفقد",
   "Please_confirm_that_the_remaining_paid_time_will_be_lost_": "يرجى تأكيد أن المدة المدفوعة المتبقية ستُفقد.",
   "The_customer_is_not_Active__the_service_is_not_re_provisioned_": "المشترك ليس فعّالاً؛ لا تتم إعادة تجهيز الخدمة.",
@@ -2265,5 +2265,6 @@
   "Sales_report": "تقرير المبيعات",
   "Continue_adding_this_user_": "متابعة إضافة المستخدم؟",
   "The_lowest_price_the_company_takes_from_resellers_for_this_plan__Resellers_cannot_sell_the_plan_until_it_is_set_": "أقل سعر تأخذه الشركة من الموزّعين لهذه الباقة. لا يستطيع الموزّعون بيع الباقة قبل تحديده.",
-  "When_on__resellers_can_activate_this_plan_for_their_subscribers_from_their_wallets_": "عند التشغيل يستطيع الموزّعون تفعيل هذه الباقة لمشتركيهم من محافظهم."
+  "When_on__resellers_can_activate_this_plan_for_their_subscribers_from_their_wallets_": "عند التشغيل يستطيع الموزّعون تفعيل هذه الباقة لمشتركيهم من محافظهم.",
+  "Refresh_connection": "تحديث الاتصال"
 }

@@ -150,7 +150,7 @@
                                 onclick="return ask(this, '{Lang::T('Sync account if you failed login to internet')}?')"
                                 data-toggle="tooltip" data-placement="top"
                                 title="{Lang::T('Sync account if you failed login to internet')}"><span
-                                    class="glyphicon glyphicon-refresh" aria-hidden="true"></span> {Lang::T('Sync')}</a>
+                                    class="glyphicon glyphicon-refresh" aria-hidden="true"></span> {Lang::T('Refresh connection')}</a>
                         </td>
                     </tr>
                     {if $nuxr_owned}

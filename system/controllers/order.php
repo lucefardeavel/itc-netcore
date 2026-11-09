@@ -18,10 +18,8 @@ if ($action === 'buy' && _post('gateway') === 'balance') {
 
 switch ($action) {
     case 'voucher':
-        $ui->assign('_system_menu', 'voucher');
-        $ui->assign('_title', Lang::T('Order Voucher'));
-        run_hook('customer_view_order'); #HOOK
-        $ui->display('customer/order.tpl');
+        // V1.0.1: customer/order.tpl never existed (HTTP 500); cards are activated on the voucher page
+        r2(getUrl('voucher/activation'));
         break;
     case 'history':
         $ui->assign('_system_menu', 'history');
