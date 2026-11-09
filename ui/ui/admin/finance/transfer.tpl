@@ -14,7 +14,7 @@
             <div><dt>{Lang::T('By')}</dt><dd><bdi dir="ltr">{NuxrUi::party($t.operator)|escape}</bdi></dd></div>
             <div><dt>{Lang::T('Reason')}</dt><dd>{$t.reason|escape}</dd></div>
             {if $t.external_reference}<div><dt>{Lang::T('External reference')}</dt><dd><bdi dir="ltr" class="nuxr-mono">{$t.external_reference|escape}</bdi></dd></div>{/if}
-            <div><dt>{Lang::T('Time (UTC)')}</dt><dd><bdi dir="ltr">{$t.created_at|escape}</bdi></dd></div>
+            <div><dt>{Lang::T('Time')}</dt><dd><bdi dir="ltr">{NuxrUi::localTime($t.created_at)|escape}</bdi></dd></div>
             {if $t.reverses_transfer_id}<div><dt>{Lang::T('Reverses transfer')}</dt><dd><a href="{Text::url('finance/transfer/', $t.reverses_transfer_id)}"><bdi dir="ltr">#{$t.reverses_transfer_id|escape}</bdi></a></dd></div>{/if}
             {if $t.reversed_by}<div><dt>{Lang::T('Reversed by')}</dt><dd><a href="{Text::url('finance/transfer/', $t.reversed_by.id)}"><bdi dir="ltr" class="nuxr-mono">{$t.reversed_by.reference|escape}</bdi></a></dd></div>{/if}
         </dl>

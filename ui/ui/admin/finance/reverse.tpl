@@ -14,7 +14,7 @@
             <div><dt>{Lang::T('Amount')}</dt><dd><strong><bdi dir="ltr">{NuxrUi::money($p.amount)|escape}</bdi></strong></dd></div>
             <div><dt>{Lang::T('From')}</dt><dd>{if $p.from}<bdi dir="ltr">{NuxrUi::party($p.from)|escape}</bdi>{else}{Lang::T('Provider')}{/if}</dd></div>
             <div><dt>{Lang::T('To')}</dt><dd>{if $p.to}<bdi dir="ltr">{NuxrUi::party($p.to)|escape}</bdi>{else}{Lang::T('Provider')}{/if}</dd></div>
-            <div><dt>{Lang::T('Time (UTC)')}</dt><dd><bdi dir="ltr">{$p.created_at|escape}</bdi></dd></div>
+            <div><dt>{Lang::T('Time')}</dt><dd><bdi dir="ltr">{NuxrUi::localTime($p.created_at)|escape}</bdi></dd></div>
             <div><dt>{Lang::T('Original reason')}</dt><dd>{$p.reason|escape}</dd></div>
         </dl>
         {if $p.refusal}

@@ -11,9 +11,9 @@
 <form class="nuxr-card nuxr-card-body nuxr-form" method="get" action="{$app_url}/">
     <input type="hidden" name="_route" value="finance/ledger/{$o.id|escape}">
     <div class="nuxr-filters" style="margin-bottom:0">
-        <label for="nuxr-l-from">{Lang::T('From (UTC)')}</label>
+        <label for="nuxr-l-from">{Lang::T('From')}</label>
         <input id="nuxr-l-from" class="form-control nuxr-input ltr" dir="ltr" type="date" name="from" value="{$nuxr_filters.from|default:''|escape}" style="width:auto">
-        <label for="nuxr-l-to">{Lang::T('To (UTC)')}</label>
+        <label for="nuxr-l-to">{Lang::T('To')}</label>
         <input id="nuxr-l-to" class="form-control nuxr-input ltr" dir="ltr" type="date" name="to" value="{$nuxr_filters.to|default:''|escape}" style="width:auto">
         <label class="sr-only" for="nuxr-l-type">{Lang::T('Type')}</label>
         <select id="nuxr-l-type" name="type" class="form-control nuxr-input" style="width:auto">

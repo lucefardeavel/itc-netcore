@@ -3,11 +3,11 @@
 <div class="nuxr-adaptive is-xl">
 <div class="nuxr-table-wrap">
     <table class="nuxr-table">
-        <thead><tr><th>{Lang::T('Time (UTC)')}</th><th>{Lang::T('Type')}</th><th>{Lang::T('Amount')}</th><th>{Lang::T('Balance before')} → {Lang::T('after')}</th><th>{Lang::T('Linked to')}</th><th>{Lang::T('Counterparty')}</th><th>{Lang::T('By')}</th><th>{Lang::T('Reason')}</th></tr></thead>
+        <thead><tr><th>{Lang::T('Time')}</th><th>{Lang::T('Type')}</th><th>{Lang::T('Amount')}</th><th>{Lang::T('Balance before')} → {Lang::T('after')}</th><th>{Lang::T('Linked to')}</th><th>{Lang::T('Counterparty')}</th><th>{Lang::T('By')}</th><th>{Lang::T('Reason')}</th></tr></thead>
         <tbody>
             {foreach $rows as $e}
                 <tr>
-                    <td><a href="{Text::url('finance/entry/', $e.id)}"><bdi dir="ltr">{$e.created_at|escape}</bdi></a></td>
+                    <td><a href="{Text::url('finance/entry/', $e.id)}"><bdi dir="ltr">{NuxrUi::localTime($e.created_at)|escape}</bdi></a></td>
                     <td>{Lang::T(NuxrUi::ledgerType($e.entry_type))}</td>
                     <td class="nuxr-amount is-{$e.direction|lower|escape}"><i class="fa {if $e.direction eq 'CREDIT'}fa-arrow-down{else}fa-arrow-up{/if}" aria-hidden="true"></i>
                         <span class="nuxr-dir-word">{if $e.direction eq 'CREDIT'}{Lang::T('Credit')}{else}{Lang::T('Debit')}{/if}</span>
@@ -30,7 +30,7 @@
             <a class="nuxr-mcard" href="{Text::url('finance/entry/', $e.id)}">
                 <span class="nuxr-mcard-main">
                     <span class="nuxr-mcard-title">{Lang::T(NuxrUi::ledgerType($e.entry_type))}</span>
-                    <span class="nuxr-mcard-sub"><bdi dir="ltr">{$e.created_at|truncate:16:'':true|escape}</bdi>{if $e.reason} · {$e.reason|truncate:40|escape}{/if}</span>
+                    <span class="nuxr-mcard-sub"><bdi dir="ltr">{NuxrUi::localTime($e.created_at, 16)|escape}</bdi>{if $e.reason} · {$e.reason|truncate:40|escape}{/if}</span>
                 </span>
                 <span class="nuxr-mcard-end nuxr-amount is-{$e.direction|lower|escape}"><span class="nuxr-dir-word">{if $e.direction eq 'CREDIT'}{Lang::T('Credit')}{else}{Lang::T('Debit')}{/if}</span>
                     <bdi dir="ltr">{if $e.direction eq 'CREDIT'}+{else}−{/if}{NuxrUi::money($e.amount)|escape}</bdi></span>

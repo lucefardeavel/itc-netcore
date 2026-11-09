@@ -10,9 +10,9 @@
     <input type="hidden" name="_route" value="finance/transfers">
     {if $nuxr_filters.manager|default:''}<input type="hidden" name="manager" value="{$nuxr_filters.manager|escape}">{/if}
     <div class="nuxr-filters" style="margin-bottom:0">
-        <label for="nuxr-t-from">{Lang::T('From (UTC)')}</label>
+        <label for="nuxr-t-from">{Lang::T('From')}</label>
         <input id="nuxr-t-from" class="form-control nuxr-input ltr" dir="ltr" type="date" name="from" value="{$nuxr_filters.from|default:''|escape}" style="width:auto">
-        <label for="nuxr-t-to">{Lang::T('To (UTC)')}</label>
+        <label for="nuxr-t-to">{Lang::T('To')}</label>
         <input id="nuxr-t-to" class="form-control nuxr-input ltr" dir="ltr" type="date" name="to" value="{$nuxr_filters.to|default:''|escape}" style="width:auto">
         <label class="sr-only" for="nuxr-t-type">{Lang::T('Type')}</label>
         <select id="nuxr-t-type" name="type" class="form-control nuxr-input" style="width:auto">

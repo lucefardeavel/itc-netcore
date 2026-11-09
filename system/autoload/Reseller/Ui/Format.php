@@ -72,6 +72,21 @@ final class Format
         return Navigation::deniedShell();
     }
 
+    /**
+     * V1.0.1 (owner decision 2026-11-09): a stored UTC instant ("Y-m-d H:i:s", microseconds ignored) shown in the
+     * application time zone (Asia/Baghdad on an Iraq install). Storage and queries stay UTC. $length cuts the result
+     * (16: minutes, 10: the date). An empty or unreadable value is returned as it is.
+     */
+    public static function localTime(mixed $utc, int $length = 19): string
+    {
+        $s = trim((string) $utc);
+        $dt = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', substr($s, 0, 19), new \DateTimeZone('UTC'));
+        if ($s === '' || $dt === false || $dt->format('Y-m-d H:i:s') !== substr($s, 0, 19)) {
+            return substr($s, 0, $length);
+        }
+        return substr($dt->setTimezone(new \DateTimeZone(date_default_timezone_get()))->format('Y-m-d H:i:s'), 0, $length);
+    }
+
     public static function money(mixed $amount): string
     {
         global $config;

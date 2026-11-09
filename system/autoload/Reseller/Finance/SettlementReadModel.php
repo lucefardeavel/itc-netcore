@@ -244,16 +244,16 @@ final class SettlementReadModel
         $ids = array_map(static fn(array $w): int => (int) $w['id'], $who);
         $metrics = [];
         if ($ids !== []) {
-            [$from, $to] = LedgerReadModel::range($f);
+            [$from, $to] = LedgerReadModel::bounds($f);
             $time = '';
             $tp = [];
             if ($from !== null) {
                 $time .= ' AND l.created_at >= ?';
-                $tp[] = $from . ' 00:00:00';
+                $tp[] = $from;
             }
             if ($to !== null) {
                 $time .= ' AND l.created_at < ?';
-                $tp[] = (new \DateTimeImmutable($to, new \DateTimeZone('UTC')))->modify('+1 day')->format('Y-m-d') . ' 00:00:00';
+                $tp[] = $to;
             }
             $ph = implode(',', array_fill(0, count($ids), '?'));
             foreach (Tx::rows($pdo, "SELECT l.manager_id, l.entry_type, COUNT(*) AS n, SUM(l.amount) AS s FROM tbl_manager_ledger l WHERE l.manager_id IN ({$ph}) "
@@ -318,14 +318,14 @@ final class SettlementReadModel
             $where .= ' AND l.manager_id = ?';
             $params[] = (int) $f['manager'];
         }
-        [$from, $to] = LedgerReadModel::range($f);
+        [$from, $to] = LedgerReadModel::bounds($f);
         if ($from !== null) {
             $where .= ' AND l.created_at >= ?';
-            $params[] = $from . ' 00:00:00';
+            $params[] = $from;
         }
         if ($to !== null) {
             $where .= ' AND l.created_at < ?';
-            $params[] = (new \DateTimeImmutable($to, new \DateTimeZone('UTC')))->modify('+1 day')->format('Y-m-d') . ' 00:00:00';
+            $params[] = $to;
         }
         return [$where, $params];
     }
@@ -358,14 +358,14 @@ final class SettlementReadModel
             $where .= ' AND a.manager_id = ?';
             $params[] = (int) $f['manager'];
         }
-        [$from, $to] = LedgerReadModel::range($f);
+        [$from, $to] = LedgerReadModel::bounds($f);
         if ($from !== null) {
             $where .= ' AND l.created_at >= ?';
-            $params[] = $from . ' 00:00:00';
+            $params[] = $from;
         }
         if ($to !== null) {
             $where .= ' AND l.created_at < ?';
-            $params[] = (new \DateTimeImmutable($to, new \DateTimeZone('UTC')))->modify('+1 day')->format('Y-m-d') . ' 00:00:00';
+            $params[] = $to;
         }
         return [$where, $params];
     }

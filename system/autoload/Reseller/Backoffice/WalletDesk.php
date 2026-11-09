@@ -521,7 +521,7 @@ final class WalletDesk
                 $managerId = self::ledgerOwner($a, $managerId);
                 $owner = LedgerReadModel::ledger($a, $managerId, [], 1)['owner'];
                 return ExportStream::csv($a, 'ledger', (int) $owner['id'], $f, [
-                    [$t('Time (UTC)'), static fn($r) => $r['created_at']], [$t('Entry'), static fn($r) => $r['id']],
+                    [$t('Time') . ' (' . date_default_timezone_get() . ')', static fn($r) => \Reseller\Ui\Format::localTime($r['created_at'])], [$t('Entry'), static fn($r) => $r['id']],
                     [$t('Type'), static fn($r) => $t(Format::ledgerType($r['entry_type']))], [$t('Direction'), static fn($r) => $r['direction']],
                     [$t('Amount'), static fn($r) => $r['amount']], [$t('Balance before'), static fn($r) => $r['balance_before']],
                     [$t('Balance after'), static fn($r) => $r['balance_after']], [$t('Transfer'), static fn($r) => $r['transfer_id']],
@@ -530,7 +530,7 @@ final class WalletDesk
                 ], static fn(callable $sink): int => LedgerReadModel::exportLedger($a, $managerId, $f, $sink), 'ledger-' . $owner['username'] . '.csv');
             case 'transfers':
                 return ExportStream::csv($a, 'transfers', null, $f, [
-                    [$t('Time (UTC)'), static fn($r) => $r['created_at']], [$t('Reference'), static fn($r) => $r['reference']],
+                    [$t('Time') . ' (' . date_default_timezone_get() . ')', static fn($r) => \Reseller\Ui\Format::localTime($r['created_at'])], [$t('Reference'), static fn($r) => $r['reference']],
                     [$t('Type'), static fn($r) => $t(Format::transferType($r['operation_type']))], [$t('Status'), static fn($r) => $r['status']],
                     [$t('Amount'), static fn($r) => $r['amount']], [$t('From'), static fn($r) => $party($r['from'])], [$t('To'), static fn($r) => $party($r['to'])],
                     [$t('Operator'), static fn($r) => $party($r['operator'])], [$t('Reason'), static fn($r) => $r['reason']],

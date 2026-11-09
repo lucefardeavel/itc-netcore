@@ -7,7 +7,7 @@
     <li><div class="nuxr-mcard nuxr-mcard-form">
         <a class="nuxr-mcard-main" href="{Text::url('activation/view/', $r.reference)}">
             <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">{$r.reference|escape}</bdi> · {$r.customer_fullname|escape}</span>
-            <span class="nuxr-mcard-sub">{call name=nuxr_state state=$r.status} · <bdi dir="ltr">{$r.manager_username|escape}</bdi> · {Lang::T('updated')} <bdi dir="ltr">{$r.updated_at|truncate:16:'':true|escape}</bdi> (UTC)</span>
+            <span class="nuxr-mcard-sub">{call name=nuxr_state state=$r.status} · <bdi dir="ltr">{$r.manager_username|escape}</bdi> · {Lang::T('updated')} <bdi dir="ltr">{NuxrUi::localTime($r.updated_at, 16)|escape}</bdi></span>
             {if $r.error_code eq 'EXTERNAL_STATE_AMBIGUOUS'}<span class="nuxr-mcard-sub">{call name=nuxr_badge tone='warning' label=Lang::T('Still uncertain - funds stay reserved') icon='fa-question-circle'}</span>
             {elseif $r.error_code eq 'PRIOR_SECRET_UNRESTORABLE' || $r.error_code eq 'PRIOR_STATE_NOT_CAPTURED'}<span class="nuxr-mcard-sub">{call name=nuxr_badge tone='neutral' label=Lang::T('No action available in the application - operator review') icon='fa-user'}</span>
             {elseif $r.error_code eq 'REVERSAL_FINANCIAL_REFUSED'}<span class="nuxr-mcard-sub">{Lang::T('The reseller wallet may need funding before the reversal can be resumed.')}</span>{/if}

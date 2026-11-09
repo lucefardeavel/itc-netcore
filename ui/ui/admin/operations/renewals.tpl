@@ -11,7 +11,7 @@
             {foreach $l.rows as $x}
                 <li><div class="nuxr-mcard nuxr-mcard-form">
                     <span class="nuxr-mcard-main"><span class="nuxr-mcard-title">{Lang::T('Subscriber')} <bdi dir="ltr">#{$x.customer_id|escape}</bdi></span>
-                        <span class="nuxr-mcard-sub">{Lang::T('Obligation')} <bdi dir="ltr">{$x.obligation|escape}</bdi> · <bdi dir="ltr">{$x.at|truncate:16:'':true|escape}</bdi> (UTC)</span></span>
+                        <span class="nuxr-mcard-sub">{Lang::T('Obligation')} <bdi dir="ltr">{$x.obligation|escape}</bdi> · <bdi dir="ltr">{NuxrUi::localTime($x.at, 16)|escape}</bdi></span></span>
                     <div class="nuxr-actions"><a class="nuxr-btn" href="{Text::url('customers/view/', $x.customer_id)}">{Lang::T('Open subscriber')}</a></div>
                 </div></li>
             {/foreach}

@@ -12,7 +12,7 @@
         <dl class="nuxr-kv">
             <div><dt>{Lang::T('Parent reseller')}</dt><dd>{if $w.parent}<bdi dir="ltr">{NuxrUi::party($w.parent)|escape}</bdi>{else}{Lang::T('Top level')}{/if}</dd></div>
             {if !$w.enrolled}<div><dt>{Lang::T('Hierarchy')}</dt><dd>{Lang::T('Not enrolled')}</dd></div>{/if}
-            {if $w.updated_at}<div><dt>{Lang::T('Last change (UTC)')}</dt><dd><bdi dir="ltr">{$w.updated_at|truncate:19:'':true|escape}</bdi></dd></div>{/if}
+            {if $w.updated_at}<div><dt>{Lang::T('Last change')}</dt><dd><bdi dir="ltr">{NuxrUi::localTime($w.updated_at)|escape}</bdi></dd></div>{/if}
         </dl>
         {if $w.frozen}<div class="nuxr-alert is-warning" role="status" style="margin-top:12px"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
             <div>{Lang::T('This reseller or an upstream reseller is inactive; money operations are paused. Balances remain visible.')}</div></div>{/if}

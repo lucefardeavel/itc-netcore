@@ -335,14 +335,14 @@ final class LedgerReadModel
     {
         $where = 'l.manager_id = ?';
         $params = [$managerId];
-        [$from, $to] = self::range($f);
+        [$from, $to] = self::bounds($f);
         if ($from !== null) {
             $where .= ' AND l.created_at >= ?';
-            $params[] = $from . ' 00:00:00';
+            $params[] = $from;
         }
         if ($to !== null) {
             $where .= ' AND l.created_at < ?';
-            $params[] = (new \DateTimeImmutable($to, new \DateTimeZone('UTC')))->modify('+1 day')->format('Y-m-d') . ' 00:00:00';
+            $params[] = $to;
         }
         if (in_array($f['type'] ?? null, self::ENTRY_TYPES, true)) {
             $where .= ' AND l.entry_type = ?';
@@ -383,14 +383,14 @@ final class LedgerReadModel
             $where .= ' AND t.reference = ?';
             $params[] = $f['reference'];
         }
-        [$from, $to] = self::range($f);
+        [$from, $to] = self::bounds($f);
         if ($from !== null) {
             $where .= ' AND t.created_at >= ?';
-            $params[] = $from . ' 00:00:00';
+            $params[] = $from;
         }
         if ($to !== null) {
             $where .= ' AND t.created_at < ?';
-            $params[] = (new \DateTimeImmutable($to, new \DateTimeZone('UTC')))->modify('+1 day')->format('Y-m-d') . ' 00:00:00';
+            $params[] = $to;
         }
         return [$where, $params];
     }
@@ -406,6 +406,22 @@ final class LedgerReadModel
             return $dt !== false && $dt->format('Y-m-d') === $v ? $v : null;
         };
         return [$d($f['from'] ?? null), $d($f['to'] ?? null)];
+    }
+
+    /**
+     * V1.0.1 (owner decision 2026-11-09): the from / to days are days of the application time zone. Returns the bounds
+     * of the stored UTC column ("Y-m-d H:i:s"): from = that day's local midnight (inclusive), to = the next local
+     * midnight (exclusive); null for a side not set. Shared by the WP6B finance read models.
+     *
+     * @return array{0:?string,1:?string}
+     */
+    public static function bounds(array $f): array
+    {
+        [$from, $to] = self::range($f);
+        $zone = new \DateTimeZone(date_default_timezone_get());
+        $utc = static fn(string $day, string $shift): string => (new \DateTimeImmutable($day . ' 00:00:00', $zone))
+            ->modify($shift)->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        return [$from === null ? null : $utc($from, '+0 day'), $to === null ? null : $utc($to, '+1 day')];
     }
 
     /** Exports of time series require a valid range of at most EXPORT_MAX_DAYS days (shared by the WP6B finance read models). */

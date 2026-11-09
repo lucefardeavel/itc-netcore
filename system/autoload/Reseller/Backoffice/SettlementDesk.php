@@ -56,7 +56,7 @@ final class SettlementDesk
         switch ($kind) {
             case 'sales':
             case 'commissions':
-                $cols = [[$t('Time (UTC)'), static fn($r) => $r['created_at']], [$t('Activation'), static fn($r) => $r['reference']],
+                $cols = [[$t('Time') . ' (' . date_default_timezone_get() . ')', static fn($r) => \Reseller\Ui\Format::localTime($r['created_at'])], [$t('Activation'), static fn($r) => $r['reference']],
                     [$t('Plan'), static fn($r) => $r['plan']], [$kind === 'sales' ? $t('Reseller') : $t('Recipient'), static fn($r) => $party($r['manager'])]];
                 if ($kind === 'commissions') {
                     $cols[] = [$t('Sold by'), static fn($r) => $party($r['seller'])];

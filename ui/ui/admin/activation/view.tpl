@@ -76,7 +76,7 @@
                 {if $a.manager_username}<div><dt>{Lang::T('Paid by (reseller)')}</dt><dd><bdi dir="ltr">{$a.manager_username|escape}</bdi></dd></div>{/if}
                 {if $a.actor_username}<div><dt>{Lang::T('Requested by')}</dt><dd><bdi dir="ltr">{$a.actor_username|escape}</bdi></dd></div>{/if}
                 {if $a.legacy_invoice}<div><dt>{Lang::T('Invoice')}</dt><dd><bdi dir="ltr" class="nuxr-mono">{$a.legacy_invoice|escape}</bdi></dd></div>{/if}
-                <div><dt>{Lang::T('Created (UTC)')}</dt><dd><bdi dir="ltr">{$a.created_at|truncate:19:'':true|escape}</bdi></dd></div>
+                <div><dt>{Lang::T('Created')}</dt><dd><bdi dir="ltr">{NuxrUi::localTime($a.created_at)|escape}</bdi></dd></div>
             </dl>
             <div class="nuxr-money-grid" style="margin-top:12px">
                 {if $a.wholesale}{call name=nuxr_money domain='wholesale' label=Lang::T('Wholesale - reseller cost') amount=$a.wholesale}{/if}
@@ -112,14 +112,14 @@
     </section>
 
     <section class="nuxr-card" aria-labelledby="nuxr-act-timeline">
-        <div class="nuxr-card-head"><h3 id="nuxr-act-timeline">{Lang::T('Timeline')}</h3><span class="nuxr-muted" style="font-size:13px">UTC</span></div>
+        <div class="nuxr-card-head"><h3 id="nuxr-act-timeline">{Lang::T('Timeline')}</h3></div>
         <div class="nuxr-card-body">
             <ol class="nuxr-timeline">
                 {foreach $nuxr_events as $e}
                     {assign var=tone value=NuxrUi::tone($e.to_state)}
                     <li><span class="nuxr-timeline-dot is-{if $e.error_code}danger{elseif $tone eq 'processing'}info{else}{$tone}{/if}" aria-hidden="true"><i class="fa {if $e.error_code}fa-exclamation{else}fa-check{/if}"></i></span>
                         <div><strong>{Lang::T(NuxrUi::stateLabel($e.to_state))}</strong>{if $e.provisioning_result} · <span class="nuxr-muted">{$e.provisioning_result|escape}</span>{/if}
-                            <time><bdi dir="ltr">{$e.created_at|truncate:19:'':true|escape}</bdi></time></div></li>
+                            <time><bdi dir="ltr">{NuxrUi::localTime($e.created_at)|escape}</bdi></time></div></li>
                 {/foreach}
             </ol>
             <details>

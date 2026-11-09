@@ -10,7 +10,7 @@
             <div><dt>{Lang::T('Wallet')}</dt><dd><a href="{Text::url('finance/wallet/', $e.owner.id)}">{$e.owner.fullname|escape}</a> <bdi dir="ltr" class="nuxr-muted">{$e.owner.username|escape}</bdi></dd></div>
             <div><dt>{Lang::T('Amount')}</dt><dd><strong><bdi dir="ltr">{if $e.direction eq 'CREDIT'}+{else}−{/if}{NuxrUi::money($e.amount)|escape}</bdi></strong></dd></div>
             <div><dt>{Lang::T('Balance before')} → {Lang::T('after')}</dt><dd><bdi dir="ltr">{NuxrUi::money($e.balance_before)|escape} → {NuxrUi::money($e.balance_after)|escape}</bdi></dd></div>
-            <div><dt>{Lang::T('Time (UTC)')}</dt><dd><bdi dir="ltr">{$e.created_at|escape}</bdi></dd></div>
+            <div><dt>{Lang::T('Time')}</dt><dd><bdi dir="ltr">{NuxrUi::localTime($e.created_at)|escape}</bdi></dd></div>
             {if $e.counterparty}<div><dt>{Lang::T('Counterparty')}</dt><dd><bdi dir="ltr">{NuxrUi::party($e.counterparty)|escape}</bdi></dd></div>{/if}
             {if $e.operator}<div><dt>{Lang::T('By')}</dt><dd><bdi dir="ltr">{NuxrUi::party($e.operator)|escape}</bdi></dd></div>{/if}
             {if $e.reason}<div><dt>{Lang::T('Reason')}</dt><dd>{$e.reason|escape}</dd></div>{/if}

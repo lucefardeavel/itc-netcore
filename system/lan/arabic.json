@@ -2310,5 +2310,8 @@
   "Small_letters__abc_": "أحرف صغيرة (abc)",
   "Mixed_letters__aBc_": "أحرف مختلطة (aBc)",
   "Numbers_only__123_": "أرقام فقط (123)",
-  "RADIUS": "RADIUS"
+  "RADIUS": "RADIUS",
+  "Last_change": "آخر تغيير",
+  "Settled_on": "تاريخ التسوية",
+  "Last_update": "آخر تحديث"
 }

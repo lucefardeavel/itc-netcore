@@ -12,9 +12,9 @@
 <form class="nuxr-card nuxr-card-body nuxr-form" method="get" action="{$app_url}/">
     <input type="hidden" name="_route" value="finance/{$nuxr_kind|escape}">
     <div class="nuxr-filters" style="margin-bottom:0">
-        <label for="nuxr-r-from">{Lang::T('From (UTC)')}</label>
+        <label for="nuxr-r-from">{Lang::T('From')}</label>
         <input id="nuxr-r-from" class="form-control nuxr-input ltr" dir="ltr" type="date" name="from" value="{$nuxr_filters.from|default:''|escape}" style="width:auto">
-        <label for="nuxr-r-to">{Lang::T('To (UTC)')}</label>
+        <label for="nuxr-r-to">{Lang::T('To')}</label>
         <input id="nuxr-r-to" class="form-control nuxr-input ltr" dir="ltr" type="date" name="to" value="{$nuxr_filters.to|default:''|escape}" style="width:auto">
         {if $nuxr_filters.manager|default:''}<input type="hidden" name="manager" value="{$nuxr_filters.manager|escape}">{/if}
         <button class="nuxr-btn nuxr-btn-primary" type="submit"><i class="fa fa-filter" aria-hidden="true"></i>{Lang::T('Apply')}</button>
@@ -35,12 +35,12 @@
         <div class="nuxr-adaptive is-lg">
         <div class="nuxr-table-wrap"><table class="nuxr-table">
             {if $nuxr_kind eq 'sales' || $nuxr_kind eq 'commissions'}
-                <thead><tr><th>{Lang::T('Time (UTC)')}</th><th>{Lang::T('Activation')}</th><th>{Lang::T('Plan')}</th><th>{if $nuxr_kind eq 'sales'}{Lang::T('Reseller')}{else}{Lang::T('Recipient')}{/if}</th>
+                <thead><tr><th>{Lang::T('Time')}</th><th>{Lang::T('Activation')}</th><th>{Lang::T('Plan')}</th><th>{if $nuxr_kind eq 'sales'}{Lang::T('Reseller')}{else}{Lang::T('Recipient')}{/if}</th>
                     {if $nuxr_kind eq 'commissions'}<th>{Lang::T('Sold by')}</th>{/if}
                     <th>{if $nuxr_kind eq 'sales'}{Lang::T('Wholesale debit (reseller cost)')}{else}{Lang::T('Commission')}{/if}</th>
                     {if $nuxr_kind eq 'sales'}<th>{Lang::T('Retail (customer price)')}</th>{/if}<th>{Lang::T('Status')}</th></tr></thead>
                 <tbody>{foreach $r.rows as $x}<tr>
-                    <td><bdi dir="ltr">{$x.created_at|escape}</bdi></td>
+                    <td><bdi dir="ltr">{NuxrUi::localTime($x.created_at)|escape}</bdi></td>
                     <td><a href="{Text::url('activation/view/', $x.reference)}"><bdi dir="ltr" class="nuxr-mono">{$x.reference|escape}</bdi></a></td>
                     <td>{$x.plan|escape}</td><td><bdi dir="ltr">{NuxrUi::party($x.manager)|escape}</bdi></td>
                     {if $nuxr_kind eq 'commissions'}<td><bdi dir="ltr">{NuxrUi::party($x.seller)|escape}</bdi></td>{/if}
@@ -49,9 +49,9 @@
                     <td>{if $x.reversed}{call name=nuxr_badge tone='neutral' label=Lang::T('Reversed') icon='fa-history'}{else}{call name=nuxr_badge tone='success' label=Lang::T('Settled')}{/if}</td>
                 </tr>{/foreach}</tbody>
             {elseif $nuxr_kind eq 'settlement'}
-                <thead><tr><th>{Lang::T('Settled (UTC)')}</th><th>{Lang::T('Activation')}</th><th>{Lang::T('Reseller')}</th><th>{Lang::T('Wholesale debit (reseller cost)')}</th><th>{Lang::T('Commissions')}</th><th>{Lang::T('Provider settlement')}</th><th>{Lang::T('Conservation')}</th></tr></thead>
+                <thead><tr><th>{Lang::T('Settled on')}</th><th>{Lang::T('Activation')}</th><th>{Lang::T('Reseller')}</th><th>{Lang::T('Wholesale debit (reseller cost)')}</th><th>{Lang::T('Commissions')}</th><th>{Lang::T('Provider settlement')}</th><th>{Lang::T('Conservation')}</th></tr></thead>
                 <tbody>{foreach $r.rows as $x}<tr>
-                    <td><bdi dir="ltr">{$x.settled_at|escape}</bdi></td>
+                    <td><bdi dir="ltr">{NuxrUi::localTime($x.settled_at)|escape}</bdi></td>
                     <td><a href="{Text::url('activation/view/', $x.reference)}"><bdi dir="ltr" class="nuxr-mono">{$x.reference|escape}</bdi></a>{if $x.status eq 'REVERSED'} {call name=nuxr_badge tone='neutral' label=Lang::T('Reversed') icon='fa-history'}{/if}</td>
                     <td><bdi dir="ltr">{NuxrUi::party($x.seller)|escape}</bdi></td>
                     <td><bdi dir="ltr">{NuxrUi::money($x.wholesale)|escape}</bdi></td><td><bdi dir="ltr">{NuxrUi::money($x.commissions)|escape}</bdi></td>
@@ -76,7 +76,7 @@
                             <span class="nuxr-mcard-sub">{Lang::T('Activations')} <bdi dir="ltr">{$x.activations|escape}</bdi> · {Lang::T('Commissions received')} <bdi dir="ltr">{NuxrUi::money($x.commissions)|escape}</bdi></span>
                         {else}
                             <span class="nuxr-mcard-title"><bdi dir="ltr" class="nuxr-mono">{$x.reference|escape}</bdi></span>
-                            <span class="nuxr-mcard-sub"><bdi dir="ltr">{$x.created_at|default:$x.settled_at|truncate:16:'':true|escape}</bdi> · <bdi dir="ltr">{NuxrUi::party($x.manager|default:$x.seller)|escape}</bdi></span>
+                            <span class="nuxr-mcard-sub"><bdi dir="ltr">{NuxrUi::localTime($x.created_at|default:$x.settled_at, 16)|escape}</bdi> · <bdi dir="ltr">{NuxrUi::party($x.manager|default:$x.seller)|escape}</bdi></span>
                         {/if}
                     </span>
                     <span class="nuxr-mcard-end"><bdi dir="ltr">{if $nuxr_kind eq 'performance'}{NuxrUi::money($x.wholesale)|escape}{elseif $nuxr_kind eq 'settlement'}{NuxrUi::money($x.provider_settlement)|escape}{else}{NuxrUi::money($x.amount)|escape}{/if}</bdi></span>
