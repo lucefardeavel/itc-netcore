@@ -1,4 +1,4 @@
-# WP8 — Integration model: PHPNuxBill reseller ⇄ FreeRADIUS ⇄ MikroTik RouterOS
+# WP8 — Integration model: ITC NetCore reseller ⇄ FreeRADIUS ⇄ MikroTik RouterOS
 
 | Item | Value |
 |---|---|
@@ -28,7 +28,7 @@
 
 | Component | Role | Authority |
 |---|---|---|
-| **PHPNuxBill reseller application** (`system/`) | Commercial and financial domain:<br>• reseller tree (Admin → Agent → sub-agents) and Sales;<br>• customers, plans and pricing;<br>• wallet / ledger / reservations;<br>• activation and reversal state machines;<br>• legacy compatibility paths | Writes the RADIUS **policy** tables only, through `RadiusRepository` / `RadiusProvisioner`. **Never writes `radacct`.** |
+| **ITC NetCore application** (`system/`) | Commercial and financial domain:<br>• reseller tree (Admin → Agent → sub-agents) and Sales;<br>• customers, plans and pricing;<br>• wallet / ledger / reservations;<br>• activation and reversal state machines;<br>• legacy compatibility paths | Writes the RADIUS **policy** tables only, through `RadiusRepository` / `RadiusProvisioner`. **Never writes `radacct`.** |
 | **FreeRADIUS 3.2.8** (`install/freeradius/`, virtual server `phpnuxbill`) | AAA for every NAS:<br>• authorize / authenticate (PAP / CHAP);<br>• expiration and quotas;<br>• admission control (Simultaneous-Use, PPPoE session guard, A2-R reservation, H1-A spelling check, H-2B slots);<br>• accounting into `radacct` | The **only writer of `radacct`** and of the admission tables (`nuxr_admission*`, `nuxr_hs_admission*`). |
 | **RADIUS database** (MariaDB / MySQL; `install/radius.sql`, unchanged; plus the additive admission SQL) | `radcheck` / `radreply` / `radusergroup` / `radgroupreply`, `nas`, `radacct`, the admission tables | `radacct` is the authoritative usage and session history. |
 | **MikroTik RouterOS NAS** | PPPoE server and Hotspot. It enforces the RADIUS replies:<br>• rate;<br>• address / pool;<br>• Session-Timeout;<br>• Hotspot `Port-Limit`.<br>It also sends accounting and accepts Disconnect / CoA. | Enforcement point only, never a subscriber source of truth (pack `07_MIKROTIK_CONTRACT.md`). |
@@ -73,7 +73,7 @@
 | Expiration | Written as `Expiration` in the application time zone. The FreeRADIUS process `TZ` must equal the application zone (WP4 residual 4). RouterOS gets `Session-Timeout` capped at the expiry, sends Stop `Session-Timeout`, and re-authentication is rejected. | **[CHR]** S2 (Session-Timeout 66 s for +70 s), S5 EXPIRY (Stop at 118 s, then Access-Reject) |
 | Hotspot `Port-Limit` | Hotspot only: `max(1, shared_users)` (A1). **RouterOS enforces it per NAS on Hotspot but ignores it on PPPoE.** PPPoE never relies on it. | **[CHR]** `evidence/od-w8-16-gate/GATE_RESULTS.md`; A1 |
 | Quotas (`Max-All-Session`, `Max-Data`, period counters) | Hotspot "Limited" plans only, per billing period (WP4 §4) | **[LAB-FR] only:** S1 ran crafted packets from a test client (`FreeRadiusSqlClientTest`) against the lab FreeRADIUS, plus the WP4 harness. **Quota behaviour on a NAS is NOT_VERIFIED** (lock gates Q1–Q4 open). |
-| Usernames outside `safe_characters` | Stock rlm_sql escapes them (`=XX`) while PHPNuxBill stores the raw name: such a subscriber cannot authenticate (fails safe). Whitespace names are refused by `filter_username`. | **[CHR]** OBS-W8-9 (option G gate, hostile usernames) |
+| Usernames outside `safe_characters` | Stock rlm_sql escapes them (`=XX`) while ITC NetCore stores the raw name: such a subscriber cannot authenticate (fails safe). Whitespace names are refused by `filter_username`. | **[CHR]** OBS-W8-9 (option G gate, hostile usernames) |
 
 ## 4. Admission control (who may hold a session)
 
@@ -97,7 +97,7 @@ The layers run in this order. Each one fails **closed**: an error refuses the lo
 
 | Topic | Contract / observation | Evidence |
 |---|---|---|
-| Authority | FreeRADIUS writes `radacct`; PHPNuxBill reads it only (`AccountingService`). No lifecycle path deletes or rewrites it. One row per session. | **[HARNESS]** WP4 C17 guards. **[CHR]** the S6 drill 7 history was kept (`NAS-Reboot` close, no delete); S7 FC tests: RADIUS tables byte-identical after driver refusals; A3 C1–C6 |
+| Authority | FreeRADIUS writes `radacct`; ITC NetCore reads it only (`AccountingService`). No lifecycle path deletes or rewrites it. One row per session. | **[HARNESS]** WP4 C17 guards. **[CHR]** the S6 drill 7 history was kept (`NAS-Reboot` close, no delete); S7 FC tests: RADIUS tables byte-identical after driver refusals; A3 C1–C6 |
 | Records | Start / Interim (1 m) / Stop. `acctsessionid` = the NAS session id without `0x`. PPPoE `nasportid ether3` / `Ethernet`; Hotspot `Wireless-802.11`. Terminate causes `User-Request`, `NAS-Request` (PPPoE Disconnect), `Admin-Reset` (Hotspot Disconnect), `Session-Timeout`, `NAS-Reboot`. | **[CHR]** `evidence/s2`, `evidence/s3` |
 | Event-Timestamp | Present in Start / Interim / Stop (the NAS clock), absent in Accounting-On (the FreeRADIUS clock `%l`) | **[CHR]** PPPoE only (A4). Hotspot and other NAS models: **NOT_VERIFIED** (P-A4-2) |
 | Accounting-On | RouterOS sends it before its first record. The stock query closes that NAS's open rows (`NAS-Reboot`). OBS-W8-7: one Accounting-On got no response (one timeout); a later closure record reports 0 unanswered, so this is ambiguous. | **[CHR]** S1, S6 |

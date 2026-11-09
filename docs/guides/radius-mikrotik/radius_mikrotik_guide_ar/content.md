@@ -21,7 +21,7 @@
 تُكتب القيم البديلة بالشكل `<LIKE_THIS>`، ولا يحوي أي مثال سرًّا أو مجتمع SNMP أو عنوانًا حقيقيًا. والرمز `${confdir}` يعني `/etc/freeradius/3.0` في حزم Ubuntu وDebian، و`/etc/freeradius` في صورة FreeRADIUS الرسمية.
 
 > [!NOTE]
-> احتفظت الأسماء الداخلية بأصلها من PHPNuxBill: فموقع FreeRADIUS وقاموسه باسم `phpnuxbill`، وسمات السياسة باسم `Nuxr-*`، والجداول باسم `radcheck` و`radacct` و`nas` و`nuxr_admission` … فلا تغيّرها.
+> الأسماء الداخلية لم تتغير: فموقع FreeRADIUS وقاموسه باسم `phpnuxbill`، وسمات السياسة باسم `Nuxr-*`، والجداول باسم `radcheck` و`radacct` و`nas` و`nuxr_admission` … فلا تغيّرها.
 
 <!-- pagebreak -->
 

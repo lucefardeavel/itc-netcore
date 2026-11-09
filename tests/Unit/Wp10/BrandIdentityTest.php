@@ -99,7 +99,10 @@ final class BrandIdentityTest extends TestCase
         $this->assertStringContainsString('https://github.com/hotspotbilling/phpnuxbill', $notice);
         $readme = self::read('README.md');
         $this->assertStringContainsString('# ITC NetCore', $readme);
-        $this->assertStringContainsString('https://github.com/hotspotbilling/phpnuxbill', $readme);
+        // the repository front page names ITC only and points to the licence files (owner request 2026-11-09)
+        $this->assertStringNotContainsString('PHPNuxBill', $readme);
+        $this->assertStringContainsString('[LICENSE](LICENSE)', $readme);
+        $this->assertStringContainsString('[NOTICE](NOTICE)', $readme);
     }
 
     public function testTheLicenceAndInternalIdentifiersAreUnchanged(): void

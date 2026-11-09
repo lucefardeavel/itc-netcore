@@ -47,7 +47,7 @@ Scope: one isolated instance per ISP (Option A). Every step names its verificati
 12. Run `php system/reseller/preflight.php` (the release preflight). It must exit 0; with no NAS it FAILs `nas.verification` NOT_CONFIGURED (PF-0). Before step 10, `preflight.php --setup` may be used to check the rest of the installation: it reports a missing NAS as WARN NOT_CONFIGURED and is never the release gate. Then run `php system/reseller/health.php --finance`. It must exit 0.
 13. Install the scheduled jobs: checklist §I. `cron.php` and `cron_reminder.php` run from `system/` (`cd <app>/system && php cron.php`); `php system/cron.php` from the application root does nothing. The quota enforcer's `--every` is at least 5.
 
-## 3. Upgrade of an existing PHPNuxBill installation
+## 3. Upgrade of an existing legacy installation
 
 The reseller migrations are additive. Legacy tables keep their data, except for the columns that the migration contract adds to `tbl_customers`. The drill evidence for this is in `owner-review/WP10/evidence/drill/`.
 
@@ -75,7 +75,7 @@ The reseller migrations are additive. Legacy tables keep their data, except for 
 |---|---|
 | `migrate` failed or was interrupted, and no new-domain data exists | `php system/reseller/migrate.php rollback --all` (or `--to=<id>`). It drops only the objects the migrations created, in reverse order. The core fingerprint must equal the pre-migration one. |
 | New-domain data exists (any reseller row, or `tbl_customers.manager_id` set) | Schema rollback is **refused** (exit 2, data guard), by design. Recover by restoring the pre-upgrade backup (`docs/BACKUP_RESTORE_RUNBOOK.md` §3) and redeploying the previous code. Every operation since the backup is lost and must be reconciled from the audit export. |
-| Code-only problem after a successful migration | Redeploy the previous release of this fork with the same schema (the migrations are part of the release history). Never redeploy upstream PHPNuxBill over a migrated database. |
+| Code-only problem after a successful migration | Redeploy the previous release of this fork with the same schema (the migrations are part of the release history). Never redeploy legacy over a migrated database. |
 
 ## 5. Post-deployment verification
 - one staff login per role;

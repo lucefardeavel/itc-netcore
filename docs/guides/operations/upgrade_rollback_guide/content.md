@@ -6,7 +6,7 @@ This guide describes how to deploy a new ITC NetCore release onto an existing in
 > Release Candidate, not yet production-accepted. **Production deployment, production data migration and production secret changes need the owner's explicit release authorization.** This guide does not grant it. TA-08 (deployment, backup, restore, rollback on the target) has not been run.
 
 > [!NOTE]
-> **Scope.** The first V1.0 installation is a fresh install with an empty database (owner decision; see `admin_quickstart`). This guide covers later release upgrades of that instance. Migrating an existing PHPNuxBill database into ITC NetCore is a **separate future path**: it additionally needs the OBS-1 identity survey on an isolated copy, the owner's decision sheet, the `radacct` time-zone survey and separate authorizations (`docs/OBS1_SURVEY_RUNBOOK.md`). Do not use this guide for it.
+> **Scope.** The first V1.0 installation is a fresh install with an empty database (owner decision; see `admin_quickstart`). This guide covers later release upgrades of that instance. Migrating an existing legacy database into ITC NetCore is a **separate future path**: it additionally needs the OBS-1 identity survey on an isolated copy, the owner's decision sheet, the `radacct` time-zone survey and separate authorizations (`docs/OBS1_SURVEY_RUNBOOK.md`). Do not use this guide for it.
 
 # 1. Release artifact
 
@@ -63,7 +63,7 @@ Decide with the rollback decision owner named in the change record.
 |---|---|---|
 | `migrate` failed or was interrupted, and **no new-domain data** exists | `php system/reseller/migrate.php rollback --all` (or `--to=<id>`); then redeploy the previous code | Drops only objects the migrations created, in reverse order. The core fingerprint must equal the pre-migration one |
 | **New-domain data exists** (any reseller row, or `tbl_customers.manager_id` set) | Schema rollback is **refused** (exit 2, data guard) by design. Restore the pre-upgrade backup into a new database (backup runbook §3), switch to it, and redeploy the previous code | Every operation since the backup is lost and must be reconciled from audit records, payment-provider records and NAS-side accounting |
-| Code-only problem after a successful migration | Switch the document root back to the previous ITC NetCore release directory (same schema) | No data loss. **Never** redeploy upstream PHPNuxBill over a migrated database |
+| Code-only problem after a successful migration | Switch the document root back to the previous ITC NetCore release directory (same schema) | No data loss. **Never** redeploy legacy over a migrated database |
 | A rollback step failed (`ROLLBACK_FAILED`) | Run `rollback` again; it resumes and skips objects already removed | Escalate to ITC if it fails again |
 | FreeRADIUS change only | Reinstall the previous site / module files and restart FreeRADIUS | Admission tables may stay; they hold admission state only |
 

@@ -6,7 +6,7 @@ This quick-start takes an ISP administrator from an empty server to a first work
 > ITC NetCore V1.0 is a **Release Candidate**. The release state is `RELEASE_BLOCKED_WITH_EVIDENCE` and the lab verdict is `LAB_ACCEPTED_WITH_LIMITATIONS`. The target acceptance tests TA-01 … TA-10 have not been run, the legal review LIC-1 is `BLOCKED — COUNSEL REQUIRED`, and several owner decisions are open. Production deployment needs the owner's explicit release authorization; this guide does not grant it.
 
 > [!NOTE]
-> **Owner decision:** the first installation is a **fresh install with an empty database**. Migration of an existing PHPNuxBill database is a separate, future path (deployment runbook §3 and the OBS-1 survey runbook). It is not covered here.
+> **Owner decision:** the first installation is a **fresh install with an empty database**. Migration of an existing legacy database is a separate, future path (deployment runbook §3 and the OBS-1 survey runbook). It is not covered here.
 
 | Item | Value |
 |---|---|

@@ -67,7 +67,7 @@
 > database (`install/freeradius/nuxr_admission.sql`, additive; `install/radius.sql` unchanged): one row per canonical
 > subscriber (the exact `radcheck.username` the lookup matched, so case / accent spellings share it), claimed by
 > FreeRADIUS as the last step before the Access-Accept and correlated with accounting through a per-attempt `Class`
-> token. PHPNuxBill does not write or read it; `radacct` is still never written by the policy. Install order, readiness
+> token. ITC NetCore does not write or read it; `radacct` is still never written by the policy. Install order, readiness
 > check, recovery procedure and limits: `install/freeradius/README.md` "PPPoE admission reservation".
 
 > **WP8 H-2B addendum (2026-10-11, `wp8/integration-poc`, implementation pending owner acceptance; the contract above is
@@ -77,7 +77,7 @@
 > (canonical subscriber, slot), slots `1..Simultaneous-Use`, claimed by FreeRADIUS after the H1-A spelling check and
 > correlated with accounting through a per-claim `Class` token ("nuxh1"). `Port-Limit` stays as an additional per-NAS
 > limit. Strict Mode: a claimed slot whose session is unconfirmed (`PENDING`) is never released by time or SNMP; an
-> `ACTIVE` one is released only on read-only SNMP proof from its NAS. PHPNuxBill does not write or read the slots;
+> `ACTIVE` one is released only on read-only SNMP proof from its NAS. ITC NetCore does not write or read the slots;
 > `radacct` is still never written by the policy. Details: `install/freeradius/README.md` "Hotspot admission slots".
 
 - **RADIUS key.** PPPoE: `pppoe_username` when set (owner decision Q7), otherwise `username`. Hotspot / VPN: `username`.
@@ -103,7 +103,7 @@ A failed device call therefore leaves the billing row saved: the legacy "billed,
 
 ## 4. Accounting
 
-- **`radacct`** (FreeRADIUS, `radius` connection) is the authoritative history. FreeRADIUS writes it; PHPNuxBill only reads it (`AccountingService`). **No lifecycle path deletes or rewrites it** (C17, D018; source-guarded and tested for every device operation and the admin flows).
+- **`radacct`** (FreeRADIUS, `radius` connection) is the authoritative history. FreeRADIUS writes it; ITC NetCore only reads it (`AccountingService`). **No lifecycle path deletes or rewrites it** (C17, D018; source-guarded and tested for every device operation and the admin flows).
 - **Quotas per billing period.** The counters in `install/freeradius/mods-available/nuxr_counters` sum only the sessions with `acctstarttime >= Nuxr-Period-Start`. A renewal therefore starts a fresh quota without deleting history; the pre-WP4 code reset quotas by purging `radacct`.
 - **`rad_acct`** (application database) is the rlm_rest mode's local counter state, not history (owner decision Q9):
   - one row per session (username + nasid + macaddr + acctsessionid);

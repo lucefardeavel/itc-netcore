@@ -1,5 +1,5 @@
 {
-  "title": "ITC NetCore V1.0 — Migration from an Existing PHPNuxBill Database (Future Path)",
+  "title": "ITC NetCore V1.0 — Migration from an Existing ITC NetCore Database (Future Path)",
   "subtitle": "Prerequisites and gated procedure — NOT accepted and NOT executed for the V1 first installation",
   "language": "en",
   "version": "V1.0 RC",
@@ -8,5 +8,5 @@
   "status": "Release Candidate — not yet production-accepted",
   "sha": "final-prep (release SHA recorded at build)",
   "source_sha": "final-prep (release SHA recorded at build)",
-  "audience": "ITC owner, project lead and senior operators planning a future migration of an existing PHPNuxBill installation"
+  "audience": "ITC owner, project lead and senior operators planning a future migration of an existing legacy installation"
 }

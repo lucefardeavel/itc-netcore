@@ -18,4 +18,4 @@
 > [!WARNING]
 > **V1.0 Release Candidate, not production-accepted.** Lab testing passed with limitations; target-environment testing not yet run; legal review LIC-1 `BLOCKED — COUNSEL REQUIRED`. First installation: fresh install on an empty database.
 
-Support terms are defined per customer agreement. Based on PHPNuxBill by Ibnu Maksum (iBNuX) and the PHPNuxBill contributors.
+Support terms are defined per customer agreement. Developed and maintained by ITC – Integrated Technology Company (www.itc-iq.net).

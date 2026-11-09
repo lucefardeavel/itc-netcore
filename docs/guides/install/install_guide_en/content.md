@@ -6,13 +6,13 @@ This manual takes a qualified technician who did not take part in the developmen
 > ITC NetCore V1.0 is a **Release Candidate**. Its release state is `RELEASE_BLOCKED_WITH_EVIDENCE`. The target-environment acceptance tests TA-01 … TA-10 have not been run (every row is `NOT_RUN`), the legal review LIC-1 is `BLOCKED — COUNSEL REQUIRED`, and several owner decisions are pending. A production deployment, a production data migration and any production secret change need the owner's explicit release authorization. This manual does not grant it.
 
 > [!NOTE]
-> **Owner decision (2026-10-29):** the first installation is a **fresh install on a new, empty database**. No legacy data is imported. Migration from an existing PHPNuxBill database is a separate future path, described in its own guide and **not accepted for V1's first installation**.
+> **Owner decision (2026-10-29):** the first installation is a **fresh install on a new, empty database**. No legacy data is imported. Migration from an existing legacy database is a separate future path, described in its own guide and **not accepted for V1's first installation**.
 
 ## Scope and audience
 
 | Item | Value |
 |---|---|
-| Product | ITC NetCore V1.0, a modified version of PHPNuxBill with a reseller / wallet extension |
+| Product | ITC NetCore V1.0, ISP management and billing with resellers and wallets, by ITC |
 | Deployment model | One isolated instance per ISP ("Option A"): its own database, its own FreeRADIUS configuration, its own NAS secrets. No shared database, no multi-tenancy |
 | Runtime | PHP 8.2 · MariaDB 10.11 or MySQL 8.0 · FreeRADIUS 3.2.x · MikroTik RouterOS as the NAS |
 | Installation procedure | The fresh-install package `install/fresh/`: artifact verification, then `nuxr-fresh-install.sh`, then `nuxr-post-install-verify.sh` |
@@ -46,7 +46,7 @@ Each procedure carries one of these labels. They describe what has really been e
 The package scripts run as root on the application host. Product tools are run from `<app-root>` unless stated otherwise.
 
 > [!NOTE]
-> **Internal names are unchanged.** The product is called ITC NetCore, but database and table names (`tbl_*`, `radcheck` …), the FreeRADIUS site and dictionary (`phpnuxbill`), file paths and the Composer package keep their original PHPNuxBill names. Do not rename them: the migration runner recognises the installed core schema by comparing its structure with registered variants (a fresh installation must be recognised as `V1_FRESH_INSTALL`), and renaming breaks the installation.
+> **Internal names are unchanged.** The product is called ITC NetCore, but database and table names (`tbl_*`, `radcheck` …), the FreeRADIUS site and dictionary (`phpnuxbill`), file paths and the Composer package keep their original names. Do not rename them: the migration runner recognises the installed core schema by comparing its structure with registered variants (a fresh installation must be recognised as `V1_FRESH_INSTALL`), and renaming breaks the installation.
 
 <!-- pagebreak -->
 
@@ -563,11 +563,11 @@ As SuperAdmin, set these in the application settings before anything else:
 
 | Setting | Why |
 |---|---|
-| **Company name** (`CompanyName`) | The base schema seeds the placeholder `PHPNuxBill` (still the value after the fresh install). Invoices, invoice e-mails and notifications print the stored value, so set the ISP's name before the first financial document exists |
+| **Company name** (`CompanyName`) | The fresh installer stores `ITC NetCore` in place of the stock placeholder. Invoices, invoice e-mails and notifications print the stored value, so set the ISP's name before the first financial document exists |
 | **Time zone** | The base schema seeds `Asia/Jakarta` (still the value after the fresh install). Set the zone you will operate in. FreeRADIUS must run with the same `TZ` (`Expiration` is written in this zone) |
 | **Currency and number format** | The base schema seeds `Rp.` with `,` / `.` separators |
 | **RADIUS** (`radius_enable`, SuperAdmin only) | Already stored by the installer (`radius_enable = 1`) unless you passed `--no-enable-radius`. The application's RADIUS features need it. Known issue ACC-1 (the preflight RADIUS checks FAIL instead of reporting "RADIUS not enabled") was **not** reproduced at commit `228f01c9` with the single-database layout, because the preflight falls back to the main connection (finding G-3) |
-| **Update check** (`new_version_notify`, SuperAdmin) | Stored as `disable` by the fresh installer: the dashboard's upstream PHPNuxBill update check, which contacts `raw.githubusercontent.com`, is off by default. SuperAdmin can enable it under Settings > Miscellaneous. It is the upstream PHPNuxBill check, not an ITC NetCore release channel; leave it off unless your outbound policy allows that host |
+| **Update check** (`new_version_notify`, SuperAdmin) | Stored as `disable` by the fresh installer. From V1.0.1 the dashboard makes no update request at all; ITC NetCore updates are installed through the reviewed release process |
 
 **Verification level:** `radius_enable` stored by the installer: Lab-verified (disposable instance, MariaDB 10.11 + MySQL 8.0). Company name, time zone and currency through the user interface: Lab-verified (WSL lab); on target: documented (not yet executed on target).
 

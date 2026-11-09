@@ -471,12 +471,18 @@ SQL
   state_set radius_setting; say "tbl_appconfig radius_enable = 1 (the SuperAdmin setting 'Enable Radius: Yes')"
 elif [[ $ENABLE_RADIUS -eq 0 ]]; then say "skip (--no-enable-radius): enable RADIUS as SuperAdmin before the preflight"
 else say "skip: stored earlier"; fi
-# the dashboard's upstream PHPNuxBill version check fetches raw.githubusercontent.com on every load: off by default
+# the legacy dashboard version check setting: stored off (V1.0.1 removed the check itself)
 # (an existing value is kept; SuperAdmin can change it under Settings - Miscellaneous)
 sql_mig <<'SQL' || die "$EXIT_STEP" "storing new_version_notify failed"
 INSERT INTO tbl_appconfig (setting, value) SELECT 'new_version_notify', 'disable' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM tbl_appconfig WHERE setting = 'new_version_notify');
 SQL
-say "tbl_appconfig new_version_notify = $(sql_mig <<<"SELECT value FROM tbl_appconfig WHERE setting = 'new_version_notify'") (upstream update check)"
+say "tbl_appconfig new_version_notify = $(sql_mig <<<"SELECT value FROM tbl_appconfig WHERE setting = 'new_version_notify'") (update check off)"
+# the stock company-name placeholder of the base schema becomes the product name; the operator sets the ISP's own name
+# in Settings (an operator value is never touched)
+sql_mig <<'SQL' || die "$EXIT_STEP" "storing CompanyName failed"
+UPDATE tbl_appconfig SET value = 'ITC NetCore' WHERE setting = 'CompanyName' AND value = 'PHPNuxBill';
+SQL
+say "tbl_appconfig CompanyName = $(sql_mig <<<"SELECT value FROM tbl_appconfig WHERE setting = 'CompanyName'")"
 
 # ------------------------------------------------------------------------------------------------------------------
 phase "10 least-privilege grants (runbook 2 step 8, checklist D1/D2)"
@@ -549,7 +555,7 @@ phase "INSTALLED - next steps (the installer does not do these)"
 cat <<EOF
   1. Sign in at $NUXR_APP_URL/admin as admin / admin. The application forces the password change (SEC-18, C7):
      set a strong unique password from the secret store, sign out and in again.
-  2. Settings (SuperAdmin): CompanyName (seeded 'PHPNuxBill'), time zone (seeded Asia/Jakarta), currency and number
+  2. Settings (SuperAdmin): CompanyName (stored as 'ITC NetCore': set the ISP's name), time zone (seeded Asia/Jakarta), currency and number
      format (seeded Rp. , .). RADIUS is $( [[ $ENABLE_RADIUS -eq 1 ]] && printf 'already enabled' || printf 'NOT enabled: enable it now (ACC-1)').
   3. HTTPS and the web boundary: install nginx/itc-netcore.conf.example and php-fpm/pool.conf.example (certificate,
      host name, socket), then run nuxr-post-install-verify.sh (TA-10 items).

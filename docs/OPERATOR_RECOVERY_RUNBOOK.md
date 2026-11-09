@@ -161,7 +161,7 @@ session runs with the previous plan's rate until it ends (bounded by the previou
 - The finding clears when the old session's accounting Stop arrives.
 - RouterOS answers a Disconnect for a session it no longer has with NAK 406 (unconfirmed). If the NAS shows no such
   session (`/ppp active`, `/ip hotspot active`) the Accounting-Stop was lost: the accounting row stays open (it is never
-  closed or deleted by PHPNuxBill) and the finding stays until FreeRADIUS receives a Stop; record the NAS evidence on
+  closed or deleted by ITC NetCore) and the finding stays until FreeRADIUS receives a Stop; record the NAS evidence on
   the activation. The renewal / settlement is never undone or repeated.
 
 ## 4c. NAS clock ahead (health `nas_clock`, preflight `time.nas_clock`; RAD-3a)
@@ -192,7 +192,7 @@ old session running with the previous plan's policy until it reconnects.
   is a NAS / CoA problem (`install/freeradius/README.md` "Disconnect / CoA"). Never edit `radacct` or the quota rows.
 - A subscriber refused with "Data quota exhausted or unavailable" has used the period quota, or the RADIUS database
   query failed (fail closed). "Quota unavailable" means a `Max-Data` / `Max-All-Session` row in `radcheck` is malformed
-  or duplicated (written outside PHPNuxBill): re-save the customer's plan through the application, never by hand.
+  or duplicated (written outside ITC NetCore): re-save the customer's plan through the application, never by hand.
 
 ## 5. Legacy balance operations (HELD)
 

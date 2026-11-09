@@ -1,7 +1,7 @@
 # Status of this guide
 
 > [!WARNING]
-> **This path is NOT accepted and has NOT been executed for ITC NetCore V1.0.** By owner decision of 2026-10-29, the first V1.0 installation is a **fresh install on a new, empty database** (see the *Fresh Installation Manual*). Migration of an existing PHPNuxBill database is a separate **future** path. Nothing in this guide may be run against production data, a production database copy or a production router without its own, separate, written owner authorization. This guide does not grant it.
+> **This path is NOT accepted and has NOT been executed for ITC NetCore V1.0.** By owner decision of 2026-10-29, the first V1.0 installation is a **fresh install on a new, empty database** (see the *Fresh Installation Manual*). Migration of an existing legacy database is a separate **future** path. Nothing in this guide may be run against production data, a production database copy or a production router without its own, separate, written owner authorization. This guide does not grant it.
 
 This guide exists so that a later migration project starts from the right prerequisites. It collects, from the product's authoritative documents, every gate that a migration must pass, the procedure the deployment runbook prescribes, and the open decisions that only the owner can take. Where this guide and a product document differ, the product document wins (`TECH_DOCS_SOURCES.md` lists the sources).
 
@@ -15,7 +15,7 @@ This guide exists so that a later migration project starts from the right prereq
 
 ## What "migration" means here
 
-An existing PHPNuxBill installation is upgraded **in place**: the ITC NetCore code is deployed next to the old code, and the reseller-domain schema is added to the existing database by the project migration runner (`system/reseller/migrate.php`). The reseller migrations are additive: legacy tables keep their data, except for the columns that the migration contract adds to `tbl_customers`. There is no export / import tool and no data transformation step.
+An existing legacy installation is upgraded **in place**: the ITC NetCore code is deployed next to the old code, and the reseller-domain schema is added to the existing database by the project migration runner (`system/reseller/migrate.php`). The reseller migrations are additive: legacy tables keep their data, except for the columns that the migration contract adds to `tbl_customers`. There is no export / import tool and no data transformation step.
 
 # Prerequisite gates
 
@@ -90,7 +90,7 @@ The V1 time contract requires every SQL session to be UTC and reads accounting t
 
 Legacy history rows that carry no owner (`user_id = 0`) are no longer shown to the customer in the portal after the fail-closed fix; staff still see them, and nothing is deleted. The lab's answer "no ownership backfill" was taken under a general delegation and must be **ratified or replaced by the owner**:
 
-- ratify "no backfill" (customers upgraded from PHPNuxBill do not see their own pre-upgrade history in the portal); or
+- ratify "no backfill" (customers upgraded from ITC NetCore do not see their own pre-upgrade history in the portal); or
 - authorize a supervised backfill of `user_id` for rows whose ownership can be proven. **No tool for this exists**; it would be new, reviewed work.
 
 ## M-6 Collation conversion (B-L09)
@@ -170,7 +170,7 @@ Take the pre-upgrade backup with the backup runbook §2 procedure and record its
 | OBS-1 remediation row | Per row: rename back from the audit record (R1); whole change: restore the pre-change dump |
 
 > [!WARNING]
-> **Never redeploy upstream PHPNuxBill over a migrated database.** Never use the legacy updater (`update.php` answers 403; `install/update.php` refuses once installed): schema changes go only through `system/reseller/migrate.php`.
+> **Never redeploy legacy over a migrated database.** Never use the legacy updater (`update.php` answers 403; `install/update.php` refuses once installed): schema changes go only through `system/reseller/migrate.php`.
 
 # What is never done
 

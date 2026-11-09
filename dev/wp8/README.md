@@ -3,7 +3,7 @@
 Reproducible lab for the WP8 integration POC: a **genuine RouterOS CHR 7.24.5** (QEMU software emulation, free
 license) as the NAS, the project **FreeRADIUS 3.2.8** with **production-style NAS clients from the `nas` table**, the
 **application test runner**, **MariaDB**, and **independent Linux PPPoE and Hotspot clients**, all on isolated private
-networks. Never used for production; nothing here is a runtime dependency of PHPNuxBill.
+networks. Never used for production; nothing here is a runtime dependency of ITC NetCore.
 
 ## Topology
 

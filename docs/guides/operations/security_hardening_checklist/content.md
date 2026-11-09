@@ -32,7 +32,7 @@ Tick every line **on the target** before go-live and after every significant cha
 | W9 | Login rate limiting at the HTTPS front for the staff and portal login routes. **The application has no built-in login throttling or lockout.** The `install/fresh/` nginx example includes a login-POST rate limit (lab: 12 bogus POSTs gave `302` ×6, then `429` ×6) | TA-10: a few failed logins only, observe the front's behaviour | [ ] |
 | W10 | `ui/compiled/`, `system/uploads/`, `pages/` writable by the PHP user only; the code tree read-only for it | `ls -l` | [ ] |
 | W11 | Web-server access logs protected: the public QR-code generator (`/qrcode/?data=…`) needs no session, and data placed in its query string (for example a voucher code) can reach the access log | Log file permissions; review who reads access logs | [ ] |
-| W12 | Dashboard update check off: the fresh installer stores `new_version_notify = disable`, so the upstream PHPNuxBill update check (which contacts `raw.githubusercontent.com`) does not run. SuperAdmin can enable it under Settings > Miscellaneous; do so only if your outbound policy allows that host | Settings > Miscellaneous (SuperAdmin) | [ ] |
+| W12 | Dashboard update check off: the fresh installer stores `new_version_notify = disable`, so the legacy update check (which contacts `raw.githubusercontent.com`) does not run. SuperAdmin can enable it under Settings > Miscellaneous; do so only if your outbound policy allows that host | Settings > Miscellaneous (SuperAdmin) | [ ] |
 
 <!-- pagebreak -->
 

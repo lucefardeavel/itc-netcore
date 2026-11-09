@@ -103,7 +103,7 @@ From `docs/DEPLOYMENT_AND_UPGRADE_RUNBOOK.md` §4:
 |---|---|
 | `migrate` failed or was interrupted, and no new-domain data exists | `php system/reseller/migrate.php rollback --all` (or `--to=<id>`). It drops only the objects the migrations created; the core fingerprint must equal the pre-migration one |
 | New-domain data exists (any reseller row, or `tbl_customers.manager_id` set) | Schema rollback is **refused** (exit 2) by design. Restore the pre-upgrade backup and redeploy the previous code. Every operation since the backup is lost and must be reconciled |
-| Code-only problem after a successful migration | Redeploy the previous release of ITC NetCore with the same schema. **Never** redeploy upstream PHPNuxBill over a migrated database |
+| Code-only problem after a successful migration | Redeploy the previous release of ITC NetCore with the same schema. **Never** redeploy legacy over a migrated database |
 
 Details: `upgrade_rollback_guide`.
 

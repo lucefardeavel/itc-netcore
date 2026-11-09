@@ -21,7 +21,7 @@ Every configuration example carries exactly one label:
 Placeholders are written `<LIKE_THIS>`. No example contains a real secret, community or address. `${confdir}` is `/etc/freeradius/3.0` on Ubuntu / Debian packages and `/etc/freeradius` in the official FreeRADIUS image.
 
 > [!NOTE]
-> Internal names keep their PHPNuxBill origin: the FreeRADIUS site and dictionary are called `phpnuxbill`, the policy attributes `Nuxr-*`, and the tables `radcheck`, `radacct`, `nas`, `nuxr_admission` … Do not rename them.
+> Internal names are unchanged: the FreeRADIUS site and dictionary are called `phpnuxbill`, the policy attributes `Nuxr-*`, and the tables `radcheck`, `radacct`, `nas`, `nuxr_admission` … Do not rename them.
 
 <!-- pagebreak -->
 

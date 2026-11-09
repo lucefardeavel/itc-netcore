@@ -96,7 +96,7 @@ The staff header, footer and login page include the client, the manifest link, `
 - The interim icons are presentation files under `ui/ui/images/pwa/`. They are referenced from one place: the `Pwa` manifest builder plus the header and login `apple-touch-icon` link.
 - The worker knows them only as precache file names.
 - Replacing them (same names and sizes) needs no change to the worker logic, routing, cache safety, permissions or business services. Bump `VERSION` so installed clients refresh the precache.
-- The name comes from `CompanyName` (fallback "PHPNuxBill"). `short_name` is its first 12 characters.
+- The name comes from `CompanyName` (fallback "ITC NetCore" when the stock placeholder is stored). `short_name` is its first 12 characters.
 
 ## 9. Guards and tests
 

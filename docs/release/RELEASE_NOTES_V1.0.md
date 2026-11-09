@@ -19,8 +19,7 @@
 
 ## Summary
 
-ITC NetCore V1.0 is the first release of ITC NetCore, a modified version of PHPNuxBill
-(<https://github.com/hotspotbilling/phpnuxbill>, by Ibnu Maksum (iBNuX) and the PHPNuxBill contributors). It adds a
+ITC NetCore V1.0 is the first release of ITC NetCore, developed and maintained by ITC. It adds a
 reseller business layer (hierarchy, wallets, ledger, pricing, auditable activation), hardens the FreeRADIUS and MikroTik
 integration, adds data and time quotas with separate actual and billable usage, and provides an Arabic-first adaptive
 staff interface with an installable staff PWA. Each ISP runs one isolated instance.
@@ -98,7 +97,7 @@ staff interface with an installable staff PWA. Each ISP runs one isolated instan
 ## Behaviour changes operators should know
 
 - A customer's **static IP** must be a valid, non-reserved IPv4 address (or empty) and **unique across all customers**, for every role including Admin. Special IPv4 classes (0/8, 127/8, 169.254/16, 224/4, 240/4) are refused (`b2f7837b`). A stored legacy value is not re-checked until it is changed.
-- **Update check off by default:** the fresh installer stores `new_version_notify = disable`, so the dashboard's upstream PHPNuxBill update check (which contacts `raw.githubusercontent.com`) does not run. SuperAdmin can enable it under Settings > Miscellaneous.
+- **Update check off by default:** the fresh installer stores `new_version_notify = disable`, so the legacy dashboard update check (which contacted `raw.githubusercontent.com`) does not run. Maintenance release V1.0.1 removes it.
 - **Fresh-install gate:** the installer also refuses a target database on which another account already holds database, table, column or routine privileges. Revoke them first.
 - **Backups:** an off-host copy that failed is retried automatically by the next run (one marker per item in `$BACKUP_DIR/.offhost/`); the run keeps exiting 5 while such a backlog remains, so alert on any exit 5. The encrypted manifest is mandatory at restore: a set without it is refused. With `age` encryption, keep the recipients file private and the backup store write-protected.
 - **Reconcile CLI:** `reconcile.php cancel`, `rollback` and `balance-resolve` require `--operator=<name> --reason=<text>` (the reason at least 10 characters), and both are recorded in the audit trail. `cancel` also refuses an activation updated less than 300 seconds ago.
@@ -129,7 +128,7 @@ result was obtained on a target or production system, and the lab does not prove
 
 ## Installation and upgrade notes
 
-- The first installation of V1.0 is a **fresh install on a new, empty database**. Migration from an existing PHPNuxBill database is a separate future path and is not part of the first installation.
+- The first installation of V1.0 is a **fresh install on a new, empty database**. Migration from an existing legacy database is a separate future path and is not part of the first installation.
 - Requirements: PHP 8.2, MariaDB 10.11 or MySQL 8.0 (`REPEATABLE-READ`, UTC), FreeRADIUS 3.2.x, MikroTik RouterOS 7.15 or later with NAS type `mikrotik_snmp`, NTP on every host and NAS.
 - Follow the installation guide in `docs/guides/install/` (manual first-run artifact check, artifact verify, `install/fresh/nuxr-fresh-install.sh`, post-install verify) and the MikroTik / FreeRADIUS guide in `docs/guides/radius-mikrotik/`.
 - Keep `install/freeradius/` in the document root, read-only and blocked by the web server: the preflight reads its expected CHECK expressions from it and FAILs without them (`33624129`). Use the default `--installer=strip`; `--installer=remove` makes the installer fail at the setup preflight (phase 12, exit 4).
@@ -171,7 +170,6 @@ Support terms are defined per customer agreement.
 
 ## Credits
 
-ITC NetCore is built on PHPNuxBill (<https://github.com/hotspotbilling/phpnuxbill>), created by Ibnu Maksum (iBNuX)
-together with the PHPNuxBill contributors. Their copyright notices are kept. Third-party components and their licences
-are listed in `docs/THIRD_PARTY_LICENSES.md`; see also `NOTICE` and `LICENSE`. The licence version and related
+ITC NetCore is developed and maintained by ITC. Copyright and licence notices are kept as the licence requires.
+Third-party components and their licences are listed in `docs/THIRD_PARTY_LICENSES.md`; see also `NOTICE` and `LICENSE`. The licence version and related
 questions are open with counsel (LIC-1); these notes do not decide them.

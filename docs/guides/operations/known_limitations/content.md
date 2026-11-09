@@ -12,12 +12,12 @@ This document states what ITC NetCore V1.0 supports and what it does not, as ver
 | Lab acceptance | `LAB_ACCEPTED_WITH_LIMITATIONS` on candidate `a6b02eba` (the release tree adds documentation-only commit `e02d784b`) |
 | Final-prep fixes after the candidate | R-HF-CARRY-01 rounds 1–3 (`0be31b63`, `228f01c9`, `e8260df7`, `b2f7837b`), the UI / i18n fixes (`012a9e91`, `9b21ebfe`), the preflight fixes G-4 (`bd1e03cc`) and G-1 (`33624129`), and the deployment-document corrections (`c550d6b8`): each verified by targeted dual-engine harness runs (related classes plus every unit and guard test). The browser matrix and the CHR suites were **not** re-run on them |
 | Target acceptance TA-01 … TA-10, closure cases X-1 … X-5 | **NOT_RUN** — no authorized staging target exists |
-| Legal review LIC-1 | **`BLOCKED — COUNSEL REQUIRED`** (GPL version contradiction between LICENSE, README and `composer.json`; mPDF / Smarty licence combination; credits; the Lena test image; Terms and Privacy templates still naming PHPNuxBill; data protection and telecom retention) |
+| Legal review LIC-1 | **`BLOCKED — COUNSEL REQUIRED`** (GPL version contradiction between LICENSE, README and `composer.json`; mPDF / Smarty licence combination; credits; the Lena test image; data protection and telecom retention) |
 | WP9 / WP10 acceptance ledger rows | **PENDING** |
 | G8 (merge, tag, production release) | **OPEN** |
 | Production deployment | **Not authorized** |
 | Owner decisions still open | A2-R C7 residual-risk acceptance (C5 training sign-off open); O-DL policy confirmation (record conflict); RTO / RPO values; R-HF-CARRY-01; WP9 / WP10 acceptance |
-| Deployment type of the first instance | **Fresh install with an empty database** (owner decision). Migration of an existing PHPNuxBill database is a separate future path |
+| Deployment type of the first instance | **Fresh install with an empty database** (owner decision). Migration of an existing legacy database is a separate future path |
 
 # 2. Evidence level: local lab only
 

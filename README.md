@@ -241,7 +241,7 @@ database 4 vCPU / 8 GB RAM on SSD; FreeRADIUS 4 vCPU / 4 GB RAM. See
 
 ## Quick start (fresh install)
 
-The first installation of V1.0 is a **fresh install on a new, empty database**. Migrating an existing PHPNuxBill
+The first installation of V1.0 is a **fresh install on a new, empty database**. Migrating an existing legacy
 database is a separate future path and is not part of the first installation.
 
 Follow the [installation guide](docs/guides/install/) step by step. In outline:
@@ -333,18 +333,8 @@ the visible identity, and renaming them would break existing installations.
 
 <a id="credits"></a>
 
-## Credits and third-party notices
+## Licence
 
-ITC NetCore is a modified version of the open-source project PHPNuxBill (<https://github.com/hotspotbilling/phpnuxbill>,
-iBNuX and contributors). As the licence requires, the original copyright notices in the source files and in the installer
-are kept.
-
-The interface uses AdminLTE and Bootstrap. Every third-party component and its licence is listed in
-[docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md). See also [NOTICE](NOTICE).
-
-**Licence:** [LICENSE](LICENSE) contains the GNU General Public License version 2. The original project's README says
-"version 2 or later", but no source file states a version. The licence version, its combination with LGPL-3.0
-components, and the use of the product and third-party names are open legal questions with counsel (LIC-1, status `BLOCKED — COUNSEL REQUIRED`,
-[owner-review/WP10/LEGAL_REVIEW_PACKAGE.md](owner-review/WP10/LEGAL_REVIEW_PACKAGE.md), source repository only (not in the release artifact)). This README does not decide them.
-"ITC NetCore" and "ITC" are the product and brand names chosen by the owner; no trademark registration or clearance is
-stated here.
+ITC NetCore is developed and maintained by **ITC – Integrated Technology Company**. It is distributed under the GNU
+General Public License version 2: see [LICENSE](LICENSE), [NOTICE](NOTICE) and
+[docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md).

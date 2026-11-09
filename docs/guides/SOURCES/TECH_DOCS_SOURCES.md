@@ -17,7 +17,7 @@ Prepared 2026-10-29 for the five customer-facing manuals in this folder. Every i
 | `install_guide_ar/` | ar | ITC NetCore V1.0 — دليل التثبيت الجديد |
 | `radius_mikrotik_guide_en/` | en | ITC NetCore V1.0 — MikroTik and FreeRADIUS Integration Manual |
 | `radius_mikrotik_guide_ar/` | ar | ITC NetCore V1.0 — دليل تكامل MikroTik وFreeRADIUS |
-| `migration_guide_en/` | en | Migration from an Existing PHPNuxBill Database (Future Path) |
+| `migration_guide_en/` | en | Migration from an Existing ITC NetCore Database (Future Path) |
 
 Each folder holds `meta.json` and `content.md`; the four install / RADIUS folders also hold `topology.svg` (English or Arabic labels). `meta.json` carries the requested `sha` key and, with the same value, `source_sha`, which the renderer in `L:deliverables\docpipe\lib\common.py` requires.
 

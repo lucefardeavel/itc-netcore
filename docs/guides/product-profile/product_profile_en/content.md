@@ -23,8 +23,6 @@ It works in **Arabic and English**, with Arabic as the first language (right-to-
 Each ISP receives **its own isolated copy** of the platform, with its own database and its own network secrets. No ISP shares a database with another.
 
 > [!NOTE]
-> ITC NetCore is a modified version of the open-source project PHPNuxBill (iBNuX and its contributors). Credits are listed at the end of this profile.
-
 # Who uses it
 
 | User | What they do in ITC NetCore |
@@ -164,7 +162,7 @@ What is **not** claimed:
 | Owner release decisions | Open |
 | Production use | **Not yet accepted** |
 
-The laboratory results do not prove capacity on a customer's hardware; production sizing is measured during target testing. The first installation for an ISP is a **fresh installation with an empty database**; moving data from an existing PHPNuxBill system is a separate, future path.
+The laboratory results do not prove capacity on a customer's hardware; production sizing is measured during target testing. The first installation for an ISP is a **fresh installation with an empty database**; moving data from an existing legacy system is a separate, future path.
 
 # What an ISP needs to run it
 
@@ -178,4 +176,4 @@ The laboratory results do not prove capacity on a customer's hardware; productio
 
 Support terms are defined per customer agreement.
 
-ITC NetCore is developed and maintained by ITC. It is a modified version of **PHPNuxBill** (<https://github.com/hotspotbilling/phpnuxbill>), created by Ibnu Maksum (iBNuX) together with the PHPNuxBill contributors; their copyright notices are kept. The interface uses AdminLTE and Bootstrap; all third-party components and their licences are listed in the product's `docs/THIRD_PARTY_LICENSES.md`. The licence text is the GNU General Public License version 2 as shipped in `LICENSE`; open licence questions are with counsel and are not decided by this profile. "ITC NetCore" and "ITC" are the product and brand names; no trademark registration or clearance is stated.
+ITC NetCore is developed and maintained by ITC – Integrated Technology Company (www.itc-iq.net). Copyright and licence notices are kept as the licence requires; all third-party components and their licences are listed in the product's `docs/THIRD_PARTY_LICENSES.md`. The licence text is the GNU General Public License version 2 as shipped in `LICENSE`; open licence questions are with counsel and are not decided by this profile. "ITC NetCore" and "ITC" are the product and brand names; no trademark registration or clearance is stated.

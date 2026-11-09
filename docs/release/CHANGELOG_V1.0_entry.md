@@ -1,7 +1,7 @@
 # CHANGELOG entry: ITC NetCore V1.0 (text to insert)
 
 This file holds the text of the V1.0 entry for `CHANGELOG.md`. Insert it **above** the first upstream entry
-(`## 2024.10.23`) when the owner authorizes the release. The upstream PHPNuxBill history below it stays unchanged.
+(`## 2024.10.23`) when the owner authorizes the release. The earlier history below it stays unchanged.
 Replace `<final SHA>` with the released commit and the status line once the release gates have passed.
 
 ---
@@ -12,8 +12,7 @@ Status: Release Candidate, not production-accepted. Lab verdict `LAB_ACCEPTED_WI
 run; LIC-1 `BLOCKED — COUNSEL REQUIRED`. Lab-accepted candidate `a6b02eba`; release commit `<final SHA>`.
 Full notes: `docs/release/RELEASE_NOTES_V1.0.md`.
 
-ITC NetCore is a modified version of PHPNuxBill (https://github.com/hotspotbilling/phpnuxbill) by Ibnu Maksum (iBNuX)
-and the PHPNuxBill contributors. Developed and maintained by ITC.
+Developed and maintained by ITC.
 
 ### Added
 

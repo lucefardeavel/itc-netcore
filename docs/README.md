@@ -95,7 +95,7 @@ This is the index of the documentation in this repository. Paths are relative to
 |---|---|
 | [release/RELEASE_NOTES_V1.0.md](release/RELEASE_NOTES_V1.0.md) | V1.0 release notes (Release Candidate) |
 | [release/CHANGELOG_V1.0_entry.md](release/CHANGELOG_V1.0_entry.md) | V1.0 changelog entry |
-| [../CHANGELOG.md](../CHANGELOG.md) | Original PHPNuxBill history |
+| [../CHANGELOG.md](../CHANGELOG.md) | History of the code base |
 | [../owner-review/CURRENT_STATE_AND_OPEN_NOTES.md](../owner-review/CURRENT_STATE_AND_OPEN_NOTES.md) | Current state, open items, where each record is; source repository only (not in the release artifact) |
 | [claude-development-pack/review/ACCEPTANCE_LEDGER.md](claude-development-pack/review/ACCEPTANCE_LEDGER.md) | Owner-controlled acceptance ledger; source repository only (not in the release artifact) |
 | [../owner-review/WP10/LEGAL_REVIEW_PACKAGE.md](../owner-review/WP10/LEGAL_REVIEW_PACKAGE.md) | Legal review package (LIC-1, `BLOCKED — COUNSEL REQUIRED`); source repository only (not in the release artifact) |

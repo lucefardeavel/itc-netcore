@@ -80,14 +80,13 @@ An operator that wants its own app icon regenerates the four PWA PNGs (same name
   points, the copyright headers in the source files and the installer's copyright line. Whether the interface must also
   show the attribution is part of LIC-1 (counsel).
 
-## 6. GitHub repository profile (suggested text; not applied)
+## 6. GitHub repository profile (applied 2026-11-09)
 
-The repository is **not** renamed or moved. The text below is a suggestion for the owner to apply manually:
-
-- **Description:** `ITC NetCore — ISP Management & Billing Platform: reseller wallets and ledger, FreeRADIUS + MikroTik (PPPoE / Hotspot), data quotas, vouchers, Arabic-first RTL staff PWA. Based on PHPNuxBill (GPL-2.0).`
+- **Repository:** `lucefardeavel/itc-netcore` (renamed from `phpnuxbill-reseller`; GitHub redirects the old address).
+- **Default branch:** `maint/v1.0.1-itc-only`.
+- **Description:** `ITC NetCore — ISP Management & Billing Platform by ITC – Integrated Technology Company (V1.0 release candidate): reseller wallets and ledger, MikroTik PPPoE / Hotspot, data quotas, vouchers, Arabic-first RTL staff PWA.`
+- **Website:** <https://www.itc-iq.net>
 - **Topics:** `isp-billing`, `radius`, `freeradius`, `mikrotik`, `pppoe`, `hotspot`, `reseller`, `wallet`, `php`, `pwa`, `rtl`, `arabic`
-- **Website:** none until a public product page exists.
-- **Social preview:** the L1 mark on white (from `ui/ui/images/pwa/icon-512.png`) once the owner applies the profile.
 
 ## 7. Guard
 

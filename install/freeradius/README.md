@@ -1,9 +1,9 @@
-# FreeRADIUS configuration for PHPNuxBill (WP4)
+# FreeRADIUS configuration for ITC NetCore (WP4)
 
-Stock FreeRADIUS cannot serve PHPNuxBill subscribers. PHPNuxBill writes the check items `Max-All-Session`
+Stock FreeRADIUS cannot serve ITC NetCore subscribers. ITC NetCore writes the check items `Max-All-Session`
 (time quota) and `Max-Data` (data quota), which are unknown to a stock server, and FreeRADIUS then rejects
 every subscriber whose `radcheck` rows contain them. This directory holds the project-owned configuration that
-PHPNuxBill requires and tests (owner decision C16, option a).
+ITC NetCore requires and tests (owner decision C16, option a).
 
 It is tested with FreeRADIUS **3.2.8** (`freeradius/freeradius-server:3.2.8`) on MariaDB 10.11 and MySQL 8.0. See
 `tests/Integration/Wp4/FreeRadiusContractTest.php` and the test setup in `dev/test/freeradius/`.
@@ -12,7 +12,7 @@ It is tested with FreeRADIUS **3.2.8** (`freeradius/freeradius-server:3.2.8`) on
 |---|---|---|
 | `dictionary.phpnuxbill` | `/etc/freeradius/dictionary.phpnuxbill`, plus the line `$INCLUDE dictionary.phpnuxbill` in `/etc/freeradius/dictionary` | defines the internal attributes `Nuxr-Period-Start` and `Nuxr-Quota-Share` (V1 data quota; never sent to a NAS) |
 | `mods-available/nuxr_counters` | `mods-enabled/nuxr_counters` | `Max-All-Session` / `Max-Data` counters for the **current billing period** |
-| `mods-available/sql.example` | adapt into `mods-available/sql`, then link it in `mods-enabled/` | SQL module on the PHPNuxBill RADIUS database (`read_groups = yes`) |
+| `mods-available/sql.example` | adapt into `mods-available/sql`, then link it in `mods-enabled/` | SQL module on the ITC NetCore RADIUS database (`read_groups = yes`) |
 | `sites-available/phpnuxbill` | `sites-enabled/phpnuxbill`, replacing `default` | authorize / authenticate (PAP, CHAP) / accounting / session / post-auth (PPPoE session guard) |
 | (stock) `mods-available/date` | keep `mods-enabled/date` (FreeRADIUS default) | provides `%{time_since:}`, the clock of the PPPoE late-claim guard |
 | `bin/nuxr_pppoe_session_guard` | `${confdir}/nuxr/nuxr_pppoe_session_guard`, mode 0755, owner root | fail-closed PPPoE live-session verifier (see "PPPoE session guard") |
@@ -31,9 +31,9 @@ It is tested with FreeRADIUS **3.2.8** (`freeradius/freeradius-server:3.2.8`) on
 ## Rules
 
 **Accounting history is never deleted.**
-- FreeRADIUS writes `radacct`; PHPNuxBill only reads it.
-- Before WP4, PHPNuxBill deleted the subscriber's `radacct` rows on every activation, renewal, sync, password or username change, and expiry. That deletion was what reset the quotas.
-- Since WP4, quotas reset by period instead: PHPNuxBill writes `Nuxr-Period-Start` (the start of the billing period, a UNIX timestamp), and the `nuxr_*` counters sum only the sessions started since then.
+- FreeRADIUS writes `radacct`; ITC NetCore only reads it.
+- Before WP4, ITC NetCore deleted the subscriber's `radacct` rows on every activation, renewal, sync, password or username change, and expiry. That deletion was what reset the quotas.
+- Since WP4, quotas reset by period instead: ITC NetCore writes `Nuxr-Period-Start` (the start of the billing period, a UNIX timestamp), and the `nuxr_*` counters sum only the sessions started since then.
 
 **Stale sessions are never zapped.** `sql` must keep `delete_stale_sessions = no`. With `yes`, a checkrad "not logged in"
 answer makes FreeRADIUS write a fabricated Accounting-Stop into `radacct`. PPPoE admission against a stale row is decided
@@ -41,7 +41,7 @@ by the PPPoE session guard instead (it asks the NAS; the row is left exactly as 
 
 **Counters.** Do not enable the stock `noresetcounter` together with `nuxr_timecounter`, because both define `Max-All-Session`.
 
-**EAP.** The PHPNuxBill server does not define an EAP section. Disable `mods-enabled/eap`, or keep EAP in your own virtual server.
+**EAP.** The ITC NetCore server does not define an EAP section. Disable `mods-enabled/eap`, or keep EAP in your own virtual server.
 
 **Time zone.**
 - `Expiration` is written in the application time zone (`Settings > Time zone`), in the format `d M Y H:i:s`, and FreeRADIUS interprets it in its own local time.
@@ -51,13 +51,13 @@ by the PPPoE session guard instead (it asks the NAS; the row is left exactly as 
 **Post-auth logging.** `radpostauth` is not enabled here, because the stock query stores the cleartext password.
 
 **NAS clients.**
-- `read_clients = yes` (with `client_table = "nas"`) loads the NAS list that PHPNuxBill manages (RADIUS > NAS). This is the
+- `read_clients = yes` (with `client_table = "nas"`) loads the NAS list that ITC NetCore manages (RADIUS > NAS). This is the
   production arrangement validated in WP8: the `nas` table is the single NAS source for FreeRADIUS (authentication and
-  accounting clients) and for PHPNuxBill (CoA / Disconnect target). Restart or reload FreeRADIUS after changing a NAS.
+  accounting clients) and for ITC NetCore (CoA / Disconnect target). Restart or reload FreeRADIUS after changing a NAS.
 - The NAS secret is stored in the `nas` table in plaintext, because FreeRADIUS needs to read it.
-- PHPNuxBill never shows the stored secret again after it is saved.
+- ITC NetCore never shows the stored secret again after it is saved.
 - `nas.nasname` must be the IP address that the NAS sends as `NAS-IP-Address` and uses as the source of its RADIUS
-  packets (RouterOS: `/radius src-address`). PHPNuxBill finds the NAS of a session by `radacct.nasipaddress == nas.nasname`.
+  packets (RouterOS: `/radius src-address`). ITC NetCore finds the NAS of a session by `radacct.nasipaddress == nas.nasname`.
 
 ## PPPoE session guard (WP8 OD-W8-16 Option G)
 
@@ -134,7 +134,7 @@ A mistake during rotation produces ERROR, i.e. rejected PPPoE logins for subscri
   database change is needed or allowed: never delete or close `radacct` rows or reservations by hand.
 
 **NAS contract** (MikroTik RouterOS; checked by the WP8 lab):
-- PHPNuxBill NAS type (RADIUS > NAS > Type) **`mikrotik_snmp`**. With another type (default `other`) the stock checkrad
+- ITC NetCore NAS type (RADIUS > NAS > Type) **`mikrotik_snmp`**. With another type (default `other`) the stock checkrad
   trusts every open row as live: after a lost Stop the subscriber stays locked out (fail-safe, but not resolved).
 - SNMP read-only on the private management path: `/snmp set enabled=yes`;
   `/snmp community set [find name=public] disabled=yes`;
@@ -150,7 +150,7 @@ A mistake during rotation produces ERROR, i.e. rejected PPPoE logins for subscri
   with net-snmp program paths) waits up to 10 s for a NAS that does not answer - longer than the RouterOS timeout, so such
   logins are refused (fail closed, availability only). Re-run the WP8 Option G gate before using such a build.
 
-**Hotspot.** The guard never runs for Hotspot. PHPNuxBill writes `Port-Limit` = `Simultaneous-Use` (`max(1, shared_users)`)
+**Hotspot.** The guard never runs for Hotspot. ITC NetCore writes `Port-Limit` = `Simultaneous-Use` (`max(1, shared_users)`)
 as a **reply** attribute for Hotspot plans, and RouterOS enforces it at the NAS, also when an accounting Stop was lost.
 PPPoE gets no `Port-Limit` (RouterOS ignores it for PPPoE). RouterOS counts `Port-Limit` per **spelling** it received,
 so the Hotspot canonical-spelling check below admits only the exact stored spelling, and per **NAS**, so the global
@@ -517,7 +517,7 @@ FreeRADIUS 3.2.8 (`dev/wp8/quota_gate.py`; `owner-review/WP10/V1_QUOTA_RENEWAL_P
 
 **At every authentication** (`authorize`, after the period counters), when `Max-Data` is set, FreeRADIUS replies the
 session's share of the remaining quota, `share = floor((Max-Data - period usage) / Simultaneous-Use)`, as
-`Mikrotik-Total-Limit`, `Mikrotik-Recv-Limit` and `Mikrotik-Xmit-Limit` (each with its Gigawords part), and PHPNuxBill
+`Mikrotik-Total-Limit`, `Mikrotik-Recv-Limit` and `Mikrotik-Xmit-Limit` (each with its Gigawords part), and ITC NetCore
 adds `Acct-Interim-Interval` (default 30 s - the owner's N1 = A + G setting; `nuxr_quota_interim_seconds` in `config.php`, 10 - 300, changes it for sessions that authenticate afterwards, at the price of one accounting UPDATE per online quota subscriber per interval). The time quota becomes `Session-Timeout` (the remaining time; the counter module).
 - Hotspot: the session is cut by the router at its share: a hard cap per session, but **not byte-exact** (the NAS cuts on its own
   timer; measured on CHR 7.24.5 the recorded usage ended 0.3 % - 4.4 % past the share at ~1 Mbps, i.e. 0.2 - 0.7 s of line rate).
@@ -550,7 +550,7 @@ session whose Disconnect got no answer / no Stop is retried after 15 s, one that
 
 **Period attribution (exact, independent of the NAS clock).** A session counts against the billing period in which its
 accounting row **arrived**: a period that starts now owns every `radacct` row whose `radacctid` is larger than the table's
-highest id at that moment (`Nuxr-Period-Acct-Id`, written by PHPNuxBill with the quota). The NAS clock plays no part. Measured on
+highest id at that moment (`Nuxr-Period-Acct-Id`, written by ITC NetCore with the quota). The NAS clock plays no part. Measured on
 RouterOS CHR 7.24.5, the NAS stamps Accounting-Start **1.1 - 1.7 s earlier** than the host receives it, and a PPPoE client redials
 right after the renewal Disconnect, so a comparison of the NAS stamp with the period start booked the first new session to the
 previous period (its traffic escaped the new quota); a 10 s allowance fixed that but also counted a session opened just *before* a
@@ -586,7 +586,7 @@ session can never use more than its own grant (its Session-Timeout and per-sessi
 
 ## Disconnect / CoA
 
-PHPNuxBill sends RFC 5176 Disconnect-Request and CoA-Request packets itself (`Reseller\Radius\CoAClient`); `radclient` is not used and no shell is involved.
+ITC NetCore sends RFC 5176 Disconnect-Request and CoA-Request packets itself (`Reseller\Radius\CoAClient`); `radclient` is not used and no shell is involved.
 - It sends to the NAS address in `nas.nasname` (it must be an IP address).
 - The port is `nas.ports` when it is set (the legacy convention), otherwise 3799.
 - MikroTik: `/radius incoming set accept=yes port=3799`.
@@ -596,8 +596,8 @@ line says otherwise:
 - **Port.** RADIUS > NAS "Ports" (`nas.ports`) is the CoA / Disconnect **destination** port; empty means 3799. Set the NAS
   to the same port explicitly: WP8 ran `nas.ports = 3799` with `/radius incoming set accept=yes port=3799`.
   - MikroTik documents **1700** as the factory default of `/radius incoming port`. WP8 never ran with 1700. Do not rely on
-    the default: with an empty "Ports" and an unchanged router, PHPNuxBill sends to 3799 while the router listens on 1700.
-  - A port mismatch, `accept=no` or a firewall drop all look the same to PHPNuxBill: no answer → `UNKNOWN
+    the default: with an empty "Ports" and an unchanged router, ITC NetCore sends to 3799 while the router listens on 1700.
+  - A port mismatch, `accept=no` or a firewall drop all look the same to ITC NetCore: no answer → `UNKNOWN
     COA_NO_RESPONSE` after 3 identical packets about 2 s apart. It is never retried as a new request and never rolls
     back provisioning.
 - **Source address (binding rule).** Send CoA / Disconnect **from an address that is configured as a RouterOS `/radius`
@@ -610,7 +610,7 @@ line says otherwise:
   Error-Cause 406** (never 503) → `FAILED COA_NAK`. A `Mikrotik-Rate-Limit` CoA is applied live. A CoA that changes
   `Framed-Pool` / `Framed-IP-Address` is ACKed but **ignored**: change the policy, then Disconnect so the subscriber
   re-authenticates.
-- Allow UDP to the incoming port on the NAS only from the PHPNuxBill / FreeRADIUS address.
+- Allow UDP to the incoming port on the NAS only from the ITC NetCore / FreeRADIUS address.
 
 Details and evidence: `docs/WP8_INTEGRATION_MODEL.md` §2 and §6, `docs/WP4_RADIUS_MODEL.md` §13.
 
