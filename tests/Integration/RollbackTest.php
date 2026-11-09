@@ -58,6 +58,7 @@ final class RollbackTest extends IntegrationTestCase
             'R0005_customer_ownership' => 'ROLLED_BACK',
             'R0006_reseller_audit' => 'ROLLED_BACK',
             'R0007_activation_reversal_states' => 'ROLLED_BACK',
+            'R0008_voucher_logins' => 'ROLLED_BACK',
         ], $this->statuses($db));
         $this->assertFalse(in_array('tbl_manager_ledger', $db->tables(), true));
         $this->assertSame(0, (int) $db->value("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tbl_customers' AND COLUMN_NAME IN ('manager_id','assigned_sales_id')"));

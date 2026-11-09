@@ -27,7 +27,9 @@ final class SourceGuardTest extends TestCase
         // WP5A (owner decision A7): the activation routes; WP6A (owner decision OD-C): + read-only activation/list;
         // WP6B (owner decision OD-1): the WP6B web surface and the explicit reseller API allow-list;
         // WP7 (owner decision OD-W7-2): + the public, GET-only pwa/manifest and pwa/ping (never API-allowed)
-        'system/autoload/Reseller/Security/RouteMap.php' => '3af52d3bacb588373ea109acba8da91c7f6eaf7cac4aed48aea28447c2005867',
+        // V1.0.1 (owner request 2026-11-09, hotspot sign-in): + the public login/hotspot and the SYSTEM_ADMIN
+        // settings/hotspot-page (previous pin 3af52d3bacb588373ea109acba8da91c7f6eaf7cac4aed48aea28447c2005867)
+        'system/autoload/Reseller/Security/RouteMap.php' => '257c6fdabd85b69d0ecaf826774a4ca7b43df25a6c3c181277749159edbb58e1',
         'system/autoload/Reseller/Domain/Tx.php' => '223cfb618ee7372c615bb93f37c86db4da739d47e2da03692f976bf3b2cbccc6',
         'system/autoload/Balance.php' => '9652370fcc1d7ca370ff9061c4631fa34531f2049a5da9c0b9b8601ab00c57ae',
         // WP4 (owner decision Q5): the device calls in rechargeUser run after the recharge row is saved;
@@ -39,7 +41,10 @@ final class SourceGuardTest extends TestCase
         // WP9 release profile (owner WP8_WP9_WP10_AUTONOMOUS_EXECUTION_AUTHORIZED, protected-file exception, 2026-10-16):
         // rechargeUser refuses a plan of a device type disabled in the release profile BEFORE any write
         // (previous pin 9759fca72b5f33236d5a7a00ceaf4ffb9f2dc76b86b16a03a70c6ac145e4aa54)
-        'system/autoload/Package.php' => 'aca308f3fb8de5a298852abba1007eaab8c6de00baff2ba2c593c3fc53ef2794',
+        // V1.0.1 (owner decision 2026-11-09, R0008 username-and-password cards): a voucher-only customer gets the
+        // card password on the network (VoucherLogin::networkPassword) (previous pin
+        // aca308f3fb8de5a298852abba1007eaab8c6de00baff2ba2c593c3fc53ef2794)
+        'system/autoload/Package.php' => '6a3ef0536b29347663efd096f041ab2edcfb10c2fe02f14daf7f89187022ab2d',
         // accepted WP1 migration runner
         // WP9-D / WP1-CHECK (owner WP8_WP9_WP10_AUTONOMOUS_EXECUTION_AUTHORIZED, protected-file exception, 2026-10-16):
         // migrate.php loads the shared CHECK-expression verifier; Runner::contractDiff verifies every CHECK of a
@@ -282,7 +287,7 @@ final class SourceGuardTest extends TestCase
         sort($migrations);
         $this->assertSame(['R0001_manager_tree.php', 'R0002_pricing_foundation.php', 'R0003_activation_foundation.php',
             'R0004_wallet_finance_foundation.php', 'R0005_customer_ownership.php', 'R0006_reseller_audit.php',
-            'R0007_activation_reversal_states.php'], $migrations, 'R0001–R0007 only');
+            'R0007_activation_reversal_states.php', 'R0008_voucher_logins.php'], $migrations, 'R0001–R0008 only');
         $this->assertSame([], self::hits('/CREATE\s+TRIGGER/i'), 'no triggers (P1)');
     }
 }

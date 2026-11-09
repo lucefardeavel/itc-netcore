@@ -68,7 +68,7 @@ final class FinanceSchemaReadinessTest extends FinanceTestCase
     {
         $required = (new \ReflectionClassConstant(SchemaReadiness::class, 'REQUIRED_TABLES'))->getValue();
         $this->assertSame([
-            'tbl_manager_tree', 'tbl_reseller_audit_events', 'tbl_customers',
+            'tbl_manager_tree', 'tbl_reseller_audit_events', 'tbl_customers', 'tbl_voucher_logins',
             'tbl_reseller_activations', 'tbl_manager_wallets', 'tbl_manager_transfers', 'tbl_manager_ledger', 'tbl_manager_wallet_reservations',
             // WP3B: the pricing authorities are runtime-authoritative (Wp3b/PricingSchemaReadinessTest)
             'tbl_reseller_plan_base_costs', 'tbl_manager_plan_prices',

@@ -292,7 +292,7 @@ final class R0007ReversalStatesMigrationTest extends IntegrationTestCase
             $this->assertOutcome(Outcome::OK, $this->run_($db, 'migrate'));
             $rows[] = $db->rows('SELECT migration_id, checksum, contract_fingerprint FROM tbl_project_migrations ORDER BY migration_id');
         }
-        $this->assertCount(7, $rows[0]);
+        $this->assertCount(8, $rows[0]);
         foreach ($rows as $r) {
             $this->assertSame($rows[0], $r);
         }

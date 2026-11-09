@@ -70,7 +70,7 @@ final class FinanceNavigationTest extends Wp2HttpTestCase
         preg_match('#<summary><i class="fa fa-cog[^>]*></i><span>Settings</span>.*?</details>#s', $html, $settings);
         $this->assertNotEmpty($settings);
         $this->assertStringNotContainsString('reseller/tree', $settings[0]);
-        $this->assertStringContainsString('Transactions (legacy)', $html);
+        $this->assertStringContainsString('Transactions log', $html);
     }
 
     public function testPrimaryNavigationAndQuickActions(): void

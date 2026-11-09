@@ -17,8 +17,12 @@ final class AuthSessionTest extends Wp2HttpTestCase
     {
         $c = $this->client();
         $bad = $c->loginStaff('sa', 'wrong-password');
-        $inactive = $this->client()->loginStaff('D', Wp2Seed::password('D'));
-        $this->assertStringContainsString('Invalid Username or Password', $inactive->body);
+        $ic = $this->client();
+        $inactive = $ic->loginStaff('D', Wp2Seed::password('D'));
+        // UX 2026-11-09: both refusals redirect to the sign-in page, which shows the same notice
+        $this->assertSame(302, $inactive->status);
+        $this->assertSame((string) $bad->location(), (string) $inactive->location());
+        $this->assertStringContainsString('Invalid Username or Password', $ic->get('admin')->body);
         $this->assertSame($bad->status, $inactive->status);
         $this->assertSame(302, $c->get('dashboard')->status);
     }

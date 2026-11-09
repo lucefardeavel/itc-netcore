@@ -143,7 +143,7 @@ final class RouteGuard
             r2(getUrl('login'));
         }
         if ($code === 428) {
-            r2(getUrl('settings/change-password'), 'w', Lang::T('For your security, set your own password before you continue.'));
+            r2(getUrl('settings/change-password'), 'w', \Lang::T('For your security, set your own password before you continue.'));
         }
         http_response_code($code);
         if ($code === 405) {

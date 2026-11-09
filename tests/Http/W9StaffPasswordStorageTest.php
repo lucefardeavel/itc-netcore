@@ -34,8 +34,9 @@ final class W9StaffPasswordStorageTest extends Wp2HttpTestCase
 
     private function loginOk(string $user, string $password): bool
     {
+        // UX 2026-11-09: a refused sign-in redirects back to the sign-in page (no countdown page)
         $r = $this->client()->loginStaff($user, $password);
-        return !str_contains($r->body, 'Invalid Username or Password');
+        return $r->status === 302 && str_contains((string) $r->location(), 'dashboard');
     }
 
     public function testMagicHashesAreComparedStrictly(): void
