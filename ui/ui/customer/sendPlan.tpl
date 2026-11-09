@@ -39,7 +39,7 @@
                         </tr>
                         <tr>
                             <td>{Lang::T('Validity Periode')}</td>
-                            <td>{$plan['validity']} {$plan['validity_unit']}</td>
+                            <td>{NuxrUi::validity($plan['validity'], $plan['validity_unit'])|escape}</td>
                         </tr>
                     </tbody>
                 </table>

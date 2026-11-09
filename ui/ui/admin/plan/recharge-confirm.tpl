@@ -52,8 +52,7 @@
                                 class="pull-right">{if $using eq 'zero'}{Lang::moneyFormat(0)}{else}{Lang::moneyFormat($plan['price'])}{/if}</span>
                         </li>
                         <li class="list-group-item">
-                            <b>{Lang::T('Plan Validity')}</b> <span class="pull-right">{$plan['validity']}
-                                {$plan['validity_unit']}</span>
+                            <b>{Lang::T('Plan Validity')}</b> <span class="pull-right">{NuxrUi::validity($plan['validity'], $plan['validity_unit'])|escape}</span>
                         </li>
                         <li class="list-group-item">
                             <b>{Lang::T('Payment via')}</b> <span class="pull-right">

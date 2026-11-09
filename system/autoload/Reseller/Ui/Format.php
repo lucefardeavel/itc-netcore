@@ -209,6 +209,39 @@ final class Format
         return $n . ' ' . ($language !== 'english' && class_exists('Lang', false) ? \Lang::T($word) : $word);
     }
 
+    /** Arabic number agreement per unit: one, two, 3-10 (plural), 11-99 (singular accusative), other (singular). */
+    private const VALIDITY_AR = [
+        'Months' => ['شهر واحد', 'شهران', 'أشهر', 'شهراً', 'شهر'],
+        'Hrs' => ['ساعة واحدة', 'ساعتان', 'ساعات', 'ساعة', 'ساعة'],
+        'Mins' => ['دقيقة واحدة', 'دقيقتان', 'دقائق', 'دقيقة', 'دقيقة'],
+    ];
+
+    /**
+     * V1.0.1: a plan validity in words for the interface language ("1 أشهر" read wrong): days as days(), months / hours /
+     * minutes with the same agreement; any other unit (Period) as the number and its label. Display only.
+     */
+    public static function validity(int|string $n, ?string $unit, ?string $language = null): string
+    {
+        $n = (int) $n;
+        $unit = (string) $unit;
+        $language ??= (string) ($GLOBALS['config']['language'] ?? '');
+        if ($unit === 'Days') {
+            return self::days($n, $language);
+        }
+        if ($language === 'arabic' && isset(self::VALIDITY_AR[$unit])) {
+            [$one, $two, $few, $many, $other] = self::VALIDITY_AR[$unit];
+            $r = abs($n) % 100;
+            return match (true) {
+                $n === 1 => $one,
+                $n === 2 => $two,
+                $r >= 3 && $r <= 10 => $n . ' ' . $few,
+                $r >= 11 => $n . ' ' . $many,
+                default => $n . ' ' . $other,
+            };
+        }
+        return $n . ' ' . ($language !== 'english' && class_exists('Lang', false) ? \Lang::T($unit) : $unit);
+    }
+
     /**
      * UX-15 (display only): whole days of paid service lost when a CHANGE_PLAN starts at $start while the current period
      * runs until $currentExpiry (a started day counts), or null when nothing is lost. Both values come from the server quote;

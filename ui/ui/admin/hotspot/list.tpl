@@ -147,7 +147,7 @@
                                                 style="text-decoration: line-through; color: red">{Lang::moneyFormat($ds['price_old'])}</sup>
                                         {/if}
                                     </td>
-                                    <td data-label="{Lang::T('Validity')}">{$ds['validity']|escape} {Lang::T($ds['validity_unit'])|escape}</td>
+                                    <td data-label="{Lang::T('Validity')}">{NuxrUi::validity($ds['validity'], $ds['validity_unit'])|escape}</td>
                                     <td data-label="{Lang::T('Time')}">{$ds['time_limit']} {$ds['time_unit']}</td>
                                     <td data-label="{Lang::T('Data')}">{$ds['data_limit']} {$ds['data_unit']}</td>
                                     <td data-label="{Lang::T('Location')}">

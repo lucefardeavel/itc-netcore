@@ -694,7 +694,7 @@ switch ($action) {
                 'kind' => stripos((string) $vs['type'], 'hotspot') !== false ? 'hotspot' : 'activation',
                 'plan' => (string) $vs['name_plan'],
                 'price' => Lang::moneyFormat($vs['price']),
-                'validity' => ((int) $vs['validity'] > 0 && $unit !== '') ? ((int) $vs['validity'] . ' ' . Lang::T($unit)) : '',
+                'validity' => ((int) $vs['validity'] > 0 && $unit !== '') ? \Reseller\Ui\Format::validity((int) $vs['validity'], $unit) : '',
             ];
         };
         $from_id = _post('from_id');
@@ -991,7 +991,7 @@ switch ($action) {
                         'kind' => stripos((string) $vs['type'], 'hotspot') !== false ? 'hotspot' : 'activation',
                         'plan' => (string) $vs['name_plan'],
                         'price' => Lang::moneyFormat($vs['price']),
-                        'validity' => ((int) $vs['validity'] > 0 && $unit !== '') ? ((int) $vs['validity'] . ' ' . Lang::T($unit)) : '',
+                        'validity' => ((int) $vs['validity'] > 0 && $unit !== '') ? \Reseller\Ui\Format::validity((int) $vs['validity'], $unit) : '',
                     ];
                 };
                 $rows = ORM::for_table('tbl_plans')

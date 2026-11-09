@@ -141,7 +141,7 @@
                                             style="text-decoration: line-through; color: red">{Lang::moneyFormat($ds['price_old'])}</sup>
                                     {/if}
                                 </td>
-                                <td data-label="{Lang::T('Validity')}">{$ds['validity']} {$ds['validity_unit']}</td>
+                                <td data-label="{Lang::T('Validity')}">{NuxrUi::validity($ds['validity'], $ds['validity_unit'])|escape}</td>
                                 <td data-label="{Lang::T('IP Pool')}">{$ds['pool']}</td>
                                 <td data-label="{Lang::T('Internet Plan')}">{if $ds['plan_expired']}<a
                                         href="{Text::url('services/vpn-edit/', $ds['plan_expired'])}">{Lang::T('Yes')}</a>{else}{Lang::T('No')}

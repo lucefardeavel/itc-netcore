@@ -28,7 +28,7 @@
                     <label class="sr-only" for="nuxr-pick-plan">{Lang::T('Plan')}</label>
                     <select id="nuxr-pick-plan" name="plan" class="form-control nuxr-input" style="flex:1 1 200px">
                         <option value="">{Lang::T('Any plan')}</option>
-                        {foreach $nuxr_plan_cards as $p}<option value="{$p.id}" {if $p.id eq $nuxr_plan_id}selected{/if}>{$p.name_plan|escape} ({$p.type|escape}){if $p.speed} · {$p.speed|escape}{/if}</option>{/foreach}
+                        {foreach $nuxr_plan_cards as $p}<option value="{$p.id}" {if $p.id eq $nuxr_plan_id}selected{/if}>{$p.name_plan|escape} ({Lang::T($p.type)|escape}){if $p.speed} · {$p.speed|escape}{/if}</option>{/foreach}
                     </select>
                 {/if}
                 <button class="nuxr-btn nuxr-btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i>{Lang::T('Search')}</button>
@@ -73,7 +73,7 @@
                 <label for="nuxr-plan-select">{Lang::T('Plan')}</label>
                 <select id="nuxr-plan-select" name="plan" class="form-control nuxr-input" required>
                     <option value="">{Lang::T('Choose a plan')}</option>
-                    {foreach $nuxr_plan_cards as $p}<option value="{$p.id}" {if $p.id eq $nuxr_plan_id}selected{/if}>{$p.name_plan|escape} ({$p.type|escape}){if $p.speed} · {$p.speed|escape}{/if}{if $p.validity} · {if $p.validity_unit eq 'Days'}{NuxrUi::days($p.validity)|escape}{else}{$p.validity|escape} {Lang::T($p.validity_unit)}{/if}{/if}</option>{/foreach}
+                    {foreach $nuxr_plan_cards as $p}<option value="{$p.id}" {if $p.id eq $nuxr_plan_id}selected{/if}>{$p.name_plan|escape} ({Lang::T($p.type)|escape}){if $p.speed} · {$p.speed|escape}{/if}{if $p.validity} · {NuxrUi::validity($p.validity, $p.validity_unit)|escape}{/if}</option>{/foreach}
                 </select>
                 <button class="nuxr-btn nuxr-btn-primary" type="submit" style="margin-top:12px">{Lang::T('Review')}</button>
             </form>

@@ -52,7 +52,7 @@
                         {if $plan['validity']}
                             <li class="list-group-item">
                                 <b>{Lang::T('Validity Period')}</b>
-                                <span class="pull-right">{$plan['validity']} {$plan['validity_unit']}</span>
+                                <span class="pull-right">{NuxrUi::validity($plan['validity'], $plan['validity_unit'])|escape}</span>
                             </li>
                         {/if}
                     </ul>
