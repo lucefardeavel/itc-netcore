@@ -35,10 +35,13 @@ final class SchemaReadiness
         'R0005_customer_ownership',
         'R0006_reseller_audit',
         'R0007_activation_reversal_states',
+        'R0008_voucher_logins',
     ];
     public const BLOCKING = ['APPLYING', 'FAILED_PARTIAL', 'ROLLBACK_REQUIRED', 'ROLLING_BACK', 'ROLLBACK_FAILED'];
     private const REQUIRED_TABLES = [
         'tbl_manager_tree', 'tbl_reseller_audit_events', 'tbl_customers',
+        // R0008: username-and-password hotspot cards
+        'tbl_voucher_logins',
         // WP3A finance runtime dependencies
         'tbl_reseller_activations', 'tbl_manager_wallets', 'tbl_manager_transfers', 'tbl_manager_ledger', 'tbl_manager_wallet_reservations',
         // WP3B pricing runtime authorities

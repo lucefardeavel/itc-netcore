@@ -14,8 +14,38 @@
                             <label class="radio-inline"><input type="radio" id="Hot" name="type" value="Hotspot"> {Lang::T('Hotspot card (the code logs in)')}</label>
                             <label class="radio-inline"><input type="radio" id="POE" name="type" value="PPPOE"> {Lang::T('Recharge card for a PPPoE subscriber')}</label>
                         </div>
-                        <p class="help-block col-md-4">{Lang::T('Recharge cards are for subscribers managed directly by the company; a reseller's subscribers are renewed by their reseller.')}</p>
+                        <p class="help-block col-md-4">{Lang::T('Recharge cards are for subscribers managed directly by the company; subscribers of a reseller are renewed by their reseller.')}</p>
                     </div>
+                    <div class="form-group" id="login-style-row">
+                        <label for="login_style" class="col-md-2 control-label">{Lang::T('Login on the card')}</label>
+                        <div class="col-md-6">
+                            <select id="login_style" name="login_style" class="form-control">
+                                <option value="code" selected>{Lang::T('One code (user name = password)')}</option>
+                                <option value="userpass">{Lang::T('User name and a separate password')}</option>
+                            </select>
+                        </div>
+                        <p class="help-block col-md-4">{Lang::T('For hotspot cards. With a separate password the card shows both, and both are typed on the login page.')}</p>
+                    </div>
+                    <div class="form-group" id="password-length-row" style="display:none">
+                        <label for="password_length" class="col-md-2 control-label">{Lang::T('Password length')}</label>
+                        <div class="col-md-6">
+                            <input id="password_length" type="number" min="4" max="12" class="form-control" name="password_length" value="6">
+                        </div>
+                        <p class="help-block col-md-4">{Lang::T('Digits, 4 to 12.')}</p>
+                    </div>
+                    <script>
+                        document.addEventListener('change', function (e) {
+                            if (!e.target) { return; }
+                            if (e.target.id === 'login_style') {
+                                document.getElementById('password-length-row').style.display = e.target.value === 'userpass' ? 'block' : 'none';
+                            }
+                            if (e.target.name === 'type') {
+                                var hs = document.getElementById('Hot').checked;
+                                document.getElementById('login-style-row').style.display = hs ? 'block' : 'none';
+                                if (!hs) { document.getElementById('login_style').value = 'code'; document.getElementById('password-length-row').style.display = 'none'; }
+                            }
+                        });
+                    </script>
                     <div class="form-group">
                         <label for="server" class="col-md-2 control-label">{Lang::T('Routers')}</label>
                         <div class="col-md-6">

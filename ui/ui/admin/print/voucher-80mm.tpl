@@ -90,10 +90,17 @@
                     {if $c.validity}<tr><th>{Lang::T('Validity')}</th><td><bdi>{$c.validity|escape}</bdi></td></tr>{/if}
                 </table>
                 <p class="price"><bdi>{$c.price|escape}</bdi></p>
-                <p class="code-label">{if $c.kind eq 'hotspot'}{Lang::T('Login code')}{else}{Lang::T('Recharge code')}{/if}</p>
-                <div class="code">{$c.code|escape}</div>
+                {if $c.password}
+                    <p class="code-label">{Lang::T('User name')}</p>
+                    <div class="code">{$c.code|escape}</div>
+                    <p class="code-label">{Lang::T('Password')}</p>
+                    <div class="code">{$c.password|escape}</div>
+                {else}
+                    <p class="code-label">{if $c.kind eq 'hotspot'}{Lang::T('Login code')}{else}{Lang::T('Recharge code')}{/if}</p>
+                    <div class="code">{$c.code|escape}</div>
+                {/if}
                 <div class="qr"><img src="{$app_url}/qrcode/?data={$c.code|escape:'url'}" alt=""></div>
-                <p class="howto">{if $c.kind eq 'hotspot'}{Lang::T('Connect to the Wi-Fi network, open the login page and type this code as the user name and the password.')}{else}{Lang::T('Enter this code in the subscriber portal under Voucher Activation.')}{/if}</p>
+                <p class="howto">{if $c.password}{Lang::T('Connect to the Wi-Fi network, open the login page and type the user name and the password shown on this card.')}{elseif $c.kind eq 'hotspot'}{Lang::T('Connect to the Wi-Fi network, open the login page and type this code as the user name and the password.')}{else}{Lang::T('Enter this code in the subscriber portal under Voucher Activation.')}{/if}</p>
                 <p class="serial">#{$c.id|escape}</p>
             </article>
         {foreachelse}

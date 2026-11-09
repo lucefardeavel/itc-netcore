@@ -51,7 +51,7 @@
                                 placeholder="{Lang::T('Enter voucher code here')}">
                             <span class="input-group-btn">
                                 <a class="btn btn-default" aria-label="{Lang::T('Scan QR code')}" title="{Lang::T('Scan QR code')}"
-                                    href="{APP_URL}/scan/?back={urlencode(Text::url('login&code='))}"><i
+                                    href="{}/scan/?back={urlencode(Text::url('login&code='))}"><i
                                         class="glyphicon glyphicon-qrcode" aria-hidden="true"></i></a>
                             </span>
                         </div>
@@ -76,10 +76,16 @@
                                 value="{$code|escape}" placeholder="{Lang::T('Enter voucher code here')}">
                             <span class="input-group-btn">
                                 <a class="btn btn-default" aria-label="{Lang::T('Scan QR code')}" title="{Lang::T('Scan QR code')}"
-                                    href="{APP_URL}/scan/?back={urlencode(Text::url('login&code='))}"><i
+                                    href="{}/scan/?back={urlencode(Text::url('login&code='))}"><i
                                         class="glyphicon glyphicon-qrcode" aria-hidden="true"></i></a>
                             </span>
                         </div>
+                    </div>
+                    {* R0008: only cards that show a password need it *}
+                    <div class="form-group">
+                        <label for="voucher_password">{Lang::T('Card password (only if your card shows one)')}</label>
+                        <input type="password" class="form-control" id="voucher_password" name="voucher_password" autocomplete="off"
+                            placeholder="{Lang::T('Card password')}">
                     </div>
                     <div class="btn-group btn-group-justified mb15">
                         <div class="btn-group">

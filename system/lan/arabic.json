@@ -2227,7 +2227,7 @@
   "Optional_text_before_every_code__for_example_ITC__": "نص اختياري قبل كل كود، مثل ITC-.",
   "Number_of_characters_after_the_prefix__digits__at_least_6__": "عدد الخانات بعد البادئة (للأرقام 6 على الأقل).",
   "Enter_this_code_in_the_subscriber_portal_under_Voucher_Activation_": "اكتب هذا الكود في بوابة المشترك، من صفحة «تفعيل القسيمة».",
-  "Recharge_cards_are_for_subscribers_managed_directly_by_the_company__a_reseller_s_subscribers_are_renewed_by_their_reseller_": "بطاقات الشحن للمشتركين التابعين للشركة مباشرة؛ أما مشتركو الموزّعين فيجدّد لهم الموزّع.",
+  "Recharge_cards_are_for_subscribers_managed_directly_by_the_company__subscribers_of_a_reseller_are_renewed_by_their_reseller_": "بطاقات الشحن للمشتركين التابعين للشركة مباشرة؛ أما مشتركو الموزّعين فيجدّد لهم الموزّع.",
   "Burst_Limit": "السرعة المؤقتة القصوى (Burst Limit)",
   "Burst_Threshold": "حد التفعيل (Burst Threshold)",
   "Burst_Time": "مدة الحساب (Burst Time)",
@@ -2236,5 +2236,18 @@
   "Placeholder": "نص توضيحي داخل الحقل",
   "Failed___cancelled": "فشل / أُلغي",
   "Password_changed_successfully": "تم تغيير كلمة المرور",
-  "Announcement_Customer": "إعلان للمشتركين"
+  "Announcement_Customer": "إعلان للمشتركين",
+  "Card_password__only_if_your_card_shows_one_": "كلمة مرور البطاقة (فقط إذا كانت البطاقة فيها كلمة مرور)",
+  "Card_password": "كلمة مرور البطاقة",
+  "Cards_with_a_user_name_and_password_need_the_database_update__migrate_php__": "بطاقات اسم المستخدم وكلمة المرور تحتاج تحديث قاعدة البيانات (migrate.php).",
+  "The_card_password_must_be_4_to_12_digits_": "يجب أن تكون كلمة مرور البطاقة من 4 إلى 12 رقماً.",
+  "The_card_passwords_could_not_be_stored__the_remaining_cards_were_not_created_": "تعذّر حفظ كلمات مرور البطاقات؛ لم تُنشأ البطاقات المتبقية.",
+  "Login_on_the_card": "طريقة الدخول على البطاقة",
+  "One_code__user_name___password_": "كود واحد (اسم المستخدم = كلمة المرور)",
+  "User_name_and_a_separate_password": "اسم مستخدم وكلمة مرور منفصلة",
+  "For_hotspot_cards__With_a_separate_password_the_card_shows_both__and_both_are_typed_on_the_login_page_": "لبطاقات الهوتسبوت. مع كلمة مرور منفصلة تظهر الاثنتان على البطاقة، وتُكتبان في صفحة الدخول.",
+  "Password_length": "طول كلمة المرور",
+  "Digits__4_to_12_": "أرقام، من 4 إلى 12.",
+  "User_name": "اسم المستخدم",
+  "Connect_to_the_Wi_Fi_network__open_the_login_page_and_type_the_user_name_and_the_password_shown_on_this_card_": "اتصل بشبكة الواي فاي، وافتح صفحة الدخول، واكتب اسم المستخدم وكلمة المرور المطبوعين على هذه البطاقة."
 }

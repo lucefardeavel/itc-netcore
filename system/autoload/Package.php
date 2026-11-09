@@ -66,7 +66,8 @@ class Package
                 'fullname' => $gateway,
                 'email' => '',
                 'username' => $channel,
-                'password' => $channel,
+                // R0008 (owner decision 2026-11-09): a username-and-password card provisions its own password
+                'password' => \Reseller\Domain\VoucherLogin::networkPassword((string) $channel),
             ];
         }
         // WP9 U0 N-07 (owner limited exception to the Package.php pin, notifications only): a voucher-only subscriber's

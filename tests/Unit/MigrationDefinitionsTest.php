@@ -26,6 +26,7 @@ final class MigrationDefinitionsTest extends TestCase
             'R0005_customer_ownership',
             'R0006_reseller_audit',
             'R0007_activation_reversal_states',
+            'R0008_voucher_logins',
         ], self::set()->ids());
     }
 
@@ -190,6 +191,13 @@ final class MigrationDefinitionsTest extends TestCase
     public function testNoVoucherCommerceSchema(): void
     {
         foreach (self::set()->migrations as $m) {
+            // owner decision 2026-11-09: R0008 may create exactly tbl_voucher_logins (the login password of a
+            // username-and-password hotspot card: voucher id, password, created_at) - a credential, not commerce
+            if ($m->id === 'R0008_voucher_logins') {
+                $this->assertSame(['tbl_voucher_logins'], array_keys($m->contract['tables']));
+                $this->assertSame(['voucher_id', 'password', 'created_at'], array_keys($m->contract['tables']['tbl_voucher_logins']['columns']));
+                continue;
+            }
             foreach (array_keys($m->contract['tables']) as $t) {
                 $this->assertStringNotContainsStringIgnoringCase('voucher', $t);
             }

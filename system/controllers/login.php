@@ -86,6 +86,10 @@ switch ($do) {
             // (also refuses everything while the reseller schema is not ready). WP9 U0 N-07: the typed name is the voucher
             // code, a credential - the refusal is recorded without it (ServiceGate::guardUsername would record the name)
             if (\Reseller\Domain\ServiceGate::isBlockedUsername($voucher)) { \Reseller\Domain\ServiceGate::refused('loginVoucherOnly'); r2(getUrl('login'), 'e', \Reseller\Domain\ServiceGate::message()); }
+            // R0008: a username-and-password card needs its password; the refusal is the same as for an unknown code
+            if (!\Reseller\Domain\VoucherLogin::accepts($voucher, (string) _post('voucher_password'))) {
+                _alert(Lang::T('Voucher invalid'), 'danger', "login");
+            }
             $tur = ORM::for_table('tbl_user_recharges')
                 ->where('username', $voucher)
                 ->where('customer_id', '0') // Voucher Only will make customer ID as 0
@@ -109,7 +113,7 @@ switch ($do) {
                                     'fullname' => "Voucher",
                                     'email' => '',
                                     'username' => $voucher,
-                                    'password' => $voucher,
+                                    'password' => \Reseller\Domain\VoucherLogin::networkPassword($voucher),
                                 ];
                                 (new $p['device'])->add_customer($c, $p);
                             } else {
@@ -154,7 +158,7 @@ switch ($do) {
                                                 'fullname' => "Voucher",
                                                 'email' => '',
                                                 'username' => $voucher,
-                                                'password' => $voucher,
+                                                'password' => \Reseller\Domain\VoucherLogin::networkPassword($voucher),
                                             ];
                                             (new $p['device'])->add_customer($c, $p);
                                         } else {

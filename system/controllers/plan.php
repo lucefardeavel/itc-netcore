@@ -680,6 +680,7 @@ switch ($action) {
                     $jml++;
                 }
             }
+            \Reseller\Domain\VoucherLogin::pruneOrphans();
             r2(getUrl('plan/voucher'), 's', "$jml " . Lang::T('Data Deleted Successfully'));
         }
     case 'print-voucher':
@@ -808,7 +809,11 @@ switch ($action) {
 
         if ($printFormat === 'thermal80') {
             $ui->assign('_title', Lang::T('Print vouchers'));
-            $ui->assign('cards', array_map($nuxrCard, is_array($v) ? $v : iterator_to_array($v)));
+            $nuxrCards = array_map($nuxrCard, is_array($v) ? $v : iterator_to_array($v));
+            $nuxrPw = \Reseller\Domain\VoucherLogin::passwordsFor(array_column($nuxrCards, 'id'));
+            foreach ($nuxrCards as &$nuxrC) { $nuxrC['password'] = $nuxrPw[$nuxrC['id']] ?? ''; }
+            unset($nuxrC);
+            $ui->assign('cards', $nuxrCards);
             $ui->assign('vc', $vc);
             $ui->assign('selected_datetime', $selected_datetime);
             run_hook('view_print_voucher'); #HOOK
@@ -818,11 +823,12 @@ switch ($action) {
 
         $voucher = [];
         $n = 1;
+        $nuxrPw = \Reseller\Domain\VoucherLogin::passwordsFor(array_map(static fn($r) => (int) $r['id'], is_array($v) ? $v : iterator_to_array($v)));
         foreach ($v as $vs) {
             $temp = $template;
             $temp = str_replace('[[qrcode]]', '<img src="qrcode/?data=' . $vs['code'] . '">', $temp);
             $temp = str_replace('[[price]]', Lang::moneyFormat($vs['price']), $temp);
-            $temp = str_replace('[[voucher_code]]', $vs['code'], $temp);
+            $temp = str_replace('[[voucher_code]]', htmlspecialchars($vs['code'] . (isset($nuxrPw[(int) $vs['id']]) ? ' / ' . $nuxrPw[(int) $vs['id']] : ''), ENT_QUOTES), $temp);
             $temp = str_replace('[[plan]]', $vs['name_plan'], $temp);
             $temp = str_replace('[[counter]]', $n, $temp);
             $voucher[] = $temp;
@@ -855,6 +861,10 @@ switch ($action) {
         $lengthcode = _post('lengthcode');
         $printNow = _post('print_now', 'no');
         $printFormat = _post('print_format') === 'a4' ? 'a4' : 'thermal80';
+        // R0008: hotspot cards are "code only" (default) or "user name and password"
+        $loginStyle = $type === 'Hotspot' && _post('login_style') === \Reseller\Domain\VoucherLogin::STYLE_USERPASS
+            ? \Reseller\Domain\VoucherLogin::STYLE_USERPASS : \Reseller\Domain\VoucherLogin::STYLE_CODE;
+        $passwordLength = (int) _post('password_length', '6');
         $voucherPerPage = _post('voucher_per_page', '36');
 
         $msg = '';
@@ -866,6 +876,13 @@ switch ($action) {
         }
         if (!Validator::UnsignedNumber($lengthcode)) {
             $msg .= 'The Length Code must be a number' . '<br>';
+        }
+        if ($loginStyle === \Reseller\Domain\VoucherLogin::STYLE_USERPASS && !\Reseller\Domain\VoucherLogin::available()) {
+            $msg .= Lang::T('Cards with a user name and password need the database update (migrate.php).') . '<br>';
+        }
+        if ($loginStyle === \Reseller\Domain\VoucherLogin::STYLE_USERPASS
+            && ($passwordLength < \Reseller\Domain\VoucherLogin::MIN_LENGTH || $passwordLength > \Reseller\Domain\VoucherLogin::MAX_LENGTH)) {
+            $msg .= Lang::T('The card password must be 4 to 12 digits.') . '<br>';
         }
 
         if ($msg == '') {
@@ -952,6 +969,15 @@ switch ($action) {
                 $d->status = '0';
                 $d->generated_by = $admin['id'];
                 $d->save();
+                if ($loginStyle === \Reseller\Domain\VoucherLogin::STYLE_USERPASS) {
+                    try {
+                        \Reseller\Domain\VoucherLogin::create((int) $d->id(), \Reseller\Domain\VoucherLogin::generate($passwordLength));
+                    } catch (\Throwable $e) {
+                        // never leave a code-only card behind a batch the operator asked as user name and password
+                        $d->delete();
+                        r2(getUrl('plan/voucher'), 'e', Lang::T('The card passwords could not be stored; the remaining cards were not created.'));
+                    }
+                }
                 $newVoucherIds[] = $d->id();
             }
 
@@ -974,7 +1000,11 @@ switch ($action) {
                     ->order_by_asc('tbl_voucher.id')
                     ->find_many();
                 $ui->assign('_title', Lang::T('Print vouchers'));
-                $ui->assign('cards', array_map($nuxrCard, is_array($rows) ? $rows : iterator_to_array($rows)));
+                $nuxrCards = array_map($nuxrCard, is_array($rows) ? $rows : iterator_to_array($rows));
+                $nuxrPw = \Reseller\Domain\VoucherLogin::passwordsFor(array_column($nuxrCards, 'id'));
+                foreach ($nuxrCards as &$nuxrC) { $nuxrC['password'] = $nuxrPw[$nuxrC['id']] ?? ''; }
+                unset($nuxrC);
+                $ui->assign('cards', $nuxrCards);
                 $ui->assign('vc', count($newVoucherIds));
                 $ui->assign('plans', ORM::for_table('tbl_plans')->find_many());
                 $ui->assign('planid', $plan);
@@ -1051,6 +1081,7 @@ switch ($action) {
                         ->where_in('id', $voucherIds)
                         ->where_not_equal('status', \Reseller\Domain\VoucherRedemptionService::CLAIMED)
                         ->delete_many();
+                    \Reseller\Domain\VoucherLogin::pruneOrphans();
                 } catch (Exception $e) {
                     echo json_encode(['status' => 'error', 'message' => Lang::T('Failed to delete vouchers.')]);
                     exit;
@@ -1127,6 +1158,7 @@ switch ($action) {
                 r2(getUrl('plan/voucher'), 'e', Lang::T('This voucher is being redeemed or under review and cannot be deleted'));
             }
             ORM::for_table('tbl_voucher')->where('id', $d['id'])->where_not_equal('status', \Reseller\Domain\VoucherRedemptionService::CLAIMED)->delete_many();
+            \Reseller\Domain\VoucherLogin::pruneOrphans();
             r2(getUrl('plan/voucher'), 's', Lang::T('Data Deleted Successfully'));
         }
         break;
