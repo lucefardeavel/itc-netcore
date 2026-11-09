@@ -636,5 +636,6 @@
     "Password_length": "Password length",
     "Digits__4_to_12_": "Digits, 4 to 12.",
     "User_name": "User name",
-    "Connect_to_the_Wi_Fi_network__open_the_login_page_and_type_the_user_name_and_the_password_shown_on_this_card_": "Connect to the Wi-Fi network, open the login page and type the user name and the password shown on this card."
+    "Connect_to_the_Wi_Fi_network__open_the_login_page_and_type_the_user_name_and_the_password_shown_on_this_card_": "Connect to the Wi-Fi network, open the login page and type the user name and the password shown on this card.",
+    "Unlimited": "Unlimited"
 }

@@ -138,16 +138,16 @@
                                 <tr {if $ds['enabled'] !=1}class="danger" title="disabled" {elseif $ds['prepaid'] !='yes'
                                             }class="warning" title="Postpaid" {/if}>
                                     <td data-label="{Lang::T('Name')}" class="headcol">{$ds['name_plan']|escape}</td>
-                                    <td data-label="{Lang::T('Type')}">{if $ds['prepaid'] == no}<b>{Lang::T('Postpaid')}</b>{else}{Lang::T('Prepaid')}{/if} {$ds['plan_type']}</td>
+                                    <td data-label="{Lang::T('Type')}">{if $ds['prepaid'] == no}<b>{Lang::T('Postpaid')}</b>{else}{Lang::T('Prepaid')}{/if} {Lang::T($ds['plan_type'])|escape}</td>
                                     <td data-label="{Lang::T('Bandwidth')}">{$ds['name_bw']|escape}</td>
-                                    <td data-label="{Lang::T('Category')}">{$ds['typebp']}</td>
+                                    <td data-label="{Lang::T('Category')}">{Lang::T($ds['typebp'])|escape}</td>
                                     <td data-label="{Lang::T('Price')}">{Lang::moneyFormat($ds['price'])}
                                         {if !empty($ds['price_old'])}
                                             <sup
                                                 style="text-decoration: line-through; color: red">{Lang::moneyFormat($ds['price_old'])}</sup>
                                         {/if}
                                     </td>
-                                    <td data-label="{Lang::T('Validity')}">{$ds['validity']} {$ds['validity_unit']}</td>
+                                    <td data-label="{Lang::T('Validity')}">{$ds['validity']|escape} {Lang::T($ds['validity_unit'])|escape}</td>
                                     <td data-label="{Lang::T('Time')}">{$ds['time_limit']} {$ds['time_unit']}</td>
                                     <td data-label="{Lang::T('Data')}">{$ds['data_limit']} {$ds['data_unit']}</td>
                                     <td data-label="{Lang::T('Location')}">

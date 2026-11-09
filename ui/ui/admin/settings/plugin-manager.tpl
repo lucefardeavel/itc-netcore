@@ -1,11 +1,5 @@
 {include file="sections/header.tpl"}
 
-{if empty($_c['github_token'])}
-    <p class="help-block">{Lang::T('To download from private/paid repository')}, <a
-            href="{Text::url('')}settings/app#GithubAuthentication">
-            {Lang::T('Set your Github Authentication first')}</a></p>
-{/if}
-
 <form method="post" enctype="multipart/form-data"
     onsubmit="return ask(this, 'Warning, installing unknown source can damage your server, continue?')"
     action="{Text::url('')}pluginmanager/dlinstall">
@@ -13,22 +7,14 @@
         <div class="panel-heading">
             {Lang::T('Plugin Installer')}
             <div class="btn-group pull-right">
-                <a data-method="post" class="btn btn-success btn-xs" title="refresh cache"
-                    href="{Text::url('')}pluginmanager/refresh"><span class="glyphicon glyphicon-refresh"
-                        aria-hidden="true"></span> refresh</a>
             </div>
         </div>
         <div class="panel-body row">
             <div class="form-group col-md-4">
                 <label>{Lang::T('Upload Zip Plugin/Theme/Device')}</label>
-                <input type="file" name="zip_plugin" accept="application/zip" onchange="this.submit()">
+                <input type="file" name="zip_plugin" accept="application/zip" required>
             </div>
-            <div class="form-group col-md-7">
-                <label>Github url</label>
-                <input type="url" class="form-control" name="gh_url"
-                    placeholder="https://github.com/username/repository">
-            </div>
-            <div class="col-md-1">
+            <div class="col-md-2">
                 <br>
                 <button type="submit" class="btn btn-primary">{Lang::T('Install')}</button>
             </div>

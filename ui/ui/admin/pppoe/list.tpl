@@ -133,7 +133,7 @@
                             {foreach $d as $ds}
                                 <tr {if $ds['enabled'] !=1}class="danger" title="disabled" {/if}>
                                     <td data-label="{Lang::T('Name')}">{$ds['name_plan']|escape}</td>
-                                    <td data-label="{Lang::T('Type')}">{$ds['plan_type']} {if $ds['prepaid'] !=
+                                    <td data-label="{Lang::T('Type')}">{Lang::T($ds['plan_type'])|escape} {if $ds['prepaid'] !=
                                         'yes'}<b>{Lang::T('Postpaid')}</b>
                                     {else}
                                         {Lang::T('Prepaid')}
@@ -144,7 +144,7 @@
                                             style="text-decoration: line-through; color: red">{Lang::moneyFormat($ds['price_old'])}</sup>
                                     {/if}
                                 </td>
-                                <td data-label="{Lang::T('Validity')}">{$ds['validity']} {$ds['validity_unit']}</td>
+                                <td data-label="{Lang::T('Validity')}">{$ds['validity']|escape} {Lang::T($ds['validity_unit'])|escape}</td>
                                 <td data-label="{Lang::T('IP Pool')}">{$ds['pool']}</td>
                                 <td data-label="{Lang::T('Internet Plan')}">{if $ds['plan_expired']}<a
                                         href="{Text::url('')}services/pppoe-edit/{$ds['plan_expired']}">{Lang::T('Yes')}</a>{else}{Lang::T('No')}
