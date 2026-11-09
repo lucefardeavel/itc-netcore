@@ -534,6 +534,22 @@
                         </p>
                     </div>
                 {/if}
+                {* V1.0.1: the hotspot sign-in (Reseller\Ui\HotspotLogin) *}
+                <div class="form-group">
+                    <label class="col-md-3 control-label">{Lang::T('Hotspot login page')}</label>
+                    <div class="col-md-5">
+                        <a class="btn btn-default btn-block" href="{Text::url('settings/hotspot-page')}">{Lang::T('Download the router login page')}</a>
+                    </div>
+                    <p class="help-block col-md-4">{Lang::T('Put login.html in the hotspot folder of the router and add the address of this system to the walled garden, so it opens before sign-in.')}</p>
+                </div>
+                <div class="form-group">
+                    <label for="hs_login_hosts" class="col-md-3 control-label">{Lang::T('Hotspot router names')}</label>
+                    <div class="col-md-5">
+                        <input type="text" class="form-control" id="hs_login_hosts" name="hs_login_hosts" dir="ltr"
+                            placeholder="login.itc" value="{$_c['hs_login_hosts']|escape}">
+                    </div>
+                    <p class="help-block col-md-4">{Lang::T('Only when the hotspot uses a name instead of an IP address (its DNS name, e.g. login.itc). Internal IP addresses work without it. Separate names with commas.')}</p>
+                </div>
                 <button class="btn btn-success btn-block" type="submit">
                     {Lang::T('Save Changes')}
                 </button>

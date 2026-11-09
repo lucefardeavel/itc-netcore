@@ -637,5 +637,17 @@
     "Digits__4_to_12_": "Digits, 4 to 12.",
     "User_name": "User name",
     "Connect_to_the_Wi_Fi_network__open_the_login_page_and_type_the_user_name_and_the_password_shown_on_this_card_": "Connect to the Wi-Fi network, open the login page and type the user name and the password shown on this card.",
-    "Unlimited": "Unlimited"
+    "Unlimited": "Unlimited",
+    "The_router_did_not_accept_the_sign_in__Check_the_code_or_password__or_that_the_package_has_not_ended_": "The router did not accept the sign-in. Check the code or password, or that the package has not ended.",
+    "Connect_with_a_card": "Connect with a card",
+    "Card_code_or_username": "Card code or username",
+    "Connect": "Connect",
+    "I_have_a_subscriber_account": "I have a subscriber account",
+    "Connecting_to_the_internet___": "Connecting to the internet...",
+    "Connect_to_the_internet": "Connect to the internet",
+    "Hotspot_login_page": "Hotspot login page",
+    "Download_the_router_login_page": "Download the router login page",
+    "Put_login_html_in_the_hotspot_folder_of_the_router_and_add_the_address_of_this_system_to_the_walled_garden__so_it_opens_before_sign_in_": "Put login.html in the hotspot folder of the router and add the address of this system to the walled garden, so it opens before sign-in.",
+    "Hotspot_router_names": "Hotspot router names",
+    "Only_when_the_hotspot_uses_a_name_instead_of_an_IP_address__its_DNS_name__e_g__login_itc___Internal_IP_addresses_work_without_it__Separate_names_with_commas_": "Only when the hotspot uses a name instead of an IP address (its DNS name, e.g. login.itc). Internal IP addresses work without it. Separate names with commas."
 }

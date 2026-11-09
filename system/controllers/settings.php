@@ -80,6 +80,14 @@ switch ($action) {
         $ui->assign('devices', $devices);
         $ui->display('admin/settings/devices.tpl');
         break;
+    case 'hotspot-page':
+        // V1.0.1: the router's hotspot login page with this installation's address (system/hotspot/login.html)
+        $hsUrl = preg_replace('/[^A-Za-z0-9:\/._~%-]/', '', rtrim(APP_URL, '/'));
+        header('Content-Type: text/html; charset=utf-8');
+        header('Content-Disposition: attachment; filename="login.html"');
+        header('Cache-Control: no-store');
+        echo str_replace('__ITC_NETCORE_URL__', $hsUrl, (string) file_get_contents($root_path . 'system/hotspot/login.html'));
+        exit;
     case 'app':
         if (!in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
             _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
@@ -346,7 +354,7 @@ switch ($action) {
                 'phone_otp_type', 'photo_register', 'printer_cols', 'reg_nofify_admin', 'registration_username', 'reset_day', 'sms_otp_registration',
                 'sms_url', 'smtp_host', 'smtp_pass', 'smtp_port', 'smtp_ssltls', 'smtp_user', 'tawkto', 'tawkto_api_key', 'tax_rate', 'telegram_bot',
                 'telegram_target_id', 'theme', 'url_canonical', 'user_notification_expired', 'user_notification_payment',
-                'user_notification_reminder', 'voucher_format', 'voucher_redirect', 'wa_url', 'hide_mrc', 'hide_tms', 'hide_al', 'hide_uet',
+                'user_notification_reminder', 'voucher_format', 'voucher_redirect', 'hs_login_hosts', 'wa_url', 'hide_mrc', 'hide_tms', 'hide_al', 'hide_uet',
                 'hide_vs', 'hide_pg', 'hide_aui', 'radius_enable', 'single_session', 'enable_session_timeout', 'session_timeout_duration',
                 'http_proxy', 'http_proxyauth', 'github_token', 'github_username'];
             $nuxrSuperAdminOnly = ['radius_enable', 'single_session', 'enable_session_timeout', 'session_timeout_duration',

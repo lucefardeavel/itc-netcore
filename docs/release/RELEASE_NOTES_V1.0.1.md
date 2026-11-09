@@ -37,6 +37,14 @@ username-and-password hotspot cards. The finance, activation, pricing and resell
   - The portal asks for that password before it activates the card.
   - RADIUS receives the card password.
   - One-code cards work as before.
+- **Hotspot sign-in page (new):** Settings > General > Voucher has a button that downloads the router's
+  `login.html` with this system's address.
+  - The router opens the ITC NetCore card page. The subscriber enters the card code (and the card password when the
+    card has one), or a subscriber account. The system activates the card and signs the device in on that router
+    (CHAP when the router offers it).
+  - The page sends sign-ins only to a private or CGNAT address, or to a hotspot name listed in the setting
+    "Hotspot router names".
+  - Card activation refusals return to the sign-in page with a notice (no countdown page).
 
 ### Iraq defaults on a fresh install
 A fresh install now starts with these settings:
@@ -70,12 +78,13 @@ FreeRADIUS must run with the same time zone (`TZ=Asia/Baghdad`).
    GRANT SELECT, INSERT, UPDATE, DELETE ON `<database>`.`tbl_voucher_logins` TO '<app user>'@'<host>';
    ```
 
-5. **Hotspot login page (MikroTik).** If you use username-and-password cards, the login page sends:
-   - the user name as `voucher_only`;
-   - the password as `voucher_password`;
-   - both to `/?_route=login/activation`.
-
-   One-code cards need only `voucher_only`, as before.
+5. **Hotspot login page (MikroTik).**
+   - Download `login.html` from Settings > General > Voucher ("Download the router login page").
+   - Put it in the router's hotspot folder (Files > `hotspot/login.html`).
+   - Add this system's address to the hotspot walled garden, for example
+     `/ip hotspot walled-garden add dst-host=billing.example.iq`.
+   - Allow `http-chap` (recommended) or `http-pap` in the hotspot server profile.
+   - If the hotspot uses a DNS name (for example `login.itc`), add it to "Hotspot router names".
 6. Run the release preflight (`preflight.php` without `--setup`). Sign in and check the dashboard, voucher printing
    and one card activation.
 

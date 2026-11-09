@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="expires" content="-1">
+<title>ITC NetCore</title>
+<!-- ITC NetCore hotspot login page: put it in the router's hotspot folder (Files > hotspot/login.html).
+     It opens the ITC NetCore card page with this router's sign-in address; the ITC NetCore address must be in the
+     hotspot walled garden. -->
+<style>
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f4f6f9;color:#1f2937;
+font-family:Tahoma,Arial,sans-serif;text-align:center;padding:16px;box-sizing:border-box}
+.box{max-width:360px;width:100%;background:#fff;border-radius:12px;padding:28px 20px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+h1{font-size:20px;margin:0 0 12px}p{margin:8px 0;line-height:1.7}a{color:#0b5cad;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>ITC NetCore</h1>
+<p>جارٍ فتح صفحة الدخول…</p>
+<p><a id="go" href="__ITC_NETCORE_URL__/?_route=login">اضغط هنا إذا لم تفتح الصفحة</a></p>
+</div>
+<script>
+(function () {
+    function hex(s) {
+        var o = '';
+        for (var i = 0; i < s.length; i++) {
+            var c = s.charCodeAt(i) & 255;
+            o += (c < 16 ? '0' : '') + c.toString(16);
+        }
+        return o;
+    }
+    var url = '__ITC_NETCORE_URL__/?_route=login'
+        + '&nux-hs=$(link-login-only-esc)'
+        + '&nux-dst=$(link-orig-esc)'
+        + '&nux-mac=$(mac-esc)'
+        + '&nux-ip=$(ip)'
+        + '&nux-chapid=' + hex('$(chap-id)')
+        + '&nux-chapch=' + hex('$(chap-challenge)')
+        + '&nux-err=$(if error)1$(endif)';
+    document.getElementById('go').href = url;
+    location.replace(url);
+})();
+</script>
+</body>
+</html>

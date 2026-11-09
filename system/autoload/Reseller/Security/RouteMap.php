@@ -33,7 +33,9 @@ final class RouteMap
     public const ROUTES = [
         // ---------- public / session ----------
         'admin' => ['' => 'login-display', '*' => 'login-display', 'login-display' => 'public', 'post' => ['POST' => 'public']],
-        'login' => ['' => 'login-display', '*' => 'login-display', 'login-display' => 'public', 'post' => ['POST' => 'public'], 'activation' => ['POST' => 'public']],
+        'login' => ['' => 'login-display', '*' => 'login-display', 'login-display' => 'public', 'post' => ['POST' => 'public'], 'activation' => ['POST' => 'public'],
+            // V1.0.1: the hotspot sign-in (GET after a card activation, POST with a subscriber account)
+            'hotspot' => 'public'],
         'register' => ['' => 'register-display', '*' => 'register-display', 'register-display' => 'public', 'post' => ['POST' => 'public']],
         'forgot' => ['' => 'forgot', '*' => 'forgot', 'forgot' => 'public'],
         'logout' => ['' => 'logout', '*' => 'logout', 'logout' => 'public'],
@@ -140,6 +142,7 @@ final class RouteMap
             '' => '404', '*' => '404', '404' => C::SYSTEM_ADMIN,
             'docs' => C::SYSTEM_ADMIN, 'devices' => C::SYSTEM_ADMIN,
             'app' => ['GET' => C::SYSTEM_ADMIN], 'app#test' => ['POST' => C::SYSTEM_ADMIN], 'app-post' => ['POST' => C::SYSTEM_ADMIN],
+            'hotspot-page' => ['GET' => C::SYSTEM_ADMIN],
             'localisation' => ['GET' => C::SYSTEM_ADMIN], 'localisation-post' => ['POST' => C::SYSTEM_ADMIN],
             'users' => C::STAFF_READ, 'users-add' => ['GET' => C::STAFF_CREATE], 'users-post' => ['POST' => C::STAFF_CREATE],
             'users-view' => ['GET' => 'staff'], 'users-edit' => ['GET' => 'staff'],

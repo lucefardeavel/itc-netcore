@@ -10,6 +10,9 @@ if ($maintenance_mode == true) {
     displayMaintenanceMessage();
 }
 
+// V1.0.1: the router context of the hotspot login page (Reseller\Ui\HotspotLogin)
+\Reseller\Ui\HotspotLogin::capture($_GET, (string) ($config['hs_login_hosts'] ?? ''));
+
 if (User::getID()) {
     r2(getUrl('home'));
 }
@@ -74,6 +77,30 @@ switch ($do) {
 
         break;
 
+    case 'hotspot':
+        // V1.0.1: signs the device in on the hotspot router after a card activation, or with a subscriber account
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!Csrf::check(_post('csrf_token'))) {
+                _msglog('e', Lang::T('Invalid or Expired CSRF Token'));
+                r2(getUrl('login'));
+            }
+            $hsUser = trim((string) _post('hs_username'));
+            $hsPass = (string) _post('hs_password');
+            if ($hsUser === '' || $hsPass === '') {
+                r2(getUrl('login'), 'e', Lang::T('Invalid Username or Password'));
+            }
+            \Reseller\Ui\HotspotLogin::hold($hsUser, $hsPass);
+        }
+        $hsForm = \Reseller\Ui\HotspotLogin::takeForm();
+        if ($hsForm === null) {
+            r2(getUrl('login'));
+        }
+        header('Cache-Control: no-store');
+        $ui->assign('hs_form', $hsForm);
+        $ui->assign('_title', Lang::T('Connect to the internet'));
+        $ui->display('customer/hotspot-connect.tpl');
+        break;
+
     case 'activation':
         if (!empty(_post('voucher_only'))) {
             $csrf_token = _post('csrf_token');
@@ -88,7 +115,7 @@ switch ($do) {
             if (\Reseller\Domain\ServiceGate::isBlockedUsername($voucher)) { \Reseller\Domain\ServiceGate::refused('loginVoucherOnly'); r2(getUrl('login'), 'e', \Reseller\Domain\ServiceGate::message()); }
             // R0008: a username-and-password card needs its password; the refusal is the same as for an unknown code
             if (!\Reseller\Domain\VoucherLogin::accepts($voucher, (string) _post('voucher_password'))) {
-                _alert(Lang::T('Voucher invalid'), 'danger', "login");
+                r2(getUrl('login'), 'e', Lang::T('Voucher invalid'));
             }
             $tur = ORM::for_table('tbl_user_recharges')
                 ->where('username', $voucher)
@@ -96,11 +123,11 @@ switch ($do) {
                 ->find_one();
             if ($tur) {
                 if ($tur['status'] == 'off') {
-                    _alert(Lang::T('Internet Voucher Expired'), 'danger', "login");
+                    r2(getUrl('login'), 'e', Lang::T('Internet Voucher Expired'));
                 }
                 // WP9 U0 R-FC-4: re-activation serves only a voucher the state machine granted (never one under review or unredeemed)
                 if (\Reseller\Domain\VoucherRedemptionService::voucherOnlyServiceRefusal($voucher) !== null) {
-                    _alert(Lang::T('Voucher Not Valid'), 'danger', "login");
+                    r2(getUrl('login'), 'e', Lang::T('Voucher Not Valid'));
                 }
                 $p = ORM::for_table('tbl_plans')->where('id', $tur['plan_id'])->find_one();
                 if ($p) {
@@ -119,6 +146,7 @@ switch ($do) {
                             } else {
                                 new Exception(Lang::T("Devices Not Found"));
                             }
+                            \Reseller\Ui\HotspotLogin::continueAfterActivation($voucher);
                             if (!empty($config['voucher_redirect'])) {
                                 r2($config['voucher_redirect'], 's', Lang::T("Voucher activation success, now you can login"));
                             } else {
@@ -128,18 +156,19 @@ switch ($do) {
                             new Exception(Lang::T("Devices Not Found"));
                         }
                     }
+                    \Reseller\Ui\HotspotLogin::continueAfterActivation($voucher);
                     if (!empty($config['voucher_redirect'])) {
                         _alert(Lang::T("Voucher activation success, now you can login"), 'danger', $config['voucher_redirect']);
                     } else {
                         r2(getUrl('login'), 's', Lang::T("Voucher activation success, you are connected to internet"));
                     }
                 } else {
-                    _alert(Lang::T('Internet Plan Expired'), 'danger', "login");
+                    r2(getUrl('login'), 'e', Lang::T('Internet Plan Expired'));
                 }
             } else {
                 $v = ORM::for_table('tbl_voucher')->whereRaw("BINARY code = '$voucher'")->find_one();
                 if (!$v) {
-                    _alert(Lang::T('Voucher invalid'), 'danger', "login");
+                    r2(getUrl('login'), 'e', Lang::T('Voucher invalid'));
                 }
                 if ((string) $v['status'] === '0') {
                     // WP5B (E12; SEC-23): the single atomic voucher redemption path (claim -> grant -> finalize)
@@ -164,6 +193,7 @@ switch ($do) {
                                         } else {
                                             new Exception(Lang::T("Devices Not Found"));
                                         }
+                                        \Reseller\Ui\HotspotLogin::continueAfterActivation($voucher);
                                         if (!empty($config['voucher_redirect'])) {
                                             r2($config['voucher_redirect'], 's', Lang::T("Voucher activation success, now you can login"));
                                         } else {
@@ -173,22 +203,23 @@ switch ($do) {
                                         new Exception(Lang::T("Devices Not Found"));
                                     }
                                 }
+                                \Reseller\Ui\HotspotLogin::continueAfterActivation($voucher);
                                 if (!empty($config['voucher_redirect'])) {
                                     _alert(Lang::T("Voucher activation success, now you can login"), 'danger', $config['voucher_redirect']);
                                 } else {
                                     r2(getUrl('login'), 's', Lang::T("Voucher activation success, you are connected to internet"));
                                 }
                             } else {
-                                _alert(Lang::T('Internet Plan Expired'), 'danger', "login");
+                                r2(getUrl('login'), 'e', Lang::T('Internet Plan Expired'));
                             }
                         } else {
-                            _alert(Lang::T('Voucher activation failed'), 'danger', "login");
+                            r2(getUrl('login'), 'e', Lang::T('Voucher activation failed'));
                         }
                     } else {
-                        _alert(Lang::T('Voucher activation failed'), 'danger', "login");
+                        r2(getUrl('login'), 'e', Lang::T('Voucher activation failed'));
                     }
                 } else {
-                    _alert(Lang::T('Internet Voucher Expired'), 'danger', "login");
+                    r2(getUrl('login'), 'e', Lang::T('Internet Voucher Expired'));
                 }
             }
         } else {
@@ -259,6 +290,15 @@ switch ($do) {
     default:
         run_hook('customer_view_login'); #HOOK
         $csrf_token = Csrf::generateAndStoreToken();
+        if (\Reseller\Ui\HotspotLogin::active()) {
+            // V1.0.1: opened by the router's login page - the card page of the hotspot
+            $ui->assign('csrf_token', $csrf_token);
+            $ui->assign('hs_router_error', \Reseller\Ui\HotspotLogin::takeRouterError());
+            $ui->assign('code', alphanumeric(_get('code'), "-"));
+            $ui->assign('_title', Lang::T('Connect to the internet'));
+            $ui->display('customer/hotspot.tpl');
+            break;
+        }
         if ($config['disable_registration'] == 'yes') {
             $ui->assign('csrf_token', $csrf_token);
             $ui->assign('_title', Lang::T('Activation'));
