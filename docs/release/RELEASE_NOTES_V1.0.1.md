@@ -25,6 +25,24 @@ username-and-password hotspot cards. The finance, activation, pricing and resell
 - **Data consistency check:** the former "drift check" has a one-line explanation and Arabic finding names.
 - **Plugin page:** no external plugin catalogue is fetched or shown. The GitHub settings are removed.
 - Maps and the transactions report no longer stop with a script error when there is no data.
+- **Get started:** after a fresh install the administrator dashboard lists the steps that make the system ready
+  (company name and phone, logo, router or RADIUS device, plans, optional reseller prices). Each step opens its page
+  and is ticked when done; the card disappears once the required steps are done.
+- **Durations in words** with the Arabic number agreement: "شهر واحد", "شهران", "3 أشهر", "12 شهراً", "ساعة واحدة".
+- **Settings explained:** one plain-language line under each technical field (SMTP, Telegram, proxy, separators,
+  phone country code, reminders and others). Card code formats are named in Arabic.
+- **Reseller and sales screens** (reviewed as a reseller and as a sales rep, on desktop and phone):
+  - a subscriber without a service shows "No service yet" and Activate (the box was empty);
+  - the sales rep is "مندوب المبيعات" everywhere and the finance menu item is "Sales report";
+  - the pricing page explains the provider base cost and reseller selling;
+  - clearer page titles; an empty vouchers table says so.
+- **Subscriber portal:** "Your plan" and "Refresh connection" instead of "Radius plan" and "Sync"; Sign in is the main
+  button; the show-password button stays inside the field; the unused Order Voucher page (a server error) opens the
+  voucher activation.
+- **No request to other sites** from the bulk-message, coupons, plan-editor and invoice pages: their libraries are
+  served locally (each copy checked against its pinned SRI hash). The coupons table and the plan script editors no
+  longer stop with a script error.
+- The version shown is **V1.0.1**.
 
 ### Vouchers
 - **80 mm thermal cards** are the default; the A4 sheet stays.
@@ -90,14 +108,16 @@ FreeRADIUS must run with the same time zone (`TZ=Asia/Baghdad`).
 
 ## Verification
 
-- Unit suite: 195 tests, 0 failures. It includes a new test that compiles every interface template.
+- Unit suite: 203 tests, 0 failures. It includes a test that compiles every interface template.
 - Browser review of 66 pages on desktop and phone on a fresh local instance. The changed pages were checked again
   after the changes.
 - On the local instance:
   - the migrations ran: R0008 applied and verified against its contract;
   - cards were generated and printed (thermal and A4);
   - card activation was refused without the password and with a wrong one, and accepted with the right one;
-  - RADIUS received the card password for a username-and-password card, and the code for a one-code card.
+  - RADIUS received the card password for a username-and-password card, and the code for a one-code card;
+  - the hotspot sign-in page activated both card kinds and sent the sign-in to a simulated router (CHAP and PAP);
+  - as a reseller: provider funding, a new subscriber and an activation from the wallet (20,000 debited, service on).
 - The Docker suites (MariaDB 10.11 and MySQL 8.0) and a real-router (CHR) window are listed in the pre-release notes
   with their result.
 
