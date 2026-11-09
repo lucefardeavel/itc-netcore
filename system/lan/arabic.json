@@ -2048,7 +2048,7 @@
   "Scan_QR_code": "مسح رمز QR",
   "Translations_cannot_contain_HTML_markup": "لا يمكن أن تحتوي الترجمات على وسوم HTML",
   "_days__of_paid_service__until__date___will_be_lost__the_current_period_is_replaced_now_and_the_remaining_time_is_not_refunded_or_carried_over_": "سيُفقد [days] من الخدمة المدفوعة (حتى [date]): تُستبدل الفترة الحالية الآن، ولا يُسترد الوقت المتبقي ولا يُرحَّل.",
-  "Radius_Plan": "باقتك",
+  "Radius_Plan": "باقة الإنترنت",
   "VPN_Plan": "خطة VPN",
   "Service_type_mismatch": "نوع الخدمة غير مطابق",
   "The_plan_type_does_not_match_the_service_type_of_this_subscriber__Check_before_confirming_": "نوع الباقة لا يطابق نوع خدمة هذا المشترك. تحقّق قبل التأكيد.",

@@ -31,7 +31,8 @@ final class W10PortalArabicTest extends Wp2HttpTestCase
         $this->assertSame(200, $home->status, $home->excerpt());
         $body = $home->body;
         $this->assertStringContainsString('wp2_plan', $body, 'positive control: the active-plan widget is rendered');
-        $this->assertStringContainsString('خطة Radius', $body, 'the RADIUS service heading is translated');
+        // V1.0.1 portal review: the heading reads باقة الإنترنت (was خطة Radius)
+        $this->assertStringContainsString('باقة الإنترنت', $body, 'the RADIUS service heading is translated');
         $this->assertStringContainsString('دفع مسبق', $body, 'the payment type is translated');
         foreach (['Prepaid', 'Postpaid', 'Radius Plan', 'Hotspot Plan', 'PPPOE Plan', 'VPN Plan'] as $english) {
             $this->assertStringNotContainsString($english, $body, "Arabic portal: no hard-coded \"{$english}\"");
@@ -56,7 +57,7 @@ final class W10PortalArabicTest extends Wp2HttpTestCase
             static::$db->insertRow('tbl_appconfig', ['setting' => 'radius_plan', 'value' => 'Radius Plan']);
             $home = $c->get('home');
             $this->assertSame(200, $home->status, $home->excerpt());
-            $this->assertStringContainsString('خطة Radius', $home->body, 'the stored English default is translated');
+            $this->assertStringContainsString('باقة الإنترنت', $home->body, 'the stored English default is translated');
             $this->assertStringNotContainsString('Radius Plan', $home->body);
 
             static::$db->exec("UPDATE tbl_appconfig SET value = 'Fibre W10' WHERE setting = 'radius_plan'");

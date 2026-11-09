@@ -974,8 +974,8 @@ switch ($action) {
                         \Reseller\Domain\VoucherLogin::create((int) $d->id(), \Reseller\Domain\VoucherLogin::generate($passwordLength));
                     } catch (\Throwable $e) {
                         // never leave a code-only card behind a batch the operator asked as user name and password
-                        // (conditional on the unused status, like every voucher delete)
-                        ORM::for_table('tbl_voucher')->where('id', $d->id())->where('status', '0')->delete_many();
+                        // (conditional on its status, like every voucher delete: a CLAIMED card is never deleted)
+                        ORM::for_table('tbl_voucher')->where('id', $d->id())->where_not_equal('status', \Reseller\Domain\VoucherRedemptionService::CLAIMED)->delete_many();
                         r2(getUrl('plan/voucher'), 'e', Lang::T('The card passwords could not be stored; the remaining cards were not created.'));
                     }
                 }
