@@ -13,7 +13,7 @@
 
 ITC – Integrated Technology Company · [www.itc-iq.net](https://www.itc-iq.net)
 
-[العربية](#ar) · [English](#en) · [Documentation](docs/README.md) · [Release notes](docs/release/RELEASE_NOTES_V1.0.md) · [Release status](#release-status)
+[العربية](#ar) · [English](#en) · [Documentation](docs/README.md) · [Release notes](docs/release/RELEASE_NOTES_V1.0.1.md) · [Release status](#release-status)
 
 </div>
 
@@ -298,6 +298,7 @@ residual (see the release notes).
 
 ## Release notes and changelog
 
+- [V1.0.1 release notes](docs/release/RELEASE_NOTES_V1.0.1.md) (maintenance release candidate: ITC-only interface, simple menu, thermal and username-and-password cards, Iraq defaults, upgrade steps)
 - [V1.0 release notes](docs/release/RELEASE_NOTES_V1.0.md) (Release Candidate)
 - [V1.0 changelog entry](docs/release/CHANGELOG_V1.0_entry.md)
 - [CHANGELOG.md](CHANGELOG.md): the history of the code base, followed by the Git history of this repository
@@ -308,7 +309,7 @@ residual (see the release notes).
 
 | Gate | State |
 |---|---|
-| Version | **V1.0 Release Candidate**: GitHub pre-release `v1.0.0-rc.1` (frozen code `0a8b9d58`); no `v1.0.0` tag. Later changes ship only on separately versioned maintenance branches |
+| Version | **V1.0.1 Release Candidate** on `maint/v1.0.1-itc-only` (built on the frozen V1.0 code `0a8b9d58`, pre-release `v1.0.0-rc.1`); no `v1.0.0` tag |
 | Lab acceptance | `LAB_ACCEPTED_WITH_LIMITATIONS` (isolated lab only) |
 | Target staging, acceptance tests TA-01 … TA-10 | **Not run**: no authorized staging target exists |
 | Legal review LIC-1 | **`BLOCKED — COUNSEL REQUIRED`** |

@@ -493,6 +493,7 @@ UPDATE tbl_appconfig SET value = ',' WHERE setting = 'thousands_sep' AND value =
 UPDATE tbl_appconfig SET value = 'Asia/Baghdad' WHERE setting = 'timezone' AND value = 'Asia/Jakarta';
 UPDATE tbl_appconfig SET value = 'arabic' WHERE setting = 'language' AND value = 'english';
 UPDATE tbl_appconfig SET value = 'd/m/Y' WHERE setting = 'date_format' AND value = 'd M Y';
+UPDATE tbl_appconfig SET value = 'شكراً لاختياركم خدمتنا' WHERE setting = 'note' AND value = 'Thank you...';
 INSERT INTO tbl_appconfig (setting, value) SELECT 'country_code_phone', '964' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM tbl_appconfig WHERE setting = 'country_code_phone');
 SQL
 say "tbl_appconfig locale = $(sql_mig <<<"SELECT GROUP_CONCAT(CONCAT(setting, '=', value) ORDER BY setting SEPARATOR ' ') FROM tbl_appconfig WHERE setting IN ('currency_code', 'timezone', 'language', 'date_format', 'country_code_phone')")"

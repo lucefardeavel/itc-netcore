@@ -93,6 +93,7 @@ This is the index of the documentation in this repository. Paths are relative to
 
 | Document | Purpose |
 |---|---|
+| [release/RELEASE_NOTES_V1.0.1.md](release/RELEASE_NOTES_V1.0.1.md) | V1.0.1 release notes and upgrade steps (maintenance release candidate) |
 | [release/RELEASE_NOTES_V1.0.md](release/RELEASE_NOTES_V1.0.md) | V1.0 release notes (Release Candidate) |
 | [release/CHANGELOG_V1.0_entry.md](release/CHANGELOG_V1.0_entry.md) | V1.0 changelog entry |
 | [../CHANGELOG.md](../CHANGELOG.md) | History of the code base |
