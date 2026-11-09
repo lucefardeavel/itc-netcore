@@ -156,6 +156,7 @@
     {/literal}
 
     {include file="nuxr-csrf.tpl"}
+    {include file="nuxr-ui.tpl"}
 </body>
 
 </html>

@@ -13,8 +13,8 @@ class RadiusRest {
     {
         return [
             'title' => 'Radius Rest API',
-            'description' => 'This devices will handle Radius Connection using Rest API',
-            'author' => 'ibnu maksum',
+            'description' => 'Handles the RADIUS connection through a REST API',
+            'author' => 'ITC',
             'url' => []
         ];
     }

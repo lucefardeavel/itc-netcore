@@ -57,7 +57,7 @@ switch ($do) {
                             showResult(false, Lang::T('Invalid Username or Password'));
                         }
                     }
-                    _alert(Lang::T('Login Successful'), 'success', "home");
+                    r2(getUrl('home'));
                 } else {
                     _msglog('e', Lang::T('Invalid Username or Password'));
                     _log($username . ' ' . Lang::T('Failed Login'), 'User');

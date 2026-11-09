@@ -55,15 +55,16 @@ switch ($do) {
                 if (Admin::setCookie($d['id']) === '') {
                     _alert(Lang::T('Login is unavailable: the application key is not configured') . '.', 'danger', "admin");
                 }
-                _alert(Lang::T('Login Successful'), 'success', "dashboard");
+                // UX 2026-11-09: straight to the dashboard (no intermediate countdown page)
+                r2(getUrl('dashboard'));
             } else {
                 if ($d) {
                     _log($username . ' ' . Lang::T('Failed Login'), $d['user_type']);
                 }
-                _alert(Lang::T('Invalid Username or Password') . ".", 'danger', "admin");
+                r2(getUrl('admin'), 'e', Lang::T('Invalid Username or Password') . ".");
             }
         } else {
-            _alert(Lang::T('Invalid Username or Password') . ".", 'danger', "admin");
+            r2(getUrl('admin'), 'e', Lang::T('Invalid Username or Password') . ".");
         }
 
         break;

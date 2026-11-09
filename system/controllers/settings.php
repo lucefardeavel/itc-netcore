@@ -852,8 +852,13 @@ switch ($action) {
         }
         $password = _post('password');
         $csrf_token = _post('csrf_token');
+        $back = getUrl('settings/change-password');
         if (!Csrf::check($csrf_token)) {
-            r2(getUrl('settings/change-password'), 'e', Lang::T('Invalid or Expired CSRF Token') . ".");
+            r2($back, 'e', Lang::T('The page expired. Open it again and repeat the change.'));
+        }
+        // UX 2026-11-09: each refusal names its real reason (an empty field is not an "incorrect" password)
+        if ($password == '') {
+            r2($back, 'e', Lang::T('Enter your current password.'));
         }
         if ($password != '') {
             $d = ORM::for_table('tbl_users')->where('username', $admin['username'])->find_one();
@@ -861,13 +866,22 @@ switch ($action) {
             if ($d) {
                 $d_pass = $d['password'];
                 if (Password::_verify($password, $d_pass) == true) {
-                    $npass = _post('npass');
-                    $cnpass = _post('cnpass');
-                    if (!Validator::Length($npass, 15, 5)) {
-                        r2(getUrl('settings/change-password'), 'e', 'New Password must be 6 to 14 character');
+                    $npass = (string) _post('npass');
+                    $cnpass = (string) _post('cnpass');
+                    if ($npass === '') {
+                        r2($back, 'e', Lang::T('Enter the new password.'));
                     }
-                    if ($npass != $cnpass) {
-                        r2(getUrl('settings/change-password'), 'e', 'Both Password should be same');
+                    if (strlen($npass) < 8 || strlen($npass) > 64) {
+                        r2($back, 'e', Lang::T('The new password must be 8 to 64 characters long.'));
+                    }
+                    if ($npass !== $cnpass) {
+                        r2($back, 'e', Lang::T('The new password and its confirmation do not match.'));
+                    }
+                    if ($npass === $password) {
+                        r2($back, 'e', Lang::T('The new password must be different from the current one.'));
+                    }
+                    if (strtolower($npass) === strtolower((string) $admin['username']) || strtolower($npass) === 'admin') {
+                        r2($back, 'e', Lang::T('The new password must not be the user name or "admin".'));
                     }
 
                     $npass = Password::_crypt($npass);
@@ -879,13 +893,11 @@ switch ($action) {
 
                     r2(getUrl('admin'));
                 } else {
-                    r2(getUrl('settings/change-password'), 'e', Lang::T('Incorrect Current Password'));
+                    r2($back, 'e', Lang::T('The current password is not correct. Use the password you signed in with.'));
                 }
             } else {
-                r2(getUrl('settings/change-password'), 'e', Lang::T('Incorrect Current Password'));
+                r2($back, 'e', Lang::T('The current password is not correct. Use the password you signed in with.'));
             }
-        } else {
-            r2(getUrl('settings/change-password'), 'e', Lang::T('Incorrect Current Password'));
         }
         break;
 

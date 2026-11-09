@@ -249,3 +249,4 @@ body.nuxr-portal .site-logo .nc-mark { width: 40px; height: 40px; vertical-align
    stacked the name under the navbar), as the staff shell shows mark + name on one line */
 body.nuxr-portal .main-header .logo .logo-lg .nc-mark { display: inline-block; width: 28px; height: 28px; vertical-align: middle; margin-inline-end: 8px; }
 body.nuxr-portal .itc-powered, body.nuxr-portal .itc-powered :is(a, bdi) { color: var(--nx-muted) !important; }
+

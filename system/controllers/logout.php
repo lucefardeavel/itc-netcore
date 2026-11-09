@@ -36,4 +36,5 @@ session_destroy();
 session_start();
 session_regenerate_id(true);
 \Reseller\Security\CsrfPolicy::rotate();
-_alert(Lang::T('Logout Successful'), 'warning', $logoutTarget);
+// UX 2026-11-09: back to the sign-in page with a short notice (no intermediate countdown page)
+r2(getUrl($logoutTarget), 's', Lang::T('Logout Successful'));

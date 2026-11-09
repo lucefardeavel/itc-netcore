@@ -131,10 +131,13 @@
                     <script>
                         Swal.fire({
                             icon: '{if $notify_t == "s"}success{elseif $notify_t == "w"}warning{else}error{/if}',
-                            title: '{$notify|escape:'javascript'}',
-                            position: 'top-end',
+                            title: '{Lang::T($notify)|escape:'javascript'}',
+                            toast: true,
+                            position: 'top',
+                            customClass: { popup: 'nuxr-toast' },
                             showConfirmButton: false,
-                            timer: 6000,
+                            showCloseButton: true,
+                            timer: {if $notify_t == "s"}5000{else}9000{/if},
                             timerProgressBar: true,
                             didOpen: (toast) => {
                                 toast.addEventListener('mouseenter', Swal.stopTimer)

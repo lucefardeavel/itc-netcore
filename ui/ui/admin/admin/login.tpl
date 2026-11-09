@@ -18,7 +18,8 @@
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-brand.css?brand.2" />
     <link rel="stylesheet" href="{$app_url}/ui/ui/styles/nuxr-shell.css?brand.1">
     <style>
-        .nuxr-login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+        body.nuxr-shell main.nuxr-login { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 16px; }
+        .nuxr-login-card .itc-login-product { margin: 0 0 20px; }
         .nuxr-login-card { width: min(420px, 100%); }
         .nuxr-login-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 20px; font-weight: 700; }
     </style>
@@ -29,13 +30,17 @@
     <script>try { if (localStorage.getItem('mode') === 'dark') { document.body.classList.add('dark-mode'); } } catch (e) { }</script>
     <main class="nuxr-login">
         <div class="nuxr-login-card">
+            {* product identity above the sign-in card: the outlined ITC NetCore wordmark (light / reversed artwork,
+               F-03 rule); the wordmark carries the English tagline, the interface language repeats it in Arabic *}
+            <p class="itc-login-product"><span class="nc-login-wordmark"><img class="nc-wordmark nc-on-light" src="{$app_url}/ui/ui/images/brand/netcore-wordmark.svg" alt="{$_brand.name|escape} - {$_brand.tagline|escape}" width="230" height="80"><img class="nc-wordmark nc-on-dark" src="{$app_url}/ui/ui/images/brand/netcore-wordmark-white.svg" alt="{$_brand.name|escape} - {$_brand.tagline|escape}" width="230" height="80"></span>
+                <span class="itc-login-tagline">{if $nuxr_dir eq 'rtl'}{Lang::T('ISP Management & Billing Platform')} &middot; {/if}<bdi>{$_brand.version|escape}</bdi></span></p>
             {* the operator's name and initial above the card; in product mode the product wordmark below the card is the only
                identity (shown once) *}
             {if $_brand.company_is_product}<h1 class="sr-only">{$_brand.name|escape}</h1>{else}<div class="nuxr-login-brand"><span class="nuxr-brand-mark" aria-hidden="true">{$_brand.mark|escape}</span><bdi>{$_brand.company|escape}</bdi></div>{/if}
             <section class="nuxr-card">
                 <div class="nuxr-card-head"><h1 style="margin:0;font-size:18px;font-weight:700">{Lang::T('Enter Admin Area')}</h1></div>
                 <div class="nuxr-card-body">
-                    {if isset($notify)}<div class="nuxr-alert is-danger" role="alert"><div>{$notify}</div></div>{/if}
+                    {if isset($notify)}<div class="nuxr-alert {if $notify_t == 's'}is-success{elseif $notify_t == 'w'}is-warning{else}is-danger{/if}" role="alert"><div>{Lang::T($notify)}</div></div>{/if}
                     <form action="{Text::url('admin/post')}" method="post" class="nuxr-fields">
                         <input type="hidden" name="csrf_token" value="{$csrf_token}">
                         <label for="nuxr-login-user">{Lang::T('Username')}</label>
@@ -47,16 +52,13 @@
                     <p style="margin:14px 0 0;text-align:center"><a href="{Text::url('login')}">{Lang::T('Go Back')}</a></p>
                 </div>
             </section>
-            {* product identity under the operator's sign-in card: the outlined ITC NetCore wordmark (light / reversed artwork,
-               F-03 rule); the wordmark carries the English tagline, the interface language repeats it in Arabic *}
-            <p class="itc-login-product"><span class="nc-login-wordmark"><img class="nc-wordmark nc-on-light" src="{$app_url}/ui/ui/images/brand/netcore-wordmark.svg" alt="{$_brand.name|escape} - {$_brand.tagline|escape}" width="230" height="80"><img class="nc-wordmark nc-on-dark" src="{$app_url}/ui/ui/images/brand/netcore-wordmark-white.svg" alt="{$_brand.name|escape} - {$_brand.tagline|escape}" width="230" height="80"></span>
-                <span class="itc-login-tagline">{if $nuxr_dir eq 'rtl'}{Lang::T('ISP Management & Billing Platform')} &middot; {/if}<bdi>{$_brand.version|escape}</bdi></span></p>
         </div>
     </main>
 {* WP7: staff PWA client (registration; prune on the staff login page) *}
 {include file="admin/nuxr/pwa-config.tpl"}
 <script src="{$app_url}/ui/ui/scripts/nuxr-pwa.js?wp7.3" data-nuxr-sw="{$app_url}/nuxr-sw.js"></script>
 {include file="nuxr-csrf.tpl"}
+{include file="nuxr-ui.tpl"}
 </body>
 
 </html>

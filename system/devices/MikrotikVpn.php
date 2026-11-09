@@ -16,7 +16,7 @@ class MikrotikVpn
         return [
             'title' => 'Mikrotik Vpn',
             'description' => 'To handle connection between ITC NetCore and Mikrotik VPN',
-            'author' => 'agstr',
+            'author' => 'ITC',
             'url' => []
         ];
     }

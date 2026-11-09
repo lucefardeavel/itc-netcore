@@ -24,7 +24,7 @@ class MikrotikPppoe
         return [
             'title' => 'Mikrotik PPPOE',
             'description' => 'To handle connection between ITC NetCore and Mikrotik PPPOE',
-            'author' => 'ibnux',
+            'author' => 'ITC',
             'url' => []
         ];
     }

@@ -1,0 +1,17 @@
+/* ITC NetCore interface helpers (UX review 2026-11-09): password show / hide button, notification toast, wrapping
+   role tabs. Loaded by ui/ui/nuxr-ui.tpl on every page shell. */
+/* UX 2026-11-09: show / hide button on password fields (nuxr-password-toggle.js) */
+.nuxr-pw { position: relative; display: block; }
+.nuxr-pw > input { padding-inline-end: 46px !important; }
+.nuxr-pw-btn { position: absolute; inset-inline-end: 4px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px;
+    border: 0; border-radius: 8px; background: transparent url("../images/icons/eye.svg") center / 20px no-repeat; cursor: pointer; }
+.nuxr-pw-btn.is-shown { background-image: url("../images/icons/eye-off.svg"); }
+.nuxr-pw-btn:hover, .nuxr-pw-btn:focus-visible { background-color: rgba(36, 93, 153, .10); outline: none; }
+.nuxr-pw-btn.nuxr-pw-btn-group { position: static; transform: none; display: table-cell; width: 42px; border: 1px solid #ccc; border-radius: 0; }
+body.dark-mode .nuxr-pw-btn { filter: invert(1); }
+/* UX 2026-11-09: notifications are a compact toast at the top centre, in the interface direction */
+.swal2-popup.nuxr-toast { font-size: 15px; max-width: min(560px, calc(100vw - 24px)); }
+.swal2-popup.nuxr-toast .swal2-title { font-size: 15px; line-height: 1.6; font-weight: 600; text-align: start; margin: 0 8px; }
+/* UX 2026-11-09: role tabs on the widgets page: wrap instead of overlapping */
+.nuxr-role-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.nuxr-role-tabs > li { float: none; }

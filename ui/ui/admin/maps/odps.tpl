@@ -44,7 +44,7 @@
                 maxZoom: 20
         }).addTo(map);
 
-        odps.forEach(function(odp) {
+        (odps || []).forEach(function(odp) {
             var name = odp.name;
             var port_amount = odp.port_amount;
             var attenuation = odp.attenuation;
@@ -72,7 +72,7 @@
             marker.bindTooltip(name, { permanent: true }).bindPopup(popupContent);
         });
 
-        map.fitBounds(group.getBounds());
+        if (group.getLayers().length) { map.fitBounds(group.getBounds()); }
         }
         window.onload = function() {
             getLocation();

@@ -37,6 +37,7 @@
     {/if}
     <script src="{$app_url}/ui/ui/scripts/vendors.js?v=1"></script>
 {include file="nuxr-csrf.tpl"}
+{include file="nuxr-ui.tpl"}
 </body>
 
 </html>

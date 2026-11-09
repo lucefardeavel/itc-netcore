@@ -9,13 +9,12 @@
             {foreach $devices  as $d}
                 <div class="col-md-3">
                     <div class="panel panel-primary">
-                        <div class="panel-heading"><b>{$d['title']|escape}</b> <small>by {$d['author']|escape}</small></div>
+                        <div class="panel-heading"><b>{Lang::T($d['title'])|escape}</b></div>
                         <div class="panel-body" style="overflow-y: scroll;">
-                            <div style="max-height: 50px; min-height: 50px;">{nl2br(strip_tags($d['description']))}</div>
+                            <div style="max-height: 50px; min-height: 50px;">{nl2br(strip_tags(Lang::T($d['description'])))}</div>
                         </div>
                         <div class="panel-footer">
                             <center style="max-height: 40px; min-height: 40px;">
-                                <span class="label label-default">{$d['file']}</span>
                                 {foreach $d['url']  as $name => $url}
                                     <a href="{$url}" target="_blank" class="label label-primary">{$name}</a>
                                 {/foreach}

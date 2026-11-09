@@ -1,13 +1,13 @@
 {include file="sections/header.tpl"}
-<ul class="nav nav-tabs nav-justified">
+<ul class="nav nav-tabs nuxr-role-tabs">
     <li {if $tipeUser=='Admin'} class="active" {/if}><a
-            href="{Text::url('widgets&user=Admin')}">Admin</a></li>
+            href="{Text::url('widgets&user=Admin')}">{Lang::T('Admin')}</a></li>
     <li {if $tipeUser=='Agent'} class="active" {/if}><a
-            href="{Text::url('widgets&user=Agent')}">Agent</a></li>
+            href="{Text::url('widgets&user=Agent')}">{Lang::T('Agent')}</a></li>
     <li {if $tipeUser=='Sales'} class="active" {/if}><a
-            href="{Text::url('widgets&user=Sales')}">Sales</a></li>
+            href="{Text::url('widgets&user=Sales')}">{Lang::T('Sales')}</a></li>
     <li {if $tipeUser=='Customer'} class="active" {/if}><a
-            href="{Text::url('widgets&user=Customer')}">Customer</a></li>
+            href="{Text::url('widgets&user=Customer')}">{Lang::T('Customer')}</a></li>
 </ul>
 <br>
 {function showWidget pos=0}
@@ -18,8 +18,7 @@
                 {foreach $widgets as $w}
                     {if $w['position'] == $pos}
                         <div class="panel panel-{if $w['enabled']}default{else}danger{/if}">
-                            <div class="panel-heading"><b>{$w['title']|escape}</b></div>
-                            <div class="panel-body">{ucwords(str_replace('.php', '', str_replace('_', ' ', $w['widget'])))}</div>
+                            <div class="panel-heading"><b>{Lang::T($w['title'])|escape}</b></div>
                             <table class="table table-bordered table-condensed">
                                 <tr>
                                     <td>

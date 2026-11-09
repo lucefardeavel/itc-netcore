@@ -44,7 +44,7 @@
                 maxZoom: 20
         }).addTo(map);
 
-        routers.forEach(function(router) {
+        (routers || []).forEach(function(router) {
             var name = router.name;
             var info = router.description;
             var coordinates = router.coordinates;
@@ -72,7 +72,7 @@
             marker.bindTooltip(name, { permanent: true }).bindPopup(popupContent);
         });
 
-        map.fitBounds(group.getBounds());
+        if (group.getLayers().length) { map.fitBounds(group.getBounds()); }
         }
         window.onload = function() {
             getLocation();

@@ -36,8 +36,8 @@ class Radius
     {
         return [
             'title' => 'Radius',
-            'description' => 'Radius system with Mysql/Mariadb as database',
-            'author' => 'ibnux',
+            'description' => 'RADIUS with the MariaDB / MySQL database (the release setup)',
+            'author' => 'ITC',
             'url' => []
         ];
     }

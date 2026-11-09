@@ -6,6 +6,33 @@
     }
 </style>
 
+{* UX 2026-11-09: the messaging channels are easy to find: one line of links that open their panels *}
+<div class="nuxr-alert is-info" role="note" style="margin-bottom:12px"><div>
+    <strong>{Lang::T('Messages to subscribers')}:</strong> {Lang::T('connect a channel here, save, then use "Send check message".')}
+    <a href="#WhatsappNotification" data-nuxr-open="collapseWhatsappNotification">WhatsApp</a> ·
+    <a href="#SMSNotification" data-nuxr-open="collapseSMSNotification">{Lang::T('SMS')}</a> ·
+    <a href="#TelegramNotification" data-nuxr-open="collapseTelegramNotification">Telegram</a> ·
+    <a href="#EmailNotification" data-nuxr-open="collapseEmailNotification">{Lang::T('Email')}</a>
+</div></div>
+<script>
+    // open the panel named by a link (or by the address #fragment) and bring it into view
+    (function () {
+        function openPanel(id) {
+            var el = document.getElementById(id);
+            if (!el) { return; }
+            if (window.jQuery) { jQuery(el).collapse('show'); } else { el.classList.add('in'); }
+            setTimeout(function () { (el.previousElementSibling || el).scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 150);
+        }
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest ? e.target.closest('a[data-nuxr-open]') : null;
+            if (a) { e.preventDefault(); openPanel(a.getAttribute('data-nuxr-open')); }
+        });
+        window.addEventListener('load', function () {
+            var h = (location.hash || '').replace('#', '');
+            if (h) { openPanel('collapse' + h); }
+        });
+    })();
+</script>
 <form class="form-horizontal" method="post" role="form" action="{Text::url('')}settings/app-post"
     enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{$csrf_token}">
@@ -762,6 +789,7 @@
         </div>
         <div id="collapseWhatsappNotification" class="panel-collapse collapse">
             <div class="panel-body">
+                <p class="help-block" style="margin-top:0">{Lang::T('WhatsApp messages are sent through a WhatsApp gateway service. Ask the gateway provider for its sending link, paste it below with [number] and [text] where the phone number and the message go, save, then press "Send check message".')}</p>
                 <div class="form-group">
                     <label for="wa_url" class="col-md-3 control-label">{Lang::T('WhatsApp Server URL')}</label>
                     <div class="col-md-5">

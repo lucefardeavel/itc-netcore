@@ -40,9 +40,11 @@
                 // Display SweetAlert toast notification
                 Swal.fire({
                     icon: '{if $notify_t == "s"}success{else}warning{/if}',
-                    title: '{$notify}',
+                    title: '{Lang::T($notify)|escape:'javascript'}',
                     toast: true,
-                    position: 'top-end',
+                    position: 'top',
+                    customClass: { popup: 'nuxr-toast' },
+                    showCloseButton: true,
                     showConfirmButton: false,
                     timer: 5000,
                     timerProgressBar: true,

@@ -25,7 +25,7 @@ class MikrotikHotspot
         return [
             'title' => 'Mikrotik Hotspot',
             'description' => 'To handle connection between ITC NetCore and Mikrotik Hotspot',
-            'author' => 'ibnux',
+            'author' => 'ITC',
             'url' => []
         ];
     }

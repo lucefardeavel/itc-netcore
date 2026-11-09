@@ -227,6 +227,7 @@
 setCookie('user_language', '{$user_language|escape:'javascript'}', 365);
 </script>
 {include file="nuxr-csrf.tpl"}
+{include file="nuxr-ui.tpl"}
 </body>
 
 </html>

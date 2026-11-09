@@ -129,9 +129,7 @@
                         <p class="help-block col-md-4"><small>
                                 {Lang::T('Hotspot Authentication Method. Make sure you have changed your
                                 hotspot login
-                                page.')} <a href="https://github.com/agstrxyz/phpnuxbill-login-hotspot"
-                                    target="_blank">Download
-                                    phpnuxbill-login-hotspot</a></small>
+                                page.')}</small>
                         </p>
                     </div>
                     <div class="form-group">

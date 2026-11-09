@@ -44,7 +44,7 @@
                 maxZoom: 20
         }).addTo(map);
 
-        customers.forEach(function(customer) {
+        (customers || []).forEach(function(customer) {
             var name = customer.id;
             var name = customer.name;
             var info = customer.info;
@@ -66,7 +66,7 @@
             marker.bindTooltip(name, { permanent: true }).bindPopup(popupContent);
         });
 
-        map.fitBounds(group.getBounds());
+        if (group.getLayers().length) { map.fitBounds(group.getBounds()); }
         }
         window.onload = function() {
             getLocation();

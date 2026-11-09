@@ -204,6 +204,7 @@
         };
 
         function create_cart(field, labels, datas, options) {
+        if (!labels || !labels.length) { return; }
         new Chart(document.getElementById(field), {
             type: 'pie',
             data: {
@@ -253,6 +254,7 @@
 
         function getLineChartData() {
             $.getJSON("{/literal}{Text::url('reports/ajax/line&', $filter)}{literal}", function( data ) {
+            if (!data || !data.labels || !data.labels.length) { return; }
             var linechart = new Chart(document.getElementById('line_cart'), {
                 type: 'line',
                 data: {

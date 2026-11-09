@@ -19,19 +19,9 @@ if (!in_array($admin['user_type'], ['SuperAdmin', 'Admin'])) {
     _alert(Lang::T('You do not have permission to access this page'), 'danger', "dashboard");
 }
 
+// UX 2026-11-09 (ITC only): no external plugin catalogue is fetched or shown; plugins come from ITC as files
 $cache = $CACHE_PATH . File::pathFixer('/plugin_repository.json');
-if (file_exists($cache) && time() - filemtime($cache) < (24 * 60 * 60)) {
-    $txt = file_get_contents($cache);
-    $json = json_decode($txt, true);
-    if (empty($json['plugins']) && empty($json['payment_gateway'])) {
-        unlink($cache);
-        r2(getUrl('pluginmanager'));
-    }
-} else {
-    $data = Http::getData($plugin_repository);
-    file_put_contents($cache, $data);
-    $json = json_decode($data, true);
-}
+$json = ['plugins' => [], 'payment_gateway' => [], 'devices' => []];
 switch ($action) {
     case 'refresh':
         if (file_exists($cache))
