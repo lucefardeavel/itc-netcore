@@ -662,7 +662,7 @@
                     aria-controls="collapseTelegramNotification">
                     {Lang::T('Telegram Notification')}</a>
                     <div class="btn-group pull-right">
-                        <a class="btn btn-success btn-xs" style="color: black;" href="javascript:testTg()">Test TG</a>
+                        <a class="btn btn-success btn-xs" style="color: black;" href="javascript:testTg()">{Lang::T('Send check message')}</a>
                     </div>
             </h4>
         </div>
@@ -701,7 +701,7 @@
                     {Lang::T('SMS Notification')}</a>
                     <div class="btn-group pull-right">
                         <a class="btn btn-success btn-xs" style="color: black;" href="javascript:testSms()">
-                            {Lang::T('Test SMS')}
+                            {Lang::T('Send check message')}
                         </a>
                     </div>
             </h4>
@@ -756,7 +756,7 @@
                     aria-controls="collapseWhatsappNotification">
                     {Lang::T('Whatsapp Notification')}</a>
                     <div class="btn-group pull-right">
-                        <a class="btn btn-success btn-xs" style="color: black;" href="javascript:testWa()">Test WA</a>
+                        <a class="btn btn-success btn-xs" style="color: black;" href="javascript:testWa()">{Lang::T('Send check message')}</a>
                     </div>
             </h4>
         </div>
@@ -785,8 +785,7 @@
                     href="#collapseEmailNotification" aria-expanded="false" aria-controls="collapseEmailNotification">
                     {Lang::T('Email Notification')}</a>
                     <div class="btn-group pull-right">
-                        <a class="btn btn-success btn-xs" style="color: black;" href="javascript:testEmail()">Test
-                            Email</a>
+                        <a class="btn btn-success btn-xs" style="color: black;" href="javascript:testEmail()">{Lang::T('Send check message')}</a>
                     </div>
             </h4>
         </div>
@@ -1172,14 +1171,14 @@
 
 <script>
     function testWa() {
-        var target = prompt("Phone number\nSave First before Test", "");
+        var target = prompt("{Lang::T('Phone number (save the settings first)')|escape:'javascript'}", "");
         if (target != null) {
             nuxrPost('{Text::url('settings/app&testWa=')}' + encodeURIComponent(target));
         }
     }
 
     function testSms() {
-        var target = prompt("Phone number\nSave First before Test", "");
+        var target = prompt("{Lang::T('Phone number (save the settings first)')|escape:'javascript'}", "");
         if (target != null) {
             nuxrPost('{Text::url('settings/app&testSms=')}' + encodeURIComponent(target));
         }
@@ -1187,7 +1186,7 @@
 
 
     function testEmail() {
-        var target = prompt("Email\nSave First before Test", "");
+        var target = prompt("{Lang::T('Email (save the settings first)')|escape:'javascript'}", "");
         if (target != null) {
             nuxrPost('{Text::url('settings/app&testEmail=')}' + encodeURIComponent(target));
         }

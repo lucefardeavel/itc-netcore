@@ -30,7 +30,11 @@ final class Brand
     public const VENDOR = 'ITC';
     /** Interim text mark (no final logo is decided). */
     public const MARK = 'ITC';
+    public const VENDOR_FULL = 'ITC – Integrated Technology Company';
+    public const WEBSITE = 'www.itc-iq.net';
+    public const PHONES = ['07702686402', '07833056405'];
 
+    // the original project and the licence: kept for NOTICE / LICENSE and the source headers; not shown in the interface
     public const UPSTREAM = 'PHPNuxBill';
     public const UPSTREAM_AUTHOR = 'iBNuX';
     public const UPSTREAM_URL = 'https://github.com/hotspotbilling/phpnuxbill';
@@ -64,6 +68,9 @@ final class Brand
             'tagline' => self::TAGLINE,
             'version' => self::VERSION,
             'vendor' => self::VENDOR,
+            'vendor_full' => self::VENDOR_FULL,
+            'website' => self::WEBSITE,
+            'phones' => self::PHONES,
             'company' => $company,
             // the operator's own initial, or the interim product text mark
             'mark' => $isProduct ? self::MARK : mb_substr($company, 0, 1),

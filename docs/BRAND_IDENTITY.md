@@ -71,14 +71,14 @@ An operator that wants its own app icon regenerates the four PWA PNGs (same name
 | Download file names (`phpnuxbill_customers_*.csv`, `phpnuxbill_reports_*.pdf`, backup JSON) | yes for now | operators' scripts may match them; renaming is an owner decision |
 | Source-file headers "PHP Mikrotik Billing (https://github.com/hotspotbilling/phpnuxbill/) by https://t.me/ibnux" | yes | attribution of the original authors |
 
-## 5. Credits that must stay
+## 5. What the interface shows, and what the distribution keeps
 
-- The footers credit the original project (`Based on the open-source project PHPNuxBill (iBNuX, GNU GPL v2)`) and the theme (AdminLTE).
-- The About page carries ITC only: "About ITC NetCore", one attribution row for the original project, the licence row and
-  the third-party credits. It has no donation, community or support links of the original project (maintenance branch
-  `maint/v1.0.1-itc-only`, owner request 2026-11-09).
-- The installer keeps "Copyright © 2021 PHPNuxBill. All Rights Reserved".
-- `LICENSE` is unchanged. `NOTICE` names the original project and the open legal points.
+- Owner request 2026-11-09 (maintenance branch `maint/v1.0.1-itc-only`): the interface shows **ITC only**. The footers show
+  the product line; the About page shows the product, version, ITC, website and phone numbers. No original-project,
+  licence, theme or donation credit is shown, and no test or trial wording.
+- The distribution keeps the legal files: `LICENSE` unchanged, `NOTICE` naming the original project and the open legal
+  points, the copyright headers in the source files and the installer's copyright line. Whether the interface must also
+  show the attribution is part of LIC-1 (counsel).
 
 ## 6. GitHub repository profile (suggested text; not applied)
 
@@ -96,10 +96,10 @@ The repository is **not** renamed or moved. The text below is a suggestion for t
 - the approved constants;
 - the operator fallback;
 - page frames that use `$_brand` and not the raw setting;
-- the original project's credit in the footers, About page, installer, README and NOTICE;
+- the ITC-only footers and About page, and the original project's notice kept in the installer, README and NOTICE;
 - `LICENSE` and `install/phpnuxbill.sql` byte-unchanged, and the internal names kept;
 - no business, security, RADIUS or finance code reading `Brand`;
-- `PHPNuxBill` in templates only in the credits and the upstream-release notice;
+- no `PHPNuxBill`, donation, original-project support link or test / trial wording in the interface;
 - an Arabic entry for every new string, and `<bdi>` isolation in the footers.
 
 `tests/Unit/Wp10/BrandIdentityAssetsTest.php` covers the visual identity: the asset hashes and their vector-only content,

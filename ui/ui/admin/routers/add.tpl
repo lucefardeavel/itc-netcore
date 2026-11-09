@@ -56,7 +56,7 @@
                     <div class="form-group row">
                         <label class="col-md-2 control-label"></label>
                         <div class="col-md-6">
-                            <label><input type="checkbox" checked name="testIt" value="yes"> {Lang::T('Test Connection')}</label>
+                            <label><input type="checkbox" checked name="testIt" value="yes"> {Lang::T('Check the connection')}</label>
                         </div>
                     </div>
         {* WP6C: the shared action row - a direct child of the form, sticky above the bottom navigation on phones *}

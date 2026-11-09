@@ -1,16 +1,13 @@
             </section>
         </div>
         <footer class="main-footer nuxr-footer">
-            {* Product identity (Reseller\Ui\Brand) and the credits of the original project and the theme (kept).
+            {* Product identity (Reseller\Ui\Brand): ITC only.
                UX-8: the version links to the About page only for the roles that may open it (RouteMap community:
                system.admin); for the others it is plain text (presentation only, the route is checked server-side) *}
             {assign var=nuxr_about_link value=NuxrUi::allowed('community')}
             <div class="pull-right itc-footer-version">{if $nuxr_about_link}<a id="version" href="{Text::url('community')}"><bdi>{$_brand.name|escape} {$_brand.version|escape}</bdi></a>{else}<span id="version"><bdi>{$_brand.name|escape} {$_brand.version|escape}</bdi></span>{/if}</div>
             <span class="itc-footer-product"><bdi class="itc-name">{$_brand.name|escape}</bdi> &middot; {Lang::T('ISP Management & Billing Platform')}
                 &middot; {Lang::T('Developed and maintained by')} <bdi>{$_brand.vendor|escape}</bdi></span>
-            <span class="itc-footer-credits">{Lang::T('Based on the open-source project')} <a href="{$_brand.upstream_url|escape}" rel="nofollow noreferrer noopener"
-                target="_blank">{$_brand.upstream|escape}</a> <bdi>({$_brand.upstream_author|escape}, {$_brand.license|escape})</bdi>
-                &middot; {Lang::T('Interface theme')} <a href="https://adminlte.io/" rel="nofollow noreferrer noopener" target="_blank">AdminLTE</a></span>
         </footer>
     </div>
 

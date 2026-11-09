@@ -178,9 +178,10 @@ final class BrandIdentityAssetsTest extends TestCase
         $this->assertMatchesRegularExpression('/\{if \$_brand\.company_is_product\}<img class="nc-mark"[^>]*netcore-mark-white\.svg[^>]*>\{else\}<b>\{\$_brand\.mark\|escape\}<\/b>\{\/if\}/', self::read('ui/ui/customer/header.tpl'));
         // the reversed artwork is the only one shown on dark surfaces (F-03)
         $this->assertStringContainsString('body.dark-mode .nc-on-light { display: none !important; }', self::read('ui/ui/styles/nuxr-brand.css'));
-        // the operator footer no longer removes the product and upstream credit
+        // both portal footer variants carry the product line, and only it (owner request 2026-11-09: ITC only)
         $foot = self::read('ui/ui/customer/footer.tpl');
-        $this->assertSame(2, substr_count($foot, '{$_brand.upstream_url|escape}'), 'credit in both footer variants');
+        $this->assertSame(2, substr_count($foot, "{Lang::T('Powered by')} <bdi>{\$_brand.name|escape}</bdi>"), 'product line in both footer variants');
+        $this->assertStringNotContainsString('upstream', $foot);
     }
 
     public function testThePortalHeaderShowsTheProductMarkInlineBeforeTheName(): void

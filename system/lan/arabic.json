@@ -2114,5 +2114,15 @@
   "Unused": "غير مستخدمة",
   "Vouchers Stock": "مخزون القسائم",
   "Failed_to_refill_account": "تعذّر شحن الحساب",
-  "Your_username_can_only_be_changed_by_an_administrator__nothing_was_changed_": "لا يغيّر اسم المستخدم لحسابك إلا المسؤول؛ لم يتغيّر شيء."
+  "Your_username_can_only_be_changed_by_an_administrator__nothing_was_changed_": "لا يغيّر اسم المستخدم لحسابك إلا المسؤول؛ لم يتغيّر شيء.",
+  "Website": "الموقع",
+  "Send_check_message": "إرسال رسالة تحقّق",
+  "Phone_number__save_the_settings_first_": "رقم الهاتف (احفظ الإعدادات أولاً)",
+  "Email__save_the_settings_first_": "البريد الإلكتروني (احفظ الإعدادات أولاً)",
+  "ITC_NetCore__check_message": "ITC NetCore: رسالة تحقّق",
+  "This_message_confirms_that_the_email_settings_work_": "تؤكّد هذه الرسالة أن إعدادات البريد الإلكتروني تعمل.",
+  "Check_message_sent": "أُرسلت رسالة التحقّق",
+  "Check_the_connection": "التحقّق من الاتصال",
+  "Preview_only__no_message_is_sent_": "معاينة فقط (لا تُرسل أي رسالة)",
+  "Preview_only": "معاينة فقط"
 }

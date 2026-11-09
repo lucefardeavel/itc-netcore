@@ -316,7 +316,7 @@ EOT;
                 $batchStatus[] = [
                     'name' => $customer['fullname'],
                     'phone' => $customer['phonenumber'],
-                    'status' => 'Test Mode',
+                    'status' => Lang::T('Preview only'),
                     'message' => $currentMessage,
                     'service' => $service,
                     'router' => $routerName,

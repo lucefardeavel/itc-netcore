@@ -75,20 +75,20 @@ final class BrandIdentityTest extends TestCase
         $this->assertLessThan(strpos($boot, "\$ui->assign('_kolaps'"), strpos($boot, "\$ui->assign('_brand'"));
     }
 
-    public function testTheOriginalProjectStaysCredited(): void
+    public function testTheInterfaceShowsItcOnlyAndTheLicenceFilesStay(): void
     {
-        foreach (['ui/ui/admin/footer.tpl', 'ui/ui/customer/footer.tpl'] as $tpl) {
+        // owner request 2026-11-09: the footers and the About page show ITC only (no original-project, licence or theme credit)
+        foreach (['ui/ui/admin/footer.tpl', 'ui/ui/customer/footer.tpl', 'ui/ui/admin/community.tpl'] as $tpl) {
             $src = self::read($tpl);
-            foreach (['{$_brand.upstream_url|escape}', '{$_brand.upstream|escape}', '{$_brand.upstream_author|escape}', '{$_brand.license|escape}', 'https://adminlte.io/'] as $needle) {
-                $this->assertStringContainsString($needle, $src, "{$tpl}: {$needle}");
+            foreach (['upstream', '{$_brand.license', 'adminlte.io', "Lang::T('Credits')", 'PHPNuxBill'] as $needle) {
+                $this->assertStringNotContainsString($needle, $src, "{$tpl}: {$needle}");
             }
         }
         $about = self::read('ui/ui/admin/community.tpl');
-        // the About page is ITC only: one attribution row and the licence row for the original project, no links of its own
-        foreach (['id="about"', '{$_brand.upstream|escape}', '{$_brand.upstream_author|escape}', '{$_brand.license|escape}', "{Lang::T('Credits')}",
-                     "Lang::T('see the LICENSE and NOTICE files')"] as $needle) {
+        foreach (['id="about"', '{$_brand.name|escape}', '{$_brand.version|escape}', '{$_brand.vendor_full|escape}', '{$_brand.website|escape}', '$_brand.phones'] as $needle) {
             $this->assertStringContainsString($needle, $about, "About page: {$needle}");
         }
+        // the licence files and the original copyright notices stay in the distribution (GPL-2.0; LIC-1 open with counsel)
         foreach (['install/index.php', 'install/step2.php', 'install/step3.php', 'install/step4.php', 'install/step5.php', 'install/update.php'] as $f) {
             $this->assertStringContainsString('Copyright &copy; 2021 PHPNuxBill. All Rights Reserved', self::read($f), "{$f}: the upstream notice is kept");
             $this->assertStringContainsString('ITC NetCore', self::read($f), $f);
@@ -133,8 +133,25 @@ final class BrandIdentityTest extends TestCase
             }
         }
         sort($found);
-        // only the attribution of the original project on the About page
-        $this->assertSame(['ui/ui/admin/community.tpl'], $found);
+        // no template shows the original product name (owner request 2026-11-09: ITC only)
+        $this->assertSame([], $found);
+    }
+
+    public function testNoTestOrTrialWordingIsShown(): void
+    {
+        // owner request 2026-11-09: a delivered system shows no test / trial wording; the check functions keep working
+        $ar = json_decode(self::read('system/lan/arabic.json'), true, 512, JSON_THROW_ON_ERROR);
+        foreach (['Send_check_message', 'Check_the_connection', 'Preview_only__no_message_is_sent_', 'Check_message_sent'] as $k) {
+            $this->assertArrayHasKey($k, $ar, $k);
+        }
+        $found = [];
+        foreach (['ui/ui/admin/settings/app.tpl', 'ui/ui/admin/routers/add.tpl', 'ui/ui/admin/message/bulk.tpl', 'system/controllers/settings.php',
+                     'system/controllers/message.php', 'system/devices/Dummy.php'] as $rel) {
+            if (preg_match('/>Test (TG|WA)<|Lang::T\\(\'Test(ing)? |\'Test (Mode|Whatsapp|SMS|Email|Telegram)|NetCore Test|just dummy/', self::read($rel), $m)) {
+                $found[] = "{$rel}: {$m[0]}";
+            }
+        }
+        $this->assertSame([], $found);
     }
 
     public function testNoDonationOrOriginalProjectSupportChannels(): void
@@ -173,7 +190,7 @@ final class BrandIdentityTest extends TestCase
             }
         }
         $strings = array_values(array_unique($strings));
-        $this->assertGreaterThanOrEqual(14, count($strings));
+        $this->assertGreaterThanOrEqual(9, count($strings));
         $missing = [];
         foreach ($strings as $s) {
             if (!isset($catalog[$s]) && !isset($catalog[(string) preg_replace('/[^A-Za-z0-9]/', '_', $s)])) {

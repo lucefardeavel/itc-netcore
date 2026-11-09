@@ -6,9 +6,9 @@ class Dummy {
     function description()
     {
         return [
-            'title' => 'Dummy',
-            'description' => 'This devices is just dummy and do nothing, good if you just want to use billing only without doing something to device',
-            'author' => 'ibnu maksum',
+            'title' => 'Billing only',
+            'description' => 'Billing without a network device: no change is sent to any router.',
+            'author' => 'ITC',
             'url' => []
         ];
     }

@@ -76,7 +76,7 @@
                         <label for="message" class="col-md-2 control-label">{Lang::T('Message')}</label>
                         <div class="col-md-6">
                             <textarea class="form-control" id="message" name="message" required placeholder="{Lang::T('Compose your message...')}" rows="5">{$message}</textarea>
-                            <label class="radio-inline"><input name="test" id="test" type="checkbox"> {Lang::T('Testing [if checked no real message is sent]')}</label>
+                            <label class="radio-inline"><input name="test" id="test" type="checkbox"> {Lang::T('Preview only (no message is sent)')}</label>
                         </div>
                         <p class="help-block col-md-4">
                             {Lang::T('Use placeholders:')}
