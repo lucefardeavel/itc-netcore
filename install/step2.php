@@ -64,7 +64,7 @@ if (file_exists(__DIR__ . '/../config.php')) {
 				<a href=\"step3.php\" class=\"btn btn-primary\">Continue to Install ITC NetCore</a><br><br>");
             } else {
                 echo ("<br/> $ltext <br/> Sorry. The requirements of ITC NetCore are not available on your server.
-				Contact with us at Telegram <a href=\"https://t.me/phpnuxbill\">@phpnuxbill</a> with this code- $passed Or contact with your server administrator
+				Contact ITC (www.itc-iq.net) or your server administrator with this code: $passed
 				<br><br>
 				<a href=\"#\" class=\"btn btn-primary disabled\">Correct The Problem To Continue</a>");
             }

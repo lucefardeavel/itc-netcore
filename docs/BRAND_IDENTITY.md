@@ -74,11 +74,11 @@ An operator that wants its own app icon regenerates the four PWA PNGs (same name
 ## 5. Credits that must stay
 
 - The footers credit the original project (`Based on the open-source project PHPNuxBill (iBNuX, GNU GPL v2)`) and the theme (AdminLTE).
-- The About page carries "About ITC NetCore" first, then the original project's credits, contributors, community links and
-  version, labelled **Original project** and marked as not being ITC support channels.
+- The About page carries ITC only: "About ITC NetCore", one attribution row for the original project, the licence row and
+  the third-party credits. It has no donation, community or support links of the original project (maintenance branch
+  `maint/v1.0.1-itc-only`, owner request 2026-11-09).
 - The installer keeps "Copyright © 2021 PHPNuxBill. All Rights Reserved".
-- `LICENSE` is unchanged. `NOTICE` names the original project and the open legal points. The original README is kept verbatim
-  in `docs/UPSTREAM_PHPNUXBILL_README.md`.
+- `LICENSE` is unchanged. `NOTICE` names the original project and the open legal points.
 
 ## 6. GitHub repository profile (suggested text; not applied)
 

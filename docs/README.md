@@ -108,7 +108,6 @@ This is the index of the documentation in this repository. Paths are relative to
 |---|---|
 | [BRAND_IDENTITY.md](BRAND_IDENTITY.md) | Product name, tagline, visual identity, credits that must stay |
 | [../ui/ui/images/brand/ASSETS.txt](../ui/ui/images/brand/ASSETS.txt) | Approved brand assets and their SHA-256 hashes |
-| [UPSTREAM_PHPNUXBILL_README.md](UPSTREAM_PHPNUXBILL_README.md) | Original PHPNuxBill README (verbatim) |
 
 ## 9. Development
 

@@ -38,11 +38,7 @@ class Radius
             'title' => 'Radius',
             'description' => 'Radius system with Mysql/Mariadb as database',
             'author' => 'ibnux',
-            'url' => [
-                'Github' => 'https://github.com/hotspotbilling/phpnuxbill/',
-                'Telegram' => 'https://t.me/phpnuxbill',
-                'Donate' => 'https://paypal.me/ibnux'
-            ]
+            'url' => []
         ];
     }
 

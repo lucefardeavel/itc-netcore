@@ -11,6 +11,8 @@
 
 **V1.0 Release Candidate** · developed and maintained by **ITC** · not yet production-accepted
 
+ITC – Integrated Technology Company · [www.itc-iq.net](https://www.itc-iq.net)
+
 [العربية](#ar) · [English](#en) · [Documentation](docs/README.md) · [Release notes](docs/release/RELEASE_NOTES_V1.0.md) · [Release status](#release-status)
 
 </div>
@@ -18,8 +20,8 @@
 > [!IMPORTANT]
 > **ITC NetCore V1.0 is a Release Candidate. It is not production-accepted.** The lab verdict is
 > `LAB_ACCEPTED_WITH_LIMITATIONS` and the release state is `RELEASE_BLOCKED_WITH_EVIDENCE`: the target-environment
-> acceptance tests have not been run, the legal review (LIC-1) is `BLOCKED — COUNSEL REQUIRED`, and owner release
-> decisions are open. See [Release status](#release-status).
+> acceptance tests have not been run, and the legal review (LIC-1) is `BLOCKED — COUNSEL REQUIRED`.
+> See [Release status](#release-status).
 
 <a id="ar"></a>
 
@@ -38,13 +40,11 @@
 - **حصص البيانات:** يُفصل الاستخدام الفعلي عن الاستخدام المحتسب؛ والتجاوز لا يُحتسب ولا يُرحَّل. الإنفاذ **محدود الدقة وليس دقيقاً بالبايت**، ولا يجوز تسويقه على أنه حدّ دقيق بالبايت.
 - **القسائم والتقارير:** قسائم برموز مُقنّعة في الواجهة واسترداد لمرة واحدة، وتقارير المعاملات وسجل التفعيلات وكشوف المحافظ.
 
-**حالة الإصدار:** <bdi>V1.0</bdi> إصدار مرشّح (<bdi>Release Candidate</bdi>) لم يُقبل بعد للإنتاج. اجتاز اختبارات المختبر المعزول فقط؛ ولم تُجرَ اختبارات البيئة المستهدفة (<bdi>staging</bdi>)؛ وحالة المراجعة القانونية <bdi>LIC-1</bdi> هي <bdi>`BLOCKED — COUNSEL REQUIRED`</bdi>؛ وقرارات المالك الخاصة بالإصدار مفتوحة.
+**حالة الإصدار:** <bdi>V1.0</bdi> إصدار مرشّح (<bdi>Release Candidate</bdi>) لم يُقبل بعد للإنتاج. اجتاز اختبارات المختبر المعزول فقط؛ ولم تُجرَ اختبارات البيئة المستهدفة (<bdi>staging</bdi>)؛ وحالة المراجعة القانونية <bdi>LIC-1</bdi> هي <bdi>`BLOCKED — COUNSEL REQUIRED`</bdi>.
 
 **التثبيت الأول** تثبيت جديد على قاعدة بيانات جديدة فارغة، بحزمة التثبيت الجديد [`install/fresh/`](install/fresh/). راجع [دليل التثبيت](docs/guides/install/) و[دليل <bdi>MikroTik</bdi> و<bdi>FreeRADIUS</bdi>](docs/guides/radius-mikrotik/) و[الملف التعريفي للمنتج](docs/guides/product-profile/) و[فهرس الوثائق](docs/README.md).
 
-**الدعم:** تُحدَّد شروط الدعم في اتفاقية كل عميل.
-
-<bdi>ITC NetCore</bdi> نسخة معدّلة من مشروع <bdi>PHPNuxBill</bdi> مفتوح المصدر (<bdi>iBNuX</bdi> والمساهمون فيه). انظر [الإسناد والإشعارات](#credits).
+**الدعم والتواصل:** <bdi>ITC – Integrated Technology Company</bdi> · <bdi>[www.itc-iq.net](https://www.itc-iq.net)</bdi> · <bdi>07702686402</bdi> · <bdi>07833056405</bdi>. تُحدَّد شروط الدعم في اتفاقية كل عميل.
 
 </div>
 
@@ -59,9 +59,6 @@ desktop, tablet and phone, and the staff interface installs as a web app (PWA).
 
 Each ISP gets **one isolated instance**: its own database, its own FreeRADIUS configuration and its own NAS secrets.
 There is no shared multi-tenant database.
-
-ITC NetCore is a modified version of **[PHPNuxBill](https://github.com/hotspotbilling/phpnuxbill)** by iBNuX and its
-contributors. See [Credits and third-party notices](#credits).
 
 <p align="center">
   <img src="docs/media/screenshots/004-sa-dashboard-en-desktop-light-product.png" alt="SuperAdmin dashboard (English, desktop)" width="49%">
@@ -296,14 +293,14 @@ subscriber onboarding guides are in [docs/guides/operations/](docs/guides/operat
 | Target acceptance tests TA-01 … TA-10 | [docs/V1_TARGET_ACCEPTANCE.md](docs/V1_TARGET_ACCEPTANCE.md) |
 
 Built-in login throttling is not provided; rate-limit sign-in at the HTTPS front (the nginx example in `install/fresh/`
-includes a login rate limit). There is no high-availability claim for V1.0. R-HF-CARRY-01 remains open for the owner
-(see the release notes).
+includes a login rate limit). There is no high-availability claim for V1.0. R-HF-CARRY-01 is accepted by the owner as a documented V1
+residual (see the release notes).
 
 ## Release notes and changelog
 
 - [V1.0 release notes](docs/release/RELEASE_NOTES_V1.0.md) (Release Candidate)
 - [V1.0 changelog entry](docs/release/CHANGELOG_V1.0_entry.md)
-- [CHANGELOG.md](CHANGELOG.md): the original PHPNuxBill history, followed by the Git history of this repository
+- [CHANGELOG.md](CHANGELOG.md): the history of the code base, followed by the Git history of this repository
 
 <a id="release-status"></a>
 
@@ -311,11 +308,11 @@ includes a login rate limit). There is no high-availability claim for V1.0. R-HF
 
 | Gate | State |
 |---|---|
-| Version | **V1.0 Release Candidate**; no release tag has been created |
+| Version | **V1.0 Release Candidate**: GitHub pre-release `v1.0.0-rc.1` (frozen code `0a8b9d58`); no `v1.0.0` tag. Later changes ship only on separately versioned maintenance branches |
 | Lab acceptance | `LAB_ACCEPTED_WITH_LIMITATIONS` (isolated lab only) |
 | Target staging, acceptance tests TA-01 … TA-10 | **Not run**: no authorized staging target exists |
 | Legal review LIC-1 | **`BLOCKED — COUNSEL REQUIRED`** |
-| Owner release decisions | Open (including R-HF-CARRY-01, RTO / RPO and the recovery option) |
+| Owner decisions | Decided 2026-11-03 (A1–A8): residuals accepted as documented, recovery option 2 with target RTO 4 h / RPO 15 min (targets, to be validated on the customer target) |
 | WP9 / WP10 acceptance | Pending |
 | Production | **Not production-accepted; not deployed to production** |
 
@@ -324,10 +321,9 @@ Current state and open items: [owner-review/CURRENT_STATE_AND_OPEN_NOTES.md](own
 
 ## Support
 
-Support terms are defined per customer agreement.
+**ITC – Integrated Technology Company** · [www.itc-iq.net](https://www.itc-iq.net) · 07702686402 · 07833056405
 
-The community, donation and support channels in [docs/UPSTREAM_PHPNUXBILL_README.md](docs/UPSTREAM_PHPNUXBILL_README.md)
-belong to the original PHPNuxBill project, not to ITC.
+Support terms are defined per customer agreement. ITC is the only support channel for ITC NetCore.
 
 ## Naming note
 
@@ -339,10 +335,9 @@ the visible identity, and renaming them would break existing installations.
 
 ## Credits and third-party notices
 
-ITC NetCore is built on **PHPNuxBill** (<https://github.com/hotspotbilling/phpnuxbill>), created by Ibnu Maksum (iBNuX)
-together with the PHPNuxBill contributors. Their copyright notices in the source files and in the installer are kept. The
-original project's README is kept verbatim in [docs/UPSTREAM_PHPNUXBILL_README.md](docs/UPSTREAM_PHPNUXBILL_README.md),
-including its community, donation and support channels. Those channels belong to the original project, not to ITC.
+ITC NetCore is a modified version of the open-source project PHPNuxBill (<https://github.com/hotspotbilling/phpnuxbill>,
+iBNuX and contributors). As the licence requires, the original copyright notices in the source files and in the installer
+are kept.
 
 The interface uses AdminLTE and Bootstrap. Every third-party component and its licence is listed in
 [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md). See also [NOTICE](NOTICE).
@@ -353,7 +348,3 @@ components, and the use of the product and third-party names are open legal ques
 [owner-review/WP10/LEGAL_REVIEW_PACKAGE.md](owner-review/WP10/LEGAL_REVIEW_PACKAGE.md), source repository only (not in the release artifact)). This README does not decide them.
 "ITC NetCore" and "ITC" are the product and brand names chosen by the owner; no trademark registration or clearance is
 stated here.
-
-<a href="https://github.com/hotspotbilling/phpnuxbill/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=hotspotbilling/phpnuxbill" alt="PHPNuxBill contributors" />
-</a>

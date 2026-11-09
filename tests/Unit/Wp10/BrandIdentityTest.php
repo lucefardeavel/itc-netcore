@@ -84,8 +84,9 @@ final class BrandIdentityTest extends TestCase
             }
         }
         $about = self::read('ui/ui/admin/community.tpl');
-        foreach (['id="about"', "Lang::T('Original project')", '{$_brand.upstream_url|escape}', 'graphs/contributors', "{Lang::T('Credits')}",
-                     'They are not ITC support channels.', "Lang::T('see the LICENSE and NOTICE files')"] as $needle) {
+        // the About page is ITC only: one attribution row and the licence row for the original project, no links of its own
+        foreach (['id="about"', '{$_brand.upstream|escape}', '{$_brand.upstream_author|escape}', '{$_brand.license|escape}', "{Lang::T('Credits')}",
+                     "Lang::T('see the LICENSE and NOTICE files')"] as $needle) {
             $this->assertStringContainsString($needle, $about, "About page: {$needle}");
         }
         foreach (['install/index.php', 'install/step2.php', 'install/step3.php', 'install/step4.php', 'install/step5.php', 'install/update.php'] as $f) {
@@ -132,8 +133,31 @@ final class BrandIdentityTest extends TestCase
             }
         }
         sort($found);
-        // only the credits of the original project (About page) and the upstream-release notice (dashboard)
-        $this->assertSame(['ui/ui/admin/community.tpl', 'ui/ui/admin/dashboard.tpl'], $found);
+        // only the attribution of the original project on the About page
+        $this->assertSame(['ui/ui/admin/community.tpl'], $found);
+    }
+
+    public function testNoDonationOrOriginalProjectSupportChannels(): void
+    {
+        $this->assertFileDoesNotExist(self::root() . '/.github/FUNDING.yml');
+        $this->assertFileDoesNotExist(self::root() . '/docs/UPSTREAM_PHPNUXBILL_README.md');
+        $files = ['README.md', 'docs/index.html', 'install/index.php', 'install/step2.php', 'install/step3.php',
+                  '.github/ISSUE_TEMPLATE/bug_report.md', '.github/ISSUE_TEMPLATE/feature_request.md'];
+        foreach (['ui/ui', 'system/devices'] as $dir) {
+            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(self::root() . '/' . $dir, \FilesystemIterator::SKIP_DOTS));
+            foreach ($it as $f) {
+                if (preg_match('/\.(tpl|php)$/', $f->getFilename())) {
+                    $files[] = substr($f->getPathname(), strlen(self::root()) + 1);
+                }
+            }
+        }
+        $found = [];
+        foreach ($files as $rel) {
+            if (preg_match('~donat|paypal\.me|trakteer|karyakarsa|paid support|t\.me/phpnuxbill|t\.me/ibnux"|nux\.my\.id|standwithpalestine|contrib\.rocks|hotspotbilling/phpnuxbill/(wiki|discussions|graphs)|hotspotbilling/android-printer|assignees: ibnux~i', self::read($rel), $m)) {
+                $found[] = "{$rel}: {$m[0]}";
+            }
+        }
+        $this->assertSame([], $found, 'ITC is the only support channel: no donation or original-project support links');
     }
 
     public function testEveryBrandStringHasAnArabicEntry(): void
@@ -149,7 +173,7 @@ final class BrandIdentityTest extends TestCase
             }
         }
         $strings = array_values(array_unique($strings));
-        $this->assertGreaterThanOrEqual(18, count($strings));
+        $this->assertGreaterThanOrEqual(14, count($strings));
         $missing = [];
         foreach ($strings as $s) {
             if (!isset($catalog[$s]) && !isset($catalog[(string) preg_replace('/[^A-Za-z0-9]/', '_', $s)])) {

@@ -17,12 +17,7 @@ class MikrotikVpn
             'title' => 'Mikrotik Vpn',
             'description' => 'To handle connection between ITC NetCore and Mikrotik VPN',
             'author' => 'agstr',
-            'url' => [
-                'Github' => 'https://github.com/agstrxyz',
-                'Telegram' => 'https://t.me/agstrxyz',
-                'Youtube' => 'https://www.youtube.com/@agstrxyz',
-                'Donate' => 'https://paypal.me/ibnux'
-            ]
+            'url' => []
         ];
     }
 

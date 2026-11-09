@@ -21,11 +21,6 @@
                         <i class="glyphicon glyphicon-phone"></i>
                         NuxPrint
                     </a>
-                    <a href="https://github.com/hotspotbilling/android-printer"
-                        class="btn btn-success text-black btn-sm hidden-xs hidden-sm" target="_blank">
-                        <i class="glyphicon glyphicon-phone"></i>
-                        NuxPrint
-                    </a>
                 </form>
                 <javascript type="text/javascript">
                 </javascript>

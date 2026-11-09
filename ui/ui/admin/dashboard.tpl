@@ -132,46 +132,5 @@
     {/if}
 {/foreach}
 
-{if $_c['new_version_notify'] != 'disable'}
-    <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            $.getJSON("./version.json?" + Math.random(), function(data) {
-                // the remote version file is third-party data: text only, and a restricted token (never HTML)
-                function nuxrSafeVersion(v) { v = String(v); return v.length <= 32 && /^[0-9A-Za-z._-]+$/.test(v) ? v : 'unknown'; }
-                var localVersion = nuxrSafeVersion(data.version);
-                // ITC NetCore: the footer shows the product version; this compares the PHPNuxBill base with the upstream project
-                $.getJSON(
-                    "https://raw.githubusercontent.com/hotspotbilling/phpnuxbill/master/version.json?" +
-                    Math
-                    .random(),
-                    function(data) {
-                        var latestVersion = nuxrSafeVersion(data.version);
-                        if (localVersion !== latestVersion) {
-                            if (getCookie(latestVersion) != 'done') {
-                                Swal.fire({
-                                    icon: 'info',
-                                    title: "PHPNuxBill (upstream) " + latestVersion + "\n{Lang::T('Updates are installed only through the reviewed release process')|escape:'javascript'}",
-                                    toast: true,
-                                    position: 'bottom-right',
-                                    showConfirmButton: true,
-                                    showCloseButton: true,
-                                    timer: 30000,
-                                    confirmButtonText: '<a href="{Text::url('community')}#latestVersion" style="color: white;">{Lang::T('Details')|escape:'javascript'}</a>',
-                                    timerProgressBar: true,
-                                    didOpen: (toast) => {
-                                        toast.addEventListener('mouseenter', Swal.stopTimer)
-                                        toast.addEventListener('mouseleave', Swal
-                                            .resumeTimer)
-                                    }
-                                });
-                                setCookie(latestVersion, 'done', 7);
-                            }
-                        }
-                    });
-            });
-
-        });
-    </script>
-{/if}
 {/if}
 {include file="sections/footer.tpl"}

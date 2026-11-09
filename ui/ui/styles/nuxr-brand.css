@@ -223,13 +223,6 @@ body.nuxr-portal .btn-link, body.nuxr-portal .btn-link:is(:hover, :focus) { colo
 }
 body.nuxr-portal :is(.main-footer, .login-box-footer, .form-head, .panel-footer, .box-footer) a:not(.btn), body.nuxr-portal a[href^="javascript:show"] { color: var(--nx-link) !important; }
 body.nuxr-portal .text-muted, body.nuxr-shell .content .text-muted { color: var(--nx-muted) !important; }
-/* links inside running text are underlined (WCAG 1.4.1), as the shell footer links */
-#latestVersion { text-decoration: underline; }
-/* the original project's donation buttons on the About page: touch-sized on phones (WCAG 2.5.8) */
-@media (max-width: 767px) {
-    body.nuxr-shell .itc-about-page .btn-group-justified { display: flex; flex-wrap: wrap; gap: 6px; }
-    body.nuxr-shell .itc-about-page .btn-group-justified > .btn { flex: 1 1 45%; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
-}
 body.nuxr-portal .sidebar-menu > li > a, body.nuxr-portal .sidebar-menu > li > a :is(.text, span, i) { color: var(--nx-portal-side-text) !important; }
 body.nuxr-portal .sidebar-menu > li.active > a :is(.text, span, i), body.nuxr-portal .sidebar-menu > li > a:hover :is(.text, span, i) { color: var(--nx-primary) !important; }
 body.nuxr-portal :is(.form-control, input[type=text], input[type=password], input[type=email], input[type=number], select, textarea) { background-color: var(--nx-surface) !important; color: var(--nx-text) !important; border-color: var(--nx-border) !important; }

@@ -13,11 +13,9 @@ class FileName {
         return [
             'title' => 'Device',
             'description' => '',
-            'author' => 'ibnu maksum',
+            'author' => 'ITC',
             'url' => [
-                'Github' => 'https://github.com/hotspotbilling/phpnuxbill/',
-                'Telegram' => 'https://t.me/ibnux',
-                'Donate' => 'https://paypal.me/ibnux',
+                'Website' => 'https://www.itc-iq.net',
                 'any text' => 'Any Url'
             ]
         ];

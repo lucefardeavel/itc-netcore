@@ -92,8 +92,6 @@
                             {/foreach}
                         </select>
                     </div>
-                    <p class="help-block col-md-4"><a href="https://github.com/hotspotbilling/phpnuxbill/wiki/Themes"
-                            target="_blank">{Lang::T('Theme Info')}</a></p>
                 </div>
                 <div class="form-group">
                     <label for="nxf-payment_usings" class="col-md-3 control-label">{Lang::T('Recharge Using')}</label>
@@ -534,9 +532,6 @@
                             </option>
                         </select>
                     </div>
-                    <p class="help-block col-md-4"><a
-                            href="https://github.com/hotspotbilling/phpnuxbill/wiki/FreeRadius"
-                            target="_blank">{Lang::T('Radius Instructions')}</a></p>
                 </div>
                 <button class="btn btn-success btn-block" type="submit">
                     {Lang::T('Save Changes')}
@@ -745,9 +740,6 @@
                             value="{$_c['mikrotik_sms_command']}" placeholder="mikrotik_sms_command">
                     </div>
                 </div>
-                <small id="emailHelp" class="form-text text-muted">{Lang::T('You can use')} WhatsApp
-                    {Lang::T('in here too.')} <a href="https://wa.nux.my.id/login" target="_blank">{Lang::T('Free
-                        Server')}</a></small>
 
                 <button class="btn btn-success btn-block" type="submit">
                     {Lang::T('Save Changes')}
@@ -779,9 +771,6 @@
                     <p class="help-block col-md-4">{Lang::T('Must include')} <b>[text]</b> &amp; <b>[number]</b>,
                         {Lang::T('it will be replaced.')}</p>
                 </div>
-                <small id="emailHelp" class="form-text text-muted">{Lang::T('You can use')} WhatsApp
-                    {Lang::T('in here too.')} <a href="https://wa.nux.my.id/login" target="_blank">{Lang::T('Free
-                        Server')}</a></small>
                 <button class="btn btn-success btn-block" type="submit">
                     {Lang::T('Save Changes')}
                 </button>
@@ -1130,7 +1119,7 @@
                         <div class="input-group">
                             <span class="input-group-addon">https://github.com/</span>
                             <input type="text" class="form-control" id="github_username" name="github_username"
-                                value="{$_c['github_username']}" placeholder="ibnux">
+                                value="{$_c['github_username']}" placeholder="username">
                         </div>
                     </div>
                 </div>

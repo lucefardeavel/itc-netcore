@@ -25,11 +25,7 @@ class MikrotikPppoe
             'title' => 'Mikrotik PPPOE',
             'description' => 'To handle connection between ITC NetCore and Mikrotik PPPOE',
             'author' => 'ibnux',
-            'url' => [
-                'Github' => 'https://github.com/hotspotbilling/phpnuxbill/',
-                'Telegram' => 'https://t.me/phpnuxbill',
-                'Donate' => 'https://paypal.me/ibnux'
-            ]
+            'url' => []
         ];
     }
 

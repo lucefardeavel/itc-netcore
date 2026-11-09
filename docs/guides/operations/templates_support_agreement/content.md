@@ -4,7 +4,7 @@
 > **EDITABLE TEMPLATES — NO VALUES FILLED IN.** Every field below is intentionally blank. Nothing in this document is an offer, a commitment, a price, a service level, a warranty or a contract term of ITC or of any ISP. The documents become binding only when the parties complete them, review them with their own legal counsel, and sign them.
 
 > [!NOTE]
-> ITC NetCore V1.0 is a Release Candidate, not yet production-accepted; the legal review LIC-1 (licensing, naming, data protection) is `BLOCKED — COUNSEL REQUIRED`. Any agreement must take its outcome into account. The upstream PHPNuxBill community, donation and support channels belong to the original project, not to ITC.
+> ITC NetCore V1.0 is a Release Candidate, not yet production-accepted; the legal review LIC-1 (licensing, naming, data protection) is `BLOCKED — COUNSEL REQUIRED`. Any agreement must take its outcome into account. ITC is the only support channel for ITC NetCore.
 
 How to use:
 - Replace every `________` and tick every `[ ]` deliberately (`[x]`); delete rows that do not apply.

@@ -60,17 +60,14 @@ final class ClientSideSinkInventoryTest extends TestCase
         $this->assertSame($expected, self::sinks('/innerHTML\s*=(?!=)/'), 'a new innerHTML assignment needs a review (D9)');
     }
 
-    public function testRemoteVersionDataIsTextAndARestrictedToken(): void
+    public function testNoTemplateFetchesTheOriginalProjectVersion(): void
     {
+        // the upstream-release check (dashboard) and the base-version lookup (About) are removed: no third-party request
         foreach (['admin/dashboard.tpl', 'admin/community.tpl'] as $f) {
             $src = (string) file_get_contents(self::root() . '/' . $f);
-            $this->assertStringContainsString('nuxrSafeVersion', $src, $f);
-            $this->assertDoesNotMatchRegularExpression('/\.html\(/', $src, "{$f}: no HTML sink");
-            $this->assertDoesNotMatchRegularExpression('/data\.version(?!\))/', preg_replace('/nuxrSafeVersion\(data\.version\)/', '', $src), "{$f}: data.version is only used through nuxrSafeVersion()");
+            $this->assertStringNotContainsString('raw.githubusercontent.com', $src, $f);
+            $this->assertStringNotContainsString('data.version', $src, $f);
         }
-        $dash = (string) file_get_contents(self::root() . '/admin/dashboard.tpl');
-        $this->assertStringContainsString('var latestVersion = nuxrSafeVersion(data.version);', $dash, 'the value that reaches the SweetAlert title is the restricted token');
-        $this->assertStringContainsString('var localVersion = nuxrSafeVersion(data.version);', $dash);
     }
 
     public function testBulkMessageHistoryEscapesEveryValueFromARecord(): void

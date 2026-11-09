@@ -37,7 +37,6 @@ if (file_exists(__DIR__ . '/../config.php')) {
                     Based on: PHPNuxBill <br>
                     Release Date: 30/10/2015<br>
                     Original project by: PHPNuxBill [ <a href="https://github.com/hotspotbilling/phpnuxbill" target="_blank">https://github.com/hotspotbilling/phpnuxbill</a> ]<br>
-                    Donasi Paypal: <b>me@ibnux.et</b><br>
                     <br>
                     <strong>Syarat Penggunaan:</strong><br>
                     Syarat Penggunaan ini berlaku untuk semua versi.<br><br>
