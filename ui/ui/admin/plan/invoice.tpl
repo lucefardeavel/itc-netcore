@@ -1,5 +1,5 @@
 {include file="sections/header.tpl"}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.min.js" integrity="sha512-1g3IT1FdbHZKcBVZzlk4a4m5zLRuBjMFMxub1FeIRvR+rhfqHFld9VFXXBYe66ldBWf+syHHxoZEbZyunH6Idg==" crossorigin="anonymous"></script>
+<script src="{$app_url}/ui/ui/scripts/vendor/jspdf-1.3.4.min.js" integrity="sha512-1g3IT1FdbHZKcBVZzlk4a4m5zLRuBjMFMxub1FeIRvR+rhfqHFld9VFXXBYe66ldBWf+syHHxoZEbZyunH6Idg==" crossorigin="anonymous"></script>
 <div class="row">
     <div class="col-md-6 col-sm-12 col-md-offset-3">
         <div class="panel panel-hovered panel-primary panel-stacked mb30">

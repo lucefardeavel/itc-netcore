@@ -2,3 +2,11 @@
 # SRI integrity that the templates pinned for the CDN copy (scripts/brand/b24_vendor_chartjs.sh).
 chart-3.5.1.min.js  Chart.js 3.5.1 (MIT)  https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js  sha384-zVyRZ9eQ45iRS7ZRZQSFKGJpypyxssU6clBCysSqzjmdGWNn8//uC8dh9DabpAbK
 chartjs-plugin-autocolors-0.5.1.min.js  chartjs-plugin-autocolors 0.5.1 (MIT)  https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors@0.5.1/dist/chartjs-plugin-autocolors.min.js  sha384-vnGRB4CdtZ0nxGdDU8ZknCYFULPqwUgZDuBR0bVo3l1hpTKuOCWykajKvrGGFnyz
+jquery.dataTables-1.11.3.min.css  DataTables 1.11.3 CSS (MIT)  https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css  sha384-kKpyGTkmY+nYEkRda6qauvrYqFNO4csWTLspXM3FCJ89NsU9FhPY5kebmiPqu8B6
+jquery.dataTables-1.11.3.min.js  DataTables 1.11.3 (MIT)  https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js  sha384-Ys7dhgZ13dNQE2uo7PY+FIKiwwu0WNSnKCAOPPNoC9KT+fW+OAh+Ym0z3eiREmpZ
+codemirror-6.65.7.min.css  CodeMirror 6.65.7 (cdnjs version) CSS (MIT)  https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css  sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==
+codemirror-6.65.7.min.js  CodeMirror 6.65.7 (cdnjs version) (MIT)  https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js  sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g==
+codemirror-6.65.7-perl.min.js  CodeMirror 6.65.7 (cdnjs version) perl mode (MIT)  https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/perl/perl.min.js  sha512-bfiAQC23u5SmumF1TtYUaT9WHwgA7WdezcJbHI73GDVA3GaavNtmAKjOmVgCSJsW6sRb5E7T+sxOyY2/do5VXA==
+codemirror-6.65.7-abbott.min.css  CodeMirror 6.65.7 (cdnjs version) abbott theme (MIT)  https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/abbott.min.css  sha512-wmVrx1zhiPOwFCxX7n1aR9vLlXCI3RI0RwizrDSf3/4vEliwboeXwF7HLPZW6k9R6WZt7KCh5fTArAYPyTZ5ag==
+jspdf-1.3.4.min.js  jsPDF 1.3.4 (MIT)  https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.min.js  sha512-1g3IT1FdbHZKcBVZzlk4a4m5zLRuBjMFMxub1FeIRvR+rhfqHFld9VFXXBYe66ldBWf+syHHxoZEbZyunH6Idg==
+jquery-3.6.0.min.js  jQuery 3.6.0 (MIT)  https://code.jquery.com/jquery-3.6.0.min.js  sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK

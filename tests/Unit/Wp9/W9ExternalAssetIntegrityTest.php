@@ -44,7 +44,9 @@ final class W9ExternalAssetIntegrityTest extends TestCase
     public function testEveryExternalScriptAndStylesheetIsPinnedWithIntegrity(): void
     {
         $tags = self::externalTags();
-        $this->assertGreaterThanOrEqual(20, count($tags), 'the scan finds the known external assets');
+        // V1.0.1 vendored the bulk-message, coupons, plan-editor and invoice assets (gate G7); the custom sign-in themes,
+        // the map tiles and the maintenance-page font remain external
+        $this->assertGreaterThanOrEqual(5, count($tags), 'the scan finds the known external assets');
         $bad = [];
         foreach ($tags as [$where, $tag]) {
             preg_match('#\b(?:src|href)\s*=\s*["\']([^"\']+)["\']#i', $tag, $u);

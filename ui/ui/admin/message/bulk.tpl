@@ -1,6 +1,5 @@
 {include file="sections/header.tpl"}
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" integrity="sha384-kKpyGTkmY+nYEkRda6qauvrYqFNO4csWTLspXM3FCJ89NsU9FhPY5kebmiPqu8B6" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha384-3B6NwesSXE7YJlcLI9RpRqGf2p/EgVH8BgoKTaUrmKNDkHPStTQ3EyoYjCGXaOTS" crossorigin="anonymous">
+<link rel="stylesheet" type="text/css" href="{$app_url}/ui/ui/styles/vendor/jquery.dataTables-1.11.3.min.css" integrity="sha384-kKpyGTkmY+nYEkRda6qauvrYqFNO4csWTLspXM3FCJ89NsU9FhPY5kebmiPqu8B6" crossorigin="anonymous">
 
 <div class="row">
     <div class="col-sm-12 col-md-12">
@@ -123,8 +122,9 @@
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" crossorigin="anonymous"></script>
-<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js" integrity="sha384-Ys7dhgZ13dNQE2uo7PY+FIKiwwu0WNSnKCAOPPNoC9KT+fW+OAh+Ym0z3eiREmpZ" crossorigin="anonymous"></script>
+<script src="{$app_url}/ui/ui/scripts/vendor/jquery-3.6.0.min.js" integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" crossorigin="anonymous"></script>
+<script src="{$app_url}/ui/ui/scripts/vendor/jquery.dataTables-1.11.3.min.js" integrity="sha384-Ys7dhgZ13dNQE2uo7PY+FIKiwwu0WNSnKCAOPPNoC9KT+fW+OAh+Ym0z3eiREmpZ" crossorigin="anonymous"></script>
+<script>var nuxrBulkT = { sending: '{Lang::T('Sending batch')|escape:'javascript'}', batchSent: '{Lang::T('Batch sent')|escape:'javascript'}', sent: '{Lang::T('Sent')|escape:'javascript'}', failed: '{Lang::T('Failed')|escape:'javascript'}', allSent: '{Lang::T('All batches sent.')|escape:'javascript'}', unexpected: '{Lang::T('Unexpected answer from the server.')|escape:'javascript'}', batchFailed: '{Lang::T('Sending batch failed')|escape:'javascript'}', starting: '{Lang::T('Starting to send...')|escape:'javascript'}'};</script>
 {literal}
 <script>
     let page = 0;
@@ -169,7 +169,7 @@
             beforeSend: function () {
                 $('#status').html(`
                     <div class="alert alert-info">
-                        <i class="fas fa-spinner fa-spin"></i> Sending batch ${page + 1}...
+                        <i class="fa fa-spinner fa-spin"></i> ${nuxrBulkT.sending} ${page + 1}...
                     </div>
                 `);
             },
@@ -184,7 +184,7 @@
 
                     $('#status').html(`
                         <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i> Batch ${page} sent! (Total Sent: ${totalSent}, Failed: ${totalFailed})
+                            <i class="fa fa-check-circle"></i> ${nuxrBulkT.batchSent} ${page} (${nuxrBulkT.sent}: ${totalSent}, ${nuxrBulkT.failed}: ${totalFailed})
                         </div>
                     `);
 
@@ -207,7 +207,7 @@
                     } else {
                         $('#status').html(`
                             <div class="alert alert-success">
-                                <i class="fas fa-check-circle"></i> All batches sent! Total Sent: ${totalSent}, Failed: ${totalFailed}
+                                <i class="fa fa-check-circle"></i> ${nuxrBulkT.allSent} ${nuxrBulkT.sent}: ${totalSent}, ${nuxrBulkT.failed}: ${totalFailed}
                             </div>
                         `);
                     }
@@ -215,7 +215,7 @@
                     console.error("Unexpected response format:", response);
                     $('#status').html(`
                         <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-circle"></i> Error: Unexpected response format.
+                            <i class="fa fa-exclamation-circle"></i> ${nuxrBulkT.unexpected}
                         </div>
                     `);
                 }
@@ -223,7 +223,7 @@
             error: function () {
                 $('#status').html(`
                     <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle"></i> Error: Failed to send batch ${page + 1}.
+                        <i class="fa fa-exclamation-circle"></i> ${nuxrBulkT.batchFailed} ${page + 1}.
                     </div>
                 `);
             }
@@ -236,7 +236,7 @@
         totalSent = 0;
         totalFailed = 0;
         hasMore = true;
-        $('#status').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Starting bulk message sending...</div>');
+        $('#status').html('<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> ' + nuxrBulkT.starting + '</div>');
         historyTable.clear().draw(); // Clear history table before starting
         sendBatch();
     });

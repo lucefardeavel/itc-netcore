@@ -316,24 +316,24 @@
 {/if}
 
 <script language="javascript" type="text/javascript"
-    src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js" integrity="sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g==" crossorigin="anonymous"></script>
+    src="{$app_url}/ui/ui/scripts/vendor/codemirror-6.65.7.min.js" integrity="sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g==" crossorigin="anonymous"></script>
 <script language="javascript" type="text/javascript"
-    src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/perl/perl.min.js" integrity="sha512-bfiAQC23u5SmumF1TtYUaT9WHwgA7WdezcJbHI73GDVA3GaavNtmAKjOmVgCSJsW6sRb5E7T+sxOyY2/do5VXA==" crossorigin="anonymous"></script>
+    src="{$app_url}/ui/ui/scripts/vendor/codemirror-6.65.7-perl.min.js" integrity="sha512-bfiAQC23u5SmumF1TtYUaT9WHwgA7WdezcJbHI73GDVA3GaavNtmAKjOmVgCSJsW6sRb5E7T+sxOyY2/do5VXA==" crossorigin="anonymous"></script>
 
 <link rel="stylesheet" type="text/css"
-    href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous">
+    href="{$app_url}/ui/ui/styles/vendor/codemirror-6.65.7.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous">
 </link>
 <link rel="stylesheet" type="text/css"
-    href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/abbott.min.css" integrity="sha512-wmVrx1zhiPOwFCxX7n1aR9vLlXCI3RI0RwizrDSf3/4vEliwboeXwF7HLPZW6k9R6WZt7KCh5fTArAYPyTZ5ag==" crossorigin="anonymous">
+    href="{$app_url}/ui/ui/styles/vendor/codemirror-6.65.7-abbott.min.css" integrity="sha512-wmVrx1zhiPOwFCxX7n1aR9vLlXCI3RI0RwizrDSf3/4vEliwboeXwF7HLPZW6k9R6WZt7KCh5fTArAYPyTZ5ag==" crossorigin="anonymous">
 </link>
 
 <script>
-    CodeMirror.fromTextArea(document.getElementById('code'), {
+    document.getElementById('code') && CodeMirror.fromTextArea(document.getElementById('code'), {
         screenReaderLabel: '{Lang::T('on-login / on-up')|escape:'javascript'}', // WP6C: the editor's input gets a name
         lineNumbers: true,
         mode: 'text/x-perl',
     });
-    CodeMirror.fromTextArea(document.getElementById('code2'), {
+    document.getElementById('code2') && CodeMirror.fromTextArea(document.getElementById('code2'), {
         screenReaderLabel: '{Lang::T('on-logout / on-down')|escape:'javascript'}', // WP6C: the editor's input gets a name
         lineNumbers: true,
         mode: 'text/x-perl',

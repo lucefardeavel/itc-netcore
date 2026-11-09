@@ -668,5 +668,13 @@
     "Only_if_resellers_sell_your_plans_": "Only if resellers sell your plans.",
     "optional": "optional",
     "Done": "Done",
-    "Not_done_yet": "Not done yet"
+    "Not_done_yet": "Not done yet",
+    "Sending_batch": "Sending batch",
+    "Batch_sent": "Batch sent",
+    "Sent": "Sent",
+    "Failed": "Failed",
+    "All_batches_sent_": "All batches sent.",
+    "Unexpected_answer_from_the_server_": "Unexpected answer from the server.",
+    "Sending_batch_failed": "Sending batch failed",
+    "Starting_to_send___": "Starting to send..."
 }

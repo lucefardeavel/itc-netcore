@@ -2278,5 +2278,12 @@
   "The_packages_you_sell__speed__period_and_price__": "الباقات التي تبيعها (السرعة والمدة والسعر).",
   "Only_if_resellers_sell_your_plans_": "فقط إذا كان لديك موزّعون يبيعون باقاتك.",
   "Done": "تم",
-  "Not_done_yet": "لم يتم بعد"
+  "Not_done_yet": "لم يتم بعد",
+  "Sending_batch": "جارٍ إرسال الدفعة",
+  "Batch_sent": "أُرسلت الدفعة",
+  "Sent": "أُرسل",
+  "All_batches_sent_": "أُرسلت كل الدفعات.",
+  "Unexpected_answer_from_the_server_": "رد غير متوقع من الخادم.",
+  "Sending_batch_failed": "فشل إرسال الدفعة",
+  "Starting_to_send___": "بدء الإرسال..."
 }

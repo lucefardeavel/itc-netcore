@@ -183,7 +183,7 @@
                         {else} -
                         {/if}
                     </td> -->
-                            <td data-label="{Lang::T('Action')}" colspan="10" style="text-align: center;">
+                            <td data-label="{Lang::T('Action')}" style="text-align: center;">
                                 <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                                     <a href="{Text::url('coupons/edit/', $coupon['id'], '&token=', $csrf_token)}"
                                         id="{$coupon['id']}" class="btn btn-success btn-xs">{Lang::T('Edit')}</a>
@@ -230,7 +230,8 @@
     &nbsp;
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" crossorigin="anonymous"></script>
+<script src="{$app_url}/ui/ui/scripts/vendor/jquery-3.6.0.min.js" integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" crossorigin="anonymous"></script>
+<script src="{$app_url}/ui/ui/scripts/vendor/jquery.dataTables-1.11.3.min.js" integrity="sha384-Ys7dhgZ13dNQE2uo7PY+FIKiwwu0WNSnKCAOPPNoC9KT+fW+OAh+Ym0z3eiREmpZ" crossorigin="anonymous"></script>
 <script>
     function deleteCoupons(couponIds) {
         if (couponIds.length > 0) {
@@ -349,6 +350,7 @@
     const $j = jQuery.noConflict();
 
     $j(document).ready(function() {
+        if ($j('#datatable tbody td[colspan]').length) { return; }
         $j('#datatable').DataTable({
             language: window.nuxrDtLanguage || {},
             "pagingType": "full_numbers",
