@@ -36,7 +36,7 @@ username-and-password hotspot cards. The finance, activation, pricing and resell
   - the sales rep is "مندوب المبيعات" everywhere and the finance menu item is "Sales report";
   - the pricing page explains the provider base cost and reseller selling;
   - clearer page titles; an empty vouchers table says so.
-- **Subscriber portal:** "Your plan" and "Refresh connection" instead of "Radius plan" and "Sync"; Sign in is the main
+- **Subscriber portal:** "Internet package" (باقة الإنترنت) and "Refresh connection" instead of "Radius plan" and "Sync"; Sign in is the main
   button; the show-password button stays inside the field; the unused Order Voucher page (a server error) opens the
   voucher activation.
 - **No request to other sites** from the bulk-message, coupons, plan-editor and invoice pages: their libraries are
@@ -108,7 +108,7 @@ FreeRADIUS must run with the same time zone (`TZ=Asia/Baghdad`).
 
 ## Verification
 
-- Unit suite: 203 tests, 0 failures. It includes a test that compiles every interface template.
+- Unit suite: 204 tests, 0 failures. It includes a test that compiles every interface template.
 - Browser review of 66 pages on desktop and phone on a fresh local instance. The changed pages were checked again
   after the changes.
 - On the local instance:
@@ -118,8 +118,13 @@ FreeRADIUS must run with the same time zone (`TZ=Asia/Baghdad`).
   - RADIUS received the card password for a username-and-password card, and the code for a one-code card;
   - the hotspot sign-in page activated both card kinds and sent the sign-in to a simulated router (CHAP and PAP);
   - as a reseller: provider funding, a new subscriber and an activation from the wallet (20,000 debited, service on).
-- The Docker suites (MariaDB 10.11 and MySQL 8.0) and a real-router (CHR) window are listed in the pre-release notes
-  with their result.
+- Docker suites (MariaDB 10.11 and MySQL 8.0), 1,729 tests on each engine, run at `75440d68`:
+  - 3 failures found and fixed in `2d7e7c9a` (two portal heading assertions, one voucher guard); the affected tests
+    (276) and every source guard and template test (99) were run again on both engines: 0 failures;
+  - 2 tests fail only on the Windows test host and are not code failures: `GuardSelfcheckSourceTest` and
+    `SessionGuardSourceTest` read the file mode, which NTFS reports as 0777 instead of the committed 0755;
+  - the variant registry matched freshly built fixtures.
+- Not yet run: a real-router (MikroTik CHR) window and a real 80 mm printer.
 
 ## Status
 
