@@ -78,7 +78,9 @@ final class FinanceSchemaReadinessTest extends FinanceTestCase
         $this->assertSame(['R0001_manager_tree', 'R0002_pricing_foundation', 'R0003_activation_foundation',
             'R0004_wallet_finance_foundation', 'R0005_customer_ownership', 'R0006_reseller_audit',
             // WP5B (owner decision OD-14 option B): the activation reversal states
-            'R0007_activation_reversal_states'], SchemaReadiness::EXPECTED);
+            'R0007_activation_reversal_states',
+            // V1.0.1 (owner decision 2026-11-09): username-and-password cards
+            'R0008_voucher_logins'], SchemaReadiness::EXPECTED);
         self::resetReadiness();
         $this->assertSame(['ready' => true, 'problems' => []], SchemaReadiness::status());
     }
