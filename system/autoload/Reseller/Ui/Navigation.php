@@ -20,9 +20,9 @@ use Reseller\Security\RouteGuard;
  *
  * No placeholder destinations (owner: prefer hiding until the WP exists). No reseller voucher item.
  *
- * WP6B (owner decision OD-3): Finance / Resellers / Pricing / Operations groups (each item only where its RouteMap
- * rule allows the actor); the Reseller Tree moves from Settings to Resellers; legacy reports are labelled
- * "Transactions (legacy)". Agent phone primary navigation: Home / Customers / + / Wallet / More (Wallet = its own
+ * WP6B (owner decision OD-3): finance, reseller, pricing and operations destinations (each item only where its
+ * RouteMap rule allows the actor). UX 2026-11-09: grouped by daily work (Subscribers, Vouchers and recharge, Plans and
+ * speeds, Resellers and wallets, Reports, Messages, Network, Settings, portal pages, Advanced, Help). Agent phone primary navigation: Home / Customers / + / Wallet / More (Wallet = its own
  * finance overview; an Agent without wallet.read keeps the WP6A navigation). Sales / Admin / Report primary unchanged.
  */
 final class Navigation
@@ -43,90 +43,85 @@ final class Navigation
         $radius = !empty($config['radius_enable']);
 
         $groups = [];
+        // UX 2026-11-09 (owner: simple and clear): groups follow the operator's daily work; technical pages are under
+        // Advanced. Every item keeps its route and RouteMap rule; only grouping and labels changed.
         $groups[] = self::group('subscribers', 'Subscribers', 'fa-users', $a, $current, [
             ['customers/list', 'All subscribers', 'fa-list', true, ['customers/list', 'customers/view', 'customers/edit', 'customers']],
-            ['activation/list', 'Activations', 'fa-bolt', true, ['activation/list', 'activation/view', 'activation/create', 'activation']],
             ['customers/add', 'Add subscriber', 'fa-user-plus', true, ['customers/add']],
-            ['plan/list', 'Active Customers', 'fa-signal', true],
+            ['activation/list', 'Activations and renewals', 'fa-bolt', true, ['activation/list', 'activation/view', 'activation/create', 'activation']],
+            ['plan/list', 'Active subscriptions', 'fa-signal', true],
+            ['operations/overview', 'Follow-up center', 'fa-stethoscope', $admin, ['operations/overview', 'operations', 'operations/activations', 'operations/drift', 'operations/held', 'operations/renewals']],
+            ['maps/customer', 'Subscribers map', 'fa-map-marker', true],
         ], 'CUSTOMERS', 'AFTER_CUSTOMERS');
-        $groups[] = self::group('finance', 'Finance', 'fa-credit-card', $a, $current, [
+        if ($role !== 'Report') {
+            $groups[] = self::group('services', 'Vouchers and recharge', 'fa-ticket', $a, $current, [
+                ['plan/voucher', 'Vouchers', 'fa-ticket', $voucher],
+                ['plan/refill', 'Recharge with a voucher', 'fa-credit-card', $voucher],
+                ['plan/recharge', 'Recharge a subscription', 'fa-refresh', true],
+                ['coupons', 'Coupons', 'fa-tag', $on('enable_coupons')],
+                ['plan/deposit', 'Refill Balance', 'fa-money', $on('enable_balance')],
+            ], 'SERVICES', 'AFTER_SERVICES');
+        }
+        $groups[] = self::group('plans', 'Plans and speeds', 'fa-cube', $a, $current, [
+            ['services/hotspot', 'Hotspot plans', 'fa-wifi', $admin],
+            ['services/pppoe', 'PPPoE plans', 'fa-plug', $admin],
+            ['services/vpn', 'VPN plans', 'fa-lock', $admin],
+            ['bandwidth/list', 'Speeds', 'fa-tachometer', $admin],
+            ['pricing/plans', 'Prices for resellers', 'fa-tags', true, ['pricing/plans', 'pricing', 'pricing/plan', 'pricing/catalog']],
+            ['services/balance', 'Customer Balance', 'fa-money', $admin && $on('enable_balance')],
+        ], 'PLANS', 'AFTER_PLANS');
+        $groups[] = self::group('finance', 'Resellers and wallets', 'fa-sitemap', $a, $current, [
+            ['reseller/tree', 'Reseller Tree', 'fa-sitemap', true, ['reseller/tree', 'reseller', 'reseller/detail']],
             ['finance/overview', 'Wallet overview', 'fa-credit-card', true, ['finance/overview', 'finance', 'finance/wallet', 'finance/funding', 'finance/send', 'finance/debt-limit', 'finance/adjust']],
             ['finance/wallets', 'Wallets', 'fa-list', $admin || self::hasChildren($a)],
             ['finance/ledger', 'Ledger', 'fa-book', !$admin, ['finance/ledger', 'finance/entry']], // a global viewer opens a ledger from a wallet
             ['finance/transfers', 'Transfers', 'fa-exchange', true, ['finance/transfers', 'finance/transfer', 'finance/reverse']],
         ], null, null);
-        $groups[] = self::group('resellers', 'Resellers', 'fa-sitemap', $a, $current, [
-            ['reseller/tree', 'Reseller Tree', 'fa-sitemap', true, ['reseller/tree', 'reseller', 'reseller/detail']],
-        ], null, null);
-        $groups[] = self::group('pricing', 'Pricing', 'fa-tags', $a, $current, [
-            ['pricing/plans', 'Plans and prices', 'fa-tags', true, ['pricing/plans', 'pricing', 'pricing/plan', 'pricing/catalog']],
-        ], null, null);
-        $groups[] = self::group('operations', 'Operations', 'fa-stethoscope', $a, $current, [
-            ['operations/overview', 'Operations Center', 'fa-stethoscope', $admin, ['operations/overview', 'operations', 'operations/activations', 'operations/drift', 'operations/held', 'operations/renewals']],
-        ], null, null);
-        if ($role !== 'Report') {
-            $groups[] = self::group('services', 'Services', 'fa-ticket', $a, $current, [
-                ['plan/refill', 'Refill Customer', 'fa-credit-card', $voucher],
-                ['plan/voucher', 'Vouchers', 'fa-ticket', $voucher],
-                ['coupons', 'Coupons', 'fa-tag', $on('enable_coupons')],
-                ['plan/recharge', 'Recharge Customer', 'fa-refresh', true],
-                ['plan/deposit', 'Refill Balance', 'fa-money', $on('enable_balance')],
-            ], 'SERVICES', 'AFTER_SERVICES');
-        }
-        $groups[] = self::group('plans', 'Internet Plan', 'fa-cube', $a, $current, [
-            ['services/hotspot', 'Hotspot', 'fa-wifi', $admin],
-            ['services/pppoe', 'PPPOE', 'fa-plug', $admin],
-            ['services/vpn', 'VPN', 'fa-lock', $admin],
-            ['bandwidth/list', 'Bandwidth', 'fa-tachometer', $admin],
-            ['services/balance', 'Customer Balance', 'fa-money', $admin && $on('enable_balance')],
-        ], 'PLANS', 'AFTER_PLANS');
-        $groups[] = self::group('maps', 'Maps', 'fa-map-marker', $a, $current, [
-            ['maps/customer', 'Customer', 'fa-user', true],
-            ['maps/routers', 'Routers', 'fa-server', true],
-            ['maps/odp', 'ODPs', 'fa-sitemap', true],
-        ], 'MAPS', null);
         $groups[] = self::group('reports', 'Reports', 'fa-bar-chart', $a, $current, [
             ['finance/sales', 'Sales', 'fa-line-chart', true],
             ['finance/commissions', 'Commissions', 'fa-percent', true],
             ['finance/settlement', 'Provider settlement', 'fa-balance-scale', $admin],
             ['finance/performance', 'Reseller performance', 'fa-trophy', true],
-            ['reports', 'Transactions (legacy)', 'fa-calendar', true],
-            ['reports/activation', 'Activation History (legacy)', 'fa-history', true],
+            ['reports', 'Transactions log', 'fa-calendar', true],
+            ['reports/activation', 'Activation log', 'fa-history', true],
         ], 'REPORTS', 'AFTER_REPORTS');
-        $groups[] = self::group('message', 'Send Message', 'fa-comments', $a, $current, [
-            ['message/send', 'Single Customer', 'fa-comment', true],
-            ['message/send_bulk', 'Bulk Customers', 'fa-bullhorn', true],
+        $groups[] = self::group('message', 'Messages', 'fa-comments', $a, $current, [
+            ['message/send', 'Message to one subscriber', 'fa-comment', true],
+            ['message/send_bulk', 'Message to many subscribers', 'fa-bullhorn', true],
+            ['settings/notifications', 'Automatic message texts', 'fa-bell', $admin],
+            ['settings/app&open=WhatsappNotification', 'Connect WhatsApp and SMS', 'fa-whatsapp', $admin, []],
         ], 'MESSAGE', 'AFTER_MESSAGE');
-        $groups[] = self::group('network', 'Network', 'fa-sitemap', $a, $current, [
+        $groups[] = self::group('network', 'Network', 'fa-server', $a, $current, [
             ['routers', 'Routers', 'fa-server', $admin],
+            ['radius/nas-list', 'NAS devices (RADIUS)', 'fa-database', $admin && $radius],
             ['pool/list', 'IP Pool', 'fa-database', $admin],
-            ['pool/port', 'Port Pool', 'fa-random', $admin],
-            ['odp', 'ODP List', 'fa-share-alt', $admin],
-            ['radius/nas-list', 'Radius NAS', 'fa-database', $admin && $radius],
+            ['odp', 'Distribution points (ODP)', 'fa-share-alt', $admin],
+            ['maps/routers', 'Routers map', 'fa-map-o', true],
+            ['maps/odp', 'Distribution points map', 'fa-map-o', true],
         ], 'NETWORK', 'AFTER_NETWORKS');
-        $groups[] = self::group('pages', 'Static Pages', 'fa-file-text-o', $a, $current, array_map(
+        $groups[] = self::group('settings', 'Settings', 'fa-cog', $a, $current, [
+            ['settings/app', 'General Settings', 'fa-sliders', $admin],
+            ['settings/localisation', 'Language, time and currency', 'fa-globe', $admin],
+            ['settings/users', 'Users and permissions', 'fa-user-secret', in_array($role, ['SuperAdmin', 'Admin', 'Agent'], true)],
+            ['paymentgateway', 'Payment Gateway', 'fa-credit-card', $admin],
+            ['settings/dbstatus', 'Backup/Restore', 'fa-hdd-o', $admin],
+        ], 'SETTINGS', 'AFTER_SETTINGS');
+        $groups[] = self::group('pages', 'Subscriber portal pages', 'fa-file-text-o', $a, $current, array_map(
             static fn(array $p): array => ['pages/' . $p[0], $p[1], 'fa-file-o', $admin],
             [['Order_Voucher', 'Order Voucher'], ['Voucher', 'Theme Voucher'], ['Announcement', 'Announcement'], ['Announcement_Customer', 'Customer Announcement'],
                 ['Registration_Info', 'Registration Info'], ['Payment_Info', 'Payment Info'], ['Privacy_Policy', 'Privacy Policy'], ['Terms_and_Conditions', 'Terms and Conditions']]
         ), 'PAGES', 'AFTER_PAGES');
-        $groups[] = self::group('settings', 'Settings', 'fa-cog', $a, $current, [
-            ['settings/app', 'General Settings', 'fa-sliders', $admin],
-            ['settings/localisation', 'Localisation', 'fa-globe', $admin],
+        $groups[] = self::group('advanced', 'Advanced', 'fa-wrench', $a, $current, [
+            ['widgets', 'Dashboard widgets', 'fa-th-large', $admin],
             ['customfield', 'Custom Fields', 'fa-list-alt', $admin],
             ['settings/miscellaneous', 'Miscellaneous', 'fa-wrench', $admin],
             ['settings/maintenance', 'Maintenance Mode', 'fa-exclamation-triangle', $admin],
-            ['widgets', 'Widgets', 'fa-th-large', $admin],
-            ['settings/notifications', 'User Notification', 'fa-bell', $admin],
-            ['settings/devices', 'Devices', 'fa-mobile', $admin],
-            ['settings/users', 'Administrator Users', 'fa-user-secret', in_array($role, ['SuperAdmin', 'Admin', 'Agent'], true)],
-            ['settings/dbstatus', 'Backup/Restore', 'fa-hdd-o', $admin],
-            ['paymentgateway', 'Payment Gateway', 'fa-credit-card', $admin],
+            ['settings/devices', 'Device types', 'fa-mobile', $admin],
+            ['pool/port', 'Port Pool', 'fa-random', $admin],
             ['pluginmanager', 'Plugin Manager', 'fa-puzzle-piece', $admin],
-        ], 'SETTINGS', 'AFTER_SETTINGS');
-        $groups[] = self::group('logs', 'Logs', 'fa-clock-o', $a, $current, [
-            ['logs/phpnuxbill', Brand::NAME, 'fa-file-text', $admin],  // route name unchanged (internal)
-            ['logs/radius', 'Radius', 'fa-file-text', $admin && $radius],
-            ['logs/message', 'Message', 'fa-file-text', $admin],
+            ['logs/phpnuxbill', 'System log', 'fa-file-text', $admin],  // route name unchanged (internal)
+            ['logs/radius', 'RADIUS log', 'fa-file-text', $admin && $radius],
+            ['logs/message', 'Message log', 'fa-file-text', $admin],
         ], 'LOGS', 'AFTER_LOGS');
         $groups[] = self::group('help', 'Help', 'fa-question-circle', $a, $current, [
             ['settings/docs', 'Documentation', 'fa-book', $admin],
@@ -174,40 +169,40 @@ final class Navigation
         'finance/debt-limit' => [['finance/wallet/{2}'], 'Wallet'],
         'finance/adjust' => [['finance/wallet/{2}'], 'Wallet'],
         'finance/reverse' => [['finance/transfer/{2}'], 'Transfer'],
-        'pricing/plan' => [['pricing/plans'], 'Pricing'],
-        'pricing/catalog' => [['pricing/plans'], 'Pricing'],
+        'pricing/plan' => [['pricing/plans'], 'Prices for resellers'],
+        'pricing/catalog' => [['pricing/plans'], 'Prices for resellers'],
         'reseller/detail' => [['reseller/tree'], 'Reseller Tree'],
-        'operations/activations' => [['operations/overview'], 'Operations'],
-        'operations/held' => [['operations/overview'], 'Operations'],
-        'operations/renewals' => [['operations/overview'], 'Operations'],
-        'operations/drift' => [['operations/overview'], 'Operations'],
-        'plan/edit' => [['plan/list'], 'Active Customers'],
+        'operations/activations' => [['operations/overview'], 'Follow-up center'],
+        'operations/held' => [['operations/overview'], 'Follow-up center'],
+        'operations/renewals' => [['operations/overview'], 'Follow-up center'],
+        'operations/drift' => [['operations/overview'], 'Follow-up center'],
+        'plan/edit' => [['plan/list'], 'Active subscriptions'],
         'plan/voucher-view' => [['plan/voucher'], 'Vouchers'],
         'plan/add-voucher' => [['plan/voucher'], 'Vouchers'],
-        'settings/users-view' => [['settings/users'], 'Administrator Users'],
-        'settings/users-edit' => [['settings/users-view/{2}', 'settings/users'], 'Administrator Users'],
-        'settings/users-add' => [['settings/users'], 'Administrator Users'],
+        'settings/users-view' => [['settings/users'], 'Users and permissions'],
+        'settings/users-edit' => [['settings/users-view/{2}', 'settings/users'], 'Users and permissions'],
+        'settings/users-add' => [['settings/users'], 'Users and permissions'],
         'settings/change-password' => [['dashboard'], 'Home'],
-        'services/edit' => [['services/hotspot'], 'Hotspot'],
-        'services/add' => [['services/hotspot'], 'Hotspot'],
-        'services/pppoe-edit' => [['services/pppoe'], 'PPPOE'],
-        'services/pppoe-add' => [['services/pppoe'], 'PPPOE'],
-        'services/vpn-edit' => [['services/vpn'], 'VPN'],
-        'services/vpn-add' => [['services/vpn'], 'VPN'],
+        'services/edit' => [['services/hotspot'], 'Hotspot plans'],
+        'services/add' => [['services/hotspot'], 'Hotspot plans'],
+        'services/pppoe-edit' => [['services/pppoe'], 'PPPoE plans'],
+        'services/pppoe-add' => [['services/pppoe'], 'PPPoE plans'],
+        'services/vpn-edit' => [['services/vpn'], 'VPN plans'],
+        'services/vpn-add' => [['services/vpn'], 'VPN plans'],
         'services/balance-edit' => [['services/balance'], 'Customer Balance'],
         'services/balance-add' => [['services/balance'], 'Customer Balance'],
-        'bandwidth/edit' => [['bandwidth/list'], 'Bandwidth'],
-        'bandwidth/add' => [['bandwidth/list'], 'Bandwidth'],
+        'bandwidth/edit' => [['bandwidth/list'], 'Speeds'],
+        'bandwidth/add' => [['bandwidth/list'], 'Speeds'],
         'routers/edit' => [['routers'], 'Routers'],
         'routers/add' => [['routers'], 'Routers'],
         'pool/edit' => [['pool/list'], 'IP Pool'],
         'pool/add' => [['pool/list'], 'IP Pool'],
         'pool/port-edit' => [['pool/port'], 'Port Pool'],
         'pool/port-add' => [['pool/port'], 'Port Pool'],
-        'odp/edit' => [['odp'], 'ODP List'],
-        'odp/add' => [['odp'], 'ODP List'],
-        'radius/nas-edit' => [['radius/nas-list'], 'Radius NAS'],
-        'radius/nas-add' => [['radius/nas-list'], 'Radius NAS'],
+        'odp/edit' => [['odp'], 'Distribution points (ODP)'],
+        'odp/add' => [['odp'], 'Distribution points (ODP)'],
+        'radius/nas-edit' => [['radius/nas-list'], 'NAS devices (RADIUS)'],
+        'radius/nas-add' => [['radius/nas-list'], 'NAS devices (RADIUS)'],
         'coupons/edit' => [['coupons'], 'Coupons'],
         'coupons/add' => [['coupons'], 'Coupons'],
     ];

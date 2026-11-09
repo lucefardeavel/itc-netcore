@@ -350,6 +350,7 @@
 
     $j(document).ready(function() {
         $j('#datatable').DataTable({
+            language: window.nuxrDtLanguage || {},
             "pagingType": "full_numbers",
             "order": [
                 [1, 'desc']

@@ -134,6 +134,7 @@
 
     // Initialize DataTable
     let historyTable = $('#historyTable').DataTable({
+        language: window.nuxrDtLanguage || {},
         paging: true,
         searching: true,
         ordering: true,

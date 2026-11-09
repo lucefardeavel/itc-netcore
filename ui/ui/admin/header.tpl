@@ -51,6 +51,13 @@
 </head>
 
 <body class="hold-transition nuxr-shell{if $_kolaps} nuxr-collapsed{/if}">
+    {* UX 2026-11-09: table controls (DataTables) in the interface language; pages pass it as the "language" option *}
+    <script>
+        window.nuxrDtLanguage = (document.documentElement.lang || '').indexOf('ar') === 0 ? {
+            search: 'بحث:', lengthMenu: 'عرض _MENU_ سجل', info: 'السجلات _START_ إلى _END_ من _TOTAL_', infoEmpty: 'لا توجد سجلات',
+            infoFiltered: '(من أصل _MAX_)', zeroRecords: 'لا توجد نتائج مطابقة', emptyTable: 'لا توجد بيانات', loadingRecords: 'جارٍ التحميل…',
+            processing: 'جارٍ المعالجة…', paginate: { first: 'الأولى', last: 'الأخيرة', next: 'التالية', previous: 'السابقة' } } : {};
+    </script>
     {* brand: the saved theme applies before the first paint (no light flash; same localStorage key as nuxr-shell.js) *}
     <script>try { if (localStorage.getItem('mode') === 'dark') { document.body.classList.add('dark-mode'); } } catch (e) { }</script>
     <a class="nuxr-skip" href="#nuxr-main">{Lang::T('Skip to content')}</a>

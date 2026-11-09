@@ -29,6 +29,8 @@
         });
         window.addEventListener('load', function () {
             var h = (location.hash || '').replace('#', '');
+            var q = (new URLSearchParams(location.search)).get('open') || '';
+            if (/^[A-Za-z]+$/.test(q)) { h = q; }
             if (h) { openPanel('collapse' + h); }
         });
     })();

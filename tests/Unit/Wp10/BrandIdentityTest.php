@@ -116,7 +116,7 @@ final class BrandIdentityTest extends TestCase
         foreach (['install/freeradius/sites-available/phpnuxbill', 'install/freeradius/dictionary.phpnuxbill', 'ui/ui/styles/phpnuxbill.css'] as $f) {
             $this->assertFileExists($root . '/' . $f);
         }
-        $this->assertStringContainsString("['logs/phpnuxbill', Brand::NAME,", self::read('system/autoload/Reseller/Ui/Navigation.php'), 'route name unchanged');
+        $this->assertStringContainsString("['logs/phpnuxbill', 'System log',", self::read('system/autoload/Reseller/Ui/Navigation.php'), 'route name unchanged');
         $this->assertStringContainsString('"name": "hotspotbilling/phpnuxbill"', self::read('composer.json'));
         // no business, security, RADIUS or finance code reads the presentation identity
         foreach (['Finance', 'Radius', 'Activation', 'Security', 'Domain', 'Audit', 'Pricing'] as $ns) {
