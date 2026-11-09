@@ -9,7 +9,7 @@
 
 **ISP Management & Billing Platform** · <span dir="rtl" lang="ar">منصة إدارة وفوترة مزوّدي خدمة الإنترنت</span>
 
-**V1.0 Release Candidate** · developed and maintained by **ITC** · not yet production-accepted
+**V1.0.1 Release Candidate 3** (`v1.0.1-rc.3`) · developed and maintained by **ITC** · not yet production-accepted
 
 ITC – Integrated Technology Company · [www.itc-iq.net](https://www.itc-iq.net)
 
@@ -18,7 +18,7 @@ ITC – Integrated Technology Company · [www.itc-iq.net](https://www.itc-iq.net
 </div>
 
 > [!IMPORTANT]
-> **ITC NetCore V1.0 is a Release Candidate. It is not production-accepted.** The lab verdict is
+> **ITC NetCore V1.0.1 is a Release Candidate. It is not production-accepted.** The lab verdict is
 > `LAB_ACCEPTED_WITH_LIMITATIONS` and the release state is `RELEASE_BLOCKED_WITH_EVIDENCE`: the target-environment
 > acceptance tests have not been run, and the legal review (LIC-1) is `BLOCKED — COUNSEL REQUIRED`.
 > See [Release status](#release-status).
@@ -40,7 +40,7 @@ ITC – Integrated Technology Company · [www.itc-iq.net](https://www.itc-iq.net
 - **حصص البيانات:** يُفصل الاستخدام الفعلي عن الاستخدام المحتسب؛ والتجاوز لا يُحتسب ولا يُرحَّل. الإنفاذ **محدود الدقة وليس دقيقاً بالبايت**، ولا يجوز تسويقه على أنه حدّ دقيق بالبايت.
 - **القسائم والتقارير:** قسائم برموز مُقنّعة في الواجهة واسترداد لمرة واحدة، وتقارير المعاملات وسجل التفعيلات وكشوف المحافظ.
 
-**حالة الإصدار:** <bdi>V1.0</bdi> إصدار مرشّح (<bdi>Release Candidate</bdi>) لم يُقبل بعد للإنتاج. اجتاز اختبارات المختبر المعزول فقط؛ ولم تُجرَ اختبارات البيئة المستهدفة (<bdi>staging</bdi>)؛ وحالة المراجعة القانونية <bdi>LIC-1</bdi> هي <bdi>`BLOCKED — COUNSEL REQUIRED`</bdi>.
+**حالة الإصدار:** <bdi>V1.0.1</bdi> إصدار مرشّح (<bdi>Release Candidate</bdi>) لم يُقبل بعد للإنتاج. اجتاز اختبارات المختبر المعزول فقط؛ ولم تُجرَ اختبارات البيئة المستهدفة (<bdi>staging</bdi>)؛ وحالة المراجعة القانونية <bdi>LIC-1</bdi> هي <bdi>`BLOCKED — COUNSEL REQUIRED`</bdi>.
 
 **التثبيت الأول** تثبيت جديد على قاعدة بيانات جديدة فارغة، بحزمة التثبيت الجديد [`install/fresh/`](install/fresh/). راجع [دليل التثبيت](docs/guides/install/) و[دليل <bdi>MikroTik</bdi> و<bdi>FreeRADIUS</bdi>](docs/guides/radius-mikrotik/) و[الملف التعريفي للمنتج](docs/guides/product-profile/) و[فهرس الوثائق](docs/README.md).
 
